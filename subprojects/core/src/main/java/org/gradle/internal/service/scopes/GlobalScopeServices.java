@@ -55,6 +55,7 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
@@ -66,6 +67,8 @@ import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -81,6 +84,7 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -170,8 +174,24 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return environment;
     }
 
-    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
-        return new DefaultCommandLineConverter();
+    BuildLayoutParametersBuildOptionFactory createBuildLayoutParametersBuildOptionFactory() {
+        return new BuildLayoutParametersBuildOptionFactory();
+    }
+
+    StartParameterBuildOptionFactory createStartParameterBuildOptionFactory() {
+        return new StartParameterBuildOptionFactory();
+    }
+
+    ParallelismBuildOptionFactory createParallelismBuildOptionFactory() {
+        return new ParallelismBuildOptionFactory();
+    }
+
+    LoggingConfigurationBuildOptionFactory createLoggingConfigurationBuildOptionFactory() {
+        return new LoggingConfigurationBuildOptionFactory();
+    }
+
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        return new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory);
     }
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {

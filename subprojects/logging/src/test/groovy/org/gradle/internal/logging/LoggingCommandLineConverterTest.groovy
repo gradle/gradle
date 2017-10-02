@@ -23,7 +23,7 @@ import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {
-    final LoggingCommandLineConverter converter = new LoggingCommandLineConverter()
+    final LoggingCommandLineConverter converter = new LoggingCommandLineConverter(new LoggingConfigurationBuildOptionFactory())
     final LoggingConfiguration expectedConfig = new DefaultLoggingConfiguration()
 
     def convertsEmptyArgs() {

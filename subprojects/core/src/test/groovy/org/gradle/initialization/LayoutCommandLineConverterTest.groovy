@@ -20,12 +20,13 @@ import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 import static org.gradle.internal.FileUtils.canonicalize
 
 class LayoutCommandLineConverterTest extends Specification {
 
-    def converter = new LayoutCommandLineConverter()
+    @Subject def converter = new LayoutCommandLineConverter(new BuildLayoutParametersBuildOptionFactory())
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def convert(String... args) {

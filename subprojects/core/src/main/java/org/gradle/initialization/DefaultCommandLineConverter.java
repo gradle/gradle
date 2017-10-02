@@ -29,6 +29,7 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -38,15 +39,18 @@ import java.util.Map;
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
-    private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
-    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
+    private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter;
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter;
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
+    private final List<BuildOption<StartParameter>> buildOptions;
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
-    public DefaultCommandLineConverter() {
-        layoutCommandLineConverter = new LayoutCommandLineConverter();
+    public DefaultCommandLineConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter(parallelismBuildOptionFactory);
+        loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter(loggingConfigurationBuildOptionFactory);
+        layoutCommandLineConverter = new LayoutCommandLineConverter(buildLayoutParametersBuildOptionFactory);
+        buildOptions = startParameterBuildOptionFactory.create();
     }
 
     public void configure(CommandLineParser parser) {

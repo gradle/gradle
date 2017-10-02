@@ -32,14 +32,15 @@ import java.util.List;
 import java.util.Set;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
-    private final List<BuildOption<LoggingConfiguration>> buildOptions = new LoggingConfigurationBuildOptionFactory().create();
+    private final List<BuildOption<LoggingConfiguration>> buildOptions;
     public static final String DEBUG = LoggingConfigurationBuildOptionFactory.LogLevelOption.DEBUG_SHORT_OPTION;
     public static final String WARN = LoggingConfigurationBuildOptionFactory.LogLevelOption.WARN_SHORT_OPTION;
     public static final String INFO = LoggingConfigurationBuildOptionFactory.LogLevelOption.INFO_SHORT_OPTION;
     public static final String QUIET = LoggingConfigurationBuildOptionFactory.LogLevelOption.QUIET_SHORT_OPTION;
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
 
-    public LoggingCommandLineConverter() {
+    public LoggingCommandLineConverter(LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        buildOptions = loggingConfigurationBuildOptionFactory.create();
         logLevelMap.put(QUIET, LogLevel.QUIET);
         logLevelMap.put(WARN, LogLevel.WARN);
         logLevelMap.put(INFO, LogLevel.INFO);

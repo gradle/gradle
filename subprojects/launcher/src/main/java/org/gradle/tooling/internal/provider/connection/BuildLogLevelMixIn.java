@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,7 @@ public class BuildLogLevelMixIn {
     }
 
     public LogLevel getBuildLogLevel() {
-        LoggingCommandLineConverter converter = new LoggingCommandLineConverter();
+        LoggingCommandLineConverter converter = new LoggingCommandLineConverter(new LoggingConfigurationBuildOptionFactory());
         CommandLineParser parser = new CommandLineParser().allowUnknownOptions().allowMixedSubcommandsAndOptions();
         converter.configure(parser);
         List<String> arguments = parameters.getArguments();

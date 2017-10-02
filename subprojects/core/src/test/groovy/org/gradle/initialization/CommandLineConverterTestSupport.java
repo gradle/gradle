@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.WrapUtil;
 
@@ -56,7 +57,7 @@ public class CommandLineConverterTestSupport {
     protected File expectedProjectCacheDir;
     protected boolean expectedRefreshDependencies;
     protected boolean expectedRerunTasks;
-    protected final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
+    protected final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter(new BuildLayoutParametersBuildOptionFactory(), new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory(), new LoggingConfigurationBuildOptionFactory());
     protected boolean expectedContinue;
     protected boolean expectedOffline;
     protected boolean expectedRecompileScripts;

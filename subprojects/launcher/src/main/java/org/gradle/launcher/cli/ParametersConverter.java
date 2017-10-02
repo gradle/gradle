@@ -16,13 +16,22 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.cli.*;
+import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.HashMap;
@@ -57,14 +66,14 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
     }
 
-    public ParametersConverter() {
-        this(new LayoutCommandLineConverter(),
+    public ParametersConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        this(new LayoutCommandLineConverter(buildLayoutParametersBuildOptionFactory),
             new SystemPropertiesCommandLineConverter(),
-            new LayoutToPropertiesConverter(),
-            new PropertiesToStartParameterConverter(),
-            new DefaultCommandLineConverter(),
-            new DaemonCommandLineConverter(),
-            new PropertiesToDaemonParametersConverter());
+            new LayoutToPropertiesConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory, loggingConfigurationBuildOptionFactory),
+            new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory),
+            new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory),
+            new DaemonCommandLineConverter(daemonBuildOptionFactory),
+            new PropertiesToDaemonParametersConverter(daemonBuildOptionFactory));
     }
 
     @Override
