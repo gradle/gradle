@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -32,7 +33,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        assertPrintsForbiddenCharacterDeprecationMessage('this::is::a::namespace')
+        assertPrintsForbiddenCharacterDeprecationMessage('project name', 'this::is::a::namespace',
+            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
     def "subproject names should not contain forbidden characters"() {
@@ -44,8 +46,9 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        assertPrintsForbiddenCharacterDeprecationMessage('name with spaces')
-     }
+        assertPrintsForbiddenCharacterDeprecationMessage('project name', 'name with spaces',
+            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
+    }
 
     def "task names should not contain forbidden characters"() {
         given:
@@ -56,7 +59,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'this/is/a/hierarchy'
 
         then:
-        assertPrintsForbiddenCharacterDeprecationMessage("this/is/a/hierarchy")
+        assertPrintsForbiddenCharacterDeprecationMessage('task name',"this/is/a/hierarchy")
     }
 
     def "configuration names should not contain forbidden characters"() {
@@ -68,7 +71,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        assertPrintsForbiddenCharacterDeprecationMessage("some/really.\\strange name:")
+        assertPrintsForbiddenCharacterDeprecationMessage('name', "some/really.\\strange name:")
     }
 
     def "project names should not contain start with ."() {
@@ -81,7 +84,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.problematic-name')
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('project name', '.problematic-name',
+            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
     def "project names should not end with ."() {
@@ -94,7 +98,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('problematic-name.')
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('project name', 'problematic-name.',
+            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
     def "does not assign an invalid project name from folder names"() {
@@ -109,7 +114,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         //output.contains("_folder__name")
-        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.folder  name')
+        assertPrintsForbiddenCharacterDeprecationMessage('project name', '.folder  name',
+            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
     def "does not print deprecation warning when project name overrides an invalid folder name"() {
@@ -139,14 +145,14 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         //output.contains("_folder__name_")
-        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.folder: name.')
+        assertPrintsForbiddenCharacterDeprecationMessage('project name','.folder: name.')
     }
 
-    void assertPrintsForbiddenCharacterDeprecationMessage(String deprecatedName) {
-        output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
+    void assertPrintsForbiddenCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
+        assert output.contains("The $nameDescription '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
     }
 
-    void assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String deprecatedName) {
-        output.contains("The name '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0")
+    void assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
+        assert output.contains("The $nameDescription '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
     }
 }

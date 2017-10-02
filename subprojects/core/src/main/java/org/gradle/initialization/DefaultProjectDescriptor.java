@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
@@ -31,6 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
+    public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
+        + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details)";
 
     private static final String BUILD_SCRIPT_BASENAME = "build";
 
@@ -87,7 +91,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setName(String name) {
-        NameValidator.validate(name);
+        NameValidator.validate(name, "project name",
+            INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
     }
