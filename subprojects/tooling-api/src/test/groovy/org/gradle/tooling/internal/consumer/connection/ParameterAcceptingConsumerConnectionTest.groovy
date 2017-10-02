@@ -33,7 +33,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
-import org.gradle.tooling.internal.protocol.InternalCancellableConnectionVersion2
+import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
 import org.gradle.tooling.internal.protocol.StoppableConnection
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection
@@ -48,7 +48,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
-class ParameterCancellableConsumerConnectionTest extends Specification {
+class ParameterAcceptingConsumerConnectionTest extends Specification {
     // Tests in this class are based on tests of class CancellableConsumerConnectionTest
 
     final target = Mock(TestModelBuilder) {
@@ -58,7 +58,7 @@ class ParameterCancellableConsumerConnectionTest extends Specification {
     }
     final adapter = Mock(ProtocolToModelAdapter)
     final modelMapping = Mock(ModelMapping)
-    final connection = new ParameterCancellableConsumerConnection(target, modelMapping, adapter)
+    final connection = new ParameterAcceptingConsumerConnection(target, modelMapping, adapter)
 
     def "describes capabilities of provider"() {
         given:
@@ -138,7 +138,7 @@ class ParameterCancellableConsumerConnectionTest extends Specification {
         1 * target.run({it instanceof InternalBuildActionVersion2}, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
     }
 
-    interface TestModelBuilder extends ConnectionVersion4, ConfigurableConnection, InternalCancellableConnectionVersion2, InternalTestExecutionConnection, StoppableConnection,
+    interface TestModelBuilder extends ConnectionVersion4, ConfigurableConnection, InternalParameterAcceptingConnection, InternalTestExecutionConnection, StoppableConnection,
         InternalCancellableConnection {
     }
 

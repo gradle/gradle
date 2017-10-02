@@ -17,23 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParameters;
-import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
-
-import java.io.File;
 
 /**
  * An adapter for {@link InternalCancellableConnection}.
@@ -48,22 +36,11 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         super(delegate, VersionDetails.from(delegate.getMetaData().getVersion()));
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
         final InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
-        InternalCancellableConnectionWrapper connectionWrapper = new InternalCancellableConnectionWrapper() {
-            @Override
-            public <T> BuildResult<T> run(InternalBuildActionAdapter<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters) {
-                return connection.run(action, cancellationToken, operationParameters);
-            }
-
-            @Override
-            public BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) {
-                return connection.getModel(modelIdentifier, cancellationToken, operationParameters);
-            }
-        };
-        modelProducer = createModelProducer(connectionWrapper, modelMapping, adapter, exceptionTransformer);
-        actionRunner = new CancellableActionRunner(connectionWrapper, exceptionTransformer, getVersionDetails());
+        modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
+        actionRunner = new CancellableActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
-    ModelProducer createModelProducer(InternalCancellableConnectionWrapper connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+    private ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         return new PluginClasspathInjectionSupportedCheckModelProducer(
             getVersionDetails().getVersion(),
             new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer)
@@ -78,54 +55,5 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     @Override
     protected ModelProducer getModelProducer() {
         return modelProducer;
-    }
-
-    protected static class ExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
-        public RuntimeException transform(RuntimeException e) {
-            for (Throwable t = e; t != null; t = t.getCause()) {
-                if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
-                    || "org.gradle.tooling.BuildCancelledException".equals(t.getClass().getName())) {
-                    return new InternalBuildCancelledException(e.getCause());
-                }
-            }
-            return e;
-        }
-    }
-
-    protected static class CancellableActionRunner implements ActionRunner {
-        private final InternalCancellableConnectionWrapper executor;
-        private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
-        private final VersionDetails versionDetails;
-
-        protected CancellableActionRunner(InternalCancellableConnectionWrapper executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
-            this.executor = executor;
-            this.exceptionTransformer = exceptionTransformer;
-            this.versionDetails = versionDetails;
-        }
-
-        public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException {
-
-            File rootDir = operationParameters.getProjectDir();
-            BuildResult<T> result;
-            try {
-                try {
-                    result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir, versionDetails), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
-                } catch (RuntimeException e) {
-                    throw exceptionTransformer.transform(e);
-                }
-            } catch (InternalBuildActionFailureException e) {
-                throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
-            }
-            return result.getModel();
-        }
-    }
-    /**
-     * Interface representing either an {@link InternalCancellableConnection}
-     * or an {@link org.gradle.tooling.internal.protocol.InternalCancellableConnectionVersion2}.
-     */
-    protected interface InternalCancellableConnectionWrapper {
-        <T> BuildResult<T> run(InternalBuildActionAdapter<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters);
-        BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters);
     }
 }

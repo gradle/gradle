@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import spock.lang.Specification
 
@@ -33,7 +34,7 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
     def versionDetails = Mock(VersionDetails);
     def mapping = Mock(ModelMapping);
     def transformer = Transformers.noOpTransformer()
-    def builder = Mock(CancellableConsumerConnection.InternalCancellableConnectionWrapper)
+    def builder = Mock(InternalCancellableConnection)
 
     def modelProducer
 

@@ -35,7 +35,7 @@ import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnec
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.DeprecatedVersionConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ParameterCancellableConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
@@ -50,7 +50,7 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnectionVersion2;
+import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
@@ -87,8 +87,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ModelMapping modelMapping = new ModelMapping();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            if (connection instanceof InternalCancellableConnectionVersion2) {
-                return createConnection(new ParameterCancellableConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+            if (connection instanceof InternalParameterAcceptingConnection) {
+                return createConnection(new ParameterAcceptingConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalTestExecutionConnection) {
                 return createConnection(new TestExecutionConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof StoppableConnection) {

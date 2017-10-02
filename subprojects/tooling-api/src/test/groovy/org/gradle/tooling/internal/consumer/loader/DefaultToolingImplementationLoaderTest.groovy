@@ -31,7 +31,7 @@ import org.gradle.tooling.internal.consumer.connection.DeprecatedVersionConsumer
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
-import org.gradle.tooling.internal.consumer.connection.ParameterCancellableConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
@@ -50,7 +50,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
-import org.gradle.tooling.internal.protocol.InternalCancellableConnectionVersion2
+import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
 import org.gradle.tooling.internal.protocol.InternalConnection
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -108,7 +108,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         where:
         connectionImplementation  | adapter                                         | wrappedToNonCancellableAdapter
-        TestConnection.class      | ParameterCancellableConsumerConnection.class    | false
+        TestConnection.class      | ParameterAcceptingConsumerConnection.class      | false
         TestR26Connection.class   | TestExecutionConsumerConnection.class           | false
         TestR22Connection.class   | ShutdownAwareConsumerConnection.class           | false
         TestR21Connection.class   | CancellableConsumerConnection.class             | false
@@ -171,13 +171,7 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection extends TestR26Connection implements InternalCancellableConnectionVersion2 {
-    @Override
-    BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
-        throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        throw new UnsupportedOperationException();
-    }
-
+class TestConnection extends TestR26Connection implements InternalParameterAcceptingConnection {
     @Override
     <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {
