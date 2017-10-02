@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.api.Transformer;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
@@ -28,21 +27,26 @@ import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class BuildLayoutParametersBuildOptionFactory implements Factory<List<BuildOption<BuildLayoutParameters>>> {
+public class BuildLayoutParametersBuildOptions {
 
-    private final List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
+    private static List<BuildOption<BuildLayoutParameters>> options;
 
-    public BuildLayoutParametersBuildOptionFactory() {
+    static {
+        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
         options.add(new GradleUserHomeOption());
         options.add(new ProjectDirOption());
         options.add(new NoSearchUpwardsOption());
+        BuildLayoutParametersBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    @Override
-    public List<BuildOption<BuildLayoutParameters>> create() {
+    public static List<BuildOption<BuildLayoutParameters>> get() {
         return options;
+    }
+
+    private BuildLayoutParametersBuildOptions() {
     }
 
     public static class GradleUserHomeOption extends StringBuildOption<BuildLayoutParameters> {

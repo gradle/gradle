@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.initialization.StartParameterBuildOptionFactory
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.TextUtil
 
@@ -61,7 +61,7 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
             }
         """
         file("gradle.properties") << """
-            ${StartParameterBuildOptionFactory.BuildCacheOption.GRADLE_PROPERTY}=true
+            ${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true
         """
         file("input").text = "input file"
 

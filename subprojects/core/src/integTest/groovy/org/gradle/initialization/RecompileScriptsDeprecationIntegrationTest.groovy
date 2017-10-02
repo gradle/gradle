@@ -36,6 +36,6 @@ task hello {
 
         then:
         succeeds('hello')
-        outputContains(StartParameterBuildOptionFactory.RecompileScriptsOption.DEPRECATION_MESSAGE)
+        outputContains(StartParameterBuildOptions.RecompileScriptsOption.DEPRECATION_MESSAGE)
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -30,13 +29,15 @@ import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class DaemonBuildOptionFactory implements Factory<List<BuildOption<DaemonParameters>>> {
+public class DaemonBuildOptions {
 
-    private final List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
+    private static List<BuildOption<DaemonParameters>> options;
 
-    public DaemonBuildOptionFactory() {
+    static {
+        List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
         options.add(new IdleTimeoutOption());
         options.add(new HealthCheckOption());
         options.add(new BaseDirOption());
@@ -47,11 +48,15 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         options.add(new ForegroundOption());
         options.add(new StopOption());
         options.add(new StatusOption());
+        DaemonBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    @Override
-    public List<BuildOption<DaemonParameters>> create() {
+    public static List<BuildOption<DaemonParameters>> get() {
         return options;
+    }
+
+    private DaemonBuildOptions() {
+
     }
 
     public static class IdleTimeoutOption extends StringBuildOption<DaemonParameters> {
