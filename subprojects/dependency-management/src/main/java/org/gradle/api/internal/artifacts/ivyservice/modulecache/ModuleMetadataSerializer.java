@@ -31,8 +31,6 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -160,10 +158,6 @@ public class ModuleMetadataSerializer {
 
         private void writeInfoSection(ModuleComponentResolveMetadata metadata) throws IOException {
             writeId(metadata.getComponentId());
-
-            ModuleDescriptorState md = metadata.getDescriptor();
-            ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
-            writeId(componentIdentifier);
         }
 
         private void writeExtraInfo(Map<NamespaceId, String> extraInfo) throws IOException {
@@ -302,7 +296,6 @@ public class ModuleMetadataSerializer {
         private final Decoder decoder;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ImmutableAttributesFactory attributesFactory;
-        private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
 
@@ -333,7 +326,7 @@ public class ModuleMetadataSerializer {
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
             List<DependencyMetadata> dependencies = readDependencies();
-            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, md, dependencies);
+            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, dependencies);
             readSharedInfo(metadata);
             metadata.setSnapshotTimestamp(readNullableString());
             metadata.setPackaging(readNullableString());
@@ -377,7 +370,7 @@ public class ModuleMetadataSerializer {
             List<DependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
             List<Exclude> excludes = readAllExcludes();
-            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies, artifacts);
+            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, configurations, dependencies, artifacts);
             readSharedInfo(metadata);
             String branch = readNullableString();
             metadata.setBranch(branch);
@@ -388,11 +381,7 @@ public class ModuleMetadataSerializer {
 
         private void readInfoSection() throws IOException {
             id = readId();
-
-            ModuleComponentIdentifier componentIdentifier = readId();
-
-            md = new MutableModuleDescriptorState(componentIdentifier);
-            mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
+            mvi = moduleIdentifierFactory.moduleWithVersion(id.getGroup(), id.getModule(), id.getVersion());
         }
 
         private ModuleComponentIdentifier readId() throws IOException {

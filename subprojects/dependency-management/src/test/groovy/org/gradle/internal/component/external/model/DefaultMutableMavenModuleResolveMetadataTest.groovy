@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
@@ -29,8 +27,8 @@ import org.gradle.internal.hash.HashValue
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, dependencies)
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies)
     }
 
     @Override
@@ -40,9 +38,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "defines configurations for maven scopes and several usage buckets"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
-
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -75,10 +71,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
 
         def vid = Mock(ModuleVersionIdentifier)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, [])
 
         expect:
         metadata.componentId == id
@@ -91,7 +86,6 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.snapshotTimestamp == null
         metadata.packaging == "jar"
         !metadata.relocated
-        metadata.descriptor == descriptor
 
         and:
         def immutable = metadata.asImmutable()
@@ -118,13 +112,12 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "can override values from descriptor"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
 
         def vid = Mock(ModuleVersionIdentifier)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, [])
 
         when:
         metadata.componentId = newId
@@ -178,8 +171,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "can attach variants"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
         given:
         def v1 = metadata.addVariant("api", attributes(usage: "compile"))
@@ -219,10 +211,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "making changes to copy does not affect original"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
         when:
         def immutable = metadata.asImmutable()
@@ -269,10 +260,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "making changes to original does not affect copy"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
         when:
         def immutable = metadata.asImmutable()

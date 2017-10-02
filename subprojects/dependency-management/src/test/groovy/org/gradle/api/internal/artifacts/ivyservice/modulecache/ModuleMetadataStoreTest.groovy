@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.resource.local.LocallyAvailableResource
@@ -59,7 +58,7 @@ class ModuleMetadataStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
-        def descriptor = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), moduleComponentIdentifier, new MutableModuleDescriptorState(moduleComponentIdentifier), []).asImmutable()
+        def descriptor = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), moduleComponentIdentifier, []).asImmutable()
 
         when:
         store.putModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier), descriptor)

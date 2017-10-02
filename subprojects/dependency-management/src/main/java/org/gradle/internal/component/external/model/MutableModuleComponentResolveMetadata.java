@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
@@ -68,13 +67,6 @@ public interface MutableModuleComponentResolveMetadata {
 
     ModuleSource getSource();
     void setSource(ModuleSource source);
-
-    /**
-     * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    ModuleDescriptorState getDescriptor();
 
     /**
      * Returns the dependency declarations of this component.

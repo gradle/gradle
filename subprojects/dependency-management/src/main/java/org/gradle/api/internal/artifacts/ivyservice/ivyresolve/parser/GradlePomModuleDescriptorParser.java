@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
@@ -77,11 +76,10 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
         List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
-        ModuleComponentIdentifier cid = moduleDescriptor.getComponentIdentifier();
+        ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
-        MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, dependencies);
+        MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, cid, dependencies);
         metadata.setStatus(mdBuilder.getStatus());
         if (pomReader.getRelocation() != null) {
             metadata.setPackaging("pom");
@@ -116,7 +114,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         if (relocation != null) {
             if (groupId != null && artifactId != null && artifactId.equals(relocation.getName()) && groupId.equals(relocation.getGroup())) {
                 LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",
-                        mdBuilder.getModuleDescriptor().getComponentIdentifier(), relocation);
+                        mdBuilder.getComponentIdentifier(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleComponentIdentifier.newId(relocation));
@@ -127,7 +125,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 }
 
             } else {
-                LOGGER.info(mdBuilder.getModuleDescriptor().getComponentIdentifier()
+                LOGGER.info(mdBuilder.getComponentIdentifier()
                         + " is relocated to " + relocation
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");

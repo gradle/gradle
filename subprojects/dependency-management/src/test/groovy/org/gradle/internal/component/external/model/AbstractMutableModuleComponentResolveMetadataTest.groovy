@@ -22,8 +22,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
@@ -35,16 +33,15 @@ import static org.gradle.internal.component.external.model.AbstractMutableModule
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status")
     def configurations = []
     def dependencies = []
 
-    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id);
 
     MutableModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations, dependencies)
+        return createMetadata(id, configurations, dependencies)
     }
 
     def "can replace identifiers"() {

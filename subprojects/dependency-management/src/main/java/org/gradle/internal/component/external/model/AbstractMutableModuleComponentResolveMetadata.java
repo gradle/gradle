@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -37,7 +36,6 @@ import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAU
 
 abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
-    private final ModuleDescriptorState descriptor;
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
     private boolean changing;
@@ -51,8 +49,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Nullable
     private List<? extends ModuleComponentArtifactMetadata> artifacts;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
-        this.descriptor = moduleDescriptor;
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
         this.componentId = componentIdentifier;
         this.id = id;
         this.dependencies = dependencies;
@@ -60,7 +57,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
-        this.descriptor = metadata.getDescriptor();
         this.componentId = metadata.getComponentId();
         this.id = metadata.getId();
         this.changing = metadata.isChanging();
@@ -88,11 +84,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     public void setComponentId(ModuleComponentIdentifier componentId) {
         this.componentId = componentId;
         this.id = DefaultModuleVersionIdentifier.newId(componentId);
-    }
-
-    @Override
-    public ModuleDescriptorState getDescriptor() {
-        return descriptor;
     }
 
     @Override

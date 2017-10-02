@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.Artifact
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
@@ -49,7 +48,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository)
 
     DescriptorParseContext parseContext = Mock()
-    ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
     def "parses minimal Ivy descriptor"() {
@@ -65,8 +63,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
@@ -92,8 +89,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
@@ -121,8 +117,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         metadata.dependencies.empty
@@ -330,8 +325,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.status == "status"
 
         metadata.extraAttributes.size() == 1
@@ -398,8 +392,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
@@ -685,7 +678,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
         metadata.extraAttributes.size() == 2
         metadata.extraAttributes[new NamespaceId("namespace-b", "a")] == "info 1"
         metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
@@ -693,7 +686,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
         metadata = parser.parseMetaData(parseContext, file)
-        md = metadata.descriptor
     }
 
     private Artifact artifact() {

@@ -22,6 +22,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -33,8 +34,6 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
@@ -80,11 +79,11 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
-    private MutableModuleDescriptorState descriptor;
     private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private String status;
+    private ModuleComponentIdentifier componentIdentifier;
 
     public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
@@ -97,12 +96,12 @@ public class GradlePomModuleDescriptorBuilder {
         return dependencies;
     }
 
-    public ModuleDescriptorState getModuleDescriptor() {
-        return descriptor;
-    }
-
     public String getStatus() {
         return status;
+    }
+
+    public ModuleComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
     }
 
     public void setModuleRevId(String group, String module, String version) {
@@ -115,8 +114,7 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
-
-        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion));
+        componentIdentifier = DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion);
     }
 
     public void addDependency(PomDependencyData dep) {
@@ -139,8 +137,8 @@ public class GradlePomModuleDescriptorBuilder {
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
-        if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
-            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
+        if (selector.getGroup().equals(componentIdentifier.getGroup())
+            && selector.getName().equals(componentIdentifier.getModule())) {
             return;
         }
 
@@ -268,8 +266,8 @@ public class GradlePomModuleDescriptorBuilder {
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
-        if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
-            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
+        if (selector.getGroup().equals(componentIdentifier.getGroup())
+            && selector.getName().equals(componentIdentifier.getModule())) {
             return;
         }
 

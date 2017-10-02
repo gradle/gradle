@@ -31,7 +31,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -55,7 +54,6 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
-    private final ModuleDescriptorState descriptor;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
@@ -73,7 +71,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final HashValue contentHash;
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Iterable<Artifact> artifacts, ImmutableList<Exclude> excludes) {
-        this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -97,7 +94,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * Creates a copy of the given metadata
      */
     protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
-        this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -116,11 +112,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return EmptySchema.INSTANCE;
-    }
-
-    @Override
-    public ModuleDescriptorState getDescriptor() {
-        return descriptor;
     }
 
     @Override

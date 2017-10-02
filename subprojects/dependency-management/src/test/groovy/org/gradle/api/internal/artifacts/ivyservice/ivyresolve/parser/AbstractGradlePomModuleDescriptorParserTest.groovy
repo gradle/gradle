@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -48,7 +47,6 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, fileRepository)
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
-    ModuleDescriptorState descriptor
     MutableMavenModuleResolveMetadata metadata
 
     def "setup"() {
@@ -57,7 +55,6 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
 
     protected void parsePom() {
         metadata = parseMetaData()
-        descriptor = metadata.descriptor
     }
 
     protected LocallyAvailableExternalResource asResource(File file) {

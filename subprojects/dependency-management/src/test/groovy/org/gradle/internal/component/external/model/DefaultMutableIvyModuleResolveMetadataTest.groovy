@@ -23,8 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
@@ -33,8 +31,8 @@ import org.gradle.internal.hash.HashValue
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, configurations, dependencies, [])
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, [])
     }
 
     @Override
@@ -46,7 +44,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
         configuration("runtime", [])
         configuration("default", ["runtime"])
         artifact("runtime.jar", "runtime")
@@ -55,7 +52,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def vid = Mock(ModuleVersionIdentifier)
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, descriptor, configurations, [], artifacts)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], artifacts)
         metadata.componentId == id
         metadata.id == vid
         metadata.branch == null
@@ -63,7 +60,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         and:
         metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
         metadata.source == null
-        metadata.descriptor == descriptor
         metadata.artifactDefinitions.size() == 2
         metadata.excludes.empty
 
@@ -99,14 +95,13 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "can override values from descriptor"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
         def excludes = [new DefaultExclude(new DefaultModuleIdentifier("group", "name"))]
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -158,12 +153,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "making changes to copy does not affect original"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -191,12 +185,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "making changes to original does not affect copy"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

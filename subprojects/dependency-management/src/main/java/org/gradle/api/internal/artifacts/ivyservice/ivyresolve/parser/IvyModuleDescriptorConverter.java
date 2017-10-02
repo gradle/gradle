@@ -29,7 +29,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -38,9 +37,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -67,12 +63,6 @@ public class IvyModuleDescriptorConverter {
 
     public IvyModuleDescriptorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-    }
-
-    public ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
-        ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
-        return new MutableModuleDescriptorState(componentIdentifier);
     }
 
     public Map<NamespaceId, String> extractExtraAttributes(ModuleDescriptor ivyDescriptor) {
@@ -149,7 +139,7 @@ public class IvyModuleDescriptorConverter {
             excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 
-    // TODO We should get rid of this reflection (will need to reimplement the parser to create a ModuleDescriptorState directly)
+    // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)
     private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
         if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
             try {

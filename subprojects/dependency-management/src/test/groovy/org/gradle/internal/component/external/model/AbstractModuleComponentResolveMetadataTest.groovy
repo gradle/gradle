@@ -19,8 +19,6 @@ package org.gradle.internal.component.external.model
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
@@ -30,14 +28,13 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 abstract class AbstractModuleComponentResolveMetadataTest extends Specification {
 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status")
     def configurations = []
     def dependencies = []
 
-    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
+    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
     ModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations, dependencies)
+        return createMetadata(id, configurations, dependencies)
     }
 
     def "has useful string representation"() {
