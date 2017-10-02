@@ -117,10 +117,6 @@ public class GradlePomModuleDescriptorBuilder {
         descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status, false);
     }
 
-    public void setDescription(String description) {
-        descriptor.setDescription(description);
-    }
-
     public void addDependency(PomDependencyData dep) {
         String scopeString = dep.getScope();
         if (scopeString == null || scopeString.length() == 0) {

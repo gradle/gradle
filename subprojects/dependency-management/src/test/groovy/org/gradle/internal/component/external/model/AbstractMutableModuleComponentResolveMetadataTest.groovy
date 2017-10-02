@@ -18,13 +18,16 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -147,5 +150,15 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
     def artifact(String name, String... confs) {
         moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+    }
+
+    def attributes(Map<String, String> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { String key, String value ->
+                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
+            }
+        }
+        return attrs
     }
 }

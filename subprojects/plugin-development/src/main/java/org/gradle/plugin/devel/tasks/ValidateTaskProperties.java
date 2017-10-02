@@ -248,7 +248,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     /**
      * {@inheritDoc}
      */
-    @Input
     @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;

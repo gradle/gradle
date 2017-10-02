@@ -50,15 +50,16 @@ I tried looking for a root folder here: $candidates
     }
 
     void runSamplesFromFile(File file, Closure runner) {
-        file.text.eachMatch(/(?ms).*?<pre class=['|"]autoTested['|"].*?>(.*?)<\/pre>(.*?)/) {
-            def sample = it[1]
+        file.text.eachMatch(/(?ms).*?<pre class=['|"]autoTested(.*?)['|"].*?>(.*?)<\/pre>(.*?)/) {
+            def tagSuffix = it[1]
+            def sample = it[2]
             sample = sample.replaceAll(/(?m)^\s*?\*/, '')
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')
             sample = sample.replace('&amp;', '&')
             sample = sample.replaceAll(/\{@literal ([^}]+)}/, '$1')
             try {
-                runner.call(file, sample)
+                runner.call(file, sample, tagSuffix)
             } catch (Exception e) {
                 throw new RuntimeException("""
 *****

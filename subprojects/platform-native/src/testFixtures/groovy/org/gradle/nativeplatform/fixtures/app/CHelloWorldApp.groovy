@@ -32,7 +32,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 printf("%d", sum(5, 7));
                 return 0;
             }
-        """);
+        """)
     }
 
     @Override
@@ -56,11 +56,11 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             #endif
 
             #endif
-        """);
+        """)
     }
 
     @Override
-    def SourceFile getCommonHeader() {
+    SourceFile getCommonHeader() {
         sourceFile("headers", "common.h", """
             #ifndef COMMON_H
             #define COMMON_H
@@ -184,10 +184,10 @@ Run Summary:    Type  Total    Ran Passed Failed Inactive
                tests      1      1      1      0        0
              asserts      3      3      3      0      n/a
 """
-        };
+        }
     }
 
-    public SourceFile getBrokenFile() {
+    SourceFile getBrokenFile() {
         return sourceFile("c", "broken.c", """'broken""")
     }
 

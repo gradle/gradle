@@ -34,6 +34,9 @@ import java.util.Set;
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
+    /**
+     * Creates the default Ivy metadata when there is no descriptor.
+     */
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(id, componentIdentifier,
             MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts),
@@ -55,6 +58,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleComponentResolveMetadata metadata) {
         super(metadata);
+    }
+
+    @Override
+    public String getBranch() {
+        return getDescriptor().getBranch();
     }
 
     @Override

@@ -35,6 +35,6 @@ class SwiftLibTest extends XCTestSourceElement {
 
     @Override
     List<SourceFile> getFiles() {
-        return super.files + [sumTest.emptyInfoPlist()]
+        return super.files
     }
 }

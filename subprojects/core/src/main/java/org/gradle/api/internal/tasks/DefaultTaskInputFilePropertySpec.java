@@ -18,11 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
@@ -39,7 +38,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private boolean skipWhenEmpty;
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
-    private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
+    private Class<? extends FileNormalizer> normalizer = GenericFileNormalizer.class;
 
     public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
@@ -110,14 +109,14 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter) {
-        this.snapshotter = snapshotter;
+    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends FileNormalizer> normalizer) {
+        this.normalizer = normalizer;
         return this;
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
-        return snapshotter;
+    public Class<? extends FileNormalizer> getNormalizer() {
+        return normalizer;
     }
 
     @Override

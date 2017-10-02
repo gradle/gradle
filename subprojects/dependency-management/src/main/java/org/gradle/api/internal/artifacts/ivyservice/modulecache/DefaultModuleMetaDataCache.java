@@ -23,13 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -46,11 +45,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private final ModuleMetadataStore moduleMetadataStore;
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, ModuleExclusions moduleExclusions) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(), moduleIdentifierFactory, moduleExclusions);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributesFactory), moduleIdentifierFactory, moduleExclusions);
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
@@ -101,10 +100,10 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
             @Override
             public CachedMetaData create() {
-                LocallyAvailableResource resource = moduleMetadataStore.putModuleDescriptor(key, metadata);
-                ModuleMetadataCacheEntry entry = createEntry(metadata, resource.getSha1());
+                moduleMetadataStore.putModuleDescriptor(key, metadata);
+                ModuleMetadataCacheEntry entry = createEntry(metadata);
                 getCache().put(key, entry);
-                return new DefaultCachedMetaData(entry, null, timeProvider);
+                return new DefaultCachedMetaData(entry, metadata, timeProvider);
             }
         });
     }
@@ -113,8 +112,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new ModuleComponentAtRepositoryKey(repository.getId(), id);
     }
 
-    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
-        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
+    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData) {
+        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime());
     }
 
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {

@@ -22,4 +22,6 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
      */
     @Override
     IvyModuleResolveMetadata asImmutable();
+
+    String getBranch();
 }

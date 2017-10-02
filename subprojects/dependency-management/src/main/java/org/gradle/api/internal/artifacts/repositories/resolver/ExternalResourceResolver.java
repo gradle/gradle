@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
@@ -417,8 +419,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         CollectionUtils.addAll(artifactPatterns, patterns);
     }
 
-    public abstract boolean isM2compatible();
-
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
@@ -538,28 +538,22 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     }
 
-    private static String generateId(ExternalResourceResolver resolver) {
-        StringBuilder sb = new StringBuilder(resolver.getClass().getName());
-        sb.append("::");
-        joinPatterns(sb, resolver.ivyPatterns);
-        sb.append("::");
-        joinPatterns(sb, resolver.artifactPatterns);
-        if (resolver.isM2compatible()) {
-            sb.append("::m2compatible");
+    private String generateId(ExternalResourceResolver resolver) {
+        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
+        cacheHasher.putString(getClass().getName());
+        cacheHasher.putInt(resolver.ivyPatterns.size());
+        for (ResourcePattern ivyPattern : ivyPatterns) {
+            cacheHasher.putString(ivyPattern.getPattern());
         }
-        return HashUtil.createHash(sb.toString(), "MD5").asHexString();
+        cacheHasher.putInt(artifactPatterns.size());
+        for (ResourcePattern artifactPattern : artifactPatterns) {
+            cacheHasher.putString(artifactPattern.getPattern());
+        }
+        appendId(cacheHasher);
+        return cacheHasher.hash().toString();
     }
 
-    private static void joinPatterns(StringBuilder sb, List<ResourcePattern> resourcePatterns) {
-        int len = resourcePatterns.size();
-        for (int i = 0; i < len; i++) {
-            ResourcePattern ivyPattern = resourcePatterns.get(i);
-            sb.append(ivyPattern.getPattern());
-            if (i < len - 1) {
-                sb.append(",");
-            }
-        }
-    }
+    protected abstract void appendId(BuildCacheHasher hasher);
 
     private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
 

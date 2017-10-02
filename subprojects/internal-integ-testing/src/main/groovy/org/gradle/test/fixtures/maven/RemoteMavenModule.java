@@ -21,5 +21,7 @@ import org.gradle.test.fixtures.resource.RemoteArtifact;
 public interface RemoteMavenModule extends MavenModule {
     RemoteArtifact getPom();
 
+    RemoteArtifact getModuleMetadata();
+
     RemoteArtifact getArtifact();
 }

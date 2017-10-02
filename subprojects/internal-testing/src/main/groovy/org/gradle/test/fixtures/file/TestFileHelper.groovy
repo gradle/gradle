@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.file
 
+import com.google.common.io.ByteStreams
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
@@ -184,10 +185,19 @@ class TestFileHelper {
 
     ExecOutput execute(List args, List env) {
         def process = ([file.absolutePath] + args).execute(env, null)
+
+        // Prevent process from hanging by consuming the output as we go.
+        def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
+
+        Thread outputThread = Thread.start { ByteStreams.copy(process.in, output) }
+        Thread errorThread = Thread.start { ByteStreams.copy(process.err, error) }
+
         int exitCode = process.waitFor()
-        String output = process.inputStream.text
-        String error = process.errorStream.text
-        return new ExecOutput(exitCode, output, error)
+        outputThread.join()
+        errorThread.join()
+
+        return new ExecOutput(exitCode, output.toString(), error.toString())
     }
 
     ExecOutput executeSuccess(List args, List env) {

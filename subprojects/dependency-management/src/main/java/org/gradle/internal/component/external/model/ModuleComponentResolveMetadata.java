@@ -20,6 +20,7 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -53,6 +54,11 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
 
     @Nullable
     List<ModuleComponentArtifactMetadata> getArtifacts();
+
+    /**
+     * Returns the hash of the resource(s) from which this metadata was created.
+     */
+    HashValue getContentHash();
 
     /**
      * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types

@@ -27,6 +27,6 @@ class SwiftXCTestBundle extends XCTestSourceElement {
 
     @Override
     List<SourceFile> getFiles() {
-        super.files + [emptyInfoPlist()]
+        super.files
     }
 }

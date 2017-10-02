@@ -241,7 +241,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether the build should break when the verifications performed by this task fail.
      */
-    @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }

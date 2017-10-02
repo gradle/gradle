@@ -75,8 +75,6 @@ public class IvyModuleDescriptorConverter {
         MutableModuleDescriptorState state = new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
 
         state.setBranch(moduleRevisionId.getBranch());
-        state.setDescription(ivyDescriptor.getDescription());
-        state.setPublicationDate(ivyDescriptor.getPublicationDate());
         Map<NamespaceId, String> extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
         state.getExtraInfo().putAll(extraInfo);
 

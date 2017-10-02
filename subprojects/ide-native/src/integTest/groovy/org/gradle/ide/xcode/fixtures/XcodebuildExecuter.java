@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode.fixtures;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
@@ -25,23 +25,38 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Properties;
 
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
-    private final List<String> args = new ArrayList<String>();
-    private final File gradleUserHome;
+    public enum XcodeAction {
+        BUILD,
+        TEST;
 
-    public XcodebuildExecuter(File gradleUserHome, File derivedData) {
-        this.gradleUserHome = gradleUserHome;
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
+    }
+
+    private final List<String> args = new ArrayList<String>();
+    private final TestFile testDirectory;
+
+    public XcodebuildExecuter(TestFile testDirectory) {
+        this(testDirectory, testDirectory.file(".xcode-derived"));
+    }
+
+    private XcodebuildExecuter(TestFile testDirectory, File derivedData) {
         addArguments("-derivedDataPath", derivedData.getAbsolutePath());
+        this.testDirectory = testDirectory;
     }
 
     public XcodebuildExecuter withProject(XcodeProjectPackage xcodeProject) {
@@ -75,27 +90,56 @@ public class XcodebuildExecuter {
     }
 
     public ExecutionResult succeeds() {
+        return succeeds(XcodeAction.BUILD);
+    }
+
+    public ExecutionResult succeeds(XcodeAction action) {
+        withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
+        System.out.println(result.getOut());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
     public ExecutionFailure fails() {
+        return fails(XcodeAction.BUILD);
+    }
+
+    public ExecutionFailure fails(XcodeAction action) {
+        withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execWithFailure(args, buildEnvironment());
         // stderr of Gradle is redirected to stdout of xcodebuild tool. To work around, we consider xcodebuild stdout and stderr as
         // the error output only if xcodebuild failed most likely due to Gradle.
+        System.out.println(result.getOut());
+        System.out.println(result.getError());
         return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
     }
 
     private List<String> buildEnvironment() {
-        Set<String> envvars = Sets.newLinkedHashSet();
-        envvars.add("GRADLE_USER_HOME=" + gradleUserHome);
-        CollectionUtils.collect(System.getenv().entrySet(), envvars, new Transformer<String, Map.Entry<String, String>>() {
+        Map<String, String> envvars = Maps.newHashMap();
+        envvars.putAll(System.getenv());
+
+        Properties props = GUtil.loadProperties(testDirectory.file("gradle-environment"));
+        assert !props.isEmpty();
+
+        for (Map.Entry<Object, Object> entry : props.entrySet()) {
+            if (entry.getKey().toString().equals("GRADLE_OPTS")) {
+                // macOS adds Xdock properties in a funky way that makes us duplicate them on the command-line
+                String value = entry.getValue().toString();
+                int lastIndex = value.lastIndexOf("\"-Xdock:name=Gradle\"");
+                if (lastIndex > 0) {
+                    envvars.put(entry.getKey().toString(), value.substring(0, lastIndex-1));
+                    continue;
+                }
+            }
+            envvars.put(entry.getKey().toString(), entry.getValue().toString());
+        }
+
+        return CollectionUtils.toList(CollectionUtils.collect(envvars.entrySet(), new Transformer<String, Map.Entry<String, String>>() {
             @Override
             public String transform(Map.Entry<String, String> envvar) {
                 return envvar.getKey() + "=" + envvar.getValue();
             }
-        });
-        return CollectionUtils.toList(envvars);
+        }));
     }
 
     private TestFile findXcodeBuild() {

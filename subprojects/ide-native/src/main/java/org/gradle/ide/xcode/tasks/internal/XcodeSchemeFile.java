@@ -130,6 +130,26 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         public void setBuildConfiguration(String buildConfiguration) {
             xml.attributes().put("buildConfiguration", buildConfiguration);
         }
+
+        public void entry(Action<TestableEntry> action) {
+            action.execute(new TestableEntry(getOrAppendNode(xml, "Testables").appendNode("TestableReference")));
+        }
+    }
+
+    public static class TestableEntry {
+        private final Node xml;
+
+        TestableEntry(Node xml) {
+            this.xml = xml;
+        }
+
+        public void setSkipped(boolean skipped) {
+            xml.attributes().put("skipped", toYesNo(skipped));
+        }
+
+        public void setBuildableReference(BuildableReference buildableReference) {
+            xml.append(buildableReference.toXml());
+        }
     }
 
     public static class LaunchAction {

@@ -22,7 +22,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
 
     List pluginList = ["objective-c", "objective-cpp", "c", "cpp"]
 
-    public String getExtraConfiguration(String binaryName = null) {
+    String getExtraConfiguration(String binaryName = null) {
         return """
             model {
                 binaries {
@@ -52,7 +52,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
                 return 0;
             }
 
-        """);
+        """)
     }
 
     @Override

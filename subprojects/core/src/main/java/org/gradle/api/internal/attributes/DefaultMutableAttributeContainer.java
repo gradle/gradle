@@ -22,7 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 
 import java.util.Set;
 
-public class DefaultMutableAttributeContainer implements AttributeContainerInternal {
+class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory cache;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
@@ -34,12 +34,6 @@ public class DefaultMutableAttributeContainer implements AttributeContainerInter
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent) {
         this.cache = cache;
         this.parent = parent;
-    }
-
-    private DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent, ImmutableAttributes state) {
-        this.cache = cache;
-        this.parent = parent;
-        this.state = state;
     }
 
     @Override

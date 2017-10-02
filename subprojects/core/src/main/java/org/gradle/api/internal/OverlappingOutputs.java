@@ -20,6 +20,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.internal.file.FileType;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class OverlappingOutputs {
@@ -31,6 +32,7 @@ public class OverlappingOutputs {
         this.overlappedFilePath = overlappedFilePath;
     }
 
+    @Nullable
     public static OverlappingOutputs detect(String propertyName, FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
@@ -54,7 +56,7 @@ public class OverlappingOutputs {
         return !previousSnapshot.getSnapshot().isContentUpToDate(fileSnapshot.getSnapshot());
     }
 
-    private static boolean createdSincePreviousExecution(NormalizedFileSnapshot previousSnapshot) {
+    private static boolean createdSincePreviousExecution(@Nullable NormalizedFileSnapshot previousSnapshot) {
         // created since last execution, possibly by another task
         return previousSnapshot == null;
     }

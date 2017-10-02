@@ -22,7 +22,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.Set;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
@@ -50,16 +49,8 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         return moduleDescriptorState;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public void setBranch(String branch) {
         this.branch = branch;
-    }
-
-    public void setPublicationDate(Date publicationDate) {
-        this.publicationDate = publicationDate;
     }
 
     public void addExclude(Exclude exclude) {

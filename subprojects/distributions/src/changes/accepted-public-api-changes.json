@@ -1,16 +1,6 @@
 {
-    "baseVersion": "4.2-20170827235721+0000",
+    "baseVersion": "4.2.1",
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.compile.JavaCompile",
-            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()",
-            "acceptation": "Injected service"
-        },
-        {
-            "type": "org.gradle.api.tasks.WorkResults",
-            "member": "Method org.gradle.api.tasks.WorkResults.didWork(boolean)",
-            "acceptation": "Not incubating"
-        },
         {
             "type": "org.gradle.language.c.tasks.CPreCompiledHeaderCompile",
             "member": "Class org.gradle.language.c.tasks.CPreCompiledHeaderCompile",
@@ -157,6 +147,14 @@
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.setBootstrapClasspath(org.gradle.api.file.FileCollection)",
             "acceptation": "Replaces bootClasspath property"
+        },
+        {
+            "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
+            "member": "Constructor XcodePlugin",
+            "acceptation": "Added an additional argument to @Inject constructor",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }

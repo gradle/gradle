@@ -31,7 +31,7 @@ public class AutoTestedSamplesToolingApiTest extends Specification {
         expect:
 
         def util = new AutoTestedSamplesUtil()
-        util.findSamples("subprojects/tooling-api/src/main") { file, sample ->
+        util.findSamples("subprojects/tooling-api/src/main") { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             def javaSource = """
 //some typical imports

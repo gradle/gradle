@@ -450,7 +450,8 @@ What if one project needs the jar produced by another project in its compile pat
         </sample>
 ++++
 
-We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.footnote:[“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.]
+We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
+“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of api:org.gradle.api.initialization.Settings#include(java.lang.String...)[] for more information about defining project paths.
 
 ++++
 <sample id="javadependencies_2" dir="userguide/multiproject/dependencies/java" title="Project lib dependencies">

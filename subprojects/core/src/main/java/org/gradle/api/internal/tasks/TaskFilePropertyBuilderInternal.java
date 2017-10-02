@@ -17,15 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 @NonNullApi
 public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
     TaskFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
-
-    TaskFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);
 
     @Override
     TaskFilePropertyBuilderInternal withPropertyName(String propertyName);

@@ -16,10 +16,10 @@
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.HttpModule
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.RemoteMavenModule
+import org.gradle.test.fixtures.resource.RemoteArtifact
 
 class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements RemoteMavenModule, HttpModule {
     private final HttpServer server
@@ -54,8 +54,8 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         return this
     }
 
-    MavenHttpModule withNoMetaData() {
-        backingModule.withNoMetaData()
+    MavenHttpModule withNoPom() {
+        backingModule.withNoPom()
         return this
     }
 
@@ -63,12 +63,13 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         return new PomHttpArtifact(server, uriPath, backingModule)
     }
 
-    MetaDataArtifact getRootMetaData() {
-        return new MetaDataArtifact(server, moduleRootUriPath, backingModule)
+    @Override
+    RemoteArtifact getModuleMetadata() {
+        return artifact(classifier: 'module', type: 'json')
     }
 
-    TestFile getRootMetaDataFile() {
-        return backingModule.rootMetaDataFile
+    MetaDataArtifact getRootMetaData() {
+        return new MetaDataArtifact(server, moduleRootUriPath, backingModule)
     }
 
     MavenHttpModule allowAll() {

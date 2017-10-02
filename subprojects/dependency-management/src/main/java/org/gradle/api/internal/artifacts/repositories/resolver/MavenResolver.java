@@ -23,9 +23,12 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
@@ -63,7 +66,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
-    private final MetaDataParser<MutableMavenModuleResolveMetadata> metaDataParser;
+    private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
+    private final ModuleMetadataParser metadataParser;
+    private final boolean preferGradleMetadata;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
@@ -74,10 +79,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                         ModuleMetadataParser metadataParser,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                          FileStore<String> resourcesFileStore,
-                         FileResourceRepository fileResourceRepository) {
+                         FileResourceRepository fileResourceRepository,
+                         boolean preferGradleMetadata) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
@@ -86,7 +93,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                 artifactFileStore,
                 moduleIdentifierFactory,
                 fileResourceRepository);
-        this.metaDataParser = pomParser;
+        this.pomParser = pomParser;
+        this.metadataParser = metadataParser;
+        this.preferGradleMetadata = preferGradleMetadata;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -96,6 +105,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     @Override
     public String toString() {
         return "Maven repository '" + getName() + "'";
+    }
+
+    @Override
+    protected void appendId(BuildCacheHasher hasher) {
+        hasher.putBoolean(preferGradleMetadata);
     }
 
     @Override
@@ -140,6 +154,22 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
+    }
+
+    @Nullable
+    @Override
+    protected MutableMavenModuleResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        MutableMavenModuleResolveMetadata metadata = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+        if (preferGradleMetadata) {
+            LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "json", "json", "module")), result);
+            if (resource != null) {
+                // Use default empty metadata when the POM isn't present
+                // TODO - should consider the module present at this point, regardless of whether the pom is present or not
+                MutableMavenModuleResolveMetadata metadataToReceiveVariants = metadata != null ? metadata : new DefaultMutableMavenModuleResolveMetadata(null, moduleComponentIdentifier, Collections.<IvyArtifactName>emptySet());
+                metadataParser.parse(resource, metadataToReceiveVariants);
+            }
+        }
+        return metadata;
     }
 
     @Override
@@ -207,11 +237,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         }
     }
 
-    @Override
-    public boolean isM2compatible() {
-        return true;
-    }
-
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localAccess;
     }
@@ -231,7 +256,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        MutableMavenModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
+        MutableMavenModuleResolveMetadata metaData = pomParser.parseMetaData(context, cachedResource);
         if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
             // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;

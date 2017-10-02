@@ -27,6 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -52,7 +53,7 @@ public class NativeDependencyCache implements Stoppable {
      * Returns the directory containing the unzipped headers from the given zip.
      */
     public File getUnpackedHeaders(final File headersZip, final String baseName) {
-        final HashCode hash = fileHasher.hash(headersZip);
+        final String hash = HashUtil.compactStringFor(fileHasher.hash(headersZip));
         return cache.useCache(new Factory<File>() {
             @Override
             public File create() {

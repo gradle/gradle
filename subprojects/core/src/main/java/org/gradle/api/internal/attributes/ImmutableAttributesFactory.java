@@ -19,6 +19,16 @@ import org.gradle.api.attributes.Attribute;
 
 public interface ImmutableAttributesFactory {
     /**
+     * Returns an empty mutable attribute container.
+     */
+    AttributeContainerInternal mutable();
+
+    /**
+     * Returns an empty mutable attribute container with the given parent.
+     */
+    AttributeContainerInternal mutable(AttributeContainerInternal parent);
+
+    /**
      * Returns an attribute container that contains the given value.
      */
     <T> ImmutableAttributes of(Attribute<T> key, T value);

@@ -26,27 +26,30 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExecutionSnapshot> {
+public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
     private final StringInterner stringInterner;
+    private final Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer;
 
-    TaskExecutionSnapshotSerializer(StringInterner stringInterner) {
+    TaskExecutionSnapshotSerializer(StringInterner stringInterner, Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer) {
+        this.fileCollectionSnapshotSerializer = fileCollectionSnapshotSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
         this.stringInterner = stringInterner;
     }
 
-    public TaskExecutionSnapshot read(Decoder decoder) throws Exception {
+    public HistoricalTaskExecution read(Decoder decoder) throws Exception {
         boolean successful = decoder.readBoolean();
 
         UniqueId buildId = UniqueId.from(decoder.readString());
 
-        ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
-        ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
-        Long discoveredFilesSnapshotId = decoder.readLong();
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = readSnapshots(decoder);
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshots = readSnapshots(decoder);
+        FileCollectionSnapshot discoveredFilesSnapshot = fileCollectionSnapshotSerializer.read(decoder);
 
         ImplementationSnapshot taskImplementation = readImplementation(decoder);
 
@@ -75,33 +78,33 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExec
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
-        return new TaskExecutionSnapshot(
-            successful,
+        return new HistoricalTaskExecution(
             buildId,
             taskImplementation,
             taskActionImplementations,
+            inputProperties,
             cacheableOutputProperties,
             declaredOutputFilePaths,
-            inputProperties,
-            inputFilesSnapshotIds,
-            discoveredFilesSnapshotId,
-            outputFilesSnapshotIds
+            inputFilesSnapshots,
+            discoveredFilesSnapshot,
+            outputFilesSnapshots,
+            successful
         );
     }
 
-    public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
+    public void write(Encoder encoder, HistoricalTaskExecution execution) throws Exception {
         encoder.writeBoolean(execution.isSuccessful());
         encoder.writeString(execution.getBuildInvocationId().asString());
-        writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
-        writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
-        encoder.writeLong(execution.getDiscoveredFilesSnapshotId());
+        writeSnapshots(encoder, execution.getInputFilesSnapshot());
+        writeSnapshots(encoder, execution.getOutputFilesSnapshot());
+        fileCollectionSnapshotSerializer.write(encoder, execution.getDiscoveredInputFilesSnapshot());
         writeImplementation(encoder, execution.getTaskImplementation());
-        encoder.writeSmallInt(execution.getTaskActionsImplementations().size());
-        for (ImplementationSnapshot actionImpl : execution.getTaskActionsImplementations()) {
+        encoder.writeSmallInt(execution.getTaskActionImplementations().size());
+        for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {
             writeImplementation(encoder, actionImpl);
         }
-        encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
-        for (String outputFile : execution.getCacheableOutputProperties()) {
+        encoder.writeSmallInt(execution.getOutputPropertyNamesForCacheKey().size());
+        for (String outputFile : execution.getOutputPropertyNamesForCacheKey()) {
             encoder.writeString(outputFile);
         }
         encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
@@ -127,22 +130,22 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExec
         }
     }
 
-    private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {
+    private ImmutableSortedMap<String, FileCollectionSnapshot> readSnapshots(Decoder decoder) throws Exception {
         int count = decoder.readSmallInt();
-        ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
         for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
             String property = decoder.readString();
-            long id = decoder.readLong();
-            builder.put(property, id);
+            FileCollectionSnapshot snapshot = fileCollectionSnapshotSerializer.read(decoder);
+            builder.put(property, snapshot);
         }
         return builder.build();
     }
 
-    private static void writeSnapshotIds(Encoder encoder, Map<String, Long> ids) throws IOException {
+    private void writeSnapshots(Encoder encoder, Map<String, FileCollectionSnapshot> ids) throws Exception {
         encoder.writeSmallInt(ids.size());
-        for (Map.Entry<String, Long> entry : ids.entrySet()) {
+        for (Map.Entry<String, FileCollectionSnapshot> entry : ids.entrySet()) {
             encoder.writeString(entry.getKey());
-            encoder.writeLong(entry.getValue());
+            fileCollectionSnapshotSerializer.write(encoder, entry.getValue());
         }
     }
 }

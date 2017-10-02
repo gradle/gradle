@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -646,6 +647,35 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "consumer"
         then:
         skippedTasks.sort() == [":consumer", ":producer"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3043")
+    def "URL-quoted characters in file names are handled properly"() {
+        def weirdOutputPath = 'build/bad&dir/bad! Dezső %20.txt'
+        def expectedOutput = file(weirdOutputPath)
+        buildFile << """
+            task weirdOutput {
+                outputs.dir("build")
+                outputs.cacheIf { true }
+                doLast {
+                    mkdir file('$weirdOutputPath').parentFile
+                    file('$weirdOutputPath').text = "Data"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().succeeds "weirdOutput"
+        then:
+        executedAndNotSkipped ":weirdOutput"
+        expectedOutput.file
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "weirdOutput"
+        then:
+        skipped ":weirdOutput"
+        expectedOutput.file
     }
 
     private static String defineProducerTask() {

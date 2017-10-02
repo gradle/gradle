@@ -108,7 +108,7 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        title = "Binary compatibility report for Gradle ${version} since ${compatibilityBaselineVersion}"
+        title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
         addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())

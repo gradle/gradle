@@ -78,13 +78,33 @@ public interface Settings extends PluginAware {
     /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
      * add to the build. Note that these path are not file paths, but instead specify the location of the new project in
-     * the project hierarchy. As such, the supplied paths must use the ':' character as separator.</p>
+     * the project hierarchy. As such, the supplied paths must use the ':' character as separator (and NOT '/').</p>
      *
      * <p>The last element of the supplied path is used as the project name. The supplied path is converted to a project
-     * directory relative to the root project directory.</p>
+     * directory relative to the root project directory. The project directory can be altered by changing the 'projectDir'
+     * property after the project has been included (see {@link ProjectDescriptor#setProjectDir(File)})</p>
      *
      * <p>As an example, the path {@code a:b} adds a project with path {@code :a:b}, name {@code b} and project
-     * directory {@code $rootDir/a/b}.</p>
+     * directory {@code $rootDir/a/b}. It also adds the a project with path {@code :a}, name {@code a} and project
+     * directory {@code $rootDir/a}, if it does not exist already.</p>
+     *
+     * <p>Some common examples of using the project path are:</p>
+     *
+     * <pre class='autoTestedSettings'>
+     *   // include two projects, 'foo' and 'foo:bar'
+     *   // directories are inferred by replacing ':' with '/'
+     *   include 'foo:bar'
+     *
+     *   // include one project whose project dir does not match the logical project path
+     *   include 'baz'
+     *   project(':baz').projectDir = file('foo/baz')
+     *
+     *   // include many projects whose project dirs do not match the logical project paths
+     *   file('subprojects').eachDir { dir -&gt;
+     *     include dir.name
+     *     project(":${dir.name}").projectDir = dir
+     *   }
+     * </pre>
      *
      * @param projectPaths the projects to add.
      */

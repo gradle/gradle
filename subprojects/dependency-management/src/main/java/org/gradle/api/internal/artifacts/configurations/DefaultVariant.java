@@ -27,7 +27,6 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -49,7 +48,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
                           ImmutableAttributesFactory cache) {
         this.parentDisplayName = parentDisplayName;
         this.name = name;
-        attributes = new DefaultMutableAttributeContainer(cache, parentAttributes);
+        attributes = cache.mutable(parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
         artifacts = new DefaultPublishArtifactSet(getAsDescribable(), new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
     }

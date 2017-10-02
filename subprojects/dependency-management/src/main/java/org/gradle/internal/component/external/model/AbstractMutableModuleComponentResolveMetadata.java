@@ -26,6 +26,8 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,6 +36,7 @@ import java.util.Map;
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
 abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
+    public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private final ModuleDescriptorState descriptor;
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
@@ -43,6 +46,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private ModuleSource moduleSource;
     private List<? extends DependencyMetadata> dependencies;
     private Map<String, Configuration> configurationDefinitions;
+    private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
     private List<ModuleComponentArtifactMetadata> artifacts;
 
@@ -66,6 +70,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.artifacts = metadata.getArtifacts();
         this.dependencies = metadata.getDependencies();
+        this.contentHash = metadata.getContentHash();
     }
 
     @Override
@@ -117,6 +122,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Override
     public void setChanging(boolean changing) {
         this.changing = changing;
+    }
+
+    @Override
+    public HashValue getContentHash() {
+        return contentHash;
+    }
+
+    @Override
+    public void setContentHash(HashValue contentHash) {
+        this.contentHash = contentHash;
     }
 
     @Override

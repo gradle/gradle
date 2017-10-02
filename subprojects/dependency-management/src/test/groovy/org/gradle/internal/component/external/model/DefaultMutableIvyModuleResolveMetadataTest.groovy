@@ -26,6 +26,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.hash.HashValue
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
@@ -54,6 +55,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.status == "2"
 
         and:
+        metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
         metadata.source == null
         !metadata.changing
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
@@ -93,6 +95,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
+        def contentHash = new HashValue("123")
 
         when:
         def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [])
@@ -101,6 +104,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.status = "3"
         metadata.changing = true
         metadata.statusScheme = ["1", "2", "3"]
+        metadata.contentHash = contentHash
 
         then:
         metadata.componentId == newId
@@ -109,6 +113,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.changing
         metadata.status == "3"
         metadata.statusScheme == ["1", "2", "3"]
+        metadata.contentHash == contentHash
 
         def immutable = metadata.asImmutable()
         immutable != metadata
@@ -118,6 +123,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.status == "3"
         immutable.changing
         immutable.statusScheme == ["1", "2", "3"]
+        immutable.contentHash == contentHash
 
         def copy = immutable.asMutable()
         copy != metadata
@@ -127,6 +133,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.status == "3"
         copy.changing
         copy.statusScheme == ["1", "2", "3"]
+        copy.contentHash == contentHash
     }
 
     def "making changes to copy does not affect original"() {

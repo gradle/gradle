@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -53,6 +54,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final FileStore<String> externalResourcesFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
+    private final ModuleMetadataParser metadataParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -66,6 +68,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                         FileStore<String> externalResourcesFileStore,
                                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                        ModuleMetadataParser metadataParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -73,6 +76,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileResourceRepository fileResourceRepository) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
+        this.metadataParser = metadataParser;
         this.instantiator = instantiatorFactory.decorate();
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -91,7 +95,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
-        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer(), moduleIdentifierFactory, fileResourceRepository);
+        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, fileResourceRepository);
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -120,7 +124,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository);
     }
 
     protected AuthenticationContainer createAuthenticationContainer() {

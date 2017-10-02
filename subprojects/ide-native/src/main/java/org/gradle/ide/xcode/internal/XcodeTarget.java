@@ -18,9 +18,10 @@ package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
 import javax.inject.Inject;
@@ -37,18 +38,18 @@ public class XcodeTarget implements Named {
     private String taskName;
     private String gradleCommand;
 
-    private final RegularFileVar debugOutputFile;
-    private final RegularFileVar releaseOutputFile;
+    private final PropertyState<FileSystemLocation> debugOutputFile;
+    private final PropertyState<FileSystemLocation> releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations, ProjectLayout projectLayout) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, ProviderFactory providers) {
         this.name = name;
         this.id = id;
-        this.debugOutputFile = projectLayout.newFileVar();
-        this.releaseOutputFile = projectLayout.newFileVar();
+        this.debugOutputFile = providers.property(FileSystemLocation.class);
+        this.releaseOutputFile = providers.property(FileSystemLocation.class);
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.importPaths = fileOperations.files();
@@ -63,11 +64,11 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public RegularFileVar getDebugOutputFile() {
+    public PropertyState<FileSystemLocation> getDebugOutputFile() {
         return debugOutputFile;
     }
 
-    public RegularFileVar getReleaseOutputFile() {
+    public PropertyState<FileSystemLocation> getReleaseOutputFile() {
         return releaseOutputFile;
     }
 

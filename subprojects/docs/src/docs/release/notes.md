@@ -23,6 +23,8 @@ TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set usin
 
 Gradle 4.3 introduces some changes that bring task inputs and outputs registered via task annotations (e.g. `@InputFile` and `@OutputDirectory` etc.) and the runtime API (think `task.inputs.file(...)` and `task.outputs.dir(...)` etc.) closer to each other.
 
+#### Output directory creation
+
 For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
 
 ```
@@ -35,6 +37,8 @@ task customTask {
     }
 }
 ```
+
+#### Input/output validation
 
 Task inputs and outputs declared via task property annotations have always been validated by Gradle. If a task declared a non-optional (`@Optional`) input that was `null`, Gradle would fail the build with the message:
 
@@ -53,9 +57,46 @@ A problem was found with the configuration of task ':test'. Registering invalid 
  - No value has been specified for property 'inputDirectory'.
 ```
 
-### Force rich or plain console with `org.gradle.console`
+#### Declaring classpath properties
 
-You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+The `@Classpath` annotation was introduced in Gradle 3.2 to mark task input properties that should represent a runtime classpath. Gradle 3.4 added `@CompileClasspath`. However, it was not possible to declare a similar property via the runtime API. With Gradle 4.3 this is now possible. The following examples declare equivalent inputs for `customTask`.
+
+Using the annotations API:
+
+```
+class CustomTask {
+    @Classpath FileCollection classpath
+
+    // ...
+}
+
+task customTask(type: CustomTask) {
+    classpath = files("lib1.jar", "lib2.jar")
+}
+```
+
+Using the runtime API:
+
+```
+task customTask {
+    inputs.files("lib1.jar", "lib2.jar")
+        .withNormalizer(ClasspathNormalizer)
+        .withPropertyName("classpath")
+}
+```
+
+### Force console type with `org.gradle.console`
+
+You may now force Gradle to use specific console type in [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+
+### New `verbose` console type
+
+Since Gradle 4.0, task header and outcome won't be displayed by default, which may be confusing. Now you can use `--console=verbose` command line argument 
+or set [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties` to enable task header and outcome output.
+
+### Plugin library upgrades
+
+The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
 <!--
 ### Example new and noteworthy
@@ -148,6 +189,7 @@ We would like to thank the following community members for making contributions 
 - [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
 - [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
+- [Evgeny Mandrikov](https://github.com/Godin) - JaCoCo plugin uses version 0.7.9 by default (gradle/gradle#2892)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)

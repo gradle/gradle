@@ -23,7 +23,7 @@ import java.io.File;
 public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata> {
     T parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException;
 
-    T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException;
+    T parseMetaData(DescriptorParseContext context, File descriptorFile) throws MetaDataParseException;
 
-    T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
+    T parseMetaData(DescriptorParseContext context, File descriptorFile, boolean validate) throws MetaDataParseException;
 }
