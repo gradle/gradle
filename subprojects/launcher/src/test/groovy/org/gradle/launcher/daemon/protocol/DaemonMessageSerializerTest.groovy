@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon.protocol
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.UserInputRequestEvent
+import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
@@ -79,6 +81,23 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def message = new Cancel()
         def messageResult = serialize(message, serializer)
         messageResult instanceof Cancel
+    }
+
+    def "can serialize user input request event"() {
+        expect:
+        def event = new UserInputRequestEvent('prompt')
+        def result = serialize(event, serializer)
+        result instanceof UserInputRequestEvent
+        result.prompt == 'prompt'
+        result.logLevel == LogLevel.QUIET
+    }
+
+    def "can serialize user input resume event"() {
+        expect:
+        def event = new UserInputResumeEvent()
+        def result = serialize(event, serializer)
+        result instanceof UserInputResumeEvent
+        result.logLevel == LogLevel.QUIET
     }
 
     OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {
