@@ -31,7 +31,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     private final String branch;
 
     DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
-        super(metadata, metadata.getConfigurationDefinitions(), metadata.getArtifactDefinitions(), metadata.getExcludes());
+        super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
         this.artifacts = metadata.getArtifactDefinitions();

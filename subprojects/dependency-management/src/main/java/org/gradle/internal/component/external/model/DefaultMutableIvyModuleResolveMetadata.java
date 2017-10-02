@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
@@ -83,6 +84,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
+    protected List<Artifact> getArtifacts() {
+        return artifacts;
+    }
+
+    @Override
     public ImmutableMap<String, Configuration> getConfigurationDefinitions() {
         return configurations;
     }
@@ -100,6 +106,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     @Override
     public void setExcludes(Iterable<? extends Exclude> excludes) {
         this.excludes = ImmutableList.copyOf(excludes);
+        resetConfigurations();
     }
 
     @Override

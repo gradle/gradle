@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
@@ -45,6 +47,11 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      * Note that this method can be expensive. Often it is more efficient to use a more specialised mutation method such as {@link #withSource(ModuleSource)} rather than this method.
      */
     MutableModuleComponentResolveMetadata asMutable();
+
+    /**
+     * Return the configurations of this component.
+     */
+    ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations();
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

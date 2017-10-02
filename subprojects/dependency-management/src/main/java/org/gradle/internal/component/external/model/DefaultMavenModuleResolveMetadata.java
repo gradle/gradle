@@ -17,11 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
-import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
@@ -37,10 +32,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final ImmutableList<? extends ComponentVariant> variants;
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
-        super(metadata,
-            GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS,
-            ImmutableList.of(new Artifact(new DefaultIvyArtifactName(metadata.getComponentId().getModule(), "jar", "jar"), ImmutableSet.of("compile"))),
-            ImmutableList.<Exclude>of());
+        super(metadata);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();

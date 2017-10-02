@@ -26,6 +26,7 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
 
@@ -41,6 +42,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     List<Artifact> artifacts = []
+    List<Exclude> excludes = []
 
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
@@ -210,6 +212,41 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutableCopy.componentId == newId
         immutableCopy.source == source
         immutableCopy.statusScheme == ["1", "2"]
+    }
+
+    def "can replace the exclude rules for the component"() {
+        when:
+        configuration("compile")
+        configuration("runtime", ["compile"])
+
+        def metadata = getMetadata()
+        metadata.configurations
+
+        def exclude1 = exclude("foo", "bar", "runtime")
+        def exclude2 = exclude("foo", "baz", "compile")
+        metadata.excludes = [exclude1, exclude2]
+
+        then:
+        metadata.excludes == [exclude1, exclude2]
+
+        def immutable = metadata.asImmutable()
+        immutable.getConfiguration("compile").excludes.size() == 2 // maintains a reference to all the excludes
+        immutable.getConfiguration("runtime").excludes.size() == 2
+
+        when:
+        def copy = immutable.asMutable()
+        copy.excludes = [exclude1]
+
+        then:
+        def immutable2 = copy.asImmutable()
+        immutable2.getConfiguration("compile").excludes.size() == 1
+        immutable2.getConfiguration("runtime").excludes.size() == 1
+    }
+
+    def exclude(String group, String module, String... confs) {
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId(group, module), confs, "whatever")
+        excludes.add(exclude)
+        return exclude
     }
 
     def artifact(String name, String... confs) {

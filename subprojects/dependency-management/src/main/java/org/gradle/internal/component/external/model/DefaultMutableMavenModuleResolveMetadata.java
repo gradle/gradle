@@ -17,15 +17,22 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -34,7 +41,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
-    private List<MutableVariantImpl> addedVariants;
+    private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
 
     /**
@@ -65,6 +72,21 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     public MavenModuleResolveMetadata asImmutable() {
         return new DefaultMavenModuleResolveMetadata(this);
+    }
+
+    @Override
+    protected List<Artifact> getArtifacts() {
+        return ImmutableList.of(new Artifact(new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar"), ImmutableSet.of("compile")));
+    }
+
+    @Override
+    protected Map<String, Configuration> getConfigurationDefinitions() {
+        return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+    }
+
+    @Override
+    protected List<Exclude> getExcludes() {
+        return ImmutableList.of();
     }
 
     @Nullable
@@ -111,26 +133,26 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
         MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
-        if (addedVariants == null) {
-            addedVariants = new ArrayList<MutableVariantImpl>();
+        if (newVariants == null) {
+            newVariants = new ArrayList<MutableVariantImpl>();
         }
-        addedVariants.add(variant);
+        newVariants.add(variant);
         return variant;
     }
 
     @Override
     public ImmutableList<? extends ComponentVariant> getVariants() {
-        if (variants == null && addedVariants == null) {
+        if (variants == null && newVariants == null) {
             return ImmutableList.of();
         }
-        if (variants != null && addedVariants == null) {
+        if (variants != null && newVariants == null) {
             return variants;
         }
         ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<ComponentVariant>();
         if (variants != null) {
             builder.addAll(variants);
         }
-        for (MutableVariantImpl variant : addedVariants) {
+        for (MutableVariantImpl variant : newVariants) {
             builder.add(new ImmutableVariantImpl(variant.name, variant.attributes, ImmutableList.copyOf(variant.files)));
         }
         return builder.build();

@@ -200,6 +200,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         dependency("foo", "bar", "1.0")
         def metadata = getMetadata()
+        metadata.configurations
 
         then:
         metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
@@ -230,6 +231,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         when:
         configuration("runtime")
         def metadata = getMetadata()
+        metadata.configurations
         def a1 = metadata.artifact("jar", "jar", null)
         def a2 = metadata.artifact("pom", "pom", null)
         metadata.artifactOverrides = [a1, a2]
