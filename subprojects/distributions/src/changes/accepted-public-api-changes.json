@@ -1,5 +1,5 @@
 {
-    "baseVersion": "4.2",
+    "baseVersion": "4.2.1",
     "acceptedApiChanges": [
         {
             "type": "org.gradle.language.c.tasks.CPreCompiledHeaderCompile",
