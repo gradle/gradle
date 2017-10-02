@@ -23,7 +23,7 @@ versions.gradle_kotlin_dsl = '0.11.1'
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.11"
+versions.groovy = "2.4.12"
 
 versions.bouncycastle = "1.57"
 
