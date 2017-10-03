@@ -44,7 +44,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.my.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.my.myplugin'"))
+        failure.assertThatDescription(startsWith("Could not apply requested plugin [id 'org.my.myplugin' version '1.0'] as it does not provide a plugin with id 'org.my.myplugin'"))
         failure.assertHasLineNumber(3)
     }
 
@@ -56,7 +56,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id 'org.my.myplugin' version '1.0']"))
         failure.assertHasLineNumber(3)
         failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
     }
@@ -69,7 +69,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id 'org.my.myplugin' version '1.0']"))
         failure.assertHasLineNumber(3)
         failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
         failure.assertHasCause("broken plugin")
@@ -83,7 +83,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
         expect:
         fails("verify")
-        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id 'org.my.myplugin' version '1.0']"))
         failure.assertHasLineNumber(3)
         failure.assertHasCause("throwing plugin")
     }

@@ -34,6 +34,7 @@ ext.publicApiIncludes = [
     'org/gradle/platform/**',
     'org/gradle/play/**',
     'org/gradle/plugin/devel/**',
+    'org/gradle/plugin/dsl/**',
     'org/gradle/plugin/repository/*',
     'org/gradle/plugin/use/*',
     'org/gradle/plugin/management/*',

@@ -24,21 +24,25 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheKeyBuilder;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
+import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -55,6 +59,7 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
+import org.gradle.plugin.use.resolve.internal.ScriptPluginLoaderCache;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
@@ -115,13 +120,18 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver, FileLookup fileLookup) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
+        ScriptPluginLoaderCache createScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, ScriptingLanguages scriptingLanguages, TextResourceLoader textResourceLoader) {
+            return new ScriptPluginLoaderCache(projectRegistry, cacheRepository, cacheKeyBuilder, scriptingLanguages, textResourceLoader);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
+                                                          DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver,
+                                                          ScriptPluginLoaderCache scriptPluginLoaderCache) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver, scriptPluginLoaderCache);
+        }
+
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer, ProjectRegistry<ProjectInternal> projectRegistry) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer, projectRegistry);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {

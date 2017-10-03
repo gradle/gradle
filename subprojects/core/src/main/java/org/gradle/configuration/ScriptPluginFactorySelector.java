@@ -20,7 +20,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.scripts.ScriptingLanguage;
@@ -79,24 +78,20 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     private final ScriptPluginFactory defaultScriptPluginFactory;
     private final ScriptingLanguages scriptingLanguages;
     private final ProviderInstantiator providerInstantiator;
-    private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
                                        ScriptingLanguages scriptingLanguages,
-                                       ProviderInstantiator providerInstantiator,
-                                       BuildOperationExecutor buildOperationExecutor) {
+                                       ProviderInstantiator providerInstantiator) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
         this.scriptingLanguages = scriptingLanguages;
         this.providerInstantiator = providerInstantiator;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
                                ClassLoaderScope baseScope, boolean topLevelScript) {
-        ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
-            .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
-        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
+        return scriptPluginFactoryFor(scriptSource.getFileName())
+                .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {

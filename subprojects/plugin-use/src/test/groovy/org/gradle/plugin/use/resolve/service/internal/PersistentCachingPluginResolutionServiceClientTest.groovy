@@ -18,8 +18,9 @@ package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
@@ -30,7 +31,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
     public static final String PORTAL_URL_1 = "http://foo"
     public static final PluginRequestInternal REQUEST_1 = request("foo")
     public static final String PLUGIN_URL_1 = "$PORTAL_URL_1/foo/1"
-    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", false)
+    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", true)
     public static final ClientStatus CLIENT_STATUS_1 = new ClientStatus("One")
     public static final ClientStatus CLIENT_STATUS_2 = new ClientStatus("Two")
     public static final ErrorResponse ERROR_1 = new ErrorResponse("ERROR", "error")
@@ -148,8 +149,8 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
         1 * delegate.close()
     }
 
-    static PluginRequestInternal request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+    static PluginRequestInternal request(String id) {
+        new BinaryPluginRequest(new StringScriptSource("test", "test"), 1, DefaultPluginId.of(id), "1", true, null)
     }
 
 }

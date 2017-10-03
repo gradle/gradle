@@ -110,7 +110,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin']")
+        errorOutput.contains("Plugin [id 'org.example.plugin']")
     }
 
     def 'when invalid version is specified, resolution fails'() {
@@ -138,7 +138,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin', version: '+']")
+        errorOutput.contains("Plugin [id 'org.example.plugin' version '+']")
     }
 
     def 'when invalid artifact version is specified, resolution fails'() {
@@ -166,7 +166,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:+']")
+        errorOutput.contains("Plugin [id 'org.example.plugin' version '1.2' artifact 'org.example.plugin:plugin:+']")
     }
 
     def 'can specify an artifact to use'() {
@@ -333,7 +333,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("helloWorld")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.gradle.hello-world', version: '0.2', artifact: 'foo:bar:1.0']")
+        errorOutput.contains("Plugin [id 'org.gradle.hello-world' version '0.2' artifact 'foo:bar:1.0']")
         errorOutput.contains("explicit artifact coordinates are not supported")
     }
 

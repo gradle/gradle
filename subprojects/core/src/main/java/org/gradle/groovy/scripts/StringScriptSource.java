@@ -19,11 +19,35 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.StringTextResource;
 import org.gradle.internal.hash.HashUtil;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * In-memory ScriptSource.
+ */
 public class StringScriptSource implements ScriptSource {
     private final TextResource resource;
+    private final String scriptFileExtension;
 
+    /**
+     * Creates an in-memory ScriptSource for a <code>.gradle</code> script.
+     *
+     * @param description the description
+     * @param content the content, may be null
+     */
     public StringScriptSource(String description, String content) {
-        resource = new StringTextResource(description, content == null ? "" : content);
+        this(description, content, ".gradle");
+    }
+
+    /**
+     * Creates an in-memory ScriptSource for a script.
+     *
+     * @param description the description
+     * @param content the content
+     * @param scriptFileExtension the extension to be appended to the synthetic {@link #getFileName()}, must not be null
+     */
+    public StringScriptSource(String description, String content, String scriptFileExtension) {
+        this.resource = new StringTextResource(description, content == null ? "" : content);
+        this.scriptFileExtension = checkNotNull(scriptFileExtension);
     }
 
     public String getClassName() {
@@ -35,7 +59,7 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getFileName() {
-        return getClassName();
+        return getClassName() + scriptFileExtension;
     }
 
     public String getDisplayName() {

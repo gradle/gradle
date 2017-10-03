@@ -27,7 +27,7 @@ import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
 class DefaultServiceRegistryTest extends Specification {
-    def TestRegistry registry = new TestRegistry()
+    TestRegistry registry = new TestRegistry()
 
     def throwsExceptionForUnknownService() {
         when:
@@ -73,7 +73,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def throwsExceptionForUnknownParentService() {
-        def parent = Mock(ServiceRegistry);
+        def parent = Mock(ServiceRegistry)
         def registry = new TestRegistry(parent)
 
         given:
@@ -506,14 +506,14 @@ class DefaultServiceRegistryTest extends Specification {
             protected String createString() {
                 return "overridden"
             }
-        };
+        }
 
         expect:
         registry.get(String) == "overridden"
     }
 
     def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceType() {
-        def registry = new DefaultServiceRegistry();
+        def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
 
         expect:
@@ -720,9 +720,9 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry(parent1, parent2)
         registry.addProvider(new Object() {
             Long createLong() {
-                return 12;
+                return 12
             }
-        });
+        })
 
         given:
         _ * parent1.hasService(Number) >> true
@@ -806,7 +806,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         given:
         registry.add(StringFactory, new StringFactory() {
-            public String create() {
+            String create() {
                 return "value"
             }
         })
@@ -1215,11 +1215,11 @@ class DefaultServiceRegistryTest extends Specification {
     private Factory<? extends Number> extendsNumberFactory
 
     private Type getNumberFactoryType() {
-        return getClass().getDeclaredField("numberFactory").getGenericType();
+        return getClass().getDeclaredField("numberFactory").getGenericType()
     }
 
     private Type getStringFactoryType() {
-        return getClass().getDeclaredField("stringFactory").getGenericType();
+        return getClass().getDeclaredField("stringFactory").getGenericType()
     }
 
     private Type getSuperBigDecimalFactoryType() {
@@ -1235,9 +1235,9 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class TestFactory implements Factory<BigDecimal> {
-        int value;
+        int value
 
-        public BigDecimal create() {
+        BigDecimal create() {
             return BigDecimal.valueOf(value++)
         }
     }
@@ -1276,10 +1276,10 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class TestRegistry extends DefaultServiceRegistry {
-        public TestRegistry() {
+        TestRegistry() {
         }
 
-        public TestRegistry(ServiceRegistry parent) {
+        TestRegistry(ServiceRegistry parent) {
             super(parent)
         }
 
@@ -1439,15 +1439,15 @@ class DefaultServiceRegistryTest extends Specification {
 
         Factory<Object> createObjectFactory() {
             return new Factory<Object>() {
-                public Object create() {
+                Object create() {
                     return createObject()
                 }
-            };
+            }
         }
 
         Factory<String> createStringFactory() {
             return new Factory<String>() {
-                public String create() {
+                String create() {
                     return createString()
                 }
             };
@@ -1455,10 +1455,10 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class RegistryWithDecoratorMethodsWithCreate extends DefaultServiceRegistry {
-        public RegistryWithDecoratorMethodsWithCreate() {
+        RegistryWithDecoratorMethodsWithCreate() {
         }
 
-        public RegistryWithDecoratorMethodsWithCreate(ServiceRegistry parent) {
+        RegistryWithDecoratorMethodsWithCreate(ServiceRegistry parent) {
             super(parent)
         }
 
@@ -1468,18 +1468,18 @@ class DefaultServiceRegistryTest extends Specification {
 
         protected Factory<Long> createLongFactory(final Factory<Long> factory) {
             return new Factory<Long>() {
-                public Long create() {
+                Long create() {
                     return factory.create() + 2
                 }
-            };
+            }
         }
     }
 
     private static class RegistryWithDecoratorMethodsWithDecorate extends DefaultServiceRegistry {
-        public RegistryWithDecoratorMethodsWithDecorate() {
+        RegistryWithDecoratorMethodsWithDecorate() {
         }
 
-        public RegistryWithDecoratorMethodsWithDecorate(ServiceRegistry parent) {
+        RegistryWithDecoratorMethodsWithDecorate(ServiceRegistry parent) {
             super(parent)
         }
 
@@ -1489,36 +1489,36 @@ class DefaultServiceRegistryTest extends Specification {
 
         protected Factory<Long> decorateLongFactory(final Factory<Long> factory) {
             return new Factory<Long>() {
-                public Long create() {
+                Long create() {
                     return factory.create() + 2
                 }
-            };
+            }
         }
     }
 
     private static class RegistryWithMultipleFactoryMethods extends DefaultServiceRegistry {
         Factory<Number> createObjectFactory() {
             return new Factory<Number>() {
-                public Number create() {
+                Number create() {
                     return 12
                 }
-            };
+            }
         }
 
         Factory<String> createStringFactory() {
             return new Factory<String>() {
-                public String create() {
+                String create() {
                     return "hello"
                 }
-            };
+            }
         }
     }
 
-    public interface TestCloseService extends Closeable {
+    interface TestCloseService extends Closeable {
         void close()
     }
 
-    public interface TestStopService extends Stoppable {
+    interface TestStopService extends Stoppable {
         void stop()
     }
 

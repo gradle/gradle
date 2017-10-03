@@ -30,14 +30,13 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
@@ -391,7 +390,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptApplicator(), getClassLoaderScope(), getResourceLoader(), this);
     }
 
     @Override
@@ -405,12 +404,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
+    protected ScriptApplicator getScriptApplicator() {
         throw new UnsupportedOperationException();
     }
 

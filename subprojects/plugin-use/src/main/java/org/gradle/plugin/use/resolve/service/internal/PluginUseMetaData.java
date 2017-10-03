@@ -42,6 +42,20 @@ public class PluginUseMetaData {
         this.implementation = implementation;
         this.implementationType = implementationType;
         this.legacy = legacy;
+        if (!legacy) {
+            throw new RuntimeException("GOT A NON LEGACY: " + this);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "PluginUseMetaData{"
+            + "id='" + id + '\''
+            + ", version='" + version + '\''
+            + ", implementation=" + implementation
+            + ", implementationType='" + implementationType + '\''
+            + ", legacy=" + legacy
+            + '}';
     }
 
     @Override
@@ -87,11 +101,11 @@ public class PluginUseMetaData {
     public static class Serializer extends AbstractSerializer<PluginUseMetaData> {
         public PluginUseMetaData read(Decoder decoder) throws Exception {
             return new PluginUseMetaData(
-                    decoder.readString(),
-                    decoder.readString(),
-                    BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
-                    decoder.readString(),
-                    decoder.readBoolean()
+                decoder.readString(),
+                decoder.readString(),
+                BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
+                decoder.readString(),
+                decoder.readBoolean()
             );
         }
 

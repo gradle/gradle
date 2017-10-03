@@ -47,6 +47,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -79,6 +80,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private ScriptPluginFactory scriptPluginFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -94,7 +96,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ProviderFactory providerFactory,
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
-                                      FileHasher fileHasher) {
+                                      FileHasher fileHasher,
+                                      BuildOperationExecutor buildOperationExecutor) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -108,6 +111,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
@@ -146,8 +150,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     return fileLookup.getFileResolver().getPatternSetFactory();
                 }
             };
+            //TODO:rbo remove ScriptPluginFactory and ScriptHandlerFactory dependencies from here
             services.add(ScriptPluginFactory.class, scriptPluginFactory);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
+            services.add(ScriptApplicator.class, new DefaultScriptApplicator(scriptPluginFactory, scriptHandlerFactory, buildOperationExecutor));
             services.add(ClassLoaderScope.class, baseScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
@@ -179,7 +185,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             PluginRequests pluginRequests = initialRunner.getData();
             PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
+            pluginRequestApplicator.applyPlugins(scriptSource, pluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);

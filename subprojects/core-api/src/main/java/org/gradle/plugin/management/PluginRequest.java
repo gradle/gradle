@@ -22,6 +22,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 
 /**
  * Contains information about a plugin that has been requested for resolution.
@@ -33,8 +34,9 @@ import javax.annotation.Nullable;
 public interface PluginRequest {
 
     /**
-     * The ID of the plugin requested. Never null.
+     * The ID of the plugin requested. Null if the request represents a script plugin.
      */
+    @Nullable
     PluginId getId();
 
     /**
@@ -42,6 +44,14 @@ public interface PluginRequest {
      */
     @Nullable
     String getVersion();
+
+    /**
+     * The URI to a script plugin. Null if the request represents a binary plugin.
+     *
+     * @since 4.3
+     */
+    @Nullable
+    URI getScript();
 
     /**
      * The implementation module of the plugin if one was explicitly specified, otherwise null.

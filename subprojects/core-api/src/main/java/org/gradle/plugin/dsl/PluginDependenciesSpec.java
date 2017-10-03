@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use;
+package org.gradle.plugin.dsl;
 
 import org.gradle.api.Incubating;
 
 /**
  * The DSL for declaring plugins to use in a script.
+ *
  * <p>
  * In a build script, the <code>plugins {}</code> script block API is of this type.
  * That is, you can use this API in the body of the plugins script block to declare plugins to be used for the script.
  * </p>
+ *
  * <h3>Relationship with the apply() method</h3>
  * <p>
  * The <code>plugins {}</code> block serves a similar purpose to the {@link org.gradle.api.plugins.PluginAware#apply(java.util.Map)} method
@@ -32,6 +34,7 @@ import org.gradle.api.Incubating;
  * At this time there is no observable practical difference between the two approaches with regard to the end result.
  * The <code>plugins {}</code> block is a new, incubating, Gradle feature that will evolve to offer benefits over the {@code apply()} approach.
  * </p>
+ *
  * <h3>Strict Syntax</h3>
  * <p>
  * The <code>plugins {}</code> block only allows a strict subset of the full build script programming language.
@@ -43,11 +46,12 @@ import org.gradle.api.Incubating;
  * This implies the following constraints:
  * </p>
  * <ul>
- * <li>Only {@link #id(String)} method calls may be top level statements</li>
- * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} and/or {@link PluginDependencySpec#apply(boolean)} method call on the returned object</li>
- * <li>{@link #id(String)}, {@link PluginDependencySpec#version(String)} and {@link PluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
+ * <li>Only {@link #id(String)} or {@link #script(String)} method calls may be top level statements</li>
+ * <li>{@link #id(String)} calls may only be followed by a {@link BinaryPluginDependencySpec#version(String)} and/or {@link BinaryPluginDependencySpec#apply(boolean)} method call on the returned object</li>
+ * <li>{@link #id(String)}, {@link BinaryPluginDependencySpec#version(String)} and {@link BinaryPluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
  * <li>The <code>plugins {}</code> script block must follow any <code>buildscript {}</code> script block, but must precede all other logic in the script</li>
  * </ul>
+ *
  * <h3>Available Plugins</h3>
  * <h4>Core Plugins</h4>
  * <p>
@@ -60,9 +64,7 @@ import org.gradle.api.Incubating;
  *   id 'java'
  * }
  * </pre>
- * <p>
- * Or via:
- * </p>
+ * <p> Or via: </p>
  * <pre>
  * plugins {
  *   id 'org.gradle.java'
@@ -74,6 +76,7 @@ import org.gradle.api.Incubating;
  * <p>
  * For the list of available core plugins for a particular Gradle version, please consult the User Guide.
  * </p>
+ *
  * <h4>Community Plugins</h4>
  * <p>
  * Non-core plugins are available from the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
@@ -83,6 +86,18 @@ import org.gradle.api.Incubating;
  * <p>
  * To use a community plugin, the fully qualified id must be specified along with a version.
  * </p>
+ *
+ * <h4>Script Plugins</h4>
+ * <p>
+ *     Gradle script files are able to be applied using the <code>plugins {}</code> block.
+ *     Script plugins must be specified as a path relative to the applying script, or an absolute URI.
+ * </p>
+ * <pre>
+ * plugins {
+ *   script "some/other.gradle"
+ *   script "https://example.com/"
+ * }
+ * </pre>
  */
 @Incubating
 public interface PluginDependenciesSpec {
@@ -95,7 +110,9 @@ public interface PluginDependenciesSpec {
      *     id "org.company.myplugin"
      * }
      * </pre>
+     *
      * Further constraints (e.g. version number) can be specified by the methods of the return value.
+     *
      * <pre>
      * plugins {
      *     id "org.company.myplugin" version "1.3"
@@ -115,6 +132,22 @@ public interface PluginDependenciesSpec {
      * @param id the id of the plugin to depend on
      * @return a mutable plugin dependency specification that can be used to further refine the dependency
      */
-    PluginDependencySpec id(String id);
+    BinaryPluginDependencySpec id(String id);
+
+    /**
+     * Specify a path or URL to a script plugin.
+     *
+     * <pre>
+     * plugins {
+     *     script "path/to/script-plugin.gradle"
+     *     script "http://localhost/remote-script-plugin.gradle"
+     * }
+     * </pre>
+     *
+     * @param script the path, relative to the requesting script, or URL
+     * @return this
+     * @since 4.3
+     */
+    ScriptPluginDependencySpec script(String script);
 
 }

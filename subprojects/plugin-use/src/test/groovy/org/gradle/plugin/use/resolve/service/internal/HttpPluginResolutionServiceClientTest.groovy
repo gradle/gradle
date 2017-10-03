@@ -37,7 +37,7 @@ class HttpPluginResolutionServiceClientTest extends Specification {
 
     def "returns plugin metadata for successful query"() {
         given:
-        def metaData = new PluginUseMetaData("foo", "bar", [gav: "foo:bar:baz", repo: "http://repo.com"], PluginUseMetaData.M2_JAR, false)
+        def metaData = new PluginUseMetaData("foo", "bar", [gav: "foo:bar:baz", repo: "http://repo.com"], PluginUseMetaData.M2_JAR, true)
 
         when:
         stubResponse(200, toJson(metaData))

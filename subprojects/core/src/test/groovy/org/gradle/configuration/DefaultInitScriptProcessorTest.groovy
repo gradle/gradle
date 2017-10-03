@@ -17,8 +17,6 @@ package org.gradle.configuration
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
@@ -28,9 +26,7 @@ class DefaultInitScriptProcessorTest extends Specification {
 
     void "can execute init script"() {
         when:
-        def scriptPluginFactory = Mock(ScriptPluginFactory)
-        def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-        def gradleScope = Mock(ClassLoaderScope)
+        def gradleMock = Mock(GradleInternal)
         def uri = new URI("file:///foo")
         def initScriptMock = Stub(ScriptSource) {
             getResource() >> Stub(TextResource) {
@@ -39,19 +35,15 @@ class DefaultInitScriptProcessorTest extends Specification {
                 }
             }
         }
-        def gradleMock = Mock(GradleInternal)
         def siblingScope = Mock(ClassLoaderScope)
-        def scriptHandler = Mock(ScriptHandlerInternal)
-        def scriptPlugin = Mock(ScriptPlugin)
+        def gradleScope = Mock(ClassLoaderScope)
+        def scriptApplicator = Mock(ScriptApplicator)
 
         1 * gradleMock.getClassLoaderScope() >> gradleScope
         1 * gradleScope.createChild("init-$uri") >> siblingScope
+        1 * scriptApplicator.applyTo(gradleMock, initScriptMock, null, siblingScope, gradleScope, true)
 
-        1 * scriptHandlerFactory.create(initScriptMock, siblingScope) >> scriptHandler
-        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, siblingScope, gradleScope, true) >> scriptPlugin
-        1 * scriptPlugin.apply(gradleMock)
-
-        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory)
+        def processor = new DefaultInitScriptProcessor(scriptApplicator)
 
         then:
         processor.process(initScriptMock, gradleMock)

@@ -52,7 +52,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         buildAndFail("--scan").output.contains("""
-> Failed to apply plugin [id 'com.gradle.build-scan']
+> Failed to apply plugin 'com.gradle.build-scan'
    > This version of Gradle requires version 1.8.0 of the build scan plugin or later.
      Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.
 """)

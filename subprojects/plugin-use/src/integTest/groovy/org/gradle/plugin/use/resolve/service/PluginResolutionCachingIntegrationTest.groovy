@@ -153,12 +153,12 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     void failPluginNotFound() {
         fails "tasks"
-        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found"))
+        failure.assertThatDescription(startsWith("Plugin [id 'org.my.myplugin' version '1.0'] was not found"))
     }
 
     void failError() {
         fails "tasks"
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertHasDescription("Error resolving plugin [id 'org.my.myplugin' version '1.0']")
     }
 
     void publishPlugin() {

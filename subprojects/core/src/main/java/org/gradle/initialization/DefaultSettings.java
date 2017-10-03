@@ -27,7 +27,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
@@ -35,7 +34,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.vcs.SourceControl;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.composite.internal.IncludedBuildFactory;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -210,7 +209,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptApplicator(), getRootClassLoaderScope(), getResourceLoader(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -236,12 +235,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
+    protected ScriptApplicator getScriptApplicator() {
         throw new UnsupportedOperationException();
     }
 

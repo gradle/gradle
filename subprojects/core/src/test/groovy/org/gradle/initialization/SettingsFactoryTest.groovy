@@ -21,9 +21,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.RootClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptApplicator
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -41,23 +40,21 @@ class SettingsFactoryTest extends Specification {
         def serviceRegistryFactory = Mock(ServiceRegistryFactory)
         def settingsServices = Mock(ServiceRegistry)
         def fileResolver = Mock(FileResolver)
-        def scriptPluginFactory = Mock(ScriptPluginFactory)
-        def scriptHandlerFactory = Mock(ScriptHandlerFactory)
+        def scriptApplicator = Mock(ScriptApplicator)
         def projectDescriptorRegistry = Mock(ProjectDescriptorRegistry)
 
         1 * serviceRegistryFactory.createFor(_ as Settings) >> settingsServices
         1 * settingsServices.get(FileResolver) >> fileResolver
-        1 * settingsServices.get(ScriptPluginFactory) >> scriptPluginFactory
-        1 * settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory
+        1 * settingsServices.get(ScriptApplicator) >> scriptApplicator
         1 * settingsServices.get(ProjectDescriptorRegistry) >> projectDescriptorRegistry
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory)
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
-                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache()));
+                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache()))
 
         then:
         gradle.is(settings.gradle)

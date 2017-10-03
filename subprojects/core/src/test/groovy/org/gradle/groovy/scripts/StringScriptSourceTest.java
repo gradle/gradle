@@ -34,7 +34,7 @@ public class StringScriptSourceTest {
     @Test
     public void generatesClassNameAndSourceFileNameUsingHashOfText() {
         assertThat(source.getClassName(), matchesRegexp("script_[a-z0-9]+"));
-        assertThat(source.getFileName(), equalTo(source.getClassName()));
+        assertThat(source.getFileName(), equalTo(source.getClassName() + ".gradle"));
     }
 
     @Test
@@ -46,5 +46,11 @@ public class StringScriptSourceTest {
     @Test
     public void usesProvidedDescription() {
         assertThat(source.getDisplayName(), equalTo("<description>"));
+    }
+
+    @Test
+    public void fileNameExtensionCanBeCustomized() {
+        ScriptSource source = new StringScriptSource("<description>", "<content>", ".gradle.kts");
+        assertThat(source.getFileName(), endsWith(".gradle.kts"));
     }
 }

@@ -68,7 +68,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
-    def "plugin class isn't visible to build script"() {
+    def "plugin class is visible to build script"() {
         publishPlugin()
 
         buildScript """
@@ -76,10 +76,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
 
             task verify {
                 doLast {
-                    try {
-                        getClass().getClassLoader().loadClass("org.gradle.test.TestPlugin")
-                        throw new AssertionError("plugin class *is* visible to build script")
-                    } catch (ClassNotFoundException expected) {}
+                    getClass().getClassLoader().loadClass("org.gradle.test.TestPlugin")
                 }
             }
         """
@@ -100,14 +97,9 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
-    def "plugin cannot access core Gradle plugin classes"() {
+    def "plugin can access core Gradle plugin classes"() {
         publishPlugin("""
-            try {
-                getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')
-                assert false : "should have failed to load java plugin"
-            } catch (ClassNotFoundException ignore) {
-
-            }
+            getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')
 
             project.task("verify")
         """)

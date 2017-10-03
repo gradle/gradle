@@ -103,7 +103,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         fails("dependencies")
 
         and:
-        failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
+        failureDescriptionStartsWith("Plugin [id 'org.gradle.non-existing' version '1.0'] was not found in any of the following sources:")
         failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
     }
 }

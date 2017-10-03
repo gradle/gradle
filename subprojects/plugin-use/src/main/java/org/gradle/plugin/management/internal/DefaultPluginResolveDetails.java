@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -40,26 +41,38 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
 
     @Override
     public void useModule(Object notation) {
-        targetPluginRequest = new DefaultPluginRequest(
-            targetPluginRequest.getId(),
-            targetPluginRequest.getVersion(),
-            targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
-            targetPluginRequest.getScriptDisplayName(),
-            NOTATION_PARSER.parseNotation(notation)
-        );
+        if (pluginRequest instanceof BinaryPluginRequest) {
+            targetPluginRequest = new BinaryPluginRequest(
+                targetPluginRequest.getRequestingScriptDisplayName(),
+                targetPluginRequest.getRequestingScriptLineNumber(),
+                targetPluginRequest.getId(),
+                targetPluginRequest.getVersion(),
+                targetPluginRequest.isApply(),
+                NOTATION_PARSER.parseNotation(notation)
+            );
+        } else if (pluginRequest instanceof ScriptPluginRequest) {
+            throw new InvalidUserCodeException("Substituting a script plugin is not supported");
+        } else {
+            throw new IllegalStateException("Unknown plugin request type " + pluginRequest);
+        }
     }
 
     @Override
     public void useVersion(String version) {
-        targetPluginRequest = new DefaultPluginRequest(
-            targetPluginRequest.getId(),
-            version,
-            targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
-            targetPluginRequest.getScriptDisplayName(),
-            targetPluginRequest.getModule()
-        );
+        if (pluginRequest instanceof BinaryPluginRequest) {
+            targetPluginRequest = new BinaryPluginRequest(
+                targetPluginRequest.getRequestingScriptDisplayName(),
+                targetPluginRequest.getRequestingScriptLineNumber(),
+                targetPluginRequest.getId(),
+                version,
+                targetPluginRequest.isApply(),
+                targetPluginRequest.getModule()
+            );
+        } else if (pluginRequest instanceof ScriptPluginRequest) {
+            throw new InvalidUserCodeException("Substituting a script plugin is not supported");
+        } else {
+            throw new IllegalStateException("Unknown plugin request type " + pluginRequest);
+        }
     }
 
     @Override

@@ -17,9 +17,10 @@
 package org.gradle.plugin.use.internal
 
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequestsSerializer
+import org.gradle.plugin.management.internal.ScriptPluginRequest
 
 class PluginRequestsSerializerTest extends SerializerSpec {
 
@@ -36,16 +37,20 @@ class PluginRequestsSerializerTest extends SerializerSpec {
     def "non empty"() {
         when:
         def serialized = serialize(new DefaultPluginRequests([
-            new DefaultPluginRequest("java", null, true, 1, "buildscript"),
-            new DefaultPluginRequest("groovy", null, false, 2, "buildscript"),
-            new DefaultPluginRequest("custom", "1.0", false, 3, "initscript")
+            new BinaryPluginRequest("buildscript", 1, DefaultPluginId.of("java"), null, true, null),
+            new BinaryPluginRequest("buildscript", 2, DefaultPluginId.of("groovy"), null, false, null),
+            new BinaryPluginRequest("initscript", 3, DefaultPluginId.of("custom"), "1.0", false, null),
+            new ScriptPluginRequest("buildscript", 4, URI.create("other.gradle"))
         ]), serializer)
 
         then:
-        serialized*.id == ["java", "groovy", "custom"].collect { DefaultPluginId.of(it) }
-        serialized*.version == [null, null, "1.0"]
-        serialized*.lineNumber == [1, 2, 3]
-        serialized*.scriptDisplayName == ["buildscript", "buildscript", "initscript"]
-        serialized*.apply == [true, false, false]
+        serialized*.requestingScriptLineNumber == [1, 2, 3, 4]
+        serialized*.requestingScriptDisplayName == ["buildscript", "buildscript", "initscript", "buildscript"]
+
+        and:
+        serialized*.id == ["java", "groovy", "custom", null].collect { it == null ? null : DefaultPluginId.of(it) }
+        serialized*.version == [null, null, "1.0", null]
+        serialized*.script == [null, null, null, URI.create("other.gradle")]
+        serialized*.apply == [true, false, false, true]
     }
 }

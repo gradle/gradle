@@ -635,6 +635,7 @@ task fastTask { }
                 }
             ''')
         }
+
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
         executer.withGradleUserHomeDir(homeDirectory)
@@ -699,7 +700,7 @@ task fastTask { }
 
     String uniqueRemapped(String buildFile) {
         def hashes = hasRemapped(buildFile)
-        assert hashes.size() == 1
+        assert hashes.size() == 1 : "Non unique remapped script for $buildFile"
         hashes[0]
     }
 

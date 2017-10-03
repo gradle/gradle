@@ -112,7 +112,7 @@ import java.util.concurrent.Callable;
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
- * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
+ * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.dsl.PluginDependenciesSpec} plugins script block.
  * </p>
  *
  * <a name="properties"></a> <h3>Properties</h3>

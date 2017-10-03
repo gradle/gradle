@@ -19,8 +19,8 @@ package org.gradle.plugin.use.resolve.internal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.management.internal.DefaultPluginRequest
-import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.management.internal.BinaryPluginRequest
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 class ArtifactRepositoryPluginResolverTest extends Specification {
@@ -29,8 +29,10 @@ class ArtifactRepositoryPluginResolverTest extends Specification {
 
     def resolver = new ArtifactRepositoryPluginResolver("maven", null, versionSelectorScheme);
 
-    PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+    ContextAwarePluginRequest request(String id, String version = null) {
+        new ContextAwarePluginRequest(
+            new BinaryPluginRequest(new StringScriptSource("test", "test"), 1, DefaultPluginId.of(id), version, true, null),
+            Mock(PluginRequestResolutionContext))
     }
 
     def "fail pluginRequests without versions"() {

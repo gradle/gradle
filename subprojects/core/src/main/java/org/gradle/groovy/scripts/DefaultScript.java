@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -43,7 +42,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.internal.Actions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -101,12 +100,10 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
             getFileResolver(),
-            __scriptServices.get(ScriptPluginFactory.class),
-            __scriptServices.get(ScriptHandlerFactory.class),
-            classLoaderScope,
+            __scriptServices.get(ScriptApplicator.class),
+            __scriptServices.get(ClassLoaderScope.class),
             __scriptServices.get(TextResourceLoader.class),
             getScriptTarget()
         );

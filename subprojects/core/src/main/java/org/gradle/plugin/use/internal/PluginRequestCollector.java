@@ -18,18 +18,22 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Pair;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.management.internal.DefaultPluginRequest;
+import org.gradle.plugin.dsl.BinaryPluginDependencySpec;
+import org.gradle.plugin.dsl.PluginDependenciesSpec;
+import org.gradle.plugin.dsl.ScriptPluginDependencySpec;
+import org.gradle.plugin.management.internal.BinaryPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.plugin.use.PluginDependencySpec;
+import org.gradle.plugin.management.internal.ScriptPluginRequest;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +43,7 @@ import static org.gradle.util.CollectionUtils.collect;
 /**
  * The real delegate of the plugins {} block.
  *
- * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type.
+ * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type for the Groovy DSL. The Kotlin DSL also interacts with this type.
  */
 public class PluginRequestCollector {
 
@@ -49,38 +53,56 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private static class DependencySpecImpl implements PluginDependencySpec {
+    private static class BinaryPluginDependencySpecImpl implements BinaryPluginDependencySpec {
+        private final int lineNumber;
         private final PluginId id;
         private String version;
-        private boolean apply;
-        private final int lineNumber;
+        private boolean apply = true;
 
-        private DependencySpecImpl(String id, int lineNumber) {
-            this.id = DefaultPluginId.of(id);
-            this.apply = true;
+        private BinaryPluginDependencySpecImpl(int lineNumber, String id) {
             this.lineNumber = lineNumber;
+            this.id = id == null ? null : DefaultPluginId.of(id);
         }
 
-        public PluginDependencySpec version(String version) {
+        @Override
+        public BinaryPluginDependencySpec version(@Nullable String version) {
             this.version = version;
             return this;
         }
 
         @Override
-        public PluginDependencySpec apply(boolean apply) {
+        public BinaryPluginDependencySpec apply(boolean apply) {
             this.apply = apply;
             return this;
         }
     }
 
-    private final List<DependencySpecImpl> specs = new LinkedList<DependencySpecImpl>();
+    private static class ScriptPluginDependencySpecImpl implements ScriptPluginDependencySpec {
+        private final int lineNumber;
+        private String script;
 
-    public PluginDependenciesSpec createSpec(final int lineNumber) {
+        private ScriptPluginDependencySpecImpl(int lineNumber, String script) {
+            this.lineNumber = lineNumber;
+            this.script = script;
+        }
+    }
+
+    private final List<Object> specs = new LinkedList<Object>();
+
+    public PluginDependenciesSpec createPluginDependenciesSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
-            public PluginDependencySpec id(String id) {
-                DependencySpecImpl spec = new DependencySpecImpl(id, lineNumber);
-                specs.add(spec);
-                return spec;
+            @Override
+            public BinaryPluginDependencySpec id(String id) {
+                BinaryPluginDependencySpec pluginDependency = new BinaryPluginDependencySpecImpl(lineNumber, id);
+                specs.add(pluginDependency);
+                return pluginDependency;
+            }
+
+            @Override
+            public ScriptPluginDependencySpec script(String script) {
+                ScriptPluginDependencySpec pluginDependency = new ScriptPluginDependencySpecImpl(lineNumber, script);
+                specs.add(pluginDependency);
+                return pluginDependency;
             }
         };
     }
@@ -90,30 +112,69 @@ public class PluginRequestCollector {
     }
 
     public List<PluginRequestInternal> listPluginRequests() {
-        List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
-            public PluginRequestInternal transform(DependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
-            }
-        });
-
-        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
-            public PluginId transform(PluginRequestInternal pluginRequest) {
-                return pluginRequest.getId();
-            }
-        });
-
-        // Check for duplicates
-        for (PluginId key : groupedById.keySet()) {
-            Collection<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
-            if (pluginRequestsForId.size() > 1) {
-                PluginRequestInternal first = pluginRequests.get(0);
-                PluginRequestInternal second = pluginRequests.get(1);
-
-                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
-            }
-        }
+        List<PluginRequestInternal> pluginRequests = collectPluginRequests();
+        checkForDuplicates(pluginRequests);
         return pluginRequests;
+    }
+
+    private List<PluginRequestInternal> collectPluginRequests() {
+        return collect(specs, new Transformer<PluginRequestInternal, Object>() {
+            public PluginRequestInternal transform(Object original) {
+                return pluginRequestFor(original);
+            }
+        });
+    }
+
+    private PluginRequestInternal pluginRequestFor(Object pluginDependency) {
+        if (pluginDependency instanceof BinaryPluginDependencySpecImpl) {
+            return pluginRequestFor((BinaryPluginDependencySpecImpl) pluginDependency);
+        } else if (pluginDependency instanceof ScriptPluginDependencySpecImpl) {
+            return pluginRequestFor((ScriptPluginDependencySpecImpl) pluginDependency);
+        } else {
+            throw new IllegalStateException("Unknown PluginDependencySpec: " + pluginDependency);
+        }
+    }
+
+    private PluginRequestInternal pluginRequestFor(BinaryPluginDependencySpecImpl binaryPluginDependency) {
+        return new BinaryPluginRequest(
+            scriptSource,
+            binaryPluginDependency.lineNumber,
+            binaryPluginDependency.id,
+            binaryPluginDependency.version,
+            binaryPluginDependency.apply,
+            null);
+    }
+
+    private PluginRequestInternal pluginRequestFor(ScriptPluginDependencySpecImpl scriptPluginDependency) {
+        return new ScriptPluginRequest(
+            scriptSource,
+            scriptPluginDependency.lineNumber,
+            URI.create(scriptPluginDependency.script));
+    }
+
+    private void checkForDuplicates(List<PluginRequestInternal> pluginRequests) {
+        Map<Pair<String, Object>, PluginRequestInternal> requestMap = new HashMap<Pair<String, Object>, PluginRequestInternal>(pluginRequests.size());
+        for (PluginRequestInternal request : pluginRequests) {
+            Pair<String, Object> key = keyFor(request);
+            PluginRequestInternal existing = requestMap.get(key);
+            if (existing != null) {
+                InvalidPluginRequestException exception = new InvalidPluginRequestException(request, key.left + " '" + key.right + "' was already requested at line " + existing.getRequestingScriptLineNumber());
+                throw new LocationAwareException(exception, request.getRequestingScriptDisplayName(), request.getRequestingScriptLineNumber());
+            }
+            requestMap.put(key, request);
+        }
+    }
+
+    private Pair<String, Object> keyFor(PluginRequestInternal pluginRequest) {
+        PluginId id = pluginRequest.getId();
+        if (id != null) {
+            return Pair.of("Plugin with id", (Object) id);
+        }
+        URI script = pluginRequest.getScript();
+        if (script != null) {
+            return Pair.of("Script Plugin", (Object) script);
+        }
+        throw new IllegalStateException(pluginRequest + " is neither a binary or script plugin request.");
     }
 
 }

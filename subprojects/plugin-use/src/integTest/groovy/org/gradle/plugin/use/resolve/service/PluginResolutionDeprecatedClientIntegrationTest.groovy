@@ -282,7 +282,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
             executer.expectDeprecationWarning()
         }
         fails "tasks"
-        failure.assertThatDescription(containsText("Plugin [id: '${PLUGIN_ID_1}', version: '1.0'] was not found"))
+        failure.assertThatDescription(containsText("Plugin [id '${PLUGIN_ID_1}' version '1.0'] was not found"))
     }
 
     void fail(boolean withDeprecationWarning = true) {

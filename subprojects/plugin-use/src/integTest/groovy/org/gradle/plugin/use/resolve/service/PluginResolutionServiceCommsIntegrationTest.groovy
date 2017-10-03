@@ -15,6 +15,7 @@
  */
 
 package org.gradle.plugin.use.resolve.service
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
@@ -27,6 +28,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.matchesRegexp
+
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
@@ -74,7 +76,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id 'org.my.myplugin' version '1.0'] was not found in any of the following sources:"))
     }
 
     def "404 resolution that indicates plugin is known but not by that version produces indicative message"() {
@@ -87,7 +89,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id 'org.my.myplugin' version '1.0'] was not found in any of the following sources:"))
         failure.assertThatDescription(Matchers.containsString("portal message: \u03b1"))
     }
 
@@ -101,7 +103,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id 'org.my.myplugin' version '1.0'] was not found in any of the following sources:"))
         failure.assertThatDescription(Matchers.containsString("portal message: \u03b1"))
     }
 
@@ -113,9 +115,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        errorResolvingPlugin()
-        failure.assertHasCause("Failed to resolve all plugin dependencies from " + portal.m2repo.uri)
-        failure.assertHasCause("Could not find my:plugin:1.0.")
+        failure.assertHasCause("Could not resolve all files for configuration ':classpath'.")
+        failureCauseContains("Searched in the following locations:")
+        failureCauseContains(portal.m2repo.uri.toString())
     }
 
     def "portal JSON response with unknown implementation type fails plugin resolution"() {
@@ -144,7 +146,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertHasDescription("Error resolving plugin [id 'org.my.myplugin' version '1.0']")
         outOfProtocolCause("invalid plugin metadata - no module repository specified")
     }
 
@@ -307,7 +309,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
     }
 
     def ExecutionFailure errorResolvingPlugin() {
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertHasDescription("Error resolving plugin [id 'org.my.myplugin' version '1.0']")
     }
 
     def "non contactable resolution service produces error"() {
@@ -340,8 +342,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        errorResolvingPlugin()
-        failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
+        failure.assertHasCause("Could not resolve all files for configuration ':classpath'.")
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:\\d+ (\\[.*\\])? failed: Connection refused.*"))
     }
 

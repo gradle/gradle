@@ -30,11 +30,15 @@ import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
@@ -42,13 +46,16 @@ import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.resolve.internal.ContextAwarePluginRequest;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginRequestResolutionContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -67,16 +74,18 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final CachedClasspathTransformer cachedClasspathTransformer;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
+        this.projectRegistry = projectRegistry;
     }
 
-    public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(final ScriptSource requestingScriptSource, final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
             return;
@@ -91,7 +100,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
             public Result transform(PluginRequestInternal request) {
                 PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
-                return resolveToFoundResult(effectivePluginResolver, configuredRequest);
+                return resolveToFoundResult(requestingScriptSource, effectivePluginResolver, configuredRequest);
             }
         });
 
@@ -221,7 +230,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
-        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
+        PluginResolver pluginResolver = pluginResolverFactory.create();
+        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
     private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {
@@ -234,14 +244,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 throw exceptionOccurred(request, e);
             }
         } catch (Exception e) {
-            throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
+            throw new LocationAwareException(e, request.getRequestingScriptDisplayName(), request.getRequestingScriptLineNumber());
         }
     }
 
     private InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
         return new InvalidPluginException(
             String.format(
-                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
+                "Could not apply requested plugin [%s] as it does not provide a plugin with id '%s'."
                     + " This is caused by an incorrect plugin implementation."
                     + " Please contact the plugin author(s).",
                 request, id),
@@ -249,35 +259,42 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private InvalidPluginException exceptionOccurred(PluginRequestInternal request, Exception e) {
-        return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
+        return new InvalidPluginException(String.format("An exception occurred applying plugin request [%s]", request), e);
     }
 
-    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
+    private Result resolveToFoundResult(ScriptSource requestingScriptSource, PluginResolver effectivePluginResolver, PluginRequestInternal request) {
         Result result = new Result(request);
         try {
-            effectivePluginResolver.resolve(request, result);
+            effectivePluginResolver.resolve(createContextAwarePluginRequest(request, requestingScriptSource), result);
         } catch (Exception e) {
             throw new LocationAwareException(
-                new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
-                request.getScriptDisplayName(), request.getLineNumber());
+                new GradleException(String.format("Error resolving plugin [%s]", request.getDisplayName()), e),
+                requestingScriptSource.getDisplayName(), request.getRequestingScriptLineNumber());
         }
 
         if (!result.isFound()) {
             String message = buildNotFoundMessage(request, result);
             Exception exception = new UnknownPluginException(message);
-            throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
+            throw new LocationAwareException(exception, requestingScriptSource.getDisplayName(), request.getRequestingScriptLineNumber());
         }
 
         return result;
     }
 
+    private ContextAwarePluginRequest createContextAwarePluginRequest(PluginRequestInternal request, ScriptSource requestingScriptSource) {
+        File rootDir = projectRegistry.getRootProject().getRootDir();
+        ResourceLocation requestingScriptLocation = requestingScriptSource.getResource().getLocation();
+        PluginRequestResolutionContext resolutionContext = new PluginRequestResolutionContext(rootDir, requestingScriptLocation);
+        return new ContextAwarePluginRequest(request, resolutionContext);
+    }
+
     private String buildNotFoundMessage(PluginRequestInternal pluginRequest, Result result) {
         if (result.notFoundList.isEmpty()) {
             // this shouldn't happen, resolvers should call notFound()
-            return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
+            return String.format("Plugin [%s] was not found", pluginRequest.getDisplayName());
         } else {
             Formatter sb = new Formatter();
-            sb.format("Plugin %s was not found in any of the following sources:%n", pluginRequest.getDisplayName());
+            sb.format("Plugin [%s] was not found in any of the following sources:%n", pluginRequest.getDisplayName());
 
             for (NotFound notFound : result.notFoundList) {
                 sb.format("%n- %s", notFound.source);

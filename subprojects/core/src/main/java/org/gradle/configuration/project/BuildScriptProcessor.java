@@ -16,8 +16,7 @@
 package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ScriptPlugin;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
@@ -25,10 +24,10 @@ import org.slf4j.LoggerFactory;
 
 public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
-    private final ScriptPluginFactory configurerFactory;
+    private final ScriptApplicator scriptApplicator;
 
-    public BuildScriptProcessor(ScriptPluginFactory configurerFactory) {
-        this.configurerFactory = configurerFactory;
+    public BuildScriptProcessor(ScriptApplicator scriptApplicator) {
+        this.scriptApplicator = scriptApplicator;
     }
 
     public void execute(ProjectInternal project) {
@@ -37,8 +36,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         }
         final Timer clock = Time.startTimer();
         try {
-            ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
-            configurer.apply(project);
+            scriptApplicator.applyTo(project, project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());

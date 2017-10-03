@@ -220,10 +220,16 @@
                 <td>org.gradle.plugin.repository.MavenPluginRepository</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
+                <td>org.gradle.plugin.dsl.PluginDependenciesSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+                <td>org.gradle.plugin.dsl.PluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.dsl.BinaryPluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.dsl.ScriptPluginDependencySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.management.PluginManagementSpec</td>
