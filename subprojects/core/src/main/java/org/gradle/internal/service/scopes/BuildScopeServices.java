@@ -142,7 +142,6 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
-import org.gradle.internal.scan.config.BuildScanAutoAppliedPluginHandler;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -286,10 +285,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator, buildOperationExecutor);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
-    }
-
-    protected AutoAppliedPluginHandler createAutoAppliedPluginHandler(StartParameter startParameter) {
-        return new BuildScanAutoAppliedPluginHandler(startParameter);
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {

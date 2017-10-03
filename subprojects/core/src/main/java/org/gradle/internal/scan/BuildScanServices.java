@@ -16,7 +16,9 @@
 
 package org.gradle.internal.scan;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.scan.config.BuildScanAutoAppliedPluginHandler;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanClock;
@@ -25,6 +27,7 @@ import org.gradle.internal.scan.time.DefaultBuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 
 public class BuildScanServices extends AbstractPluginServiceRegistry {
 
@@ -41,5 +44,14 @@ public class BuildScanServices extends AbstractPluginServiceRegistry {
             }
         });
         registration.addProvider(new BuildScanConfigServices());
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            AutoAppliedPluginHandler createAutoAppliedPluginHandler(StartParameter startParameter) {
+                return new BuildScanAutoAppliedPluginHandler(startParameter);
+            }
+        });
     }
 }
