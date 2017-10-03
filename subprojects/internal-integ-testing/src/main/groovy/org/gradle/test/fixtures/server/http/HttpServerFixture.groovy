@@ -117,7 +117,7 @@ trait HttpServerFixture {
 
         connector = new SocketConnector()
         connector.port = portAllocatorEnabled ? FixedAvailablePortAllocator.instance.assignPort() : 0
-        server.setConnectors([connector] as Connector[])
+        server.addConnector(connector)
         server.start()
         for (int i = 0; i < 5; i++) {
             if (connector.localPort > 0) {
