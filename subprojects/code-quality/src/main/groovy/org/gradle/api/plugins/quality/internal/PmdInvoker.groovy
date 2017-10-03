@@ -60,7 +60,7 @@ abstract class PmdInvoker {
             }
         } else {
             if(incrementalAnalysis){
-                throw new GradleException("Incremental analysis only supports Pmd 5.6.0+")
+                throw new GradleException("Incremental analysis only supports PMD 5.6.0+")
             }
             if (prePmd5) {
                 // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose

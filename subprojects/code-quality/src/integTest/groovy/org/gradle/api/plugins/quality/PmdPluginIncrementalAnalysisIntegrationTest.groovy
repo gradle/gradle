@@ -15,16 +15,15 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.VersionNumber
+import org.junit.Assume
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpec {
+class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
     def setup() {
         buildFile << """
             apply plugin: "java"
@@ -32,6 +31,10 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
 
             ${mavenCentralRepository()}
 
+            pmd {
+                toolVersion = '$version'
+            }
+            
             ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
         """.stripIndent()
     }
@@ -44,11 +47,12 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         !file("build/pmd-cache").exists()
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "incremental analysis can be enabled"() {
         given:
+        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
+        Assume.assumeTrue(supportIncrementalAnalysis())
+        enableIncrementalAnalysis()
         goodCode()
-        buildFile << 'pmd { incrementalAnalysis = true }'
 
         when:
         args('--info')
@@ -66,10 +70,11 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         !output.contains('Analysis cache invalidated, rulesets changed')
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def 'incremental analysis is transparent'() {
         given:
-        buildFile << 'pmd { incrementalAnalysis = true }'
+        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
+        Assume.assumeTrue(supportIncrementalAnalysis())
+        enableIncrementalAnalysis()
         goodCode()
         badCode()
 
@@ -87,11 +92,14 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         file("build/reports/pmd/main.xml").assertContents(not(containsString('BadClass')))
     }
 
+    @Unroll
     def 'incremental analysis invalidated when #reason'() {
         given:
+        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
+        Assume.assumeTrue(supportIncrementalAnalysis())
+        enableIncrementalAnalysis()
         goodCode()
         customRuleSet()
-        buildFile << 'pmd { incrementalAnalysis = true }'
 
         when:
         succeeds('pmdMain')
@@ -108,34 +116,29 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")'
     }
 
+
     def "incremental analysis is available in 5.6.0+"() {
         given:
-        buildFile << """
-pmd { 
-    incrementalAnalysis = true
-    toolVersion = '${version}'
-}    
-"""
+        Assume.assumeTrue(fileLockingIssuesSolvedWithIncrementalAnalysis())
+        Assume.assumeTrue(supportIncrementalAnalysis())
+        enableIncrementalAnalysis()
+        goodCode()
+
+        expect:
+        succeeds('pmdMain')
+    }
+
+    def "incremental analysis fails when enabled with < 5.6.0"() {
+        given:
+        Assume.assumeFalse(supportIncrementalAnalysis())
+        enableIncrementalAnalysis()
         goodCode()
 
         when:
-        supportIncrementalAnalysis(version) ? succeeds('pmdMain') : fails('pmdMain')
+        fails('pmdMain')
 
         then:
-        supportIncrementalAnalysis(version) ? failure == null : failure.error.contains('Incremental analysis only supports Pmd 5.6.0+')
-
-        where:
-        _ | version
-        _ | '4.3'
-        _ | '5.0.5'
-        _ | '5.1.1'
-        _ | '5.3.3'
-        _ | '5.6.0'
-        _ | PmdPlugin.DEFAULT_PMD_VERSION
-    }
-
-    private supportIncrementalAnalysis(String version) {
-        return VersionNumber.parse(version) >= VersionNumber.parse('5.6.0')
+        failure.error.contains('Incremental analysis only supports PMD 5.6.0+')
     }
 
     private goodCode() {
@@ -163,5 +166,9 @@ pmd {
                 <rule ref="rulesets/java/braces.xml"/>
             </ruleset>
         """
+    }
+
+    void enableIncrementalAnalysis() {
+        buildFile << 'pmd { incrementalAnalysis = true }'
     }
 }
