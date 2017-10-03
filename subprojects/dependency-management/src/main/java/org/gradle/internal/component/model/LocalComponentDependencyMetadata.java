@@ -29,9 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -45,7 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
+public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -107,20 +105,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
-            AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
-            ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-            if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
-                fallbackConfiguration = null;
-            }
-            List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, fromConfigurationAttributes, fallbackConfiguration);
-            if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
-            } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, matches, targetComponent);
-            } else {
-                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, targetComponent);
-            }
+            return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(selectConfigurationUsingAttributeMatching(fromComponent, fromConfiguration, targetComponent, consumerSchema), fromConfigurationAttributes));
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);

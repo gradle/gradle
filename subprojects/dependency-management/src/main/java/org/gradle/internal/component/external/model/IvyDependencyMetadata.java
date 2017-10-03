@@ -139,6 +139,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
         return targets;
     }
+
     private void findMatches(ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {

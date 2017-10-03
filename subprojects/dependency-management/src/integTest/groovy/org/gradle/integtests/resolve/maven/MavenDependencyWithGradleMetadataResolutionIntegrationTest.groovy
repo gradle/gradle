@@ -161,13 +161,13 @@ dependencies {
 
     def "uses runtime dependencies and files from selected variant"() {
         def b = mavenHttpRepo.module("test", "b", "2.0").publish()
-        def m = mavenHttpRepo.module("test", "a", "1.2")
+        def a = mavenHttpRepo.module("test", "a", "1.2")
             .dependsOn(b)
             .withModuleMetadata()
-        m.artifact(classifier: 'debug')
-        m.artifact(classifier: 'release')
-        m.publish()
-        m.moduleMetadata.file.text = """
+        a.artifact(classifier: 'debug')
+        a.artifact(classifier: 'release')
+        a.publish()
+        a.moduleMetadata.file.text = """
 {
     "formatVersion": "0.1",
     "variants": [
@@ -215,9 +215,9 @@ task checkRelease {
 }
 """
 
-        m.pom.expectGet()
-        m.moduleMetadata.expectGet()
-        m.artifact(classifier: 'debug').expectGet()
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.artifact(classifier: 'debug').expectGet()
         b.pom.expectGet()
         b.moduleMetadata.expectGetMissing()
         b.artifact.expectGet()
@@ -227,7 +227,7 @@ task checkRelease {
 
         and:
         server.resetExpectations()
-        m.artifact(classifier: 'release').expectGet()
+        a.artifact(classifier: 'release').expectGet()
 
         and:
         succeeds("checkRelease")
@@ -235,13 +235,13 @@ task checkRelease {
 
     def "variant can define zero files or multiple files"() {
         def b = mavenHttpRepo.module("test", "b", "2.0").publish()
-        def m = mavenHttpRepo.module("test", "a", "1.2")
+        def a = mavenHttpRepo.module("test", "a", "1.2")
             .dependsOn(b)
             .withModuleMetadata()
-        m.artifact(classifier: 'api')
-        m.artifact(classifier: 'runtime')
-        m.publish()
-        m.moduleMetadata.file.text = """
+        a.artifact(classifier: 'api')
+        a.artifact(classifier: 'runtime')
+        a.publish()
+        a.moduleMetadata.file.text = """
 {
     "formatVersion": "0.1",
     "variants": [
@@ -291,13 +291,116 @@ task checkRelease {
 }
 """
 
-        m.pom.expectGet()
-        m.moduleMetadata.expectGet()
-        m.artifact(classifier: 'api').expectGet()
-        m.artifact(classifier: 'runtime').expectGet()
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.artifact(classifier: 'api').expectGet()
+        a.artifact(classifier: 'runtime').expectGet()
         b.pom.expectGet()
         b.moduleMetadata.expectGetMissing()
         b.artifact.expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+
+        and:
+        succeeds("checkRelease")
+    }
+
+    def "module with module metadata can depend on another module with module metadata"() {
+        def c = mavenHttpRepo.module("test", "c", "preview")
+            .withModuleMetadata()
+        c.artifact(classifier: 'debug')
+        c.publish()
+        c.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "debug",
+            "attributes": {
+                "buildType": "debug"
+            },
+            "files": [ { "name": "c-preview-debug.jar", "url": "c-preview-debug.jar" } ]
+        },
+        {
+            "name": "release",
+            "attributes": {
+                "buildType": "release"
+            }
+        }
+    ]
+}
+"""
+
+        def b = mavenHttpRepo.module("test", "b", "2.0")
+            .dependsOn(c)
+            .withModuleMetadata()
+        b.publish()
+
+        def a = mavenHttpRepo.module("test", "a", "1.2")
+            .dependsOn(b)
+            .withModuleMetadata()
+        a.artifact(classifier: 'debug')
+        a.publish()
+        a.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "debug",
+            "attributes": {
+                "buildType": "debug"
+            },
+            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ]
+        },
+        {
+            "name": "release",
+            "attributes": {
+                "buildType": "release"
+            }
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+def attr = Attribute.of("buildType", String)
+configurations { 
+    debug { attributes.attribute(attr, "debug") }
+    release { attributes.attribute(attr, "release") }
+}
+dependencies {
+    debug 'test:a:1.2'
+    release 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
+}
+task checkRelease {
+    doLast { assert configurations.release.files*.name == ['b-2.0.jar'] }
+}
+"""
+
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.artifact(classifier: 'debug').expectGet()
+        b.pom.expectGet()
+        b.moduleMetadata.expectGet()
+        b.artifact.expectGet()
+        c.pom.expectGet()
+        c.moduleMetadata.expectGet()
+        c.artifact(classifier: 'debug').expectGet()
 
         expect:
         succeeds("checkDebug")

@@ -92,6 +92,10 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        if (!targetComponent.getConsumableConfigurationsHavingAttributes().isEmpty() && targetComponent instanceof MavenModuleResolveMetadata) {
+            // Currently the schemas aren't set up correctly to select the correct variants, use this only for Maven modules for now
+            return ImmutableSet.of(selectConfigurationUsingAttributeMatching(fromComponent, fromConfiguration, targetComponent, consumerSchema));
+        }
         Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {

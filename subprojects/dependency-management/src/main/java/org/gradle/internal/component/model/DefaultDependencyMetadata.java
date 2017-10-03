@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata implements DependencyMetadata {
+public abstract class DefaultDependencyMetadata extends AbstractDependencyMetadata {
     private final ModuleVersionSelector requested;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
