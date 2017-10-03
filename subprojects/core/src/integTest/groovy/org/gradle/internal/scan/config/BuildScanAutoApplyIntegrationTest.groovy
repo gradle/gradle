@@ -22,7 +22,7 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
-import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+import static BuildScanAutoAppliedPluginHandler.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.*
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {

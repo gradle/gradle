@@ -25,15 +25,15 @@ import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestsTransformer;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 /**
- * Automatically adds a plugin request for the build scan plugin when {@code --scan} is detected.
+ * Creates plugin requests for the build scan plugin when {@code --scan} is detected.
  *
  * <ol>
  * <li>Plugin request is only added for the root project.</li>
@@ -41,43 +41,43 @@ import java.util.List;
  * <li>The plugin request is inserted before any other plugin requests.</li>
  * <li>A fixed version of the build scan plugin is requested.</li>
  * </ol>
- *
- * @since 4.3
  */
-public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
-    public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
+public class BuildScanAutoAppliedPluginHandler implements AutoAppliedPluginHandler {
     public static final PluginId BUILD_SCAN_PLUGIN_ID = DefaultPluginId.of("com.gradle.build-scan");
+    public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = AutoAppliedPluginRegistry.lookupVersion(BUILD_SCAN_PLUGIN_ID);
     private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
     private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
 
     private final StartParameter startParameter;
 
-    public BuildScanPluginAutoApply(StartParameter startParameter) {
+    public BuildScanAutoAppliedPluginHandler(StartParameter startParameter) {
         this.startParameter = startParameter;
     }
 
     @Override
-    public PluginRequests transformPluginRequests(PluginRequests requests, Object pluginTarget) {
+    public PluginRequests create(PluginRequests initialRequests, Object pluginTarget) {
         if (!startParameter.isBuildScan()) {
-            return requests;
+            return createEmptyPluginRequests();
         }
 
         if (!isRootProject(pluginTarget)) {
-            return requests;
+            return createEmptyPluginRequests();
         }
 
-        if (isPluginAlreadyRequested(requests, (Project) pluginTarget)) {
-            return requests;
+        if (isPluginAlreadyRequested(initialRequests, (Project) pluginTarget)) {
+            return createEmptyPluginRequests();
         }
 
-        DefaultPluginRequest buildScanPluginRequest = new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, 0, "auto-apply", null);
-        return prependRequest(buildScanPluginRequest, requests);
+        return createBuildScanPluginRequests();
     }
 
-    private PluginRequests prependRequest(PluginRequestInternal buildScanPluginRequest, PluginRequests requests) {
+    private PluginRequests createEmptyPluginRequests() {
+        return new DefaultPluginRequests(Lists.<PluginRequestInternal>newArrayList());
+    }
+
+    private PluginRequests createBuildScanPluginRequests() {
         List<PluginRequestInternal> copyRequests = Lists.newArrayList();
-        copyRequests.add(buildScanPluginRequest);
-        CollectionUtils.addAll(copyRequests, requests);
+        copyRequests.add(new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, 0, "auto-apply", null));
         return new DefaultPluginRequests(copyRequests);
     }
 

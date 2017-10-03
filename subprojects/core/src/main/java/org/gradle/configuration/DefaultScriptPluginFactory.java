@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
@@ -52,12 +53,17 @@ import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestsSerializer;
-import org.gradle.plugin.management.internal.PluginRequestsTransformer;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.util.CollectionUtils;
+
+import java.util.List;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -79,7 +85,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final TextResourceLoader textResourceLoader;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
-    private final PluginRequestsTransformer pluginRequestsTransformer;
+    private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -97,7 +103,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
-                                      PluginRequestsTransformer pluginRequestsTransformer) {
+                                      AutoAppliedPluginHandler autoAppliedPluginHandler) {
 
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
@@ -115,7 +121,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.pluginRequestsTransformer = pluginRequestsTransformer;
+        this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -182,11 +188,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests pluginRequests = initialRunner.getData();
-            pluginRequests = pluginRequestsTransformer.transformPluginRequests(pluginRequests, target);
+            PluginRequests initialPluginRequests = initialRunner.getData();
+            PluginRequests autoApplyPluginRequests = autoAppliedPluginHandler.create(initialPluginRequests, target);
+            PluginRequests mergedPluginRequests = mergePluginRequests(initialPluginRequests, autoApplyPluginRequests);
 
             PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
+            pluginRequestApplicator.applyPlugins(mergedPluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
@@ -241,6 +248,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             } else {
                 return new DefaultScriptTarget(target);
             }
+        }
+
+        private PluginRequests mergePluginRequests(PluginRequests initialRequests, PluginRequests autoApplyRequests) {
+            List<PluginRequestInternal> mergedRequests = Lists.newArrayList();
+            CollectionUtils.addAll(mergedRequests, autoApplyRequests);
+            CollectionUtils.addAll(mergedRequests, initialRequests);
+            return new DefaultPluginRequests(mergedRequests);
         }
     }
 }

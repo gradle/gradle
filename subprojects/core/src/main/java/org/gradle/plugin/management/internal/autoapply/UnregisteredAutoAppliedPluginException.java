@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.management.internal;
 
-public interface PluginRequestsTransformer {
-    PluginRequests transformPluginRequests(PluginRequests input, Object pluginTarget);
+package org.gradle.plugin.management.internal.autoapply;
+
+import org.gradle.plugin.use.PluginId;
+
+public class UnregisteredAutoAppliedPluginException extends RuntimeException {
+
+    public UnregisteredAutoAppliedPluginException(PluginId pluginId) {
+        super(String.format("Plugin with ID %s is not registered to be auto-applied", pluginId.getId()));
+    }
 }

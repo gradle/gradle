@@ -44,13 +44,14 @@ import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
-import org.gradle.internal.scan.config.CompositePluginRequestsTransformer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.testng.collections.Lists
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {
@@ -81,19 +82,17 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
-    def pluginRequestTransformer = new CompositePluginRequestsTransformer([])
+    def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
         directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader,
-        streamHasher, fileHasher, pluginRequestTransformer)
+        streamHasher, fileHasher, autoAppliedPluginHandler)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
         scriptHandler.configurations >> configurations
         scriptHandler.scriptClassPath >> Mock(ClassPath)
-        classPathScriptRunner.data >> Mock(PluginRequests) {
-            isEmpty() >> true
-        }
+        classPathScriptRunner.data >> new DefaultPluginRequests(Lists.newArrayList())
         def configuration = Mock(Configuration)
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
@@ -101,6 +100,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         classpathHasher.hash(_) >> HashCode.fromInt(123)
 
         1 * targetScope.getLocalClassLoader() >> scopeClassLoader
+        1 * autoAppliedPluginHandler.create(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
     }
 
     void "configures a target object using script"() {
