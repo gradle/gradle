@@ -43,7 +43,7 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
         thrown UnsupportedMethodException
     }
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=3.0 <4.3")
     def "Source directory has no output specified"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
