@@ -56,7 +56,7 @@ abstract class PmdInvoker {
             // PMD 5.6.0 added an incremental analysis cache
             // https://pmd.github.io/pmd-5.7.0/overview/changelog-old.html#Incremental_Analysis
             if (incrementalAnalysis) {
-                antPmdArgs["cacheLocation"] = new File(buildDir.path + "/pmd-cache", taskName + ".cache")
+                antPmdArgs["cacheLocation"] = new File(pmdTask.temporaryDir, "incremental.cache")
             }
         } else {
             if(incrementalAnalysis){

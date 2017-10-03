@@ -44,7 +44,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         expect:
         succeeds("check")
-        !file("build/pmd-cache").exists()
+        !file("build/tmp/pmdMain/incremental.cache").exists()
     }
 
     def "incremental analysis can be enabled"() {
@@ -57,7 +57,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         when:
         args('--info')
         succeeds("pmdMain")
-        file("build/pmd-cache/pmdMain.cache").exists()
+        file("build/tmp/pmdMain/incremental.cache").exists()
 
         then:
         output.contains('Analysis cache invalidated, rulesets changed')
@@ -115,7 +115,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         'PMD version changed' | 'toolVersion="5.8.0"'
         'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")'
     }
-
 
     def "incremental analysis is available in 5.6.0+"() {
         given:
