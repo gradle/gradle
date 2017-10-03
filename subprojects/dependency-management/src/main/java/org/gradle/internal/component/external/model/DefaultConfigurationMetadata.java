@@ -41,6 +41,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This should be made immutable. It is currently effectively immutable. Should also be specialized for Maven, Ivy and Gradle metadata as much of this state is required only for Ivy.
+ */
 class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
@@ -131,7 +134,7 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public List<DependencyMetadata> getDependencies() {
+    public List<? extends DependencyMetadata> getDependencies() {
         return configDependencies;
     }
 

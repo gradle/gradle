@@ -159,6 +159,156 @@ dependencies {
         }
     }
 
+    def "uses runtime dependencies and files from selected variant"() {
+        def b = mavenHttpRepo.module("test", "b", "2.0").publish()
+        def m = mavenHttpRepo.module("test", "a", "1.2")
+            .dependsOn(b)
+            .withModuleMetadata()
+        m.artifact(classifier: 'debug')
+        m.artifact(classifier: 'release')
+        m.publish()
+        m.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "debug",
+            "attributes": {
+                "buildType": "debug"
+            },
+            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ]
+        },
+        {
+            "name": "release",
+            "attributes": {
+                "buildType": "release"
+            },
+            "files": [ { "name": "a-1.2-release.jar", "url": "a-1.2-release.jar" } ]
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+def attr = Attribute.of("buildType", String)
+configurations { 
+    debug { attributes.attribute(attr, "debug") }
+    release { attributes.attribute(attr, "release") }
+}
+dependencies {
+    debug 'test:a:1.2'
+    release 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar'] }
+}
+task checkRelease {
+    doLast { assert configurations.release.files*.name == ['a-1.2-release.jar', 'b-2.0.jar'] }
+}
+"""
+
+        m.pom.expectGet()
+        m.moduleMetadata.expectGet()
+        m.artifact(classifier: 'debug').expectGet()
+        b.pom.expectGet()
+        b.moduleMetadata.expectGetMissing()
+        b.artifact.expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+        m.artifact(classifier: 'release').expectGet()
+
+        and:
+        succeeds("checkRelease")
+    }
+
+    def "variant can define zero files or multiple files"() {
+        def b = mavenHttpRepo.module("test", "b", "2.0").publish()
+        def m = mavenHttpRepo.module("test", "a", "1.2")
+            .dependsOn(b)
+            .withModuleMetadata()
+        m.artifact(classifier: 'api')
+        m.artifact(classifier: 'runtime')
+        m.publish()
+        m.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "debug",
+            "attributes": {
+                "buildType": "debug"
+            },
+            "files": [ 
+                { "name": "a-1.2-api.jar", "url": "a-1.2-api.jar" },
+                { "name": "a-1.2-runtime.jar", "url": "a-1.2-runtime.jar" } 
+            ]
+        },
+        {
+            "name": "release",
+            "attributes": {
+                "buildType": "release"
+            }
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+def attr = Attribute.of("buildType", String)
+configurations { 
+    debug { attributes.attribute(attr, "debug") }
+    release { attributes.attribute(attr, "release") }
+}
+dependencies {
+    debug 'test:a:1.2'
+    release 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['a-1.2-api.jar', 'a-1.2-runtime.jar', 'b-2.0.jar'] }
+}
+task checkRelease {
+    doLast { assert configurations.release.files*.name == ['b-2.0.jar'] }
+}
+"""
+
+        m.pom.expectGet()
+        m.moduleMetadata.expectGet()
+        m.artifact(classifier: 'api').expectGet()
+        m.artifact(classifier: 'runtime').expectGet()
+        b.pom.expectGet()
+        b.moduleMetadata.expectGetMissing()
+        b.artifact.expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+
+        and:
+        succeeds("checkRelease")
+    }
+
     def "reports failure to locate module"() {
         def m = mavenHttpRepo.module("test", "a", "1.2")
 

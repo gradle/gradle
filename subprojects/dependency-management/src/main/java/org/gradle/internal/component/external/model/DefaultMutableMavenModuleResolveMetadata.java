@@ -20,19 +20,26 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -153,7 +160,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
             builder.addAll(variants);
         }
         for (MutableVariantImpl variant : newVariants) {
-            builder.add(new ImmutableVariantImpl(variant.name, variant.attributes, ImmutableList.copyOf(variant.files)));
+            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.files)));
         }
         return builder.build();
     }
@@ -194,12 +201,14 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
     }
 
-    private static class ImmutableVariantImpl implements ComponentVariant {
+    private static class ImmutableVariantImpl implements ComponentVariant, VariantMetadata {
+        private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;
         private final ImmutableList<FileImpl> files;
 
-        ImmutableVariantImpl(String name, ImmutableAttributes attributes, ImmutableList<FileImpl> files) {
+        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<FileImpl> files) {
+            this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
             this.files = files;
@@ -211,6 +220,11 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
 
         @Override
+        public DisplayName asDescribable() {
+            return Describables.of(componentId, "variant", name);
+        }
+
+        @Override
         public ImmutableAttributes getAttributes() {
             return attributes;
         }
@@ -219,5 +233,16 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         public ImmutableList<? extends File> getFiles() {
             return files;
         }
+
+        @Override
+        public Set<? extends ComponentArtifactMetadata> getArtifacts() {
+            Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>(files.size());
+            for (ComponentVariant.File file : files) {
+                ArtifactFile names = new ArtifactFile(file.getName(), componentId.getVersion());
+                artifacts.add(new DefaultModuleComponentArtifactMetadata(componentId, new DefaultIvyArtifactName(names.getName(), names.getExtension(), names.getExtension(), names.getClassifier())));
+            }
+            return artifacts;
+        }
+
     }
 }

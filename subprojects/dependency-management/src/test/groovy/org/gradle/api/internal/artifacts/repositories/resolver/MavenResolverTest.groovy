@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -39,9 +42,23 @@ class MavenResolverTest extends Specification {
         resolver.toString() == "Maven repository 'repo'"
     }
 
+    def "uses variant metadata when present"() {
+        given:
+        module.variants >> ImmutableList.of(Stub(ComponentVariant))
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
     def "resolve to empty when module is relocated"() {
         given:
-        module.isRelocated() >> true
+        module.variants >> ImmutableList.of()
+        module.relocated >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)
@@ -55,7 +72,8 @@ class MavenResolverTest extends Specification {
 
     def "resolve artifact when module's packaging is jar"() {
         given:
-        module.isKnownJarPackaging() >> true
+        module.variants >> ImmutableList.of()
+        module.knownJarPackaging >> true
         ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
         module.artifact('jar', 'jar', null) >> artifact
 

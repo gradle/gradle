@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -115,7 +116,7 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeAttributes(ImmutableAttributes attributes) throws IOException {
+        private void writeAttributes(AttributeContainer attributes) throws IOException {
             encoder.writeSmallInt(attributes.keySet().size());
             for (Attribute<?> attribute : attributes.keySet()) {
                 assert attribute.getType().equals(String.class);

@@ -309,20 +309,21 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     private void publishModuleMetadata() {
         moduleDir.createDir()
         def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
-        file.text = '''
+        def artifact = getModuleArtifact([:])
+        file.text = """
             { 
                 "formatVersion": "0.1", 
                 "builtBy": { "gradle": { } },
                 "variants": [
                     { 
-                        "name": "java-compile"
-                    },
-                    { 
-                        "name": "java-runtime" 
+                        "name": "runtime",
+                        "files": [
+                            { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
+                        ]
                     }
                 ]
             }
-        '''
+        """
     }
 
     MavenModule publishPom() {

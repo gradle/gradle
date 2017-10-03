@@ -17,15 +17,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.VariantMetadata;
 
 /**
- * TODO - this should replace VariantMetadata
+ * TODO - this should replace or merge into VariantMetadata
  */
-public interface ComponentVariant {
+public interface ComponentVariant extends VariantMetadata {
     String getName();
-
-    ImmutableAttributes getAttributes();
 
     ImmutableList<? extends File> getFiles();
 

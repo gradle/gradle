@@ -185,13 +185,19 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         expect:
         immutable.variants.size() == 2
         immutable.variants[0].name == "api"
+        immutable.variants[0].asDescribable().displayName == "group:module:version variant api"
         immutable.variants[0].attributes == attributes(usage: "compile")
         immutable.variants[0].files.size() == 2
         immutable.variants[0].files[0].name == "f1"
         immutable.variants[0].files[0].uri == "dir/f1"
+        immutable.variants[0].files[1].name == "f2.jar"
+        immutable.variants[0].files[1].uri == "f2-1.2.jar"
         immutable.variants[1].name == "runtime"
+        immutable.variants[1].asDescribable().displayName == "group:module:version variant runtime"
         immutable.variants[1].attributes == attributes(usage: "runtime")
         immutable.variants[1].files.size() == 1
+        immutable.variants[1].files[0].name == "f1"
+        immutable.variants[1].files[0].uri == "dir/f1"
 
         def immutable2 = immutable.asMutable().asImmutable()
         immutable2.variants.size() == 2
@@ -207,6 +213,45 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable3.variants[1].name == "runtime"
         immutable3.variants[2].name == "link"
         immutable3.variants[2].files.empty
+    }
+
+    def "variants are attached as children of configuration used for variant aware selection"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+
+        def attributes1 = attributes(usage: "compile")
+        def attributes2 = attributes(usage: "runtime")
+
+        def v1 = metadata.addVariant("api", attributes1)
+        v1.addFile("f1.jar", "dir/f1")
+        v1.addFile("f2.jar", "f2-1.2.jar")
+        def v2 = metadata.addVariant("runtime", attributes2)
+        v2.addFile("f2", "f2-1.2.zip")
+
+        expect:
+        def immutable = metadata.asImmutable()
+        immutable.consumableConfigurationsHavingAttributes.size() == 1
+        def defaultConfiguration = immutable.consumableConfigurationsHavingAttributes[0]
+        defaultConfiguration.name == 'default'
+        defaultConfiguration.variants.size() == 2
+
+        defaultConfiguration.variants[0].asDescribable().displayName == "group:module:version variant api"
+        defaultConfiguration.variants[0].attributes == attributes1
+        defaultConfiguration.variants[0].artifacts.size() == 2
+        def artifacts1 = defaultConfiguration.variants[0].artifacts as List
+        artifacts1[0].name.name == 'f1'
+        artifacts1[0].name.type == 'jar'
+        artifacts1[0].name.classifier == null
+        artifacts1[0].name.extension == 'jar'
+
+        defaultConfiguration.variants[1].asDescribable().displayName == "group:module:version variant runtime"
+        defaultConfiguration.variants[1].attributes == attributes2
+        defaultConfiguration.variants[1].artifacts.size() == 1
+        def artifacts2 = defaultConfiguration.variants[1].artifacts as List
+        artifacts2[0].name.name == 'f2'
+        artifacts2[0].name.type == ''
+        artifacts2[0].name.classifier == null
+        artifacts2[0].name.extension == ''
     }
 
     def "making changes to copy does not affect original"() {

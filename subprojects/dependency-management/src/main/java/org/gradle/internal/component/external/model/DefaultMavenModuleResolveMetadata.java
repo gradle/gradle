@@ -17,11 +17,19 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     public static final String POM_PACKAGING = "pom";
@@ -79,7 +87,39 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
+    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+        if (variants.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ConfigurationMetadata runtime = getConfiguration("runtime");
+        DefaultConfigurationMetadata configuration = new VariantAwareConfigurationMetadata(getComponentId(), runtime,  ImmutableSet.copyOf(variants));
+        configuration.populateDependencies(getDependencies());
+        return ImmutableList.of(configuration);
+    }
+
+    @Override
     public ImmutableList<? extends ComponentVariant> getVariants() {
         return variants;
+    }
+
+    private static class VariantAwareConfigurationMetadata extends DefaultConfigurationMetadata {
+        private final ConfigurationMetadata runtime;
+        private final ImmutableSet<? extends ComponentVariant> variants;
+
+        VariantAwareConfigurationMetadata(ModuleComponentIdentifier componentIdentifier, ConfigurationMetadata runtime, ImmutableSet<? extends ComponentVariant> variants) {
+            super(componentIdentifier, "default", true, true, ImmutableList.<DefaultConfigurationMetadata>of(), ImmutableList.<Exclude>of());
+            this.runtime = runtime;
+            this.variants = variants;
+        }
+
+        @Override
+        public Set<? extends VariantMetadata> getVariants() {
+            return variants;
+        }
+
+        @Override
+        public List<? extends DependencyMetadata> getDependencies() {
+            return runtime.getDependencies();
+        }
     }
 }
