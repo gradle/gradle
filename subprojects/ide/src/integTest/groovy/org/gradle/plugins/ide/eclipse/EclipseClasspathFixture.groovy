@@ -104,6 +104,10 @@ class EclipseClasspathFixture {
         String getPath() {
             return entry.@path
         }
+
+        void assertOutputLocation(String output) {
+            assert entry.@output == output
+        }
     }
 
     class EclipseLibrary extends EclipseClasspathEntry {
