@@ -22,15 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.composite.internal.IncludedBuildRegistry;
 
 public interface CompositeBuildContext extends LocalComponentProvider, DependencySubstitutionRules {
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
     void registerSubstitution(Action<DependencySubstitution> substitutions);
 
-    void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata);
-    void registerAdditionalArtifact(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata compositeCopy);
-
+    void setIncludedBuildRegistry(IncludedBuildRegistry includedBuildRegistry);
 }

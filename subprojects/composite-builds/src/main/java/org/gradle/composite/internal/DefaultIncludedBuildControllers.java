@@ -29,11 +29,11 @@ import java.util.Map;
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
-    private final IncludedBuilds includedBuilds;
+    private final IncludedBuildRegistry includedBuildRegistry;
     private boolean taskExecutionStarted;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
-        this.includedBuilds = includedBuilds;
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuildRegistry includedBuildRegistry) {
+        this.includedBuildRegistry = includedBuildRegistry;
         this.executorService = executorFactory.create("included builds");
     }
 
@@ -43,7 +43,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuild build = includedBuilds.getBuild(buildId.getName());
+        IncludedBuild build = includedBuildRegistry.getBuild(buildId);
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(newBuildController);
@@ -84,7 +84,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         }
         buildControllers.clear();
         // TODO:DAZ Move this logic into IncludedBuildController, and register a controller for _every_ included build.
-        for (IncludedBuild includedBuild : includedBuilds.getBuilds()) {
+        for (IncludedBuild includedBuild : includedBuildRegistry.getIncludedBuilds().values()) {
             ((IncludedBuildInternal) includedBuild).finishBuild();
         }
     }

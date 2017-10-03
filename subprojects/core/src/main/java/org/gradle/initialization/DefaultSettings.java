@@ -15,12 +15,11 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -32,22 +31,20 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.vcs.SourceControl;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.composite.internal.IncludedBuildFactory;
+import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
 
 import static org.gradle.util.NameValidator.asValidName;
 
@@ -68,7 +65,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope settingsClassLoaderScope;
     private final ClassLoaderScope buildRootClassLoaderScope;
     private final ServiceRegistry services;
-    private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, File settingsDir,
@@ -251,7 +247,12 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
-    protected IncludedBuildFactory getIncludedBuildFactory() {
+    protected IncludedBuildRegistry getIncludedBuildRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected NestedBuildFactory getNestedBuildFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -267,18 +268,13 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
-        File projectDir = getFileResolver().resolve(rootProject);
-        ConfigurableIncludedBuild build = includedBuilds.get(projectDir);
-        if (build == null) {
-            build = getIncludedBuildFactory().createBuild(projectDir);
-            includedBuilds.put(projectDir, build);
+        if (gradle.getParent() == null) {
+            File projectDir = getFileResolver().resolve(rootProject);
+            ConfigurableIncludedBuild includedBuild = getIncludedBuildRegistry().addExplicitBuild(projectDir, getNestedBuildFactory());
+            configuration.execute(includedBuild);
+        } else {
+            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));
         }
-        configuration.execute(build);
-    }
-
-    @Override
-    public Map<File, IncludedBuild> getIncludedBuilds() {
-        return Cast.uncheckedCast(includedBuilds);
     }
 
     @Override

@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -24,7 +26,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
@@ -35,40 +36,37 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
-    private final CompositeBuildContext context;
-
-    public IncludedBuildDependencyMetadataBuilder(CompositeBuildContext context) {
-        this.context = context;
-    }
-
-    public void build(IncludedBuildInternal build) {
+    public Map<ProjectComponentIdentifier, RegisteredProject> build(IncludedBuildInternal build) {
+        Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects = Maps.newHashMap();
         Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(build, (ProjectInternal) project);
+            registerProject(registeredProjects, build, (ProjectInternal) project);
         }
+        return registeredProjects;
     }
 
-    private void registerProject(IncludedBuild build, ProjectInternal project) {
+    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuild build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
         ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
         LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
-
-        context.register(componentIdentifier, compositeComponent);
+        List<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
         for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
-            context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
+            artifacts.add(createCompositeCopy(componentIdentifier, artifactMetaData));
         }
+        registeredProjects.put(componentIdentifier, new RegisteredProject(compositeComponent, artifacts));
     }
 
     private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
-
         return originalComponentMetadata.copy(componentIdentifier, new Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>() {
             @Override
             public LocalComponentArtifactMetadata transform(LocalComponentArtifactMetadata originalArtifact) {

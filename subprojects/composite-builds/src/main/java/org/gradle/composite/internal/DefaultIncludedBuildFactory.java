@@ -19,11 +19,9 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
@@ -38,16 +36,12 @@ import java.util.Set;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppable {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
-    private final NestedBuildFactory nestedBuildFactory;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
-        this.nestedBuildFactory = nestedBuildFactory;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.workerLeaseService = workerLeaseService;
     }
 
@@ -64,16 +58,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         if (!new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE).exists()) {
             throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE));
         }
-        if (!settings.getIncludedBuilds().isEmpty()) {
-            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", includedBuild.getName()));
-        }
     }
 
     @Override
-    public ConfigurableIncludedBuild createBuild(File buildDirectory) {
+    public IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory, workerLeaseService.getCurrentWorkerLease());
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);

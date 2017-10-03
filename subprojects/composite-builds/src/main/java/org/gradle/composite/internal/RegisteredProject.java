@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,17 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.Collection;
-import java.util.Map;
 
-public class DefaultIncludedBuilds implements IncludedBuilds {
-    private final Map<String, IncludedBuild> builds = Maps.newHashMap();
+public class RegisteredProject {
+    public final LocalComponentMetadata metaData;
+    public final Collection<LocalComponentArtifactMetadata> artifacts;
 
-    public void registerBuild(IncludedBuild build) {
-        builds.put(build.getName(), build);
-    }
-
-    @Override
-    public Collection<IncludedBuild> getBuilds() {
-        return builds.values();
-    }
-
-    @Override
-    public IncludedBuild getBuild(String name) {
-        return builds.get(name);
+    public RegisteredProject(LocalComponentMetadata metaData, Collection<LocalComponentArtifactMetadata> artifacts) {
+        this.metaData = metaData;
+        this.artifacts = artifacts;
     }
 }
