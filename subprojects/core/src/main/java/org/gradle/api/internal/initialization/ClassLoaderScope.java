@@ -99,4 +99,5 @@ public interface ClassLoaderScope {
     ClassLoaderScope lock();
 
     boolean isLocked();
+
 }

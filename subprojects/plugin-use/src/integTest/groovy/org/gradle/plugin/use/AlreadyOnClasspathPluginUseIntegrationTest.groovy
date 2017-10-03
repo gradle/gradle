@@ -162,7 +162,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         fails "help"
 
         then:
-        failureHasCause("Cannot request a version for a plugin already present on the classpath")
+        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
 
         and:
         operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
@@ -182,7 +182,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0']")
-        failureHasCause("Cannot request a version for a plugin already present on the classpath")
+        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
     }
 
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
@@ -194,7 +194,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             false,
             """
                 Assert.assertTrue(result.output.contains("Error resolving plugin [id: 'my-plugin', version: '1.0']"))
-                Assert.assertTrue(result.output.contains("Cannot request a version for a plugin already present on the classpath"))
+                Assert.assertTrue(result.output.contains("Plugin request for plugin already on the classpath must not include a version"))
             """.stripIndent()))
 
         expect:
