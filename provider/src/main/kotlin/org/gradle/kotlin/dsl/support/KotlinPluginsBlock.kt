@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.plugin.dsl.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**

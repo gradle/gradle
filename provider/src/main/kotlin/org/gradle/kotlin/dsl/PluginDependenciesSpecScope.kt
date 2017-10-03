@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.plugin.dsl.PluginDependenciesSpec
-import org.gradle.plugin.dsl.BinaryPluginDependencySpec
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
@@ -35,9 +35,9 @@ class PluginDependenciesSpecScope(plugins: PluginDependenciesSpec) : PluginDepen
 /**
  * Specify the version of the plugin to depend on.
  *
- * Infix version of [BinaryPluginDependencySpec.version].
+ * Infix version of [PluginDependencySpec.version].
  */
-infix fun BinaryPluginDependencySpec.version(version: String?): BinaryPluginDependencySpec = version(version)
+infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec = version(version)
 
 
 /**
@@ -46,4 +46,4 @@ infix fun BinaryPluginDependencySpec.version(version: String?): BinaryPluginDepe
  *
  * Infix version of [PluginDependencySpec.apply].
  */
-infix fun BinaryPluginDependencySpec.apply(apply: Boolean): BinaryPluginDependencySpec = apply(apply)
+infix fun PluginDependencySpec.apply(apply: Boolean): PluginDependencySpec = apply(apply)

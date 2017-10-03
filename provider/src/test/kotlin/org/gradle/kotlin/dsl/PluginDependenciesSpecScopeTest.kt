@@ -2,7 +2,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.groovy.scripts.StringScriptSource
 
-import org.gradle.plugin.dsl.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -61,17 +61,17 @@ class PluginDependenciesSpecScopeTest {
 
 fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
     assertThat(
-        plugins(block).map { Plugin(it.id?.id, it.version, it.isApply) },
+        plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
         equalTo(expected.asList()))
 }
 
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
     PluginRequestCollector(StringScriptSource("script", "")).run {
-        PluginDependenciesSpecScope(createPluginDependenciesSpec(1)).block()
+        PluginDependenciesSpecScope(createSpec(1)).block()
         listPluginRequests()
     }
 
-fun plugin(id: String? = null, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
+fun plugin(id: String, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
 
-data class Plugin(val id: String?, val version: String?, val isApply: Boolean)
+data class Plugin(val id: String, val version: String?, val isApply: Boolean)
 

@@ -197,7 +197,7 @@ class KotlinBuildScriptCompiler(
 
         val (lineNumber, compiledScript) = compiledPluginsBlock
         val pluginsBlockClass = classFrom(compiledScript, baseScope.createChild("plugins"))
-        val pluginDependenciesSpec = pluginRequestCollector.createPluginDependenciesSpec(lineNumber)
+        val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
         withContextClassLoader(pluginsBlockClass.classLoader) {
             try {
                 instantiate(pluginsBlockClass, pluginDependenciesSpec)
@@ -214,7 +214,7 @@ class KotlinBuildScriptCompiler(
     private
     fun applyPluginsTo(target: Project, pluginRequests: PluginRequests) {
         pluginRequestApplicator.applyPlugins(
-            scriptSource, pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
+            pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
     }
 
     private

@@ -52,8 +52,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 
-import org.gradle.plugin.dsl.BinaryPluginDependencySpec
-import org.gradle.plugin.dsl.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
@@ -104,7 +104,7 @@ fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any
  * @param module simple name of the Kotlin Gradle plugin module, for example "jvm", "android", "kapt", "plugin.allopen" etc...
  * @param version optional desired version, null implies [embeddedKotlinVersion].
  */
-fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): BinaryPluginDependencySpec =
+fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): PluginDependencySpec =
     id("org.jetbrains.kotlin.${'$'}module") version (version ?: embeddedKotlinVersion)
 
 
@@ -117,7 +117,7 @@ fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): Bina
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
-val PluginDependenciesSpec.`embedded-kotlin`: BinaryPluginDependencySpec
+val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
     get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
 
 /**
@@ -129,7 +129,7 @@ val PluginDependenciesSpec.`embedded-kotlin`: BinaryPluginDependencySpec
  *
  * @see org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
  */
-val PluginDependenciesSpec.`kotlin-dsl`: BinaryPluginDependencySpec
+val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
 
 """)

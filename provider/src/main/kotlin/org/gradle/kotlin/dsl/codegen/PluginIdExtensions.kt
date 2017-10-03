@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl.codegen
 
-import org.gradle.plugin.dsl.BinaryPluginDependencySpec
-import org.gradle.plugin.dsl.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
 
 import java.io.File
 
@@ -31,7 +31,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
         write(fileHeader)
         write("\n")
         write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
-        write("import ${BinaryPluginDependencySpec::class.qualifiedName}\n")
+        write("import ${PluginDependencySpec::class.qualifiedName}\n")
         pluginIdExtensionDeclarationsFor(gradleJars).forEach {
             write("\n")
             write(it)
@@ -44,7 +44,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
 private
 fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
     val extendedType = PluginDependenciesSpec::class.simpleName
-    val extensionType = BinaryPluginDependencySpec::class.simpleName
+    val extensionType = PluginDependencySpec::class.simpleName
     return pluginExtensionsFrom(jars)
         .map { (memberName, pluginId, website, implementationClass) ->
             """

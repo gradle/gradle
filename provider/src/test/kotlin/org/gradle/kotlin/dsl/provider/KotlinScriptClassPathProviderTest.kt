@@ -24,7 +24,7 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
         val gradleApiJar = file("gradle-api-3.1.jar")
 
-        val generatedKotlinExtensions = file("$extensionsJarCacheId.jar")
+        val generatedKotlinExtensions = file("kotlin-dsl-extensions.jar")
 
         val kotlinExtensionsMonitor = mock<ProgressMonitor>(name = "kotlinExtensionsMonitor")
         val progressMonitorProvider = mock<JarGenerationProgressMonitorProvider> {

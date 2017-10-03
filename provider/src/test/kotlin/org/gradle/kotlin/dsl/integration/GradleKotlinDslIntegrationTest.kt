@@ -388,26 +388,6 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 not(containsString("myTask.foo"))))
     }
 
-    @Test
-    fun `can use script plugins`() {
-
-        withFile("script.gradle.kts", """
-            println("Hello Script Plugins!")
-        """)
-
-        withBuildScript("""
-
-            plugins {
-                script("script.gradle.kts")
-            }
-
-        """)
-
-        val result = build("help")
-
-        assertThat(result.output, containsString("Hello Script Plugins!"))
-    }
-
     private
     val fixturesRepository: File
         get() = File(rootProjectDir, "fixtures/repository").absoluteFile
