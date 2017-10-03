@@ -23,7 +23,12 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
-        settingsFile << "rootProject.name = 'root'\n"
+        withSettings("")
+    }
+
+    private void withSettings(String settings) {
+        settingsFile.text = settings.stripIndent()
+        settingsFile << "\nrootProject.name = 'root'\n"
     }
 
     def "can request buildSrc plugin"() {
@@ -32,7 +37,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginBuild("buildSrc")
 
         and:
-        settingsFile << "include('a')\n"
+        withSettings("include('a')")
 
         and:
         buildFile << requestPlugin("my-plugin")
@@ -55,17 +60,15 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        settingsFile.text = """
+        withSettings """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
             }
 
             include('a')
-            
-            ${settingsFile.text}
 
-        """.stripIndent()
+        """
 
         and:
         buildFile << requestPlugin("my-plugin", "1.0")
@@ -85,7 +88,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        settingsFile.text = """
+        withSettings """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -94,9 +97,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             include("a")
             include("a:b")
 
-            ${settingsFile.text}
-
-        """.stripIndent()
+        """
 
         and:
         buildFile << requestPlugin("my-plugin", "1.0")
@@ -117,7 +118,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        settingsFile.text = """
+        withSettings """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -125,9 +126,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
             include("a")
 
-            ${settingsFile.text}
-
-        """.stripIndent()
+        """
 
         and:
         buildFile << requestPlugin("my-plugin", "1.0", false)
@@ -147,18 +146,16 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        settingsFile.text = """
+        withSettings """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
                 resolutionStrategy { eachPlugin { useVersion("1.0") } }
             }
 
-            ${settingsFile.text}
-
             include("a")
 
-        """.stripIndent()
+        """
 
         and:
         buildFile << requestPlugin("my-plugin")
@@ -194,7 +191,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        settingsFile.text = """
+        withSettings """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -202,9 +199,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
             include("a")
 
-            ${settingsFile.text}
-
-        """.stripIndent()
+        """
 
         and:
         buildFile << requestPlugin("my-plugin", "1.0")
