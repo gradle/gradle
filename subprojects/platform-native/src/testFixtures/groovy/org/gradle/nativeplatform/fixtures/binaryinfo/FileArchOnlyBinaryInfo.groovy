@@ -45,6 +45,11 @@ class FileArchOnlyBinaryInfo implements BinaryInfo {
     }
 
     @Override
+    List<String> listSymbols() {
+        throw new UnsupportedOperationException("Only getting the architecture is supported using the file utility")
+    }
+
+    @Override
     String getSoName() {
         throw new UnsupportedOperationException("Only getting the architecture is supported using the file utility")
     }
