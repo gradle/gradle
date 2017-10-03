@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.cache.CacheRepository;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -37,8 +38,8 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
             return new DefaultVcsMappingFactory();
         }
 
-        VersionControlSystemFactory createVersionControlSystemFactory() {
-            return new DefaultVersionControlSystemFactory();
+        VersionControlSystemFactory createVersionControlSystemFactory(CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(cacheRepository);
         }
     }
 
