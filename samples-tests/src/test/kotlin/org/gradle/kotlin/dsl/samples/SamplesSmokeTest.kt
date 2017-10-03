@@ -48,8 +48,6 @@ class SamplesSmokeTest(
         val buildsToCheck =
             if (File(sampleDir, "buildSrc").isDirectory) {
                 projectBuilds + listOf(buildSpec("-p", "buildSrc", "buildEnvironment"))
-                // TODO:pm delete once `kotlin-dsl` plugin is published
-                projectBuilds
             } else
                 projectBuilds
 
