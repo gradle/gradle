@@ -23,13 +23,9 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
-
-import javax.annotation.Nullable;
-import java.util.List;
+import org.gradle.plugin.use.PluginId;
 
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
 
@@ -53,8 +49,11 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         PluginId pluginId = pluginRequest.getId();
         if (isCorePlugin(pluginId) || isAbsentFromTheClasspath(pluginId)) {
             delegate.resolve(pluginRequest, result);
+        } else if (pluginRequest.getOriginalVersion() != null) {
+            throw new InvalidPluginRequestException(
+                pluginRequest,
+                "Cannot request a version for a plugin already present on the classpath");
         } else {
-            validatesRequestedVersion(pluginRequest);
             resolveAlreadyOnClasspath(pluginId, result);
         }
     }
@@ -62,39 +61,6 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private void resolveAlreadyOnClasspath(PluginId pluginId, PluginResolutionResult result) {
         PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, parentLoaderScope, EMPTY_CLASSPATH_FACTORY, pluginInspector);
         result.found("Already on classpath", pluginResolution);
-    }
-
-    private void validatesRequestedVersion(PluginRequestInternal pluginRequest) {
-        PluginId pluginId = pluginRequest.getId();
-        String version = pluginRequest.getVersion();
-        if (version != null) {
-            PluginRequest alreadyLoadedRequest = alreadyLoadedPluginRequest(parentLoaderScope, pluginId);
-            if (alreadyLoadedRequest == null) {
-                throw new InvalidPluginRequestException(
-                    pluginRequest,
-                    "Plugins with unknown version (e.g. from 'buildSrc' or TestKit injected classpath) cannot be requested with a version");
-            }
-            if (!version.equals(alreadyLoadedRequest.getVersion())) {
-                throw new InvalidPluginRequestException(
-                    pluginRequest,
-                    "Cannot apply version " + version + " of '" + pluginId + "' as version " + alreadyLoadedRequest.getVersion() + " is already on the classpath");
-            }
-        }
-    }
-
-    @Nullable
-    private PluginRequest alreadyLoadedPluginRequest(ClassLoaderScope loaderScope, PluginId pluginId) {
-        List<PluginRequest> loadedRequests = loaderScope.getMetaInfo(PluginRequest.class);
-        for (PluginRequest loadedRequest : loadedRequests) {
-            if (pluginId.equals(loadedRequest.getId())) {
-                return loadedRequest;
-            }
-        }
-        ClassLoaderScope parentScope = loaderScope.getParent();
-        if (parentScope != loaderScope) {
-            return alreadyLoadedPluginRequest(parentScope, pluginId);
-        }
-        return null;
     }
 
     private boolean isAbsentFromTheClasspath(PluginId pluginId) {

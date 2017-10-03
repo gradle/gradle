@@ -36,7 +36,6 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
@@ -125,7 +124,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                             public void addLegacy(PluginId pluginId, Object dependencyNotation) {
                                 legacyActualPluginIds.put(result, pluginId);
                                 scriptHandler.addScriptClassPathDependency(dependencyNotation);
-                                classLoaderScope.addMetaInfo(PluginRequest.class, result.request);
                             }
 
                             @Override

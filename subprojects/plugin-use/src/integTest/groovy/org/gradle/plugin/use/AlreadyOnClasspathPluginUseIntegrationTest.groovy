@@ -106,23 +106,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
     }
 
-    def "can request non-core plugin with same version as plugin already on classpath"() {
-
-        given:
-        settingsFile << "include('a')\n"
-
-        and:
-        buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-
-        when:
-        succeeds "help"
-
-        then:
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
-    }
-
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
@@ -154,11 +137,11 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         given:
         withBinaryPluginBuild(".", new TestKitSpec(
-            requestPlugin("my-plugin"),
+            requestPlugin("my-plugin", null, false),
             requestPlugin("my-plugin"),
             true,
             """
-                Assert.assertTrue(result.output.contains("${appliedPluginOutput(":")}"))
+                Assert.assertFalse(result.output.contains("${appliedPluginOutput(":")}"))
                 Assert.assertTrue(result.output.contains("${appliedPluginOutput(":a")}"))
             """.stripIndent()))
 
@@ -166,20 +149,20 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    def "cannot request plugin with different version than plugin already on classpath"() {
+    def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:
         settingsFile << "include('a')\n"
 
         and:
         buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish", "0.9.7")
+        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish", "0.9.8")
 
         when:
         fails "help"
 
         then:
-        failureHasCause("Cannot apply version 0.9.7 of 'com.gradle.plugin-publish' as version 0.9.8 is already on the classpath")
+        failureHasCause("Cannot request a version for a plugin already present on the classpath")
 
         and:
         operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
@@ -199,19 +182,19 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0']")
-        failureHasCause("Plugins with unknown version (e.g. from 'buildSrc' or TestKit injected classpath) cannot be requested with a version")
+        failureHasCause("Cannot request a version for a plugin already present on the classpath")
     }
 
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:
         withBinaryPluginBuild(".", new TestKitSpec(
-            requestPlugin("my-plugin"),
+            requestPlugin("my-plugin", null, false),
             requestPlugin("my-plugin", "1.0"),
             false,
             """
                 Assert.assertTrue(result.output.contains("Error resolving plugin [id: 'my-plugin', version: '1.0']"))
-                Assert.assertTrue(result.output.contains("Plugins with unknown version (e.g. from 'buildSrc' or TestKit injected classpath) cannot be requested with a version"))
+                Assert.assertTrue(result.output.contains("Cannot request a version for a plugin already present on the classpath"))
             """.stripIndent()))
 
         expect:
@@ -310,11 +293,11 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
                             rootProject.name = "root"
                         \"\"\".stripIndent()
                         new File(rootDir, "build.gradle").text = \"\"\"
-                            ${testKitSpec.rootProjectBuildScript}
+                            ${testKitSpec.rootProjectBuildScript ?: ""}
                         \"\"\".stripIndent()
                         new File(rootDir,"a").mkdirs()
                         new File(rootDir, "a/build.gradle").text = \"\"\"
-                            ${testKitSpec.childProjectBuildScript}
+                            ${testKitSpec.childProjectBuildScript ?: ""}
                         \"\"\".stripIndent()
     
                         //when:

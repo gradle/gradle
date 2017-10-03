@@ -31,6 +31,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final int lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
+    private final String originalVersion;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
@@ -49,12 +50,18 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
+        this(id, version, apply, lineNumber, scriptDisplayName, artifact, version);
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
+                                String originalVersion) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
+        this.originalVersion = originalVersion;
     }
 
     public PluginId getId() {
@@ -107,5 +114,11 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     public String getDisplayName() {
         return toString();
+    }
+
+    @Nullable
+    @Override
+    public String getOriginalVersion() {
+        return originalVersion;
     }
 }

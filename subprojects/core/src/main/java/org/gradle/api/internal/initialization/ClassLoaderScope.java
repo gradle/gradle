@@ -18,8 +18,6 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.List;
-
 /**
  * Represents a particular node in the ClassLoader graph.
  *
@@ -92,26 +90,6 @@ public interface ClassLoaderScope {
      * @param id an identifier for the child loader
      */
     ClassLoaderScope createChild(String id);
-
-    /**
-     * Get the meta-info associated with this scope.
-     *
-     * @param type the type of meta-info
-     * @param <T> the type of meta-info
-     * @return the list of meta-info for this type, empty if none, never null
-     */
-    <T> List<T> getMetaInfo(Class<T> type);
-
-    /**
-     * Add meta-info to this scope.
-     *
-     * <p>Can not be called after being locked.
-     *
-     * @param type the type of meta-info
-     * @param metaInfo the meta-info object
-     * @param <T> the type of meta-info
-     */
-    <T> void addMetaInfo(Class<T> type, T metaInfo);
 
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.

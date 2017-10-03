@@ -19,9 +19,6 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.Collections;
-import java.util.List;
-
 public class RootClassLoaderScope extends AbstractClassLoaderScope {
 
     private final ClassLoader localClassLoader;
@@ -76,15 +73,5 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public boolean isLocked() {
         return true;
-    }
-
-    @Override
-    public <T> List<T> getMetaInfo(Class<T> type) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public <T> void addMetaInfo(Class<T> type, T metaInfo) {
-        throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 }
