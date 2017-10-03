@@ -16,13 +16,12 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.internal.hash.Hashing;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.io.File;
 
 // TODO: Remove this when we have a real Vcs (like Git)
-public class DirectoryRepository implements VersionControlSpec {
+public class DirectoryRepositorySpec implements VersionControlSpec {
     private File sourceDir;
 
     @Override
@@ -40,7 +39,7 @@ public class DirectoryRepository implements VersionControlSpec {
 
     @Override
     public String getUniqueId() {
-        return Hashing.md5().hashString("dirVcs: " + sourceDir.getAbsolutePath()).toString();
+        return sourceDir.getAbsolutePath();
     }
 
     @Override

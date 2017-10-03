@@ -35,7 +35,7 @@ public class SimpleVersionControlSystem implements VersionControlSystem {
 
     @Override
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
-        File sourceDir = ((DirectoryRepository)spec).getSourceDir();
+        File sourceDir = ((DirectoryRepositorySpec)spec).getSourceDir();
         try {
             GFileUtils.copyDirectory(sourceDir, workingDir);
             new File(workingDir, "checkedout").createNewFile();
