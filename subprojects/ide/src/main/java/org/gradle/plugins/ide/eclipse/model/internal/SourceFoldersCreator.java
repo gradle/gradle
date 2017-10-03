@@ -116,7 +116,7 @@ public class SourceFoldersCreator {
     }
 
     private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
-        String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
+        String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
