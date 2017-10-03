@@ -49,10 +49,8 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         PluginId pluginId = pluginRequest.getId();
         if (isCorePlugin(pluginId) || isAbsentFromTheClasspath(pluginId)) {
             delegate.resolve(pluginRequest, result);
-        } else if (pluginRequest.getOriginalVersion() != null) {
-            throw new InvalidPluginRequestException(
-                pluginRequest,
-                "Cannot request a version for a plugin already present on the classpath");
+        } else if (pluginRequest.getOriginalRequest().getVersion() != null) {
+            throw new InvalidPluginRequestException(pluginRequest, "Cannot request a version for a plugin already present on the classpath");
         } else {
             resolveAlreadyOnClasspath(pluginId, result);
         }

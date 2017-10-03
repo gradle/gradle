@@ -18,8 +18,6 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.plugin.management.PluginRequest;
 
-import javax.annotation.Nullable;
-
 public interface PluginRequestInternal extends PluginRequest {
 
     boolean isApply();
@@ -30,6 +28,5 @@ public interface PluginRequestInternal extends PluginRequest {
 
     String getDisplayName();
 
-    @Nullable
-    String getOriginalVersion();
+    PluginRequestInternal getOriginalRequest();
 }
