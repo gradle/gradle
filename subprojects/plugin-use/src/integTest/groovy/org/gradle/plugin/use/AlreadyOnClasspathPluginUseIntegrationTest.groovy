@@ -52,67 +52,106 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
     def "can request non-core plugin already applied to parent project"() {
 
         given:
-        settingsFile << "include('a')\n"
+        withBinaryPluginPublishedLocally()
 
         and:
-        buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish")
+        settingsFile.text = """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
+
+            include('a')
+            
+            ${settingsFile.text}
+
+        """.stripIndent()
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/build.gradle") << requestPlugin("my-plugin")
 
         when:
         succeeds "help"
 
         then:
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
     def "can request non-core plugin already applied to grand-parent project"() {
 
         given:
-        settingsFile << """
+        withBinaryPluginPublishedLocally()
+
+        and:
+        settingsFile.text = """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
 
             include("a")
             include("a:b")
 
+            ${settingsFile.text}
+
         """.stripIndent()
 
         and:
-        buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-        file("a/b/build.gradle") << requestPlugin("com.gradle.plugin-publish")
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/b/build.gradle") << requestPlugin("my-plugin")
 
         when:
         succeeds "help"
 
         then:
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        !operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a:b'")
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        !operations.hasOperation("Apply plugin my-plugin to project ':a'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a:b'")
     }
 
     def "can request non-core plugin already requested on parent project but not applied"() {
 
         given:
-        settingsFile << "include('a')\n"
+        withBinaryPluginPublishedLocally()
 
         and:
-        buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8", false)
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish")
+        settingsFile.text = """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
+
+            include("a")
+
+            ${settingsFile.text}
+
+        """.stripIndent()
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0", false)
+        file("a/build.gradle") << requestPlugin("my-plugin")
 
         when:
         succeeds "help"
 
         then:
-        !operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
+        !operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
+        withBinaryPluginPublishedLocally()
+
+        and:
         settingsFile.text = """
 
             pluginManagement {
-                resolutionStrategy { eachPlugin { useVersion("0.9.8") } }
+                ${withLocalPluginRepository()}
+                resolutionStrategy { eachPlugin { useVersion("1.0") } }
             }
 
             ${settingsFile.text}
@@ -122,15 +161,15 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         """.stripIndent()
 
         and:
-        buildFile << requestPlugin("com.gradle.plugin-publish")
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish")
+        buildFile << requestPlugin("my-plugin")
+        file("a/build.gradle") << requestPlugin("my-plugin")
 
         when:
         succeeds "help"
 
         then:
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
     def "can request plugin from TestKit injected classpath"() {
@@ -152,11 +191,24 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
     def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:
-        settingsFile << "include('a')\n"
+        withBinaryPluginPublishedLocally()
 
         and:
-        buildFile << requestPlugin("com.gradle.plugin-publish", "0.9.8")
-        file("a/build.gradle") << requestPlugin("com.gradle.plugin-publish", "0.9.8")
+        settingsFile.text = """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
+
+            include("a")
+
+            ${settingsFile.text}
+
+        """.stripIndent()
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/build.gradle") << requestPlugin("my-plugin", "1.0")
 
         when:
         fails "help"
@@ -165,8 +217,8 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("Plugin request for plugin already on the classpath must not include a version")
 
         and:
-        operations.hasOperation("Apply plugin com.gradle.plugin-publish to root project 'root'")
-        !operations.hasOperation("Apply plugin com.gradle.plugin-publish to project ':a'")
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        !operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
     def "cannot request plugin version of plugin from 'buildSrc'"() {
@@ -319,5 +371,32 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
     private static String appliedPluginOutput(String projectPath = null) {
         "Plugin my-plugin applied!${projectPath == null ? "" : " (to $projectPath)"}"
+    }
+
+    private static String localPluginRepoPath = "local-plugin-repository"
+
+    private static String withLocalPluginRepository() {
+        """
+            repositories {
+                maven {
+                    url = uri("$localPluginRepoPath")
+                }
+            }
+        """.stripIndent()
+    }
+
+    private void withBinaryPluginPublishedLocally() {
+        def pluginBundleName = "my-local-plugins"
+        withBinaryPluginBuild(pluginBundleName)
+        file("$pluginBundleName/settings.gradle").createFile()
+        file("$pluginBundleName/build.gradle") << """
+            apply plugin: "maven-publish"
+            publishing { repositories { maven { url = uri("../$localPluginRepoPath") } } }
+        """.stripIndent()
+
+        succeeds "-b", "$pluginBundleName/build.gradle", "publish"
+
+        file("$localPluginRepoPath/com/acme/$pluginBundleName/1.0/$pluginBundleName-1.0.jar").assertExists()
+        file("$localPluginRepoPath/my-plugin/my-plugin.gradle.plugin/1.0/my-plugin.gradle.plugin-1.0.pom").assertExists()
     }
 }
