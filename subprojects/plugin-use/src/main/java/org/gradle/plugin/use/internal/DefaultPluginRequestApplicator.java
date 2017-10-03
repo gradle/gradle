@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginImplementation;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
@@ -35,6 +36,7 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
@@ -42,7 +44,7 @@ import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
+import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -66,17 +68,19 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginResolverFactory pluginResolverFactory;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
+    private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
+        this.pluginInspector = pluginInspector;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
-    public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
             return;
@@ -86,7 +90,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
         }
 
-        final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
+        final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
 
         List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
             public Result transform(PluginRequestInternal request) {
@@ -121,6 +125,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                             public void addLegacy(PluginId pluginId, Object dependencyNotation) {
                                 legacyActualPluginIds.put(result, pluginId);
                                 scriptHandler.addScriptClassPathDependency(dependencyNotation);
+                                classLoaderScope.addMetaInfo(PluginRequest.class, result.request);
                             }
 
                             @Override
@@ -219,9 +224,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         classLoaderScope.lock();
     }
 
-    private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
-        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
-        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
+    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope) {
+        ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
+        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
+        PluginResolver pluginResolver = pluginResolverFactory.create();
+        return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector);
     }
 
     private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {

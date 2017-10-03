@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classloader.CachingClassLoader;
@@ -25,11 +27,14 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
     private final ClassLoaderScope parent;
+    private final ListMultimap<Class<?>, Object> metaInfoMap = ArrayListMultimap.create();
 
     private boolean locked;
 
@@ -215,6 +220,17 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         }
 
         return this;
+    }
+
+    @Override
+    public <T> List<T> getMetaInfo(Class<T> type) {
+        return uncheckedCast(metaInfoMap.get(type));
+    }
+
+    @Override
+    public <T> void addMetaInfo(Class<T> type, T metaInfo) {
+        assertNotLocked();
+        metaInfoMap.put(type, metaInfo);
     }
 
     private void assertNotLocked() {
