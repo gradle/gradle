@@ -22,11 +22,7 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository() {
-        return """
-            repositories {
-                ${jcenterRepositoryDefinition()}
-            }
-        """
+        return "repositories { ${jcenterRepositoryDefinition()} }"
     }
 
     static String mavenCentralRepository() {
@@ -48,12 +44,7 @@ class RepoScriptBlockUtil {
     static String jcenterRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
-            return """
-                maven {
-                    name 'jcenter-remote'
-                    url '${repoUrl}'
-                }
-            """
+            return "maven { name 'jcenter-remote'; url '${repoUrl}' }"
         } else {
             return 'jcenter()'
         }
