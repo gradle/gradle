@@ -62,6 +62,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -100,6 +101,9 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.vcs.internal.VcsMappingFactory;
+import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -323,14 +327,10 @@ class DependencyManagementBuildScopeServices {
         return new ProjectDependencyResolver(localComponentRegistry, componentIdentifierFactory);
     }
 
-    ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {
-        return new ProjectResolverProviderFactory(resolver);
-    }
+    private static class DefaultResolverProviderFactory implements ResolverProviderFactory {
+        private final VcsDependencyResolver resolver;
 
-    private static class ProjectResolverProviderFactory implements ResolverProviderFactory {
-        private final ProjectDependencyResolver resolver;
-
-        public ProjectResolverProviderFactory(ProjectDependencyResolver resolver) {
+        private DefaultResolverProviderFactory(VcsDependencyResolver resolver) {
             this.resolver = resolver;
         }
 
@@ -343,5 +343,13 @@ class DependencyManagementBuildScopeServices {
         public ComponentResolvers create(ResolveContext context) {
             return resolver;
         }
+    }
+
+    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+        return new VcsDependencyResolver(projectRegistry, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+    }
+
+    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {
+        return new DefaultResolverProviderFactory(resolver);
     }
 }
