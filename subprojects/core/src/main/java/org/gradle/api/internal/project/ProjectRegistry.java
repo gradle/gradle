@@ -17,17 +17,18 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
 public interface ProjectRegistry<T extends ProjectIdentifier> {
     void addProject(T project);
 
-    T getRootProject();
+    @Nullable T getRootProject();
 
-    T getProject(String path);
+    @Nullable T getProject(String path);
 
-    T getProject(File projectDir);
+    @Nullable T getProject(File projectDir);
 
     Set<T> getAllProjects();
 
