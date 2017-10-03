@@ -98,9 +98,9 @@ or set [`org.gradle.console`](userguide/build_environment.html#sec:gradle_config
 
 The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
-### Adjustments in the `eclipse` plugin
+### Eclipse plugin separates output folders
 
-The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folders and dependencies define an additional `gradle_source_sets` classpath attribute. The attribute contains a comma-separated list of source sets which contains the element. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
+The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folder and dependency defines an additional `gradle_source_sets` classpath attribute. The attribute specifies to which sourceSet the entry belonged. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
 <!--
 ### Example new and noteworthy
