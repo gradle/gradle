@@ -235,7 +235,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @Input
+    @Optional
     protected Collection<String> getIncludePaths() {
+        if (discoveredInputs.isPresent()) {
+            return null; // => Include paths are handled by a different task
+        }
         if (includePaths == null) {
             Set<File> roots = includes.getFiles();
             ImmutableList.Builder<String> builder = ImmutableList.builder();
@@ -295,10 +299,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Internal
     public RegularFileVar getDiscoveredInputs() {
         return discoveredInputs;
-    }
-
-    public void setDiscoveredInputs(RegularFileVar discoveredInputs) {
-        this.discoveredInputs.set(discoveredInputs);
     }
 
     @Optional

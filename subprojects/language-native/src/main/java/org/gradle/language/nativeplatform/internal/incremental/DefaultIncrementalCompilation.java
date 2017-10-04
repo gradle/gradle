@@ -24,7 +24,6 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> recompile;
     private final List<File> removed;
     private final Set<File> discoveredInputs;
-
     private final boolean sourceFilesUseMacroIncludes;
 
     public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs, boolean sourceFilesUseMacroIncludes) {

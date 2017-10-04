@@ -18,11 +18,11 @@ package org.gradle.language.nativeplatform.tasks;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -30,7 +30,6 @@ import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -59,6 +58,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -76,11 +76,12 @@ public class DiscoverInputs extends DefaultTask {
     private final ConfigurableFileCollection source;
     private ImmutableList<String> includePaths;
     private PropertyState<Boolean> importsAreIncludes;
+    private final RegularFileVar discoveredInputs;
+
     private CSourceParser sourceParser;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final RegularFileVar discoveredInputs;
 
     @Inject
     public DiscoverInputs(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
@@ -98,43 +99,59 @@ public class DiscoverInputs extends DefaultTask {
     @TaskAction
     public void discoverInputs(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(getPath());
-        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes.getOrElse(false));
         List<File> includeRoots = CollectionUtils.toList(includes);
-        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots);
-        IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
-        IncrementalCompilation incrementalCompilation = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory).processSourceFiles(source.getFiles());
+        IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
+
+        IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
+        ImmutableSortedSet<File> discoveredInputs = collectDiscoveredInputs(includeRoots, incrementalCompilation);
+
+        addDiscoveredInputsToTask(inputs, discoveredInputs);
+        writeDiscoveredInputsToFile(discoveredInputs);
+    }
+
+    private ImmutableSortedSet<File> collectDiscoveredInputs(List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+        final Set<File> discoveredInputs = new HashSet<File>();
+        discoveredInputs.addAll(incrementalCompilation.getDiscoveredInputs());
+        if (incrementalCompilation.isSourceFilesUseMacroIncludes()) {
+            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", getName());
+            for (final File includeRoot : includeRoots) {
+                logger.info("adding files in {} to discovered inputs for {}", includeRoot, getName());
+                directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        discoveredInputs.add(fileDetails.getFile());
+                    }
+                });
+            }
+        }
+        return ImmutableSortedSet.copyOf(discoveredInputs);
+    }
+
+    private void addDiscoveredInputsToTask(IncrementalTaskInputsInternal inputs, ImmutableSortedSet<File> discoveredInputs) {
+        for (File discoveredInput : discoveredInputs) {
+            inputs.newInput(discoveredInput);
+        }
+    }
+
+    private void writeDiscoveredInputsToFile(ImmutableSortedSet<File> discoveredInputs) throws IOException {
         File outputFile = getDiscoveredInputs().getAsFile().get();
         final BufferedWriter outputStreamWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), Charsets.UTF_8));
         try {
-            for (File discoveredInput : incrementalCompilation.getDiscoveredInputs()) {
-                addDiscoveredInput(inputs, outputStreamWriter, discoveredInput);
-            }
-            if (incrementalCompilation.isSourceFilesUseMacroIncludes()) {
-                logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", getName());
-                for (final File includeRoot : includeRoots) {
-                    logger.info("adding files in {} to discovered inputs for {}", includeRoot, getName());
-                    directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
-                        @Override
-                        public void visitFile(FileVisitDetails fileDetails) {
-                            try {
-                                addDiscoveredInput(inputs, outputStreamWriter, fileDetails.getFile());
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        }
-                    });
-                }
+            for (File discoveredInput : discoveredInputs) {
+                outputStreamWriter.write(discoveredInput.getAbsolutePath());
+                outputStreamWriter.newLine();
             }
         } finally {
             IOUtils.closeQuietly(outputStreamWriter);
         }
     }
 
-    private void addDiscoveredInput(IncrementalTaskInputsInternal inputs, BufferedWriter outputStreamWriter, File discoveredInput) throws IOException {
-        inputs.newInput(discoveredInput);
-        outputStreamWriter.write(discoveredInput.getAbsolutePath());
-        outputStreamWriter.newLine();
+    private IncrementalCompileProcessor createIncrementalCompileProcessor(List<File> includeRoots) {
+        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(getPath());
+        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes.getOrElse(false));
+        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots);
+        IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
+        return new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory);
     }
 
     @Input
@@ -179,12 +196,8 @@ public class DiscoverInputs extends DefaultTask {
     }
 
     @Input
-    public boolean isImportsAreIncludes() {
-        return importsAreIncludes.getOrElse(false);
-    }
-
-    public void setImportsAreIncludes(Provider<Boolean> importsAreIncludes) {
-        this.importsAreIncludes.set(importsAreIncludes);
+    public PropertyState<Boolean> getImportsAreIncludes() {
+        return importsAreIncludes;
     }
 
 }

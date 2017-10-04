@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class IncrementalCompileFilesFactory {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileFilesFactory.class);
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
@@ -47,7 +48,7 @@ public class IncrementalCompileFilesFactory {
         return new DefaultIncrementalCompileFiles(previousCompileState);
     }
 
-    public class DefaultIncrementalCompileFiles implements IncrementalCompileFiles {
+    private class DefaultIncrementalCompileFiles implements IncrementalCompileFiles {
 
         private final CompilationState previous;
 
@@ -171,4 +172,5 @@ public class IncrementalCompileFilesFactory {
             return sourceFilesUseMacroIncludes;
         }
     }
+
 }

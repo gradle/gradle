@@ -17,7 +17,6 @@ package org.gradle.language.cpp.plugins;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
@@ -45,7 +44,6 @@ import java.util.Map;
  * Adds core C++ language support.
  */
 @Incubating
-@NonNullApi
 public class CppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {

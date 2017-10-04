@@ -34,6 +34,7 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.plugins.DiscoveredInputsPlugin;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -56,7 +57,7 @@ import java.util.concurrent.Callable;
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
         project.getPluginManager().apply(DiscoveredInputsPlugin.class);
@@ -80,8 +81,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final CppBinary binary) {
                 final Names names = Names.of(binary.getName());
 
-                String compileTaskName = names.getCompileTaskName("cpp");
-                final CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
+                CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {

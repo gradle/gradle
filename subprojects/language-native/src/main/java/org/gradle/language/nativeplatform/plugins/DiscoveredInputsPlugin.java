@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.plugins;
+package org.gradle.language.nativeplatform.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -64,7 +64,7 @@ public class DiscoveredInputsPlugin implements Plugin<Project> {
             discoverInputs.source(compile.getSource());
             discoverInputs.includes(compile.getIncludes());
             discoverInputs.getDiscoveredInputs().set(project.getLayout().getBuildDirectory().file(discoverInputs.getName() + "/" + "inputs.txt"));
-            discoverInputs.setImportsAreIncludes(project.provider(new Callable<Boolean>() {
+            discoverInputs.getImportsAreIncludes().set(project.provider(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
                     NativeToolChain toolChain = compile.getToolChain();
