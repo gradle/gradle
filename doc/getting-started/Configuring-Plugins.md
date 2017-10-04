@@ -112,12 +112,10 @@ android {
 See the [Plugin Management](https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_management) section of
 the Gradle documentation for more information.
 
-However, it is not yet possible to use the `plugins {}` block in the following situations:
-- [plugins already applied to a parent project](https://github.com/gradle/kotlin-dsl/issues/426)
-- [plugins from `buildSrc`](https://github.com/gradle/kotlin-dsl/issues/426)
-- [plugins from composite builds](https://github.com/gradle/gradle/issues/2528)
+However, it is not yet possible to use the `plugins {}` block to request
+[plugins from composite builds](https://github.com/gradle/gradle/issues/2528)
 
-If you are in any of those cases, you need to apply the plugin imperatively (using the `buildscript` block and
+If you can't use the `plugins {}` block, you need to apply the plugin imperatively (using the `buildscript` block and
 `apply { from("") }`) and to know the type of the extension.
 
 The following groovy block of code:
