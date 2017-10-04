@@ -84,7 +84,6 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
         failure.assertHasCause("Included build 'buildB' cannot have included builds.")
     }
 

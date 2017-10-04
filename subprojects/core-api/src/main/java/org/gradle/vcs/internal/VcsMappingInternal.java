@@ -25,5 +25,5 @@ public interface VcsMappingInternal extends VcsMapping {
 
     VersionControlSpec getRepository();
 
-    boolean isUpdated();
+    boolean hasRepository();
 }

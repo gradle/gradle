@@ -29,18 +29,18 @@ import java.util.Set;
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final ServiceRegistry serviceRegistry;
-    private final IncludedBuilds includedBuilds;
+    private final IncludedBuildRegistry includedBuildRegistry;
     private BuildIdentifier currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-        this.includedBuilds = includedBuilds;
+    public CompositeBuildClassPathInitializer(IncludedBuildRegistry includedBuildRegistry, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+        this.includedBuildRegistry = includedBuildRegistry;
         this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public void execute(Configuration classpath) {
-        if (includedBuilds.getBuilds().isEmpty()) {
+        if (!includedBuildRegistry.hasIncludedBuilds()) {
             return;
         }
 

@@ -22,34 +22,30 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultIncludedBuild implements IncludedBuildInternal {
+public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
-    private DefaultDependencySubstitutions dependencySubstitutions;
+    private boolean resolvedDependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
     private String name;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.parentLease = parentLease;
     }
 
@@ -73,21 +69,16 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
-        if (dependencySubstitutions != null) {
+        if (resolvedDependencySubstitutions) {
             throw new IllegalStateException("Cannot configure included build after dependency substitutions are resolved.");
         }
         dependencySubstitutionActions.add(action);
     }
 
-    public DependencySubstitutionsInternal resolveDependencySubstitutions() {
-        if (dependencySubstitutions == null) {
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this, moduleIdentifierFactory);
-
-            for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
-                action.execute(dependencySubstitutions);
-            }
-        }
-        return dependencySubstitutions;
+    @Override
+    public List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions() {
+        resolvedDependencySubstitutions = true;
+        return dependencySubstitutionActions;
     }
 
     @Override
@@ -135,11 +126,19 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     private void markAsNotReusable() {
+        gradleLauncher.stop();
         gradleLauncher = null;
     }
 
     @Override
     public String toString() {
         return String.format("includedBuild[%s]", projectDir.getName());
+    }
+
+    @Override
+    public void stop() {
+        if (gradleLauncher!=null) {
+            gradleLauncher.stop();
+        }
     }
 }

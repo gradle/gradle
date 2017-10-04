@@ -31,10 +31,10 @@ import java.util.Set;
 
 public class DefaultVcsMappings implements VcsMappingsInternal {
     private final Set<Action<VcsMapping>> vcsMappings;
-    private final Instantiator instantiator;
+    private final VersionControlSpecFactory versionControlSpecFactory;
 
     public DefaultVcsMappings(Instantiator instantiator) {
-        this.instantiator = instantiator;
+        this.versionControlSpecFactory = new VersionControlSpecFactory(instantiator);
         this.vcsMappings = Sets.newLinkedHashSet();
     }
 
@@ -52,7 +52,7 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
 
     @Override
     public <T extends VersionControlSpec> T vcs(Class<T> type, Action<? super T> configuration) {
-        T vcs = instantiator.newInstance(type);
+        T vcs = versionControlSpecFactory.create(type);
         configuration.execute(vcs);
         return vcs;
     }

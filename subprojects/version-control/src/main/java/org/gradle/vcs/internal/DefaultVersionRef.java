@@ -26,6 +26,6 @@ public class DefaultVersionRef implements VersionRef {
 
     @Override
     public String getCanonicalId() {
-        return "abcdef";
+        return "fixed";
     }
 }

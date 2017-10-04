@@ -53,7 +53,7 @@ public class DefaultVcsMapping implements VcsMappingInternal {
     }
 
     @Override
-    public boolean isUpdated() {
+    public boolean hasRepository() {
         return versionControlSpec != null;
     }
 }

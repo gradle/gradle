@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
+
+import java.util.List;
 
 public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
-    DependencySubstitutionsInternal resolveDependencySubstitutions();
+    List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
+
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
     void finishBuild();

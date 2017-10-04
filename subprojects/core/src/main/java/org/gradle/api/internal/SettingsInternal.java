@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -25,9 +24,6 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
-
-import java.io.File;
-import java.util.Map;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
     /**
@@ -49,8 +45,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     ProjectDescriptor getDefaultProject();
 
     void setDefaultProject(ProjectDescriptor defaultProject);
-
-    Map<File, IncludedBuild> getIncludedBuilds();
 
     @Override
     GradleInternal getGradle();

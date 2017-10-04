@@ -24,7 +24,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
     @Override
     public VersionControlSystem create(VersionControlSpec spec) {
         // TODO: Register these mappings somewhere
-        if (spec instanceof DirectoryRepository) {
+        if (spec instanceof DirectoryRepositorySpec) {
             return new SimpleVersionControlSystem();
         }
         return new GitVersionControlSystem();
