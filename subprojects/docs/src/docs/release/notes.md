@@ -102,6 +102,67 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 
 The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folder and dependency defines an additional `gradle_source_sets` classpath attribute. The attribute specifies to which sourceSet the entry belonged. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
+### More use cases supported using the `plugins {}` block
+
+Non-core plugins already requested using the `plugins {}` block on a parent project can now be requested in child projects:
+
+```
+// root/settings.gradle
+include("subproject")
+
+// root/build.gradle
+plugins {
+    id("com.example.plugin") version "1.0"
+}
+
+// root/subproject/build.gradle
+plugins {
+    id("com.example.plugin")
+}
+```
+
+Plugins from `buildSrc` can now be requested in child projects:
+
+```
+// root/buildSrc/src/main/groovy/my/MyPlugin.gradle
+package my
+
+import org.gradle.api.*
+
+class MyPlugin implement Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        // ...
+    }
+}
+
+// root/buildSrc/build.gradle
+plugins {
+    id("groovy")
+    id("java-gradle-plugin")
+}
+
+gradlePlugin {
+    plugins {
+        myPlugins {
+            id = "my-plugin"
+            implementationClass = "my.MyPlugin
+        }
+    }
+}
+
+dependencies {
+    compileOnly(gradleApi())
+}
+
+// root/build.gradle
+plugins {
+    id("my-plugin")
+}
+```
+
+See the user guide section on the [`plugins {}` block](userguide/plugins.html#sec:plugins_block) for more information.
+
 <!--
 ### Example new and noteworthy
 -->
