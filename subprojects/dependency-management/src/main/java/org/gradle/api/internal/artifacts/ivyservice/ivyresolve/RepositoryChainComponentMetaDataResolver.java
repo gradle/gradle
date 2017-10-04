@@ -124,7 +124,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         // Nothing found - do a second pass
         queue.addAll(missing);
         missing.clear();
-        return findBestMatch(queue, failures, missing);
+        best = findBestMatch(queue, failures, missing);
+        if (!failures.isEmpty()) {
+            return null;
+        }
+        return best;
     }
 
     private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
@@ -136,6 +140,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 metaDataResolveResult = request.resolve();
             } catch (Throwable t) {
                 failures.add(t);
+                queue.clear();
                 continue;
             }
             switch (metaDataResolveResult.getState()) {

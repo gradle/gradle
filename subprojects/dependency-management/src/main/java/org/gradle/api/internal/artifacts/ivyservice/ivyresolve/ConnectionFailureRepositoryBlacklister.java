@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
 import java.io.IOException;
 import java.util.Set;
@@ -56,9 +55,6 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
 
     private boolean isRootCauseIOException(Throwable throwable) {
         Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        if(rootCause instanceof HttpErrorStatusCodeException){
-            return false;
-        }
         return rootCause instanceof IOException || rootCause instanceof UncheckedIOException;
     }
 }

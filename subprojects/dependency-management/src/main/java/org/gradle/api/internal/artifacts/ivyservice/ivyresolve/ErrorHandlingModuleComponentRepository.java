@@ -35,9 +35,7 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
 
@@ -45,25 +43,10 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister repositoryBlacklister) {
+    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister remoteRepositoryBlacklister) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), new RepositoryBlacklister() {
-            @Override
-            public boolean isBlacklisted(String repositoryId) {
-                return false;
-            }
-
-            @Override
-            public boolean blacklistRepository(String repositoryId, Throwable throwable) {
-                return false;
-            }
-
-            @Override
-            public Set<String> getBlacklistedRepositories() {
-                return Collections.emptySet();
-            }
-        });
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), repositoryBlacklister);
+        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryBlacklister.NO_OP_BLACKLISTER);
+        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister);
     }
 
     @Override

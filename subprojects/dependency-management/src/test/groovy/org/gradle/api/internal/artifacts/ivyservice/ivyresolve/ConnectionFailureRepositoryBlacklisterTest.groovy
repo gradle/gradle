@@ -72,13 +72,13 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.empty
 
         where:
-        type                            | exception
-        'NullPointerException'          | createNestedException(new NullPointerException())
-        'HttpErrorStatusCodeExceptiion' | createHttpErrorStatusCodeException('HTTP 500')
+        type                           | exception
+        'NullPointerException'         | createNestedException(new NullPointerException())
+        'HttpErrorStatusCodeException' | createHttpErrorStatusCodeException()
     }
 
-    static RuntimeException createHttpErrorStatusCodeException(String message) {
-        createNestedException(new HttpErrorStatusCodeException(message))
+    static RuntimeException createHttpErrorStatusCodeException(String method = 'GET', String source = 'test.file', int statusCode = 500, String reason = '') {
+        createNestedException(new HttpErrorStatusCodeException(method, source, statusCode, reason))
     }
 
     static RuntimeException createIOException(String message) {

@@ -16,29 +16,15 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * Signals that HTTP response has been received successfully but an error code is encountered (neither 2xx/3xx nor 404).
  */
 @Contextual
-public class HttpErrorStatusCodeException extends UncheckedIOException {
-    private String method;
-    private String source;
-    private int statusCode;
-    private String reason;
-
+public class HttpErrorStatusCodeException extends RuntimeException {
     public HttpErrorStatusCodeException(String method, String source, int statusCode, String reason) {
-        this(String.format("Could not %s '%s'. Received status code %s from server: %s",
+        super(String.format("Could not %s '%s'. Received status code %s from server: %s",
             method, source, statusCode, reason));
-        this.method = method;
-        this.source = source;
-        this.statusCode = statusCode;
-        this.reason = reason;
-    }
-
-    public HttpErrorStatusCodeException(String message) {
-        super(message);
     }
 }
