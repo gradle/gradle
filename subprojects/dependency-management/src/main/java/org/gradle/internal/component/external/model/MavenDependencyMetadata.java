@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -91,10 +92,15 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        if (!targetComponent.getConsumableConfigurationsHavingAttributes().isEmpty() && targetComponent instanceof MavenModuleResolveMetadata) {
-            // Currently the schemas aren't set up correctly to select the correct variants, use this only for Maven modules for now
-            return ImmutableSet.of(selectConfigurationUsingAttributeMatching(fromComponent, fromConfiguration, targetComponent, consumerSchema));
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        if (!targetComponent.getConsumableConfigurationsHavingAttributes().isEmpty()) {
+            // This condition shouldn't be here, and attribute matching should always applied when the target has variants
+            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
+            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
+            // - or the target is a component from a Maven repo as we can assume this is well behaved
+            if (!consumerAttributes.isEmpty() || targetComponent instanceof MavenModuleResolveMetadata) {
+                return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            }
         }
         Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");

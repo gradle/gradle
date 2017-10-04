@@ -19,7 +19,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public interface ConfigurationMetadata extends HasAttributes {
     DisplayName asDescribable();
 
     @Override
-    AttributeContainerInternal getAttributes();
+    ImmutableAttributes getAttributes();
 
     /**
      * Returns the dependencies that apply to this configuration.

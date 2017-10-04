@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -119,7 +118,7 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return ImmutableAttributes.EMPTY;
     }
 

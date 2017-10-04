@@ -29,7 +29,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 abstract class DefaultDependencyMetadataTest extends Specification {
-    def attributesSchema = Mock(AttributesSchemaInternal)
+    def attributesSchema = Stub(AttributesSchemaInternal)
 
     def requested = newSelector("org", "module", "1.2+")
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")

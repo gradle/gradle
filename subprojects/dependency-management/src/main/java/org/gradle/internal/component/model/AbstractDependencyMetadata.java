@@ -17,8 +17,8 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 
@@ -28,8 +28,7 @@ public abstract class AbstractDependencyMetadata implements DependencyMetadata {
     /**
      * Should be extracted out as a service.
      */
-    protected ConfigurationMetadata selectConfigurationUsingAttributeMatching(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
+    protected ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
@@ -37,13 +36,13 @@ public abstract class AbstractDependencyMetadata implements DependencyMetadata {
         if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
             fallbackConfiguration = null;
         }
-        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, fromConfigurationAttributes, fallbackConfiguration);
+        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
         if (matches.size() == 1) {
             return matches.get(0);
         } else if (!matches.isEmpty()) {
-            throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, matches, targetComponent);
+            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent);
         } else {
-            throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, targetComponent);
+            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent);
         }
     }
 }
