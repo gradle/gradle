@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
@@ -113,7 +112,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        final CompileOptions compileOptions = spec.getCompileOptions();
+        final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {

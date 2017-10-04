@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile
 
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
@@ -30,8 +30,9 @@ class NormalizingJavaCompilerTest extends Specification {
     def setup() {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
-        spec.compileOptions = new CompileOptions(Mock(ProviderFactory))
-        spec.compileOptions.annotationProcessorPath = files("processor.jar")
+        def compileOptions = new CompileOptions(new DefaultProviderFactory())
+        compileOptions.annotationProcessorPath = files("processor.jar")
+        spec.compileOptions = compileOptions
     }
 
     def "delegates to target compiler after resolving source and processor path"() {
@@ -44,7 +45,6 @@ class NormalizingJavaCompilerTest extends Specification {
         1 * target.execute(spec) >> {
             assert spec.source.getClass() == SimpleFileCollection
             assert spec.source.files == old(spec.source.files)
-            assert spec.compileOptions.annotationProcessorPath == null
             workResult
         }
         result == workResult
