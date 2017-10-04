@@ -68,4 +68,73 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/3073")
+    def "optional output changed from null to non-null marks task not up-to-date"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                @Optional
+                File outputFile
+            
+                @TaskAction
+                void doAction() {
+                    if (outputFile != null) {
+                        outputFile.write "Task is running"
+                    }
+                }
+            }
+            
+            task customTask(type: CustomTask) {
+                outputFile = project.hasProperty('outputFile') ? file(project.property("outputFile")) : null
+            }
+        """
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds "customTask", "-PoutputFile=log.txt"
+        then:
+        executedAndNotSkipped ":customTask"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3073")
+    def "optional input changed from null to non-null marks task not up-to-date"() {
+        file("input.txt") << "Input data"
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Optional
+                @InputFile
+                File inputFile
+                
+                @OutputFile
+                File outputFile
+            
+                @TaskAction
+                void doAction() {
+                    if (inputFile != null) {
+                        outputFile.text = inputFile.text
+                    }
+                }
+            }
+            
+            task customTask(type: CustomTask) {
+                inputFile = project.hasProperty('inputFile') ? file(project.property("inputFile")) : null
+                outputFile = file("output.txt")
+            }
+        """
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds "customTask", "-PinputFile=input.txt"
+        then:
+        executedAndNotSkipped ":customTask"
+    }
 }
