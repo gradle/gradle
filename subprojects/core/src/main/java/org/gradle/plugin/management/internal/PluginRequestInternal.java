@@ -27,4 +27,6 @@ public interface PluginRequestInternal extends PluginRequest {
     String getScriptDisplayName();
 
     String getDisplayName();
+
+    PluginRequestInternal getOriginalRequest();
 }
