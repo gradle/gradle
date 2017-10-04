@@ -54,4 +54,9 @@ public interface DaemonConnector {
      */
     DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint);
 
+    /**
+     * Starts a new daemon for single use and returns a connection to it.
+     */
+    DaemonClientConnection startSingleUseDaemon();
+
 }

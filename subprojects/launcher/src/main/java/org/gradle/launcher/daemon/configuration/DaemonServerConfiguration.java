@@ -30,4 +30,6 @@ public interface DaemonServerConfiguration {
     String getUid();
 
     List<String> getJvmOptions();
+
+    boolean isSingleUse();
 }
