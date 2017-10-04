@@ -92,7 +92,7 @@ task publishLocalArchives(type: Upload) {
     doFirst {
         if (repoBaseDir.exists()) {
             // Make sure tooling API artifacts do not pile up
-            GFileUtils.forceDelete(repoBaseDir)
+            repoBaseDir.deleteDir()
         }
     }
 }

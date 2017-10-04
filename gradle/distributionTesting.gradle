@@ -16,6 +16,7 @@
 
 import java.util.regex.Pattern
 import org.gradle.testing.DistributionTest
+import org.gradle.util.GradleVersion
 
 ext.distributionTestTasks = tasks.withType(DistributionTest)
 
