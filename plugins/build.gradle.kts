@@ -1,12 +1,11 @@
 import build.futureKotlin
 
 plugins {
+    id("kotlin-dsl-module")
     `maven-publish`
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.9.7"
 }
-
-apply<plugins.GskModule>()
 
 base {
     archivesBaseName = "gradle-kotlin-dsl-plugins"

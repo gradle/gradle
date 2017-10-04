@@ -1,9 +1,10 @@
 import build.*
 
-apply<plugins.KotlinLibrary>()
+plugins {
+    id("kotlin-library")
+}
 
 dependencies {
-    val compile by configurations
     compile(project(":test-fixtures"))
     compile("org.xmlunit:xmlunit-matchers:2.4.0")
 }

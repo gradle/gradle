@@ -51,10 +51,6 @@ dependencies {
     }
 }
 
-configure(publishedProjects) {
-    apply<plugins.GskPublishedModule>()
-}
-
 tasks {
     // Disable publication on root project
     "artifactoryPublish"(ArtifactoryTask::class) {
