@@ -39,6 +39,8 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             }
             
             compileJava {
+                // Use forking to work around javac's jar cache
+                options.fork = true
                 options.annotationProcessorPath = configurations.annotationProcessor
                 options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
             }
