@@ -15,6 +15,23 @@ buildscript {
 apply plugin: 'kotlin'
 apply plugin: 'java-gradle-plugin'
 
+gradlePlugin {
+    plugins {
+        kotlinLibrary {
+            id = "kotlin-library"
+            implementationClass = "plugins.KotlinLibrary"
+        }
+        kotlinDslModule {
+            id = "kotlin-dsl-module"
+            implementationClass = "plugins.GskModule"
+        }
+        kotlinDslPublishedModule {
+            id = "kotlin-dsl-published-module"
+            implementationClass = "plugins.GskPublishedModule"
+        }
+    }
+}
+
 tasks.withType(KotlinCompile) {
     kotlinOptions {
         freeCompilerArgs = [
