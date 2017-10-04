@@ -89,9 +89,10 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         def result = runner('lintGradle').build()
 
         then:
+        int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
-        result.output.contains("build.gradle:15")
+        result.output.contains("build.gradle:$numOfRepoBlockLines")
         result.output.contains("testCompile('junit:junit:4.7')")
         buildFile.text.contains("testCompile('junit:junit:4.7')")
 
@@ -100,7 +101,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
-build.gradle:15
+build.gradle:$numOfRepoBlockLines
 testCompile('junit:junit:4.7')""")
         buildFile.text.contains("testCompile 'junit:junit:4.7'")
     }
