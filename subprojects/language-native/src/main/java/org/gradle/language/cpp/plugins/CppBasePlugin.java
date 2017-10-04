@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -34,15 +33,12 @@ import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.language.cpp.tasks.DiscoverInputsTask;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.Clang;
-import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -63,6 +59,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
+        project.getPluginManager().apply(DiscoveredInputsPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
@@ -100,19 +97,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 // TODO - make this lazy
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
-
-                DiscoverInputsTask discoverInputs = tasks.create("discoverInputsFor" + StringUtils.capitalize(compileTaskName), DiscoverInputsTask.class);
-                discoverInputs.source(compile.getSource());
-                discoverInputs.includes(compile.getIncludes());
-                discoverInputs.getDiscoveredInputs().set(buildDirectory.file(discoverInputs.getName() + "/" + names.getDirName() + "inputs.txt"));
-                discoverInputs.setImportsAreIncludes(project.provider(new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        NativeToolChain toolChain = compile.getToolChain();
-                        return Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
-                    }
-                }));
-                compile.getDiscoveredInputs().set(discoverInputs.getDiscoveredInputs());
 
                 if (binary instanceof CppExecutable) {
                     // Add a link task

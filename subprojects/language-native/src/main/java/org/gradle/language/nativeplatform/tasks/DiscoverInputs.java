@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.tasks;
+package org.gradle.language.nativeplatform.tasks;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -69,8 +69,8 @@ import java.util.Set;
  */
 @NonNullApi
 @Incubating
-public class DiscoverInputsTask extends DefaultTask {
-    private final Logger logger = LoggerFactory.getLogger(DiscoverInputsTask.class);
+public class DiscoverInputs extends DefaultTask {
+    private final Logger logger = LoggerFactory.getLogger(DiscoverInputs.class);
 
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
@@ -83,7 +83,7 @@ public class DiscoverInputsTask extends DefaultTask {
     private final RegularFileVar discoveredInputs;
 
     @Inject
-    public DiscoverInputsTask(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DiscoverInputs(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
