@@ -17,6 +17,7 @@
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
@@ -43,6 +44,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
+                def snapshotterRegistry = gradle.services.get(FileCollectionSnapshotterRegistry)
                 for (Task task : (allprojects*.tasks).flatten()) {
                     if (task.state.executed && (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
                         || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath()))) {
@@ -50,7 +52,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         def fileProperties = task.inputs.fileProperties
                         fileProperties.each { inputProperty ->
                             def name = inputProperty.propertyName
-                            def snapshotter = gradle.services.get(inputProperty.snapshotter)
+                            def snapshotter = snapshotterRegistry.getSnapshotter(inputProperty.normalizer)
                             def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getPathNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
                             def prefix = "${task.path}-input-${name}"
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
