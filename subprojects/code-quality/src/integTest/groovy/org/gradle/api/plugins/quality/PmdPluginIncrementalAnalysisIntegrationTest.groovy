@@ -34,6 +34,11 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
             pmd {
                 toolVersion = '$version'
             }
+            ${fileLockingIssuesSolved() ? "" : """
+            tasks.withType(Pmd) {
+                // clear the classpath to avoid file locking issues on PMD version < 5.5.1
+                classpath = files()
+            }"""}
             
             ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
         """.stripIndent()
