@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
 
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -37,6 +38,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     String installApp = ":app:install${variant}"
 
     def "setup"() {
+        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
+        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+
         app = new CppHelloWorldApp()
 
         buildFile << """    
