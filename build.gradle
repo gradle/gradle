@@ -16,6 +16,7 @@
 
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
+import org.gradle.util.GradleVersion
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
