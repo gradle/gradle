@@ -200,6 +200,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
                         return ((CompositeTaskOutputPropertySpec) propertySpec).resolveToOutputProperties();
                     } else {
+                        if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                            File outputFile = ((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile();
+                            if (outputFile == null) {
+                                return Iterators.emptyIterator();
+                            }
+                        }
                         return Iterators.singletonIterator((TaskOutputFilePropertySpec) propertySpec);
                     }
                 }
