@@ -328,10 +328,10 @@ class DependencyManagementBuildScopeServices {
     }
 
     private static class DefaultResolverProviderFactory implements ResolverProviderFactory {
-        private final VcsDependencyResolver resolver;
+        private final ComponentResolvers resolvers;
 
-        private DefaultResolverProviderFactory(VcsDependencyResolver resolver) {
-            this.resolver = resolver;
+        private DefaultResolverProviderFactory(ComponentResolvers resolvers) {
+            this.resolvers = resolvers;
         }
 
         @Override
@@ -341,7 +341,7 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            return resolver;
+            return resolvers;
         }
     }
 
@@ -349,7 +349,11 @@ class DependencyManagementBuildScopeServices {
         return new VcsDependencyResolver(projectRegistry, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
     }
 
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {
-        return new DefaultResolverProviderFactory(resolver);
+    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsInternal vcsMappingsInternal) {
+        if (vcsMappingsInternal.hasRules()) {
+            return new DefaultResolverProviderFactory(vcsDependencyResolver);
+        } else {
+            return new DefaultResolverProviderFactory(projectDependencyResolver);
+        }
     }
 }
