@@ -13,6 +13,7 @@ buildscript {
 }
 
 apply plugin: 'kotlin'
+apply plugin: 'java-gradle-plugin'
 
 tasks.withType(KotlinCompile) {
     kotlinOptions {
