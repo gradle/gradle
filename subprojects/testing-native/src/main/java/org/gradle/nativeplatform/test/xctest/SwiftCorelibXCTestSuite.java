@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.api.Incubating;
 
-class SwiftXCTestBundle extends XCTestSourceElement {
-    List<XCTestSourceFileElement> testSuites = [
-        new XCTestSourceFileElement() {
-            String testSuiteName = "PassingTestSuite"
-            List<XCTestCaseElement> testCases = [testCase("testCanPassTestCaseWithAssertion", "XCTAssert(true)")]
-            String moduleName = "AppTest"
-        }
-    ]
-
-    @Override
-    List<SourceFile> getFiles() {
-        super.files
-    }
+/**
+ * A XCTest suite targeting corelibs runtime of the API.
+ *
+ * @since 4.4
+ */
+@Incubating
+public interface SwiftCorelibXCTestSuite extends SwiftXCTestSuite {
 }

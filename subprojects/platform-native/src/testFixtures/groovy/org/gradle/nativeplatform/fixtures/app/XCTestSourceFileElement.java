@@ -106,7 +106,10 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
     }
 
     public abstract List<XCTestCaseElement> getTestCases();
-    public abstract String getModuleName();
+
+    public String getModuleName() {
+        throw new IllegalStateException("This fixture needs a module name to be set either by overriding 'getModuleName()' or by using 'inModule(String)' methods");
+    }
 
     @SuppressWarnings("unchecked")
     public void assertTestCasesRan(TestClassExecutionResult testExecutionResult) {
@@ -169,6 +172,31 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
             @Override
             public String getModuleName() {
                 return delegate.getModuleName();
+            }
+        };
+    }
+
+    public XCTestSourceFileElement inModule(final String moduleName) {
+        final XCTestSourceFileElement delegate = this;
+        return new XCTestSourceFileElement() {
+            @Override
+            public List<XCTestCaseElement> getTestCases() {
+                return delegate.getTestCases();
+            }
+
+            @Override
+            public SourceFile getSourceFile() {
+                return delegate.getSourceFile();
+            }
+
+            @Override
+            public String getTestSuiteName() {
+                return delegate.getTestSuiteName();
+            }
+
+            @Override
+            public String getModuleName() {
+                return moduleName;
             }
         };
     }

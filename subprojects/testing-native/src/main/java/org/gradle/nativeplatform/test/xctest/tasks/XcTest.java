@@ -17,11 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.AbstractTestTask;
@@ -29,7 +27,6 @@ import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -38,15 +35,15 @@ import java.io.File;
  */
 @Incubating
 public class XcTest extends AbstractTestTask {
-    private final DirectoryProperty testBundleDir;
-    private final DirectoryProperty workingDir;
+    private final DirectoryProperty testBundleDirectory;
+    private final DirectoryProperty workingDirectory;
     private final ObjectFactory objectFactory;
 
     @Inject
     public XcTest(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        testBundleDir = newInputDirectory();
-        workingDir = getProject().getLayout().directoryProperty();
+        testBundleDirectory = newInputDirectory();
+        workingDirectory = getProject().getLayout().directoryProperty();
     }
 
     /**
@@ -55,33 +52,27 @@ public class XcTest extends AbstractTestTask {
      */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
-        return new XCTestTestExecutionSpec(workingDir.getAsFile().get(), testBundleDir.getAsFile().get(), getPath());
+        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), testBundleDirectory.getAsFile().get(), getPath());
     }
 
+    /**
+     * Returns the test bundle property for this test.
+     *
+     * @since 4.4
+     */
     @InputDirectory
-    public File getTestBundleDir() {
-        return testBundleDir.getAsFile().get();
+    public DirectoryProperty getTestBundleDirectory() {
+        return testBundleDirectory;
     }
 
-    public void setTestBundleDir(File testBundleDir) {
-        this.testBundleDir.set(testBundleDir);
-    }
-
-    public void setTestBundleDir(Provider<? extends Directory> testBundleDir) {
-        this.testBundleDir.set(testBundleDir);
-    }
-
+    /**
+     * Returns the working directory property for this test.
+     *
+     * @since 4.4
+     */
     @Internal
-    public File getWorkingDir() {
-        return workingDir.getAsFile().get();
-    }
-
-    public void setWorkingDir(File workingDir) {
-        this.workingDir.set(workingDir);
-    }
-
-    public void setWorkingDir(Provider<? extends Directory> workingDir) {
-        this.workingDir.set(workingDir);
+    public DirectoryProperty getWorkingDirectory() {
+        return workingDirectory;
     }
 
     @Override

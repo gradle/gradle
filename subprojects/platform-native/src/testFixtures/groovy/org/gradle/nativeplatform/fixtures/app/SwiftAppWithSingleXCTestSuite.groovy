@@ -16,38 +16,36 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.test.fixtures.file.TestFile
-
-class SwiftAppWithSingleXCTestSuite extends XCTestSourceElement implements AppElement {
-    final app = new SwiftApp()
-    final test = new XCTestSourceFileElement() {
-        final delegate = new SwiftAppTest(app.greeter, app.sum, app.multiply)
-
+class SwiftAppWithSingleXCTestSuite extends MainWithXCTestSourceElement implements AppElement {
+    final SwiftApp main = new SwiftApp()
+    final XCTestSourceElement test = new XCTestSourceElement() {
         @Override
-        String getTestSuiteName() {
-            return "CombinedTests"
+        List<XCTestSourceFileElement> getTestSuites() {
+            return [new XCTestSourceFileElement() {
+                final delegate = new SwiftAppTest(main.greeter, main.sum, main.multiply)
+
+                @Override
+                String getTestSuiteName() {
+                    return "CombinedTests"
+                }
+
+                @Override
+                List<XCTestCaseElement> getTestCases() {
+                    return delegate.sumTest.testCases + delegate.greeterTest.testCases + delegate.multiplyTest.testCases
+                }
+
+                @Override
+                String getModuleName() {
+                    return delegate.sumTest.moduleName
+                }
+
+                @Override
+                XCTestSourceFileElement withImport(String importName) {
+                    return this.withTestableImport(importName)
+                }
+            }]
         }
-
-        @Override
-        List<XCTestCaseElement> getTestCases() {
-            return delegate.sumTest.testCases + delegate.greeterTest.testCases + delegate.multiplyTest.testCases
-        }
-
-        @Override
-        String getModuleName() {
-            return delegate.sumTest.moduleName
-        }
-    }.withTestableImport("App")
-
-    List<SourceFile> files = app.files + test.files
-    List<XCTestSourceFileElement> testSuites = [test]
-
-    String expectedOutput = app.expectedOutput
-
-    @Override
-    void writeToProject(TestFile projectDir) {
-        app.writeToProject(projectDir)
-        test.writeToProject(projectDir)
     }
+
+    String expectedOutput = main.expectedOutput
 }

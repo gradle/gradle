@@ -27,6 +27,8 @@ public abstract class Names {
         }
         if (name.endsWith("Bundle")) {
             return new Other(name.substring(0, name.length() - 6));
+        } else if (name.endsWith("Executable")) {
+            return new Other(name.substring(0, name.length() - 10));
         }
         return new Other(name);
     }

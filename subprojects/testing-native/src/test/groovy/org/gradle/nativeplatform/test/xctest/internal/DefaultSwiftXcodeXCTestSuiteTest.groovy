@@ -19,25 +19,27 @@ package org.gradle.nativeplatform.test.xctest.internal
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.language.swift.SwiftComponent
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(DefaultSwiftXCTestSuite)
-class DefaultSwiftXCTestSuiteTest extends Specification {
+@Subject(DefaultSwiftXcodeXCTestSuite)
+class DefaultSwiftXcodeXCTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def projectLayout = new DefaultProjectLayout(tmpDir.testDirectory, TestFiles.resolver(tmpDir.testDirectory))
-    def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), fileOperations, Stub(ConfigurationContainer), projectLayout)
+    def testSuite = new DefaultSwiftXcodeXCTestSuite("test", TestUtil.objectFactory(), fileOperations, Stub(ConfigurationContainer), projectLayout)
 
     def "has a bundle"() {
         expect:
         testSuite.bundle.name == "testBundle"
         testSuite.bundle.debuggable
         testSuite.developmentBinary == testSuite.bundle
+        testSuite.testedComponent == null
     }
 
     def "can change location of Info.plist by changing the test suite resource directory location"() {
@@ -51,5 +53,13 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     def "uses source layout convention when Info.plist not set"() {
         expect:
         testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
+    }
+
+    def "can set a tested component"() {
+        def testedComponent = Mock(SwiftComponent)
+        testSuite.setTestedComponent(testedComponent)
+
+        expect:
+        testSuite.testedComponent == testedComponent
     }
 }

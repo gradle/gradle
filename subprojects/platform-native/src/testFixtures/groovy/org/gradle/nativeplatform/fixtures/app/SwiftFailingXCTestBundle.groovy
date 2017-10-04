@@ -16,17 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 class SwiftFailingXCTestBundle extends XCTestSourceElement {
     List<XCTestSourceFileElement> testSuites = [new XCTestSourceFileElement() {
         String testSuiteName = "FailingTestSuite"
         List<XCTestCaseElement> testCases = [testCase("testCanFailTestCaseWithAssertion", "XCTAssert(false)", true)]
-        String moduleName = "AppTest"
     }]
-
-    @Override
-    List<SourceFile> getFiles() {
-        super.files + [emptyInfoPlist()]
-    }
 }

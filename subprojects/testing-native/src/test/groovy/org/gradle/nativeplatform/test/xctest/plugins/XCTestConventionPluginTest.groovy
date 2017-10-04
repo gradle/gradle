@@ -17,10 +17,11 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.plugins.SwiftLibraryPlugin
 import org.gradle.language.swift.tasks.CreateSwiftBundle
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
-import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
+import org.gradle.nativeplatform.test.xctest.SwiftXcodeXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -38,17 +39,21 @@ class XCTestConventionPluginTest extends Specification {
 
     def "adds extension with convention for source layout"() {
         given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.xctest instanceof SwiftXCTestSuite
+        project.xctest instanceof SwiftXcodeXCTestSuite
         project.xctest.swiftSource.files == [src] as Set
     }
 
     def "registers a component for the test suite"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
@@ -57,8 +62,19 @@ class XCTestConventionPluginTest extends Specification {
         project.components.testBundle == project.xctest.bundle
     }
 
+    def "registers a component for the test suite when plugin is applied before"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        then:
+        project.components.test == project.xctest
+        project.components.testBundle == project.xctest.bundle
+    }
+
     def "adds compile, link and install tasks"() {
         given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
@@ -85,7 +101,11 @@ class XCTestConventionPluginTest extends Specification {
         test instanceof XcTest
     }
 
-    def "output locations reflects changes to buildDir"() {
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "output locations reflects changes to buildDir on macOS"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.buildDir = project.file("output")
@@ -101,6 +121,30 @@ class XCTestConventionPluginTest extends Specification {
         bundle.outputDir.get().asFile == project.file("output/bundle/test/TestAppTest.xctest")
 
         def test = project.tasks.xcTest
-        test.workingDir == projectDir.file("output/bundle/test")
+        test.workingDirectory.get().asFile == projectDir.file("output/bundle/test")
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "output locations reflects changes to buildDir on Linux"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.buildDir = project.file("output")
+
+        then:
+        def compileSwift = project.tasks.compileTestSwift
+        compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
+
+        def link = project.tasks.linkTest
+        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+
+        def install = project.tasks.installTest
+        install.installDirectory.get().asFile == project.file("output/install/test")
+        install.runScript.name == OperatingSystem.current().getScriptName("test_app_test")
+
+        def test = project.tasks.xcTest
+        test.outputDir == projectDir.file("output/test-results/xctest")
     }
 }

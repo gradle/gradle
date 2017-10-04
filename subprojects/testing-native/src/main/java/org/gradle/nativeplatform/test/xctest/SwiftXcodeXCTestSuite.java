@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.language.swift.SwiftBundle;
 
-class SwiftXCTestBundleWithInfoPlist extends SwiftXCTestBundle {
-    @Override
-    List<SourceFile> getFiles() {
-        super.files + [emptyInfoPlist()]
-    }
+/**
+ * A XCTest suite targeting Xcode runtime of the API.
+ *
+ * @since 4.4
+ */
+@Incubating
+public interface SwiftXcodeXCTestSuite extends SwiftXCTestSuite {
+    /**
+     * Returns the bundle that is built to run this test suite.
+     */
+    SwiftBundle getBundle();
+
+    /**
+     * Returns the resource directory for this component.
+     *
+     * <p>{@code src/test/resources} is used by default.
+     */
+    DirectoryProperty getResourceDir();
 }

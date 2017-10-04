@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.api.Incubating;
+import org.gradle.language.swift.SwiftExecutable;
 
-class SwiftLibTestWithInfoPlist extends SwiftLibTest {
-    SwiftLibTestWithInfoPlist(GreeterElement greeter, SumElement sum, MultiplyElement multiply) {
-        super(greeter, sum, multiply)
-    }
-
-    @Override
-    List<SourceFile> getFiles() {
-        return super.files + [sumTest.emptyInfoPlist()]
-    }
+/**
+ * Swift XCTest executable
+ *
+ * @since 4.4
+ */
+@Incubating
+public interface SwiftXCTestExecutable extends SwiftExecutable {
 }

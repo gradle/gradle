@@ -17,19 +17,19 @@
 package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.test.fixtures.file.TestFile
 
-class SwiftLibWithXCTestWithInfoPlist extends XCTestSourceElement {
-    final main = new SwiftLib()
-    final test = new SwiftLibTestWithInfoPlist(main.greeter, main.sum, main.multiply)
-
-    List<XCTestSourceFileElement> testSuites = test.testSuites
-
-    List<SourceFile> files = main.files + test.files
+class SwiftBrokenSum extends SourceFileElement implements SumElement {
+    @Override
+    SourceFile getSourceFile() {
+        sourceFile("swift", "sum.swift", """
+             public func sum(a: Int, b: Int) -> Int {
+                 return a - b
+             }
+         """)
+    }
 
     @Override
-    void writeToProject(TestFile projectDir) {
-        main.writeToProject(projectDir)
-        test.writeToProject(projectDir)
+    int sum(int a, int b) {
+        return a - b
     }
 }

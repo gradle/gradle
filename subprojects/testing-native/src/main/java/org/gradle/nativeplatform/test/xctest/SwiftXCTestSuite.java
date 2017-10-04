@@ -17,30 +17,26 @@
 package org.gradle.nativeplatform.test.xctest;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftComponent;
 
 /**
- * An XCTest suite, implemented in Swift.
+ * A XCTest suite, implemented in Swift.
  *
  * @since 4.2
  */
 @Incubating
 public interface SwiftXCTestSuite extends SwiftComponent {
     /**
-     * Returns the bundle that is built to run this test suite.
+     * The tested component.
      *
-     * @since 4.3
+     * @since 4.4
      */
-    SwiftBundle getBundle();
+    SwiftComponent getTestedComponent();
 
     /**
-     * Returns the resource directory for this component.
-     *
-     * <p>{@code src/test/resources} is used by default.
-     *
-     * @since 4.3
+     * Sets the tested component.
+     * @param testedComponent the component under test
+     * @since 4.4
      */
-    DirectoryProperty getResourceDir();
+    void setTestedComponent(SwiftComponent testedComponent);
 }

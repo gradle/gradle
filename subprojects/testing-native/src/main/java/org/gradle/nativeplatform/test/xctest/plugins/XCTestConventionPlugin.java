@@ -22,24 +22,27 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.CreateSwiftBundle;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
+import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
-import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.SwiftXcodeXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftCorelibXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXcodeXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
@@ -59,12 +62,10 @@ import java.util.concurrent.Callable;
 @Incubating
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
-    private final ObjectFactory objectFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ObjectFactory objectFactory) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
-        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -72,98 +73,163 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(TestingBasePlugin.class);
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        // TODO - Add dependency on main component when Swift plugins are applied
-
-        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
-        // TODO - Reuse logic from Swift*Plugin
-        // TODO - component name and extension name aren't the same
-        // TODO - should use `src/xctext/swift` as the convention?
-        // Add the component extension
-        SwiftXCTestSuite component = objectFactory.newInstance(DefaultSwiftXCTestSuite.class, "test", configurations);
-        project.getExtensions().add(SwiftXCTestSuite.class, "xctest", component);
-        project.getComponents().add(component);
-        project.getComponents().add(component.getBundle());
+        // Create test suite component
+        SwiftXCTestSuite component = createTestSuite(project);
 
-        // Setup component
-        final Property<String> module = component.getModule();
-        module.set(GUtil.toCamelCase(project.getName() + "Test"));
+        // Create test suite test task
+        final Task testingTask = createTestingTask(project);
 
-        // Configure compile task
-        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
-        compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                return Arrays.asList("-g", "-F" + frameworkDir.getAbsolutePath());
-            }
-        }));
+        // Configure tasks
+        configureTestSuiteBuildingTasks(project, component);
+        configureTestSuiteWithTestedComponentWhenAvailable(project);
 
-        // Add a link task
-        LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
-        link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
-            }
-        }));
+        // Create check lifecycle task
+        Task check = tasks.getByName("check");
 
-        configureTestedComponent(project);
+        // Create component lifecycle task
+        if (component != null) {
+            Task test = tasks.create(component.getName(), new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    if (testingTask != null) {
+                        task.dependsOn(testingTask);
+                    }
+                }
+            });
+            check.dependsOn(test);
+        }
+    }
 
-        CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleSwiftTest");
+    private void configureTestSuiteBuildingTasks(Project project, SwiftXCTestSuite component) {
+        if (component instanceof SwiftXcodeXCTestSuite) {
+            TaskContainer tasks = project.getTasks();
 
-        final XcTest xcTest = tasks.create("xcTest", XcTest.class);
-        // TODO - should respect changes to build directory
-        xcTest.setTestBundleDir(bundle.getOutputDir());
-        xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
-        xcTest.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return xcTest.getTestBundleDir().exists();
-            }
-        });
+            // Configure compile task
+            SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
+            compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
+                @Override
+                public List<String> call() throws Exception {
+                    File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                    return Arrays.asList("-g", "-F" + frameworkDir.getAbsolutePath());
+                }
+            }));
 
-        Task test = tasks.create("test");
+            // Add a link task
+            LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
+            link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
+                @Override
+                public List<String> call() throws Exception {
+                    File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                    return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
+                }
+            }));
+        }
+    }
+
+    private static Task createTestingTask(final Project project) {
+        final TaskContainer tasks = project.getTasks();
+
+        Task result = null;
 
         if (OperatingSystem.current().isMacOsX()) {
-            test.dependsOn(xcTest);
+            result = tasks.create("xcTest", XcTest.class, new Action<XcTest>() {
+                @Override
+                public void execute(final XcTest testTask) {
+                    CreateSwiftBundle bundle = tasks.withType(CreateSwiftBundle.class).getByName("bundleSwiftTest");
+                    DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
+
+                    testTask.getTestBundleDirectory().set(bundle.getOutputDir());
+                    testTask.getWorkingDirectory().set(buildDirectory.dir("bundle/test"));
+                    testTask.onlyIf(new Spec<Task>() {
+                        @Override
+                        public boolean isSatisfiedBy(Task element) {
+                            return testTask.getTestBundleDirectory().getAsFile().get().exists();
+                        }
+                    });
+                }
+            });
+        } else if (OperatingSystem.current().isLinux()){
+            result = tasks.create("xcTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+                @Override
+                public void execute(final RunTestExecutable testTask) {
+                    final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTest");
+                    testTask.setExecutable(installTask.getRunScript());
+
+                    // TODO: Honor changes to build directory
+                    testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/xctest").get().getAsFile());
+                    testTask.onlyIf(new Spec<Task>() {
+                        @Override
+                        public boolean isSatisfiedBy(Task element) {
+                            return installTask.getExecutable().exists();
+                        }
+                    });
+                }
+            });
         }
 
-        Task check = tasks.getByName("check");
-        check.dependsOn(test);
+        if (result != null) {
+            result.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            result.setDescription("Executes XCTest suites");
+        }
+        return result;
     }
 
-    private void configureTestedComponent(final Project project) {
-        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
-            @Override
-            public void execute(SwiftExecutablePlugin plugin) {
-                configureTestedSwiftComponent(project);
-            }
-        });
+    private static SwiftXCTestSuite createTestSuite(Project project) {
+        SwiftXCTestSuite testSuite = null;
+        if (OperatingSystem.current().isMacOsX()) {
+            // TODO - Reuse logic from Swift*Plugin
+            // TODO - component name and extension name aren't the same
+            // TODO - should use `src/xctext/swift` as the convention?
+            // Add the component extension
+            testSuite = project.getObjects().newInstance(DefaultSwiftXcodeXCTestSuite.class,
+                "test", project.getConfigurations());
+        } else if (OperatingSystem.current().isLinux()) {
+            testSuite = project.getObjects().newInstance(DefaultSwiftCorelibXCTestSuite.class,
+                "test", project.getConfigurations());
+        }
 
-        project.getPlugins().withType(SwiftLibraryPlugin.class, new Action<SwiftLibraryPlugin>() {
-            @Override
-            public void execute(SwiftLibraryPlugin plugin) {
-                configureTestedSwiftComponent(project);
-            }
-        });
+        if (testSuite != null) {
+            project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
+            project.getComponents().add(testSuite);
+            project.getComponents().add(testSuite.getDevelopmentBinary());
+
+            // Setup component
+            testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
+        }
+
+        return testSuite;
     }
 
-    private void configureTestedSwiftComponent(Project project) {
-        TaskContainer tasks = project.getTasks();
+    private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project) {
+        project.getPlugins().withType(SwiftExecutablePlugin.class, configureTestSuiteWithTestedComponent(project));
+        project.getPlugins().withType(SwiftLibraryPlugin.class, configureTestSuiteWithTestedComponent(project));
+    }
 
-        SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
-        SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-        compileTest.includes(compileMain.getObjectFileDir());
+    private static <T> Action<? super T> configureTestSuiteWithTestedComponent(final Project project) {
+        return new Action<T>() {
+            @Override
+            public void execute(T plugin) {
+                TaskContainer tasks = project.getTasks();
+                SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
-        SwiftComponent mainComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
-        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
+                // Connect test suite with tested component
+                testSuite.setTestedComponent(testedComponent);
 
-        SwiftComponent testComponent = project.getComponents().withType(SwiftComponent.class).getByName("test");
-        testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
+                // Configure test suite import path from tested component import path
+                testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
+
+                // Configure test suite link task from tested component compiled objects
+                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
+                linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
+
+                if (OperatingSystem.current().isLinux()) {
+                    tasks.withType(RunTestExecutable.class).getByName("xcTest")
+                        .dependsOn(((SwiftExecutable)testSuite.getDevelopmentBinary()).getInstallDirectory());
+                }
+            }
+        };
     }
 }

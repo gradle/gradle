@@ -20,8 +20,9 @@ package org.gradle.nativeplatform.fixtures.app
  * A Swift app composed of 2 modules: an executable and a library.
  */
 class SwiftAppWithLibraryTest implements AppElement {
-    final library = new SwiftLibWithXCTestWithInfoPlist()
-    final executable = new SwiftAppWithDep(library.main, library.main)
+    private final baseLibrary = new SwiftLibWithXCTest()
+    final library = baseLibrary.withInfoPlist()
+    final executable = new SwiftAppWithDep(baseLibrary.lib, baseLibrary.lib)
 
     @Override
     String getExpectedOutput() {
