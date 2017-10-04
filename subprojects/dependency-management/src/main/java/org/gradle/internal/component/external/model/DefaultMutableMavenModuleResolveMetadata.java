@@ -238,7 +238,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         public Set<? extends ComponentArtifactMetadata> getArtifacts() {
             Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>(files.size());
             for (ComponentVariant.File file : files) {
-                ArtifactFile names = new ArtifactFile(file.getName(), componentId.getVersion());
+                ArtifactFile names = new ArtifactFile(file.getUri(), componentId.getVersion());
                 artifacts.add(new DefaultModuleComponentArtifactMetadata(componentId, new DefaultIvyArtifactName(names.getName(), names.getExtension(), names.getExtension(), names.getClassifier())));
             }
             return artifacts;

@@ -223,10 +223,10 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def attributes2 = attributes(usage: "runtime")
 
         def v1 = metadata.addVariant("api", attributes1)
-        v1.addFile("f1.jar", "dir/f1")
+        v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
         def v2 = metadata.addVariant("runtime", attributes2)
-        v2.addFile("f2", "f2-1.2.zip")
+        v2.addFile("f2", "f2-version.zip")
 
         expect:
         def immutable = metadata.asImmutable()
@@ -249,9 +249,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         defaultConfiguration.variants[1].artifacts.size() == 1
         def artifacts2 = defaultConfiguration.variants[1].artifacts as List
         artifacts2[0].name.name == 'f2'
-        artifacts2[0].name.type == ''
+        artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null
-        artifacts2[0].name.extension == ''
+        artifacts2[0].name.extension == 'zip'
     }
 
     def "making changes to copy does not affect original"() {

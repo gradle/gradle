@@ -143,25 +143,31 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         def repo = new MavenFileRepository(repoDir)
 
         def deckModule = repo.module('some.group', 'deck', '1.2')
+        deckModule.parsedPom.scopes.size() == 1
         deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
         deckModule.assertPublished()
 
         def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
         deckDebugModule.assertPublished()
+        deckDebugModule.parsedPom.scopes.size() == 1
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
         deckReleaseModule.assertPublished()
+        deckReleaseModule.parsedPom.scopes.size() == 1
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def cardModule = repo.module('some.group', 'card', '1.2')
         cardModule.assertPublished()
+        cardModule.parsedPom.scopes.isEmpty()
 
         def cardDebugModule = repo.module('some.group', 'card_debug', '1.2')
         cardDebugModule.assertPublished()
+        cardDebugModule.parsedPom.scopes.isEmpty()
 
         def cardReleaseModule = repo.module('some.group', 'card_release', '1.2')
         cardReleaseModule.assertPublished()
+        cardReleaseModule.parsedPom.scopes.isEmpty()
 
         def shuffleModule = repo.module('some.group', 'shuffle', '1.2')
         shuffleModule.assertPublished()

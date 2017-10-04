@@ -87,7 +87,7 @@ public class DefaultCppBinary implements CppBinary {
         nativeLink.extendsFrom(implementation);
         nativeRuntime.extendsFrom(implementation);
 
-        includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig, configurations)));
+        includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig)));
         linkLibraries = new FileCollectionAdapter(new LinkLibs(nativeLink, configurations));
         runtimeLibraries = new FileCollectionAdapter(new RuntimeLibs(nativeRuntime, configurations));
     }
@@ -144,12 +144,10 @@ public class DefaultCppBinary implements CppBinary {
 
     private class IncludePath implements MinimalFileSet {
         private final Configuration includePathConfig;
-        private final ConfigurationContainer configurationContainer;
         private Set<File> result;
 
-        IncludePath(Configuration includePathConfig, ConfigurationContainer configurationContainer) {
+        IncludePath(Configuration includePathConfig) {
             this.includePathConfig = includePathConfig;
-            this.configurationContainer = configurationContainer;
         }
 
         @Override
@@ -163,39 +161,21 @@ public class DefaultCppBinary implements CppBinary {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
                 // This is intentionally dumb and will improve later
 
-                // Collect up the external components in the result to resolve again to get the header zip artifact
-                includePathConfig.getResolvedConfiguration().rethrowFailure();
-                Set<ResolvedComponentResult> components = includePathConfig.getIncoming().getResolutionResult().getAllComponents();
-                Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
-                List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
-                for (ResolvedComponentResult component : components) {
-                    if (component.getId() instanceof ModuleComponentIdentifier) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        externalComponents.add(id);
-                        DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), id.getModule(), id.getVersion());
-                        mappedDependency.addArtifact(new DefaultDependencyArtifact(id.getModule(), "zip", "zip", "cpp-api-headers", null));
-                        externalDependencies.add(mappedDependency);
-                    }
-                }
-
                 // Collect the files from anything other than an external component, use these directly in the result
+                // for external components, unzip the headers into a cache (if not already present)
                 ArtifactCollection artifacts = includePathConfig.getIncoming().getArtifacts();
                 Set<File> files = new LinkedHashSet<File>();
-                for (ResolvedArtifactResult artifact : artifacts) {
-                    if (!externalComponents.contains(artifact.getId().getComponentIdentifier())) {
-                        files.add(artifact.getFile());
-                    }
-                }
-
-                // Download and unzip the header zips
-                // The files of the result are not ordered as they would be if the original configuration is resolved
-                if (!externalDependencies.isEmpty()) {
+                if (!artifacts.getArtifacts().isEmpty()) {
                     NativeDependencyCache cache = getNativeDependencyCache();
-                    Configuration mappedConfiguration = configurationContainer.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts()) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-                        File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());
-                        files.add(headerDir);
+                    for (ResolvedArtifactResult artifact : artifacts) {
+                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                            // Unzip the headers into cache
+                            ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                            File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());
+                            files.add(headerDir);
+                        } else {
+                            files.add(artifact.getFile());
+                        }
                     }
                 }
                 result = files;
@@ -244,6 +224,7 @@ public class DefaultCppBinary implements CppBinary {
                         // TODO - use naming scheme for target platform
                         DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
                         mappedDependency.addArtifact(new DefaultDependencyArtifact(module, libExtension, libExtension, null, null));
+                        mappedDependency.setTransitive(false);
                         externalDependencies.add(mappedDependency);
                     }
                 }
@@ -362,6 +343,7 @@ public class DefaultCppBinary implements CppBinary {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
                         DefaultExternalModuleDependency artifactDependency = new DefaultExternalModuleDependency(id.getGroup(), id.getModule(), id.getVersion());
                         artifactDependency.addArtifact(new DefaultDependencyArtifact(id.getModule(), libExtension, libExtension, null, null));
+                        artifactDependency.setTransitive(false);
                         artifactDependencies.add(artifactDependency);
                     }
 
