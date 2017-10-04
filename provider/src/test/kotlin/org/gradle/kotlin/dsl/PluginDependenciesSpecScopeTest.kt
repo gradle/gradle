@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.groovy.scripts.StringScriptSource
 
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -65,7 +66,7 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
         equalTo(expected.asList()))
 }
 
-fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
+fun plugins(block: PluginDependenciesSpecScope.() -> Unit): List<PluginRequestInternal> =
     PluginRequestCollector(StringScriptSource("script", "")).run {
         PluginDependenciesSpecScope(createSpec(1)).block()
         listPluginRequests()
