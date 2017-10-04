@@ -117,6 +117,12 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 
 The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folder and dependency defines an additional `gradle_source_sets` classpath attribute. The attribute specifies to which sourceSet the entry belonged. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
+### Support for PMD incremental analysis
+
+TBD
+
+The default version of PMD is now [PMD 5.8.1](https://pmd.github.io/2017/07/01/PMD-5.8.1/).
+
 <!--
 ### Example new and noteworthy
 -->
