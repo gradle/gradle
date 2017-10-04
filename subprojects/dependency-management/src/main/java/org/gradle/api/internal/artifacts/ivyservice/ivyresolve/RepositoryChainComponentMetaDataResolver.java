@@ -79,75 +79,54 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
-        List<Throwable> errors = new ArrayList<Throwable>();
-
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
             resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
-        final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
-        if (latestResolved != null) {
-            LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
-            for (Throwable error : errors) {
-                LOGGER.debug("Discarding resolve failure.", error);
+        try {
+            final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates);
+            if (latestResolved == null) {
+                for (ComponentMetaDataResolveState resolveState : resolveStates) {
+                    resolveState.applyTo(result);
+                }
+                result.notFound(identifier);
+            } else {
+                LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
+                result.resolved(metaDataFactory.transform(latestResolved));
             }
-
-            result.resolved(metaDataFactory.transform(latestResolved));
-            return;
-        }
-        if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(identifier, errors));
-        } else {
-            for (ComponentMetaDataResolveState resolveState : resolveStates) {
-                resolveState.applyTo(result);
-            }
-            result.notFound(identifier);
+        } catch (Throwable error) {
+            result.failed(new ModuleVersionResolveException(identifier, error));
         }
     }
 
-    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates) throws Throwable {
         LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<ComponentMetaDataResolveState>();
         queue.addAll(resolveStates);
 
         LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<ComponentMetaDataResolveState>();
 
         // A first pass to do local resolves only
-        RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
-        if (!failures.isEmpty()) {
-            return null;
-        }
+        RepositoryChainModuleResolution best = findBestMatch(queue, missing);
         if (best != null) {
             return best;
         }
 
-        // Nothing found - do a second pass
+        // Nothing found locally - try a remote search for all resolve states that were not yet searched remotely
         queue.addAll(missing);
         missing.clear();
-        best = findBestMatch(queue, failures, missing);
-        if (!failures.isEmpty()) {
-            return null;
-        }
-        return best;
+        return findBestMatch(queue, missing);
     }
 
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
+    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<ComponentMetaDataResolveState> missing) throws Throwable {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
             BuildableModuleComponentMetaDataResolveResult metaDataResolveResult;
-            try {
-                metaDataResolveResult = request.resolve();
-            } catch (Throwable t) {
-                failures.add(t);
-                queue.clear();
-                continue;
-            }
+            metaDataResolveResult = request.resolve();
             switch (metaDataResolveResult.getState()) {
                 case Failed:
-                    failures.add(metaDataResolveResult.getFailure());
-                    queue.clear();
-                    break;
+                    throw metaDataResolveResult.getFailure();
                 case Missing:
                     // Queue this up for checking again later
                     if (request.canMakeFurtherAttempts()) {
