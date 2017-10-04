@@ -72,7 +72,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
         File baseWorkingDir = getBaseWorkingDir();
 
-        if (vcsMappingInternal != null && baseWorkingDir!=null) {
+        if (vcsMappingInternal != null && baseWorkingDir != null) {
             vcsMappingsInternal.getVcsMappingRule().execute(vcsMappingInternal);
 
             // TODO: Need failure handling, e.g., cannot clone repository
