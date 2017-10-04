@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,7 +37,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions()
+        spec.compileOptions = new CompileOptions(new DefaultProviderFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -167,7 +168,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        spec.compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
+        def compileOptions = new CompileOptions(new DefaultProviderFactory())
+        compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
+        spec.compileOptions = compileOptions
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
@@ -175,11 +178,12 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "generates -bootclasspath option via deprecated property"() {
-        when:
-        spec.compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
+        def compileOptions = new CompileOptions(new DefaultProviderFactory())
+        compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
+        spec.compileOptions = compileOptions
         def options = builder.build()
 
-        then:
+        expect:
         options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
     }
 
@@ -206,6 +210,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g", "-sourcepath", "", "-processorpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+    }
+
+    def "generates -s option"() {
+        def outputDir = new File("build/generated-sources")
+        spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
+
+        when:
+        def args = builder.build()
+        then:
+        args == ["-s", outputDir.path] + defaultOptions
     }
 
     def "adds custom compiler args last"() {
