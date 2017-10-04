@@ -51,22 +51,28 @@ abstract class PmdInvoker {
         def postPmd56 = pmdVersion >= VersionNumber.parse('5.6.0')
 
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
-        if (prePmd5) {
-            // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
-            // http://sourceforge.net/p/pmd/bugs/1004/
-            // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
-            antPmdArgs["targetjdk"] = targetJdk.name
 
-            // fallback to basic on pre 5.0 for backwards compatible
-            if (ruleSets == ["java-basic"]) {
-                ruleSets = ['basic']
-                pmdTask.setRuleSets(ruleSets)
-            }
-        } else if (postPmd56) {
+        if (postPmd56) {
             // PMD 5.6.0 added an incremental analysis cache
             // https://pmd.github.io/pmd-5.7.0/overview/changelog-old.html#Incremental_Analysis
             if (incrementalAnalysis) {
-                antPmdArgs["cacheLocation"] = new File(buildDir.path + "/pmd-cache", taskName + ".cache")
+                antPmdArgs["cacheLocation"] = new File(pmdTask.temporaryDir, "incremental.cache")
+            }
+        } else {
+            if(incrementalAnalysis){
+                throw new GradleException("Incremental analysis only supports PMD 5.6.0+")
+            }
+            if (prePmd5) {
+                // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
+                // http://sourceforge.net/p/pmd/bugs/1004/
+                // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
+                antPmdArgs["targetjdk"] = targetJdk.name
+
+                // fallback to basic on pre 5.0 for backwards compatible
+                if (ruleSets == ["java-basic"]) {
+                    ruleSets = ['basic']
+                    pmdTask.setRuleSets(ruleSets)
+                }
             }
         }
 

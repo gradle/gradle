@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.protocol;
+package org.gradle.internal.resource.transport.http;
 
-import org.gradle.internal.invocation.BuildAction;
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.launcher.exec.BuildActionParameters;
+public interface HttpTimeoutSettings {
 
-public class BuildAndStop extends Build {
-    public BuildAndStop(Object identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
-        super(identifier, token, action, buildClientMetaData, startTime, parameters);
-    }
+    int getConnectionTimeoutMs();
+
+    int getSocketTimeoutMs();
 }
