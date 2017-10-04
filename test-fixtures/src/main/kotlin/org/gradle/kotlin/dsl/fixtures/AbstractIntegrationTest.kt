@@ -55,10 +55,7 @@ open class AbstractIntegrationTest {
     fun withKotlinBuildSrc() =
         withBuildScriptIn("buildSrc", """
             plugins {
-                kotlin("jvm")
-            }
-            dependencies {
-                compile(gradleKotlinDsl())
+                `kotlin-dsl`
             }
         """)
 

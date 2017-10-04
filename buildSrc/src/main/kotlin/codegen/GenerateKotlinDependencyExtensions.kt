@@ -95,17 +95,16 @@ fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any
 
 
 /**
- * Applies the given Kotlin plugin [module] at the (optional) given [version] ([embeddedKotlinVersion] by default).
+ * Applies the given Kotlin plugin [module].
  *
- * For example: `plugins { kotlin("jvm") }`
+ * For example: `plugins { kotlin("jvm") version "$embeddedKotlinVersion" }`
  *
  * Visit the [plugin portal](https://plugins.gradle.org/search?term=org.jetbrains.kotlin) to see the list of available plugins.
  *
  * @param module simple name of the Kotlin Gradle plugin module, for example "jvm", "android", "kapt", "plugin.allopen" etc...
- * @param version optional desired version, null implies [embeddedKotlinVersion].
  */
-fun PluginDependenciesSpec.kotlin(module: String, version: String? = null): PluginDependencySpec =
-    id("org.jetbrains.kotlin.${'$'}module") version (version ?: embeddedKotlinVersion)
+fun PluginDependenciesSpec.kotlin(module: String): PluginDependencySpec =
+    id("org.jetbrains.kotlin.${'$'}module")
 
 
 /**

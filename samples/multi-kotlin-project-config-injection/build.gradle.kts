@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-buildscript {
-    dependencies { classpath(kotlin("gradle-plugin", "1.1.51")) }
-    repositories { jcenter() }
+plugins {
+    base
+    kotlin("jvm") version "1.1.51" apply false
 }
 
 allprojects {
@@ -25,10 +25,6 @@ subprojects {
             suppressWarnings = true
         }
     }
-}
-
-plugins {
-    base
 }
 
 dependencies {

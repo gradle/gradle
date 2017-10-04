@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm")
     application
+    kotlin("jvm")
 }
 
 application {

@@ -1,7 +1,7 @@
-apply {
-    plugin("kotlin")
+plugins {
+    kotlin("jvm")
 }
 
 dependencies {
-    "compile"(kotlin("stdlib"))
+    compile(kotlin("stdlib"))
 }
