@@ -57,6 +57,21 @@ class PluginDependenciesSpecScopeTest {
             `build-scan` version "1.7.1"
         }
     }
+
+    @Test
+    fun `given kotlin plugin accessor, it should create a single request with no version`() {
+        expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = null)) {
+            kotlin("jvm")
+        }
+    }
+
+    @Test
+    fun `given kotlin plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = "1.1.1")) {
+            kotlin("jvm") version "1.1.1"
+        }
+    }
+
 }
 
 

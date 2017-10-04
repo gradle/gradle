@@ -210,7 +210,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertSourcePathIncludesKotlinPluginSourcesGiven(
             rootProjectScript = "",
-            subProjectScript = """ plugins { kotlin("jvm") } """)
+            subProjectScript = """ plugins { kotlin("jvm") version "$embeddedKotlinVersion" } """)
     }
 
     private
