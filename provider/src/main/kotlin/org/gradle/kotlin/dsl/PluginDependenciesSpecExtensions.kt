@@ -24,9 +24,9 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/) for additional information.
  *
- * Equivalent to `id("com.gradle.build-scan") version "1.8"`.
+ * Equivalent to `id("com.gradle.build-scan") version "1.9"`.
  *
- * You can also use e.g. `` `build-scan` version "1.7.1" `` if you want to use a different version.
+ * You can also use e.g. `` `build-scan` version "1.8" `` if you want to use a different version.
  */
 val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = id("com.gradle.build-scan") version "1.8"
+    get() = id("com.gradle.build-scan") version "1.9"
