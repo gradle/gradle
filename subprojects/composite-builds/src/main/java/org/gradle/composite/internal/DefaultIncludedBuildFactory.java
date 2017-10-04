@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.IncludedBuild;
@@ -25,18 +24,14 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
-import java.util.Set;
 
-public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppable {
+public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
-    private final Set<GradleLauncher> launchers = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
 
     public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService) {
@@ -71,11 +66,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         return includedBuild;
     }
 
-    @Override
-    public void stop() {
-        CompositeStoppable.stoppable(launchers).stop();
-    }
-
     private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
         private final File buildDirectory;
         private final NestedBuildFactory nestedBuildFactory;
@@ -90,9 +80,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         @Override
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
-
             GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(participantStartParam);
-            launchers.add(gradleLauncher);
             return gradleLauncher;
         }
 

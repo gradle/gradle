@@ -25,13 +25,14 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultIncludedBuild implements IncludedBuildInternal {
+public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
@@ -125,11 +126,19 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     private void markAsNotReusable() {
+        gradleLauncher.stop();
         gradleLauncher = null;
     }
 
     @Override
     public String toString() {
         return String.format("includedBuild[%s]", projectDir.getName());
+    }
+
+    @Override
+    public void stop() {
+        if (gradleLauncher!=null) {
+            gradleLauncher.stop();
+        }
     }
 }

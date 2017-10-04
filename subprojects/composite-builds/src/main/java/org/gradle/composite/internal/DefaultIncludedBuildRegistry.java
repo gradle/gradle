@@ -31,6 +31,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
@@ -40,7 +42,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry {
+public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
     private final DefaultProjectPathRegistry projectRegistry;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
@@ -157,5 +159,10 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry {
             ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
             projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
         }
+    }
+
+    @Override
+    public void stop() {
+        CompositeStoppable.stoppable(includedBuilds.values()).stop();
     }
 }
