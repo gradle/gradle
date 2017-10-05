@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.id.UniqueId;
@@ -28,21 +27,18 @@ public abstract class AbstractTaskExecution implements TaskExecution {
     private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
-    private final ImmutableSet<String> declaredOutputFilePaths;
 
     public AbstractTaskExecution(
         UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths) {
+        ImmutableSortedSet<String> outputPropertyNames) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
         this.inputProperties = inputProperties;
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
     @Override
@@ -53,11 +49,6 @@ public abstract class AbstractTaskExecution implements TaskExecution {
     @Override
     public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
         return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
-    }
-
-    @Override
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
-        return declaredOutputFilePaths;
     }
 
     @Override
