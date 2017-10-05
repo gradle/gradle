@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.userinput;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,7 +30,7 @@ public class DefaultUserInputReader implements UserInputReader {
 
     @Override
     public String readInput() {
-        Reader br = new InputStreamReader(System.in);
+        Reader br = new InputStreamReader(new DisconnectableInputStream(System.in));
         StringBuilder out = new StringBuilder();
 
         while (true) {
