@@ -23,7 +23,7 @@ import org.junit.Rule
 
 class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
-    GitRepository repo = new GitRepository("dep", temporaryFolder)
+    GitRepository repo = new GitRepository("dep", temporaryFolder.getTestDirectory())
 
     def "can define and use source repositories"() {
         def commit = repo.commit("initial commit", GFileUtils.listFiles(file("dep"), null, true))

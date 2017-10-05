@@ -44,8 +44,9 @@ import java.util.Set;
  */
 public class GitVersionControlSystem implements VersionControlSystem {
     @Override
-    public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
+    public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
+        File workingDir = new File(versionDir, gitSpec.getRepoName());
 
         // TODO: Assuming the default branch for the repository
         File dbDir = new File(workingDir, ".git");
@@ -54,6 +55,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } else {
             cloneRepo(workingDir, gitSpec);
         }
+        return workingDir;
     }
 
     @Override
