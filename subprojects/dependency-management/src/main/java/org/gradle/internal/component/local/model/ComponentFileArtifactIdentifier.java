@@ -34,6 +34,10 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
         return componentId;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     @Override
     public String getDisplayName() {
         return fileName + " (" + componentId + ")";

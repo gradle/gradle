@@ -309,7 +309,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
+            CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact.getId()));
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
@@ -411,9 +411,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             ArtifactResolveException failure = result.getFailure();
             if (failure == null) {
-                artifactAtRepositoryCachedResolutionIndex.store(artifactCacheKey(artifact), result.getResult(), cachingModuleSource.getDescriptorHash());
+                artifactAtRepositoryCachedResolutionIndex.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
             } else if (failure instanceof ArtifactNotFoundException) {
-                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact), result.getAttempted(), cachingModuleSource.getDescriptorHash());
+                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
         }
 
@@ -427,8 +427,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return "artifacts:" + artifactType.name();
     }
 
-    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactMetadata artifact) {
-        return new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
+    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactIdentifier id) {
+        return new ArtifactAtRepositoryKey(delegate.getId(), id);
     }
 
     static class CachingModuleSource implements ModuleSource {

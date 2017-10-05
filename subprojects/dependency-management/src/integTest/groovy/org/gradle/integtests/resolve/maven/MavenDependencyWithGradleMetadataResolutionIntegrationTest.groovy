@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class MavenDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -308,6 +309,129 @@ task checkRelease {
 
         and:
         succeeds("checkRelease")
+    }
+
+    def "variant can define files whose names are different to their location"() {
+        def a = mavenHttpRepo.module("test", "a", "1.2")
+            .withModuleMetadata()
+        a.artifact(type: 'zip')
+        a.artifact(classifier: 'extra')
+        a.publish()
+        a.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "lot-o-files",
+            "files": [ 
+                { "name": "a_main.jar", "url": "a-1.2.jar" },
+                { "name": "a_extra.jar", "url": "a-1.2-extra.jar" },
+                { "name": "a.zip", "url": "a-1.2.zip" } 
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+configurations { 
+    debug
+}
+dependencies {
+    debug 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['a_main.jar', 'a_extra.jar', 'a.zip'] }
+}
+"""
+
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.getArtifact().expectGet()
+        a.getArtifact(type: 'zip').expectGet()
+        a.getArtifact(classifier: 'extra').expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+
+        and:
+        // cached
+        succeeds("checkDebug")
+    }
+
+    @Ignore
+    def "variant can define files whose names and locations do not match maven convention"() {
+        def a = mavenHttpRepo.module("test", "a", "1.2")
+            .withModuleMetadata()
+        a.getArtifact("file1.jar").file << "file 1"
+        a.getArtifact("file2.jar").file << "file 2"
+        a.getArtifact("../sibling/file3.jar").file << "file 3"
+        a.getArtifact("child/file4.jar").file << "file 4"
+        a.publish()
+        a.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "lot-o-files",
+            "files": [ 
+                { "name": "file1.jar", "url": "file1.jar" },
+                { "name": "a-1.2.jar", "url": "file2.jar" },
+                { "name": "a-3.jar", "url": "../sibling/file3.jar" }, 
+                { "name": "file4.jar", "url": "child/file4.jar" } 
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+configurations { 
+    debug
+}
+dependencies {
+    debug 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar'] }
+}
+"""
+
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.getArtifact("file1.jar").expectGet()
+        a.getArtifact("file2.jar").expectGet()
+        a.getArtifact("../sibling/file3.jar").expectGet()
+        a.getArtifact("child/file4.jar").expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+
+        and:
+        // Cached result
+        succeeds("checkDebug")
     }
 
     def "module with module metadata can depend on another module with module metadata"() {

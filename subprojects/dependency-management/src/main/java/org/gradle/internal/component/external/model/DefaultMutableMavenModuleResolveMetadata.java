@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -238,8 +237,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         public Set<? extends ComponentArtifactMetadata> getArtifacts() {
             Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>(files.size());
             for (ComponentVariant.File file : files) {
-                ArtifactFile names = new ArtifactFile(file.getUri(), componentId.getVersion());
-                artifacts.add(new DefaultModuleComponentArtifactMetadata(componentId, new DefaultIvyArtifactName(names.getName(), names.getExtension(), names.getExtension(), names.getClassifier())));
+                artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }
             return artifacts;
         }

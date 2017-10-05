@@ -290,33 +290,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
 
-    protected void resolveArtifact(ComponentArtifactMetadata componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        ModuleComponentArtifactMetadata artifact = (ModuleComponentArtifactMetadata) componentArtifact;
-
-        File localFile;
-        try {
-            localFile = download(artifact, moduleSource, result);
-        } catch (Throwable e) {
-            result.failed(new ArtifactResolveException(artifact.getId(), e));
-            return;
-        }
-
-        if (localFile != null) {
-            result.resolved(localFile);
-        } else {
-            result.notFound(artifact.getId());
-        }
-    }
-
-    protected File download(ModuleComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        LocallyAvailableExternalResource artifactResource = createArtifactResolver(moduleSource).resolveArtifact(artifact, result);
-        if (artifactResource == null) {
-            return null;
-        }
-
-        return artifactResource.getFile();
-    }
-
     protected ExternalResourceArtifactResolver createArtifactResolver() {
         if (cachedArtifactResolver != null) {
             return cachedArtifactResolver;
@@ -515,14 +488,24 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         @Override
         protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
-            // Meta data  artifacts are determined locally
+            // Meta data artifacts are determined locally
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
+            try {
+                ExternalResourceArtifactResolver resolver = createArtifactResolver(moduleSource);
+                ModuleComponentArtifactMetadata moduleArtifact = (ModuleComponentArtifactMetadata) artifact;
+                LocallyAvailableExternalResource artifactResource = resolver.resolveArtifact(moduleArtifact, result);
+                if (artifactResource == null) {
+                    result.notFound(artifact.getId());
+                } else {
+                    result.resolved(artifactResource.getFile());
+                }
+            } catch (Throwable e) {
+                result.failed(new ArtifactResolveException(artifact.getId(), e));
+            }
         }
-
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
@@ -535,7 +518,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
             return MetadataFetchingCost.EXPENSIVE;
         }
-
     }
 
     private String generateId(ExternalResourceResolver resolver) {

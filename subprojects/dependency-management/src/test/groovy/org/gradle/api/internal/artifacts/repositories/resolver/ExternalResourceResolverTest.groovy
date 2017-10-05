@@ -26,6 +26,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import spock.lang.Specification
@@ -47,80 +48,73 @@ class ExternalResourceResolverTest extends Specification {
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
+    ExternalResourceArtifactResolver artifactResolver = Mock()
     ExternalResourceResolver resolver
 
     def setup() {
-        //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository)])
+        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository))
+        resolver.artifactResolver = artifactResolver
     }
 
     def reportsNotFoundArtifactResolveResult() {
-        given:
-        artifactIsMissing()
-
         when:
-        resolver.resolveArtifact(artifact, moduleSource, result)
+        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
+        1 * artifactResolver.resolveArtifact(artifact, _) >> null
         1 * result.notFound(artifactIdentifier)
         0 * result._
+        0 * artifactResolver._
     }
 
     def reportsFailedArtifactResolveResult() {
-        given:
-        downloadIsFailing(new IOException("DOWNLOAD FAILURE"))
-
         when:
-        resolver.resolveArtifact(artifact, moduleSource, result)
+        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
+        1 * artifactResolver.resolveArtifact(artifact, _) >> {
+            throw new RuntimeException("DOWNLOAD FAILURE")
+        }
         1 * result.failed(_) >> { ArtifactResolveException exception ->
             assert exception.message == "Could not download <some-artifact>"
             assert exception.cause.message == "DOWNLOAD FAILURE"
         }
         0 * result._
+        0 * artifactResolver._
     }
 
     def reportsResolvedArtifactResolveResult() {
-        given:
-        artifactCanBeResolved()
-
         when:
-        resolver.resolveArtifact(artifact, moduleSource, result)
+        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
-        1 * result.resolved(_)
+        1 * artifactResolver.resolveArtifact(artifact, _) >> Stub(LocallyAvailableExternalResource) {
+            getFile() >> downloadedFile
+        }
+        1 * result.resolved(downloadedFile)
         0 * result._
+        0 * artifactResolver._
     }
 
     def reportsResolvedArtifactResolveResultWithSnapshotVersion() {
         given:
         artifactIsTimestampedSnapshotVersion()
-        artifactCanBeResolved()
 
         when:
-        resolver.resolveArtifact(artifact, moduleSource, result)
+        resolver.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
-        1 * result.resolved(_)
+        1 * artifactResolver.resolveArtifact(artifact, _) >> Stub(LocallyAvailableExternalResource) {
+            getFile() >> downloadedFile
+        }
+        1 * result.resolved(downloadedFile)
         0 * result._
+        0 * artifactResolver._
     }
 
     def artifactIsTimestampedSnapshotVersion() {
         _ * moduleSource.timestamp >> "1.0-20100101.120001-1"
     }
 
-    def artifactIsMissing() {
-        resolver.download(_, _, _) >> null
-    }
 
-    def downloadIsFailing(IOException failure) {
-        resolver.download(_, _, _) >> {
-            throw failure
-        }
-    }
-
-    def artifactCanBeResolved() {
-        resolver.download(_, _, _) >> downloadedFile
-    }
 }
