@@ -39,7 +39,7 @@ public class DirectoryRepositorySpec implements VersionControlSpec {
 
     @Override
     public String getUniqueId() {
-        return sourceDir.getAbsolutePath();
+        return "directory-repo:" + sourceDir.getAbsolutePath();
     }
 
     @Override

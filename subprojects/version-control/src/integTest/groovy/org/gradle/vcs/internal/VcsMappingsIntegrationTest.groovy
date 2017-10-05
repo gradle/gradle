@@ -129,12 +129,12 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     }
 
     void assertRepoCheckedOut(String repoName="dep") {
-        def checkout = checkoutDir(SimpleVersionControlSystem, repoName, "fixed", file(repoName).absolutePath)
+        def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
         checkout.file("checkedout").assertIsFile()
     }
 
     void assertRepoNotCheckedOut(String repoName="dep") {
-        def checkout = checkoutDir(SimpleVersionControlSystem, repoName, "fixed", file(repoName).absolutePath)
+        def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
         checkout.file("checkedout").assertDoesNotExist()
     }
 }

@@ -33,13 +33,14 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new VersionControlBuildTreeServices());
     }
 
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new VersionControlBuildSessionServices());
+    }
+
     private static class VersionControlGlobalServices {
         VcsMappingFactory createVcsMappingFactory() {
             return new DefaultVcsMappingFactory();
-        }
-
-        VersionControlSystemFactory createVersionControlSystemFactory(CacheRepository cacheRepository) {
-            return new DefaultVersionControlSystemFactory(cacheRepository);
         }
     }
 
@@ -51,5 +52,12 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         protected SourceControl createSourceControl(Instantiator instantiator, VcsMappingsInternal vcsMappingsInternal) {
             return instantiator.newInstance(DefaultSourceControl.class, vcsMappingsInternal);
         }
+    }
+
+    private static class VersionControlBuildSessionServices {
+        VersionControlSystemFactory createVersionControlSystemFactory(CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(cacheRepository);
+        }
+
     }
 }

@@ -27,7 +27,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'foo'
-        spec.uniqueId == 'file:/tmp/repos/foo'
+        spec.uniqueId == 'git-repo:file:/tmp/repos/foo'
         spec.displayName == 'Git Repository at file:/tmp/repos/foo'
     }
 
@@ -38,7 +38,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'gradle-checksum'
-        spec.uniqueId == 'https://github.com/gradle/gradle-checksum'
+        spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum'
         spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum'
     }
 
@@ -49,7 +49,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'gradle-checksum'
-        spec.uniqueId == 'https://github.com/gradle/gradle-checksum.git'
+        spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum.git'
         spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum.git'
 
     }

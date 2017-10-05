@@ -22,31 +22,30 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
-import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory {
     private final CacheRepository cacheRepository;
-    private final Map<Class<? extends VersionControlSpec>, VersionControlSystem> versionControlSystems;
 
     DefaultVersionControlSystemFactory(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
-        // TODO: Move this map to a registry and inject the registry.
-        this.versionControlSystems = new HashMap<Class<? extends VersionControlSpec>, VersionControlSystem>();
-        versionControlSystems.put(DirectoryRepositorySpec.class, new SimpleVersionControlSystem());
-        versionControlSystems.put(GitVersionControlSpec.class, new GitVersionControlSystem());
     }
 
     @Override
     public VersionControlSystem create(VersionControlSpec spec) {
-        return new ThreadSafeVersionControlSystem(versionControlSystems.get(spec.getClass()), cacheRepository);
+        // TODO: Register these mappings somewhere
+        VersionControlSystem vcs;
+        if (spec instanceof DirectoryRepositorySpec) {
+            vcs = new SimpleVersionControlSystem();
+        } else {
+            vcs = new GitVersionControlSystem();
+        }
+        return new ThreadSafeVersionControlSystem(vcs, cacheRepository);
     }
 
     private static final class ThreadSafeVersionControlSystem implements VersionControlSystem {
@@ -70,8 +69,11 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
                 .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();
             DelegatePopulator populator = new DelegatePopulator(delegate, versionDir, ref, spec);
-            cache.useCache(populator);
-            cache.close();
+            try {
+                cache.useCache(populator);
+            } finally {
+                cache.close();
+            }
             return populator.workingDir;
         }
 
