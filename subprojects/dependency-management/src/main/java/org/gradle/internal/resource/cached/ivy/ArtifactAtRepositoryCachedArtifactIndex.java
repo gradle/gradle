@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -26,7 +25,6 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.DefaultCachedArtifact;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -39,10 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
+    private static final ArtifactAtRepositoryKeySerializer KEY_SERIALIZER = keySerializer();
+    private static final CachedArtifactSerializer VALUE_SERIALIZER = new CachedArtifactSerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
     public ArtifactAtRepositoryCachedArtifactIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, keySerializer(), new CachedArtifactSerializer(), cacheLockingManager);
+        super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, cacheLockingManager);
         this.timeProvider = timeProvider;
     }
 
@@ -71,7 +71,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
         return new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash);
     }
 
-    private static class ArtifactAtRepositoryKeySerializer extends AbstractSerializer<ArtifactAtRepositoryKey> {
+    private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {
         private final Serializer<ComponentArtifactIdentifier> artifactIdSerializer;
 
         public ArtifactAtRepositoryKeySerializer(Serializer<ComponentArtifactIdentifier> artifactIdSerializer) {
@@ -88,24 +88,9 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
             ComponentArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
             return new ArtifactAtRepositoryKey(repositoryId, artifactIdentifier);
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            ArtifactAtRepositoryKeySerializer rhs = (ArtifactAtRepositoryKeySerializer) obj;
-            return Objects.equal(artifactIdSerializer, rhs.artifactIdSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), artifactIdSerializer);
-        }
     }
 
-    private static class CachedArtifactSerializer extends AbstractSerializer<CachedArtifact> {
+    private static class CachedArtifactSerializer implements Serializer<CachedArtifact> {
         public void write(Encoder encoder, CachedArtifact value) throws Exception {
             encoder.writeBoolean(value.isMissing());
             encoder.writeLong(value.getCachedAt());

@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
-public class ComponentArtifactIdentifierSerializer extends AbstractSerializer<DefaultModuleComponentArtifactIdentifier> {
+public class ComponentArtifactIdentifierSerializer implements Serializer<DefaultModuleComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     public void write(Encoder encoder, DefaultModuleComponentArtifactIdentifier value) throws Exception {
@@ -43,20 +42,5 @@ public class ComponentArtifactIdentifierSerializer extends AbstractSerializer<De
         String extension = decoder.readNullableString();
         String classifier = decoder.readNullableString();
         return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifactName, type, extension, classifier);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        ComponentArtifactIdentifierSerializer rhs = (ComponentArtifactIdentifierSerializer) obj;
-        return Objects.equal(componentIdentifierSerializer, rhs.componentIdentifierSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), componentIdentifierSerializer);
     }
 }
