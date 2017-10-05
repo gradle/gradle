@@ -57,27 +57,17 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
 
                 def "can write to standard input"() {
                     when:
-                    def stdInPipe = createStdInPipe()
-                    stdInPipe.write('yes'.bytes)
-                    stdInPipe.write(System.getProperty('line.separator').bytes)
+                    def input = new ByteArrayInputStream(('yes' + System.getProperty('line.separator')).bytes)
+                    System.setIn(input)
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('doSomething')
                         .withDebug($debug)
                         .withStandardInput(System.in)
-                        .forwardOutput()
                         .build()
 
                     then:
                     result.output.contains('${answerOutput(true)}')
-                }
-
-                static PipedOutputStream createStdInPipe() {
-                    def pos = new PipedOutputStream()
-                    def pis = new PipedInputStream()
-                    pis.connect(pos)
-                    System.setIn(pis)
-                    pos
                 }
             }
         """
