@@ -22,6 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -39,9 +41,11 @@ import static com.google.gson.stream.JsonToken.END_OBJECT;
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.1";
     private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator instantiator;
 
-    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory) {
+    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
+        this.instantiator = instantiator;
     }
 
     public void parse(final LocallyAvailableExternalResource resource, final MutableComponentVariantResolveMetadata metadata) {
@@ -148,7 +152,7 @@ public class ModuleMetadataParser {
         while(reader.peek()!= END_OBJECT) {
             String attrName = reader.nextName();
             String attrValue = reader.nextString();
-            attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), attrValue);
+            attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));
         }
         reader.endObject();
         return attributes;

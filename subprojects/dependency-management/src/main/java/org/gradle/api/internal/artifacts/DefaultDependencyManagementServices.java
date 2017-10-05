@@ -72,6 +72,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
@@ -145,7 +146,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository),
-                new ModuleMetadataParser(attributesFactory),
+                new ModuleMetadataParser(attributesFactory, NamedObjectInstantiator.INSTANCE),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,

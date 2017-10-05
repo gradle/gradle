@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Unroll
 
 class MavenDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile)
@@ -159,7 +160,7 @@ dependencies {
         }
     }
 
-    def "uses runtime dependencies and files from selected variant"() {
+    def "uses runtime dependencies from pom and files from selected variant"() {
         def b = mavenHttpRepo.module("test", "b", "2.0").publish()
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .dependsOn(b)
@@ -410,6 +411,87 @@ task checkRelease {
 
         and:
         succeeds("checkRelease")
+    }
+
+    @Unroll
+    def "consumer can use attribute of type - #type"() {
+        def a = mavenHttpRepo.module("test", "a", "1.2")
+            .withModuleMetadata()
+        a.artifact(classifier: 'debug')
+        a.publish()
+        a.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "debug",
+            "attributes": {
+                "buildType": "debug"
+            },
+            "files": [ 
+                { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" }
+            ]
+        },
+        {
+            "name": "release",
+            "attributes": {
+                "buildType": "release"
+            }
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+
+enum BuildTypeEnum {
+    debug, release
+}
+interface BuildType extends Named {
+}
+
+def attr = Attribute.of("buildType", ${type})
+configurations { 
+    debug { attributes.attribute(attr, ${debugValue}) }
+    release { attributes.attribute(attr, ${releaseValue}) }
+}
+dependencies {
+    debug 'test:a:1.2'
+    release 'test:a:1.2'
+}
+task checkDebug {
+    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar'] }
+}
+task checkRelease {
+    doLast { assert configurations.release.files*.name == [] }
+}
+"""
+
+        a.pom.expectGet()
+        a.moduleMetadata.expectGet()
+        a.artifact(classifier: 'debug').expectGet()
+
+        expect:
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+
+        and:
+        succeeds("checkRelease")
+
+        where:
+        type            | debugValue                          | releaseValue
+        "BuildTypeEnum" | "BuildTypeEnum.debug"               | "BuildTypeEnum.release"
+        "BuildType"     | "objects.named(BuildType, 'debug')" | "objects.named(BuildType, 'release')"
     }
 
     def "reports failure to locate module"() {

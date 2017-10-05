@@ -28,6 +28,8 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -66,13 +68,15 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
     private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator instantiator;
 
-    public ModuleMetadataSerializer(ImmutableAttributesFactory attributesFactory) {
+    public ModuleMetadataSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
+        this.instantiator = instantiator;
     }
 
     public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory, attributesFactory).read();
+        return new Reader(decoder, moduleIdentifierFactory, attributesFactory, instantiator).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
@@ -297,13 +301,15 @@ public class ModuleMetadataSerializer {
         private final Decoder decoder;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ImmutableAttributesFactory attributesFactory;
+        private final NamedObjectInstantiator instantiator;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
 
-        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.attributesFactory = attributesFactory;
+            this.instantiator = instantiator;
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -352,7 +358,7 @@ public class ModuleMetadataSerializer {
             for (int i = 0; i < count; i++) {
                 String name = decoder.readString();
                 String value = decoder.readString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), value);
+                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
             }
             return attributes;
         }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 
 import java.util.ArrayList;
@@ -56,20 +57,27 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public synchronized <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        List<DefaultImmutableAttributes> nodeChildren = children.get(node);
-        if (nodeChildren == null) {
-            nodeChildren = Lists.newArrayList();
-            children.put(node, nodeChildren);
-        }
-        for (DefaultImmutableAttributes child : nodeChildren) {
-            if (child.attribute.equals(key) && child.value.isolate().equals(value)) {
-                return child;
+    public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
+        return concat(node, key, isolatableFactory.isolate(value));
+    }
+
+    @Override
+    public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+        synchronized (this) {
+            List<DefaultImmutableAttributes> nodeChildren = children.get(node);
+            if (nodeChildren == null) {
+                nodeChildren = Lists.newArrayList();
+                children.put(node, nodeChildren);
             }
+            for (DefaultImmutableAttributes child : nodeChildren) {
+                if (child.attribute.equals(key) && child.value.equals(value)) {
+                    return child;
+                }
+            }
+            DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, value);
+            nodeChildren.add(child);
+            return child;
         }
-        DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, isolatableFactory.isolate(value));
-        nodeChildren.add(child);
-        return child;
     }
 
     public ImmutableAttributes getRoot() {

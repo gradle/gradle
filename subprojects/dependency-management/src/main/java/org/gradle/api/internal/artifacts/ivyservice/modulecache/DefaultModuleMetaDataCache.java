@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -44,11 +45,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private final ModuleMetadataStore moduleMetadataStore;
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributesFactory), moduleIdentifierFactory);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributesFactory, instantiator), moduleIdentifierFactory);
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {

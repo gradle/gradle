@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.gradle.api.Transformer
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
@@ -26,7 +27,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleMetadataParserTest extends Specification {
-    def parser = new ModuleMetadataParser(TestUtil.attributesFactory())
+    def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE)
 
     def "parses minimal metadata resource"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)

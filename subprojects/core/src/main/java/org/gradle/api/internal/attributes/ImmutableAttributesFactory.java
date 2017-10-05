@@ -16,6 +16,7 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 
 public interface ImmutableAttributesFactory {
     /**
@@ -37,6 +38,11 @@ public interface ImmutableAttributesFactory {
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
+
+    /**
+     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     */
+    <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
      * Merges the second container into the first container and returns the result. Values in the second container win.
