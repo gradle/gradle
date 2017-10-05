@@ -17,15 +17,22 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec
 import org.junit.Rule
 
-class LockingVersionControlSystemSpec extends AbstractIntegrationSpec {
+class ParallelVersionControlSpec extends AbstractIntegrationSpec {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
     @Rule GitRepository repo = new GitRepository(temporaryFolder.getTestDirectory())
 
+    def projects = ['A', 'B', 'C', 'D']
+
     def setup() {
-        buildFile << """
+        server.start()
+
+        multiProjectBuild('many-clones', projects) {
+            buildFile << """
             import ${VersionControlSystemFactory.canonicalName}
             import ${DefaultGitVersionControlSpec.canonicalName}
 
@@ -35,8 +42,11 @@ class LockingVersionControlSystemSpec extends AbstractIntegrationSpec {
                 @Input
                 URI url = project.uri('${repo.url}')
 
+                @Input
+                String repoName = 'repo'
+
                 @OutputDirectory
-                File outputDir = new File(temporaryDir, 'target')
+                File outputDir
                 
                 @javax.inject.Inject
                 GitClone(VersionControlSystemFactory versionControlSystemFactory) {
@@ -50,19 +60,58 @@ class LockingVersionControlSystemSpec extends AbstractIntegrationSpec {
                     def system = versionControlSystemFactory.create(spec)
                     def refs = system.getAvailableVersions(spec)
                     system.populate(outputDir, refs[0], spec)
-                    assert new File(outputDir, 'repo/.git').exists()
+                    assert new File(outputDir, repoName + '/.git').exists()
                 }
             }
-            
-            task clone(type: GitClone)
-        """
+            """.stripIndent()
+        }
     }
 
-    def 'can clone'() {
+    def "can populate into same dir in parallel"() {
+        given:
+        projects.each { p ->
+            buildFile << """
+            project('$p') {
+              task clone(type:GitClone) {
+                outputDir = new File(temporaryDir, 'target')
+                doFirst {
+                    ${server.callFromBuild(p)}
+                }
+              }
+            }
+            """.stripIndent()
+        }
+        server.expectConcurrent(projects)
+
         def source = repo.workTree.file('source')
         source.text = 'hello world'
         repo.commit('initial commit', source)
+
         expect:
-        succeeds('clone')
+        succeeds('clone', '--parallel', '--max-workers=4')
+    }
+
+    def "can clone into different dirs in parallel"() {
+        given:
+        projects.each { p ->
+            buildFile << """
+            project('$p') {
+              task clone(type:GitClone) {
+                outputDir = new File(temporaryDir, 'target${p}')
+                doFirst {
+                    ${server.callFromBuild(p)}
+                }
+              }
+            }
+            """.stripIndent()
+        }
+        server.expectConcurrent(projects)
+
+        def source = repo.workTree.file('source')
+        source.text = 'hello world'
+        repo.commit('initial commit', source)
+
+        expect:
+        succeeds('clone', '--parallel', '--max-workers=4')
     }
 }
