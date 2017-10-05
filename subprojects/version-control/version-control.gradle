@@ -23,6 +23,7 @@ dependencies {
     implementation libraries.jgit
 
     testFixturesImplementation project(":internalTesting")
+    testFixturesCompile libraries.jgit
 }
 
 useTestFixtures()
