@@ -43,10 +43,12 @@ class MavenFileModule extends AbstractMavenModule {
         return this
     }
 
+    @Override
     boolean getUniqueSnapshots() {
         return uniqueSnapshots
     }
 
+    @Override
     MavenFileModule withNonUniqueSnapshots() {
         uniqueSnapshots = false;
         return this;
@@ -82,8 +84,4 @@ class MavenFileModule extends AbstractMavenModule {
         uniqueSnapshots && version.endsWith("-SNAPSHOT")
     }
 
-    @Override
-    protected boolean publishesHashFiles() {
-        true
-    }
 }

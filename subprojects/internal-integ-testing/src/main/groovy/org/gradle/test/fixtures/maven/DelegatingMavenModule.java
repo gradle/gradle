@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven;
 
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
+import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
@@ -90,6 +91,31 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public TestFile getArtifactFile(Map options) {
         return backingModule.getArtifactFile(options);
+    }
+
+    @Override
+    public ModuleArtifact getArtifact() {
+        return backingModule.getArtifact();
+    }
+
+    @Override
+    public ModuleArtifact getArtifact(Map<String, ?> options) {
+        return backingModule.getArtifact(options);
+    }
+
+    @Override
+    public ModuleArtifact getArtifact(String relativePath) {
+        return backingModule.getArtifact(relativePath);
+    }
+
+    @Override
+    public ModuleArtifact getPom() {
+        return backingModule.getPom();
+    }
+
+    @Override
+    public ModuleArtifact getModuleMetadata() {
+        return backingModule.getModuleMetadata();
     }
 
     @Override

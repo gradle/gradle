@@ -38,7 +38,7 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
     }
 
     String getPath() {
-        "${modulePath}/${file.name}"
+        return "${modulePath}/${file.name}"
     }
 
     protected abstract TestFile getSha1File();

@@ -92,7 +92,7 @@ task showMissing { doLast { println configurations.missing.files } }
         when:
         server.resetExpectations()
         module.pom.expectGet()
-        module.getArtifact().expectGet()
+        module.artifact.expectGet()
 
         then:
         executer.withArguments("--refresh-dependencies")

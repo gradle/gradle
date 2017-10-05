@@ -68,13 +68,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return "${groupId.replace('.', '/')}/${artifactId}"
     }
 
+    @Override
     MavenModule parent(String group, String artifactId, String version) {
         parentPom = [groupId: group, artifactId: artifactId, version: version]
         return this
     }
 
     TestFile getArtifactFile(Map options = [:]) {
-        return getModuleArtifact(options).file
+        return getArtifact(options).file
     }
 
     @Override
@@ -83,8 +84,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
-    abstract boolean getUniqueSnapshots()
-
+    @Override
     String getPublishArtifactVersion() {
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
             return "${version.replaceFirst('-SNAPSHOT$', '')}-${getUniqueSnapshotVersion()}"
@@ -103,6 +103,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return "${timestampFormat.format(publishTimestamp)}-${publishCount}"
     }
 
+    @Override
     MavenModule dependsOnModules(String... dependencyArtifactIds) {
         for (String id : dependencyArtifactIds) {
             dependsOn(groupId, id, '1.0')
@@ -126,14 +127,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
+    @Override
     MavenModule hasPackaging(String packaging) {
         this.packaging = packaging
         return this
     }
 
-    /**
-     * Specifies the type of the main artifact.
-     */
+    @Override
     MavenModule hasType(String type) {
         this.type = type
         return this
@@ -177,6 +177,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         assert parsedPom.packaging == "pom"
     }
 
+    @Override
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom")
@@ -219,33 +220,37 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
     }
 
+    @Override
     MavenPom getParsedPom() {
         return new MavenPom(pomFile)
     }
 
+    @Override
     GradleModuleMetadata getParsedModuleMetadata() {
         return new GradleModuleMetadata(artifactFile(classifier: 'module', type: 'json'))
     }
 
+    @Override
     DefaultMavenMetaData getRootMetaData() {
         new DefaultMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
     }
 
     @Override
     ModuleArtifact getArtifact() {
-        return getModuleArtifact([:])
+        return getArtifact([:])
     }
 
     @Override
     ModuleArtifact getPom() {
-        return getModuleArtifact(type: 'pom')
+        return getArtifact(type: 'pom')
     }
 
     @Override
     ModuleArtifact getModuleMetadata() {
-        return getModuleArtifact(classifier: 'module', type: 'json')
+        return getArtifact(classifier: 'module', type: 'json')
     }
 
+    @Override
     TestFile getPomFile() {
         return getPom().file
     }
@@ -254,6 +259,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
 
+    @Override
     TestFile getMetaDataFile() {
         moduleDir.file(MAVEN_METADATA_FILE)
     }
@@ -263,24 +269,17 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     TestFile artifactFile(Map<String, ?> options) {
-        return getModuleArtifact(options).file
+        return getArtifact(options).file
     }
 
-    ModuleArtifact getModuleArtifact(Map<String, ?> options) {
-        def artifact = toArtifact(options)
-        def suffix = (artifact.classifier ? "-${artifact.classifier}" : "") + (artifact.type ? ".${artifact.type}" : "")
-        def fileName
-        if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
-            fileName = moduleDir.file("${artifactId}-${version}${suffix}")
-        } else {
-            fileName = "$artifactId-${publishArtifactVersion}${suffix}"
-        }
-        def artifactPath = "$path/$fileName"
-        def file = moduleDir.file(fileName)
+    @Override
+    ModuleArtifact getArtifact(String relativePath) {
+        def file = moduleDir.file(relativePath)
+        def path = file.relativizeFrom(moduleDir).path
         return new ModuleArtifact() {
             @Override
             String getPath() {
-                return artifactPath
+                return path
             }
 
             @Override
@@ -290,6 +289,32 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
     }
 
+    @Override
+    ModuleArtifact getArtifact(Map<String, ?> options) {
+        def artifact = toArtifact(options)
+        def suffix = (artifact.classifier ? "-${artifact.classifier}" : "") + (artifact.type ? ".${artifact.type}" : "")
+        return new ModuleArtifact() {
+            String getFileName() {
+                if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
+                    return "${artifactId}-${version}${suffix}"
+                } else {
+                    return "$artifactId-${publishArtifactVersion}${suffix}"
+                }
+            }
+
+            @Override
+            String getPath() {
+                return "${AbstractMavenModule.this.getPath()}/$fileName"
+            }
+
+            @Override
+            TestFile getFile() {
+                return moduleDir.file(fileName)
+            }
+        }
+    }
+
+    @Override
     MavenModule publishWithChangedContent() {
         publishCount++
         return publish()
@@ -309,7 +334,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     private void publishModuleMetadata() {
         moduleDir.createDir()
         def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
-        def artifact = getModuleArtifact([:])
+        def artifact = getArtifact([:])
         file.text = """
             { 
                 "formatVersion": "0.1", 
@@ -326,6 +351,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         """
     }
 
+    @Override
     MavenModule publishPom() {
         moduleDir.createDir()
         def rootMavenMetaData = getRootMetaDataFile()
@@ -417,11 +443,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     abstract String getMetaDataFileContent()
 
+    @Override
     MavenModule withNoPom() {
         noMetaData = true
         return this
     }
 
+    @Override
     MavenModule publish() {
         if(!noMetaData) {
             publishPom()
@@ -455,5 +483,4 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     protected abstract boolean publishesMetaDataFile()
-    protected abstract boolean publishesHashFiles()
 }

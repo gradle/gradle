@@ -105,12 +105,12 @@ task retrieve(type: Sync) {
 
         when:
         projectA.pom.expectGet()
-        projectA.getArtifact().expectGet()
+        projectA.artifact.expectGet()
         projectB.pom.expectGet()
-        projectB.getArtifact().expectGet()
+        projectB.artifact.expectGet()
         mavenHttpRepo.getModuleMetaData("org.test", "projectC").expectGet()
         projectC.pom.expectGet()
-        projectC.getArtifact().expectGet()
+        projectC.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -152,7 +152,7 @@ task retrieve(type: Sync) {
         mavenHttpRepo.getModuleMetaData("org.test", "projectA").expectGetMissing()
         mavenHttpRepo.directory("org.test", "projectA").expectGet()
         projectA.pom.expectGet()
-        projectA.getArtifact().expectGet()
+        projectA.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -376,7 +376,7 @@ Searched in the following locations:
         when:
         repo1.getModuleMetaData("group", "projectA").expectGet()
         projectA1.pom.expectGet()
-        projectA1.getArtifact().expectGet()
+        projectA1.artifact.expectGet()
 
         repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGetBroken()

@@ -63,7 +63,7 @@ abstract class HttpResource extends AbstractHttpResource {
     }
 
     void expectHeadMissing() {
-        server.expectHeadMissing(path)
+        server.expectHeadMissing(getPath())
     }
 
     void expectHeadBroken() {

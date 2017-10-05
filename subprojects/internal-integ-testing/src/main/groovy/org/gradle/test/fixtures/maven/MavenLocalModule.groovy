@@ -24,10 +24,12 @@ class MavenLocalModule extends AbstractMavenModule {
         super(moduleDir, groupId, artifactId, version)
     }
 
+    @Override
     boolean getUniqueSnapshots() {
         return uniqueSnapshots
     }
 
+    @Override
     MavenLocalModule withNonUniqueSnapshots() {
         //NO-OP for mavenLocal cache.
         this
@@ -58,11 +60,6 @@ class MavenLocalModule extends AbstractMavenModule {
     @Override
     protected boolean publishesMetaDataFile() {
         version.endsWith("-SNAPSHOT")
-    }
-
-    @Override
-    protected boolean publishesHashFiles() {
-        false
     }
 
     /* No checksums published for local modules */
