@@ -19,11 +19,13 @@ package org.gradle.vcs.internal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Factory;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -68,32 +70,16 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
                 .cache(versionDir)
                 .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();
-            DelegatePopulator populator = new DelegatePopulator(delegate, versionDir, ref, spec);
             try {
-                cache.useCache(populator);
+                return cache.useCache(new Factory<File>() {
+                    @Nullable
+                    @Override
+                    public File create() {
+                        return delegate.populate(versionDir, ref, spec);
+                    }
+                });
             } finally {
                 cache.close();
-            }
-            return populator.workingDir;
-        }
-
-        private static final class DelegatePopulator implements Runnable {
-            private final VersionControlSystem delegate;
-            private final File versionDir;
-            private final VersionRef ref;
-            private final VersionControlSpec spec;
-            File workingDir;
-
-            DelegatePopulator(VersionControlSystem delegate, File versionDir, VersionRef ref, VersionControlSpec spec) {
-                this.delegate = delegate;
-                this.ref = ref;
-                this.versionDir = versionDir;
-                this.spec = spec;
-            }
-
-            @Override
-            public void run() {
-                workingDir = delegate.populate(versionDir, ref, spec);
             }
         }
     }
