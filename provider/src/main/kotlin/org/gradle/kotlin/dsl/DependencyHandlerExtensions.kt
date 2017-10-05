@@ -42,7 +42,7 @@ import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
  *
  * @return The dependency.
  *
- * @see DependencyHandler.create
+ * @see [DependencyHandler.create]
  */
 fun DependencyHandler.create(
     group: String,
@@ -74,7 +74,7 @@ fun DependencyHandler.create(
  *
  * @return The dependency.
  *
- * @see DependencyHandler.create
+ * @see [DependencyHandler.create]
  */
 fun DependencyHandler.module(
     group: String,
@@ -106,7 +106,7 @@ fun DependencyHandler.module(
  * @param clientModuleConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  *
- * @see DependencyHandler.create
+ * @see [DependencyHandler.create]
  */
 fun DependencyHandler.module(
     group: String,
@@ -267,7 +267,7 @@ fun <T : ModuleDependency> DependencyHandler.add(
  * @param module the optional module name identifying the dependencies to be excluded.
  * @return this
  *
- * @see ModuleDependency.exclude
+ * @see [ModuleDependency.exclude]
  */
 fun <T : ModuleDependency> T.exclude(group: String? = null, module: String? = null): T =
     uncheckedCast(exclude(excludeMapFor(group, module)))

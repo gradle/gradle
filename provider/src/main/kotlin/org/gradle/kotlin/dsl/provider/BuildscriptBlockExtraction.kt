@@ -36,7 +36,7 @@ fun extractBuildscriptBlockFrom(script: String) =
  *     [identifier] { anything* }
  *
  * @return range of found section or null if no top-level section with the given [identifier] could be found
- * @throws UnexpectedBlock if more than one top-level section with the given [identifier] is found
+ * @throws [UnexpectedBlock] if more than one top-level section with the given [identifier] is found
  */
 internal
 fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? {

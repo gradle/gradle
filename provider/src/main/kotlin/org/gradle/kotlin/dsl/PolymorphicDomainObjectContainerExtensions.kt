@@ -28,7 +28,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer
  * @param configuration an action for configuring the domain object
  * @param <U> the type of the domain object to be created
  * @return the created domain object
- * @throws InvalidUserDataException if a domain object with the specified name already
+ * @throws [InvalidUserDataException] if a domain object with the specified name already
  * exists or the container does not support creating a domain object with the specified
  * type
  */
@@ -46,7 +46,7 @@ fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
  * @param name the name of the domain object to be created
  * @param <U> the type of the domain object to be created
  * @return the created domain object
- * @throws InvalidUserDataException if a domain object with the specified name already
+ * @throws [InvalidUserDataException] if a domain object with the specified name already
  * exists or the container does not support creating a domain object with the specified
  * type
  */

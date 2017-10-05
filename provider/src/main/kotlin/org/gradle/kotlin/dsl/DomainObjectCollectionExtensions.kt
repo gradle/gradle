@@ -27,7 +27,7 @@ import org.gradle.api.DomainObjectCollection
  * @param configuration The action to execute for each object in the resulting collection.
  * @return The matching objects. Returns an empty collection if there are no such objects
  * in this collection.
- * @see DomainObjectCollection.withType
+ * @see [DomainObjectCollection.withType]
  */
 inline
 fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
@@ -42,7 +42,7 @@ fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configur
  * @param S The type of objects to find.
  * @return The matching objects. Returns an empty collection if there are no such objects
  * in this collection.
- * @see DomainObjectCollection.withType
+ * @see [DomainObjectCollection.withType]
  */
 inline
 fun <reified S : Any> DomainObjectCollection<in S>.withType() =

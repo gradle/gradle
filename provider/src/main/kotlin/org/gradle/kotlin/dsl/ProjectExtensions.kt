@@ -65,7 +65,7 @@ fun Project.defaultTasks(vararg tasks: Task) {
  *
  * @param block code to configure an [ObjectConfigurationAction] before executing it
  *
- * @see Project.apply
+ * @see [Project.apply]
  */
 inline
 fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
@@ -79,7 +79,7 @@ fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
  * compatible type of `this`.
  *
  * @param T the plugin type.
- * @see PluginManager.apply
+ * @see [PluginManager.apply]
  */
 inline
 fun <reified T : Plugin<Project>> Project.apply() =
@@ -92,7 +92,7 @@ fun <reified T : Plugin<Project>> Project.apply() =
  *
  * @param T the plugin convention type.
  * @param configuration the configuration block.
- * @see Convention.getPlugin
+ * @see [Convention.getPlugin]
  */
 inline
 fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
@@ -124,8 +124,8 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
 /**
  * Creates a [Task] with the given [name] and [type], and adds it to this project tasks container.
  *
- * @see Project.getTasks
- * @see TaskContainer.create
+ * @see [Project.getTasks]
+ * @see [TaskContainer.create]
  */
 inline
 @Suppress("extension_shadowed_by_member")
@@ -138,7 +138,7 @@ fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -
 
 
 /**
- * Creates a [Task] with the given [name ] and [DefaultTask] type, configures it with the given [configuration] action,
+ * Creates a [Task] with the given [name] and [DefaultTask] type, configures it with the given [configuration] action,
  * and adds it to this project tasks container.
  */
 fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
@@ -187,7 +187,7 @@ operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
 /**
  * Creates a [PropertyState] that holds values of the given type [T].
  *
- * @see Project.property
+ * @see [Project.property]
  */
 @Incubating
 inline

@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  *
  * @param name convention plugin name
  * @return the convention plugin, never null
- * @throws IllegalStateException When the convention cannot be found or cast to the expected type.
+ * @throws [IllegalStateException] When the convention cannot be found or cast to the expected type.
  */
 inline
 fun <reified T : Any> Convention.getPluginByName(name: String): T =
@@ -52,9 +52,9 @@ fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
  * @param conventionType the type of the convention to be located.
  * @param function function to be evaluated.
  * @return the value returned by the given [function].
- * @throws IllegalStateException When the receiver does not support convention plugins, when there is no convention plugin of the given type, or when there are multiple such plugins.
+ * @throws [IllegalStateException] When the receiver does not support convention plugins, when there is no convention plugin of the given type, or when there are multiple such plugins.
  *
- * @see Convention.getPlugin
+ * @see [Convention.getPlugin]
  */
 inline
 fun <ConventionType : Any, ReturnType> Any.withConvention(conventionType: KClass<ConventionType>, function: ConventionType.() -> ReturnType): ReturnType =

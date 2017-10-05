@@ -152,7 +152,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @param dependencyNotation notation for the dependency to be added.
              * @return The dependency.
              *
-             * @see DependencyHandler.add
+             * @see [DependencyHandler.add]
              */
             fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency =
                 add("$stringLiteral", dependencyNotation)
@@ -164,7 +164,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @param dependencyConfiguration expression to use to configure the dependency.
              * @return The dependency.
              *
-             * @see DependencyHandler.add
+             * @see [DependencyHandler.add]
              */
             inline
             fun DependencyHandler.`$kotlinIdentifier`(
@@ -183,7 +183,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @param ext the optional extension of the module artifact to be added as a dependency.
              * @return The dependency.
              *
-             * @see DependencyHandler.add
+             * @see [DependencyHandler.add]
              */
             fun DependencyHandler.`$kotlinIdentifier`(
                 group: String,
@@ -206,8 +206,8 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @param dependencyConfiguration expression to use to configure the dependency.
              * @return The dependency.
              *
-             * @see DependencyHandler.create
-             * @see DependencyHandler.add
+             * @see [DependencyHandler.create]
+             * @see [DependencyHandler.add]
              */
             inline
             fun DependencyHandler.`$kotlinIdentifier`(
@@ -227,7 +227,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @param dependencyConfiguration expression to use to configure the dependency.
              * @return The dependency.
              *
-             * @see DependencyHandler.add
+             * @see [DependencyHandler.add]
              */
             inline
             fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =

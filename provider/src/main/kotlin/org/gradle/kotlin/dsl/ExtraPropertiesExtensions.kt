@@ -28,7 +28,7 @@ import kotlin.reflect.KProperty
 /**
  * The extra properties extension in this object's extension container.
  *
- * @see ExtensionContainer.getExtraProperties
+ * @see [ExtensionContainer.getExtraProperties]
  */
 val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties

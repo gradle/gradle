@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 /**
  * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
  *
- * @see DependencyHandler
+ * @see [DependencyHandler]
  */
 class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
 
@@ -34,7 +34,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      *
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     operator fun String.invoke(dependencyNotation: Any): Dependency =
         dependencies.add(this, dependencyNotation)
@@ -45,7 +45,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyNotation notation for the dependency to be added.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun String.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
@@ -62,7 +62,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param ext the optional extension of the module artifact to be added as a dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     operator fun String.invoke(
         group: String,
@@ -85,8 +85,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.create
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun String.invoke(
@@ -106,7 +106,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun <T : ModuleDependency> String.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
@@ -117,7 +117,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      *
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     operator fun Configuration.invoke(dependencyNotation: Any): Dependency =
         add(name, dependencyNotation)
@@ -128,7 +128,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyNotation notation for the dependency to be added.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
@@ -145,7 +145,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param ext the optional extension of the module artifact to be added as a dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     operator fun Configuration.invoke(
         group: String,
@@ -168,8 +168,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.create
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun Configuration.invoke(
@@ -189,7 +189,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
-     * @see DependencyHandler.add
+     * @see [DependencyHandler.add]
      */
     inline
     operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
