@@ -21,12 +21,59 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
+import spock.lang.Unroll
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
 class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()
+    }
+
+    @ToBeImplemented("We rebuild everything when the include path changes. Should work when objective c uses discovered inputs")
+    @Unroll
+    def "does not recompile when include path has #testCase"() {
+        given:
+        outputs.snapshot { run "mainExecutable" }
+
+        file("src/additional-headers/other.h") << """
+    // extra header file that is not included in source
+"""
+        file("src/replacement-headers/${sharedHeaderFile.name}") << """
+    // replacement header file that is included in source
+"""
+
+        when:
+        buildFile << """
+    model {
+        components {
+            main {
+                sources {
+                    ${app.sourceType} {
+                        exportedHeaders {
+                            srcDirs ${headerDirs}
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask // This should be skipped!
+//        And nothing should be recompiled
+//        and:
+//        outputs.noneRecompiled()
+
+        where:
+        testCase                       | headerDirs
+        "extra header dir after"       | '"src/main/headers", "src/additional-headers"'
+        "extra header dir before"      | '"src/additional-headers", "src/main/headers"'
+        "replacement header dir after" | '"src/main/headers", "src/replacement-headers"'
     }
 
     def "recompiles only source file that imported changed header file"() {

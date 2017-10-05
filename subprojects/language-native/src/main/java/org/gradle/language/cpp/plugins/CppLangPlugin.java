@@ -17,8 +17,10 @@ package org.gradle.language.cpp.plugins;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -31,6 +33,7 @@ import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
+import org.gradle.language.nativeplatform.plugins.DiscoveredInputsPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
@@ -44,10 +47,13 @@ import java.util.Map;
  * Adds core C++ language support.
  */
 @Incubating
+@NonNullApi
 public class CppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        PluginManager pluginManager = project.getPluginManager();
+        pluginManager.apply(ComponentModelBasePlugin.class);
+        pluginManager.apply(DiscoveredInputsPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
