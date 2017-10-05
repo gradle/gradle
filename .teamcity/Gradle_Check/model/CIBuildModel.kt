@@ -26,7 +26,8 @@ data class CIBuildModel (
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
-                            SpecificBuild.Gradleception),
+                            SpecificBuild.Gradleception,
+                            SpecificBuild.SmokeTests),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
@@ -34,7 +35,7 @@ data class CIBuildModel (
             Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
                     trigger = Trigger.eachCommit,
                     specificBuilds = listOf(
-                            SpecificBuild.SmokeTests, SpecificBuild.ColonyCompatibility),
+                            SpecificBuild.ColonyCompatibility),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
