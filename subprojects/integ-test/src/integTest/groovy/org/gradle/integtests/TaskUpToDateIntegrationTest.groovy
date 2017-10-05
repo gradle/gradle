@@ -182,4 +182,49 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":customTask"
     }
+
+    def "task stays up-to-date when filtered-out output is changed"() {
+        file("build").mkdirs()
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @OutputFiles
+                FileTree outputFiles
+            
+                @TaskAction
+                void doAction() {
+                    project.file("build/output.txt").text = "Hello"
+                    project.file("build/build.log") << "Produced at \${new Date()}\\n"
+                }
+            }
+            
+            task customTask(type: CustomTask) {
+                outputFiles = fileTree(file("build")) {
+                    exclude "*.log"
+                }
+            }
+        """
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds "customTask"
+        then:
+        skipped ":customTask"
+
+        when:
+        file("build/build.log").delete()
+        file("build/external.log").text = "External log"
+        succeeds "customTask"
+        then:
+        skipped ":customTask"
+
+        when:
+        file("build/output.txt").delete()
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+    }
 }
