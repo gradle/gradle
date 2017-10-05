@@ -52,7 +52,19 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         run('publish')
 
         then:
-        result.assertTasksExecuted(*(compileAndLinkTasks(debug) + compileAndLinkTasks(release)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(
+            compileAndLinkTasks(debug),
+            compileAndLinkTasks(release),
+            ":generatePomFileForDebugPublication",
+            ":generateMetadataFileForDebugPublication",
+            ":publishDebugPublicationToMavenRepository",
+            ":generatePomFileForMainPublication",
+            ":generateMetadataFileForMainPublication",
+            ":publishMainPublicationToMavenRepository",
+            ":generatePomFileForReleasePublication",
+            ":generateMetadataFileForReleasePublication",
+            ":publishReleasePublicationToMavenRepository",
+            ":publish")
 
         def repo = new MavenFileRepository(file("repo"))
 

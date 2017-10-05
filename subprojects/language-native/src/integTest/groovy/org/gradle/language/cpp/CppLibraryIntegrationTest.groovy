@@ -40,9 +40,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -78,7 +78,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -98,14 +98,14 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executer.withArgument("--info")
         succeeds "linkRelease"
 
-        result.assertTasksExecuted(*compileAndLinkTasks(release))
+        result.assertTasksExecuted(compileAndLinkTasks(release))
         sharedLibrary("build/lib/main/release/hello").assertExists()
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
         succeeds "linkDebug"
 
-        result.assertTasksExecuted(*compileAndLinkTasks(debug))
+        result.assertTasksExecuted(compileAndLinkTasks(debug))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         !output.contains('compiling with feature enabled')
     }
@@ -134,7 +134,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -162,7 +162,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -181,7 +181,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -203,7 +203,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
@@ -225,7 +225,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -256,7 +256,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds ":lib1:assemble"
 
-        result.assertTasksExecuted(*compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), ":lib1:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
@@ -296,7 +296,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks([':lib2', ':lib1'], debug), ":lib1:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':lib2', ':lib1'], debug), ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
     }

@@ -54,7 +54,21 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         run('publish')
 
         then:
-        result.assertTasksExecuted(*(compileAndLinkTasks(debug) + compileAndLinkTasks(release)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(
+            compileAndLinkTasks(debug),
+            compileAndLinkTasks(release),
+            ":generatePomFileForDebugPublication",
+            ":generateMetadataFileForDebugPublication",
+            ":publishDebugPublicationToMavenRepository",
+            ":cppHeaders",
+            ":generatePomFileForMainPublication",
+            ":generateMetadataFileForMainPublication",
+            ":publishMainPublicationToMavenRepository",
+            ":generatePomFileForReleasePublication",
+            ":generateMetadataFileForReleasePublication",
+            ":publishReleasePublicationToMavenRepository",
+            ":publish"
+        )
 
         def headersZip = file("build/headers/cpp-api-headers.zip")
         new ZipTestFixture(headersZip).hasDescendants(lib.publicHeaders.files*.name)

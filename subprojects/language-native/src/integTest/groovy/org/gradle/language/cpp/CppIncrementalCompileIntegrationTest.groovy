@@ -53,8 +53,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/app").assertExists()
@@ -79,8 +79,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
@@ -103,8 +103,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -127,8 +127,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksSkipped(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -171,9 +171,9 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         then:
         def skippedTasks = compileAndLinkTasks([":greeter"], debug) + [":greeter:assemble", ":assemble"]
         def notSkippedTasks = compileAndLinkTasks([":app"], debug) + [installTaskDebug(':app'), ":app:assemble"]
-        result.assertTasksExecuted(*(skippedTasks + notSkippedTasks))
-        result.assertTasksNotSkipped(*notSkippedTasks)
-        result.assertTasksSkipped(*skippedTasks)
+        result.assertTasksExecuted(skippedTasks, notSkippedTasks)
+        result.assertTasksNotSkipped(notSkippedTasks)
+        result.assertTasksSkipped(skippedTasks)
 
         executable("app/build/exe/main/debug/app").assertDoesNotExist()
         file("app/build/exe/main/debug").assertHasDescendants()
@@ -209,8 +209,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
-        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
         file("build/exe/main/debug").assertHasDescendants()
@@ -242,8 +242,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
-        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
         file("build/lib/main/debug").assertHasDescendants()
