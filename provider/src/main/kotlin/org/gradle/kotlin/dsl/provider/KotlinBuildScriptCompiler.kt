@@ -201,7 +201,7 @@ class KotlinBuildScriptCompiler(
         withContextClassLoader(pluginsBlockClass.classLoader) {
             try {
                 instantiate(pluginsBlockClass, pluginDependenciesSpec)
-            } catch(e: InvocationTargetException) {
+            }  catch (e: InvocationTargetException) {
                 throw e.targetException
             }
         }
@@ -269,7 +269,7 @@ class KotlinBuildScriptCompiler(
     fun executeScriptOf(scriptClass: Class<*>, target: Project) {
         try {
             instantiate(scriptClass, target)
-        } catch(e: InvocationTargetException) {
+        }  catch (e: InvocationTargetException) {
             if (e.cause is Error) {
                 tryToLogClassLoaderHierarchyOf(scriptClass, target)
             }
@@ -358,7 +358,7 @@ private inline
 fun ignoringErrors(block: () -> Unit) {
     try {
         block()
-    } catch(e: Exception) {
+    }  catch (e: Exception) {
         e.printStackTrace()
     }
 }
