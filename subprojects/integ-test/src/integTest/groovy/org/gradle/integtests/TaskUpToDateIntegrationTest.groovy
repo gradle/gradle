@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    def "order of #annotation doesn't mark task out-of-date"() {
+    def "order of #annotation marks task out-of-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @Output${files ? "Files" : "Directories"} FileCollection out
@@ -54,7 +54,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "myTask", "-Preverse"
         then:
-        skippedTasks.contains ":myTask"
+        executedAndNotSkipped ":myTask"
 
         where:
         annotation           | files
@@ -97,7 +97,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3073")
-    def "output files changed from #before to #after marks task up-to-date"() {
+    def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
             class CustomTask extends DefaultTask {
                 @OutputFiles
@@ -121,7 +121,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task customTask(type: CustomTask) {
-                outputFiles = [lazyProperty('output0'), lazyProperty('output1')]
+                outputFiles = [lazyProperty('output0'), lazyProperty('output1'), lazyProperty('output2')]
             }
         """
 
@@ -133,12 +133,21 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds customTaskWithOutputs(after)
         then:
-        skipped ":customTask"
+        if (upToDate) {
+            skipped ":customTask"
+        } else {
+            executedAndNotSkipped ":customTask"
+        }
 
         where:
-        before                | after
-        [null, 'outputFile']  | ['outputFile', null]
-        ['outputFile1', null] | ['outputFile1', 'outputFile2']
+        before                                        | after                          | upToDate
+        [null, 'outputFile']                          | ['outputFile', null]           | true
+        ['outputFile1', null]                         | ['outputFile1', 'outputFile2'] | false
+        ['outputFile1', 'outputFile2', 'outputFile3'] | ['outputFile1', 'outputFile2'] | false
+        ['outputFile1', 'outputFile2']                | ['outputFile2', 'outputFile3'] | false
+        ['outputFile1', 'outputFile2']                | []                             | false
+        ['outputFile1', 'outputFile2']                | ['outputFile1']                | false
+        upToDateString = upToDate ? 'up-to-date' : 'not up-to-date'
     }
 
 

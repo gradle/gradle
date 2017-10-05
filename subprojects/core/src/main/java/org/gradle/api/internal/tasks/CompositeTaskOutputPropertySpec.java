@@ -18,12 +18,18 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @NonNullApi
@@ -70,9 +76,41 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 }
             };
         } else {
-            return Iterators.<TaskOutputFilePropertySpec>singletonIterator(
-                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, unpackedPaths)
-            );
+            final List<Object> roots = Lists.newArrayList();
+            resolver.resolveFiles(paths).visitRootElements(new FileCollectionVisitor() {
+                @Override
+                public void visitCollection(FileCollectionInternal fileCollection) {
+                    visitRoot(fileCollection);
+                }
+
+                @Override
+                public void visitTree(FileTreeInternal fileTree) {
+                    visitRoot(fileTree);
+                }
+
+                @Override
+                public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                    visitRoot(directoryTree);
+                }
+
+                private void visitRoot(Object root) {
+                    roots.add(root);
+                }
+            });
+
+            final Iterator<Object> iterator = roots.iterator();
+            return new AbstractIterator<TaskOutputFilePropertySpec>() {
+                private int index;
+
+                @Override
+                protected TaskOutputFilePropertySpec computeNext() {
+                    if (!iterator.hasNext()) {
+                        return endOfData();
+                    }
+                    Object root = iterator.next();
+                    return new NonCacheableTaskOutputPropertySpec(taskName, CompositeTaskOutputPropertySpec.this, ++index, resolver, root);
+                }
+            };
         }
     }
 
