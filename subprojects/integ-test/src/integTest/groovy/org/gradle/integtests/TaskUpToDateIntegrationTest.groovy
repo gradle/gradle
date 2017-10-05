@@ -101,6 +101,57 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":customTask"
     }
 
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/3073")
+    def "output files changed from #before to #after marks task up-to-date"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @OutputFiles
+                List<Object> outputFiles
+            
+                @TaskAction
+                void doAction() {
+                    outputFiles.each { output ->
+                         def outputFile = output.call()
+                         if (outputFile != null) {
+                            outputFile.text = "task executed"
+                         }
+                    }
+                }
+            }
+            
+            def lazyProperty(String name) {
+                def value = project.findProperty(name)
+                def outputFile = value ? file(value) : null
+                return { -> outputFile }
+            }
+            
+            task customTask(type: CustomTask) {
+                outputFiles = [lazyProperty('output0'), lazyProperty('output1')]
+            }
+        """
+
+        when:
+        succeeds customTaskWithOutputs(before)
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds customTaskWithOutputs(after)
+        then:
+        skipped ":customTask"
+
+        where:
+        before                | after
+        [null, 'outputFile']  | ['outputFile', null]
+        ['outputFile1', null] | ['outputFile1', 'outputFile2']
+    }
+
+
+    private static String[] customTaskWithOutputs(List<String> outputs) {
+        (["customTask"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/3073")
     def "optional input changed from null to non-null marks task not up-to-date"() {
         file("input.txt") << "Input data"
