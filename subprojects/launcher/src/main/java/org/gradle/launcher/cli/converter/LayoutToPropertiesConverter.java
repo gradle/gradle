@@ -20,14 +20,14 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
-import org.gradle.initialization.ParallelismBuildOptionFactory;
-import org.gradle.initialization.StartParameterBuildOptionFactory;
+import org.gradle.initialization.BuildLayoutParametersBuildOptions;
+import org.gradle.initialization.ParallelismBuildOptions;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -44,11 +44,11 @@ public class LayoutToPropertiesConverter {
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
 
     public LayoutToPropertiesConverter() {
-        allBuildOptions.addAll(new BuildLayoutParametersBuildOptionFactory().create());
-        allBuildOptions.addAll(new StartParameterBuildOptionFactory().create());
-        allBuildOptions.addAll(new LoggingConfigurationBuildOptionFactory().create());
-        allBuildOptions.addAll(new DaemonBuildOptionFactory().create());
-        allBuildOptions.addAll(new ParallelismBuildOptionFactory().create());
+        allBuildOptions.addAll(BuildLayoutParametersBuildOptions.get());
+        allBuildOptions.addAll(StartParameterBuildOptions.get());
+        allBuildOptions.addAll(LoggingConfigurationBuildOptions.get());
+        allBuildOptions.addAll(DaemonBuildOptions.get());
+        allBuildOptions.addAll(ParallelismBuildOptions.get());
     }
 
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {

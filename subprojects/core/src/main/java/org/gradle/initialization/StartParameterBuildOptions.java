@@ -19,24 +19,25 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class StartParameterBuildOptionFactory implements Factory<List<BuildOption<StartParameter>>> {
+public class StartParameterBuildOptions {
 
-    private final List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
+    private static List<BuildOption<StartParameter>> options;
 
-    public StartParameterBuildOptionFactory() {
+    static {
+        List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
         options.add(new RecompileScriptsOption());
@@ -55,11 +56,14 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
+        StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    @Override
-    public List<BuildOption<StartParameter>> create() {
+    public static List<BuildOption<StartParameter>> get() {
         return options;
+    }
+
+    private StartParameterBuildOptions() {
     }
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameter> {

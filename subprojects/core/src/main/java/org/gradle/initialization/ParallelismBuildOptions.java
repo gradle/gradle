@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -25,20 +24,25 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<ParallelismConfiguration>>> {
+public class ParallelismBuildOptions {
 
-    private final List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
+    private static List<BuildOption<ParallelismConfiguration>> options;
 
-    public ParallelismBuildOptionFactory() {
+    static {
+        List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
         options.add(new ParallelOption());
         options.add(new MaxWorkersOption());
+        ParallelismBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    @Override
-    public List<BuildOption<ParallelismConfiguration>> create() {
+    public static List<BuildOption<ParallelismConfiguration>> get() {
         return options;
+    }
+
+    private ParallelismBuildOptions() {
     }
 
     public static class ParallelOption extends BooleanBuildOption<ParallelismConfiguration> {
