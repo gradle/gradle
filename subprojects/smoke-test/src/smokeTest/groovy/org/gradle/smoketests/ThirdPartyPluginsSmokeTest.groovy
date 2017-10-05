@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -266,15 +265,14 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         runner('integrationTest').build()
     }
 
-    @Ignore("Initialization of CompileOptions fails due to API change")
     def 'gosu plugin'() { // Requires JDK 8 or later
         given:
         buildFile << """
             plugins {
-                id "org.gosu-lang.gosu" version "0.3.0"
+                id 'org.gosu-lang.gosu' version '0.3.5'
             }
 
-            apply plugin: "org.gosu-lang.gosu"
+            apply plugin: 'org.gosu-lang.gosu'
 
             ${mavenCentralRepository()}
 
