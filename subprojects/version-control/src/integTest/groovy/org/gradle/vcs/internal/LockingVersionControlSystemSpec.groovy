@@ -32,10 +32,8 @@ class LockingVersionControlSystemSpec extends AbstractIntegrationSpec {
             class GitClone extends DefaultTask {
                 private final VersionControlSystemFactory versionControlSystemFactory
                 
-                @Input
                 URI url = project.uri('${repo.url}')
 
-                @OutputDirectory
                 File outputDir = new File(temporaryDir, 'target')
                 
                 @javax.inject.Inject

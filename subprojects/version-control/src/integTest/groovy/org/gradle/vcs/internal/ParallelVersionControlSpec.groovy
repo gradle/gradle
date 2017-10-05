@@ -39,13 +39,8 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
             class GitClone extends DefaultTask {
                 private final VersionControlSystemFactory versionControlSystemFactory
                 
-                @Input
                 URI url = project.uri('${repo.url}')
 
-                @Input
-                String repoName = 'repo'
-
-                @OutputDirectory
                 File outputDir
                 
                 @javax.inject.Inject
@@ -60,7 +55,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
                     def system = versionControlSystemFactory.create(spec)
                     def refs = system.getAvailableVersions(spec)
                     system.populate(outputDir, refs[0], spec)
-                    assert new File(outputDir, repoName + '/.git').exists()
+                    assert new File(outputDir, 'repo/.git').exists()
                 }
             }
             """.stripIndent()
@@ -73,8 +68,9 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
             buildFile << """
             project('$p') {
               task clone(type:GitClone) {
-                outputDir = new File(temporaryDir, 'target')
+                outputDir = file('${temporaryFolder.getTestDirectory().file('target')}')
                 doFirst {
+                    println outputDir
                     ${server.callFromBuild(p)}
                 }
               }
@@ -97,7 +93,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
             buildFile << """
             project('$p') {
               task clone(type:GitClone) {
-                outputDir = new File(temporaryDir, 'target${p}')
+                outputDir = file('${temporaryFolder.getTestDirectory().file('target' + p)}')
                 doFirst {
                     ${server.callFromBuild(p)}
                 }
