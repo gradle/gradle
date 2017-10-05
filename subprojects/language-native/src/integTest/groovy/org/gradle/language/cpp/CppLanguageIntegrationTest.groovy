@@ -47,7 +47,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }

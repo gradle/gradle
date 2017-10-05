@@ -91,7 +91,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Windows resource compiler failed while compiling broken.rc"))
     }
@@ -184,7 +184,7 @@ model {
         """
 
         and:
-        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"));
+        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"))
 
         expect:
         // this test is just for verifying explicitly the behaviour of the windows resource compiler
