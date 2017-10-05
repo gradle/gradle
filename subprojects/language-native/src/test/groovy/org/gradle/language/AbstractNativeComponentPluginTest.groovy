@@ -30,13 +30,13 @@ import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.util.GFileUtils
 
 abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecification {
-    abstract Class<? extends Plugin> getPluginClass();
+    abstract Class<? extends Plugin> getPluginClass()
 
-    abstract Class<? extends LanguageSourceSet> getSourceSetClass();
+    abstract Class<? extends LanguageSourceSet> getSourceSetClass()
 
-    abstract Class<? extends Task> getCompileTaskClass();
+    abstract Class<? extends Task> getCompileTaskClass()
 
-    abstract String getPluginName();
+    abstract String getPluginName()
 
     def "creates source set with conventional locations for components"() {
         when:

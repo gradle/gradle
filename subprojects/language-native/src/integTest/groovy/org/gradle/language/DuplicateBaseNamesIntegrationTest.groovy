@@ -156,7 +156,7 @@ model {
     @RequiresInstalledToolChain(VISUALCPP)
     def "windows-resources can have sourcefiles with same base name but different directories"() {
         setup:
-        def testApp = new DuplicateWindowsResourcesBaseNamesTestApp();
+        def testApp = new DuplicateWindowsResourcesBaseNamesTestApp()
         testApp.writeSources(file("src/main"))
         buildFile.text = ""
         testApp.plugins.each{ plugin ->

@@ -36,7 +36,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     TestFile objectFileDir
     CompilationOutputsFixture outputs
 
-    abstract IncrementalHelloWorldApp getHelloWorldApp();
+    abstract IncrementalHelloWorldApp getHelloWorldApp()
 
     String getSourceType() {
         GUtil.toCamelCase(app.sourceType)
@@ -383,7 +383,7 @@ model {
 
         then:
         executedAndNotSkipped compileTask
-        failure.assertHasDescription("Execution failed for task '${compileTask}'.");
+        failure.assertHasDescription("Execution failed for task '${compileTask}'.")
     }
 
     def "does not recompile any sources when unused header file is changed"() {
