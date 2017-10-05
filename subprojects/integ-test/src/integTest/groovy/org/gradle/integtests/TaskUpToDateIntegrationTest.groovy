@@ -25,11 +25,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
     def "order of #annotation doesn't mark task out-of-date"() {
-        file("buildSrc/src/main/groovy/MyTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.file.*
-            import org.gradle.api.tasks.*
-
+        buildFile << """
             class MyTask extends DefaultTask {
                 @Output${files ? "Files" : "Directories"} FileCollection out
 
@@ -37,9 +33,15 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                     out.each { it${files ? ".text = 'data'" : ".mkdirs()"} }
                 }
             }
-        """
 
-        buildFile.text = buildFileWithOutputs "out1", "out2"
+            task myTask(type: MyTask) {
+                if (project.hasProperty("reverse")) {
+                    out = files("out2", "out1")
+                } else {
+                    out = files("out1", "out2")
+                }
+            }
+        """
 
         run "myTask"
         skippedTasks.empty
@@ -50,8 +52,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":myTask"
 
         when:
-        buildFile.text = buildFileWithOutputs "out2", "out1"
-        run "myTask"
+        run "myTask", "-Preverse"
         then:
         skippedTasks.contains ":myTask"
 
@@ -61,13 +62,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         '@OutputDirectories' | false
     }
 
-    def buildFileWithOutputs(String... outputs) {
-        """
-            task myTask(type: MyTask) {
-                out = files("${outputs.join('", "')}")
-            }
-        """
-    }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
     def "optional output changed from null to non-null marks task not up-to-date"() {
