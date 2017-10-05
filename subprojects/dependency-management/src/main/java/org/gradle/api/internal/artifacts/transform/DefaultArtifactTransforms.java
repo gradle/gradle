@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.AmbiguousVariantSelectionException;
 import org.gradle.internal.component.NoMatchingVariantSelectionException;
+import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -86,8 +87,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         public ResolvedArtifactSet select(ResolvedVariantSet producer) {
             try {
                 return doSelect(producer);
-            } catch (Throwable t) {
+            } catch (VariantSelectionException t) {
                 return new BrokenResolvedArtifactSet(t);
+            } catch (Throwable t) {
+                return new BrokenResolvedArtifactSet(VariantSelectionException.selectionFailed(producer, t));
             }
         }
 

@@ -894,4 +894,84 @@ task show {
   - Required usage 'api' but no value provided.""")
 
     }
+
+    def "reports failure to match attributes during selection"() {
+        buildFile << """
+            project(':lib') {
+                def attr = Attribute.of('attr', Boolean)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+                }
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                broken1 {
+                                    attributes.attribute(attr, true)
+                                }
+                                broken2 {
+                                    attributes.attribute(attr, false)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            project(':ui') {
+                def attr = Attribute.of('attr', Number)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+                }                
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                broken1 {
+                                    attributes.attribute(attr, 12)
+                                }
+                                broken2 {
+                                    attributes.attribute(attr, 10)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            project(':app') {
+                def attr = Attribute.of('attr', String)
+                dependencies {
+                    attributesSchema {
+                        attribute(attr)
+                    }
+
+                    compile project(':lib'), project(':ui')
+                }
+
+                task resolve {
+                    doLast {
+                        configurations.compile.incoming.artifactView {
+                            attributes { 
+                                it.attribute(attr, 'jar') 
+                            }
+                        }.files.each { println it }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails(":app:resolve")
+        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
+        failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")
+        failure.assertHasCause("Could not select a variant of project :ui that matches the consumer attributes.")
+        failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
+    }
 }
