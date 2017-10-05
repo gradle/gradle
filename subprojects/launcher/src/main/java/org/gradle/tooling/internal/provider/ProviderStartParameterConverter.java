@@ -95,6 +95,10 @@ class ProviderStartParameterConverter {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
         }
 
+        if (parameters.getStandardInput() != null) {
+            startParameter.setInteractive(true);
+        }
+
         return startParameter;
     }
 }

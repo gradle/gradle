@@ -19,6 +19,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.StartParameter;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
@@ -27,16 +28,22 @@ import java.util.List;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    private final StartParameter startParameter;
     private final OutputEventRenderer outputEventRenderer;
     private final UserInputReader userInputReader;
 
-    public DefaultUserInputHandler(OutputEventRenderer outputEventRenderer, UserInputReader userInputReader) {
+    public DefaultUserInputHandler(StartParameter startParameter, OutputEventRenderer outputEventRenderer, UserInputReader userInputReader) {
+        this.startParameter = startParameter;
         this.outputEventRenderer = outputEventRenderer;
         this.userInputReader = userInputReader;
     }
 
     @Override
     public Boolean askYesNoQuestion(String question) {
+        if (!startParameter.isInteractive()) {
+            return null;
+        }
+
         outputEventRenderer.onOutput(new UserInputRequestEvent(createPrompt(question)));
 
         try {

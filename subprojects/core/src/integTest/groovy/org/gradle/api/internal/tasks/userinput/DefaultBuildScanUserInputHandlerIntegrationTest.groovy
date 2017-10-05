@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
@@ -117,14 +115,13 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         gradleHandle.standardOutput.contains(answerOutput(true))
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "fails gracefully if console is not interactive"() {
+    def "does not request user input prompt for non-interactive console"() {
         when:
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        def failure = gradleHandle.waitForFailure()
-        failure.assertHasCause('Console does not support capturing input')
+        gradleHandle.waitForFinish()
+        !gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(null))
     }
 }

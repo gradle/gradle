@@ -446,8 +446,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return registry;
     }
 
-    protected UserInputHandler createDefaultUserInputHandler(OutputEventRenderer outputEventRenderer) {
-        return new DefaultUserInputHandler(outputEventRenderer, new DefaultUserInputReader());
+    protected UserInputHandler createDefaultUserInputHandler(StartParameter startParameter, OutputEventRenderer outputEventRenderer) {
+        return new DefaultUserInputHandler(startParameter, outputEventRenderer, new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {

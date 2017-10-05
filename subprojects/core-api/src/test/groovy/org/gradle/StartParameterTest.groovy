@@ -52,6 +52,7 @@ class StartParameterTest extends Specification {
         parameter.configureOnDemand = true
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
+        parameter.interactive = true
         parameter.includeBuild(new File('participant'))
 
         when:
@@ -120,6 +121,7 @@ class StartParameterTest extends Specification {
         !parameter.refreshDependencies
         !parameter.parallelProjectExecutionEnabled
         !parameter.buildCacheEnabled
+        !parameter.interactive
 
         assertThat(parameter, isSerializable())
     }
@@ -283,6 +285,7 @@ class StartParameterTest extends Specification {
         parameter.refreshDependencies = true
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
+        parameter.interactive = true
 
         assertThat(parameter, isSerializable())
 
@@ -303,6 +306,7 @@ class StartParameterTest extends Specification {
         newParameter.systemPropertiesArgs == parameter.systemPropertiesArgs
         newParameter.parallelProjectExecutionEnabled == parameter.parallelProjectExecutionEnabled
         newParameter.buildCacheEnabled == parameter.buildCacheEnabled
+        newParameter.interactive == parameter.interactive
 
         newParameter.buildFile == null
         newParameter.taskRequests.empty
