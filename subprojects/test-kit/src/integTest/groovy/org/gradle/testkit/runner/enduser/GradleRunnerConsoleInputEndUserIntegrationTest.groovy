@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
-import static org.gradle.api.internal.tasks.userinput.BuildScanUserInputFixture.*
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 

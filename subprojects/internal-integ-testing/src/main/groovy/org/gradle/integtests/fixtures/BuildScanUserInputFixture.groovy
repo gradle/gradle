@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.userinput
+package org.gradle.integtests.fixtures
 
 final class BuildScanUserInputFixture {
 

@@ -20,7 +20,7 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.tasks.userinput.BuildScanUserInputFixture.*
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
