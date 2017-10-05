@@ -68,9 +68,8 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
             buildFile << """
             project('$p') {
               task clone(type:GitClone) {
-                outputDir = file('${temporaryFolder.getTestDirectory().file('target')}')
+                outputDir = rootProject.file('build/target')
                 doFirst {
-                    println outputDir
                     ${server.callFromBuild(p)}
                 }
               }
@@ -93,7 +92,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
             buildFile << """
             project('$p') {
               task clone(type:GitClone) {
-                outputDir = file('${temporaryFolder.getTestDirectory().file('target' + p)}')
+                outputDir = rootProject.file('build/target${p}')
                 doFirst {
                     ${server.callFromBuild(p)}
                 }
