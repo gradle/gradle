@@ -21,7 +21,7 @@ import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec
 import org.junit.Rule
 
-class ThreadSafeVersionControlSystemSpec extends AbstractIntegrationSpec {
+class LockingVersionControlSystemSpec extends AbstractIntegrationSpec {
     @Rule GitRepository repo = new GitRepository(temporaryFolder.getTestDirectory())
 
     def setup() {

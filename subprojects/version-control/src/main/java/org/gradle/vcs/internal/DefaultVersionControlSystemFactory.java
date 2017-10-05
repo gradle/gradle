@@ -45,14 +45,14 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         } else {
             vcs = new GitVersionControlSystem();
         }
-        return new ThreadSafeVersionControlSystem(vcs, cacheRepository);
+        return new LockingVersionControlSystem(vcs, cacheRepository);
     }
 
-    private static final class ThreadSafeVersionControlSystem implements VersionControlSystem {
+    private static final class LockingVersionControlSystem implements VersionControlSystem {
         private final VersionControlSystem delegate;
         private final CacheRepository cacheRepository;
 
-        private ThreadSafeVersionControlSystem(VersionControlSystem delegate, CacheRepository cacheRepository) {
+        private LockingVersionControlSystem(VersionControlSystem delegate, CacheRepository cacheRepository) {
             this.delegate = delegate;
             this.cacheRepository = cacheRepository;
         }
