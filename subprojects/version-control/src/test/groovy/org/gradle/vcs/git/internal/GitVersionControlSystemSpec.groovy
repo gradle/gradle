@@ -37,80 +37,85 @@ class GitVersionControlSystemSpec extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Rule
-    GitRepository repo = new GitRepository(tmpDir)
+    GitRepository repo = new GitRepository(tmpDir.getTestDirectory())
 
     @Rule
-    GitRepository repo2 = new GitRepository("otherRepo", tmpDir)
+    GitRepository repo2 = new GitRepository(tmpDir.getTestDirectory().file('other'))
 
     def setup() {
         gitVcs = new GitVersionControlSystem()
 
         // Commit a file to the repository
-        def textFile = repo.workTree.file("source.txt")
-        textFile << "Hello world!"
-        c1 = repo.commit("Initial commit", textFile)
-        repo.createBranch("release")
-        repo.createLightWeightTag("1.0.1")
-        repo.createAnnotatedTag("v1.0.1", "Release 1.0.1")
-        def anotherSource = repo.workTree.file("dir/another.txt")
-        anotherSource << "Goodbye world!"
-        c2 = repo.commit("Second Commit", anotherSource)
+        def textFile = repo.workTree.file('source.txt')
+        textFile << 'Hello world!'
+        c1 = repo.commit('Initial commit', textFile)
+        repo.createBranch('release')
+        repo.createLightWeightTag('1.0.1')
+        repo.createAnnotatedTag('v1.0.1', 'Release 1.0.1')
+        def anotherSource = repo.workTree.file('dir/another.txt')
+        anotherSource << 'Goodbye world!'
+        c2 = repo.commit('Second Commit', anotherSource)
         repoHead = GitVersionRef.from(repo.head)
         repoSpec = new DefaultGitVersionControlSpec()
         repoSpec.url = repo.url
     }
 
-    def "clone a repository"() {
+    def 'clone a repository'() {
         given:
-        def target = tmpDir.file("workingDir")
+        def target = tmpDir.file('versionDir')
 
         when:
-        gitVcs.populate(target, repoHead, repoSpec)
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        target.file( ".git").assertIsDir()
-        target.file( "source.txt").text == "Hello world!"
-        target.file( "dir/another.txt").text == "Goodbye world!"
+        workingDir.parent == target.path
+        workingDir.name == 'repo'
+        target.file( 'repo/.git').assertIsDir()
+        target.file( 'repo/source.txt').text == 'Hello world!'
+        target.file( 'repo/dir/another.txt').text == 'Goodbye world!'
     }
 
-    def "clone a repository into empty extant workingDir"() {
+    def 'clone a repository into empty extant workingDir'() {
         given:
-        def target = tmpDir.file("workingDir")
-        target.mkdir()
+        def target = tmpDir.file('versionDir')
+        target.file('repo').mkdirs()
 
         when:
-        gitVcs.populate(target, repoHead, repoSpec)
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        target.file( ".git").assertIsDir()
-        target.file( "source.txt").text == "Hello world!"
-        target.file( "dir/another.txt").text == "Goodbye world!"
+        workingDir.parent == target.path
+        workingDir.name == 'repo'
+        target.file( 'repo/.git').assertIsDir()
+        target.file( 'repo/source.txt').text == 'Hello world!'
+        target.file( 'repo/dir/another.txt').text == 'Goodbye world!'
     }
 
-    def "update a cloned repository"() {
+    def 'update a cloned repository'() {
         given:
-        def target = tmpDir.file("workingDir")
-        gitVcs.populate(target, repoHead, repoSpec)
-        def newFile = repo.workTree.file("newFile.txt")
-        newFile << "I'm new!"
-        repo.commit("Add newFile.txt", newFile)
+        def target = tmpDir.file('versionDir')
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
+        def newFile = repo.workTree.file('newFile.txt')
+        newFile << 'I am new!'
+        repo.commit('Add newFile.txt', newFile)
         repoHead = GitVersionRef.from(repo.head)
 
         expect:
-        !target.file("newFile.txt").exists()
+        !target.file('repo/newFile.txt').exists()
 
         when:
-        gitVcs.populate(target, repoHead, repoSpec)
+        workingDir = gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        target.file("newFile.txt").exists()
+        workingDir.path == target.file('repo').path
+        target.file('repo/newFile.txt').exists()
     }
 
-    def "error if working dir is not a repository"() {
+    def 'error if working dir is not a repository'() {
         given:
-        def target = tmpDir.file("workingdir")
-        target.mkdirs()
-        target.file("child.txt").createNewFile()
+        def target = tmpDir.file('versionDir')
+        target.file('repo').mkdirs()
+        target.file('repo/child.txt').createNewFile()
 
         when:
         gitVcs.populate(target, repoHead, repoSpec)
@@ -119,22 +124,22 @@ class GitVersionControlSystemSpec extends Specification {
         thrown GradleException
 
         when:
-        target.file(".git").mkdir()
+        target.file('repo/.git').mkdir()
         gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         thrown GradleException
     }
 
-    def "error if working dir repo is missing the remote"() {
+    def 'error if working dir repo is missing the remote'() {
         given:
-        def target = tmpDir.file("workingDir")
+        def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
 
         // Commit a file to the repository
-        def textFile = repo2.workTree.file("other.txt")
-        textFile << "Hello world!"
-        repo2.commit("Initial Commit", textFile)
+        def textFile = repo2.workTree.file('other.txt')
+        textFile << 'Hello world!'
+        repo2.commit('Initial Commit', textFile)
         repoSpec.url = repo2.url
         repoHead = GitVersionRef.from(repo2.head)
 
@@ -145,7 +150,7 @@ class GitVersionControlSystemSpec extends Specification {
         thrown GradleException
     }
 
-    def "can get versions"() {
+    def 'can get versions'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)
         HashMap<String, String> versionMap = Maps.newHashMap()

@@ -22,7 +22,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.gradle.internal.UncheckedException;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.ExternalResource;
 
@@ -35,21 +34,21 @@ import java.util.Collection;
 
 public class GitRepository extends ExternalResource {
     private final String repoName;
-    private final TestDirectoryProvider temporaryFolder;
+    private final TestFile parentDirectory;
     private Git git;
 
-    public GitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
+    public GitRepository(String repoName, TestFile parentDirectory) {
         this.repoName = repoName;
-        this.temporaryFolder = temporaryFolder;
+        this.parentDirectory = parentDirectory;
     }
 
-    public GitRepository(TestDirectoryProvider temporaryFolder) {
-        this("repo", temporaryFolder);
+    public GitRepository(TestFile parentDirectory) {
+        this("repo", parentDirectory);
     }
 
     @Override
     protected void before() throws Throwable {
-        git = Git.init().setDirectory(temporaryFolder.getTestDirectory().file(repoName)).call();
+        git = Git.init().setDirectory(parentDirectory.file(repoName)).call();
     }
 
     @Override
