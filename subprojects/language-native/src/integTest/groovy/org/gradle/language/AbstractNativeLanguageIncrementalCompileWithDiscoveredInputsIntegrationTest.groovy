@@ -20,6 +20,10 @@ import spock.lang.Unroll
 
 abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
 
+    String getDiscoverInputsTask() {
+        ":discoverInputsFor${compileTask.substring(1).capitalize()}"
+    }
+
     @Unroll
     def "does not recompile when include path has #testCase"() {
         given:
@@ -52,6 +56,7 @@ abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsInteg
         run "mainExecutable"
 
         then:
+        executedAndNotSkipped discoverInputsTask
         skipped compileTask
 
         and:

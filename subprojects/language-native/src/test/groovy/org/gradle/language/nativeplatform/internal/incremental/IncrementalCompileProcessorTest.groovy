@@ -383,7 +383,7 @@ class IncrementalCompileProcessorTest extends Specification {
         1 * includesParser.parseIncludes(source1) >> includes
         1 * dependencyParser.resolveIncludes(source1, includes) >> resolveDeps([new ResolvedInclude("MACRO_DEF", null)] as Set)
 
-        result.sourceFilesUseMacroIncludes
+        result.macroIncludeUsedInSources
 
     }
 

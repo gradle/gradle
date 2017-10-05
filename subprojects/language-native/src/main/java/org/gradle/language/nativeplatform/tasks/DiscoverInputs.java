@@ -47,7 +47,6 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,8 +97,8 @@ public class DiscoverInputs extends DefaultTask {
 
     @TaskAction
     public void discoverInputs(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
-        final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        List<File> includeRoots = CollectionUtils.toList(includes);
+        IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
+        List<File> includeRoots = ImmutableList.copyOf(includes);
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
@@ -112,7 +111,7 @@ public class DiscoverInputs extends DefaultTask {
     private ImmutableSortedSet<File> collectDiscoveredInputs(List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
         final Set<File> discoveredInputs = new HashSet<File>();
         discoveredInputs.addAll(incrementalCompilation.getDiscoveredInputs());
-        if (incrementalCompilation.isSourceFilesUseMacroIncludes()) {
+        if (incrementalCompilation.isMacroIncludeUsedInSources()) {
             logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", getName());
             for (final File includeRoot : includeRoots) {
                 logger.info("adding files in {} to discovered inputs for {}", includeRoot, getName());

@@ -104,7 +104,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         install.exec().out == app.alternateOutput
     }
 
-    def "recompiles library and relinks executable with library source file change"() {
+    def "recompiles library and relinks executable after library source file change"() {
         given:
         run installApp
         maybeWait()

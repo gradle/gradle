@@ -64,10 +64,11 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped compileTask // This should be skipped!
-//        And nothing should be recompiled
-//        and:
-//        outputs.noneRecompiled()
+        // The compile task should be skipped instead!
+        executedAndNotSkipped compileTask
+        // And nothing should be recompiled
+        // and:
+        // outputs.noneRecompiled()
 
         where:
         testCase                       | headerDirs

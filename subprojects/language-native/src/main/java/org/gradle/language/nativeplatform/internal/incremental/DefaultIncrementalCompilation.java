@@ -24,14 +24,14 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> recompile;
     private final List<File> removed;
     private final Set<File> discoveredInputs;
-    private final boolean sourceFilesUseMacroIncludes;
+    private final boolean macroIncludesUsedInSources;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs, boolean sourceFilesUseMacroIncludes) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs, boolean macroIncludesUsedInSources) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
         this.discoveredInputs = discoveredInputs;
-        this.sourceFilesUseMacroIncludes = sourceFilesUseMacroIncludes;
+        this.macroIncludesUsedInSources = macroIncludesUsedInSources;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     }
 
     @Override
-    public boolean isSourceFilesUseMacroIncludes() {
-        return sourceFilesUseMacroIncludes;
+    public boolean isMacroIncludeUsedInSources() {
+        return macroIncludesUsedInSources;
     }
 }

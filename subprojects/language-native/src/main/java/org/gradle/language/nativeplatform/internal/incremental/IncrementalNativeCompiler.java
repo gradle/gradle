@@ -102,7 +102,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             discoveredInputRecorder.newInput(includeFile);
         }
 
-        if (compilation.isSourceFilesUseMacroIncludes()) {
+        if (compilation.isMacroIncludeUsedInSources()) {
             LOGGER.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
                 LOGGER.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
