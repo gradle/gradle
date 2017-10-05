@@ -95,7 +95,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     {
       "name": "api",
       "attributes": {
-        "usage": "api"
+        "org.gradle.api.attributes.Usage": "api"
       },
       "files": [
         {
@@ -107,7 +107,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     {
       "name": "runtime",
       "attributes": {
-        "usage": "runtime"
+        "org.gradle.api.attributes.Usage": "runtime"
       },
       "files": [
         {

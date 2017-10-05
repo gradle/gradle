@@ -19,6 +19,7 @@ package org.gradle.api.publish.internal;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -68,7 +69,8 @@ public class ModuleMetadataFileGenerator {
                 jsonWriter.value(variant.getUsage().getName());
                 jsonWriter.name("attributes");
                 jsonWriter.beginObject();
-                jsonWriter.name("usage");
+                // TODO - include correct attributes
+                jsonWriter.name(Usage.USAGE_ATTRIBUTE.getName());
                 jsonWriter.value(variant.getUsage().getName());
                 jsonWriter.endObject();
                 if (!variant.getArtifacts().isEmpty()) {
