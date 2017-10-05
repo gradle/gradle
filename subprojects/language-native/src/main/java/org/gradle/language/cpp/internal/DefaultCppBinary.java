@@ -19,17 +19,18 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.CppBinary;
@@ -45,7 +47,6 @@ import org.gradle.language.nativeplatform.internal.Names;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -212,30 +213,34 @@ public class DefaultCppBinary implements CppBinary {
                 // Collect up the external components in the result to resolve again to get the link artifact
                 configuration.getResolvedConfiguration().rethrowFailure();
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
-                Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
-                String libExtension = OperatingSystem.current().getLinkLibrarySuffix().substring(1);
                 for (ResolvedComponentResult component : components) {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        externalComponents.add(id);
                         // TODO - use the correct variant
                         String module = id.getModule() + "_debug";
                         // TODO - use naming scheme for target platform
                         DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
-                        mappedDependency.addArtifact(new DefaultDependencyArtifact(module, libExtension, libExtension, null, null));
                         mappedDependency.setTransitive(false);
                         externalDependencies.add(mappedDependency);
                     }
                 }
 
                 // Collect the files from anything other than an external component, use these directly in the result
-                ArtifactCollection artifacts = configuration.getIncoming().getArtifacts();
+                ArtifactCollection artifacts = configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                    @Override
+                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
+                            @Override
+                            public boolean isSatisfiedBy(ComponentIdentifier element) {
+                                return !(element instanceof ModuleComponentIdentifier);
+                            }
+                        });
+                    }
+                }).getArtifacts();
                 Set<File> files = new LinkedHashSet<File>();
                 for (ResolvedArtifactResult artifact : artifacts) {
-                    if (!externalComponents.contains(artifact.getId().getComponentIdentifier())) {
-                        files.add(artifact.getFile());
-                    }
+                    files.add(artifact.getFile());
                 }
 
                 // This is intentionally dumb and will improve later
@@ -244,6 +249,8 @@ public class DefaultCppBinary implements CppBinary {
                 // This is also broken when a runtime dependency is satisfied by an included build
                 if (!externalDependencies.isEmpty()) {
                     Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
+                    mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
+
                     // Rename the downloaded file to the expected name for the binary
                     for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
@@ -292,12 +299,10 @@ public class DefaultCppBinary implements CppBinary {
                 // Collect up the external components in the result to resolve again to get the link artifact
                 configuration.getResolvedConfiguration().rethrowFailure();
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
-                Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
                 for (ResolvedComponentResult component : components) {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        externalComponents.add(id);
                         // TODO - use the correct variant
                         String module = id.getModule() + "_debug";
                         // TODO - use naming scheme for target platform
@@ -307,12 +312,20 @@ public class DefaultCppBinary implements CppBinary {
                 }
 
                 // Collect the files from anything other than an external component, use these directly in the result
-                ArtifactCollection artifacts = configuration.getIncoming().getArtifacts();
+                ArtifactCollection artifacts = configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                    @Override
+                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
+                            @Override
+                            public boolean isSatisfiedBy(ComponentIdentifier element) {
+                                return !(element instanceof ModuleComponentIdentifier);
+                            }
+                        });
+                    }
+                }).getArtifacts();
                 Set<File> files = new LinkedHashSet<File>();
                 for (ResolvedArtifactResult artifact : artifacts) {
-                    if (!externalComponents.contains(artifact.getId().getComponentIdentifier())) {
-                        files.add(artifact.getFile());
-                    }
+                    files.add(artifact.getFile());
                 }
 
                 // This is intentionally dumb and will improve later
@@ -335,19 +348,18 @@ public class DefaultCppBinary implements CppBinary {
                     mappedConfiguration.getResolvedConfiguration().rethrowFailure();
                     Set<ResolvedComponentResult> runtimeComponents = mappedConfiguration.getIncoming().getResolutionResult().getAllComponents();
                     List<Dependency> artifactDependencies = new ArrayList<Dependency>();
-                    String libExtension = OperatingSystem.current().getSharedLibrarySuffix().substring(1);
                     for (ResolvedComponentResult component : runtimeComponents) {
                         if (!(component.getId() instanceof ModuleComponentIdentifier)) {
                             continue;
                         }
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
                         DefaultExternalModuleDependency artifactDependency = new DefaultExternalModuleDependency(id.getGroup(), id.getModule(), id.getVersion());
-                        artifactDependency.addArtifact(new DefaultDependencyArtifact(id.getModule(), libExtension, libExtension, null, null));
                         artifactDependency.setTransitive(false);
                         artifactDependencies.add(artifactDependency);
                     }
 
                     mappedConfiguration = configurations.detachedConfiguration(artifactDependencies.toArray(new Dependency[0]));
+                    mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
 
                     // Rename the downloaded file to the expected name for the binary
                     for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
