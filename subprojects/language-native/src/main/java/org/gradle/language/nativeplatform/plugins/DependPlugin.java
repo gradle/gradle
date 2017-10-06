@@ -61,8 +61,9 @@ public class DependPlugin implements Plugin<Project> {
         @Override
         public void execute(final AbstractNativeCompileTask compile) {
             String compileTaskName = compile.getName();
-            String dependTaskName = "depend" + (compileTaskName.startsWith("compile") ?
-                compileTaskName.substring("compile".length()) : capitalize(compileTaskName));
+            String dependTaskName = "depend" + (
+                compileTaskName.startsWith("compile") ? compileTaskName.substring("compile".length()) : capitalize(compileTaskName)
+            );
             Depend depend = project.getTasks().create(dependTaskName, Depend.class);
             depend.source(compile.getSource());
             depend.includes(compile.getIncludes());
