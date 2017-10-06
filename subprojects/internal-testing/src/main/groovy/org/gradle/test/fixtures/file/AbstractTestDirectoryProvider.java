@@ -99,8 +99,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                     });
                 }
             } catch (Exception e) {
-                String message = "Couldn't delete test dir for " + displayName + " (test is holding files open). " +
-                    "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
+                String message = "Couldn't delete test dir for " + displayName + " (test is holding files open). "
+                    + "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
                 if (suppressCleanupErrors) {
                     System.err.println(message);
                     e.printStackTrace(System.err);
