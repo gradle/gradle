@@ -8,6 +8,24 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getBootstrapClasspath()",
+            "acceptation": "Replaces bootClasspath property"
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setBootstrapClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "Replaces bootClasspath property"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskFilePropertyBuilder",
+            "member": "Method org.gradle.api.tasks.TaskFilePropertyBuilder.withPropertyName(java.lang.String)",
+            "acceptation": "This method has been present on the super-interface since 3.0. In 4.3, we removed the super-interface declaration. It now inherits @since 3.1 from its class.",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }

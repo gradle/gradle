@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -64,9 +62,6 @@ public interface CompatibilityAdapterForTaskInputs {
      *
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.
-     *
-     * @since 4.3
      */
-    @Incubating
     TaskInputs property(String name, @Nullable Object value);
 }
