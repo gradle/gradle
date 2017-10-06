@@ -23,7 +23,6 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -31,23 +30,28 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class LoggingConfigurationBuildOptionFactory implements Factory<List<BuildOption<LoggingConfiguration>>> {
+public class LoggingConfigurationBuildOptions {
 
-    private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
+    private static List<BuildOption<LoggingConfiguration>> options;
 
-    public LoggingConfigurationBuildOptionFactory() {
+    static {
+        List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
         options.add(new LogLevelOption());
         options.add(new StacktraceOption());
         options.add(new ConsoleOption());
+        LoggingConfigurationBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    @Override
-    public List<BuildOption<LoggingConfiguration>> create() {
+    public static List<BuildOption<LoggingConfiguration>> get() {
         return options;
+    }
+
+    private LoggingConfigurationBuildOptions() {
     }
 
     public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration> {

@@ -18,7 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import org.gradle.initialization.ParallelismBuildOptionFactory
+import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 @CompileStatic
@@ -161,7 +161,7 @@ class GradleInvocationSpec implements InvocationSpec {
         }
 
         InvocationBuilder disableParallelWorkers() {
-            gradleOpts("-D${ParallelismBuildOptionFactory.MaxWorkersOption.GRADLE_PROPERTY}=1")
+            gradleOpts("-D${ParallelismBuildOptions.MaxWorkersOption.GRADLE_PROPERTY}=1")
         }
 
         InvocationBuilder useProfiler() {

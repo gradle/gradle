@@ -95,14 +95,14 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
 
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-        final Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(application.getImplementationDependencies());
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        final Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(application.getImplementationDependencies());
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);

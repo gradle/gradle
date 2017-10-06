@@ -16,60 +16,84 @@
 
 package org.gradle.binarycompatibility.rules
 
+import com.github.javaparser.JavaParser
+import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.visitor.GenericVisitorAdapter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
+import japicmp.model.JApiField
 import japicmp.model.JApiHasAnnotations
 import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
+import org.gradle.util.GradleVersion
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
 
     private final Map<ApiChange, String> acceptedApiChanges
+    private final currentVersion
 
     AbstractGradleViolationRule(Map<String, String> acceptedApiChanges) {
         this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges)
+        this.currentVersion = GradleVersion.current().baseVersion.version
     }
 
     private static boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {
         member.annotations*.fullyQualifiedName.any { it == 'org.gradle.api.Incubating' }
     }
 
-    static boolean isIncubating(JApiHasAnnotations member) {
+    boolean isIncubating(JApiHasAnnotations member) {
         if (member instanceof JApiClass) {
             return isIncubating((JApiClass) member)
         } else if (member instanceof JApiMethod) {
-            return isIncubating((JApiMethod) member)
+            return isIncubatingOrOverride((JApiMethod) member)
+        } else if (member instanceof JApiMethod) {
+            return isIncubating((JApiField) member)
         }
         return isAnnotatedWithIncubating(member)
     }
 
-    static boolean isIncubating(JApiClass clazz) {
-        if (isAnnotatedWithIncubating(clazz)) {
-            return true
-        }
-        // all the methods need to be incubating
-        List<JApiMethod> methods = clazz.methods
-        if (methods.empty) {
-            return false
-        }
-        for (JApiMethod method : methods) {
-            if (!isIncubating(method)) {
-                return false
+    boolean isIncubating(JApiClass clazz) {
+        return isAnnotatedWithIncubating(clazz)
+    }
+
+    boolean isIncubating(JApiField field) {
+        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass)
+    }
+
+    boolean isIncubatingOrOverride(JApiMethod method) {
+        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method)
+    }
+
+    boolean isOverride(JApiMethod method) {
+        // @Override has source retention - so we need to peek into the sources
+        def visitor = new GenericVisitorAdapter<Object, Void>() {
+            @Override
+            Object visit(MethodDeclaration declaration, Void arg) {
+                if (declaration.name == method.name && declaration.annotations.any { it.name.name == "Override" } ) {
+                    return new Object()
+                }
+                return null
             }
         }
-        return true
+        return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
     }
 
-    static boolean isIncubating(JApiMethod method) {
-        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass)
+    File sourceFileFor(String className) {
+        List<String> sourceFolders = context.userData.get("apiSourceFolders") as List<String>
+        for (String sourceFolder : sourceFolders) {
+            def sourceFile = new File("$sourceFolder/${className.replace('.', '/')}.java")
+            if (sourceFile.exists()) {
+                return sourceFile
+            }
+        }
+        throw new RuntimeException("No source file found for: $className")
     }
-
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
@@ -108,4 +132,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return violation
     }
 
+    String getCurrentVersion() {
+        return currentVersion
+    }
 }

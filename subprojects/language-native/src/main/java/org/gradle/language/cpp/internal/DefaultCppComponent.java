@@ -55,7 +55,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = providerFactory.property(String.class);
 
         names = Names.of(name);
-        implementation = configurations.create(names.withSuffix("implementation"));
+        implementation = configurations.maybeCreate(names.withSuffix("implementation"));
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
     }

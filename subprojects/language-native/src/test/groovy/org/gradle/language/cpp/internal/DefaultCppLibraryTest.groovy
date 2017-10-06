@@ -36,8 +36,8 @@ class DefaultCppLibraryTest extends Specification {
     DefaultCppLibrary library
 
     def setup() {
-        _ * configurations.create("api") >> api
-        _ * configurations.create(_) >> Stub(TestConfiguration)
+        _ * configurations.maybeCreate("api") >> api
+        _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
         library = new DefaultCppLibrary("main", TestUtil.objectFactory(), fileOperations, providerFactory, configurations)
     }
 

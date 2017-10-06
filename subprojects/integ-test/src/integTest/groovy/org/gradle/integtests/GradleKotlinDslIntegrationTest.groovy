@@ -57,6 +57,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can apply Groovy script from url'() {
         given:
+        executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
         HttpServer server = new HttpServer()
         server.start()
 
@@ -93,6 +94,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can apply Kotlin script from url'() {
         given:
+        executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
         HttpServer server = new HttpServer()
         server.start()
 

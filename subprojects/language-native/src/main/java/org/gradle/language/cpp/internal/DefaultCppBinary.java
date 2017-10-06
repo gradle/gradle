@@ -68,17 +68,17 @@ public class DefaultCppBinary implements CppBinary {
         Names names = Names.of(name);
 
         // TODO - reduce duplication with Swift binary
-        Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
+        Configuration includePathConfig = configurations.maybeCreate(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
+        Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
+        Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
