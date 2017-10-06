@@ -155,7 +155,11 @@ public class InstallExecutable extends DefaultTask {
         this.executable.set(executable);
     }
 
-    // Workaround for when the task is given an input file that doesn't exist
+    /**
+     * Workaround for when the task is given an input file that doesn't exist
+     *
+     * @since 4.3
+     */
     @SkipWhenEmpty
     @Optional
     @InputFile

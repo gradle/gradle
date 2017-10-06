@@ -175,6 +175,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return debug;
     }
 
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.3
+     */
     public void setDebuggable(boolean debug) {
         this.debug = debug;
     }
@@ -189,6 +194,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return optimize;
     }
 
+    /**
+     * Should the compiler generate optimized code?
+     *
+     * @since 4.3
+     */
     public void setOptimized(boolean optimize) {
         this.optimize = optimize;
     }
