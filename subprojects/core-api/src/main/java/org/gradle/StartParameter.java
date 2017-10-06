@@ -750,6 +750,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", interactive=" + interactive
             + '}';
     }
 
