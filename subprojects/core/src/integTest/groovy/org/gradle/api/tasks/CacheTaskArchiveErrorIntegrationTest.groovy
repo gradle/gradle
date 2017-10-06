@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import spock.lang.Unroll
+
+import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
 
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -214,7 +217,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         cacheFiles.size() == 1
 
         when:
-        file("build").deleteDir()
+        cleanBuildDir()
 
         and:
         executer.withStackTraceChecksDisabled()
@@ -232,6 +235,33 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         succeeds("cacheable")
     }
 
+    @Unroll
+    def "local state declared via #api API is destroyed when task fails to load from cache"() {
+        def localStateFile = file("local-state.json")
+        buildFile << defineTaskWithLocalState(useRuntimeApi)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        localStateFile.assertIsFile()
+
+        when:
+        cleanBuildDir()
+        executer.withStackTraceChecksDisabled()
+        corruptMetadata({ metadata -> metadata.text = "corrupt" })
+        succeeds "customTask", "-PassertNoLocalState"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi << [true, false]
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    private TestFile cleanBuildDir() {
+        file("build").deleteDir()
+    }
 
     def corruptMetadata(Closure corrupter) {
         def cacheFiles = listCacheFiles()

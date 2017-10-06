@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -950,7 +951,13 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     private TaskDestroyables emptyTaskDestroys() {
         Mock(TaskDestroyablesInternal) {
-            getFilesReadOnly() >> []
+            getFiles() >> root.files()
+        }
+    }
+
+    private TaskLocalStateInternal emptyTaskLocalState() {
+        Mock(TaskLocalStateInternal) {
+            getFiles() >> root.files()
         }
     }
 
@@ -963,6 +970,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
+        task.getLocalState() >> emptyTaskLocalState()
         return task
     }
 
@@ -996,6 +1004,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         }
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
+        task.getLocalState() >> emptyTaskLocalState()
         return task;
     }
 }
