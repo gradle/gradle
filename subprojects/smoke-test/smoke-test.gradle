@@ -30,6 +30,8 @@ dependencies {
     smokeTestRuntimeOnly project(':toolingApiBuilders')
 }
 
+useTestFixtures(project: ":versionControl")
+
 processSmokeTestResources {
     from ("$rootDir/gradle") {
         into "org/gradle/smoketests/cache-init-scripts"
