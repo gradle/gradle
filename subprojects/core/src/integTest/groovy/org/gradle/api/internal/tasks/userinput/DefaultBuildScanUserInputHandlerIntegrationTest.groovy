@@ -22,9 +22,6 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
-    private static final String YES = 'yes'
-    private static final String NO = 'no'
-    private static final String PROMPT = "Accept license? [$YES, $NO]"
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
 
     def setup() {

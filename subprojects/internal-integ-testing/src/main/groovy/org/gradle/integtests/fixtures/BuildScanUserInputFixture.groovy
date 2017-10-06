@@ -19,6 +19,11 @@ package org.gradle.integtests.fixtures
 final class BuildScanUserInputFixture {
 
     public static final String DUMMY_TASK_NAME = 'doSomething'
+    public static final String QUESTION = "Accept license?"
+    public static final String YES = 'yes'
+    public static final String NO = 'no'
+    public static final String PROMPT = "$QUESTION [$YES, $NO]"
+    private static final String ANSWER_PREFIX = 'License accepted:'
 
     private BuildScanUserInputFixture() {}
 
@@ -34,8 +39,8 @@ final class BuildScanUserInputFixture {
                 @Override
                 public void apply(Project project) {
                     BuildScanUserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(BuildScanUserInputHandler.class);
-                    Boolean accepted = userInputHandler.askYesNoQuestion("Accept license?");
-                    System.out.println("License accepted: " + accepted);
+                    Boolean accepted = userInputHandler.askYesNoQuestion("$QUESTION");
+                    System.out.println("$ANSWER_PREFIX " + accepted);
                 }
             }
         """
@@ -50,6 +55,6 @@ final class BuildScanUserInputFixture {
     }
 
     static String answerOutput(Boolean answer) {
-        "License accepted: $answer"
+        "$ANSWER_PREFIX $answer"
     }
 }
