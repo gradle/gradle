@@ -16,17 +16,71 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Factory;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
+import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Set;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory {
+    private final CacheRepository cacheRepository;
+
+    DefaultVersionControlSystemFactory(CacheRepository cacheRepository) {
+        this.cacheRepository = cacheRepository;
+    }
+
     @Override
     public VersionControlSystem create(VersionControlSpec spec) {
         // TODO: Register these mappings somewhere
+        VersionControlSystem vcs;
         if (spec instanceof DirectoryRepositorySpec) {
-            return new SimpleVersionControlSystem();
+            vcs = new SimpleVersionControlSystem();
+        } else {
+            vcs = new GitVersionControlSystem();
         }
-        return new GitVersionControlSystem();
+        return new LockingVersionControlSystem(vcs, cacheRepository);
+    }
+
+    private static final class LockingVersionControlSystem implements VersionControlSystem {
+        private final VersionControlSystem delegate;
+        private final CacheRepository cacheRepository;
+
+        private LockingVersionControlSystem(VersionControlSystem delegate, CacheRepository cacheRepository) {
+            this.delegate = delegate;
+            this.cacheRepository = cacheRepository;
+        }
+
+        @Override
+        public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+            return delegate.getAvailableVersions(spec);
+        }
+
+        @Override
+        public File populate(final File versionDir, final VersionRef ref, final VersionControlSpec spec) {
+            PersistentCache cache = cacheRepository
+                .cache(versionDir)
+                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                .open();
+            try {
+                return cache.useCache(new Factory<File>() {
+                    @Nullable
+                    @Override
+                    public File create() {
+                        return delegate.populate(versionDir, ref, spec);
+                    }
+                });
+            } finally {
+                cache.close();
+            }
+        }
     }
 }

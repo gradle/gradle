@@ -51,7 +51,7 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
 
     @Override
     public String getUniqueId() {
-        return getUrl().toASCIIString();
+        return "git-repo:" + getUrl().toASCIIString();
     }
 
     @Override
