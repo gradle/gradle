@@ -19,6 +19,7 @@ package org.gradle.binarycompatibility.rules;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiField;
+import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 
@@ -33,6 +34,9 @@ public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
         if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass) {
+            if (!isIncubatingOrDeprecated((JApiHasAnnotations) member)) {
+                return null;
+            }
             if (member instanceof JApiMethod && isOverride((JApiMethod) member)) {
                 return null;
             }

@@ -44,6 +44,9 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
         if (member instanceof JApiMethod && !isOverride((JApiMethod) member)) {
             final JApiMethod method = (JApiMethod) member;
+            if (isDeprecated(method)) {
+                return null;
+            }
             className = method.getjApiClass().getFullyQualifiedName();
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
@@ -63,6 +66,9 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             };
         } else if (member instanceof JApiField) {
             final JApiField field = (JApiField) member;
+            if (isDeprecated(field)) {
+                return null;
+            }
             className = field.getjApiClass().getFullyQualifiedName();
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
@@ -89,6 +95,9 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             };
         } else if (member instanceof JApiClass) {
             final JApiClass clazz = (JApiClass) member;
+            if (isDeprecated(clazz)) {
+                return null;
+            }
             className = clazz.getFullyQualifiedName();
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
@@ -108,7 +117,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
         try {
             Object result = JavaParser.parse(sourceFileFor(className)).accept(visitor, null);
             if (result == null) {
-                return Violation.error(member, "Is not annotated with @since " + getCurrentVersion());
+                return acceptOrReject(member, Violation.error(member, "Is not annotated with @since " + getCurrentVersion()));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -30,7 +31,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class MinimalJavaCompileOptions implements Serializable {
-    private FileCollection sourcepath;
+    private List<File> sourcepath;
     private List<String> compilerArgs;
     private String encoding;
     private String bootClasspath;
@@ -46,7 +47,8 @@ public class MinimalJavaCompileOptions implements Serializable {
     private File annotationProcessorGeneratedSourcesDirectory;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
-        this.sourcepath = compileOptions.getSourcepath();
+        FileCollection sourcepath = compileOptions.getSourcepath();
+        this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
         this.compilerArgs = Lists.newArrayList(compileOptions.getCompilerArgs());
         this.encoding = compileOptions.getEncoding();
         this.bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
@@ -69,11 +71,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
     }
 
-    public FileCollection getSourcepath() {
+    public List<File> getSourcepath() {
         return sourcepath;
     }
 
-    public void setSourcepath(FileCollection sourcepath) {
+    public void setSourcepath(List<File> sourcepath) {
         this.sourcepath = sourcepath;
     }
 

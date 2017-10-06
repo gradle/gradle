@@ -288,7 +288,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Incubating
     @Optional
     @CompileClasspath
     public FileCollection getBootstrapClasspath() {
@@ -300,7 +299,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Incubating
     public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
         this.bootstrapClasspath = bootstrapClasspath;
     }

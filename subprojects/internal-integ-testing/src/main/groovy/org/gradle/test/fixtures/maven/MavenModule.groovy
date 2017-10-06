@@ -95,6 +95,8 @@ interface MavenModule extends Module {
 
     TestFile getArtifactFile()
 
+    TestFile getArtifactFile(Map options)
+
     TestFile getMetaDataFile()
 
     MavenPom getParsedPom()

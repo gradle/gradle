@@ -94,10 +94,13 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output: namedOutputDirectories.two [outputs-two]"
         output.contains "Output: namedOutputFiles.one [output-one.txt]"
         output.contains "Output: namedOutputFiles.two [output-two.txt]"
-        output.contains "Output: nested.outputFiles [output-nested-1.txt, output-nested-2.txt]"
-        output.contains "Output: outputDirectories [outputs1, outputs2]"
+        output.contains 'Output: nested.outputFiles$1 [output-nested-1.txt]'
+        output.contains 'Output: nested.outputFiles$2 [output-nested-2.txt]'
+        output.contains 'Output: outputDirectories$1 [outputs1]'
+        output.contains 'Output: outputDirectories$2 [outputs2]'
         output.contains "Output: outputDirectory [outputs]"
         output.contains "Output: outputFile [output.txt]"
-        output.contains "Output: outputFiles [output1.txt, output2.txt]"
+        output.contains 'Output: outputFiles$1 [output1.txt]'
+        output.contains 'Output: outputFiles$2 [output2.txt]'
     }
 }

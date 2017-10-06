@@ -33,8 +33,6 @@ public interface TaskFilePropertyBuilder extends TaskPropertyBuilder {
      *
      * <p>If the method is not called, or if it is called with {@code null}, a name
      * will be assigned to the property automatically.</p>
-     *
-     * @since 4.3
      */
     TaskFilePropertyBuilder withPropertyName(String propertyName);
 }

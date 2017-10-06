@@ -47,27 +47,43 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         member.annotations*.fullyQualifiedName.any { it == 'org.gradle.api.Incubating' }
     }
 
-    boolean isIncubating(JApiHasAnnotations member) {
+    private static boolean isAnnotatedWithDeprecated(JApiHasAnnotations member) {
+        member.annotations*.fullyQualifiedName.any { it == 'java.lang.Deprecated'}
+    }
+
+    boolean isIncubatingOrDeprecated(JApiHasAnnotations member) {
         if (member instanceof JApiClass) {
-            return isIncubating((JApiClass) member)
+            return isIncubatingOrDeprecated((JApiClass) member)
         } else if (member instanceof JApiMethod) {
-            return isIncubatingOrOverride((JApiMethod) member)
-        } else if (member instanceof JApiMethod) {
-            return isIncubating((JApiField) member)
+            return isIncubatingOrDeprecatedOrOverride((JApiMethod) member)
+        } else if (member instanceof JApiField) {
+            return isIncubatingOrDeprecated((JApiField) member)
         }
         return isAnnotatedWithIncubating(member)
     }
 
-    boolean isIncubating(JApiClass clazz) {
-        return isAnnotatedWithIncubating(clazz)
+    boolean isIncubatingOrDeprecated(JApiClass clazz) {
+        return isAnnotatedWithIncubating(clazz) || isAnnotatedWithDeprecated(clazz)
     }
 
-    boolean isIncubating(JApiField field) {
-        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass)
+    boolean isIncubatingOrDeprecated(JApiField field) {
+        return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass) || isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
     }
 
-    boolean isIncubatingOrOverride(JApiMethod method) {
-        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method)
+    boolean isIncubatingOrDeprecatedOrOverride(JApiMethod method) {
+        return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method) || isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
+    }
+
+    boolean isDeprecated(JApiClass clazz) {
+        return isAnnotatedWithDeprecated(clazz)
+    }
+
+    boolean isDeprecated(JApiField field) {
+        return isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
+    }
+
+    boolean isDeprecated(JApiMethod method) {
+        return isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
     }
 
     boolean isOverride(JApiMethod method) {
@@ -106,7 +122,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         String acceptationReason = acceptedApiChanges[change]
         if (acceptationReason != null) {
             seenApiChanges.add(change)
-            return Violation.accept(member, acceptationReason)
+            return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
         }
         def acceptanceJson = new LinkedHashMap<String, Object>([
             type: change.type,
@@ -120,7 +136,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
-            rejection.getHumanExplanation() + """
+            rejection.getHumanExplanation() + """. If you did this intentionally, you need to accept the change and explain yourself:
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#${id}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="${id}">
                   <div class="well">
