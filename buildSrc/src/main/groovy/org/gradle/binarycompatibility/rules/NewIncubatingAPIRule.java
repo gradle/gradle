@@ -16,44 +16,29 @@
 
 package org.gradle.binarycompatibility.rules;
 
-import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiClass;
 import japicmp.model.JApiField;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
-public class IncubatingMissingRule extends AbstractGradleViolationRule {
+public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
 
-    public IncubatingMissingRule(Map<String, String> acceptedViolations) {
+    public NewIncubatingAPIRule(Map<String, String> acceptedViolations) {
         super(acceptedViolations);
     }
 
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
-        if (member instanceof JApiMethod) {
-            JApiMethod method = (JApiMethod) member;
-            if (!isIncubatingOrOverride(method)) {
-                return violationError(member);
+        if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass) {
+            if (member instanceof JApiMethod && isOverride((JApiMethod) member)) {
+                return null;
             }
-        }
-        if (member instanceof JApiField) {
-            JApiField field = (JApiField) member;
-            if (!isIncubating(field)) {
-                return violationError(member);
-            }
-        }
-        if (member instanceof JApiClass) {
-            JApiClass clazz = (JApiClass) member;
-            if (!isIncubating(clazz)) {
-                return violationError(member);
-            }
+            return Violation.info(member, "New public API in " + getCurrentVersion() + " (@Incubating)");
         }
         return null;
     }
 
-    private Violation violationError(JApiCompatibility member) {
-        return Violation.error(member, "Is not annotated with @Incubating");
-    }
 }
