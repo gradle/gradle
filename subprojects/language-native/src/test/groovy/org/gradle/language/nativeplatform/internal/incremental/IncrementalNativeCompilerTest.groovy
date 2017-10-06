@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -22,7 +23,6 @@ import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.nativeplatform.internal.DefaultHeaderDependenciesCollector
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.nativeplatform.toolchain.NativeToolChain
@@ -114,13 +114,13 @@ class IncrementalNativeCompilerTest extends Specification {
         def compilation = Mock(IncrementalCompilation)
         def taskInputs = Mock(DiscoveredInputRecorder)
         def includedFile = temporaryFolder.file("include")
-        compilation.discoveredInputs >> [includedFile ]
+        compilation.discoveredInputs >> [includedFile]
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
 
         then:
-        1 * taskInputs.newInput(includedFile)
+        1 * taskInputs.newInputs(ImmutableSet.of(includedFile))
         1 * spec.getIncludeRoots() >> []
         0 * spec._
     }
@@ -148,8 +148,7 @@ class IncrementalNativeCompilerTest extends Specification {
         1 * spec.getIncludeRoots() >> includeRoots
         0 * spec._
 
-        1 * taskInputs.newInput(includedFile)
-        1 * taskInputs.newInput(notIncludedFile)
+        1 * taskInputs.newInputs(ImmutableSet.of(includedFile, notIncludedFile))
         0 * taskInputs._
     }
 }

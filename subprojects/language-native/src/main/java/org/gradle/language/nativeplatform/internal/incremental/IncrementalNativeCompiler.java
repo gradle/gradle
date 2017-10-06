@@ -26,7 +26,6 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
@@ -91,9 +90,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
         ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getTask().getName(), spec.getIncludeRoots(), compilation);
-        for (File headerDependency : headerDependencies) {
-            discoveredInputRecorder.newInput(headerDependency);
-        }
+        discoveredInputRecorder.newInputs(headerDependencies);
     }
 
     private Map<File, IncludeDirectives> mapIncludes(Collection<File> files, final CompilationState compilationState) {

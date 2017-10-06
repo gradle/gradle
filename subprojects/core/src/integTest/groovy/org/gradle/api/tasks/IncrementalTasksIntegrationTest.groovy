@@ -82,7 +82,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             [ 'discovered/file0.txt', 'discovered/file1.txt', 'discovered/file2.txt', 'discoveredDir' ].each { fileName ->
                 def discoveredInput = project.file(fileName)
                 if (discoveredInput.exists()) {
-                    inputs.newInput(discoveredInput)
+                    inputs.newInputs([discoveredInput])
                 }
             }
 

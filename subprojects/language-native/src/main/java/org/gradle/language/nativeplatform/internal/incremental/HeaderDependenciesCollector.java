@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilation;
 
 import java.io.File;
 import java.util.List;

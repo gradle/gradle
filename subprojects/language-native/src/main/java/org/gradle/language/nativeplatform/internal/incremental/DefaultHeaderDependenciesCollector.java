@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

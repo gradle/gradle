@@ -36,12 +36,12 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.language.nativeplatform.internal.DefaultHeaderDependenciesCollector;
-import org.gradle.language.nativeplatform.internal.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
+import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultSourceIncludesParser;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultSourceIncludesResolver;
+import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilation;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileFilesFactory;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
@@ -100,14 +100,8 @@ public class Depend extends DefaultTask {
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
         ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getName(), includeRoots, incrementalCompilation);
 
-        addDiscoveredInputsToTask(inputs, headerDependencies);
+        inputs.newInputs(headerDependencies);
         writeHeaderDependenciesFile(headerDependencies);
-    }
-
-    private void addDiscoveredInputsToTask(IncrementalTaskInputsInternal inputs, ImmutableSortedSet<File> headerDependencies) {
-        for (File header : headerDependencies) {
-            inputs.newInput(header);
-        }
     }
 
     private void writeHeaderDependenciesFile(ImmutableSortedSet<File> headerDependencies) throws IOException {
