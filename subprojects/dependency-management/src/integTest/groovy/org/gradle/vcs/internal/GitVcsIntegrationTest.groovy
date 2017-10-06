@@ -25,6 +25,10 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
 
+    def setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
     def 'can define and use source repositories'() {
         def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
 
@@ -50,13 +54,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     def 'can define and use source repositories with initscript resolution present'() {
         given:
         using m2
-        requireOwnGradleUserHomeDir()
         m2.mavenRepo().module('group', 'projectA', '1.2').publish()
         def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
         temporaryFolder.file('initialize.gradle') << """
         initscript {
             repositories {
-                mavenLocal()
+                maven { url = '${m2.mavenRepo().uri}' }
             }
             
             dependencies {
