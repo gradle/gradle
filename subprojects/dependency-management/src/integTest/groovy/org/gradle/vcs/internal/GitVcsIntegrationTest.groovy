@@ -19,12 +19,14 @@ package org.gradle.vcs.internal
 import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
+import spock.lang.Issue
 
 class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
 
     def 'can define and use source repositories'() {
+        given:
         def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
 
         settingsFile << """
@@ -40,6 +42,38 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds('assemble')
+        // Git repo is cloned
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+    }
+
+    @Issue('gradle/gradle-native#206')
+    def 'can define and use source repositories with initscript resolution present'() {
+        given:
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        temporaryFolder.file('initialize.gradle') << """
+        initscript {            
+            dependencies {
+                classpath files('classpath.file')
+            }
+        }
+        allprojects { p ->
+            println "Initialization of \${p}"
+        }
+        """
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds('assemble', '-I', 'initialize.gradle')
         // Git repo is cloned
         def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
         gitCheckout.file('.git').assertExists()
