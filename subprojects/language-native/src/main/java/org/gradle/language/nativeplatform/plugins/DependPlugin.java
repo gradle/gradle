@@ -67,7 +67,7 @@ public class DependPlugin implements Plugin<Project> {
             Depend depend = project.getTasks().create(dependTaskName, Depend.class);
             depend.source(compile.getSource());
             depend.includes(compile.getIncludes());
-            depend.getDiscoveredInputs().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
+            depend.getHeaderDependenciesFile().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
             depend.getImportsAreIncludes().set(project.provider(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
@@ -75,7 +75,7 @@ public class DependPlugin implements Plugin<Project> {
                     return Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
                 }
             }));
-            compile.getHeaderDependenciesFile().set(depend.getDiscoveredInputs());
+            compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
         }
     }
 }

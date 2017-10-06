@@ -75,7 +75,7 @@ public class Depend extends DefaultTask {
     private final ConfigurableFileCollection source;
     private ImmutableList<String> includePaths;
     private PropertyState<Boolean> importsAreIncludes;
-    private final RegularFileVar discoveredInputs;
+    private final RegularFileVar headerDependenciesFile;
 
     private CSourceParser sourceParser;
     private final FileHasher hasher;
@@ -90,7 +90,7 @@ public class Depend extends DefaultTask {
         this.includes = getProject().files();
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
-        this.discoveredInputs = newOutputFile();
+        this.headerDependenciesFile = newOutputFile();
         this.importsAreIncludes = getProject().property(Boolean.class);
         dependsOn(includes);
     }
@@ -102,42 +102,42 @@ public class Depend extends DefaultTask {
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
-        ImmutableSortedSet<File> discoveredInputs = collectDiscoveredInputs(includeRoots, incrementalCompilation);
+        ImmutableSortedSet<File> headerDependencies = collectHeaderDependencies(includeRoots, incrementalCompilation);
 
-        addDiscoveredInputsToTask(inputs, discoveredInputs);
-        writeDiscoveredInputsToFile(discoveredInputs);
+        addDiscoveredInputsToTask(inputs, headerDependencies);
+        writeHeaderDependenciesFile(headerDependencies);
     }
 
-    private ImmutableSortedSet<File> collectDiscoveredInputs(List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
-        final Set<File> discoveredInputs = new HashSet<File>();
-        discoveredInputs.addAll(incrementalCompilation.getDiscoveredInputs());
+    private ImmutableSortedSet<File> collectHeaderDependencies(List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+        final Set<File> headerDependencies = new HashSet<File>();
+        headerDependencies.addAll(incrementalCompilation.getDiscoveredInputs());
         if (incrementalCompilation.isMacroIncludeUsedInSources()) {
-            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", getName());
+            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered a header dependency.", getName());
             for (final File includeRoot : includeRoots) {
-                logger.info("adding files in {} to discovered inputs for {}", includeRoot, getName());
+                logger.info("adding files in {} to header dependencies for {}", includeRoot, getName());
                 directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
                     @Override
                     public void visitFile(FileVisitDetails fileDetails) {
-                        discoveredInputs.add(fileDetails.getFile());
+                        headerDependencies.add(fileDetails.getFile());
                     }
                 });
             }
         }
-        return ImmutableSortedSet.copyOf(discoveredInputs);
+        return ImmutableSortedSet.copyOf(headerDependencies);
     }
 
-    private void addDiscoveredInputsToTask(IncrementalTaskInputsInternal inputs, ImmutableSortedSet<File> discoveredInputs) {
-        for (File discoveredInput : discoveredInputs) {
-            inputs.newInput(discoveredInput);
+    private void addDiscoveredInputsToTask(IncrementalTaskInputsInternal inputs, ImmutableSortedSet<File> headerDependencies) {
+        for (File header : headerDependencies) {
+            inputs.newInput(header);
         }
     }
 
-    private void writeDiscoveredInputsToFile(ImmutableSortedSet<File> discoveredInputs) throws IOException {
-        File outputFile = getDiscoveredInputs().getAsFile().get();
+    private void writeHeaderDependenciesFile(ImmutableSortedSet<File> headerDependencies) throws IOException {
+        File outputFile = getHeaderDependenciesFile().getAsFile().get();
         final BufferedWriter outputStreamWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), Charsets.UTF_8));
         try {
-            for (File discoveredInput : discoveredInputs) {
-                outputStreamWriter.write(discoveredInput.getAbsolutePath());
+            for (File header : headerDependencies) {
+                outputStreamWriter.write(header.getAbsolutePath());
                 outputStreamWriter.newLine();
             }
         } finally {
@@ -190,8 +190,8 @@ public class Depend extends DefaultTask {
     }
 
     @OutputFile
-    public RegularFileVar getDiscoveredInputs() {
-        return discoveredInputs;
+    public RegularFileVar getHeaderDependenciesFile() {
+        return headerDependenciesFile;
     }
 
     @Input
