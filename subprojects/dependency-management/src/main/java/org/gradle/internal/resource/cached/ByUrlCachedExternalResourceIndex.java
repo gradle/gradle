@@ -22,6 +22,6 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 public class ByUrlCachedExternalResourceIndex extends DefaultCachedExternalResourceIndex<String> {
     public ByUrlCachedExternalResourceIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, String.class, BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager);
+        super(persistentCacheFile, BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager);
     }
 }

@@ -31,11 +31,11 @@ import java.io.Serializable;
 import java.net.URI;
 
 public class DefaultCachedExternalResourceIndex<K extends Serializable> extends AbstractCachedIndex<K, CachedExternalResource> implements CachedExternalResourceIndex<K> {
-
+    private static final CachedExternalResourceSerializer CACHED_EXTERNAL_RESOURCE_SERIALIZER = new CachedExternalResourceSerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Class<K> keyType, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, keySerializer, new CachedExternalResourceSerializer(), cacheLockingManager);
+    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        super(persistentCacheFile, keySerializer, CACHED_EXTERNAL_RESOURCE_SERIALIZER, cacheLockingManager);
         this.timeProvider = timeProvider;
     }
 
