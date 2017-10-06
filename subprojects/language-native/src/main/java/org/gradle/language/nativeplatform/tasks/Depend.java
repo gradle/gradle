@@ -24,8 +24,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -38,6 +36,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.language.nativeplatform.internal.DefaultHeaderDependenciesCollector;
+import org.gradle.language.nativeplatform.internal.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultSourceIncludesParser;
@@ -47,8 +47,6 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -57,7 +55,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -69,10 +66,10 @@ import java.util.Set;
 @NonNullApi
 @Incubating
 public class Depend extends DefaultTask {
-    private final Logger logger = LoggerFactory.getLogger(Depend.class);
 
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
+    private final HeaderDependenciesCollector headerDependenciesCollector;
     private ImmutableList<String> includePaths;
     private PropertyState<Boolean> importsAreIncludes;
     private final RegularFileVar headerDependenciesFile;
@@ -80,18 +77,17 @@ public class Depend extends DefaultTask {
     private CSourceParser sourceParser;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     @Inject
     public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.includes = getProject().files();
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
         this.headerDependenciesFile = newOutputFile();
         this.importsAreIncludes = getProject().property(Boolean.class);
+        this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }
 
@@ -102,28 +98,10 @@ public class Depend extends DefaultTask {
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
-        ImmutableSortedSet<File> headerDependencies = collectHeaderDependencies(includeRoots, incrementalCompilation);
+        ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getName(), includeRoots, incrementalCompilation);
 
         addDiscoveredInputsToTask(inputs, headerDependencies);
         writeHeaderDependenciesFile(headerDependencies);
-    }
-
-    private ImmutableSortedSet<File> collectHeaderDependencies(List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
-        final Set<File> headerDependencies = new HashSet<File>();
-        headerDependencies.addAll(incrementalCompilation.getDiscoveredInputs());
-        if (incrementalCompilation.isMacroIncludeUsedInSources()) {
-            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered a header dependency.", getName());
-            for (final File includeRoot : includeRoots) {
-                logger.info("adding files in {} to header dependencies for {}", includeRoot, getName());
-                directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        headerDependencies.add(fileDetails.getFile());
-                    }
-                });
-            }
-        }
-        return ImmutableSortedSet.copyOf(headerDependencies);
     }
 
     private void addDiscoveredInputsToTask(IncrementalTaskInputsInternal inputs, ImmutableSortedSet<File> headerDependencies) {

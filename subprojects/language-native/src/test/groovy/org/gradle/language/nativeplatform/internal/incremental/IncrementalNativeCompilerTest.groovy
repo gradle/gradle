@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.language.nativeplatform.internal.DefaultHeaderDependenciesCollector
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.nativeplatform.toolchain.NativeToolChain
@@ -39,8 +40,8 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
-    def directoryTreeFactory = TestFiles.directoryFileTreeFactory()
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory, true)
+    def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -97,7 +98,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory, true)
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
        then:
        compiler.importsAreIncludes
        where:
@@ -120,6 +121,7 @@ class IncrementalNativeCompilerTest extends Specification {
 
         then:
         1 * taskInputs.newInput(includedFile)
+        1 * spec.getIncludeRoots() >> []
         0 * spec._
     }
 
@@ -146,7 +148,7 @@ class IncrementalNativeCompilerTest extends Specification {
         1 * spec.getIncludeRoots() >> includeRoots
         0 * spec._
 
-        2 * taskInputs.newInput(includedFile)
+        1 * taskInputs.newInput(includedFile)
         1 * taskInputs.newInput(notIncludedFile)
         0 * taskInputs._
     }
