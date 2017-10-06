@@ -89,7 +89,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
 
     static String provideYesAnswerToStandardInput() {
         """
-            def input = new ByteArrayInputStream(('yes' + System.getProperty('line.separator')).bytes)
+            def input = new ByteArrayInputStream(('$YES' + System.getProperty('line.separator')).bytes)
             System.setIn(input)
         """
     }
