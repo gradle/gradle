@@ -62,6 +62,35 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         '@OutputDirectories' | false
     }
 
+    @Issue("https://issues.gradle.org/browse/GRADLE-3540")
+    def "hash set output files do not make task out of date"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @OutputFiles Set<File> out = new HashSet<File>()
+
+                @TaskAction def exec() {
+                    out.each { it.text = 'data' }
+                }
+            }
+
+            task myTask(type: MyTask) {
+                out.addAll([file("out1"), file("out2")])
+            }
+        """
+
+        when:
+        run ':myTask'
+
+        then:
+        executedAndNotSkipped ':myTask'
+
+        when:
+        run ':myTask'
+
+        then:
+        skipped ':myTask'
+    }
+
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
     def "optional output changed from null to non-null marks task not up-to-date"() {
