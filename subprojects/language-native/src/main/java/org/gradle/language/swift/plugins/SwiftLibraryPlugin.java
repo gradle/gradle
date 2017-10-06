@@ -16,8 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -38,10 +36,6 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -80,16 +74,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Configure compile task
         SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        // TODO - Avoid evaluating the arguments here
-        final List<String> currentCompilerArguments = compileDebug.getCompilerArgs().getOrElse(Collections.<String>emptyList());
-        compileDebug.getCompilerArgs().set(project.provider(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                return Lists.newArrayList(Iterables.concat(
-                    Arrays.asList("-enable-testing"),
-                    currentCompilerArguments));
-            }
-        }));
+        compileDebug.getCompilerArgs().add("-enable-testing");
         SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
         LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");

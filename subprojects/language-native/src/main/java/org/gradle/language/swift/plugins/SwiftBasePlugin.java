@@ -49,7 +49,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**
@@ -120,7 +119,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.lib(binary.getRuntimeLibraries());
                 } else if (binary instanceof SwiftSharedLibrary) {
                     // Specific compiler arguments
-                    compile.getCompilerArgs().set(Arrays.asList("-parse-as-library"));
+                    compile.getCompilerArgs().add("-parse-as-library");
 
                     // Add a link task
                     final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
@@ -140,7 +139,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setDebuggable(binary.isDebuggable());
                 } else if (binary instanceof SwiftBundle) {
                     // Specific compiler arguments
-                    compile.getCompilerArgs().set(Arrays.asList("-parse-as-library"));
+                    compile.getCompilerArgs().add("-parse-as-library");
 
                     // Add a link task
                     LinkMachOBundle link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);

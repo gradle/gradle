@@ -17,19 +17,54 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
-    private Provider<? extends List<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
+    private Provider<? extends Collection<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
 
     public DefaultListProperty(Class<T> elementType) {
+    }
+
+    @Override
+    public void add(final T element) {
+        addAll(Providers.of(ImmutableList.of(element)));
+    }
+
+    @Override
+    public void add(final Provider<? extends T> providerOfElement) {
+        addAll(new DefaultProvider<List<T>>(new Callable<List<T>>() {
+            @Override
+            public List<T> call() throws Exception {
+                return ImmutableList.of(providerOfElement.get());
+            }
+        }));
+    }
+
+    @Override
+    public void addAll(final Provider<? extends Collection<T>> providerOfElements) {
+        if (provider == Cast.uncheckedCast(EMPTY_LIST)) {
+            provider = providerOfElements;
+        } else {
+            final Provider<? extends Collection<T>> baseProvider = provider;
+            provider = new DefaultProvider<List<T>>(new Callable<List<T>>() {
+                @Override
+                public List<T> call() {
+                    List<T> result = Lists.newArrayList(baseProvider.get());
+                    result.addAll(providerOfElements.get());
+                    return result;
+                }
+            });
+        }
     }
 
     @Nullable
@@ -56,7 +91,7 @@ public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListPr
 
     @Override
     public List<T> getOrElse(List<T> defaultValue) {
-        List<T> list = provider.getOrNull();
+        Collection<T> list = provider.getOrNull();
         if (list == null) {
             return defaultValue;
         }

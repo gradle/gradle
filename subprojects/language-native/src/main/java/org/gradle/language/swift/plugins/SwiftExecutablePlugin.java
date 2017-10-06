@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -76,7 +75,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compile.getCompilerArgs().set(Lists.newArrayList("-enable-testing"));
+        compile.getCompilerArgs().add("-enable-testing");
 
         // Wire in this install task
         InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
