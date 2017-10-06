@@ -16,6 +16,7 @@
 
 package org.gradle.binarycompatibility.rules;
 
+import com.google.common.collect.ImmutableList;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiCompatibilityChange;
@@ -23,21 +24,17 @@ import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiImplementedInterface;
 import me.champeau.gradle.japicmp.report.Violation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
-    private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = new ArrayList<>();
-
-    static {
-        IGNORED_CHANGE_TYPES.add(JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS); //the removal of the method will be reported
-        IGNORED_CHANGE_TYPES.add(JApiCompatibilityChange.INTERFACE_REMOVED); //the removed methods will be reported
-        IGNORED_CHANGE_TYPES.add(JApiCompatibilityChange.INTERFACE_ADDED); //the added methods will be reported
-        IGNORED_CHANGE_TYPES.add(JApiCompatibilityChange.CONSTRUCTOR_REMOVED); //we do not consider constructors public API, otherwise we would also need to annotate them with @Incubating
-        IGNORED_CHANGE_TYPES.add(JApiCompatibilityChange.CONSTRUCTOR_LESS_ACCESSIBLE);
-    }
+    private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = ImmutableList.of(
+        JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
+        JApiCompatibilityChange.INTERFACE_REMOVED,            // the removed methods will be reported
+        JApiCompatibilityChange.INTERFACE_ADDED,              // the added methods will be reported
+        JApiCompatibilityChange.CONSTRUCTOR_REMOVED           // we do not consider constructors public API, otherwise we would also need to annotate them with @Incubating
+    );
 
     public BinaryBreakingChangesRule(Map<String, String> acceptedApiChanges) {
         super(acceptedApiChanges);
