@@ -37,7 +37,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
         release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
 
-        api = configurations.create(getNames().withSuffix("api"));
+        api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
         api.setCanBeResolved(false);
         getImplementationDependencies().extendsFrom(api);

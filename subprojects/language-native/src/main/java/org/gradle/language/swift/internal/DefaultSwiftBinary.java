@@ -45,19 +45,19 @@ public class DefaultSwiftBinary implements SwiftBinary {
         Names names = Names.of(name);
 
         // TODO - reduce duplication with C++ binary
-        Configuration importPathConfig = configurations.create(names.withPrefix("swiftImport"));
+        Configuration importPathConfig = configurations.maybeCreate(names.withPrefix("swiftImport"));
         importPathConfig.extendsFrom(implementation);
         importPathConfig.setCanBeConsumed(false);
         importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
+        Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(implementation);
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
+        Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
         nativeRuntime.extendsFrom(implementation);
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
