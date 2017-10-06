@@ -125,7 +125,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // TODO - extract some common code to setup the configurations
 
         final Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
-        final Configuration apiElements = configurations.create("cppApiElements");
+        final Configuration apiElements = configurations.maybeCreate("cppApiElements");
         apiElements.extendsFrom(library.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
@@ -147,7 +147,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-        final Configuration debugLinkElements = configurations.create("debugLinkElements");
+        final Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
@@ -160,14 +160,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        final Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(implementation);
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        final Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        final Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
@@ -180,7 +180,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        final Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
