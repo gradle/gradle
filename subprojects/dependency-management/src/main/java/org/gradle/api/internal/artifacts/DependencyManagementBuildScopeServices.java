@@ -327,11 +327,15 @@ class DependencyManagementBuildScopeServices {
         return new ProjectDependencyResolver(localComponentRegistry, componentIdentifierFactory);
     }
 
-    private static class DefaultResolverProviderFactory implements ResolverProviderFactory {
-        private final ComponentResolvers resolvers;
+    private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
+        private final VcsDependencyResolver vcsDependencyResolver;
+        private final ProjectDependencyResolver projectDependencyResolver;
+        private final VcsMappingsInternal vcsMappingsInternal;
 
-        private DefaultResolverProviderFactory(ComponentResolvers resolvers) {
-            this.resolvers = resolvers;
+        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsInternal vcsMappingsInternal) {
+            this.vcsDependencyResolver = vcsDependencyResolver;
+            this.projectDependencyResolver = projectDependencyResolver;
+            this.vcsMappingsInternal = vcsMappingsInternal;
         }
 
         @Override
@@ -341,7 +345,7 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            return resolvers;
+            return vcsMappingsInternal.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
         }
     }
 
@@ -350,10 +354,6 @@ class DependencyManagementBuildScopeServices {
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsInternal vcsMappingsInternal) {
-        if (vcsMappingsInternal.hasRules()) {
-            return new DefaultResolverProviderFactory(vcsDependencyResolver);
-        } else {
-            return new DefaultResolverProviderFactory(projectDependencyResolver);
-        }
+        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsMappingsInternal);
     }
 }
