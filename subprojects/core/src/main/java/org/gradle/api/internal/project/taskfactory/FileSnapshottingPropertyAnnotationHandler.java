@@ -19,5 +19,5 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 
 public interface FileSnapshottingPropertyAnnotationHandler extends PropertyAnnotationHandler {
-    Class<? extends FileCollectionSnapshotter> getSnapshotterType();
+    Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType();
 }

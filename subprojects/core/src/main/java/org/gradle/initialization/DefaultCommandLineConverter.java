@@ -42,7 +42,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
+    private final List<BuildOption<StartParameter>> buildOptions = StartParameterBuildOptions.get();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
     public DefaultCommandLineConverter() {

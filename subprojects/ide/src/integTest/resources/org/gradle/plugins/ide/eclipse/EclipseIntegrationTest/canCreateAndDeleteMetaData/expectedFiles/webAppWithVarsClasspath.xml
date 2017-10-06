@@ -1,6 +1,6 @@
 <classpath>
-	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="src" path="src/main/java">
+	<classpathentry kind="output" path="bin/default"/>
+	<classpathentry kind="src" output="bin/main" path="src/main/java">
 		<attributes>
 			<attribute name="gradle_source_sets" value="main"/>
 		</attributes>

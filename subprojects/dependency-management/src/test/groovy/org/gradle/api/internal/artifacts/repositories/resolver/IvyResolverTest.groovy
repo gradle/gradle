@@ -24,10 +24,29 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import spock.lang.Specification
 
 class IvyResolverTest extends Specification {
-    def resolver = new IvyResolver("repo", Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Mock(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository))
 
     def "has useful string representation"() {
         expect:
+        def resolver = resolver()
         resolver.toString() == "Ivy repository 'repo'"
+    }
+
+    def "resolvers are differentiated by m2compatible flag"() {
+        given:
+        def resolver1 = resolver()
+        def resolver2 = resolver()
+
+        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.m2compatible = true
+
+        expect:
+        resolver1.id != resolver2.id
+    }
+
+    private IvyResolver resolver() {
+        new IvyResolver("repo", Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Mock(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository))
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -48,6 +49,10 @@ import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -67,10 +72,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     @Override
     public void apply(final ProjectInternal project) {
-        if (!OperatingSystem.current().isMacOsX()) {
-            throw new UnsupportedOperationException("'xctest' plugin is only supported on macOS at this stage.");
-        }
-
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         // TODO - Add dependency on main component when Swift plugins are applied
@@ -94,12 +95,27 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
-        File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-        compile.getCompilerArgs().set(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
+        // TODO - Avoid evaluating the arguments here
+        final List<String> currentCompilerArguments = compile.getCompilerArgs().getOrElse(Collections.<String>emptyList());
+        compile.getCompilerArgs().set(project.provider(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                return Lists.newArrayList(Iterables.concat(
+                    Arrays.asList("-g", "-F" + frameworkDir.getAbsolutePath()),
+                    currentCompilerArguments));
+            }
+        }));
 
         // Add a link task
         LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
-        link.getLinkerArgs().set(Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
+        link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
+            }
+        }));
 
         configureTestedComponent(project);
 
@@ -131,7 +147,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         });
 
         Task test = tasks.create("test");
-        test.dependsOn(xcTest);
+
+        if (OperatingSystem.current().isMacOsX()) {
+            test.dependsOn(xcTest);
+        }
 
         Task check = tasks.getByName("check");
         check.dependsOn(test);

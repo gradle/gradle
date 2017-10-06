@@ -79,7 +79,7 @@ int main () {
     hello();
     return 0;
 }
-""");
+""")
     }
 
     @Override
@@ -96,7 +96,7 @@ int main () {
 #endif
 
 void DLL_FUNC hello();
-""");
+""")
     }
 
     List<SourceFile> librarySources = [

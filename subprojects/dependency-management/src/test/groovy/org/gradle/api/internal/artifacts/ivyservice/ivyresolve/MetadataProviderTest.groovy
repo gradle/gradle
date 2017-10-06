@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
@@ -100,7 +101,7 @@ class MetadataProviderTest extends Specification {
         def metaData = Stub(IvyModuleResolveMetadata)
         metaData.status >> "test"
         metaData.branch >> "branchValue"
-        metaData.extraInfo >> extraInfo
+        metaData.extraAttributes >> ImmutableMap.copyOf(extraInfo)
 
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()

@@ -23,7 +23,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
@@ -72,7 +71,6 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -153,12 +151,12 @@ public class TaskExecutionServices {
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
         List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
-        ImmutableList.Builder<FileCollectionSnapshotter> snapshotters = ImmutableList.builder();
-        snapshotters.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
+        ImmutableList.Builder<FileCollectionSnapshotter> snapshotterImplementations = ImmutableList.builder();
+        snapshotterImplementations.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
         for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
-            snapshotters.add(serviceRegistry.get(handler.getSnapshotterType()));
+            snapshotterImplementations.add(serviceRegistry.get(handler.getSnapshotterImplementationType()));
         }
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
+        return new DefaultFileCollectionSnapshotterRegistry(snapshotterImplementations.build());
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
@@ -177,10 +175,7 @@ public class TaskExecutionServices {
 
         return new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            new CacheBackedFileSnapshotRepository(cacheAccess,
-                serializerRegistry.build(FileCollectionSnapshot.class),
-                new RandomLongIdGenerator()
-            ),
+            serializerRegistry.build(FileCollectionSnapshot.class),
             stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,

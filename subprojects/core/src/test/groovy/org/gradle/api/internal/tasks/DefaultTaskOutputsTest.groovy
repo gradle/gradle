@@ -20,6 +20,7 @@ import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -48,7 +49,12 @@ class DefaultTaskOutputsTest extends Specification {
         toString() >> "task 'task'"
         getProject() >> project
     }
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs([
+        resolve: {new File(it)},
+        resolveFiles: { it ->
+            new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
+        }
+    ] as FileResolver, task, taskStatusNagger)
 
     void hasNoOutputsByDefault() {
         setup:
@@ -115,7 +121,7 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.files("a", "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['$1']
+        outputs.fileProperties*.propertyName == ['$1$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 
@@ -123,7 +129,7 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.files("a", "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['prop']
+        outputs.fileProperties*.propertyName == ['prop$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 

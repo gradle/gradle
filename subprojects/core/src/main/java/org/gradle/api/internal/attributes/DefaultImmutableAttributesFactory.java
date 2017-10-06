@@ -41,6 +41,16 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
+    public AttributeContainerInternal mutable() {
+        return new DefaultMutableAttributeContainer(this);
+    }
+
+    @Override
+    public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
+        return new DefaultMutableAttributeContainer(this, parent);
+    }
+
+    @Override
     public <T> ImmutableAttributes of(Attribute<T> key, T value) {
         return concat(root, key, value);
     }

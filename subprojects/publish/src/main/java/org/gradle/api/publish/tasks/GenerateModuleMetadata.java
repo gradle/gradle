@@ -24,7 +24,7 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.internal.MetadataFileGenerator;
+import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
@@ -81,7 +81,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new MetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication.getCoordinates(), component, writer);
+                new ModuleMetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication.getCoordinates(), component, writer);
             } finally {
                 writer.close();
             }

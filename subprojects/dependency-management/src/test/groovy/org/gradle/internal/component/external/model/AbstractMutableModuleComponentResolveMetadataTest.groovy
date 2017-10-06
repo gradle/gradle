@@ -18,29 +18,30 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.hash.HashValue
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
     def configurations = []
     def dependencies = []
 
-    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
-    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts);
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id);
 
     MutableModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations, dependencies)
+        return createMetadata(id, configurations, dependencies)
     }
 
     def "can replace identifiers"() {
@@ -84,21 +85,94 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def "can create default metadata"() {
-        def artifact1 = Stub(IvyArtifactName)
-        def artifact2 = Stub(IvyArtifactName)
-
-        def metadata = createMetadata(id, [artifact1, artifact2] as Set)
+        def metadata = createMetadata(id)
 
         expect:
         metadata.componentId == id
         metadata.dependencies.empty
+        !metadata.changing
+        !metadata.missing
+        metadata.status == "integration"
+        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.contentHash == EMPTY_CONTENT
 
         def immutable = metadata.asImmutable()
         immutable.componentId == id
-        immutable.generated
+        !immutable.changing
+        !immutable.missing
+        immutable.status == "integration"
+        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.contentHash == EMPTY_CONTENT
         immutable.getConfiguration("default")
-        immutable.getConfiguration("default").artifacts.collect { it.name } == [artifact1, artifact2]
+        immutable.getConfiguration("default").artifacts.size() == 1
+        immutable.getConfiguration("default").artifacts.first().name.name == id.module
+        immutable.getConfiguration("default").artifacts.first().name.classifier == null
+        immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
+        immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
         immutable.dependencies.empty
+    }
+
+    def "can override default values"() {
+        def contentHash = new HashValue("123")
+
+        def metadata = createMetadata(id)
+
+        given:
+        metadata.changing = true
+        metadata.missing = true
+        metadata.status = "broken"
+        metadata.contentHash = contentHash
+
+        expect:
+        def immutable = metadata.asImmutable()
+        immutable.changing
+        immutable.missing
+        immutable.status == "broken"
+        immutable.contentHash == contentHash
+
+        def copy = immutable.asMutable()
+        copy.changing
+        copy.missing
+        copy.status == "broken"
+        copy.contentHash == contentHash
+
+        def immutable2 = copy.asImmutable()
+        immutable2.changing
+        immutable2.missing
+        immutable2.status == "broken"
+        immutable2.contentHash == contentHash
+    }
+
+    def "can changes to mutable metadata does not affect copies"() {
+        def contentHash = new HashValue("123")
+        def newContentHash = new HashValue("234")
+
+        def metadata = createMetadata(id)
+
+        given:
+        metadata.changing = true
+        metadata.missing = true
+        metadata.status = "broken"
+        metadata.contentHash = contentHash
+
+        def immutable = metadata.asImmutable()
+
+        metadata.changing = false
+        metadata.missing = false
+        metadata.status = "ok"
+        metadata.contentHash = newContentHash
+
+        expect:
+        immutable.changing
+        immutable.missing
+        immutable.status == "broken"
+        immutable.contentHash == contentHash
+
+        def copy = immutable.asMutable()
+        copy.changing
+        copy.missing
+        copy.status == "broken"
+        copy.contentHash == contentHash
     }
 
     def "can replace the dependencies for the module"() {
@@ -122,19 +196,18 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def "can replace the artifacts for the module version"() {
         when:
         configuration("runtime")
-        artifact("ignore-me", "runtime")
         def metadata = getMetadata()
         def a1 = metadata.artifact("jar", "jar", null)
         def a2 = metadata.artifact("pom", "pom", null)
-        metadata.artifacts = [a1, a2]
+        metadata.artifactOverrides = [a1, a2]
 
         then:
         def immutable = metadata.asImmutable()
-        immutable.artifacts == [a1, a2]
+        immutable.artifactOverrides == [a1, a2]
         immutable.getConfiguration("runtime").artifacts == [a1, a2] as Set
 
         def copy = immutable.asMutable()
-        copy.artifacts == [a1, a2]
+        copy.artifactOverrides == [a1, a2]
     }
 
     def dependency(String org, String module, String version) {
@@ -145,7 +218,13 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         configurations.add(new Configuration(name, true, true, extendsFrom))
     }
 
-    def artifact(String name, String... confs) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+    def attributes(Map<String, String> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { String key, String value ->
+                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
+            }
+        }
+        return attrs
     }
 }

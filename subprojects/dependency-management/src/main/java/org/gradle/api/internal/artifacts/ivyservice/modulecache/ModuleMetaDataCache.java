@@ -21,8 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.math.BigInteger;
-
 public interface ModuleMetaDataCache {
     CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
@@ -36,8 +34,6 @@ public interface ModuleMetaDataCache {
         ModuleComponentResolveMetadata getMetaData();
 
         long getAgeMillis();
-
-        BigInteger getDescriptorHash();
 
         boolean isMissing();
 

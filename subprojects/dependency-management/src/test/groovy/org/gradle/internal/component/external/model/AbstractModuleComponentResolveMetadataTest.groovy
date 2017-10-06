@@ -18,14 +18,7 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
@@ -35,14 +28,13 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 abstract class AbstractModuleComponentResolveMetadataTest extends Specification {
 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
     def configurations = []
     def dependencies = []
 
-    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
+    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
     ModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations, dependencies)
+        return createMetadata(id, configurations, dependencies)
     }
 
     def "has useful string representation"() {
@@ -82,67 +74,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         compile.dependencies.is(compile.dependencies)
     }
 
-    def "builds and caches artifacts for a configuration"() {
-        given:
-        configuration("runtime")
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime"])
-
-        when:
-        def runtime = metadata.getConfiguration("runtime")
-
-        then:
-        runtime.artifacts*.name.name == ["one", "two"]
-        runtime.artifacts.is(runtime.artifacts)
-    }
-
-    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
-        given:
-        configuration("runtime")
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime"])
-
-        when:
-        def runtime = metadata.getConfiguration("runtime")
-
-        then:
-        runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
-        runtime.variants.first().artifacts*.name.name == ["one", "two"]
-    }
-
-    def "artifacts include union of those inherited from other configurations"() {
-        given:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime", "compile"])
-        artifact("three", ["compile"])
-
-        when:
-        def artifacts = metadata.getConfiguration("runtime").artifacts
-
-        then:
-        artifacts*.name.name == ["one", "two", "three"]
-    }
-
-    def "builds and caches exclude rules for a configuration"() {
-        given:
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        def rule1 = exclude("one", ["runtime"])
-        def rule2 = exclude("two", ["compile"])
-        def rule3 = exclude("three", ["other"])
-
-        expect:
-        def config = metadata.getConfiguration("runtime")
-
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
-    }
-
     def "can make a copy with different source"() {
         given:
         configuration("compile")
@@ -170,15 +101,4 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     def dependency(String org, String module, String version, String fromConf, String toConf) {
         dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
     }
-
-    def artifact(String name, List<String> confs = []) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
-    }
-
-    def exclude(String name, List<String> confs = []) {
-        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", name), confs as String[], "exact")
-        moduleDescriptor.addExclude(exclude)
-        exclude
-    }
-
 }

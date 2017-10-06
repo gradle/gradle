@@ -16,16 +16,18 @@
 
 package org.gradle.vcs.git;
 
+import org.gradle.api.Incubating;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
 
 /**
  * A specification of a Git repository.
+ *
+ * @since 4.3
  */
-public class GitVersionControlSpec implements VersionControlSpec {
-    private URI url;
-
+@Incubating
+public interface GitVersionControlSpec extends VersionControlSpec {
     /**
      * The URL for the repository in the specification.
      *
@@ -35,19 +37,15 @@ public class GitVersionControlSpec implements VersionControlSpec {
      * operations which are both unsuited for simple data specification and
      * allocate additional memory.</p>
      */
-    public URI getUrl() {
-        return url;
-    }
+    URI getUrl();
 
     /**
      * Sets the URL of the repository.
      */
-    public void setUrl(URI url) {
-        this.url = url;
-    }
+    void setUrl(URI url);
 
-    @Override
-    public String getDisplayName() {
-        return "Git Repository at " + getUrl();
-    }
+    /**
+     * Sets the URL of the repository.
+     */
+    void setUrl(String url);
 }

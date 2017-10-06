@@ -62,6 +62,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -177,12 +178,13 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
             cacheLockingManager,
             artifactCacheMetaData,
-            moduleIdentifierFactory, moduleExclusions);
+            moduleIdentifierFactory,
+            attributesFactory);
     }
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {

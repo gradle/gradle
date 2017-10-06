@@ -39,6 +39,7 @@ repositories {
 ext {
     acceptedViolations = AcceptedApiChanges.parse(project.file("src/changes/accepted-public-api-changes.json").text)
     compatibilityBaselineVersion = acceptedViolations.baseVersion.version
+    foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -108,12 +109,15 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        title = "Binary compatibility report for Gradle ${version} since ${compatibilityBaselineVersion}"
+        title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
         addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
         addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
+        addSetupRule(SinceAnnotationMissingRuleSetup, foldersWithAPISources.collectEntries { [(it): it] })
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
 
         includedClasses = toPatterns(publicApiIncludes)

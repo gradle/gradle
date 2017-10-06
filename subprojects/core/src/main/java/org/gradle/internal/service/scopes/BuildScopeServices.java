@@ -67,6 +67,11 @@ import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
+import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
@@ -136,6 +141,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -440,5 +446,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registryAction.execute(registry);
         }
         return registry;
+    }
+
+    protected UserInputHandler createDefaultUserInputHandler(OutputEventRenderer outputEventRenderer) {
+        return new DefaultUserInputHandler(outputEventRenderer, new DefaultUserInputReader());
+    }
+
+    protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
+        return new DefaultBuildScanUserInputHandler(userInputHandler);
     }
 }

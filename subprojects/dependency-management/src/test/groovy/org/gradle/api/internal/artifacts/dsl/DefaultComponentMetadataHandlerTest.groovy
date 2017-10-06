@@ -267,9 +267,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
+        metadata.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -293,9 +295,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
+        metadata.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -354,9 +358,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
+        metadata.branch = "someBranch"
 
         def capturedDetails1 = null
         def capturedDescriptor1 = null
@@ -412,14 +418,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

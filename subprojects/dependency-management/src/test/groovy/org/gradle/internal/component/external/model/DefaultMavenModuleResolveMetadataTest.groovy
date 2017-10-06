@@ -20,20 +20,50 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, "pom", false, dependencies))
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies))
+    }
+
+    def "builds and caches artifacts for a configuration"() {
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.artifacts*.name.name == ["module"]
+        runtime.artifacts*.name.extension == ["jar"]
+        runtime.artifacts.is(runtime.artifacts)
+    }
+
+    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.variants.size() == 1
+        runtime.variants.first().attributes.empty
+        runtime.variants.first().artifacts == runtime.artifacts
+    }
+
+    def "artifacts include union of those inherited from other configurations"() {
+        when:
+        def compileArtifacts = metadata.getConfiguration("compile").artifacts
+        def runtimeArtifacts = metadata.getConfiguration("runtime").artifacts
+        def defaultArtifacts = metadata.getConfiguration("default").artifacts
+
+        then:
+        runtimeArtifacts.size() == compileArtifacts.size()
+        defaultArtifacts.size() == runtimeArtifacts.size()
     }
 
     def "copy with different source"() {
         given:
         def source = Stub(ModuleSource)
-        def mutable = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
+        def mutable = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
         mutable.packaging = "other"
         mutable.relocated = true
         mutable.snapshotTimestamp = "123"
@@ -51,7 +81,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
         metadata.packaging = packaging
 
         then:

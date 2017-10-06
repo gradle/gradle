@@ -281,17 +281,23 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 return;
             }
 
+            ResolvedArtifact sourceArtifact = artifact.toPublicView();
             List<File> transformedFiles = operation.result;
-
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
+
             for (File output : transformedFiles) {
-                ResolvedArtifact sourceArtifact = artifact.toPublicView();
-                ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), output.getName());
-                String extension = Files.getFileExtension(output.getName());
-                IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
+                IvyArtifactName artifactName = getArtifactName(sourceArtifact, output);
+                ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), artifactName.toString());
                 DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
                 visitor.visitArtifact(target, resolvedArtifact);
             }
+        }
+
+        private IvyArtifactName getArtifactName(ResolvedArtifact sourceArtifact, File output) {
+            String name = Files.getNameWithoutExtension(output.getName());
+            String extension = Files.getFileExtension(output.getName());
+            String classifier = sourceArtifact.getClassifier();
+            return new DefaultIvyArtifactName(name, extension, extension, classifier);
         }
 
         @Override

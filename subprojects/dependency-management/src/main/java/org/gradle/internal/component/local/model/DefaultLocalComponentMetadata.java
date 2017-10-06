@@ -192,7 +192,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public boolean isGenerated() {
+    public boolean isMissing() {
         return false;
     }
 

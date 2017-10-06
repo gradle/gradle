@@ -147,7 +147,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     break;
                 case Resolved:
                     RepositoryChainModuleResolution moduleResolution = new RepositoryChainModuleResolution(request.repository, metaDataResolveResult.getMetaData());
-                    if (!metaDataResolveResult.getMetaData().isGenerated()) {
+                    if (!metaDataResolveResult.getMetaData().isMissing()) {
                         return moduleResolution;
                     }
                     best = best != null ? best : moduleResolution;

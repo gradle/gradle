@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
@@ -27,10 +28,10 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 @Requires(TestPrecondition.XCODE)
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
-        executer.requireGradleDistribution()
+        useXcodebuildTool()
     }
 
-    def "create xcode project C++ executable"() {
+    def "can create xcode project for C++ executable"() {
         given:
         settingsFile << """
             include 'app', 'greeter'
@@ -79,7 +80,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -87,7 +88,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileReleaseCpp', ':app:linkRelease')
     }
 
-    def "create xcode project C++ executable with transitive dependencies"() {
+    def "can create xcode project for C++ executable with transitive dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -155,7 +156,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Deck SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -164,7 +165,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease')
     }
 
-    def "create xcode project C++ executable inside composite build"() {
+    def "can create xcode project for C++ executable inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
@@ -217,7 +218,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:

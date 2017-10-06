@@ -16,10 +16,49 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.Exclude;
+
+import javax.annotation.Nullable;
+import java.util.Map;
+
 public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
      */
     @Override
     IvyModuleResolveMetadata asImmutable();
+
+    /**
+     * Returns the Ivy definitions for the configurations of this module.
+     */
+    ImmutableMap<String, Configuration> getConfigurationDefinitions();
+
+    /**
+     * Returns the Ivy definitions for artifacts of this module.
+     */
+    ImmutableList<Artifact> getArtifactDefinitions();
+
+    /**
+     * Returns the Ivy excludes of this component.
+     */
+    ImmutableList<Exclude> getExcludes();
+
+    /**
+     * Replaces the excludes of this component.
+     */
+    void setExcludes(Iterable<? extends Exclude> excludes);
+
+    ImmutableMap<NamespaceId, String> getExtraAttributes();
+
+    void setExtraAttributes(Map<NamespaceId, String> extraAttributes);
+
+    @Nullable
+    String getBranch();
+
+    void setBranch(@Nullable String branch);
 }

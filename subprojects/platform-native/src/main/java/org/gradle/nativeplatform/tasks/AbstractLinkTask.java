@@ -155,6 +155,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         return debuggable;
     }
 
+    /**
+     * Create a debuggable binary?
+     *
+     * @since 4.3
+     */
     public void setDebuggable(boolean debuggable) {
         this.debuggable = debuggable;
     }

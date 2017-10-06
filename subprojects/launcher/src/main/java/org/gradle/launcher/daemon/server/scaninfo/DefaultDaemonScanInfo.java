@@ -32,12 +32,14 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
 
     private final DaemonRunningStats stats;
     private final long idleTimeout;
+    private final boolean singleRun;
     private final DaemonRegistry daemonRegistry;
     private final ListenerManager listenerManager;
 
-    public DefaultDaemonScanInfo(final DaemonRunningStats stats, final long idleTimeout, final DaemonRegistry daemonRegistry, final ListenerManager listenerManager) {
+    public DefaultDaemonScanInfo(final DaemonRunningStats stats, final long idleTimeout, boolean singleRun, final DaemonRegistry daemonRegistry, final ListenerManager listenerManager) {
         this.stats = stats;
         this.idleTimeout = idleTimeout;
+        this.singleRun = singleRun;
         this.daemonRegistry = daemonRegistry;
         this.listenerManager = listenerManager;
     }
@@ -60,6 +62,11 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     @Override
     public int getNumberOfRunningDaemons() {
         return daemonRegistry.getAll().size();
+    }
+
+    @Override
+    public boolean isSingleUse() {
+        return singleRun;
     }
 
     @Override

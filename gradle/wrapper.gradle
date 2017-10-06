@@ -47,7 +47,7 @@ tasks.withType(Wrapper) {
     }
     doLast {
         def buildSrcWrapperDir = new File(rootDir, 'buildSrc/gradle/wrapper')
-        GFileUtils.mkdirs(buildSrcWrapperDir)
+        buildSrcWrapperDir.mkdirs()
         copy {
             from propertiesFile
             into buildSrcWrapperDir

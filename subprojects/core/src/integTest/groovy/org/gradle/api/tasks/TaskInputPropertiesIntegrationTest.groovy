@@ -559,21 +559,12 @@ task someTask(type: SomeTask) {
         """
         expect:
         executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-        if (expectToFail) {
-            // Singular null outputs will cause build to fail, but message should still be printed
-            fails "test"
-        } else {
-            succeeds "test"
-        }
+        succeeds "test"
         output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
  - No value has been specified for property 'output'."""
 
         where:
-        method  | expectToFail
-        "file"  | true
-        "files" | false
-        "dir"   | true
-        "dirs"  | false
+        method << ["file", "files", "dir", "dirs"]
     }
 
     @Unroll

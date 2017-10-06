@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven;
 
+import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -86,6 +87,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
+    @Override
+    public TestFile getArtifactFile(Map options) {
+        return backingModule.getArtifactFile(options);
+    }
 
     @Override
     public String getArtifactId() {
@@ -110,6 +115,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public MavenPom getParsedPom() {
         return backingModule.getParsedPom();
+    }
+
+    @Override
+    public GradleModuleMetadata getParsedModuleMetadata() {
+        return backingModule.getParsedModuleMetadata();
     }
 
     @Override
@@ -166,6 +176,18 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public T withNonUniqueSnapshots() {
         backingModule.withNonUniqueSnapshots();
+        return t();
+    }
+
+    @Override
+    public T withNoPom() {
+        backingModule.withNoPom();
+        return t();
+    }
+
+    @Override
+    public T withModuleMetadata() {
+        backingModule.withModuleMetadata();
         return t();
     }
 

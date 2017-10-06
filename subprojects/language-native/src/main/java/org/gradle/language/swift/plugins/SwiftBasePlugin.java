@@ -40,8 +40,8 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -49,6 +49,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**
@@ -118,6 +119,9 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.setExecutable(link.getBinaryFile());
                     install.lib(binary.getRuntimeLibraries());
                 } else if (binary instanceof SwiftSharedLibrary) {
+                    // Specific compiler arguments
+                    compile.getCompilerArgs().set(Arrays.asList("-parse-as-library"));
+
                     // Add a link task
                     final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
@@ -135,6 +139,9 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
                 } else if (binary instanceof SwiftBundle) {
+                    // Specific compiler arguments
+                    compile.getCompilerArgs().set(Arrays.asList("-parse-as-library"));
+
                     // Add a link task
                     LinkMachOBundle link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);
                     link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

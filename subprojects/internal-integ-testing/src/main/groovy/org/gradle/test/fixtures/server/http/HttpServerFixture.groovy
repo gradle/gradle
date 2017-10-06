@@ -17,10 +17,14 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.collect.Sets
+import org.gradle.internal.BiAction
 import org.gradle.util.ports.FixedAvailablePortAllocator
+import org.gradle.util.ports.PortAllocator
+import org.mortbay.io.EndPoint
 import org.mortbay.jetty.Connector
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
+import org.mortbay.jetty.Request
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
@@ -32,7 +36,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 trait HttpServerFixture {
-    private final Server server = new Server(0)
+    private final PortAllocator portAllocator = FixedAvailablePortAllocator.instance
+    private final Server server = new Server()
     private Connector connector
     private SslSocketConnector sslConnector
     private final HandlerCollection collection = new HandlerCollection()
@@ -42,7 +47,7 @@ trait HttpServerFixture {
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private boolean configured
-    private boolean enablePortAllocator
+    private int assignedPort
 
     Server getServer() {
         server
@@ -90,8 +95,12 @@ trait HttpServerFixture {
         this.authenticationScheme = authenticationScheme
     }
 
-    void enablePortAllocator() {
-        this.enablePortAllocator = true
+    void setSslPreHandler(BiAction<EndPoint,Request> handler) {
+        server.connectors.each { connector ->
+            if (connector instanceof InterceptableSslSocketConnector) {
+                connector.sslPreHandler = handler
+            }
+        }
     }
 
     void start() {
@@ -104,8 +113,9 @@ trait HttpServerFixture {
             configured = true
         }
 
+        assignedPort = portAllocator.assignPort()
         connector = new SocketConnector()
-        connector.port = enablePortAllocator ? FixedAvailablePortAllocator.instance.assignPort() : 0
+        connector.port = assignedPort
         server.addConnector(connector)
         server.start()
         for (int i = 0; i < 5; i++) {
@@ -115,8 +125,10 @@ trait HttpServerFixture {
             // Has failed to start for some reason - try again
             server.removeConnector(connector)
             connector.stop()
+            portAllocator.releasePort(assignedPort)
+            assignedPort = portAllocator.assignPort()
             connector = new SocketConnector()
-            connector.port = 0
+            connector.port = assignedPort
             server.addConnector(connector)
             connector.start()
         }
@@ -161,6 +173,7 @@ trait HttpServerFixture {
         }
 
         server?.stop()
+        portAllocator.releasePort(assignedPort)
     }
 
     void reset() {
@@ -169,7 +182,7 @@ trait HttpServerFixture {
     }
 
     void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
-        sslConnector = new SslSocketConnector()
+        sslConnector = new InterceptableSslSocketConnector()
         sslConnector.keystore = keyStore
         sslConnector.keyPassword = keyPassword
         if (trustStore) {
@@ -209,5 +222,16 @@ trait HttpServerFixture {
         connector.stop()
         connector.close()
         server?.removeConnector(connector)
+    }
+}
+
+class InterceptableSslSocketConnector extends SslSocketConnector {
+    BiAction<EndPoint, Request> sslPreHandler
+
+    void customize(EndPoint endpoint, Request request) {
+        if (sslPreHandler) {
+            sslPreHandler.execute(endpoint, request)
+        }
+        super.customize(endpoint, request)
     }
 }

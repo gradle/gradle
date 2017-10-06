@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
@@ -41,8 +40,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
 
     def "can create ivy (unmodified) descriptor"() {
         when:
-        def descriptor = new MutableModuleDescriptorState(id)
-        def metadata = new DefaultIvyModulePublishMetadata(id, descriptor)
+        def metadata = new DefaultIvyModulePublishMetadata(id, "integration")
         addConfiguration(metadata, "archives")
         addConfiguration(metadata, "compile")
         addConfiguration(metadata, "runtime", ["compile"])

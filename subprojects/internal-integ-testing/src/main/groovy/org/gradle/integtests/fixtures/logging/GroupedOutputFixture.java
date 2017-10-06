@@ -35,7 +35,7 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*)\\n?";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
@@ -58,11 +58,11 @@ public class GroupedOutputFixture {
     private static final Pattern TASK_OUTPUT_PATTERN;
 
     static {
-        String precompiledPattern = "(?ms)";
-        precompiledPattern += TASK_HEADER;
+        String pattern = "(?ms)";
+        pattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        precompiledPattern += "((.|\\n)*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
-        TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
+        pattern += "([\\s\\S]*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
+        TASK_OUTPUT_PATTERN = Pattern.compile(pattern);
     }
 
 
@@ -82,15 +82,17 @@ public class GroupedOutputFixture {
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
-            String taskOutput = matcher.group(2);
-            taskOutput = taskOutput.trim();
-            if (tasks.containsKey(taskName)) {
-                tasks.get(taskName).addOutput(taskOutput);
-            } else {
-                GroupedTaskFixture task = new GroupedTaskFixture(taskName);
-                task.addOutput(taskOutput);
+            String taskOutcome = matcher.group(2);
+            String taskOutput = matcher.group(3).trim();
+
+            GroupedTaskFixture task = tasks.get(taskName);
+            if (task == null) {
+                task = new GroupedTaskFixture(taskName);
                 tasks.put(taskName, task);
             }
+
+            task.addOutput(taskOutput);
+            task.setOutcome(taskOutcome);
         }
 
         return strippedOutput;

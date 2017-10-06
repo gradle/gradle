@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
 import java.io.File;
@@ -66,13 +66,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        MutableModuleComponentResolveMetadata metadata = parseIvyFile(publication);
+        MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
 
-        field(publication, "branch", metadata.getDescriptor().getBranch())
+        field(publication, "branch", metadata.getBranch())
                 .optionalNotEmpty()
                 .doesNotContainSpecialCharacters(true);
 
@@ -81,7 +81,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
     }
 
-    private MutableModuleComponentResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
+    private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
             return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile());
         } catch (MetaDataParseException pe) {

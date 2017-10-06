@@ -138,7 +138,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             @CacheableTask
             class PluralOutputs extends BaseTask {
                 @OutputFiles
-                Set<File> outputFiles = []
+                Set<File> outputFiles = ['some.txt']
                 
                 @TaskAction
                 void generate() {}

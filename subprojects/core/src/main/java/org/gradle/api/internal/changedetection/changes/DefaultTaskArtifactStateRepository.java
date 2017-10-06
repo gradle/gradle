@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -29,9 +30,10 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
+import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -48,6 +50,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final TaskHistoryRepository taskHistoryRepository;
     private final Instantiator instantiator;
@@ -108,6 +111,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return true;
         }
 
+        @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
             return history.getCurrentExecution().getDetectedOverlappingOutputs();
@@ -120,8 +124,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public Set<File> getOutputFiles() {
-            TaskExecution previousExecution = history.getPreviousExecution();
-            if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            if (previousExecution == null) {
                 return Collections.emptySet();
             }
             ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
@@ -151,7 +155,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public UniqueId getOriginBuildInvocationId() {
-            TaskExecution previousExecution = history.getPreviousExecution();
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null) {
                 return null;
             } else {
@@ -181,7 +185,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             snapshotAfterOutputsWereGenerated(history, null);
         }
 
-        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, Throwable failure) {
+        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.persist();
@@ -192,9 +196,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private TaskUpToDateState getStates() {
             if (states == null) {
-                TaskExecution previousExecution = history.getPreviousExecution();
+                HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
-                TaskExecution currentExecution = history.getCurrentExecution();
+                CurrentTaskExecution currentExecution = history.getCurrentExecution();
                 states = new TaskUpToDateState(previousExecution, currentExecution, task);
             }
             return states;

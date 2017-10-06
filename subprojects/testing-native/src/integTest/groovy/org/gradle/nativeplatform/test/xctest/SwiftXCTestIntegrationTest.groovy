@@ -17,8 +17,11 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
+import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTestSuite
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -45,7 +48,7 @@ apply plugin: 'swift-library'
     }
 
     def "can test public and internal features of a Swift library"() {
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
 
         given:
         settingsFile << "rootProject.name = 'greeter'"
@@ -83,8 +86,6 @@ apply plugin: 'swift-executable'
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
 apply plugin: 'swift-executable'
-
-linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.name.equals("main.o") }
 """
         app.writeToProject(testDirectory)
 
@@ -93,5 +94,53 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+    }
+
+    def "can test features of a Swift executable using a single test source file"() {
+        def app = new SwiftAppWithSingleXCTestSuite()
+
+        given:
+        settingsFile << "rootProject.name = 'app'"
+        buildFile << """
+apply plugin: 'swift-executable'
+"""
+        app.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
+        assertMainSymbolIsAbsent(machOBundle("build/bundle/main/debug/App"))
+    }
+
+    def "can test features of a single file Swift library using a single test source file"() {
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        given:
+        settingsFile << "rootProject.name = 'greeter'"
+        buildFile << """
+apply plugin: 'swift-library'
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
+        assertMainSymbolIsAbsent(machOBundle("build/bundle/main/debug/Greeter"))
+    }
+
+    private void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
+        binaries.each {
+            assertMainSymbolIsAbsent(it)
+        }
+    }
+
+    private void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
+        assert !binary.binaryInfo.listSymbols().contains('_main')
     }
 }

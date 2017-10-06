@@ -17,8 +17,10 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -264,5 +266,33 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":lib2:compileDebugSwift", ":lib2:linkDebug", ":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/Log").assertExists()
+    }
+
+    def "doesn't have implicit _main symbols declared in the object file of single file Swift library"() {
+        settingsFile << "rootProject.name = 'greeter'"
+        given:
+        def lib = new SwiftSingleFileLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        assertMainSymbolIsAbsent(objectFiles(lib))
+        assertMainSymbolIsAbsent(sharedLibrary("build/lib/main/debug/Greeter"))
+    }
+
+    private void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
+        binaries.each {
+            assertMainSymbolIsAbsent(it)
+        }
+    }
+
+    private void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
+        assert !binary.binaryInfo.listSymbols().contains('_main')
     }
 }

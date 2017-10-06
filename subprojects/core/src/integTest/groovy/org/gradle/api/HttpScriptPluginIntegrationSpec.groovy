@@ -31,8 +31,8 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "rootProject.name = 'project'"
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
-        server.enablePortAllocator()
         server.start()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Unroll

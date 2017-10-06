@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString
 @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
 class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec{
 
-    def helloWorldApp = new ObjectiveCppHelloWorldApp();
+    def helloWorldApp = new ObjectiveCppHelloWorldApp()
 
     def "setup"() {
         buildFile << helloWorldApp.pluginScript

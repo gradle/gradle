@@ -52,11 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.AddDTDFilterInputStream;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getAllChilds;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildElement;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getFirstChildText;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getTextContent;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
@@ -345,14 +341,6 @@ public class PomReader implements PomParent {
             val = "jar";
         }
         return replaceProps(val);
-    }
-
-    public String getDescription() {
-        String val = getFirstChildText(projectElement, DESCRIPTION);
-        if (val == null) {
-            val = "";
-        }
-        return val.trim();
     }
 
     public ModuleVersionIdentifier getRelocation() {

@@ -52,6 +52,12 @@ class OtoolBinaryInfo implements BinaryInfo {
         return lines
     }
 
+    List<String> listSymbols() {
+        def process = ['nm', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines.collect { it.split(' ').last() }
+    }
+
     String getSoName() {
         def process = ['otool', '-D', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()

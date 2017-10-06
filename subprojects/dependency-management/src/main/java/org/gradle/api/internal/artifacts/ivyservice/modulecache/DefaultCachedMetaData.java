@@ -21,17 +21,13 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.math.BigInteger;
-
 class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final ModuleSource moduleSource;
-    private final BigInteger descriptorHash;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
 
     public DefaultCachedMetaData(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
-        this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metaData = metaData;
     }
@@ -54,9 +50,5 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
 
     public long getAgeMillis() {
         return ageMillis;
-    }
-
-    public BigInteger getDescriptorHash() {
-        return descriptorHash;
     }
 }

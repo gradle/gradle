@@ -20,9 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -68,8 +66,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         writer.attribute("xmlns:" + IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE);
 
-        ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
-        printInfoTag(descriptor, writer);
+        printInfoTag(metadata, writer);
         printConfigurations(metadata, writer);
         printPublications(metadata.getArtifacts(), writer);
         printDependencies(metadata, writer);
@@ -77,54 +74,26 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private static void printInfoTag(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        ModuleComponentIdentifier id = descriptor.getComponentIdentifier();
+    private static void printInfoTag(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
+        ModuleComponentIdentifier id = metadata.getId();
         writer.startElement("info");
 
         writer.attribute("organisation", id.getGroup());
         writer.attribute("module", id.getModule());
-        String branch = descriptor.getBranch();
-        if (branch != null) {
-            writer.attribute("branch", branch);
-        }
         writer.attribute("revision", id.getVersion());
-        writer.attribute("status", descriptor.getStatus());
+        writer.attribute("status", metadata.getStatus());
 
-        if (descriptor.isGenerated()) {
-            writer.attribute("default", "true");
-        }
-
-        printUnusedContent(descriptor, writer);
-
-        for (Map.Entry<NamespaceId, String> entry : descriptor.getExtraInfo().entrySet()) {
-            if (entry.getValue() == null || entry.getValue().length() == 0) {
-                continue;
-            }
-            NamespaceId namespaceId = entry.getKey();
-            writer.startElement("ns:" + namespaceId.getName());
-            writer.attribute("xmlns:ns", namespaceId.getNamespace());
-            writer.characters(entry.getValue());
-            writer.endElement();
-        }
+        printUnusedContent(metadata, writer);
 
         writer.endElement();
     }
+
     /**
-     * These values are written to the desriptor, but never used. They remain here so that the checksum of the descriptor
-     * changes when these values change: thie behaviour is utilized in integration tests.
+     * These values are written to the descriptor, but never used by Gradle.
      */
-    private static void printUnusedContent(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
+    private static void printUnusedContent(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
         SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-        Date publicationDate = descriptor.getPublicationDate();
-        if (publicationDate != null) {
-            writer.attribute("publication", ivyDateFormat.format(publicationDate));
-        }
-        String description = descriptor.getDescription();
-        if (description != null && description.trim().length() > 0) {
-            writer.startElement("description");
-            writer.characters(description);
-            writer.endElement();
-        }
+        writer.attribute("publication", ivyDateFormat.format(new Date()));
     }
 
     private void printConfigurations(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
@@ -216,7 +185,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printAllExcludes(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
-        List<Exclude> excludes = metadata.getModuleDescriptor().getExcludes();
+        Collection<Exclude> excludes = metadata.getExcludes();
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());

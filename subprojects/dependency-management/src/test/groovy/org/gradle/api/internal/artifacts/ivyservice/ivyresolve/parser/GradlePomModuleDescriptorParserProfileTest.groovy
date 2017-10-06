@@ -53,7 +53,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         metadata.dependencies.empty
     }
 
@@ -94,7 +94,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dependency = single(metadata.dependencies)
         dependency.requested == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
@@ -531,7 +531,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dep)
@@ -844,7 +844,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         metadata.dependencies.empty
     }
 
@@ -887,7 +887,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
@@ -1339,7 +1339,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         parsePom()
 
         then:
-        descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
+        metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
@@ -1659,7 +1659,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 
@@ -1709,7 +1708,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 }

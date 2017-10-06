@@ -22,17 +22,38 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository() {
-        return "repositories { ${jcenterRepositoryDefinition()} }"
+        return """
+            repositories {
+                ${jcenterRepositoryDefinition()}
+            }
+        """
     }
 
     static String mavenCentralRepository() {
-        return "repositories { ${mavenCentralRepositoryDefinition()} }"
+        return """
+            repositories {
+                ${mavenCentralRepositoryDefinition()}
+            }
+        """
+    }
+
+    static String googleRepository() {
+        return """
+            repositories {
+                ${googleRepositoryDefinition()}
+            }
+        """
     }
 
     static String jcenterRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
-            return "maven { name 'jcenter-remote'; url '${repoUrl}' }"
+            return """
+                maven {
+                    name 'jcenter-remote'
+                    url '${repoUrl}'
+                }
+            """
         } else {
             return 'jcenter()'
         }
@@ -41,7 +62,12 @@ class RepoScriptBlockUtil {
     static String mavenCentralRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
         if (repoUrl) {
-            return "maven { name 'repo1-remote'; url '${repoUrl}' }"
+            return """
+                maven {
+                    name 'repo1-remote'
+                    url '${repoUrl}'
+                }
+            """
         } else {
             return 'mavenCentral()'
         }
@@ -84,6 +110,20 @@ class RepoScriptBlockUtil {
                     layout 'ivy'
                 }
             """
+        }
+    }
+
+    static String googleRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.google')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'Google'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return 'google()'
         }
     }
 }

@@ -51,7 +51,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         int comparison = versionComparator.compare(new VersionInfo(one.getId().getVersion()), new VersionInfo(two.getId().getVersion()));
 
         if (comparison == 0) {
-            if (isGeneratedModuleDescriptor(one) && !isGeneratedModuleDescriptor(two)) {
+            if (isMissingModuleDescriptor(one) && !isMissingModuleDescriptor(two)) {
                 return two;
             }
             return one;
@@ -60,8 +60,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return comparison < 0 ? two : one;
     }
 
-    private boolean isGeneratedModuleDescriptor(ComponentResolveMetadata componentResolveMetadata) {
-        return componentResolveMetadata.isGenerated();
+    private boolean isMissingModuleDescriptor(ComponentResolveMetadata componentResolveMetadata) {
+        return componentResolveMetadata.isMissing();
     }
 
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher) {

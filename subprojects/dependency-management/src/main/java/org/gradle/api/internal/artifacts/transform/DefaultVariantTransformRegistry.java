@@ -27,7 +27,6 @@ import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -95,8 +94,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         private Action<? super ActionConfiguration> config;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
-            from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
-            to = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+            from = immutableAttributesFactory.mutable();
+            to = immutableAttributesFactory.mutable();
         }
 
         @Override

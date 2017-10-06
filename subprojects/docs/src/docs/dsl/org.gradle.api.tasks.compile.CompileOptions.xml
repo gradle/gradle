@@ -76,6 +76,10 @@
                 <td>annotationProcessorPath</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>annotationProcessorGeneratedSourcesDirectory</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>

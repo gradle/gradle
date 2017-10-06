@@ -22,15 +22,15 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -48,7 +48,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileRepository)
 
     DescriptorParseContext parseContext = Mock()
-    ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
     def "parses minimal Ivy descriptor"() {
@@ -64,11 +63,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
+        metadata.contentHash == HashUtil.createHash(file, "MD5")
 
         artifact()
     }
@@ -90,9 +89,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
 
@@ -119,9 +117,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         metadata.dependencies.empty
 
@@ -328,16 +325,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
-        md.publicationDate == new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "status"
 
-        TextUtil.normaliseLineSeparators(md.getDescription()) ==
-            "This module is <b>great</b> !<br/>\n\tYou can use it especially with myconf1 and myconf2, and myconf4 is not too bad too."
-
-        md.extraInfo.size() == 1
-        md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
+        metadata.extraAttributes.size() == 1
+        metadata.extraAttributes.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
 
         metadata.configurationDefinitions.size() == 5
         assertConf("myconf1", "desc 1", true, new String[0])
@@ -346,7 +338,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertConf("myconf4", "desc 4", true, ["myconf1", "myconf2"].toArray(new String[2]))
         assertConf("myoldconf", "my old desc", true, new String[0])
 
-        md.artifacts.size() == 4
+        metadata.artifactDefinitions.size() == 4
         assertArtifacts("myconf1", ["myartifact1", "myartifact2", "myartifact3", "myartifact4"])
         assertArtifacts("myconf2", ["myartifact1", "myartifact3"])
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
@@ -360,7 +352,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         verifyFullDependencies(metadata.dependencies)
 
-        def rules = md.excludes
+        def rules = metadata.excludes
         rules.size() == 2
         rules[0].matcher == PatternMatcher.GLOB
         rules[0].configurations as List == ["myconf1"]
@@ -400,9 +392,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md != null
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
         metadata.dependencies.size() == 1
@@ -687,24 +678,23 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.extraInfo.size() == 2
-        md.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
-        md.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
+        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.extraAttributes.size() == 2
+        metadata.extraAttributes[new NamespaceId("namespace-b", "a")] == "info 1"
+        metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
         metadata = parser.parseMetaData(parseContext, file)
-        md = metadata.descriptor
     }
 
-    private artifact() {
-        assert md.artifacts.size() == 1
-        md.artifacts[0]
+    private Artifact artifact() {
+        assert metadata.artifactDefinitions.size() == 1
+        metadata.artifactDefinitions[0]
     }
 
-    private artifacts(String conf) {
-        md.artifacts.findAll { it.configurations.contains(conf) }
+    private List<Artifact> artifacts(String conf) {
+        metadata.artifactDefinitions.findAll { it.configurations.contains(conf) }
     }
 
     static componentId(String group, String module, String version) {
@@ -712,7 +702,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     void assertArtifact(String name, String extension, String type, String classifier) {
-        def artifactName = md.artifacts*.artifactName.find({it.name == name})
+        def artifactName = metadata.artifactDefinitions*.artifactName.find({it.name == name})
         assert artifactName.name == name
         assert artifactName.type == type
         assert artifactName.extension == extension

@@ -21,6 +21,8 @@ dependencies {
     compile libraries.gson
 
     integTestRuntime project(':plugins')
+    integTestRuntime project(':pluginDevelopment')
+    integTestRuntime project(':testKit')
 
     testFixturesCompile project(":internalIntegTesting")
 }

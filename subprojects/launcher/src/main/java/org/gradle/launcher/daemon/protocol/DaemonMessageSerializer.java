@@ -20,17 +20,21 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.serializer.LogEventSerializer;
 import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
+import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
+import org.gradle.internal.logging.serializer.UserInputResumeEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -56,6 +60,8 @@ public class DaemonMessageSerializer {
 
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
+        registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
+        registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());

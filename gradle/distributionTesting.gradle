@@ -16,6 +16,7 @@
 
 import java.util.regex.Pattern
 import org.gradle.testing.DistributionTest
+import org.gradle.util.GradleVersion
 
 ext.distributionTestTasks = tasks.withType(DistributionTest)
 
@@ -49,6 +50,7 @@ distributionTestTasks.all { DistributionTest task ->
     systemProperties['org.gradle.integtest.mirrors.jcenter'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/jcenter' : ''
     systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases' : ''
     systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases' : ''
+    systemProperties['org.gradle.integtest.mirrors.google'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/google' : ''
 
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {

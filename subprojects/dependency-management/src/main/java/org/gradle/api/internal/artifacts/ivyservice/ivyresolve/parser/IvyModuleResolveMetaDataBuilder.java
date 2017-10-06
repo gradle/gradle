@@ -18,17 +18,22 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 class IvyModuleResolveMetaDataBuilder {
@@ -44,22 +49,41 @@ class IvyModuleResolveMetaDataBuilder {
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
-        artifacts.add(new Artifact(newArtifact, configurations));
+        if (configurations.isEmpty()) {
+            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
+        }
+        Artifact artifact = findOrCreate(newArtifact);
+        artifact.getConfigurations().addAll(configurations);
+    }
+
+    private Artifact findOrCreate(IvyArtifactName artifactName) {
+        for (Artifact existingArtifact : artifacts) {
+            if (existingArtifact.getArtifactName().equals(artifactName)) {
+                return existingArtifact;
+            }
+        }
+        Artifact newArtifact = new Artifact(artifactName);
+        artifacts.add(newArtifact);
+        return newArtifact;
     }
 
     public List<Artifact> getArtifacts() {
         return artifacts;
     }
 
-    public DefaultMutableIvyModuleResolveMetadata build() {
-        ModuleDescriptorState descriptorState = converter.forIvyModuleDescriptor(ivyDescriptor);
-        for (Artifact artifact : artifacts) {
-            descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
-        }
+    public MutableIvyModuleResolveMetadata build() {
+        ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
+        ModuleComponentIdentifier cid = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyMetadata> dependencies = converter.extractDependencies(ivyDescriptor);
-        ModuleComponentIdentifier cid = descriptorState.getComponentIdentifier();
+        List<Exclude> excludes = converter.extractExcludes(ivyDescriptor);
+        Map<NamespaceId, String> extraAttributes = converter.extractExtraAttributes(ivyDescriptor);
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies);
+        DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, cid, configurations, dependencies, artifacts);
+        metadata.setStatus(ivyDescriptor.getStatus());
+        metadata.setExcludes(excludes);
+        metadata.setExtraAttributes(extraAttributes);
+        metadata.setBranch(ivyDescriptor.getModuleRevisionId().getBranch());
+        return metadata;
     }
 }

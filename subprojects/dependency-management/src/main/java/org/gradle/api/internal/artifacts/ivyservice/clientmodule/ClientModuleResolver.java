@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -74,6 +74,6 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
     private void setClientModuleArtifact(MutableModuleComponentResolveMetadata clientModuleMetaData) {
         ModuleComponentArtifactMetadata artifact = clientModuleMetaData.artifact("jar", "jar", null);
-        clientModuleMetaData.setArtifacts(Sets.newHashSet(artifact));
+        clientModuleMetaData.setArtifactOverrides(ImmutableSet.of(artifact));
     }
 }

@@ -54,7 +54,6 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -425,7 +424,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        public DefaultMutableIvyModuleResolveMetadata getMetaData() {
+        public MutableIvyModuleResolveMetadata getMetaData() {
             return metaData.build();
         }
 

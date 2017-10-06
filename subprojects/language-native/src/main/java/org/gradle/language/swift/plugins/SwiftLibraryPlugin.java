@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -37,6 +38,10 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -75,7 +80,16 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Configure compile task
         SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compileDebug.getCompilerArgs().set(Lists.newArrayList("-enable-testing"));
+        // TODO - Avoid evaluating the arguments here
+        final List<String> currentCompilerArguments = compileDebug.getCompilerArgs().getOrElse(Collections.<String>emptyList());
+        compileDebug.getCompilerArgs().set(project.provider(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                return Lists.newArrayList(Iterables.concat(
+                    Arrays.asList("-enable-testing"),
+                    currentCompilerArguments));
+            }
+        }));
         SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
         LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
@@ -90,14 +104,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         Configuration implementation = library.getImplementationDependencies();
         Configuration api = library.getApiDependencies();
 
-        Configuration debugApiElements = configurations.create("debugSwiftApiElements");
+        Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
         debugApiElements.extendsFrom(api);
         debugApiElements.setCanBeResolved(false);
         debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
         debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDir());
 
-        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
@@ -105,7 +119,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
         debugLinkElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(implementation);
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
@@ -113,14 +127,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // TODO - should distinguish between link-time and runtime files
         debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        Configuration releaseApiElements = configurations.create("releaseSwiftApiElements");
+        Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
         releaseApiElements.extendsFrom(api);
         releaseApiElements.setCanBeResolved(false);
         releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
         releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDir());
 
-        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
@@ -128,7 +142,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // TODO - should distinguish between link-time and runtime files
         releaseLinkElements.getOutgoing().artifact(linkRelease.getBinaryFile());
 
-        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));

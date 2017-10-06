@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +33,7 @@ class AnnotationProcessorDetectorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new TestFileContentCacheFactory())
-    def options = new CompileOptions()
+    def options = new CompileOptions(Mock(ProviderFactory))
 
     def "uses path defined on Java compile options"() {
         def cp = files("lib.jar")

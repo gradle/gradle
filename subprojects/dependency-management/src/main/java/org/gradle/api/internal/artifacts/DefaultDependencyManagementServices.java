@@ -46,12 +46,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -133,8 +133,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
+                                                          ImmutableAttributesFactory attributesFactory,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          ModuleExclusions moduleExclusions,
                                                           InstantiatorFactory instantiatorFactory,
                                                           FileResourceRepository fileResourceRepository) {
             return new DefaultBaseRepositoryFactory(
@@ -144,7 +144,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
-                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions, fileResourceRepository),
+                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository),
+                new ModuleMetadataParser(attributesFactory),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,

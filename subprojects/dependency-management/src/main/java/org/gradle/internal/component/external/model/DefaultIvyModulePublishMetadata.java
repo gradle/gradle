@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -32,6 +30,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -42,27 +41,29 @@ import java.util.Set;
 
 public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetadata {
     private final ModuleComponentIdentifier id;
-    private final MutableModuleDescriptorState descriptor;
+    private final String status;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
     private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
     private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
+    private final List<Exclude> excludes = new ArrayList<Exclude>();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
-        this.descriptor = new MutableModuleDescriptorState(id, status, true);
+        this.status = status;
     }
 
-    public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        this.id = id;
-        this.descriptor = (MutableModuleDescriptorState) moduleDescriptor;
+    public DefaultIvyModulePublishMetadata(IvyModulePublishMetadata metadata) {
+        this.id = metadata.getId();
+        this.status = metadata.getStatus();
     }
 
     public ModuleComponentIdentifier getId() {
         return id;
     }
 
-    public MutableModuleDescriptorState getModuleDescriptor() {
-        return descriptor;
+    @Override
+    public String getStatus() {
+        return status;
     }
 
     @Override
@@ -76,6 +77,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
+    public Collection<Exclude> getExcludes() {
+        return excludes;
+    }
+
+    @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainerInternal attributes, boolean canBeConsumed, boolean canBeResolved) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
@@ -85,7 +91,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
 
     @Override
     public void addExclude(Exclude exclude) {
-        descriptor.addExclude(exclude);
+        excludes.add(exclude);
     }
 
     @Override

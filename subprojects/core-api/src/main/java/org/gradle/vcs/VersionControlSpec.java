@@ -25,4 +25,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface VersionControlSpec extends Describable {
+    /**
+     * Returns a {@link String} identifier which will be unique to this version
+     * control specification among other version control specifications.
+     */
+    String getUniqueId();
+
+    /**
+     * Returns the name of the repository.
+     */
+    String getRepoName();
 }

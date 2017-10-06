@@ -163,7 +163,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                 }
 
                 IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
+                inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
                 continue;
             }
 

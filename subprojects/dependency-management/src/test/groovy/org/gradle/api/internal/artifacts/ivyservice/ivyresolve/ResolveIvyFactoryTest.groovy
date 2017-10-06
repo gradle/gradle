@@ -132,6 +132,7 @@ class ResolveIvyFactoryTest extends Specification {
                 TestFiles.fileRepository()
             ]
         ) {
+            appendId(_) >> { }
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)
             getRemoteAccess() >> Stub(ModuleComponentRepositoryAccess)
             isM2compatible() >> true

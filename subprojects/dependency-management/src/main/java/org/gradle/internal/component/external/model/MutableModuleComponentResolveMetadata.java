@@ -17,14 +17,12 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 public interface MutableModuleComponentResolveMetadata {
     /**
@@ -47,6 +45,15 @@ public interface MutableModuleComponentResolveMetadata {
      */
     void setComponentId(ModuleComponentIdentifier componentId);
 
+    /**
+     * Returns the hash of the resource(s) from which this metadata was created.
+     */
+    HashValue getContentHash();
+    void setContentHash(HashValue hash);
+
+    boolean isMissing();
+    void setMissing(boolean missing);
+
     boolean isChanging();
     void setChanging(boolean changing);
 
@@ -60,13 +67,8 @@ public interface MutableModuleComponentResolveMetadata {
     void setSource(ModuleSource source);
 
     /**
-     * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
+     * Returns the dependency declarations of this component.
      */
-    ModuleDescriptorState getDescriptor();
-
     List<? extends DependencyMetadata> getDependencies();
 
     /**
@@ -75,17 +77,15 @@ public interface MutableModuleComponentResolveMetadata {
     void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
 
     /**
-     * Returns the Ivy-like definitions for the configurations of this module. This method is here to allow us to migrate away from the Ivy model and will be removed.
+     * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.
      */
-    Map<String, Configuration> getConfigurationDefinitions();
-
     @Nullable
-    List<ModuleComponentArtifactMetadata> getArtifacts();
+    List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
 
     /**
-     * Replaces the artifacts of this module version.
+     * Replaces the artifacts of this module version. The artifacts are attached to all configurations.
      */
-    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
+    void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

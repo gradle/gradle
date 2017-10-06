@@ -23,9 +23,11 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -41,7 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository, ComponentAwareRepository {
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private Object url;
@@ -49,15 +51,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
+    private final ModuleMetadataParser metadataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
+    private boolean preferGradleMetadata;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           Instantiator instantiator,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                          ModuleMetadataParser metadataParser,
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
@@ -68,6 +73,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.pomParser = pomParser;
+        this.metadataParser = metadataParser;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
@@ -106,6 +112,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = Lists.newArrayList(urls);
     }
 
+    @Override
+    public void useGradleMetadata() {
+        preferGradleMetadata = true;
+    }
+
+    protected boolean isPreferGradleMetadata() {
+        return preferGradleMetadata;
+    }
+
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
@@ -130,11 +145,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, preferGradleMetadata);
     }
 
-    public MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {
+    protected MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {
         return pomParser;
+    }
+
+    protected ModuleMetadataParser getMetadataParser() {
+        return metadataParser;
     }
 
     protected FileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {

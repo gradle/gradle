@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -42,11 +41,11 @@ public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainO
 
     public static class DefaultArtifactTypeDefinition implements ArtifactTypeDefinition {
         private final String name;
-        private final DefaultMutableAttributeContainer attributes;
+        private final AttributeContainer attributes;
 
         public DefaultArtifactTypeDefinition(String name, ImmutableAttributesFactory attributesFactory) {
             this.name = name;
-            attributes = new DefaultMutableAttributeContainer(attributesFactory);
+            attributes = attributesFactory.mutable();
         }
 
         @Override

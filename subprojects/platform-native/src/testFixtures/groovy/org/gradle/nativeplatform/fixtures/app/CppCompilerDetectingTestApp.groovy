@@ -34,7 +34,7 @@ class CppCompilerDetectingTestApp extends TestApp {
             #endif
 
             void DLL_FUNC detectCppCompiler();
-        """);
+        """)
     }
 
     @Override

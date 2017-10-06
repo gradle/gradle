@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.file;
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -98,11 +99,13 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                     });
                 }
             } catch (Exception e) {
+                String message = "Couldn't delete test dir for " + displayName + " (test is holding files open). "
+                    + "In order to find out which files are held open you may find http://file-leak-detector.kohsuke.org/ useful.";
                 if (suppressCleanupErrors) {
-                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+                    System.err.println(message);
                     e.printStackTrace(System.err);
                 } else {
-                    throw e;
+                    throw new GradleException(message, e);
                 }
             }
         }

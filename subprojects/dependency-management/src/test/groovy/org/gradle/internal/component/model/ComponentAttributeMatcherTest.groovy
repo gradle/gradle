@@ -21,8 +21,8 @@ import com.google.common.collect.Multimap
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.CompatibilityCheckResult
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.MultipleCandidatesResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -373,8 +373,8 @@ class ComponentAttributeMatcherTest extends Specification {
         e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer."
     }
 
-    private DefaultMutableAttributeContainer attributes() {
-        new DefaultMutableAttributeContainer(factory)
+    private AttributeContainerInternal attributes() {
+        factory.mutable()
     }
 
     private static class TestSchema implements AttributeSelectionSchema {

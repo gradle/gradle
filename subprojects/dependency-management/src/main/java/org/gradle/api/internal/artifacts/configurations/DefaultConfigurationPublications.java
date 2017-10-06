@@ -29,7 +29,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.DisplayName;
@@ -61,7 +60,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.artifactNotationParser = artifactNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
-        this.attributes = new DefaultMutableAttributeContainer(attributesFactory, parentAttributes);
+        this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
     public OutgoingVariant convertToOutgoingVariant() {

@@ -35,6 +35,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'project'"
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.start()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Unroll
@@ -68,7 +69,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         "configured"    | null        | null
         "authenticated" | "proxyUser" | "proxyPassword"
     }
-    
+
     def "uses authenticated proxy to access remote settings script plugin"() {
         given:
         testProxyServer.start("proxyUser", "proxyPassword")

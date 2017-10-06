@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
-public class MixedLanguageHelloWorldApp extends HelloWorldApp {
+class MixedLanguageHelloWorldApp extends HelloWorldApp {
     private final AvailableToolChains.InstalledToolChain toolChain
 
     MixedLanguageHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {

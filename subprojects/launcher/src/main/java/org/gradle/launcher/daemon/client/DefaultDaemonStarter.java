@@ -66,7 +66,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.versionValidator = versionValidator;
     }
 
-    public DaemonStartupInfo startDaemon() {
+    public DaemonStartupInfo startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
@@ -116,6 +116,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
             encoder.writeSmallInt(daemonParameters.getPeriodicCheckInterval());
+            encoder.writeBoolean(singleUse);
             encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {

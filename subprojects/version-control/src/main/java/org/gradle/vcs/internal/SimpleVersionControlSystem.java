@@ -16,17 +16,25 @@
 
 package org.gradle.vcs.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
+import org.gradle.vcs.VersionRef;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 public class SimpleVersionControlSystem implements VersionControlSystem {
     @Override
-    public void populate(File workingDir, VersionControlSpec spec) {
+    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
+    }
+
+    @Override
+    public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
         File sourceDir = ((DirectoryRepository)spec).getSourceDir();
         try {
             GFileUtils.copyDirectory(sourceDir, workingDir);

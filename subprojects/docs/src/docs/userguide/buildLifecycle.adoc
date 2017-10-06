@@ -79,6 +79,7 @@ In the settings file you can use a set of methods to build the project tree. Hie
 ++++
 
 The `include` method takes project paths as arguments. The project path is assumed to be equal to the relative physical file system path. For example, a path 'services:api' is mapped by default to a folder 'services/api' (relative from the project root). You only need to specify the leaves of the tree. This means that the inclusion of the path 'services:hotels:api' will result in creating 3 projects: 'services', 'services:hotels' and 'services:hotels:api'.
+More examples of how to work with the project path can be found in the DSL documentation of api:org.gradle.api.initialization.Settings#include(java.lang.String...)[].
 
 [[sec:flat_layouts]]
 ===== Flat layouts

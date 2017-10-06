@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.buildcache
 
-import org.gradle.initialization.StartParameterBuildOptionFactory
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 
@@ -32,9 +32,9 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.warmUpRuns = 5
         runner.runs = 13
         runner.cleanTasks = ["clean"]
-        runner.args = ["-D${StartParameterBuildOptionFactory.BuildCacheOption.GRADLE_PROPERTY}=true"]
+        runner.args = ["-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         runner.minimumVersion = "3.5"
-        runner.targetVersions = ["4.2-20170904082212+0000"]
+        runner.targetVersions = ["4.2.1"]
     }
 
     /**

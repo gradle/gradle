@@ -64,7 +64,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Build
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -204,7 +203,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
         this.attributesFactory = attributesFactory;
-        this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+        this.configurationAttributes = attributesFactory.mutable();
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
 
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
@@ -1111,7 +1110,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory, configurationAttributes);
+                viewAttributes = attributesFactory.mutable(configurationAttributes);
                 attributesUsed = true;
             }
             return viewAttributes;

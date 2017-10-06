@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -75,10 +76,12 @@ import javax.inject.Inject;
  */
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
-    private final CompileOptions compileOptions = new CompileOptions();
+    private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
 
     public JavaCompile() {
+        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        this.compileOptions = compileOptions;
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
