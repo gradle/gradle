@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
+import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -329,5 +330,66 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':generateXtext').outcome == SUCCESS
+    }
+
+    def 'org.ajoberstar.grgit plugin'() {
+        given:
+        GitRepository.init(testProjectDir.root)
+        buildFile << """
+            plugins {
+                id "org.ajoberstar.grgit" version "2.0.1"
+            }
+
+            def sourceFile = file("sourceFile")
+
+            task commit {
+                doLast {
+                    sourceFile.text = "hello world"
+                    grgit.add(patterns: [ 'sourceFile' ])
+                    grgit.commit {
+                        message = "first commit"
+                    }
+                }
+            }
+
+            task tag {
+                dependsOn commit
+                doLast {
+                    grgit.tag.add {
+                        name = 'previous'
+                        message = 'previous commit'
+                    }
+
+                    sourceFile.text = "goodbye world"
+                    grgit.add(patterns: [ 'sourceFile' ])
+                    grgit.commit {
+                        message = "second commit"
+                    }
+                }
+            }
+
+            task checkout {
+                dependsOn tag
+                doLast {
+                    assert sourceFile.text == 'goodbye world'
+                    grgit.checkout {
+                        branch = 'previous'
+                    }
+                    assert sourceFile.text == 'hello world'
+                }
+            }
+
+            task release {
+                dependsOn checkout
+            }
+        """.stripIndent()
+
+        when:
+        def result = runner('release').build()
+
+        then:
+        result.task(':commit').outcome == SUCCESS
+        result.task(':tag').outcome == SUCCESS
+        result.task(':checkout').outcome == SUCCESS
     }
 }

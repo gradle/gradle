@@ -38,21 +38,36 @@ import java.util.Collection;
 
 public class GitRepository extends ExternalResource {
     private final String repoName;
-    private final TestFile parentDirectory;
+    private final File parentDirectory;
     private Git git;
 
-    public GitRepository(String repoName, TestFile parentDirectory) {
+    public GitRepository(String repoName, File parentDirectory) {
         this.repoName = repoName;
         this.parentDirectory = parentDirectory;
     }
 
-    public GitRepository(TestFile parentDirectory) {
+    public GitRepository(File parentDirectory) {
         this("repo", parentDirectory);
+    }
+
+    /**
+     * Factory method for creating a GitRepository without using a JUnit @Rule.
+     *
+     * Creates a repository in the given repoDir.
+     */
+    public static GitRepository init(File repoDir) throws GitAPIException {
+        GitRepository repo = new GitRepository(repoDir);
+        repo.createGitRepo(repoDir);
+        return repo;
     }
 
     @Override
     protected void before() throws Throwable {
-        git = Git.init().setDirectory(parentDirectory.file(repoName)).call();
+        createGitRepo(new File(parentDirectory, repoName));
+    }
+
+    private void createGitRepo(File repoDir) throws GitAPIException {
+        git = Git.init().setDirectory(repoDir).call();
     }
 
     @Override
