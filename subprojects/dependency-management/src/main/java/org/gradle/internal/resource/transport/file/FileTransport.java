@@ -15,25 +15,34 @@
  */
 package org.gradle.internal.resource.transport.file;
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class FileTransport extends AbstractRepositoryTransport {
     private final FileResourceRepository repository;
-    private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
+    private final FileCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name, FileResourceRepository repository) {
+    public FileTransport(String name, FileResourceRepository repository, CachedExternalResourceIndex<String> cachedExternalResourceIndex, TemporaryFileProvider temporaryFileProvider, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ProducerGuard<ExternalResourceName> producerGuard) {
         super(name);
         this.repository = repository;
-        resourceAccessor = new NoOpCacheAwareExternalResourceAccessor();
+        ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
+        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, repository));
     }
 
     public boolean isLocal() {
@@ -48,13 +57,27 @@ public class FileTransport extends AbstractRepositoryTransport {
         return resourceAccessor;
     }
 
-    private class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
-        public LocallyAvailableExternalResource getResource(ExternalResourceName source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+    private class FileCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
+        private final CacheAwareExternalResourceAccessor delegate;
+
+        FileCacheAwareExternalResourceAccessor(CacheAwareExternalResourceAccessor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Nullable
+        @Override
+        public LocallyAvailableExternalResource getResource(ExternalResourceName source, @Nullable String baseName, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
             LocallyAvailableExternalResource resource = repository.resource(source);
-            if (resource.getFile().exists()) {
+            if (!resource.getFile().exists()) {
+                return null;
+            }
+            if (baseName == null || resource.getFile().getName().equals(baseName)) {
+                // Use the origin file when it can satisfy the basename requirements
                 return resource;
             }
-            return null;
+
+            // Use the file from the cache when it does not
+            return delegate.getResource(source, baseName, fileStore, additionalCandidates);
         }
     }
 }

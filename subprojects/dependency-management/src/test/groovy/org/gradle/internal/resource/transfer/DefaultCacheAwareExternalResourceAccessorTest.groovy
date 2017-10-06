@@ -68,7 +68,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == null
@@ -89,7 +89,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == null
@@ -112,7 +112,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def cachedResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == cachedResource
@@ -146,7 +146,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == resultResource
@@ -177,7 +177,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == resultResource
@@ -226,7 +226,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == resultResource
@@ -272,7 +272,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == resultResource
@@ -323,7 +323,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
-        def result = cache.getResource(location, fileStore, localCandidates)
+        def result = cache.getResource(location, null, fileStore, localCandidates)
 
         then:
         result == resultResource

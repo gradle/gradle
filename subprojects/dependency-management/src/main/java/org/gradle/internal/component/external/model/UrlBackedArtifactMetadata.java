@@ -50,6 +50,10 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
         return id;
     }
 
+    public String getRelativeUrl() {
+        return relativeUrl;
+    }
+
     @Override
     public ArtifactIdentifier toArtifactIdentifier() {
         ArtifactFile names = new ArtifactFile(relativeUrl, componentIdentifier.getVersion());

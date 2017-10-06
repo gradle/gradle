@@ -18,10 +18,9 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-class MavenDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile)
 
     def setup() {
@@ -311,7 +310,7 @@ task checkRelease {
         succeeds("checkRelease")
     }
 
-    def "variant can define files whose names are different to their location"() {
+    def "variant can define files whose names are different to their maven contention location"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
         a.artifact(type: 'zip')
@@ -370,7 +369,6 @@ task checkDebug {
         succeeds("checkDebug")
     }
 
-    @Ignore
     def "variant can define files whose names and locations do not match maven convention"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -378,6 +376,7 @@ task checkDebug {
         a.getArtifact("file2.jar").file << "file 2"
         a.getArtifact("../sibling/file3.jar").file << "file 3"
         a.getArtifact("child/file4.jar").file << "file 4"
+        a.getArtifact("../../../a-1.2-5.jar").file << "file 5"
         a.publish()
         a.moduleMetadata.file.text = """
 {
@@ -389,7 +388,8 @@ task checkDebug {
                 { "name": "file1.jar", "url": "file1.jar" },
                 { "name": "a-1.2.jar", "url": "file2.jar" },
                 { "name": "a-3.jar", "url": "../sibling/file3.jar" }, 
-                { "name": "file4.jar", "url": "child/file4.jar" } 
+                { "name": "file4.jar", "url": "child/file4.jar" }, 
+                { "name": "a_5.jar", "url": "/repo/a-1.2-5.jar" } 
             ]
         }
     ]
@@ -412,7 +412,7 @@ dependencies {
     debug 'test:a:1.2'
 }
 task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar'] }
+    doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar', 'a_5.jar'] }
 }
 """
 
@@ -422,6 +422,7 @@ task checkDebug {
         a.getArtifact("file2.jar").expectGet()
         a.getArtifact("../sibling/file3.jar").expectGet()
         a.getArtifact("child/file4.jar").expectGet()
+        a.getArtifact("../../../a-1.2-5.jar").expectGet()
 
         expect:
         succeeds("checkDebug")

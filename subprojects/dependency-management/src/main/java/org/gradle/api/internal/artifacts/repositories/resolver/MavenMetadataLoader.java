@@ -58,7 +58,7 @@ class MavenMetadataLoader {
     }
 
     private void parseMavenMetadataInfo(final ExternalResourceName metadataLocation, final MavenMetadata metadata) throws IOException {
-        ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+        ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, null, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
             @Override
             public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                 String key = metadataLocation.toString();

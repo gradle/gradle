@@ -44,27 +44,27 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
     @Nullable
     @Override
     public LocallyAvailableExternalResource resolveUri(URI uri) {
-        return resolve(new ExternalResourceName(uri), uri);
+        return resolve(new ExternalResourceName(uri));
     }
 
     @Nullable
     @Override
     public LocallyAvailableExternalResource resolveResource(ExternalResourceName resource) {
-        return resolve(resource, resource.getUri());
+        return resolve(resource);
     }
 
-    private LocallyAvailableExternalResource resolve(final ExternalResourceName resource, URI uri) {
+    private LocallyAvailableExternalResource resolve(final ExternalResourceName resource) {
         LOGGER.debug("Loading {}", resource);
 
         try {
-            return resourceAccessor.getResource(resource, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+            return resourceAccessor.getResource(resource, null, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                     String key = resource.toString();
                     return fileStore.move(key, downloadedResource);
                 }
             }, null);
         } catch (Exception e) {
-            throw ResourceExceptions.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(resource.getUri(), e);
         }
     }
 }

@@ -76,7 +76,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.fileResourceRepository = fileResourceRepository;
     }
 
-    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+    @Nullable
+    @Override
+    public LocallyAvailableExternalResource getResource(final ExternalResourceName location, @Nullable String baseName, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
         return producerGuard.guardByKey(location, new Factory<LocallyAvailableExternalResource>() {
             @Override
             public LocallyAvailableExternalResource create() {
