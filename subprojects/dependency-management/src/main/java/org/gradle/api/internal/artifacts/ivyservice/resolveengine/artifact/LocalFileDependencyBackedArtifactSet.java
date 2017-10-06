@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.failures.AbstractResolutionFailure;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -66,7 +67,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         try {
             files = dependencyMetadata.getFiles().getFiles();
         } catch (Throwable throwable) {
-            return new BrokenResolvedArtifactSet(throwable);
+
+            return new BrokenResolvedArtifactSet(AbstractResolutionFailure.of(componentIdentifier, throwable));
         }
 
         List<ResolvedArtifactSet> selectedArtifacts = Lists.newArrayListWithCapacity(files.size());
@@ -154,6 +156,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
+        }
+
+        @Override
+        public ComponentIdentifier getComponentIdentifier() {
+            return artifactIdentifier.getComponentIdentifier();
         }
     }
 }

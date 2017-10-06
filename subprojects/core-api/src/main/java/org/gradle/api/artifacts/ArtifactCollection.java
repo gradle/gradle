@@ -49,8 +49,19 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      * Returns any failures to resolve the artifacts for this collection.
      *
      * @since 4.0
+     * @deprecated Use {@link #getResolutionFailures()} instead
      *
      * @return A collection of exceptions, one for each failure in resolution.
      */
+    @Deprecated
     Collection<Throwable> getFailures();
+
+    /**
+     * Returns any resolution failure for this collection.
+     *
+     * @since 4.2
+     *
+     * @return A collection of dependencies which couldn't be resolved.
+     */
+    Collection<ResolutionFailure<?>> getResolutionFailures();
 }

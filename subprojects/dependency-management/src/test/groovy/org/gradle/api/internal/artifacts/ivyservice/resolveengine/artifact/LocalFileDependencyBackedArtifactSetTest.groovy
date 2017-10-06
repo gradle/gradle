@@ -192,6 +192,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * listener.includeFileDependencies() >> true
         1 * files.files >> { throw failure }
         1 * visitor.visitFailure(failure)
+        1 * visitor.visitResolutionFailure(_)
         0 * visitor._
         0 * listener._
 
@@ -200,6 +201,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         1 * visitor.visitFailure(failure)
+        1 * visitor.visitResolutionFailure(_)
         0 * _
     }
 }

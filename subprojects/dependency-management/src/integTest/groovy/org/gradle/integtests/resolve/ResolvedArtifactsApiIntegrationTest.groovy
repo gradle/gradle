@@ -927,6 +927,9 @@ project(':c') {
     artifacts { compile jar1 }
 }
 
+import org.gradle.internal.component.external.model.*
+import org.gradle.internal.component.local.model.*
+
 task resolveLenient {
     def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
     inputs.files lenientView.files
@@ -936,6 +939,23 @@ task resolveLenient {
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.failures.size() == 3
+        assert lenientView.artifacts.resolutionFailures.size() == 3
+        def ids = lenientView.artifacts.resolutionFailures.id
+        assert ids.find { id ->
+            id instanceof DefaultModuleComponentIdentifier && id.module == 'missing-module'
+        }
+        assert ids.find { id ->
+            id instanceof DefaultModuleComponentIdentifier && id.module == 'b'
+        }
+        assert ids.find { id ->
+            id instanceof DefaultProjectComponentIdentifier && id.projectPath == ':a'
+        }
+        assert lenientView.artifacts.resolutionFailures.find { failure ->
+            failure.id instanceof DefaultModuleComponentIdentifier && failure.id.module == 'missing-module'
+        }.attemptedLocations.every { location ->
+            location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.pom') ||
+            location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.jar')
+        }
     }
 }
 """

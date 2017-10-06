@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -80,6 +81,7 @@ class DefaultArtifactTransformsTest extends Specification {
         set.asDescribable() >> Describables.of('<component>')
         set.schema >> producerSchema
         set.variants >> variants
+        set.componentIdentifier >> Stub(ModuleComponentIdentifier)
         variant1.asDescribable() >> Describables.of('<variant1>')
         variant1.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
@@ -121,6 +123,7 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         set.schema >> producerSchema
         set.variants >> variants
+        set.componentIdentifier >> Stub(ModuleComponentIdentifier)
         variant1.attributes >> typeAttributes("jar")
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("dll")
@@ -170,6 +173,7 @@ class DefaultArtifactTransformsTest extends Specification {
         set.schema >> producerSchema
         set.variants >> variants
         set.asDescribable() >> Describables.of('<component>')
+        set.componentIdentifier >> Stub(ModuleComponentIdentifier)
         variant1.attributes >> typeAttributes("jar")
         variant1.asDescribable() >> Describables.of('<variant1>')
         variant2.attributes >> typeAttributes("classes")
@@ -229,6 +233,7 @@ Found the following transforms:
         set.schema >> producerSchema
         set.variants >> variants
         set.asDescribable() >> Describables.of('<component>')
+        set.componentIdentifier >> Stub(ModuleComponentIdentifier)
         variant1.attributes >> typeAttributes("jar")
         variant1.asDescribable() >> Describables.of('<variant1>')
         variant2.attributes >> typeAttributes("classes")
