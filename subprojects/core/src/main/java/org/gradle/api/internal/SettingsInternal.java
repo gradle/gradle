@@ -17,6 +17,8 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
@@ -25,6 +27,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.vcs.SourceControl;
 
 import java.io.File;
 import java.util.Map;
@@ -54,4 +57,20 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     @Override
     GradleInternal getGradle();
+
+    /**
+     * Configures source control.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    void sourceControl(Action<? super SourceControl> configuration);
+
+    /**
+     * Returns the source control configuration.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    SourceControl getSourceControl();
 }

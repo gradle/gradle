@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.vcs.SourceControl;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -253,20 +252,4 @@ public interface Settings extends PluginAware {
      */
     @Incubating
     PluginManagementSpec getPluginManagement();
-
-    /**
-     * Configures source control.
-     *
-     * @since 4.3
-     */
-    @Incubating
-    void sourceControl(Action<? super SourceControl> configuration);
-
-    /**
-     * Returns the source control configuration.
-     *
-     * @since 4.3
-     */
-    @Incubating
-    SourceControl getSourceControl();
 }
