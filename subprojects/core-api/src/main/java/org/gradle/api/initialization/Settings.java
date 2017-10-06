@@ -71,13 +71,6 @@ import java.io.File;
 @HasInternalProtocol
 public interface Settings extends PluginAware {
     /**
-     * <p>The default file base name for the settings file.</p>
-     *
-     * @since 4.0
-     */
-    String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
-
-    /**
      * <p>The default name for the settings file.</p>
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";

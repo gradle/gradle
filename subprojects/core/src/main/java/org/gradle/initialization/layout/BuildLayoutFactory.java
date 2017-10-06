@@ -27,6 +27,8 @@ import java.io.File;
 @UsedByScanPlugin
 public class BuildLayoutFactory {
 
+    private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
+
     private final ScriptFileResolver scriptFileResolver;
 
     public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
@@ -65,7 +67,7 @@ public class BuildLayoutFactory {
         File defaultSettingsFile = new File(directory, Settings.DEFAULT_SETTINGS_FILE);
         return defaultSettingsFile.isFile()
             ? defaultSettingsFile
-            : scriptFileResolver.resolveScriptFile(directory, Settings.DEFAULT_SETTINGS_FILE_BASENAME);
+            : scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
