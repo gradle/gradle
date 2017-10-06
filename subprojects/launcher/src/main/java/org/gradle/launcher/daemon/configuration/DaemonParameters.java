@@ -52,7 +52,7 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
-    private boolean interactive = System.console() != null || Boolean.getBoolean(ConsoleStateUtil.INTERACTIVE_TOGGLE);
+    private boolean interactive = ConsoleStateUtil.isInteractive();
     private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {

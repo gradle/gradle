@@ -16,10 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import org.gradle.internal.nativeintegration.console.ConsoleDetector;
-import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-import org.gradle.internal.nativeintegration.services.NativeServices;
-
 public final class ConsoleStateUtil {
 
     public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
@@ -28,16 +24,14 @@ public final class ConsoleStateUtil {
     }
 
     public static boolean isInteractive() {
-        return stdOutIsAttachedToTerminal() || definesInteractiveSystemProperty();
+        return isInteractiveConsoleAttached() || definesInteractiveSystemProperty();
     }
 
     /**
-     * Assume that standard input is available if stdout is attached to the console.
+     * Checks if console is associated with JVM.
      */
-    private static boolean stdOutIsAttachedToTerminal() {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
-        return consoleMetaData != null && consoleMetaData.isStdOut();
+    private static boolean isInteractiveConsoleAttached() {
+        return System.console() != null;
     }
 
     /**
