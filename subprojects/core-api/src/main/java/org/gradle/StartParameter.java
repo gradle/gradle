@@ -835,6 +835,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.3
      */
+    @Incubating
     public boolean isInteractive() {
         return interactive;
     }
@@ -844,6 +845,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.3
      */
+    @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
     }
