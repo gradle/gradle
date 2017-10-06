@@ -16,13 +16,17 @@
 
 package org.gradle.vcs.fixtures;
 
+import com.google.common.collect.Sets;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.CollectionUtils;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -99,5 +103,19 @@ public class GitRepository extends ExternalResource {
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    public Collection<TestFile> listFiles() throws GitAPIException {
+        Status status = git.status().call();
+        Collection<TestFile> files = Sets.newHashSet();
+        Transformer<TestFile, String> relativePathToTestFile = new Transformer<TestFile, String>() {
+            @Override
+            public TestFile transform(String path) {
+                return getWorkTree().file(path);
+            }
+        };
+        CollectionUtils.collect(status.getUncommittedChanges(), files, relativePathToTestFile);
+        CollectionUtils.collect(status.getUntracked(), files, relativePathToTestFile);
+        return files;
     }
 }
