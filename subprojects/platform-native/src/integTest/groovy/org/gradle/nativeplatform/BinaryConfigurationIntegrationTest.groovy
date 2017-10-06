@@ -204,7 +204,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executedTasks == [":discoverInputsForCompileMainExecutableMainCpp", ":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
+        executedTasks == [":dependMainExecutableMainCpp", ":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
     }
 
     @Issue("GRADLE-2973")

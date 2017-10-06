@@ -62,14 +62,14 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Responsible for discovering headers which are inputs to a native compilation task.
+ * Responsible for detecting headers which are inputs to a native compilation task.
  *
  * @since 4.3
  */
 @NonNullApi
 @Incubating
-public class DiscoverInputs extends DefaultTask {
-    private final Logger logger = LoggerFactory.getLogger(DiscoverInputs.class);
+public class Depend extends DefaultTask {
+    private final Logger logger = LoggerFactory.getLogger(Depend.class);
 
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
@@ -83,7 +83,7 @@ public class DiscoverInputs extends DefaultTask {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     @Inject
-    public DiscoverInputs(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -96,7 +96,7 @@ public class DiscoverInputs extends DefaultTask {
     }
 
     @TaskAction
-    public void discoverInputs(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
+    public void detectHeaders(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
         List<File> includeRoots = ImmutableList.copyOf(includes);
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);

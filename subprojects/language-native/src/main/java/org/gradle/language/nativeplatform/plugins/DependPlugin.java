@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
-import org.gradle.language.nativeplatform.tasks.DiscoverInputs;
+import org.gradle.language.nativeplatform.tasks.Depend;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Creates discoverInputs tasks for each supported native compile task.
+ * Creates depend tasks for each supported native compile task.
  *
  * Currently, {@link CCompile} and {@link CppCompile} are supported.
  *
@@ -42,36 +42,39 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  */
 @Incubating
 @NonNullApi
-public class DiscoveredInputsPlugin implements Plugin<Project> {
+public class DependPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        CreateDiscoveredInputsTaskAction createDiscoveredInputsAction = new CreateDiscoveredInputsTaskAction(project);
-        project.getTasks().withType(CppCompile.class, createDiscoveredInputsAction);
-        project.getTasks().withType(CCompile.class, createDiscoveredInputsAction);
+        CreateDependTaskAction createDependAction = new CreateDependTaskAction(project);
+        project.getTasks().withType(CppCompile.class, createDependAction);
+        project.getTasks().withType(CCompile.class, createDependAction);
     }
 
-    private static class CreateDiscoveredInputsTaskAction implements Action<AbstractNativeCompileTask> {
+    private static class CreateDependTaskAction implements Action<AbstractNativeCompileTask> {
         private final Project project;
 
-        public CreateDiscoveredInputsTaskAction(Project project) {
+        public CreateDependTaskAction(Project project) {
             this.project = project;
         }
 
         @Override
         public void execute(final AbstractNativeCompileTask compile) {
-            DiscoverInputs discoverInputs = project.getTasks().create("discoverInputsFor" + capitalize(compile.getName()), DiscoverInputs.class);
-            discoverInputs.source(compile.getSource());
-            discoverInputs.includes(compile.getIncludes());
-            discoverInputs.getDiscoveredInputs().set(project.getLayout().getBuildDirectory().file(discoverInputs.getName() + "/" + "inputs.txt"));
-            discoverInputs.getImportsAreIncludes().set(project.provider(new Callable<Boolean>() {
+            String compileTaskName = compile.getName();
+            String dependTaskName = "depend" + (compileTaskName.startsWith("compile") ?
+                compileTaskName.substring("compile".length()) : capitalize(compileTaskName));
+            Depend depend = project.getTasks().create(dependTaskName, Depend.class);
+            depend.source(compile.getSource());
+            depend.includes(compile.getIncludes());
+            depend.getDiscoveredInputs().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
+            depend.getImportsAreIncludes().set(project.provider(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
                     NativeToolChain toolChain = compile.getToolChain();
                     return Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
                 }
             }));
-            compile.getDiscoveredInputs().set(discoverInputs.getDiscoveredInputs());
+            compile.getHeaderDependenciesFile().set(depend.getDiscoveredInputs());
         }
     }
 }

@@ -33,7 +33,7 @@ import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
-import org.gradle.language.nativeplatform.plugins.DiscoveredInputsPlugin;
+import org.gradle.language.nativeplatform.plugins.DependPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
@@ -53,7 +53,7 @@ public class CppLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         PluginManager pluginManager = project.getPluginManager();
         pluginManager.apply(ComponentModelBasePlugin.class);
-        pluginManager.apply(DiscoveredInputsPlugin.class);
+        pluginManager.apply(DependPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

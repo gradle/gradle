@@ -34,7 +34,7 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.nativeplatform.plugins.DiscoveredInputsPlugin;
+import org.gradle.language.nativeplatform.plugins.DependPlugin;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -60,7 +60,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
-        project.getPluginManager().apply(DiscoveredInputsPlugin.class);
+        project.getPluginManager().apply(DependPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();

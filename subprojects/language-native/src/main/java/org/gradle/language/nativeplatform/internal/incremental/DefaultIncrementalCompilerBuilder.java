@@ -34,7 +34,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     }
 
     @Override
-    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, boolean discoverInputs) {
-        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory, discoverInputs);
+    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, boolean detectHeaders) {
+        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory, detectHeaders);
     }
 }

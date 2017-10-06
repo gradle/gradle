@@ -20,8 +20,8 @@ import spock.lang.Unroll
 
 abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
 
-    String getDiscoverInputsTask() {
-        ":discoverInputsFor${compileTask.substring(1).capitalize()}"
+    String getDependTask() {
+        ":dependMainExecutableMain${sourceType}"
     }
 
     @Unroll
@@ -56,7 +56,7 @@ abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsInteg
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped discoverInputsTask
+        executedAndNotSkipped dependTask
         skipped compileTask
 
         and:

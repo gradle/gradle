@@ -46,7 +46,7 @@ trait CppTaskNames {
     }
 
     String[] compileTasks(String project = '', String variant) {
-        ["${project}:discoverInputsForCompile${variant}Cpp", "${project}:compile${variant}Cpp"] as String[]
+        ["${project}:depend${variant}Cpp", "${project}:compile${variant}Cpp"] as String[]
     }
 
     String linkTask(String project = '', String variant) {

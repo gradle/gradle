@@ -56,7 +56,7 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
         return new IncrementalCompilerBuilder() {
             @Override
-            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, boolean discoverInputs) {
+            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, boolean detectHeaders) {
                 return compiler;
             }
         };

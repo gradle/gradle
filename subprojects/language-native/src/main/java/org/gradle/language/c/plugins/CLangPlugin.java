@@ -32,7 +32,7 @@ import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
-import org.gradle.language.nativeplatform.plugins.DiscoveredInputsPlugin;
+import org.gradle.language.nativeplatform.plugins.DependPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
@@ -52,7 +52,7 @@ public class CLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
-        project.getPluginManager().apply(DiscoveredInputsPlugin.class);
+        project.getPluginManager().apply(DependPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

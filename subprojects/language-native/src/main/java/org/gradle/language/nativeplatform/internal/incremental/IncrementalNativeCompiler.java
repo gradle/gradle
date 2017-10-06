@@ -52,17 +52,17 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final FileHasher hasher;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
-    private final boolean discoverInputs;
+    private final boolean detectHeaders;
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory, boolean discoverInputs) {
+    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory, boolean detectHeaders) {
         this.task = task;
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
-        this.discoverInputs = discoverInputs;
+        this.detectHeaders = detectHeaders;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
-        if (discoverInputs) {
+        if (detectHeaders) {
             handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
         }
 

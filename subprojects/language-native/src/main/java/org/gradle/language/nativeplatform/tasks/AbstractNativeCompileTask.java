@@ -78,14 +78,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
     private ImmutableList<String> includePaths;
-    private final RegularFileVar discoveredInputs;
+    private final RegularFileVar headerDependenciesFile;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getProviders().listProperty(String.class);
-        discoveredInputs = newInputFile();
+        headerDependenciesFile = newInputFile();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -135,7 +135,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, !getDiscoveredInputs().isPresent());
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, !getHeaderDependenciesFile().isPresent());
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
     }
@@ -237,7 +237,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     @Optional
     protected Collection<String> getIncludePaths() {
-        if (discoveredInputs.isPresent()) {
+        if (headerDependenciesFile.isPresent()) {
             return null; // => Include paths are handled by a different task
         }
         if (includePaths == null) {
@@ -297,15 +297,15 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @Internal
-    public RegularFileVar getDiscoveredInputs() {
-        return discoveredInputs;
+    public RegularFileVar getHeaderDependenciesFile() {
+        return headerDependenciesFile;
     }
 
     @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    public FileCollection getDiscoveredInputFiles() throws IOException {
-        File inputFile = discoveredInputs.getAsFile().getOrNull();
+    public FileCollection getHeaderDependencies() throws IOException {
+        File inputFile = headerDependenciesFile.getAsFile().getOrNull();
         if (inputFile == null || !inputFile.isFile()) {
             return null;
         }
