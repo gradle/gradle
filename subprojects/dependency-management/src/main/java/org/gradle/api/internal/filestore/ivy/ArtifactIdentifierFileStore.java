@@ -20,7 +20,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
-import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.resource.local.UniquePathKeyFileStore;
+
+import java.io.File;
 
 public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
     private static final Transformer<String, ModuleComponentArtifactIdentifier> GROUP = new Transformer<String, ModuleComponentArtifactIdentifier>() {
@@ -36,7 +38,7 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         }
     };
 
-    public ArtifactIdentifierFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
-        super(pathKeyFileStore, temporaryFileProvider, GROUP, NAME);
+    public ArtifactIdentifierFileStore(File fileStoreDir, TemporaryFileProvider temporaryFileProvider) {
+        super(new UniquePathKeyFileStore(fileStoreDir), temporaryFileProvider, GROUP, NAME);
     }
 }

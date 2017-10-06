@@ -56,6 +56,11 @@ public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, Cach
     }
 
     @Override
+    public File getExternalResourcesStoreDirectory() {
+        return createCacheRelativeDir(CacheLayout.RESOURCES);
+    }
+
+    @Override
     public File getMetaDataStoreDirectory() {
         return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
     }

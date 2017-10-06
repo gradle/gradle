@@ -24,11 +24,18 @@ public interface ArtifactCacheMetaData {
     File getCacheDir();
 
     /**
-     * Returns the root directory for the file store.
+     * Returns the root directory for the module artifacts file store.
      *
      * @return File store location
      */
     File getFileStoreDirectory();
+
+    /**
+     * Returns the root directory for the external resources file store.
+     *
+     * @return File store location
+     */
+    File getExternalResourcesStoreDirectory();
 
     /**
      * Returns the root directory for the meta-data file store.

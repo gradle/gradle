@@ -28,11 +28,10 @@ import java.util.Set;
  */
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
-    private PathKeyFileStore delegate;
+    private final PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Transformer<String, K> grouper;
     private final Transformer<String, K> namer;
-
 
     public GroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, TemporaryFileProvider temporaryFileProvider, Transformer<String, K> grouper, Transformer<String, K> namer) {
         this.delegate = delegate;
@@ -53,7 +52,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         return delegate.search(toPath(key, "*"));
     }
 
-    protected String toPath(K key, String checksumPart) {
+    private String toPath(K key, String checksumPart) {
         String group = grouper.transform(key);
         String name = namer.transform(key);
 

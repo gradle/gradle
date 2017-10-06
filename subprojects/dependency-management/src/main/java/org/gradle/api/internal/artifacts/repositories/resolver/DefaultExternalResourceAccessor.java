@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
@@ -60,7 +59,7 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
         try {
             return resourceAccessor.getResource(resource, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                    String key = Hashing.sha1().hashString(resource.toString()).toString();
+                    String key = resource.toString();
                     return fileStore.move(key, downloadedResource);
                 }
             }, null);

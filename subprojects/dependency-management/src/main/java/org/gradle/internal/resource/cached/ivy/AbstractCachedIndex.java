@@ -25,16 +25,16 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.File;
 
 public abstract class AbstractCachedIndex<K, V extends CachedItem> {
-    private final String persistentCacheFile;
+    private final String persistentCacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
     private final CacheLockingManager cacheLockingManager;
 
     private PersistentIndexedCache<K, V> persistentCache;
 
-    public AbstractCachedIndex(String persistentCacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
+    public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
 
-        this.persistentCacheFile = persistentCacheFile;
+        this.persistentCacheName = persistentCacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
         this.cacheLockingManager = cacheLockingManager;
@@ -48,7 +48,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     private PersistentIndexedCache<K, V> initPersistentCache() {
-        return cacheLockingManager.createCache(persistentCacheFile, keySerializer, valueSerializer);
+        return cacheLockingManager.createCache(persistentCacheName, keySerializer, valueSerializer);
     }
 
     public V lookup(final K key) {
