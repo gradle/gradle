@@ -24,7 +24,7 @@ import java.util.Set;
  * Allows the user to perform generic version control operations in ways
  * specified by the underlying implementations.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface VersionControlSystem {

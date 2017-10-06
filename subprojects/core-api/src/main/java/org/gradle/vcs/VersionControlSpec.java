@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Captures user-provided information about a version control system.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface VersionControlSpec extends Describable {

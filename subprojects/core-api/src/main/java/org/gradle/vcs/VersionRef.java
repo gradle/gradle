@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * Represents how a version of a software component is referred to in a version
  * control system.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface VersionRef {

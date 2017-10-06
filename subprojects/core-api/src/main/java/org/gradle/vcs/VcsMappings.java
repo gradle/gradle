@@ -38,7 +38,7 @@ import org.gradle.internal.HasInternalProtocol;
  *   }
  * }
  * </pre>
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 @HasInternalProtocol

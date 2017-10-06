@@ -17,6 +17,6 @@
 /**
  * The API for dealing with Version Control Systems in Gradle.
  *
- * @since 4.3
+ * @since 4.4
  */
 package org.gradle.vcs.git;

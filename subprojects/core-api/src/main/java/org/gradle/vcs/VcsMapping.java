@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 /**
  * A dependency mapping provided by a VCS repository.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
 public interface VcsMapping {
