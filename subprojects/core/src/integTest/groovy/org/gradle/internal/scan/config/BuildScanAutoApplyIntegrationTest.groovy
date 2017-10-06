@@ -21,7 +21,7 @@ import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
-import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
+import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.*
 import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 

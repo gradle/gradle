@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
-import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
 @Unroll
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {

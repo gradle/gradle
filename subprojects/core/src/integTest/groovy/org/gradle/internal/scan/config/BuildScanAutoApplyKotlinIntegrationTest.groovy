@@ -22,9 +22,9 @@ import org.gradle.util.Requires
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 
-import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
-import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 

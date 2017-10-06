@@ -17,7 +17,6 @@
 package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
