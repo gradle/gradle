@@ -25,9 +25,7 @@
         </parameters>
       </runner>
     </build-runners>
-    <vcs-settings>
-      <vcs-entry-ref root-id="Gradle_Promotion__master_" />
-    </vcs-settings>
+    <vcs-settings />
     <requirements />
     <build-triggers>
       <build-trigger id="TRIGGER_112" type="buildDependencyTrigger">
