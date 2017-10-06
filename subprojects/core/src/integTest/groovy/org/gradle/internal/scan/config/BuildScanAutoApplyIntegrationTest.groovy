@@ -22,8 +22,8 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
-import static BuildScanAutoAppliedPluginHandler.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.*
+import static org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()

@@ -16,33 +16,19 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
-import com.google.common.collect.Maps;
-import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
-
-import java.util.Map;
+import org.gradle.api.Project;
+import org.gradle.plugin.management.internal.PluginRequests;
 
 /**
- * A registry of auto-applied plugins and their corresponding version.
+ * Provides a list of plugins that can be auto-applied to a certain Project.
  *
  * @since 4.3
  */
-public final class AutoAppliedPluginRegistry {
+public interface AutoAppliedPluginRegistry {
 
-    private static Map<PluginId, String> autoAppliedPlugins = Maps.newHashMap();
-
-    static {
-        autoAppliedPlugins.put(new DefaultPluginId("com.gradle.build-scan"), "1.10");
-    }
-
-    private AutoAppliedPluginRegistry() {
-    }
-
-    public static String lookupVersion(PluginId pluginId) {
-        if (!autoAppliedPlugins.containsKey(pluginId)) {
-            throw new UnregisteredAutoAppliedPluginException(pluginId);
-        }
-
-        return autoAppliedPlugins.get(pluginId);
-    }
+    /**
+     * Returns the plugins that should be auto-applied to the given
+     * target, based on the current build invocation.
+     */
+    PluginRequests getAutoAppliedPlugins(Project target);
 }

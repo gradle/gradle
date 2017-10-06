@@ -100,7 +100,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         classpathHasher.hash(_) >> HashCode.fromInt(123)
 
         1 * targetScope.getLocalClassLoader() >> scopeClassLoader
-        1 * autoAppliedPluginHandler.create(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
+        1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
     }
 
     void "configures a target object using script"() {
