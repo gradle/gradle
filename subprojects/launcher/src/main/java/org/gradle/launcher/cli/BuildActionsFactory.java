@@ -27,7 +27,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.sink.ConsoleState;
+import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -67,7 +67,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
-        parameters.getStartParameter().setInteractive(new ConsoleState().isInteractive());
+        parameters.getStartParameter().setInteractive(ConsoleStateUtil.isInteractive());
 
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 

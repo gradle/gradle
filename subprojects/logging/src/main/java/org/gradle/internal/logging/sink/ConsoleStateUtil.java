@@ -20,22 +20,21 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
-public class ConsoleState {
-    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
-    private final boolean interactive;
+public final class ConsoleStateUtil {
 
-    public ConsoleState() {
-        this.interactive = stdOutIsAttachedToTerminal() || definesInteractiveSystemProperty();
+    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
+
+    private ConsoleStateUtil() {
     }
 
-    public boolean isInteractive() {
-        return interactive;
+    public static boolean isInteractive() {
+        return stdOutIsAttachedToTerminal() || definesInteractiveSystemProperty();
     }
 
     /**
-     * Assume that standard input is available if standard output can be used.
+     * Assume that standard input is available if stdout is attached to the console.
      */
-    private boolean stdOutIsAttachedToTerminal() {
+    private static boolean stdOutIsAttachedToTerminal() {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
         return consoleMetaData != null && consoleMetaData.isStdOut();
@@ -44,7 +43,7 @@ public class ConsoleState {
     /**
      * Interactive toggle used by integration testing.
      */
-    private boolean definesInteractiveSystemProperty() {
+    private static boolean definesInteractiveSystemProperty() {
         return Boolean.getBoolean(INTERACTIVE_TOGGLE);
     }
 }
