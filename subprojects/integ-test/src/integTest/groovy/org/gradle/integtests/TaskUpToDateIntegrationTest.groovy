@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    def "order of #annotation marks task out-of-date"() {
+    def "order of #annotation marks task not up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @Output${files ? "Files" : "Directories"} FileCollection out
@@ -63,7 +63,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    def "hash set output files do not make task out of date"() {
+    def "hash set output files marks task up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @OutputFiles Set<File> out = new HashSet<File>()
@@ -150,7 +150,8 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task customTask(type: CustomTask) {
-                outputFiles = [lazyProperty('output0'), lazyProperty('output1'), lazyProperty('output2')]
+                int numOutputs = Integer.valueOf(project.findProperty('numOutputs'))
+                outputFiles = (0..(numOutputs-1)).collect { lazyProperty("output\$it") }
             }
         """
 
@@ -176,12 +177,15 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         ['outputFile1', 'outputFile2']                | ['outputFile2', 'outputFile3'] | false
         ['outputFile1', 'outputFile2']                | []                             | false
         ['outputFile1', 'outputFile2']                | ['outputFile1']                | false
+        ['outputFile1']                               | ['outputFile1', 'outputFile2'] | false
+        [null, 'outputFile2']                         | ['outputFile1', 'outputFile2'] | false
+        [null, 'outputFile1']                         | ['outputFile1', 'outputFile2'] | false
         upToDateString = upToDate ? 'up-to-date' : 'not up-to-date'
     }
 
 
     private static String[] customTaskWithOutputs(List<String> outputs) {
-        (["customTask"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
+        (["customTask", "-PnumOutputs=${outputs.size()}"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")

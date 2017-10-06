@@ -40,13 +40,13 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
         return parent.getPropertyName() + "$" + index;
     }
 
+    public String getOriginalPropertyName() {
+        return parent.getPropertyName();
+    }
+
     @Override
     public OutputType getOutputType() {
         return parent.getOutputType();
-    }
-
-    public CompositeTaskOutputPropertySpec getParent() {
-        return parent;
     }
 
     @Override
