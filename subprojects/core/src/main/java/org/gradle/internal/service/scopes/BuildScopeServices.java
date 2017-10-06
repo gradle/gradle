@@ -71,6 +71,7 @@ import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
@@ -446,8 +447,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return registry;
     }
 
-    protected UserInputHandler createDefaultUserInputHandler(StartParameter startParameter, OutputEventRenderer outputEventRenderer) {
-        return new DefaultUserInputHandler(startParameter, outputEventRenderer, new DefaultUserInputReader());
+    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventRenderer outputEventRenderer) {
+        if (!startParameter.isInteractive()) {
+            return new NonInteractiveUserInputHandler();
+        }
+
+        return new DefaultUserInputHandler(outputEventRenderer, new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
