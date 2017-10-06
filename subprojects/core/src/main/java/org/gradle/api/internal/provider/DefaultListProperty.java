@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -37,7 +37,7 @@ public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListPr
 
     @Override
     public void add(final T element) {
-        addAll(Providers.of(ImmutableList.of(element)));
+        addAll(Providers.of(ImmutableList.of(Preconditions.checkNotNull(element))));
     }
 
     @Override
@@ -52,19 +52,24 @@ public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListPr
 
     @Override
     public void addAll(final Provider<? extends Collection<T>> providerOfElements) {
-        if (provider == Cast.uncheckedCast(EMPTY_LIST)) {
+        if (isEmptyListOrNullProvider()) {
             provider = providerOfElements;
         } else {
             final Provider<? extends Collection<T>> baseProvider = provider;
             provider = new DefaultProvider<List<T>>(new Callable<List<T>>() {
                 @Override
                 public List<T> call() {
-                    List<T> result = Lists.newArrayList(baseProvider.get());
-                    result.addAll(providerOfElements.get());
-                    return result;
+                    return ImmutableList.<T>builder()
+                        .addAll(baseProvider.get())
+                        .addAll(providerOfElements.get())
+                        .build();
                 }
             });
         }
+    }
+
+    private boolean isEmptyListOrNullProvider() {
+        return provider == Cast.uncheckedCast(EMPTY_LIST) || !provider.isPresent();
     }
 
     @Nullable

@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -33,15 +32,17 @@ import java.util.List;
 @Incubating
 public interface ListProperty<T> extends Property<List<T>> {
     /**
-     * Adds an element to the property.
+     * Adds an element to the property without evaluating existing providers already present.
      *
      * @param element The element, can be null.
      * @since 4.4
      */
-    void add(@Nullable T element);
+    void add(T element);
 
     /**
-     * Adds an element to the property given by the provider. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, the element in the property will also have no value.
+     * Adds an element to the property given by the provider without evaluating existing providers already present.
+     * set. This property will track the value of the provider and query its value each time the value of the property
+     * is queried. When the provider has no value, the element in the property will also have no value.
      *
      * @param provider Provider
      * @since 4.4
@@ -49,7 +50,10 @@ public interface ListProperty<T> extends Property<List<T>> {
     void add(Provider<? extends T> provider);
 
     /**
-     * Adds collection of elements to the property given by the provider. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, the collection of element in the property will also have no value.
+     * Adds a collection of elements to the property given by the provider without evaluating existing providers
+     * already present. This property will track the value of the provider and query its value each time the value of
+     * the property is queried. When the provider has no value, the collection of element in the property will also
+     * have no value.
      *
      * @param provider Provider of elements
      * @since 4.4

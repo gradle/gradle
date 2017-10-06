@@ -218,6 +218,20 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         property.getOrElse(null) == null
     }
 
+    def "can add to the property after set to null"() {
+        given:
+        def provider = Stub(ProviderInternal)
+        provider.get() >> ["123"]
+        def property = property()
+        property.set(null)
+        property.addAll(provider)
+
+        expect:
+        def v = property.get()
+        v instanceof ImmutableList
+        v == ["123"]
+    }
+
     def "can set to value to override added values"() {
         given:
         def property = property()
@@ -227,7 +241,8 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         property.set(["123", "456"])
 
         expect:
-        property.present
-        property.get() == ["123", "456"]
+        def v = property.get()
+        v instanceof ImmutableList
+        v == ["123", "456"]
     }
 }
