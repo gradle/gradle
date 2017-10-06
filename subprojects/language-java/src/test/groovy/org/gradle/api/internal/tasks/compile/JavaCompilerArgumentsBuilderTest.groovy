@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -338,9 +339,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "generates -sourcepath option"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        def fc = new SimpleFileCollection(file1, file2)
+        def fc = [file1, file2]
         spec.compileOptions.sourcepath = fc
-        def expected = ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        def expected = ["-g", "-sourcepath", GUtil.asPath(fc), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
         expect:
         builder.build() == expected
@@ -351,11 +352,11 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         given:
         def file1 = new File('/libs/lib1.jar')
         def file2 = new File('/libs/lib2.jar')
-        def fc = new SimpleFileCollection(file1, file2)
+        def fc = [file1, file2]
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
         spec.compileOptions.sourcepath = fc
         spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
-        def expected = ["-g", "-sourcepath", [fc.asPath, userProvidedPath].join(File.pathSeparator), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        def expected = ["-g", "-sourcepath", [GUtil.asPath(fc), userProvidedPath].join(File.pathSeparator), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
         expect:
         builder.build() == expected

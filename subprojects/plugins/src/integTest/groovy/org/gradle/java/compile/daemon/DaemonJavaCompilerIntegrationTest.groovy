@@ -15,7 +15,12 @@
  */
 package org.gradle.java.compile.daemon
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
@@ -38,6 +43,34 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
                         it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
                     }
                 }
+            }
+        """
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    def "handles -sourcepath being specified"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) { 
+                options.sourcepath = project.files()
+            }
+        """
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3098")
+    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
+    def "handles -bootclasspath being specified"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) { 
+                options.bootstrapClasspath = project.files("$bootClasspath")
             }
         """
 
