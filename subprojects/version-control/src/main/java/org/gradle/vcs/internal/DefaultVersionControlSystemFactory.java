@@ -18,6 +18,7 @@ package org.gradle.vcs.internal;
 
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
+import org.gradle.vcs.git.internal.GitVersionControlSystem;
 
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory {
     @Override
@@ -26,6 +27,6 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         if (spec instanceof DirectoryRepository) {
             return new SimpleVersionControlSystem();
         }
-        return null;
+        return new GitVersionControlSystem();
     }
 }
