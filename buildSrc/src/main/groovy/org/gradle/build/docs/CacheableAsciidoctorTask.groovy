@@ -18,6 +18,7 @@ package org.gradle.build.docs
 import org.asciidoctor.gradle.AsciidoctorTask
 import org.asciidoctor.gradle.AsciidoctorPlugin
 import org.asciidoctor.gradle.AsciidoctorProxyImpl
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Internal
@@ -47,6 +48,12 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     FileTree getSourceFileTree() {
         super.getSourceFileTree()
+    }
+
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection getResourceFileCollection() {
+        super.getResourceFileCollection()
     }
 
     @Override
