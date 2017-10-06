@@ -144,7 +144,7 @@ tasks.withType(CacheableAsciidoctorTask) {
     attributes website: 'http://www.gradle.org'
 
     doLast {
-        outputDir.eachFile { File file ->
+        outputDir.eachFileMatch(~/.*.xml/) { File file ->
             def contents = file.getText("utf-8")
             try {
                 def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
@@ -254,6 +254,12 @@ task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include '*.adoc' }
     outputDir = asciidocOutputDir
+
+    // we pull the default-imports from here:
+    resources {
+        from(generatedResourcesDir)
+        include "**/*.txt"
+    }
 }
 
 task samplesDocbook(type: AssembleSamplesDocTask) {
