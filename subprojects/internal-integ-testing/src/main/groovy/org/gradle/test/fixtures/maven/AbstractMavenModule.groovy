@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
     protected static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
+    private final TestFile rootDir
     final TestFile moduleDir
     final String groupId
     final String artifactId
@@ -42,7 +43,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
 
-    AbstractMavenModule(TestFile moduleDir, String groupId, String artifactId, String version) {
+    AbstractMavenModule(TestFile rootDir, TestFile moduleDir, String groupId, String artifactId, String version) {
+        this.rootDir = rootDir
         this.moduleDir = moduleDir
         this.groupId = groupId
         this.artifactId = artifactId
@@ -275,7 +277,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     ModuleArtifact getArtifact(String relativePath) {
         def file = moduleDir.file(relativePath)
-        def path = file.relativizeFrom(moduleDir).path
+        def path = file.relativizeFrom(rootDir).path
         return new ModuleArtifact() {
             @Override
             String getPath() {

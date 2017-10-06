@@ -34,7 +34,7 @@ class MavenFileRepository implements MavenRepository {
 
     MavenFileModule module(String groupId, String artifactId, String version = '1.0') {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenFileModule(artifactDir, groupId, artifactId, version as String)
+        return new MavenFileModule(rootDir, artifactDir, groupId, artifactId, version as String)
     }
 }
 

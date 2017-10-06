@@ -21,8 +21,8 @@ import org.gradle.test.fixtures.file.TestFile
 class MavenFileModule extends AbstractMavenModule {
     private boolean uniqueSnapshots = true;
 
-    MavenFileModule(TestFile moduleDir, String groupId, String artifactId, String version) {
-        super(moduleDir, groupId, artifactId, version)
+    MavenFileModule(TestFile rootDir, TestFile moduleDir, String groupId, String artifactId, String version) {
+        super(rootDir, moduleDir, groupId, artifactId, version)
     }
 
     @Override
