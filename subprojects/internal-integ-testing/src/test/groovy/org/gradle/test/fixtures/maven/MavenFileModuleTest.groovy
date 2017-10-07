@@ -29,8 +29,8 @@ class MavenFileModuleTest extends Specification {
 
     def setup() {
         testFile = tmpDir.file("file")
-        mavenFileModule = new MavenFileModule(testFile, "my-company", "my-artifact", "1.0")
-        snapshotMavenFileModule = new MavenFileModule(testFile, "my-company", "my-artifact", "1.0-SNAPSHOT")
+        mavenFileModule = new MavenFileModule(testFile, testFile, "my-company", "my-artifact", "1.0")
+        snapshotMavenFileModule = new MavenFileModule(testFile, testFile, "my-company", "my-artifact", "1.0-SNAPSHOT")
     }
 
     def "Add multiple dependencies without type"() {

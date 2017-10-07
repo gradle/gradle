@@ -29,8 +29,8 @@ class MavenLocalModuleTest extends Specification {
 
     def setup() {
         testFile = tmpDir.file("file")
-        mavenLocalModule = new MavenLocalModule(testFile, "my-company", "my-artifact", "1.0")
-        snapshotMavenLocalModule = new MavenLocalModule(testFile, "my-company", "my-artifact", "1.0-SNAPSHOT")
+        mavenLocalModule = new MavenLocalModule(testFile, testFile, "my-company", "my-artifact", "1.0")
+        snapshotMavenLocalModule = new MavenLocalModule(testFile, testFile, "my-company", "my-artifact", "1.0-SNAPSHOT")
     }
 
     def "Add multiple dependencies without type"() {
