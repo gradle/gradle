@@ -22,10 +22,18 @@ import java.util.Iterator;
 
 public class DefaultScriptingLanguages implements ScriptingLanguages {
 
+    public static ScriptingLanguages create() {
+        return new DefaultScriptingLanguages(new DefaultServiceLocator(DefaultScriptingLanguages.class.getClassLoader()).getAll(ScriptingLanguage.class));
+    }
+
+    static ScriptingLanguages createLenient() {
+        return new DefaultScriptingLanguages(new DefaultServiceLocator(DefaultScriptingLanguages.class.getClassLoader()).getAllLenient(ScriptingLanguage.class));
+    }
+
     private final Iterable<ScriptingLanguage> scriptingLanguages;
 
-    public DefaultScriptingLanguages() {
-        scriptingLanguages = new DefaultServiceLocator(getClass().getClassLoader()).getAll(ScriptingLanguage.class);
+    private DefaultScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {
+        this.scriptingLanguages = scriptingLanguages;
     }
 
     @Override

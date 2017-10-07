@@ -27,6 +27,7 @@ public class CachingServiceLocator implements ServiceLocator {
     private final Map<Class<?>, DefaultServiceLocator.ServiceFactory<?>> serviceFactories = new HashMap<Class<?>, DefaultServiceLocator.ServiceFactory<?>>();
     private final Map<Class<?>, Object> services = new HashMap<Class<?>, Object>();
     private final Map<Class<?>, List<?>> allServices = new HashMap<Class<?>, List<?>>();
+    private final Map<Class<?>, List<?>> allServicesLenient = new HashMap<Class<?>, List<?>>();
 
     public static CachingServiceLocator of(ServiceLocator other) {
         return new CachingServiceLocator(other);
@@ -64,6 +65,16 @@ public class CachingServiceLocator implements ServiceLocator {
         List<T> all = delegate.getAll(serviceType);
         allServices.put(serviceType, all);
         return all;
+    }
+
+    @Override
+    public synchronized <T> List<T> getAllLenient(Class<T> serviceType) {
+        if (allServicesLenient.containsKey(serviceType)) {
+            return Cast.uncheckedCast(allServicesLenient.get(serviceType));
+        }
+        List<T> allLenient = delegate.getAllLenient(serviceType);
+        allServicesLenient.put(serviceType, allLenient);
+        return allLenient;
     }
 
     @Override

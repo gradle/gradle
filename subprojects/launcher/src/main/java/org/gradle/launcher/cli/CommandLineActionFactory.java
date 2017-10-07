@@ -67,7 +67,7 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
-    private final ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forDefaultScriptingLanguages();
+    private final ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forLenientScriptingLanguages();
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the

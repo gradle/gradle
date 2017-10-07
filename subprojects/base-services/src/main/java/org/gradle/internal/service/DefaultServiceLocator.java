@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,12 +47,12 @@ public class DefaultServiceLocator implements ServiceLocator {
 
     @Override
     public <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException {
-        List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType);
-        ArrayList<T> services = new ArrayList<T>();
-        for (ServiceFactory<T> factory : factories) {
-            services.add(factory.create());
-        }
-        return services;
+        return find(serviceType, false);
+    }
+
+    @Override
+    public <T> List<T> getAllLenient(Class<T> serviceType) throws UnknownServiceException {
+        return find(serviceType, true);
     }
 
     @Override
@@ -70,16 +69,23 @@ public class DefaultServiceLocator implements ServiceLocator {
      */
     @Override
     public <T> ServiceFactory<T> findFactory(Class<T> serviceType) {
-        List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType);
+        List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType, false);
         if (factories.isEmpty()) {
             return null;
         }
         return factories.get(0);
     }
 
+    /**
+     * Locates and class load implementation classes for a given service.
+     */
     public <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType) {
+        return implementationsOf(serviceType, false);
+    }
+
+    private <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType, boolean lenient) {
         try {
-            return findServiceImplementations(serviceType);
+            return findServiceImplementations(serviceType, lenient);
         } catch (ServiceLookupException e) {
             throw e;
         } catch (Exception e) {
@@ -87,19 +93,31 @@ public class DefaultServiceLocator implements ServiceLocator {
         }
     }
 
-    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType) {
-        return factoriesFor(serviceType, implementationsOf(serviceType));
+    private <T> List<T> find(Class<T> serviceType, boolean lenient) {
+        List<T> services = new ArrayList<T>();
+        List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType, lenient);
+        for (ServiceFactory<T> factory : factories) {
+            T service = factory.create();
+            if (service != null) {
+                services.add(service);
+            }
+        }
+        return services;
     }
 
-    private <T> List<ServiceFactory<T>> factoriesFor(Class<T> serviceType, List<Class<? extends T>> implementationClasses) {
+    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType, boolean lenient) {
+        return factoriesFor(serviceType, implementationsOf(serviceType, lenient), lenient);
+    }
+
+    private <T> List<ServiceFactory<T>> factoriesFor(Class<T> serviceType, List<Class<? extends T>> implementationClasses, boolean lenient) {
         List<ServiceFactory<T>> factories = new ArrayList<ServiceFactory<T>>();
         for (Class<? extends T> implementationClass : implementationClasses) {
-            factories.add(new ServiceFactory<T>(serviceType, implementationClass));
+            factories.add(new ServiceFactory<T>(serviceType, implementationClass, lenient));
         }
         return factories;
     }
 
-    private <T> List<Class<? extends T>> findServiceImplementations(Class<T> serviceType) throws IOException {
+    private <T> List<Class<? extends T>> findServiceImplementations(Class<T> serviceType, boolean lenient) throws IOException {
         String resourceName = "META-INF/services/" + serviceType.getName();
         Set<String> implementationClassNames = new HashSet<String>();
         List<Class<? extends T>> implementations = new ArrayList<Class<? extends T>>();
@@ -114,7 +132,11 @@ public class DefaultServiceLocator implements ServiceLocator {
                         throw new RuntimeException(String.format("No implementation class for service '%s' specified.", serviceType.getName()));
                     }
                 } catch (Throwable e) {
-                    throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
+                    if (lenient) {
+                        continue;
+                    } else {
+                        throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
+                    }
                 }
 
                 for (String implementationClassName : implementationClassNamesFromResource) {
@@ -126,7 +148,9 @@ public class DefaultServiceLocator implements ServiceLocator {
                             }
                             implementations.add(implClass.asSubclass(serviceType));
                         } catch (Throwable e) {
-                            throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
+                            if (!lenient) {
+                                throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
+                            }
                         }
                     }
                 }
@@ -156,10 +180,12 @@ public class DefaultServiceLocator implements ServiceLocator {
     public static class ServiceFactory<T> implements Factory<T> {
         private final Class<T> serviceType;
         private final Class<? extends T> implementationClass;
+        private final boolean lenient;
 
-        public ServiceFactory(Class<T> serviceType, Class<? extends T> implementationClass) {
+        public ServiceFactory(Class<T> serviceType, Class<? extends T> implementationClass, boolean lenient) {
             this.serviceType = serviceType;
             this.implementationClass = implementationClass;
+            this.lenient = lenient;
         }
 
         public Class<? extends T> getImplementationClass() {
@@ -173,8 +199,12 @@ public class DefaultServiceLocator implements ServiceLocator {
         public T newInstance(Object... params) {
             try {
                 return DirectInstantiator.instantiate(implementationClass, params);
-            } catch (ObjectInstantiationException t) {
-                throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
+            } catch (Throwable t) {
+                if (lenient) {
+                    return null;
+                } else {
+                    throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
+                }
             }
         }
     }

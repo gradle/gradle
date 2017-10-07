@@ -320,7 +320,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     ScriptingLanguages createScriptingLanguages() {
-        return new DefaultScriptingLanguages();
+        return DefaultScriptingLanguages.create();
     }
 
     ScriptFileResolver createScriptFileResolver(ScriptingLanguages scriptingLanguages) {

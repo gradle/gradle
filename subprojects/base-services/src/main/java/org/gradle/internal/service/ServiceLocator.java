@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface ServiceLocator {
@@ -22,7 +23,10 @@ public interface ServiceLocator {
 
     <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException;
 
+    <T> List<T> getAllLenient(Class<T> serviceType);
+
     <T> DefaultServiceLocator.ServiceFactory<T> getFactory(Class<T> serviceType) throws UnknownServiceException;
 
+    @Nullable
     <T> DefaultServiceLocator.ServiceFactory<T> findFactory(Class<T> serviceType);
 }
