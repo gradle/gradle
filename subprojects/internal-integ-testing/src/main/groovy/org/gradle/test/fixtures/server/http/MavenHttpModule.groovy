@@ -19,7 +19,6 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.RemoteMavenModule
-import org.gradle.test.fixtures.resource.RemoteArtifact
 
 class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements RemoteMavenModule, HttpModule {
     private final HttpServer server
@@ -71,8 +70,8 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
     }
 
     @Override
-    RemoteArtifact getModuleMetadata() {
-        return artifact(classifier: 'module', type: 'json')
+    HttpArtifact getModuleMetadata() {
+        return getArtifact(classifier: 'module', type: 'json')
     }
 
     MetaDataArtifact getRootMetaData() {

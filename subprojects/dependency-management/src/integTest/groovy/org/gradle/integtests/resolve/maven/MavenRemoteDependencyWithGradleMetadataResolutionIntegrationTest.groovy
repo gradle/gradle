@@ -70,6 +70,22 @@ dependencies {
                 module("test:a:1.2")
             }
         }
+
+        when:
+        server.resetExpectations()
+        m.pom.expectHead()
+        m.moduleMetadata.expectHead()
+        m.artifact.expectHead()
+
+        executer.withArgument("--refresh-dependencies")
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2")
+            }
+        }
     }
 
     def "skips module metadata when not present and caches result"() {
@@ -114,6 +130,22 @@ dependencies {
                 module("test:a:1.2")
             }
         }
+
+        when:
+        server.resetExpectations()
+        m.pom.expectHead()
+        m.moduleMetadata.expectGetMissing()
+        m.artifact.expectHead()
+
+        executer.withArgument("--refresh-dependencies")
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2")
+            }
+        }
     }
 
     def "downloads and caches the module metadata when present and pom is not present"() {
@@ -150,6 +182,22 @@ dependencies {
 
         when:
         server.resetExpectations()
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2")
+            }
+        }
+
+        when:
+        server.resetExpectations()
+        m.pom.expectGetMissing()
+        m.moduleMetadata.expectHead()
+        m.artifact.expectHead()
+
+        executer.withArgument("--refresh-dependencies")
         run("checkDeps")
 
         then:
@@ -308,6 +356,24 @@ task checkRelease {
 
         and:
         succeeds("checkRelease")
+
+        and:
+        // Cached
+        succeeds("checkDebug")
+        succeeds("checkRelease")
+
+        and:
+        server.resetExpectations()
+        a.pom.expectHead()
+        a.moduleMetadata.expectHead()
+        a.artifact(classifier: 'api').expectHead()
+        a.artifact(classifier: 'runtime').expectHead()
+        b.pom.expectHead()
+        b.moduleMetadata.expectGetMissing()
+        b.artifact.expectHead()
+
+        executer.withArgument("--refresh-dependencies")
+        succeeds("checkDebug")
     }
 
     def "variant can define files whose names are different to their maven contention location"() {
@@ -366,6 +432,17 @@ task checkDebug {
 
         and:
         // cached
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+        a.pom.expectHead()
+        a.moduleMetadata.expectHead()
+        a.getArtifact().expectHead()
+        a.getArtifact(type: 'zip').expectHead()
+        a.getArtifact(classifier: 'extra').expectHead()
+
+        executer.withArgument("--refresh-dependencies")
         succeeds("checkDebug")
     }
 
@@ -432,6 +509,19 @@ task checkDebug {
 
         and:
         // Cached result
+        succeeds("checkDebug")
+
+        and:
+        server.resetExpectations()
+        a.pom.expectHead()
+        a.moduleMetadata.expectHead()
+        a.getArtifact("file1.jar").expectHead()
+        a.getArtifact("file2.jar").expectHead()
+        a.getArtifact("../sibling/file3.jar").expectHead()
+        a.getArtifact("child/file4.jar").expectHead()
+        a.getArtifact("../../../a-1.2-5.jar").expectHead()
+
+        executer.withArgument("--refresh-dependencies")
         succeeds("checkDebug")
     }
 
@@ -619,8 +709,8 @@ task checkRelease {
         "BuildType"     | "objects.named(BuildType, 'debug')" | "objects.named(BuildType, 'release')"
     }
 
-    def "reports failure to locate module"() {
-        def m = mavenHttpRepo.module("test", "a", "1.2")
+    def "reports and recovers from failure to locate module"() {
+        def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -653,6 +743,22 @@ Searched in the following locations:
     ${m.artifact.uri}
 Required by:
     project :""")
+
+        when:
+        server.resetExpectations()
+        m.publish()
+        m.pom.expectGetMissing()
+        m.moduleMetadata.expectGet()
+        m.artifact.expectGet()
+
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2")
+            }
+        }
     }
 
     def "reports and recovers from failure to download module metadata"() {
@@ -690,6 +796,7 @@ dependencies {
         m.pom.expectHead()
         m.moduleMetadata.expectGet()
         m.artifact.expectGet()
+
         run("checkDeps")
 
         then:
@@ -729,6 +836,18 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
+
+        when:
+        server.resetExpectations()
+        m.pom.expectHead()
+        m.moduleMetadata.expectHead()
+
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve test:a:1.2.")
+        failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
     }
 
     def "reports failure to accept module metadata with unexpected format version"() {
@@ -761,5 +880,95 @@ dependencies {
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
         failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports only format version 0.1")
+
+        when:
+        server.resetExpectations()
+        m.pom.expectHead()
+        m.moduleMetadata.expectHead()
+
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve test:a:1.2.")
+        failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
+        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports only format version 0.1")
+    }
+
+    def "reports failure to locate files"() {
+        def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
+        m.artifact(classifier: 'extra')
+        m.getArtifact("file1.jar").file << "file 1"
+        m.getArtifact("../file2.jar").file << "file 2"
+        m.publish()
+        m.moduleMetadata.file.text = """
+{
+    "formatVersion": "0.1",
+    "variants": [
+        {
+            "name": "lot-o-files",
+            "files": [ 
+                { "name": "a1.jar", "url": "file1.jar" },
+                { "name": "a2.jar", "url": "../file2.jar" },
+                { "name": "a3.jar", "url": "a-1.2-extra.jar" }
+            ]
+        }
+    ]
+}
+"""
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+        url = '${mavenHttpRepo.uri}' 
+        useGradleMetadata() // internal opt-in for now
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'test:a:1.2'
+}
+"""
+
+        m.pom.expectGet()
+        m.moduleMetadata.expectGet()
+        m.artifact(classifier: 'extra').expectGetMissing()
+        m.getArtifact("file1.jar").expectGetMissing()
+        m.getArtifact("../file2.jar").expectGetMissing()
+
+        when:
+        fails("checkDeps")
+
+        then:
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("""Could not find a1.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.getArtifact("file1.jar").uri}""")
+        failure.assertHasCause("""Could not find a2.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.getArtifact("../file2.jar").uri}""")
+        failure.assertHasCause("""Could not find a3.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.artifact(classifier: 'extra').uri}""")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        // cached
+        fails("checkDeps")
+
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("""Could not find a1.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.getArtifact("file1.jar").uri}""")
+        failure.assertHasCause("""Could not find a2.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.getArtifact("../file2.jar").uri}""")
+        failure.assertHasCause("""Could not find a3.jar (test:a:1.2).
+Searched in the following locations:
+    ${m.artifact(classifier: 'extra').uri}""")
     }
 }
