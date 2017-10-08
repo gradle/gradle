@@ -25,14 +25,14 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -94,6 +94,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
     private boolean noBuildScan;
+    private boolean interactive;
 
     /**
      * {@inheritDoc}
@@ -234,6 +235,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.interactive = interactive;
         return p;
     }
 
@@ -748,6 +750,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", interactive=" + interactive
             + '}';
     }
 
@@ -828,4 +831,23 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.noBuildScan = noBuildScan;
     }
 
+    /**
+     * Returns true when console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    /**
+     * Specifies whether console is interactive.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setInteractive(boolean interactive) {
+        this.interactive = interactive;
+    }
 }
