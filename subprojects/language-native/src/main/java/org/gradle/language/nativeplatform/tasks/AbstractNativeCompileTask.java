@@ -296,11 +296,23 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return compilerArgs;
     }
 
+    /**
+     * The file containing the header dependency analysis.
+     *
+     * @since 4.3
+     */
     @Internal
     public RegularFileVar getHeaderDependenciesFile() {
         return headerDependenciesFile;
     }
 
+    /**
+     * The set of dependent headers, read from {@link #getHeaderDependenciesFile()}}.
+     *
+     * This is used for up-to-date checks only.
+     *
+     * @since 4.3
+     */
     @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
