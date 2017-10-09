@@ -22,10 +22,14 @@ import java.util.Set;
 public interface RepositoryBlacklister {
 
     boolean isBlacklisted(String repositoryId);
+
     boolean blacklistRepository(String repositoryId, Throwable throwable);
+
     Set<String> getBlacklistedRepositories();
 
-    RepositoryBlacklister NO_OP_BLACKLISTER = new RepositoryBlacklister() {
+    enum NoOpBlacklister implements RepositoryBlacklister {
+        INSTANCE;
+
         @Override
         public boolean isBlacklisted(String repositoryId) {
             return false;
@@ -40,5 +44,5 @@ public interface RepositoryBlacklister {
         public Set<String> getBlacklistedRepositories() {
             return Collections.emptySet();
         }
-    };
+    }
 }

@@ -25,11 +25,6 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
 
     @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
 
-    def "initializes with no blacklisted repositories"() {
-        expect:
-        blacklister.blacklistedRepositories.empty
-    }
-
     def "blacklists repository for normal IOException"() {
         given:
         def repositoryId1 = 'abc'

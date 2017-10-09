@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -45,193 +45,157 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Subject def access = new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister)
 
     def "can list module versions"() {
+        given:
         def dependency = Mock(DependencyMetadata)
         def result = Mock(BuildableModuleVersionListingResolveResult)
-        def componentSelector = new DefaultModuleComponentSelector('a', 'b', '1.0')
+        dependency.getSelector() >> new DefaultModuleComponentSelector('a', 'b', '1.0')
 
-        when:
+        when: 'repo is not blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
         access.listModuleVersions(dependency, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        0 * repositoryBlacklister._
+        then: 'work is delegated'
         1 * delegate.listModuleVersions(dependency, result)
-        0 * delegate._
-        0 * result._
 
-        when:
+        when: 'exception is thrown in resolution'
+        delegate.listModuleVersions(dependency, result) >> { throw someException }
         access.listModuleVersions(dependency, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
-        1 * delegate.listModuleVersions(dependency, result) >> { throw someException }
-        0 * delegate._
-        1 * dependency.getSelector() >> componentSelector
+        then: 'resolution fails and repo is blacklisted'
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
         1 * result.failed(_ as ModuleVersionResolveException)
 
-        when:
+        when: 'repo is already blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         access.listModuleVersions(dependency, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        0 * repositoryBlacklister._
-        1 * dependency.getSelector() >> componentSelector
+        then: 'resolution fails directly'
         1 * result.failed(_ as ModuleVersionResolveException)
         0 * delegate._
     }
 
     def "can resolve component meta data"() {
-        def moduleComponentIdentifier = Mock(ModuleComponentIdentifier)
+        given:
+        def moduleComponentIdentifier = new DefaultModuleComponentIdentifier('a', 'b', '1.0')
         def requestMetaData = Mock(ComponentOverrideMetadata)
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
-        when:
+        when: 'repo is not blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        0 * repositoryBlacklister._
+        then: 'work is delegated'
         1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
-        0 * delegate._
-        0 * result._
 
-        when:
+        when: 'exception is thrown in resolution'
+        delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw someException }
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
-        1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw someException }
-        0 * delegate._
+        then: 'resolution fails and repo is blacklisted'
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
         1 * result.failed(_ as ModuleVersionResolveException)
-        1 * moduleComponentIdentifier.getGroup() >> 'a'
-        1 * moduleComponentIdentifier.getModule() >> 'b'
-        1 * moduleComponentIdentifier.getVersion() >> '1.0'
 
-        when:
+        when: 'repo is already blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        0 * repositoryBlacklister._
+        then: 'resolution fails directly'
         1 * result.failed(_ as ModuleVersionResolveException)
         0 * delegate._
-        1 * moduleComponentIdentifier.getGroup() >> 'a'
-        1 * moduleComponentIdentifier.getModule() >> 'b'
-        1 * moduleComponentIdentifier.getVersion() >> '1.0'
     }
 
     def "can resolve artifacts with type"() {
+        given:
         def component = Mock(ComponentResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
         def artifactType = ArtifactType.MAVEN_POM
         def result = Mock(BuildableArtifactSetResolveResult)
+        component.getComponentId() >> componentId
 
-        when:
+        when: 'repo is not blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
         access.resolveArtifactsWithType(component, artifactType, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        0 * repositoryBlacklister._
+        then: 'work is delegated'
         1 * delegate.resolveArtifactsWithType(component, artifactType, result)
-        0 * delegate._
-        0 * result._
 
-        when:
+        when: 'exception is thrown in resolution'
+        delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw someException }
         access.resolveArtifactsWithType(component, artifactType, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
-        1 * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw someException }
-        0 * delegate._
+        then: 'resolution fails and repo is blacklisted'
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
         1 * result.failed(_ as ArtifactResolveException)
-        1 * component.getComponentId() >> componentId
 
-        when:
+        when: 'repo is already blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         access.resolveArtifactsWithType(component, artifactType, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        0 * repositoryBlacklister._
+        then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
-        1 * component.getComponentId() >> componentId
     }
 
     def "can resolve artifacts"() {
+        given:
         def component = Mock(ComponentResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
         def result = Mock(BuildableComponentArtifactsResolveResult)
+        component.getComponentId() >> componentId
 
-        when:
+        when: 'repo is not blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
         access.resolveArtifacts(component, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        0 * repositoryBlacklister._
+        then: 'work is delegated'
         1 * delegate.resolveArtifacts(component, result)
-        0 * delegate._
-        0 * result._
 
-        when:
+        when: 'exception is thrown in resolution'
+        delegate.resolveArtifacts(component, result) >> { throw someException }
         access.resolveArtifacts(component, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
-        1 * delegate.resolveArtifacts(component, result) >> { throw someException }
-        0 * delegate._
+        then: 'resolution fails and repo is blacklisted'
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
         1 * result.failed(_ as ArtifactResolveException)
-        1 * component.getComponentId() >> componentId
 
-        when:
+        when: 'repo is already blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         access.resolveArtifacts(component, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        0 * repositoryBlacklister._
+        then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
-        1 * component.getComponentId() >> componentId
     }
 
     def "can resolve artifact"() {
+        given:
         def artifact = Mock(ComponentArtifactMetadata)
         def artifactId = Mock(ComponentArtifactIdentifier)
         def moduleSource = Mock(ModuleSource)
         def result = Mock(BuildableArtifactResolveResult)
+        artifact.getId() >> artifactId
 
-        when:
+        when: 'repo is not blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
         access.resolveArtifact(artifact, moduleSource, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        0 * repositoryBlacklister._
+        then: 'work is delegated'
         1 * delegate.resolveArtifact(artifact, moduleSource, result)
-        0 * delegate._
-        0 * result._
 
-        when:
+        when: 'exception is thrown in resolution'
+        delegate.resolveArtifact(artifact, moduleSource, result) >> { throw someException }
         access.resolveArtifact(artifact, moduleSource, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
-        1 * delegate.resolveArtifact(artifact, moduleSource, result) >> { throw someException }
-        0 * delegate._
+        then: 'resolution fails and repo is blacklisted'
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
         1 * result.failed(_ as ArtifactResolveException)
-        1 * artifact.getId() >> artifactId
 
-        when:
+        when: 'repo is already blacklisted'
+        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         access.resolveArtifact(artifact, moduleSource, result)
 
-        then:
-        1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
-        0 * repositoryBlacklister._
+        then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
-        1 * artifact.getId() >> artifactId
     }
 }
