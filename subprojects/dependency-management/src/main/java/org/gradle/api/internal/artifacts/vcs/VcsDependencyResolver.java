@@ -20,8 +20,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -48,16 +46,16 @@ import java.io.File;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsMappingsInternal vcsMappingsInternal;
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
+    private final File baseWorkingDir;
 
-    public VcsDependencyResolver(ProjectRegistry<ProjectInternal> projectRegistry, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
-        this.projectRegistry = projectRegistry;
+    public VcsDependencyResolver(File projectCacheDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+        this.baseWorkingDir = new File(projectCacheDir, "vcsWorkingDirs");
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
@@ -70,9 +68,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         VcsMappingInternal vcsMappingInternal = getVcsMapping(dependency);
 
-        File baseWorkingDir = getBaseWorkingDir();
-
-        if (vcsMappingInternal != null && baseWorkingDir != null) {
+        if (vcsMappingInternal != null) {
             vcsMappingsInternal.getVcsMappingRule().execute(vcsMappingInternal);
 
             // TODO: Need failure handling, e.g., cannot clone repository
@@ -100,17 +96,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         }
 
         projectDependencyResolver.resolve(dependency, result);
-    }
-
-    private File getBaseWorkingDir() {
-        // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
-        // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
-        ProjectInternal rootProject = projectRegistry.getRootProject();
-        File baseWorkingDir = null;
-        if (rootProject!=null) {
-            baseWorkingDir = new File(rootProject.getRootDir(), ".gradle/vcsWorkingDirs");
-        }
-        return baseWorkingDir;
     }
 
     private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
