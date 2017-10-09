@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
@@ -56,7 +57,7 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
         return new IncrementalCompilerBuilder() {
             @Override
-            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, boolean detectHeaders) {
+            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, HeaderDependenciesCollector headerDependenciesCollector) {
                 return compiler;
             }
         };

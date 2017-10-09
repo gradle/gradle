@@ -25,7 +25,9 @@ import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -42,6 +44,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
+import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -135,9 +139,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, !getHeaderDependenciesFile().isPresent());
+        HeaderDependenciesCollector headerDependenciesCollector = getHeaderDependenciesFile().isPresent() ? HeaderDependenciesCollector.NOOP : createDependenciesCollector();
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, headerDependenciesCollector);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
+    }
+
+    private DefaultHeaderDependenciesCollector createDependenciesCollector() {
+        return new DefaultHeaderDependenciesCollector(((ProjectInternal) getProject()).getServices().get(DirectoryFileTreeFactory.class));
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
