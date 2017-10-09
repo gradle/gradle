@@ -79,4 +79,48 @@ public class CreateEmptyDirectory extends DefaultTask {
         result.assertTaskSkipped(":classes")
         outputContains ":classes UP-TO-DATE"
     }
+
+    def "reasons for task being not up-to-date are reported"() {
+        buildFile << '''
+            task customTask(type: CustomTask) {
+                outputFile = file("$buildDir/outputFile")
+                content = project.findProperty("content")
+            }
+
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                File outputFile
+                
+                @Input
+                String content
+            
+                @TaskAction
+                public void doStuff() {
+                    outputFile.text = content
+                }
+            }            
+        '''
+
+        def customTask = ':customTask'
+        def notUpToDateBecause = /Up-to-date check for task '${customTask}' took .* secs\. It is not up-to-date because:/
+        when:
+        run customTask, '-Pcontent=first', '--info'
+        then:
+        executedAndNotSkipped customTask
+        result.output =~ notUpToDateBecause
+        result.output.contains('No history is available')
+
+        when:
+        run customTask, '-Pcontent=second', '--info'
+        then:
+        executedAndNotSkipped(customTask)
+        result.output =~ notUpToDateBecause
+        result.output.contains("Value of input property 'content' has changed for task '${customTask}'")
+
+        when:
+        run customTask, '-Pcontent=second', '--info'
+        then:
+        skipped customTask
+        result.output =~ /Skipping task '${customTask}' as it is up-to-date \(took .* secs\)\./
+    }
 }
