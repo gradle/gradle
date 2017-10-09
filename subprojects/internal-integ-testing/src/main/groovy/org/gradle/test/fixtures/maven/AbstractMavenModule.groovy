@@ -63,11 +63,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     String getPath() {
-        return "${groupId.replace('.', '/')}/${artifactId}/${version}"
+        return "${moduleRootPath}/${version}"
     }
 
     String getModuleRootPath() {
-        return "${groupId.replace('.', '/')}/${artifactId}"
+        return "${groupId ? groupId.replace('.', '/') + '/' : ''}${artifactId}"
     }
 
     @Override
