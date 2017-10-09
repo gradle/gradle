@@ -239,7 +239,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 throw exceptionOccurred(request, e);
             }
         } catch (Exception e) {
-            throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
+            throw new LocationAwareException(e, request.getOrigin());
         }
     }
 
@@ -264,13 +264,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         } catch (Exception e) {
             throw new LocationAwareException(
                 new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
-                request.getScriptDisplayName(), request.getLineNumber());
+                request.getOrigin());
         }
 
         if (!result.isFound()) {
             String message = buildNotFoundMessage(request, result);
             Exception exception = new UnknownPluginException(message);
-            throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
+            throw new LocationAwareException(exception, request.getOrigin());
         }
 
         return result;

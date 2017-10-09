@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
@@ -115,8 +116,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
-        assertThat(gse.getLineNumber(), equalTo(7));
+        assertThat(gse.getLocation(), equalTo(getExpectedLocation(source)));
     }
 
     @Test
@@ -133,8 +133,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
-        assertThat(gse.getLineNumber(), equalTo(7));
+        assertThat(gse.getLocation(), equalTo(getExpectedLocation(source)));
     }
 
     @Test
@@ -144,8 +143,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getSourceDisplayName(), nullValue());
-        assertThat(gse.getLineNumber(), nullValue());
+        assertThat(gse.getLocation(), nullValue());
     }
 
     @Test
@@ -228,8 +226,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
-        assertThat(gse.getLineNumber(), equalTo(7));
+        assertThat(gse.getLocation(), equalTo(getExpectedLocation(source)));
         assertThat(gse.getCause(), sameInstance(failure));
     }
 
@@ -281,8 +278,12 @@ public class DefaultExceptionAnalyserTest {
 
     @Contextual
     public abstract static class TestException extends LocationAwareException {
-        protected TestException(Throwable cause, ScriptSource source, Integer lineNumber) {
-            super(cause, source, lineNumber);
+        protected TestException(Throwable cause, String origin) {
+            super(cause, origin);
         }
+    }
+
+    private static String getExpectedLocation(ScriptSource source) {
+        return StringUtils.capitalize(source.getDisplayName()) + " line: 7";
     }
 }

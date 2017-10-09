@@ -17,7 +17,6 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -28,38 +27,28 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final PluginId id;
     private final String version;
     private final boolean apply;
-    private final int lineNumber;
-    private final String scriptDisplayName;
+    private final String origin;
     private final ModuleVersionSelector artifact;
     private final PluginRequestInternal originalRequest;
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
+    public DefaultPluginRequest(String id, String version, boolean apply, String origin) {
+        this(DefaultPluginId.of(id), version, apply, origin);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, String origin) {
+        this(id, version, apply, origin, null);
     }
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, String origin, ModuleVersionSelector artifact) {
+        this(id, version, apply, origin, artifact, null);
     }
 
-    public DefaultPluginRequest(PluginRequestInternal from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getModule());
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, String origin, ModuleVersionSelector artifact,
                                 PluginRequestInternal originalRequest) {
         this.id = id;
         this.version = version;
         this.apply = apply;
-        this.lineNumber = lineNumber;
-        this.scriptDisplayName = scriptDisplayName;
+        this.origin = origin;
         this.artifact = artifact;
         this.originalRequest = originalRequest != null ? originalRequest : this;
     }
@@ -84,14 +73,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return apply;
     }
 
-    @Override
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
-    @Override
-    public String getScriptDisplayName() {
-        return scriptDisplayName;
+    public String getOrigin() {
+        return origin;
     }
 
     @Override

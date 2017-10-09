@@ -21,6 +21,8 @@ import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
+import static org.gradle.plugin.use.internal.PluginOriginUtil.scriptSourceDisplayName
+
 class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
 
     public static final String PORTAL_URL_1 = "http://foo"
@@ -129,7 +131,7 @@ class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
     }
 
     static PluginRequestInternal request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(id, version, true, scriptSourceDisplayName(new StringScriptSource("test", "test"), 1))
     }
 
 }

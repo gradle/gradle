@@ -29,6 +29,8 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.List;
 
+import static org.gradle.plugin.use.internal.PluginOriginUtil.autoAppliedPluginDisplayName;
+
 /**
  * A hardcoded {@link AutoAppliedPluginRegistry} that only knows about the build-scan plugin for now.
  */
@@ -59,6 +61,6 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     private DefaultPluginRequest createScanPluginRequest() {
         DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(BUILD_SCAN_PLUGIN_GROUP, BUILD_SCAN_PLUGIN_NAME, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION);
-        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, 0, "", artifact);
+        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, autoAppliedPluginDisplayName(), artifact);
     }
 }

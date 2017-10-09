@@ -15,9 +15,7 @@
  */
 package org.gradle.internal.exceptions;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -31,25 +29,11 @@ import java.util.List;
  */
 @UsedByScanPlugin
 public class LocationAwareException extends GradleException implements FailureResolutionAware {
-    private final String sourceDisplayName;
-    private final Integer lineNumber;
+    private final String location;
 
-    public LocationAwareException(Throwable cause, ScriptSource source, Integer lineNumber) {
-        this(cause, source != null ? source.getDisplayName() : null, lineNumber);
-    }
-
-    public LocationAwareException(Throwable cause, String sourceDisplayName, Integer lineNumber) {
-        this.sourceDisplayName = sourceDisplayName;
-        this.lineNumber = lineNumber;
+    public LocationAwareException(Throwable cause, String location) {
+        this.location = location;
         initCause(cause);
-    }
-
-    /**
-     * <p>Returns the display name of the script where this exception occurred.</p>
-     * @return The source display name. May return null.
-     */
-    public String getSourceDisplayName() {
-        return sourceDisplayName;
     }
 
     /**
@@ -58,23 +42,7 @@ public class LocationAwareException extends GradleException implements FailureRe
      * @return The location description. May return null.
      */
     public String getLocation() {
-        if (sourceDisplayName == null) {
-            return null;
-        }
-        String sourceMsg = StringUtils.capitalize(sourceDisplayName);
-        if (lineNumber == null) {
-            return sourceMsg;
-        }
-        return String.format("%s line: %d", sourceMsg, lineNumber);
-    }
-
-    /**
-     * Returns the line in the script where this exception occurred, if known.
-     *
-     * @return The line number, or null if not known.
-     */
-    public Integer getLineNumber() {
-        return lineNumber;
+        return location;
     }
 
     /**

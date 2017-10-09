@@ -23,6 +23,8 @@ import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
+import static org.gradle.plugin.use.internal.PluginOriginUtil.scriptSourceDisplayName
+
 class ArtifactRepositoryPluginResolverTest extends Specification {
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def result = Mock(PluginResolutionResult)
@@ -30,7 +32,7 @@ class ArtifactRepositoryPluginResolverTest extends Specification {
     def resolver = new ArtifactRepositoryPluginResolver("maven", null, versionSelectorScheme);
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(id, version, true, scriptSourceDisplayName(new StringScriptSource("test", "test"), 1))
     }
 
     def "fail pluginRequests without versions"() {
