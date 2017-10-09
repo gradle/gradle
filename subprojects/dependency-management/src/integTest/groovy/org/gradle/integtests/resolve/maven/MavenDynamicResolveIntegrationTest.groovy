@@ -130,27 +130,14 @@ task retrieve(type: Sync) {
 
     def "falls back to directory listing when maven-metadata.xml is missing"() {
         given:
-        mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
-        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
+        mavenHttpRepo.module('group', 'projectA', '1.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.5').publish()
 
-        buildFile << """
-    repositories {
-        maven { url '${mavenHttpRepo.uri}' }
-    }
-    configurations { compile }
-    dependencies {
-        compile 'org.test:projectA:1.+'
-    }
-
-    task retrieve(type: Sync) {
-        into 'libs'
-        from configurations.compile
-    }
-    """
+        buildFile << createBuildFile(mavenHttpRepo.uri)
 
         when:
-        mavenHttpRepo.getModuleMetaData("org.test", "projectA").expectGetMissing()
-        mavenHttpRepo.directory("org.test", "projectA").expectGet()
+        mavenHttpRepo.getModuleMetaData("group", "projectA").expectGetMissing()
+        mavenHttpRepo.directory("group", "projectA").expectGet()
         projectA.pom.expectGet()
         projectA.getArtifact().expectGet()
 
@@ -172,49 +159,36 @@ task retrieve(type: Sync) {
 
     def "reports and recovers from broken maven-metadata.xml and directory listing"() {
         given:
-        mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
-        def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
+        mavenHttpRepo.module('group', 'projectA', '1.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.5').publish()
 
-        buildFile << """
-    repositories {
-        maven { url '${mavenHttpRepo.uri}' }
-    }
-    configurations { compile }
-    dependencies {
-        compile 'org.test:projectA:1.+'
-    }
-
-    task retrieve(type: Sync) {
-        into 'libs'
-        from configurations.compile
-    }
-    """
+        buildFile << createBuildFile(mavenHttpRepo.uri)
 
         when:
-        def metaData = mavenHttpRepo.getModuleMetaData("org.test", "projectA")
+        def metaData = mavenHttpRepo.getModuleMetaData("group", "projectA")
         metaData.expectGetBroken()
 
         then:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause('Could not resolve org.test:projectA:1.+.')
-        failure.assertHasCause('Failed to list versions for org.test:projectA.')
+        failure.assertHasCause('Could not resolve group:projectA:1.+.')
+        failure.assertHasCause('Failed to list versions for group:projectA.')
         failure.assertHasCause("Unable to load Maven meta-data from ${metaData.uri}.")
         failure.assertHasCause("Could not GET '${metaData.uri}'. Received status code 500 from server")
 
         when:
         metaData.expectGetMissing()
 
-        def moduleDir = mavenHttpRepo.directory("org.test", "projectA")
+        def moduleDir = mavenHttpRepo.directory("group", "projectA")
         moduleDir.expectGetBroken()
 
         then:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause('Could not resolve org.test:projectA:1.+.')
-        failure.assertHasCause('Failed to list versions for org.test:projectA.')
+        failure.assertHasCause('Could not resolve group:projectA:1.+.')
+        failure.assertHasCause('Failed to list versions for group:projectA.')
         failure.assertHasCause("Could not list versions using M2 pattern '${mavenHttpRepo.uri}")
         failure.assertHasCause("Could not GET '${moduleDir.uri}'. Received status code 500 from server")
 
@@ -236,20 +210,7 @@ task retrieve(type: Sync) {
         def repo = mavenHttpRepo("repo1")
         def projectA = repo.module('group', 'projectA', '1.1').publish()
 
-        buildFile << """
-        repositories {
-            maven { url '${repo.uri}' }
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.+'
-        }
-
-        task retrieve(type: Sync) {
-            into 'libs'
-            from configurations.compile
-        }
-        """
+        buildFile << createBuildFile(repo.uri)
 
         when:
         repo.getModuleMetaData("group", "projectA").expectGet()
@@ -290,20 +251,7 @@ task retrieve(type: Sync) {
         def repo = mavenHttpRepo("repo1")
         def projectA = repo.module('group', 'projectA', '1.1').publish()
 
-        buildFile << """
-        repositories {
-            maven { url '${repo.uri}' }
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.+'
-        }
-
-        task retrieve(type: Sync) {
-            into 'libs'
-            from configurations.compile
-        }
-        """
+        buildFile << createBuildFile(repo.uri)
 
         when:
         repo.getModuleMetaData("group", "projectA").expectGet()
@@ -357,21 +305,7 @@ Searched in the following locations:
         def projectA1 = repo1.module('group', 'projectA', '1.1').publish()
         def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
 
-        buildFile << """
-        repositories {
-            maven { url '${repo1.uri}' }
-            maven { url '${repo2.uri}' }
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.+'
-        }
-
-        task retrieve(type: Sync) {
-            into 'libs'
-            from configurations.compile
-        }
-        """
+        buildFile << createBuildFile(repo1.uri, repo2.uri)
 
         when:
         repo1.getModuleMetaData("group", "projectA").expectGet()
@@ -398,5 +332,46 @@ Searched in the following locations:
 
         then:
         file('libs').assertHasDescendants('projectA-1.5.jar')
+    }
+
+    def "dynamic version ignores missing module in one repository when available in another repository"() {
+        given:
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
+
+        def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
+
+        buildFile << createBuildFile(repo1.uri, repo2.uri)
+
+        when:
+        repo1.getModuleMetaData("group", "projectA").expectGetMissing()
+        repo1.directory("group", "projectA").expectGetMissing()
+
+        repo2.getModuleMetaData("group", "projectA").expectGet()
+        projectA2.pom.expectGet()
+        projectA2.artifact.expectGet()
+
+        then:
+        succeeds 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.5.jar')
+    }
+
+    static String createBuildFile(URI... repoUris) {
+        """
+        repositories {
+            ${repoUris.collect { "maven { url '${it.toString()}' }" }.join("\n")}
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.+'
+        }
+
+        task retrieve(type: Sync) {
+            into 'libs'
+            from configurations.compile
+        }
+        """
     }
 }
