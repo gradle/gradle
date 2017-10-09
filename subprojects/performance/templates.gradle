@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.testing.performance.generator.tasks.CppProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
@@ -80,7 +81,7 @@ task ktsManyProjects(type: KtsProjectGeneratorTask) {
 task ktsSmall(type: KtsProjectGeneratorTask) {
 }
 
-// === Native ===
+// === Native Software Model ===
 task smallNative(type: NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
@@ -216,6 +217,35 @@ task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
     generateDeepHierarchy = true
 }
 
+// === Native Current Model Plugins ===
+task smallCppLibrary(type: CppProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 20
+    templateArgs = [
+        functionCount: 1
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppLibrary(type: CppProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    templateArgs = [
+        functionCount: 20
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task bigCppLibrary(type: CppProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 500
+    templateArgs = [
+        functionCount: 50
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+// === Android ===
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
     branch = 'gradle'
