@@ -155,6 +155,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -308,7 +309,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ProviderFactory.class),
             get(TextResourceLoader.class),
             get(StreamHasher.class),
-            get(FileHasher.class));
+            get(FileHasher.class),
+            get(AutoAppliedPluginHandler.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,

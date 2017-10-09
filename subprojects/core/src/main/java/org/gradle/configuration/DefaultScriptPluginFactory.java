@@ -54,6 +54,7 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestsSerializer;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -78,6 +79,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final TextResourceLoader textResourceLoader;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
+    private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -94,7 +96,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ProviderFactory providerFactory,
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
-                                      FileHasher fileHasher) {
+                                      FileHasher fileHasher,
+                                      AutoAppliedPluginHandler autoAppliedPluginHandler) {
+
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -111,6 +115,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
+        this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -177,9 +182,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests pluginRequests = initialRunner.getData();
+            PluginRequests initialPluginRequests = initialRunner.getData();
+            PluginRequests mergedPluginRequests = autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
+
             PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
-            pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
+            pluginRequestApplicator.applyPlugins(mergedPluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
