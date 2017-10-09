@@ -53,6 +53,7 @@ class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static void writeLineSeparatorToStdInAndClose(GradleHandle gradleHandle) {
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
+        gradleHandle.stdinPipe.flush()
         gradleHandle.stdinPipe.close()
     }
 }
