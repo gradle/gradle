@@ -24,10 +24,10 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 4.3.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 4.3.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 4.4.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 4.4.</p>
  *
- * @since 4.3
+ * @since 4.4
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalParameterAcceptingConnection extends InternalProtocolInterface {
@@ -35,15 +35,15 @@ public interface InternalParameterAcceptingConnection extends InternalProtocolIn
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 4.3.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 4.3.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 4.4.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 4.4.</p>
      *
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     * @since 4.3
+     * @since 4.4
      */
     <T> BuildResult<T> run(InternalBuildActionVersion2<T> action,
                            InternalCancellationToken cancellationToken,

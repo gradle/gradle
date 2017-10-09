@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r43;
+package org.gradle.integtests.tooling.r44;
 
-public interface CustomModel2 {
-    String getValue();
+public interface CustomModel {
+
+    boolean isBuiltWithParameter();
+
+    String getParameterValue();
 }

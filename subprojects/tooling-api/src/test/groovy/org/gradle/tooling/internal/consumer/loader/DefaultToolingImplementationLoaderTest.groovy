@@ -179,7 +179,7 @@ class TestConnection extends TestR26Connection implements InternalParameterAccep
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData('4.3')
+        return new TestMetaData('4.4')
     }
 }
 

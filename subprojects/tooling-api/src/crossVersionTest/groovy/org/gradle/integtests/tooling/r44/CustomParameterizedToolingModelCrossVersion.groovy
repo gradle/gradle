@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r43
+package org.gradle.integtests.tooling.r44
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -92,7 +92,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
             }
         """
 
-        if (getTargetVersion() < GradleVersion.version("4.3")) {
+        if (getTargetVersion() < GradleVersion.version("4.4")) {
             buildFile << """
                 class CustomBuilder implements ToolingModelBuilder {
                     boolean canBuild(String modelName) {
@@ -125,8 +125,8 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
         }
     }
 
-    @TargetGradleVersion(">=4.3")
-    @ToolingApiVersion(">=4.3")
+    @TargetGradleVersion(">=4.4")
+    @ToolingApiVersion(">=4.4")
     def "can get models with parameters"() {
         when:
         def model = withConnection { connection ->
@@ -138,7 +138,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
         model.getParameterValue() == "myParameter"
     }
 
-    @TargetGradleVersion(">=4.3")
+    @TargetGradleVersion(">=4.4")
     @ToolingApiVersion(">=1.8")
     def "can get model without parameters for old gradle versions"() {
         when:
@@ -151,8 +151,8 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
         model.getParameterValue() == "noParameter"
     }
 
-    @TargetGradleVersion(">=1.8 <4.3")
-    @ToolingApiVersion(">=4.3")
+    @TargetGradleVersion(">=1.8 <4.4")
+    @ToolingApiVersion(">=4.4")
     def "error when get model with parameters for old gradle versions"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version
@@ -173,8 +173,8 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
         }
     }
 
-    @TargetGradleVersion(">=4.3")
-    @ToolingApiVersion(">=4.3")
+    @TargetGradleVersion(">=4.4")
+    @ToolingApiVersion(">=4.4")
     def "can use one model output as input for other"() {
         when:
         def model = withConnection { connection ->
@@ -190,8 +190,8 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
         model.get(2).getParameterValue() == "noParameter:parameter1:parameter2"
     }
 
-    @TargetGradleVersion(">=4.3")
-    @ToolingApiVersion(">=4.3")
+    @TargetGradleVersion(">=4.4")
+    @ToolingApiVersion(">=4.4")
     def "error when passing parameter to non parameterized builder"() {
         def handler = Mock(ResultHandler)
 

@@ -58,7 +58,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 2.1-rc-1 to 4.2. It is also used by later consumers when the provider does not
+     * <p>Consumer compatibility: This method is used by all consumer versions from 2.1-rc-1 to 4.3. It is also used by later consumers when the provider does not
      * implement newer interfaces.
      * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 2.1-rc-1.</p>
@@ -69,7 +69,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
-     * @deprecated 4.3. Use {@link InternalParameterAcceptingConnection#run(InternalBuildActionVersion2, InternalCancellationToken, BuildParameters)} instead.
+     * @deprecated 4.4. Use {@link InternalParameterAcceptingConnection#run(InternalBuildActionVersion2, InternalCancellationToken, BuildParameters)} instead.
      */
     @Deprecated
     <T> BuildResult<T> run(InternalBuildAction<T> action,

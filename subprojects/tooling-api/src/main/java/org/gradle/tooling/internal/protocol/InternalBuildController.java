@@ -19,13 +19,13 @@ package org.gradle.tooling.internal.protocol;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1 to 4.2. It is also used by later consumers when the provider does not
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1 to 4.3. It is also used by later consumers when the provider does not
  * implement newer interfaces.
  * </p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.8-rc-1.</p>
  *
  * @since 1.8-rc-1
- * @deprecated 4.3. Use {@link InternalBuildControllerVersion2} instead.
+ * @deprecated 4.4. Use {@link InternalBuildControllerVersion2} instead.
  */
 @Deprecated
 public interface InternalBuildController {
@@ -37,7 +37,7 @@ public interface InternalBuildController {
      *
      * @throws BuildExceptionVersion1 On build failure.
      * @since 1.8-rc-1
-     * @deprecated 4.3
+     * @deprecated 4.4
      */
     @Deprecated
     BuildResult<?> getBuildModel() throws BuildExceptionVersion1;
@@ -45,7 +45,7 @@ public interface InternalBuildController {
     /**
      * Returns the requested model for a target object.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1 to 4.2. It is also used by later consumers when the provider does not
+     * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1 to 4.3. It is also used by later consumers when the provider does not
      * implement newer interfaces.
      * </p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
@@ -55,7 +55,7 @@ public interface InternalBuildController {
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @since 1.8-rc-1
-     * @deprecated 4.3. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
+     * @deprecated 4.4. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
      */
     @Deprecated
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,

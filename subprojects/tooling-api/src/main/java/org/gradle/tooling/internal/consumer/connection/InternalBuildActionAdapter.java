@@ -49,7 +49,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
     }
 
     /**
-     * This is used by providers 1.8-rc-1 to 4.2
+     * This is used by providers 1.8-rc-1 to 4.3
      */
     public T execute(final InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
@@ -67,7 +67,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
     }
 
     /**
-     * This is used by providers 4.3 and later
+     * This is used by providers 4.4 and later
      */
     public T execute(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());

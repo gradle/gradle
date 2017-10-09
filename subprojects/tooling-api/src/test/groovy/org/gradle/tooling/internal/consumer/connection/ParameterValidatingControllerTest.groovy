@@ -66,7 +66,7 @@ class ParameterValidatingControllerTest extends Specification {
         def parameterInitializer = Mock(Action)
 
         given:
-        _ * version.getVersion() >> "4.3"
+        _ * version.getVersion() >> "4.4"
         _ * version.supportsParameterizedToolingModels() >> false
         _ * delegate.getModel(_, modelType, parameterType, parameterInitializer) >> model
 
@@ -75,6 +75,6 @@ class ParameterValidatingControllerTest extends Specification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "Gradle version 4.3 used does not support parameterized tooling models."
+        e.message == "Gradle version 4.4 used does not support parameterized tooling models."
     }
 }

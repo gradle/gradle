@@ -21,16 +21,16 @@ import java.io.Serializable;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is implemented by all consumer versions from 4.3.</p>
- * <p>Provider compatibility: This interface is consumed by all provider versions from 4.3.</p>
+ * <p>Consumer compatibility: This interface is implemented by all consumer versions from 4.4.</p>
+ * <p>Provider compatibility: This interface is consumed by all provider versions from 4.4.</p>
  *
- * @since 4.3
+ * @since 4.4
  */
 public interface InternalBuildActionVersion2<T> extends InternalProtocolInterface, Serializable {
     /**
      * Performs some action against a build and returns a result.
      *
-     * @since 4.3
+     * @since 4.4
      */
     T execute(InternalBuildControllerVersion2 buildController);
 }

@@ -53,7 +53,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
 
     final target = Mock(TestModelBuilder) {
         getMetaData() >> Stub(ConnectionMetaDataVersion1) {
-            getVersion() >> "4.3"
+            getVersion() >> "4.4"
         }
     }
     final adapter = Mock(ProtocolToModelAdapter)

@@ -22,12 +22,12 @@ import java.io.Serializable;
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * <p>Consumer compatibility: This interface is implemented by all consumer versions from 1.8-rc-1.</p>
- * <p>Provider compatibility: This interface is consumed by all provider versions from 1.8-rc-1 to 4.2. It is also used by later providers when the consumer does not
+ * <p>Provider compatibility: This interface is consumed by all provider versions from 1.8-rc-1 to 4.3. It is also used by later providers when the consumer does not
  * implement newer interfaces.
  * </p>
  *
  * @since 1.8-rc-1
- * @deprecated 4.3. Use {@link InternalBuildActionVersion2} instead.
+ * @deprecated 4.4. Use {@link InternalBuildActionVersion2} instead.
  */
 @Deprecated
 public interface InternalBuildAction<T> extends InternalProtocolInterface, Serializable {
@@ -35,7 +35,7 @@ public interface InternalBuildAction<T> extends InternalProtocolInterface, Seria
      * Performs some action against a build and returns a result.
      *
      * @since 1.8-rc-1
-     * @deprecated 4.3. Use {@link InternalBuildActionVersion2#execute(InternalBuildControllerVersion2)} instead.
+     * @deprecated 4.4. Use {@link InternalBuildActionVersion2#execute(InternalBuildControllerVersion2)} instead.
      */
     @Deprecated
     T execute(InternalBuildController buildController);

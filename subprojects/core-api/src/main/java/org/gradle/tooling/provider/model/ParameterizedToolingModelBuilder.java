@@ -46,7 +46,7 @@ import org.gradle.api.Project;
  * assumption that the model is effectively immutable. The tooling API does not make any guarantees about how the client application will use the model object.</p>
  *
  * @param <T> The type of parameter used by this model builder.
- * @since 4.3
+ * @since 4.4
  * @see ToolingModelBuilder
  */
 @Incubating

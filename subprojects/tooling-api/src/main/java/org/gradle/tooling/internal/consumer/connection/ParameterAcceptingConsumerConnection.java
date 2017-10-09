@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 /**
  * An adapter for {@link InternalParameterAcceptingConnection}.
  *
- * <p>Used for providers >= 4.3.</p>
+ * <p>Used for providers >= 4.4.</p>
  */
 public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerConnection {
     private final ActionRunner actionRunner;
