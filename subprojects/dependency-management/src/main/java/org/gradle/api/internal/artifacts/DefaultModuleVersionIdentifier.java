@@ -77,7 +77,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public int hashCode() {
-        return id.hashCode() ^ version.hashCode();
+        return 31 * id.hashCode() ^ version.hashCode();
     }
 
     public ModuleIdentifier getModule() {
