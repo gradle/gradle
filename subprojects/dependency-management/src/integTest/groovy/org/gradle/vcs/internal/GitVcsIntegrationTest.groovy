@@ -79,5 +79,35 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
     }
 
+    @Issue('gradle/gradle-native#207')
+    def 'can use repositories even when clean is run'() {
+        given:
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds('assemble')
+
+        when:
+        succeeds('clean', 'assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+
+    }
+
     // TODO: Use HTTP hosting for git repo
 }

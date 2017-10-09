@@ -108,7 +108,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         ProjectInternal rootProject = projectRegistry.getRootProject();
         File baseWorkingDir = null;
         if (rootProject!=null) {
-            baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
+            baseWorkingDir = new File(rootProject.getRootDir(), ".gradle/vcsWorkingDirs");
         }
         return baseWorkingDir;
     }
