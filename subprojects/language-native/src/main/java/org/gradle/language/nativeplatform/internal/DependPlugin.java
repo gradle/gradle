@@ -133,12 +133,5 @@ public class DependPlugin implements Plugin<Project> {
             }
         }));
         compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
-        compile.getOutputs().cacheIf("Depend task is present", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                AbstractNativeCompileTask compileTask = (AbstractNativeCompileTask) element;
-                return compile.getHeaderDependenciesFile().isPresent();
-            }
-        });
     }
 }
