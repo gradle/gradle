@@ -47,7 +47,7 @@
       </build-trigger>
     </build-triggers>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_110" sourceBuildTypeId="Gradle_Check_Stage_MasterAccept_Trigger" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_110" sourceBuildTypeId="Gradle_Check_Stage_QuickFeedback_Trigger" cleanDestination="false">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="master" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
