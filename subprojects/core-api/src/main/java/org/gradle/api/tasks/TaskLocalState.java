@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents the files or directories that represent the local state of a {@link org.gradle.api.Task}.
+ * The typical usage for local state is to store non-relocatable incremental analysis between builds.
  * Local state is removed whenever the task is loaded from cache.
  *
  * @since 4.3

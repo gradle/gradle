@@ -520,6 +520,10 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 | `File` or `Iterable&lt;File&gt;`*
 | Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.
 
+| `@api:org.gradle.api.tasks.LocalState[]`
+| `File` or `Iterable&lt;File&gt;`*
+| Specifies one or more files that represent the <<sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
+
 | `@api:org.gradle.api.tasks.Nested[]`
 | Any custom type
 | A custom type that may not implement `Serializable` but does have at least one field or property marked with one of the annotations in this table. It could even be another `@Nested`.

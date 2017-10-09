@@ -124,6 +124,10 @@ task customTask {
 }
 ```
 
+#### Clean up local task state when loading from cache
+
+Using the new `@LocalState` annotation and [`task.localState.register(...)`](javadoc/org/gradle/api/tasks/TaskLocalState.html) API, you can register the [local state](userguide/custom_tasks.html#sec:storing_incremental_task_state) of a task. Local state files will be cleaned up whenever the task is loaded from cache.
+
 ### Force console type with `org.gradle.console`
 
 You may now force Gradle to use specific console type in [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
