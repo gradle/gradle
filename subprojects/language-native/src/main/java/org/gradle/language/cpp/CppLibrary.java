@@ -51,6 +51,8 @@ public interface CppLibrary extends CppComponent {
 
     /**
      * Returns public header files of this component.
+     *
+     * @since 4.3
      */
     FileTree getPublicHeaderFiles();
 

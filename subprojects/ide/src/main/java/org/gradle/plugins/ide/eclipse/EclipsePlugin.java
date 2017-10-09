@@ -364,8 +364,12 @@ public class EclipsePlugin extends IdePlugin {
             case VERSION_1_4:
             case VERSION_1_5:
                 return "J2SE-" + version;
-            default:
+            case VERSION_1_6:
+            case VERSION_1_7:
+            case VERSION_1_8:
                 return "JavaSE-" + version;
+            default:
+                return "JavaSE-" + version.getMajorVersion();
         }
     }
 

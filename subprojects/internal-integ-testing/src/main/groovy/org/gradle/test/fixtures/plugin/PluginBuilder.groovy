@@ -35,7 +35,7 @@ class PluginBuilder {
 
     final TestFile projectDir
 
-    String packageName = "org.gradle.test"
+    static String packageName = "org.gradle.test"
 
     final Map<String, String> pluginIds = [:]
 

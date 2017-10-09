@@ -31,8 +31,8 @@ class DefaultSwiftLibraryTest extends Specification {
     DefaultSwiftLibrary library
 
     def setup() {
-        _ * configurations.create("api") >> api
-        _ * configurations.create(_) >> Stub(TestConfiguration)
+        _ * configurations.maybeCreate("api") >> api
+        _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
         library = new DefaultSwiftLibrary("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), configurations)
     }
 

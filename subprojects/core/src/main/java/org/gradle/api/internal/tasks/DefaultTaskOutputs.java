@@ -121,7 +121,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 return DefaultTaskOutputCachingState.disabled(
                     PLURAL_OUTPUTS,
                     "Declares multiple output files for the single output property '"
-                        + spec.getPropertyName()
+                        + ((NonCacheableTaskOutputPropertySpec) spec).getOriginalPropertyName()
                         + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
                 );
             }
@@ -200,6 +200,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
                         return ((CompositeTaskOutputPropertySpec) propertySpec).resolveToOutputProperties();
                     } else {
+                        if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                            File outputFile = ((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile();
+                            if (outputFile == null) {
+                                return Iterators.emptyIterator();
+                            }
+                        }
                         return Iterators.singletonIterator((TaskOutputFilePropertySpec) propertySpec);
                     }
                 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.id.UniqueId;
@@ -35,13 +34,6 @@ public interface TaskExecution {
      * cacheable, it returns an empty collection.
      */
     ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey();
-
-    /**
-     * Returns the absolute path of every declared output file and directory.
-     * The returned set includes potentially missing files as well, and does
-     * not include the resolved contents of directories.
-     */
-    ImmutableSet<String> getDeclaredOutputFilePaths();
 
     ImplementationSnapshot getTaskImplementation();
 

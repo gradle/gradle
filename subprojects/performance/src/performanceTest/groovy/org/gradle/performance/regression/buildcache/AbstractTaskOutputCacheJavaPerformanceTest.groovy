@@ -34,7 +34,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.cleanTasks = ["clean"]
         runner.args = ["-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         runner.minimumVersion = "3.5"
-        runner.targetVersions = ["4.2.1"]
+        runner.targetVersions = ["4.3-20171009150001+0000"]
     }
 
     /**

@@ -32,9 +32,9 @@ class DefaultSwiftBinaryTest extends Specification {
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.create("swiftImportDebug") >> compile
-        _ * configurations.create("nativeLinkDebug") >> link
-        _ * configurations.create("nativeRuntimeDebug") >> runtime
+        _ * configurations.maybeCreate("swiftImportDebug") >> compile
+        _ * configurations.maybeCreate("nativeLinkDebug") >> link
+        _ * configurations.maybeCreate("nativeRuntimeDebug") >> runtime
 
         binary = new DefaultSwiftBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  configurations, implementation)
     }

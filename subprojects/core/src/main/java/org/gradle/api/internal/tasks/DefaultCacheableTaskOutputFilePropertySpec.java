@@ -47,7 +47,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     @Override
     public File getOutputFile() {
         Object unpackedOutput = DeferredUtil.unpack(value.call());
-        if (unpackedOutput == null && isOptional()) {
+        if (unpackedOutput == null) {
             return null;
         }
         return resolver.resolve(unpackedOutput);

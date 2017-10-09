@@ -46,7 +46,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
         release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
-        api = configurations.create(getNames().withSuffix("api"));
+        api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
         api.setCanBeResolved(false);
         getImplementationDependencies().extendsFrom(api);

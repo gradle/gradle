@@ -270,8 +270,10 @@ public class StartParameterBuildOptions {
     }
 
     public static class BuildScanOption extends BooleanBuildOption<StartParameter> {
+        public static final String LONG_OPTION = "scan";
+
         public BuildScanOption() {
-            super(null, CommandLineOptionConfiguration.create("scan", "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
         }
 
         @Override

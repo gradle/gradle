@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
@@ -39,13 +38,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths,
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
         FileCollectionSnapshot discoveredInputFilesSnapshot,
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
         boolean successful
     ) {
-        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
+        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.outputFilesSnapshot = outputFilesSnapshot;

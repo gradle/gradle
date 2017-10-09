@@ -1502,6 +1502,48 @@ Found the following transforms:
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
     }
 
+    def "Artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
+        def module = mavenRepo.module("test", "test", "1.3").publish()
+        module.getArtifactFile(classifier:"foo").text = "1234"
+        module.getArtifactFile(classifier:"bar").text = "5678"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3:foo'
+                compile 'test:test:1.3:bar'
+            }
+            
+            /*
+             * This transform creates a name that is independent of 
+             * the original file name, thus losing the classifier that
+             * was encoded in it.
+             */ 
+            class NameManglingTransform extends ArtifactTransform {
+                NameManglingTransform() {
+                    println "Creating NameManglingTransform"
+                }
+                
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, "out.txt")
+                    output.text = input.text
+                    return [output]
+                }
+            }
+
+            ${configurationAndTransform('NameManglingTransform')}
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
+    }
+
     def configurationAndTransform(String transformImplementation) {
         """
             dependencies {

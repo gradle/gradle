@@ -16,16 +16,12 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
-    private static final String YES = 'yes'
-    private static final String NO = 'no'
-    private static final String PROMPT = "Accept license? [$YES, $NO]"
-    private static final String DUMMY_TASK_NAME = 'doSomething'
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
 
     def setup() {
@@ -116,45 +112,13 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         gradleHandle.standardOutput.contains(answerOutput(true))
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "fails gracefully if console is not interactive"() {
+    def "does not request user input prompt for non-interactive console"() {
         when:
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        def failure = gradleHandle.waitForFailure()
-        failure.assertHasCause('Console does not support capturing input')
-    }
-
-    static String buildScanPlugin() {
-        """
-            import org.gradle.api.Project;
-            import org.gradle.api.Plugin;
-
-            import org.gradle.api.internal.project.ProjectInternal;
-            import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
-
-            public class BuildScanPlugin implements Plugin<Project> {
-                @Override
-                public void apply(Project project) {
-                    BuildScanUserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(BuildScanUserInputHandler.class);
-                    Boolean accepted = userInputHandler.askYesNoQuestion("Accept license?");
-                    System.out.println("License accepted: " + accepted);
-                }
-            }
-        """
-    }
-
-    static String buildScanPluginApplication() {
-        """
-            apply plugin: BuildScanPlugin
-            
-            task $DUMMY_TASK_NAME
-        """
-    }
-
-    static String answerOutput(Boolean answer) {
-        "License accepted: $answer"
+        gradleHandle.waitForFinish()
+        !gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(null))
     }
 }

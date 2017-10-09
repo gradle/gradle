@@ -6,6 +6,10 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Convenient use of build scan plugin
+
+This version of Gradle makes it even easier to gain deep insights into your build. By using the command line option `--scan`, the latest [build scan plugin](https://scans.gradle.com/get-started) is applied automatically. You will not have to explicitly declare the plugin in your build script or an init script.
+
 ### Timeouts for HTTP/HTTPS requests
 
 Previous versions of Gradle did not define a timeout for any HTTP/HTTPS requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.
@@ -272,9 +276,15 @@ There are better ways for re-using task logic, for example by using [task depend
 - `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
 - `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
 
-## Changes in the `eclipse` plugin
+### Changes in the `eclipse` plugin
 
 The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html#org.gradle.plugins.ide.eclipse.model.EclipseClasspath:defaultOutputDir) changed from `${project.projectDir}/bin` to `${project.projectDir}/bin/default`.
+
+### Incremental build respects order of declared output files
+
+For output properties annotated with [`@OutputFiles`](javadoc/org/gradle/api/tasks/OutputFiles.html) or [`@OutputDirectories`](javadoc/org/gradle/api/tasks/OutputDirectories.html) that evaluate to an `Iterable`, the order of the declared files is now important.
+In other words, if the property changes from `[file1, file2]` to `[file2, file1]` the task will not be up-to-date. 
+Prefer annotating individual properties with [`@OutputFile`](javadoc/org/gradle/api/tasks/OutputFile.html) and [`@OutputDirectory`](javadoc/org/gradle/api/tasks/OutputDirectory.html) if you can, or return a `Map` annotated with [`@OutputFiles`](javadoc/org/gradle/api/tasks/OutputFiles.html) or [`@OutputDirectories`](javadoc/org/gradle/api/tasks/OutputDirectories.html).
 
 ## External contributions
 

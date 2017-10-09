@@ -87,6 +87,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
+    @Override
+    public TestFile getArtifactFile(Map options) {
+        return backingModule.getArtifactFile(options);
+    }
 
     @Override
     public String getArtifactId() {
