@@ -6,6 +6,10 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Convenient use of build scan plugin
+
+This version of Gradle makes it even easier to gain deep insights into your build. By using the command line option `--scan`, the latest [build scan plugin](https://scans.gradle.com/get-started) is applied automatically. You will not have to explicitly declare the plugin in your build script or an init script.
+
 ### Timeouts for HTTP/HTTPS requests
 
 Previous versions of Gradle did not define a timeout for any HTTP/HTTPS requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.

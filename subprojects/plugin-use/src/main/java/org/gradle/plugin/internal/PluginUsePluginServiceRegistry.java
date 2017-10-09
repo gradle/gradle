@@ -45,6 +45,10 @@ import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
@@ -75,6 +79,11 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     }
 
     @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeServices());
+    }
+
+    @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
     }
@@ -87,6 +96,17 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
             return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoriesSpec, internalPluginResolutionStrategy);
+        }
+    }
+
+    private static class BuildSessionScopeServices {
+
+        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(StartParameter startParameter) {
+            return new DefaultAutoAppliedPluginRegistry(startParameter);
+        }
+
+        AutoAppliedPluginHandler createAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {
+            return new DefaultAutoAppliedPluginHandler(registry);
         }
     }
 
