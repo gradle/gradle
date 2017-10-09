@@ -26,11 +26,32 @@ import javax.annotation.Nullable;
 /**
  * A container object that provides a value of a specific type. The value can be retrieved by the method {@link #get()} or {@link #getOrNull()}.
  *
- * <p>A provider may not always have a value available, for example when the value may not yet be known but will be known at some point in the future. When a value is not available, {@link #isPresent()} returns {@code false} and retrieving the value will fail with an exception.
+ * <p>
+ *  A provider may not always have a value available, for example when the value may not yet be known but will be known at some point in the future.
+ *  When a value is not available, {@link #isPresent()} returns {@code false} and retrieving the value will fail with an exception.
+ * </p>
  *
- * <p>A provider may not always provide the same value. Although there are no methods on this interface to change the value, the provider implementation may be mutable or use values from some changing source.
+ * <p>
+ *  A provider may not always provide the same value. Although there are no methods on this interface to change the value,
+ *  the provider implementation may be mutable or use values from some changing source.
+ * </p>
  *
- * <p>A provider may provide a value that is mutable and that changes over time.
+ * <p>
+ *  A provider may provide a value that is mutable and that changes over time.
+ * </p>
+ *
+ * <p>
+ *  A typical use of a provider is to pass values from one DSL element to another, e.g. from an extension to a task.
+ *  Providers also allow expensive computations to be deferred until their value is actually needed, usually at task execution time.
+ * </p>
+ *
+ * <p>
+ *  For a provider whose value can be mutated, see {@link PropertyState}.
+ * </p>
+ *
+ * <p>
+ *  Do not use <code>Provider&lt;File&gt;</code>. Use {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile} instead.
+ * </p>
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory methods {@link org.gradle.api.Project#provider(java.util.concurrent.Callable)} or {@link org.gradle.api.provider.ProviderFactory#provider(java.util.concurrent.Callable)}.
  *
