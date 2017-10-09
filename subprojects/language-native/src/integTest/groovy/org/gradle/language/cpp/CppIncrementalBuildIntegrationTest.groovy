@@ -37,7 +37,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     String variant = 'Debug'
     String installApp = ":app:install${variant}"
 
-    def "setup"() {
+    def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
 
