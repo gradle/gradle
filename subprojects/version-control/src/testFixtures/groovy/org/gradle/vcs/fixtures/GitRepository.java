@@ -72,6 +72,14 @@ public class GitRepository extends ExternalResource {
 
     @Override
     protected void after() {
+        close();
+    }
+
+    /**
+     * Clean up any held resources
+     * (called automatically when used as a @Rule)
+     */
+    public void close() {
         git.close();
     }
 
