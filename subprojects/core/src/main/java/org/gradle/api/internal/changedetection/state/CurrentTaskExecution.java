@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution {
+    private final ImmutableSet<String> declaredOutputFilePaths;
     private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private FileCollectionSnapshot discoveredInputFilesSnapshot;
@@ -46,13 +47,24 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
-        super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
+        super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
+        this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
+    /**
+     * Returns the absolute path of every declared output file and directory.
+     * The returned set includes potentially missing files as well, and does
+     * not include the resolved contents of directories.
+     */
+    public ImmutableSet<String> getDeclaredOutputFilePaths() {
+        return declaredOutputFilePaths;
+    }
+
+    @Override
     public boolean isSuccessful() {
         return successful;
     }
@@ -96,7 +108,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
             getTaskActionImplementations(),
             getInputProperties(),
             getOutputPropertyNamesForCacheKey(),
-            getDeclaredOutputFilePaths(),
             inputFilesSnapshot,
             discoveredInputFilesSnapshot,
             outputFilesSnapshot,

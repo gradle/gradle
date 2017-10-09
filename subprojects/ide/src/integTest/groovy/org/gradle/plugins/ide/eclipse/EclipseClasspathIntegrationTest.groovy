@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -29,7 +30,7 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 
     String content
 
-    private final String jreContainerPath = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-${org.gradle.api.JavaVersion.current()}/"
+    private final String jreContainerPath = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-${JavaVersion.current().isJava9Compatible() ? JavaVersion.current().getMajorVersion() : JavaVersion.current()}/"
 
     @Test
     void classpathContainsLibraryEntriesForExternalAndFileDependencies() {

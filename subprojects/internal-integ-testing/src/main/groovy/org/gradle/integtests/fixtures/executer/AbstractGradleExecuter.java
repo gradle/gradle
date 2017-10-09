@@ -41,6 +41,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -48,7 +49,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -916,7 +916,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (interactive) {
-            properties.put(DaemonParameters.INTERACTIVE_TOGGLE, "true");
+            properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
         }
 
         return properties;

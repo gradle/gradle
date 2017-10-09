@@ -65,7 +65,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private void logOutOfDateMessages(List<String> messages, TaskInternal task, String took) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
-            formatter.format("Executing %s (up-to-date check took %s) due to:", task, took);
+            formatter.format("Up-to-date check for %s took %s. It is not up-to-date because:", task, took);
             for (String message : messages) {
                 formatter.format("%n  %s", message);
             }
