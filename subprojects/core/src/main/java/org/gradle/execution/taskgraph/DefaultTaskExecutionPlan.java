@@ -37,6 +37,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
@@ -782,7 +783,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<String> getOutputPaths(TaskInfo task) {
         try {
-            return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
+            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(
+                task.getTask().getOutputs().getFiles(),
+                ((TaskLocalStateInternal) task.getTask().getLocalState()).getFiles()
+            ));
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getIdentityPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
         }
