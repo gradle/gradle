@@ -23,6 +23,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":versionControl")
 useTestFixtures(project: ":platformNative")
 useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
