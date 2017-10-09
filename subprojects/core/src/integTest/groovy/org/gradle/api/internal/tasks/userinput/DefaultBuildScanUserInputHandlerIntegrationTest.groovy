@@ -40,7 +40,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains(answerOutput(true))
@@ -60,7 +60,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
+        writeToStdInAndClose(gradleHandle, EOF)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains(answerOutput(null))
@@ -78,7 +78,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, stdin)
+        writeToStdInAndClose(gradleHandle, stdin)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains(answerOutput(accepted))
@@ -106,7 +106,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains(answerOutput(true))
