@@ -608,7 +608,7 @@ As before, there’s much to talk about. To begin with, you should really write 
 
 All the input and output definitions are done through the methods on `inputs` and `outputs`, such as `property()`, `files()`, and `dir()`. Gradle performs up-to-date checks on the argument values to determine whether the task needs to run again or not. Each method corresponds to one of the incremental build annotations, for example `inputs.property()` maps to `@Input` and `outputs.dir()` maps to `@OutputDirectory`. The only difference is that the `file()`, `files()`, `dir()` and `dirs()` methods don’t validate the type of file object at the given path (file or directory), unlike the annotations.
 
-The files that a task removes can be specified through the methods on `destroyables`.  For example, both individual files and directories can be specified using the `destroyables.file()` method, while a collection of files can be specified using the `destroyables.files()` method.
+The files that a task removes can be specified through `destroyables.register()`.
 
 ++++
 <sample id="destroyableAdHocTask" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Ad-hoc task declaring a destroyable">

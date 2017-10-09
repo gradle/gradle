@@ -288,6 +288,10 @@ There are better ways for re-using task logic, for example by using [task depend
 
 The `--recompile-scripts` flag would be ignored in some cases. To avoid confusion, we deprecate this flag.
 
+### Task destroyables API changes
+
+Instead of the `file()` and `files()` methods on `TaskDestroyables`, now there is a single `TaskDestroyables.register()` method.
+
 ### Other deprecations
 
 * `CompileOptions.bootClasspath` is deprecated in favor of the new `bootstrapClasspath` property.
@@ -314,6 +318,10 @@ Prefer annotating individual properties with [`@OutputFile`](javadoc/org/gradle/
 
 Previous versions of Gradle would fall through to the next repository if resolution in one repository failed.
 This behaviour might cause potentially nondeterministic resolution result. Now Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository.
+
+### Change in `TaskDestroyables` API
+
+The `TaskDestroyables.getFiles()` method is no longer part of the public API.
 
 ## External contributions
 

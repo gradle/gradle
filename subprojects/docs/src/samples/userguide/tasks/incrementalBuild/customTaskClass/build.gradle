@@ -84,7 +84,7 @@ task packageFiles2(type: Zip) {
 
 // START SNIPPET adhoc-destroyable-task
 task removeTempDir {
-    destroyables.file("$projectDir/tmpDir")
+    destroyables.register("$projectDir/tmpDir")
     doLast {
         delete("$projectDir/tmpDir")
     }

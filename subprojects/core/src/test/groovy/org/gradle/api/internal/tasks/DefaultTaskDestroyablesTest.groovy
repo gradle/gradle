@@ -53,7 +53,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
     def "can declare a file that a task destroys"() {
         when:
-        taskDestroys.file("a")
+        taskDestroys.register("a")
 
         then:
         taskDestroys.files.files == [new File("a")] as Set
@@ -61,7 +61,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
     def "can declare multiple files that a task destroys"() {
         when:
-        taskDestroys.files("a", "b")
+        taskDestroys.register("a", "b")
 
         then:
         taskDestroys.files.files == [new File("a"), new File("b")] as Set
@@ -72,7 +72,7 @@ class DefaultTaskDestroyablesTest extends Specification {
         def fileCollection = [getFiles: { files }] as FileCollectionInternal
 
         when:
-        taskDestroys.files(fileCollection)
+        taskDestroys.register(fileCollection)
 
         then:
         taskDestroys.files.files == [new File("a"), new File("b")] as Set
@@ -80,7 +80,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
     def "can declare a file that a task destroys using a closure"() {
         when:
-        taskDestroys.file({ 'a' })
+        taskDestroys.register({ 'a' })
 
         then:
         taskDestroys.files.files == [new File("a")] as Set

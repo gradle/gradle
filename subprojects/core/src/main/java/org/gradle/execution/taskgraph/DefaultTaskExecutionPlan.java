@@ -789,7 +789,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<String> getDestroyablePaths(TaskInfo task) {
-        return canonicalizedPaths(canonicalizedFileCache, ((TaskDestroyablesInternal)task.getTask().getDestroyables()).getFilesReadOnly());
+        return canonicalizedPaths(canonicalizedFileCache, ((TaskDestroyablesInternal) task.getTask().getDestroyables()).getFiles());
     }
 
     private boolean pathsOverlap(String firstPath, String secondPath) {
