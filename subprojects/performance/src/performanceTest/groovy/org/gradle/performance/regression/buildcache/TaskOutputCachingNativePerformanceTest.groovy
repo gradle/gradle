@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.buildcache
 
-import org.gradle.initialization.ParallelismBuildOptionFactory
+import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.test.fixtures.file.TestFile
@@ -27,9 +27,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
     def setup() {
         runner.minimumVersion = "4.2"
         runner.targetVersions = ["4.3-20171004093631+0000"]
-        runner.warmUpRuns = 5
-        runner.runs = 5
-        storesInCache = false
+        checkIfCacheUsed = false // TODO: Until the base version supports caching
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
@@ -53,7 +51,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.testProject = testProject
         runner.tasksToRun = [task]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.args += ["--parallel", "--${ParallelismBuildOptionFactory.MaxWorkersOption.LONG_OPTION}=6"]
+        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
 
         when:
         def result = runner.run()

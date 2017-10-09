@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.buildcache
 
-import org.gradle.initialization.StartParameterBuildOptionFactory
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -34,14 +34,14 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
     TestFile cacheDir
     String protocol = "http"
     boolean pushToRemote
-    boolean storesInCache = true
+    boolean checkIfCacheUsed = true
 
     @Rule
     HttpBuildCacheServer buildCacheServer = new HttpBuildCacheServer(temporaryFolder)
 
     def setup() {
         runner.cleanTasks = ["clean"]
-        runner.args = ["-D${StartParameterBuildOptionFactory.BuildCacheOption.GRADLE_PROPERTY}=true"]
+        runner.args = [StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY, StartParameterBuildOptions.NativeCachingOption.GRADLE_PROPERTY].collect { "-D${it}=true" }
         buildCacheServer.logRequests = false
         cacheDir = temporaryFolder.file("local-cache")
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
@@ -64,7 +64,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (isLastRun(invocationInfo) && storesInCache) {
+                if (isLastRun(invocationInfo) && checkIfCacheUsed) {
                     assert !(buildCacheServer.cacheDir.allDescendants().empty && cacheDir.allDescendants().isEmpty())
                     assert pushToRemote || buildCacheServer.cacheDir.allDescendants().empty
                 }

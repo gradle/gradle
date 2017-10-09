@@ -105,6 +105,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return compileTask.getHeaderDependenciesFile().isPresent();
             }
         });
+        getOutputs().cacheIf("Native caching is enabled", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return element.getProject().getGradle().getStartParameter().isNativeCachingEnabled();
+            }
+        });
         dependsOn(includes);
     }
 

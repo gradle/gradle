@@ -95,6 +95,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean nativeCachingEnabled;
 
     /**
      * {@inheritDoc}
@@ -849,5 +850,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Whether caching for native tasks is enabled.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setNativeCachingEnabled(boolean nativeCachingEnabled) {
+        this.nativeCachingEnabled = nativeCachingEnabled;
+    }
+
+    /**
+     * Whether caching for native tasks is enabled.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public boolean isNativeCachingEnabled() {
+        return nativeCachingEnabled;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.initialization.StartParameterBuildOptions.NativeCachingOption
 import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -46,6 +47,9 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         app.greeterLib.writeToProject(project.file('lib1'))
         app.loggerLib.writeToProject(project.file("lib2"))
         app.main.writeToProject(project)
+        executer.beforeExecute {
+            withArgument("-D${NativeCachingOption.GRADLE_PROPERTY}=true")
+        }
     }
 
     def 'compilation can be cached'() {
