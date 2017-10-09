@@ -89,7 +89,7 @@ You can also use these abbreviations with the `-x` command-line option.
 [[sec:selecting_build]]
 === Selecting which build to execute
 
-When you run the `gradle` command, it looks for a build file in the current directory. You can use the `-b` option to select another build file. If you use `-b` option then `settings.gradle` file is not used. Example:
+When you run the `gradle` command, it looks for a build file in the current directory. You can use the `-b` option to select another build file. Example:
 
 ++++
 <sample id="selectProjectUsingBuildFile" dir="userguide/tutorial/selectProject" title="Selecting the project using a build file">
