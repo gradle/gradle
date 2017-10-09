@@ -315,8 +315,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     @Optional
     @InputFiles
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    public FileCollection getHeaderDependencies() throws IOException {
+    @PathSensitive(PathSensitivity.NONE)
+    protected FileCollection getHeaderDependencies() throws IOException {
         File inputFile = headerDependenciesFile.getAsFile().getOrNull();
         if (inputFile == null || !inputFile.isFile()) {
             return null;
