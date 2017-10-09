@@ -41,11 +41,14 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject    | maxMemory    | iterations
-        "smallNative"  | '256m'       | 40
-        "mediumNative" | '256m'       | null
-        "bigNative"    | '1g'         | null
-        "multiNative"  | '256m'       | null
+        testProject        | maxMemory    | iterations
+        "smallNative"      | '256m'       | 40
+        "mediumNative"     | '256m'       | null
+        "bigNative"        | '1g'         | null
+        "multiNative"      | '256m'       | null
+        "smallCppLibrary"  | '256m'       | 40
+        "mediumCppLibrary" | '256m'       | null
+        "bigCppLibrary"    | '256m'       | null
     }
 
     def "clean assemble on manyProjectsNative"() {
