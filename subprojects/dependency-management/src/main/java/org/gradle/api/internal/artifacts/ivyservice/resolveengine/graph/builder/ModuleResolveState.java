@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +40,7 @@ class ModuleResolveState implements CandidateModule {
     private final ComponentMetaDataResolver metaDataResolver;
     private final IdGenerator<Long> idGenerator;
     private final ModuleIdentifier id;
-    private final Set<EdgeState> unattachedDependencies = new LinkedHashSet<EdgeState>();
+    private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
     private final Set<SelectorState> selectors = new HashSet<SelectorState>();
     private ComponentState selected;
@@ -144,7 +144,7 @@ class ModuleResolveState implements CandidateModule {
 
     private void restartUnattachedDependencies(ComponentState selected) {
         if (unattachedDependencies.size()==1) {
-            unattachedDependencies.iterator().next().restart(selected);
+            unattachedDependencies.get(0).restart(selected);
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
                 dependency.restart(selected);
@@ -172,11 +172,6 @@ class ModuleResolveState implements CandidateModule {
 
     public void addSelector(SelectorState selector) {
         selectors.add(selector);
-    }
-
-    public void removeSelector(SelectorState selectedBy) {
-        boolean removed = selectors.remove(selectedBy);
-        assert removed;
     }
 
     public Set<SelectorState> getSelectors() {

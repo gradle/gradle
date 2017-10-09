@@ -45,7 +45,7 @@ class NodeState implements DependencyGraphNode {
     private final Long resultId;
     private final ComponentState component;
     private final Set<EdgeState> incomingEdges = new LinkedHashSet<EdgeState>();
-    private final Set<EdgeState> outgoingEdges = new LinkedHashSet<EdgeState>();
+    private final List<EdgeState> outgoingEdges = Lists.newLinkedList();
     private final ResolvedConfigurationIdentifier id;
 
     private final ConfigurationMetadata metaData;
@@ -95,7 +95,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     @Override
-    public Set<EdgeState> getOutgoingEdges() {
+    public List<EdgeState> getOutgoingEdges() {
         return outgoingEdges;
     }
 

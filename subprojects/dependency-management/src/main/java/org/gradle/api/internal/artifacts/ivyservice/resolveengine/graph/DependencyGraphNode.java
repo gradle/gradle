@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -40,7 +41,7 @@ public interface DependencyGraphNode {
 
     Set<? extends DependencyGraphEdge> getIncomingEdges();
 
-    Set<? extends DependencyGraphEdge> getOutgoingEdges();
+    Collection<? extends DependencyGraphEdge> getOutgoingEdges();
 
     /**
      * The outgoing file dependencies of this node. Should be modelled edges to another node, but are treated separately for now.
