@@ -162,8 +162,8 @@ public class DefaultCppBinary implements CppBinary {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
                 // This is intentionally dumb and will improve later
 
-                // Collect the files from anything other than an external component, use these directly in the result
-                // for external components, unzip the headers into a cache (if not already present)
+                // Collect the files from anything other than an external component and use these directly in the result
+                // For external components, unzip the headers into a cache, if not already present.
                 ArtifactCollection artifacts = includePathConfig.getIncoming().getArtifacts();
                 Set<File> files = new LinkedHashSet<File>();
                 if (!artifacts.getArtifacts().isEmpty()) {
@@ -210,7 +210,7 @@ public class DefaultCppBinary implements CppBinary {
             if (result == null) {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
 
-                // Collect up the external components in the result to resolve again to get the link artifact
+                // Collect up the external components in the result to resolve again to get the debug variant of each dependency
                 configuration.getResolvedConfiguration().rethrowFailure();
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
@@ -243,31 +243,19 @@ public class DefaultCppBinary implements CppBinary {
                     files.add(artifact.getFile());
                 }
 
-                // This is intentionally dumb and will improve later
+                // Collect up the files of the debug variants of external components
                 // Conflict resolution isn't applied to implementation dependencies
                 // The files of the result are not ordered as they would be if the original configuration is resolved
                 // This is also broken when a runtime dependency is satisfied by an included build
                 if (!externalDependencies.isEmpty()) {
                     Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
                     mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
-
-                    // Rename the downloaded file to the expected name for the binary
-                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-                        String originalModuleName = id.getModule().substring(0, id.getModule().length() - "_debug".length());
-                        String libName = getLibraryName(originalModuleName);
-                        files.add(getNativeDependencyCache().getBinary(artifact.getFile(), libName));
-                    }
+                    files.addAll(mappedConfiguration.getFiles());
                 }
 
                 result = files;
             }
             return result;
-        }
-
-        private String getLibraryName(String baseName) {
-            // TODO - use naming scheme for target platform
-            return OperatingSystem.current().getLinkLibraryName(baseName);
         }
     }
 
@@ -296,7 +284,7 @@ public class DefaultCppBinary implements CppBinary {
             if (result == null) {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
 
-                // Collect up the external components in the result to resolve again to get the link artifact
+                // Collect up the external components in the result to resolve again to get the debug variant of each dependency
                 configuration.getResolvedConfiguration().rethrowFailure();
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
@@ -328,6 +316,7 @@ public class DefaultCppBinary implements CppBinary {
                     files.add(artifact.getFile());
                 }
 
+                // Resolve again to collect all the runtime dependencies
                 // This is intentionally dumb and will improve later
                 // Conflict resolution isn't applied to implementation dependencies
                 // The files of the result are not ordered as they would be if the original configuration is resolved
@@ -345,6 +334,7 @@ public class DefaultCppBinary implements CppBinary {
                         }
                     });
 
+                    // Collect up the identifiers to resolve again to get the debug variant of each external component
                     mappedConfiguration.getResolvedConfiguration().rethrowFailure();
                     Set<ResolvedComponentResult> runtimeComponents = mappedConfiguration.getIncoming().getResolutionResult().getAllComponents();
                     List<Dependency> artifactDependencies = new ArrayList<Dependency>();
@@ -360,14 +350,7 @@ public class DefaultCppBinary implements CppBinary {
 
                     mappedConfiguration = configurations.detachedConfiguration(artifactDependencies.toArray(new Dependency[0]));
                     mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
-
-                    // Rename the downloaded file to the expected name for the binary
-                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-                        String originalModuleName = id.getModule().substring(0, id.getModule().length() - "_debug".length());
-                        String libName = getLibraryName(originalModuleName);
-                        files.add(getNativeDependencyCache().getBinary(artifact.getFile(), libName));
-                    }
+                    files.addAll(mappedConfiguration.getFiles());
                 }
 
                 result = files;

@@ -26,7 +26,6 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
 
 import java.io.BufferedInputStream;
@@ -92,29 +91,6 @@ public class NativeDependencyCache implements Stoppable {
         } finally {
             inputStream.close();
         }
-    }
-
-    /**
-     * Returns the given binary file from the cache.
-     */
-    public File getBinary(final File file, final String binaryName) {
-        final HashCode hash = fileHasher.hash(file);
-        return cache.useCache(new Factory<File>() {
-            @Override
-            public File create() {
-                File binaryFile = new File(cache.getBaseDir(), hash + "/" + binaryName);
-                if (binaryFile.isFile()) {
-                    return binaryFile;
-                }
-                try {
-                    Files.createParentDirs(binaryFile);
-                    Files.copy(file, binaryFile);
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Could not copy binary file " + file, e);
-                }
-                return binaryFile;
-            }
-        });
     }
 
     @Override
