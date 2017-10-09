@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.cache.StringInterner;
@@ -69,13 +68,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         }
         ImmutableSortedSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
 
-        int outputFilesCount = decoder.readSmallInt();
-        ImmutableSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSet.builder();
-        for (int j = 0; j < outputFilesCount; j++) {
-            declaredOutputFilePathsBuilder.add(stringInterner.intern(decoder.readString()));
-        }
-        ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
-
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
         return new HistoricalTaskExecution(
@@ -84,7 +76,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             taskActionImplementations,
             inputProperties,
             cacheableOutputProperties,
-            declaredOutputFilePaths,
             inputFilesSnapshots,
             discoveredFilesSnapshot,
             outputFilesSnapshots,
@@ -105,10 +96,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         }
         encoder.writeSmallInt(execution.getOutputPropertyNamesForCacheKey().size());
         for (String outputFile : execution.getOutputPropertyNamesForCacheKey()) {
-            encoder.writeString(outputFile);
-        }
-        encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
-        for (String outputFile : execution.getDeclaredOutputFilePaths()) {
             encoder.writeString(outputFile);
         }
         inputPropertiesSerializer.write(encoder, execution.getInputProperties());
