@@ -190,7 +190,7 @@ public class ExternalResourceName {
             append(this.path, parts);
             append(path, parts);
         }
-        String newPath = join(leadingSlash,trailingSlash, parts);
+        String newPath = join(leadingSlash, trailingSlash, parts);
         return new ExternalResourceName(encodedRoot, newPath);
     }
 
@@ -212,7 +212,7 @@ public class ExternalResourceName {
     }
 
     private void append(String path, List<String> parts) {
-        for (int pos = 0; pos < path.length(); ) {
+        for (int pos = 0; pos < path.length();) {
             int end = path.indexOf('/', pos);
             String part;
             if (end < 0) {
