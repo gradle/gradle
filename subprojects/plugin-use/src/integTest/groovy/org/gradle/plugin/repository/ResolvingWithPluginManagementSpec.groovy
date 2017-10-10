@@ -333,8 +333,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("helloWorld")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.gradle.hello-world', version: '0.2', artifact: 'foo:bar:1.0']")
-        errorOutput.contains("explicit artifact coordinates are not supported")
+        errorOutput.contains("Could not find foo:bar:1.0")
     }
 
     def "Able to specify ivy resolution patterns"() {
