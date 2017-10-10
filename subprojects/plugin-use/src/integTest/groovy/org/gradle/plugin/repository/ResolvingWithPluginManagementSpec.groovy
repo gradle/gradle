@@ -307,15 +307,10 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failureDescriptionContains("Cannot change the plugin resolution strategy after projects have been loaded.")
     }
 
-    def "Plugin portal resolver does not support custom artifacts"() {
+    def "fails build for unresolvable custom artifact"() {
         given:
-        buildScript """
-            plugins {
-                id "org.gradle.hello-world" version "0.2" //exists in the plugin portal
-            }
-        """
+        buildScript helloWorldPlugin('0.2')
 
-        when:
         settingsFile << """
             pluginManagement {
                 resolutionStrategy {
@@ -329,11 +324,35 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
             }
         """
 
-        then:
+        when:
         fails("helloWorld")
 
         then:
         errorOutput.contains("Could not find foo:bar:1.0")
+    }
+
+    def "succeeds build for resolvable custom artifact"() {
+        given:
+        buildScript helloWorldPlugin('0.2')
+
+        settingsFile << """
+            pluginManagement {
+                resolutionStrategy {
+                    eachPlugin {
+                        useModule("org.gradle:gradle-hello-world-plugin:0.1")
+                    }
+                }
+                repositories {
+                    gradlePluginPortal()
+                }
+            }
+        """
+
+        when:
+        succeeds("helloWorld")
+
+        then:
+        output.contains("Hello World!")
     }
 
     def "Able to specify ivy resolution patterns"() {
@@ -367,5 +386,13 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
         then:
         output.contains("from plugin")
+    }
+
+    static String helloWorldPlugin(String version) {
+        """
+            plugins {
+                id "org.gradle.hello-world" version "$version" //exists in the plugin portal
+            }
+        """
     }
 }
