@@ -99,6 +99,7 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
+    inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
     newClasspath = files(publicProjects.configurations.runtimeClasspath)
