@@ -19,24 +19,21 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.gradle.plugin.management.internal.PluginRequests
-
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.get
-
-import org.gradle.kotlin.dsl.support.compilerMessageFor
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.compilerMessageFor
 import org.gradle.kotlin.dsl.support.userHome
+
+import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
 
@@ -53,7 +50,7 @@ class KotlinBuildScriptCompiler(
     val scriptSource: ScriptSource,
     val topLevelScript: Boolean,
     val scriptHandler: ScriptHandlerInternal,
-    val pluginRequestApplicator: PluginRequestApplicator,
+    val pluginRequestsHandler: PluginRequestsHandler,
     val baseScope: ClassLoaderScope,
     val targetScope: ClassLoaderScope,
     val classPathProvider: KotlinScriptClassPathProvider,
@@ -213,13 +210,9 @@ class KotlinBuildScriptCompiler(
 
     private
     fun applyPluginsTo(target: Project, pluginRequests: PluginRequests) {
-        pluginRequestApplicator.applyPlugins(
-            pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
+        pluginRequestsHandler.handle(
+            pluginRequests, scriptHandler, target as PluginAwareInternal, targetScope)
     }
-
-    private
-    fun pluginManagerOf(target: Project): PluginManagerInternal =
-        (target as ProjectInternal).pluginManager
 
     private
     fun compileBuildscriptBlock(buildscriptRange: IntRange) =

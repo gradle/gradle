@@ -24,6 +24,9 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.support.ImplicitImports
 
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.use.internal.PluginRequestApplicator
+
 
 internal
 object BuildServices {
@@ -48,6 +51,13 @@ object BuildServices {
             gradleApiJarsProviderFor(dependencyFactory),
             versionedJarCacheFor(jarCache),
             StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
+
+    @Suppress("unused")
+    fun createPluginRequestsHandler(
+        pluginRequestApplicator: PluginRequestApplicator,
+        autoAppliedPluginHandler: AutoAppliedPluginHandler) =
+
+        PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
