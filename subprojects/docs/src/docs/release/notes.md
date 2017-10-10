@@ -124,6 +124,10 @@ task customTask {
 }
 ```
 
+#### Clean up local task state when loading from cache
+
+Using the new `@LocalState` annotation and [`task.localState.register(...)`](javadoc/org/gradle/api/tasks/TaskLocalState.html) API, you can register the [local state](userguide/custom_tasks.html#sec:storing_incremental_task_state) of a task. Local state files will be cleaned up whenever the task is loaded from cache.
+
 ### Force console type with `org.gradle.console`
 
 You may now force Gradle to use specific console type in [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
@@ -288,6 +292,10 @@ There are better ways for re-using task logic, for example by using [task depend
 
 The `--recompile-scripts` flag would be ignored in some cases. To avoid confusion, we deprecate this flag.
 
+### Task destroyables API changes
+
+Instead of the `file()` and `files()` methods on `TaskDestroyables`, now there is a single `TaskDestroyables.register()` method.
+
 ### Other deprecations
 
 * `CompileOptions.bootClasspath` is deprecated in favor of the new `bootstrapClasspath` property.
@@ -314,6 +322,10 @@ Prefer annotating individual properties with [`@OutputFile`](javadoc/org/gradle/
 
 Previous versions of Gradle would fall through to the next repository if resolution in one repository failed.
 This behaviour might cause potentially nondeterministic resolution result. Now Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository.
+
+### Change in `TaskDestroyables` API
+
+The `TaskDestroyables.getFiles()` method is no longer part of the public API.
 
 ## External contributions
 

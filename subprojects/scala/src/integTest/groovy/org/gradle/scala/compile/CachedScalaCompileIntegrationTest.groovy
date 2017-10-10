@@ -149,6 +149,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         classes.all*.compiledClass*.exists().every()
+        classes.analysisFile.assertIsFile()
 
         when:
         warmupDir.deleteDir()
@@ -159,6 +160,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         executedAndNotSkipped compilationTask
+        classes.analysisFile.assertIsFile()
 
         when:
         classes.classDependingOnBasicClassSource.change()
@@ -166,6 +168,17 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         then:
         skipped compilationTask
+        // Local state is removed when loaded from cache
+        classes.analysisFile.assertDoesNotExist()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds compilationTask
+
+        then:
+        skipped compilationTask
+        // Local state is removed when loaded from cache
+        classes.analysisFile.assertDoesNotExist()
 
         when:
         // Make sure we notice when classes are recompiled
@@ -176,6 +189,11 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         then:
         executedAndNotSkipped compilationTask
         assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
+        classes.analysisFile.assertIsFile()
+    }
+
+    private void cleanBuildDir() {
+        file("build").assertIsDir().deleteDir()
     }
 
     private static void assertAllRecompiled(List<Long> lastModified, List<Long> oldLastModified) {

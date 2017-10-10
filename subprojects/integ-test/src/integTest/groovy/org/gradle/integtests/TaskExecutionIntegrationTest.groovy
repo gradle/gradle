@@ -652,7 +652,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 outputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'
@@ -669,7 +669,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
             task a {
                 inputs.file('foo')
-                destroyables.file('bar')
+                destroyables.register('bar')
             }
         """
         file('foo') << 'foo'

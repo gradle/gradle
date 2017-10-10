@@ -31,6 +31,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -39,11 +40,13 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
+import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
@@ -58,6 +61,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -129,6 +133,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
+    private final TaskLocalStateInternal taskLocalState;
     private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
 
@@ -159,10 +164,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         finalizedBy = new DefaultTaskDependency(tasks);
         shouldRunAfter = new DefaultTaskDependency(tasks);
         services = project.getServices();
+
+        FileResolver fileResolver = project.getFileResolver();
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
-        taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
-        taskDestroyables = new DefaultTaskDestroyables(project.getFileResolver(), this, taskMutator);
+        taskInputs = new DefaultTaskInputs(fileResolver, this, taskMutator);
+        taskOutputs = new DefaultTaskOutputs(fileResolver, this, taskMutator);
+        taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator);
+        taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator);
     }
 
     private void assertDynamicObject() {
@@ -555,6 +563,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public TaskDestroyables getDestroyables() {
         return taskDestroyables;
+    }
+
+    @Override
+    public TaskLocalState getLocalState() {
+        return taskLocalState;
     }
 
     @Internal

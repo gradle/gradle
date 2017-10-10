@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
-import org.gradle.api.tasks.Destroys;
+import org.gradle.api.tasks.LocalState;
 
 import java.lang.annotation.Annotation;
 
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
+public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
+        return LocalState.class;
     }
 
     @Override
@@ -33,7 +31,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
         context.setConfigureAction(new UpdateAction() {
             @Override
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getDestroyables().register(futureValue);
+                task.getLocalState().register(futureValue);
             }
         });
     }

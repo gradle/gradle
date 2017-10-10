@@ -32,9 +32,11 @@ class ScalaCompilationFixture {
     String zincVersion
     String sourceCompatibility
     String sourceDir
+    TestFile analysisFile
 
     ScalaCompilationFixture(File root) {
         this.root = new TestFile(root)
+        this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileScala.analysis")
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
         this.scalaVersion = ScalaCoverage.NEWEST

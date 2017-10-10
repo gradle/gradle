@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
@@ -261,6 +262,29 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         operation."${b.path}".start > operation."${a.path}".end
     }
 
+    def "two tasks that have the same file as output and local state are not executed in parallel"() {
+        def sharedFile = file("output")
+
+        given:
+        Task a = root.task("a", type: AsyncWithOutputFile) {
+            outputFile = sharedFile
+        }
+        Task b = root.task("b", type: AsyncWithLocalState) {
+            localStateFile = sharedFile
+        }
+
+        when:
+        addToGraphAndPopulate(a, b)
+        async {
+            startTaskWorkers(2)
+
+            releaseTasks(a, b)
+        }
+
+        then:
+        operation."${b.path}".start > operation."${a.path}".end
+    }
+
     def "a task that writes into a directory that is an output of a running task is not started"() {
         given:
         Task a = root.task("a", type: AsyncWithOutputDirectory) {
@@ -348,6 +372,41 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         }
         Task b = root.task("b", type: AsyncWithOutputDirectory) {
             outputDirectory = symlink
+        }
+
+        when:
+        addToGraphAndPopulate(a, b)
+        async {
+            startTaskWorkers(2)
+
+            releaseTasks(a, b)
+        }
+
+        then:
+        operation."${b.path}".start > operation."${a.path}".end
+
+        cleanup:
+        assert symlink.delete()
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "a task that stores local state into a symlink of a shared output dir of currently running task is not started"() {
+        given:
+        def taskOutput = file("outputDir").createDir()
+        def symlink = file("symlink")
+        fs.createSymbolicLink(symlink, taskOutput)
+
+        // Deleting any file clears the internal canonicalisation cache.
+        // This allows the created symlink to be actually resolved.
+        // See java.io.UnixFileSystem#cache.
+        file("tmp").createFile().delete()
+
+        and:
+        Task a = root.task("a", type: AsyncWithOutputDirectory) {
+            outputDirectory = taskOutput
+        }
+        Task b = root.task("b", type: AsyncWithLocalState) {
+            localStateFile = symlink
         }
 
         when:
@@ -748,6 +807,11 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     static class AsyncWithDestroysFile extends Async {
         @Destroys
         File destroysFile
+    }
+
+    static class AsyncWithLocalState extends Async {
+        @LocalState
+        File localStateFile
     }
 
     static class AsyncWithInputFile extends Async {
