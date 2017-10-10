@@ -225,7 +225,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
     def "single dash user error yields decent error message"() {
         when:
-        runAndFail 'help', '-task'
+        runAndFail 'help', '-tsk'
 
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
