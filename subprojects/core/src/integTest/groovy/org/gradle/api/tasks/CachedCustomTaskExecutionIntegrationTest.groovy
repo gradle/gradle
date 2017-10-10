@@ -731,6 +731,22 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         api = useRuntimeApi ? "runtime" : "annotation"
     }
 
+    @Unroll
+    def "null local state declared via #api API is supported"() {
+        buildFile << defineTaskWithLocalState(useRuntimeApi, localStateFile)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi | localStateFile
+        true          | "{ null }"
+        false         | "null"
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
     private static String defineProducerTask() {
         """
             import org.gradle.api.*
