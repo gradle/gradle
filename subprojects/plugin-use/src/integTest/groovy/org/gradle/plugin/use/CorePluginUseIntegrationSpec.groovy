@@ -116,7 +116,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested: Build file '$buildFile.absolutePath' line: 3"))
+        failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested (Build file '$buildFile.absolutePath' line: 3)"))
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(4)
     }

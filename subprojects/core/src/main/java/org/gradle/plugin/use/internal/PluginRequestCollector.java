@@ -110,7 +110,7 @@ public class PluginRequestCollector {
                 PluginRequestInternal first = pluginRequests.get(0);
                 PluginRequestInternal second = pluginRequests.get(1);
 
-                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested: " + first.getOrigin());
+                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested (" + first.getOrigin() + ")");
                 throw new LocationAwareException(exception, second.getOrigin());
             }
         }
