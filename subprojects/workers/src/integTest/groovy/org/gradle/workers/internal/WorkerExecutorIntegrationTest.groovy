@@ -281,6 +281,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can set isolation mode using fork mode"() {
+        executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildScript()
 
         buildFile << """
