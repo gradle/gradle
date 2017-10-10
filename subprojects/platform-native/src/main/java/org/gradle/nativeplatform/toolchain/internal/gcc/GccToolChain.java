@@ -35,6 +35,11 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     public GccToolChain(Instantiator instantiator, String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.gcc(), instantiator, workerLeaseService);
+
+        if (name.equals(DEFAULT_NAME)) {
+            target(new GccIntel32Architecture());
+            target(new GccIntel64Architecture());
+        }
     }
 
     @Override
