@@ -18,9 +18,12 @@ package org.gradle.plugin.autoapply
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
+@Requires(TestPrecondition.ONLINE)
 class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
     private static final String BUILD_SCAN_LICENSE_QUESTION = 'Do you accept the Gradle Cloud Services license agreement (https://gradle.com/terms-of-service)? [yes, no]'
