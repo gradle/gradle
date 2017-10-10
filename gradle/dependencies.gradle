@@ -42,7 +42,7 @@ libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2@jar'
 libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
 libraries.jsch = "com.jcraft:jsch:0.1.54"
-libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
+libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0') {
     dependency libraries.jsch
 }
 libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
@@ -225,6 +225,8 @@ allprojects {
                 details.useTarget(libraries.groovy)
             } else if (details.requested.group == 'cglib') {
                 details.useTarget(libraries.cglib)
+            } else if (details.requested.group == 'org.apache.ivy') {
+                details.useTarget(libraries.ivy)
             }
         }
     }
