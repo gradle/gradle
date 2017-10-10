@@ -117,6 +117,10 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependencies = Lists.newArrayList();
         final List<EdgeState> dependenciesMissingLocalMetadata = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
+        final OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(
+            resolveState.getOptionalDependencies(),
+            resolveState.getModuleIdentifierFactory(),
+            resolveState.getDependencySubstitutionApplicator());
 
         while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
@@ -126,7 +130,7 @@ public class DependencyGraphBuilder {
                 // Calculate the outgoing edges of this configuration
                 dependencies.clear();
                 dependenciesMissingLocalMetadata.clear();
-                node.visitOutgoingDependencies(dependencies);
+                node.visitOutgoingDependencies(dependencies, optionalDependenciesHandler);
 
                 resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
             } else {
@@ -254,9 +258,8 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Prepares the resolution of edges, either serially or concurrently. It uses a simple heuristic to determine
-     * if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved
-     * metadata. Determining this requires calls to `resolveModuleRevisionId`, which will *not* trigger metadata download.
+     * Prepares the resolution of edges, either serially or concurrently. It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and
+     * whether they have unresolved metadata. Determining this requires calls to `resolveModuleRevisionId`, which will *not* trigger metadata download.
      *
      * @param dependencies the dependencies to be resolved
      * @param dependenciesToBeResolvedInParallel output, edges which will need parallel metadata download

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -43,14 +44,14 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(requested.getVersion());
         if (versionSelector.isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, versionSelector, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
+            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, requested.getVersion());
             result.resolved(id, mvId);
         }
         if (result.hasResult()) {

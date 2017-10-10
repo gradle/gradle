@@ -17,13 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
-import org.gradle.internal.component.model.DependencyMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -43,22 +41,22 @@ public class OptionalDependenciesHandler {
     private final Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
-    private final boolean isOptionalConfiguration;
+
+    private boolean started;
+    private boolean isOptionalConfiguration;
     private List<PendingOptionalDependencies> noLongerOptional;
 
     public OptionalDependenciesHandler(Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                       DependencySubstitutionApplicator dependencySubstitutionApplicator,
-                                       boolean isOptionalConfiguration) {
+                                       DependencySubstitutionApplicator dependencySubstitutionApplicator) {
 
         this.optionalDependencies = optionalDependencies;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-        this.isOptionalConfiguration = isOptionalConfiguration;
     }
 
-    private ModuleIdentifier toKey(DependencyMetadata dependency) {
-        DependencySubstitutionApplicator.Application application = dependencySubstitutionApplicator.apply(dependency);
+    private ModuleIdentifier toKey(DependencyState dependencyState) {
+        DependencySubstitutionApplicator.Application application = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
         DependencySubstitutionInternal details = application.getResult();
         if (details != null && details.isUpdated()) {
             ComponentSelector target = details.getTarget();
@@ -67,19 +65,14 @@ public class OptionalDependenciesHandler {
                 return moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
             }
         }
-        return dependencyMetadataToModuleIdentifier(dependency);
+        return dependencyState.getModuleIdentifier();
     }
 
-    private ModuleIdentifier dependencyMetadataToModuleIdentifier(DependencyMetadata dependency) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        return moduleIdentifierFactory.module(requested.getGroup(), requested.getName());
-    }
-
-    boolean maybeAddAsOptionalDependency(NodeState node, DependencyMetadata dependency) {
-        ModuleIdentifier key = toKey(dependency);
+    boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState) {
+        ModuleIdentifier key = toKey(dependencyState);
         PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.get(key);
 
-        if (dependency.isOptional() && !isOptionalConfiguration) {
+        if (dependencyState.getDependencyMetadata().isOptional() && !isOptionalConfiguration) {
             if (pendingOptionalDependencies == null || pendingOptionalDependencies.isPending()) {
                 if (pendingOptionalDependencies == null) {
                     pendingOptionalDependencies = new PendingOptionalDependencies();
@@ -100,11 +93,21 @@ public class OptionalDependenciesHandler {
         return false;
     }
 
+    public void start(boolean isOptionalConfiguration) {
+        if (started) {
+            throw new IllegalStateException("Cannot start optional dependencies handling: already started");
+        }
+        this.isOptionalConfiguration = isOptionalConfiguration;
+        started = true;
+    }
+
     public void complete() {
         if (noLongerOptional != null) {
             for (PendingOptionalDependencies optionalDependencies : noLongerOptional) {
                 optionalDependencies.turnIntoHardDependencies();
             }
+            noLongerOptional = null;
         }
+        started = false;
     }
 }

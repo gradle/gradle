@@ -129,11 +129,11 @@ class ResolveState {
         return selectors.values();
     }
 
-    public SelectorState getSelector(DependencyMetadata dependencyMetadata) {
+    public SelectorState getSelector(DependencyMetadata dependencyMetadata, ModuleIdentifier moduleIdentifier) {
         ModuleVersionSelector requested = dependencyMetadata.getRequested();
         SelectorState resolveState = selectors.get(requested);
         if (resolveState == null) {
-            resolveState = new SelectorState(idGenerator.generateId(), dependencyMetadata, idResolver, this);
+            resolveState = new SelectorState(idGenerator.generateId(), dependencyMetadata, idResolver, this, moduleIdentifier);
             selectors.put(requested, resolveState);
         }
         return resolveState;

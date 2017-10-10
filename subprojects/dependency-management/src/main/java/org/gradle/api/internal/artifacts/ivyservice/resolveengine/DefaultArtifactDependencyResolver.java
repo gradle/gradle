@@ -91,7 +91,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
         DependencySubstitutionApplicator applicator =
             new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(resolutionStrategy.getDependencySubstitutionRule()));
-        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), applicator);
+        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), applicator, moduleIdentifierFactory);
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
