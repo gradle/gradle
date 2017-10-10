@@ -48,6 +48,8 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
+- [Kyle Moore](https://github.com/DPUkyle) - updated Gosu plugin to fix API breakage (gradle/gradle#3115)
+
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 ## Known issues
