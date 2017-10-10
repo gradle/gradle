@@ -29,6 +29,8 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
     private final ImmutableModuleExclusionSet excludeSpecs;
     private final boolean mergeable;
 
+    private Boolean excludesNoModules;
+
     public IntersectionExclusion(ImmutableModuleExclusionSet specs) {
         this.excludeSpecs = specs;
         boolean canMerge = true;
@@ -51,6 +53,14 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
 
     @Override
     protected boolean excludesNoModules() {
+        if (excludesNoModules == null) {
+            // cache the result as we may be asked several times
+            excludesNoModules = doExcludeNoModules();
+        }
+        return excludesNoModules;
+    }
+
+    private boolean doExcludeNoModules() {
         for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
             if (!excludeSpec.excludesNoModules()) {
                 return false;
@@ -60,21 +70,11 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
     }
 
     public boolean excludeModule(ModuleIdentifier element) {
-        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
-            if (excludeSpec.excludeModule(element)) {
-                return true;
-            }
-        }
-        return false;
+        return excludeSpecs.excludesModule(element);
     }
 
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
-            if (excludeSpec.excludeArtifact(module, artifact)) {
-                return true;
-            }
-        }
-        return false;
+        return excludeSpecs.excludesArtifact(module, artifact);
     }
 
     public boolean mayExcludeArtifacts() {
