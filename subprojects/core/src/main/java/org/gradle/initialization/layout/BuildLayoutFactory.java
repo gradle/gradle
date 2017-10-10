@@ -20,6 +20,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 
 import java.io.File;
@@ -33,6 +34,16 @@ public class BuildLayoutFactory {
 
     public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
         this.scriptFileResolver = scriptFileResolver;
+    }
+
+    /**
+     * This constructor should not be used in Gradle.
+     * It's sole purpose is backwards compatibility with the build scan plugin.
+     * {@link #BuildLayoutFactory(ScriptFileResolver)} should be used instead.
+     */
+    @Deprecated
+    public BuildLayoutFactory() {
+        this(DefaultScriptFileResolver.forDefaultScriptingLanguages());
     }
 
     /**
