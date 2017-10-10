@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-    void "optional dependency is not integrated into the result of resolution"() {
+    void "only first level optional dependency are integrated into the result of resolution"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
 
@@ -34,6 +34,25 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 conf('org:foo:1.0') {
                    optional = true
                 }
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.0.jar'] // included because 1st level
+                }
+            }
+        """
+
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf project(path:':', configuration:'conf')
             }
             task checkDeps {
                 doLast {
@@ -172,10 +191,32 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == []
+                    assert files == ['bar-1.0.jar', 'foo-1.0.jar']
                 }
             }
         """
+
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << """
+            repositories {
+                // this repo is not necessary but added for the sake of testing, in
+                // case the optional handling is not done properly
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf project(path:':', configuration:'conf')
+            }
+
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == []
+                }
+            }
+"""
 
         when:
         run 'checkDeps'
@@ -203,6 +244,28 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
                 conf 'org:bar:1.0'
             }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['bar-1.1.jar', 'foo-1.0.jar']
+                }
+            }
+        """
+
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << """
+            repositories {
+                // this repo is not necessary but added for the sake of testing, in
+                // case the optional handling is not done properly
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf project(path:':', configuration:'conf')
+            }
+
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
