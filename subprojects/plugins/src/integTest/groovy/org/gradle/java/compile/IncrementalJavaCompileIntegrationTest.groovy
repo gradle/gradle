@@ -123,6 +123,33 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         executedAndNotSkipped(libraryCompileJava)
     }
 
+    def "recompiles inner class if they are in a separate source file"() {
+        given:
+        file('src/main/java/Test.java') << 'public class Test{}'
+        file('src/main/java/Test$$InnerClass.java') << 'public class Test$$InnerClass{}'
+        buildFile << '''
+            apply plugin: 'java'
+            tasks.compileJava.options.incremental = true
+        '''.stripIndent()
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+
+        when:
+        file('src/main/java/Test.java').text = 'public class Test{ void foo() {} }'
+        succeeds ':compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/Test.class').assertExists()
+        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+    }
+
     private String getBasicInterface() {
         '''
             interface IPerson {

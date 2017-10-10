@@ -44,6 +44,8 @@ class IncrementalCompilationInitializerTest extends Specification {
 
         1 * sourceToCompile.include('Bar.java')
         1 * sourceToCompile.include('com/Foo.java')
+        1 * sourceToCompile.include('Bar$*.java')
+        1 * sourceToCompile.include('com/Foo$*.java')
 
         0 * _
     }
