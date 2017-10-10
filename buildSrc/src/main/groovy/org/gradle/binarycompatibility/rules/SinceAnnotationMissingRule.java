@@ -17,6 +17,7 @@
 package org.gradle.binarycompatibility.rules;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
@@ -57,6 +58,13 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     return super.visit(classDeclaration, arg);
                 }
                 @Override
+                public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(annotationDeclaration, arg);
+                }
+                @Override
                 public Object visit(MethodDeclaration methodDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(methodDeclaration.getName(), method.getName(), methodDeclaration)) {
                         return new Object();
@@ -77,6 +85,13 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                         return new Object();
                     }
                     return super.visit(classDeclaration, arg);
+                }
+                @Override
+                public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
@@ -103,6 +118,13 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), classDeclaration)) {
+                        return new Object();
+                    }
+                    return null;
+                }
+                @Override
+                public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), annotationDeclaration)) {
                         return new Object();
                     }
                     return null;
