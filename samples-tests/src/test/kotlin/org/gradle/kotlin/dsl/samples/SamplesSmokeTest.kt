@@ -31,7 +31,9 @@ class SamplesSmokeTest(
 
     @Before
     fun populateProjectRootWithSample() {
-        assumeThat(sampleName, not(containsString("android")))
+        if (sampleName.contains("android")) {
+            assumeTrue(System.getenv().containsKey("ANDROID_HOME"))
+        }
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 
