@@ -20,7 +20,8 @@ import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
-    private kotlinVersion = '1.1.1'
+    // https://blog.jetbrains.com/kotlin/
+    private kotlinVersion = '1.1.50'
     private androidPluginVersion = AndroidPluginsSmokeTest.STABLE_ANDROID_VERSION
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
