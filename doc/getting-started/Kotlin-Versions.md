@@ -1,8 +1,8 @@
 ## Kotlin versions and the Gradle Kotlin DSL 
 
-Gradle Kotlin DSL ships with the embedded Kotlin compiler plus matching versions of the Kotlin `stdlib` and `reflect`
-libraries. For example, Gradle 4.3 ships with Kotlin 1.1.51, as well as `stdlib` and `reflect` with the same version.
-The `kotlin` package from those modules is visible through the Gradle classpath.
+Gradle Kotlin DSL ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect`
+libraries. For example, Gradle 4.3 ships with the Gradle Kotlin DSL v0.12.1 that includes Kotlin 1.1.51 versions of
+these modules. The `kotlin` package from those modules is visible through the Gradle classpath.
 
 The [compatibility guarantees](https://kotlinlang.org/docs/reference/compatibility.html) provided by Kotlin apply for
 both backward and forward compatibility.
