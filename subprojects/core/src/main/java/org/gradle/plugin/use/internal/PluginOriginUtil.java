@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public final class PluginOriginUtil {
@@ -27,14 +26,11 @@ public final class PluginOriginUtil {
         if (scriptSource == null || scriptSource.getDisplayName() == null) {
             return null;
         }
-        String sourceMsg = StringUtils.capitalize(scriptSource.getDisplayName());
-        if (lineNumber == null) {
-            return sourceMsg;
-        }
-        return String.format("%s line: %d", sourceMsg, lineNumber);
-    }
 
-    public static String autoAppliedPluginDisplayName() {
-        return "auto-applied";
+        if (lineNumber == null) {
+            return scriptSource.getDisplayName();
+        }
+
+        return String.format("%s at line %d", scriptSource.getDisplayName(), lineNumber);
     }
 }
