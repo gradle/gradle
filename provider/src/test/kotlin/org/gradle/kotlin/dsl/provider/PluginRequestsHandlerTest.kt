@@ -26,9 +26,9 @@ class PluginRequestsHandlerTest {
             on { this.pluginManager } doReturn pluginManager
         }
         val initialRequests = mock<PluginRequests>(name = "initialRequests")
-        val newRequests = mock<PluginRequests>(name = "newRequests")
+        val mergedRequests = mock<PluginRequests>(name = "mergedRequests")
         val autoAppliedPluginHandler = mock<AutoAppliedPluginHandler> {
-            on { mergeWithAutoAppliedPlugins(initialRequests, target) } doReturn newRequests
+            on { mergeWithAutoAppliedPlugins(initialRequests, target) } doReturn mergedRequests
         }
         val pluginRequestApplicator = mock<PluginRequestApplicator>()
         val scriptHandler = mock<ScriptHandlerInternal>()
@@ -39,6 +39,6 @@ class PluginRequestsHandlerTest {
         subject.handle(initialRequests, scriptHandler, target, targetScope)
 
         // then:
-        verify(pluginRequestApplicator).applyPlugins(newRequests, scriptHandler, pluginManager, targetScope)
+        verify(pluginRequestApplicator).applyPlugins(mergedRequests, scriptHandler, pluginManager, targetScope)
     }
 }
