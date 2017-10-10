@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -64,7 +65,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
         result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 

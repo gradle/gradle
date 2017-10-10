@@ -18,6 +18,7 @@ package org.gradle.api.internal.resolve;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -112,7 +113,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof LibraryComponentSelector) {
             LibraryComponentSelector selector = (LibraryComponentSelector) dependency.getSelector();
             resolveLibraryAndChooseBinary(result, selector);

@@ -18,6 +18,7 @@ package org.gradle.jvm.internal.resolve
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
@@ -135,7 +136,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def result = new DefaultBuildableComponentIdResolveResult()
 
         when:
-        resolver.resolve(metadata, result)
+        resolver.resolve(metadata, Mock(ModuleIdentifier), result)
 
         then:
         result.hasResult()

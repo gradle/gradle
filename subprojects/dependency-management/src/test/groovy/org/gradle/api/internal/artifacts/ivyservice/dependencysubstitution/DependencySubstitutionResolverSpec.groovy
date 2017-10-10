@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -29,6 +30,8 @@ import spock.lang.Specification
 class DependencySubstitutionResolverSpec extends Specification {
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
     def selector = new DefaultModuleComponentSelector("group", "module", "version")
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    def targetModuleId = moduleIdentifierFactory.module("group", "module")
     def dependency = Mock(DependencyMetadata) {
         getRequested() >> requested
         getSelector() >> selector
@@ -36,7 +39,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     def result = Mock(BuildableComponentIdResolveResult)
     def target = Mock(DependencyToComponentIdResolver)
     def rule = Mock(Action)
-    def resolver = new DependencySubstitutionResolver(target, new DefaultDependencySubstitutionApplicator(rule))
+    def resolver = new DependencySubstitutionResolver(target, new DefaultDependencySubstitutionApplicator(rule), moduleIdentifierFactory)
 
     def "passes through dependency when it does not match any rule"() {
         given:
@@ -44,10 +47,10 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, targetModuleId, result)
 
         then:
-        1 * target.resolve(dependency, result)
+        1 * target.resolve(dependency, targetModuleId, result)
     }
 
     def "replaces dependency by rule"() {
@@ -59,11 +62,11 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, targetModuleId, result)
 
         then:
         1 * dependency.withTarget(DefaultModuleComponentSelector.newSelector("group", "module", "new")) >> substitutedDependency
-        1 * target.resolve(substitutedDependency, result)
+        1 * target.resolve(substitutedDependency, _, result)
     }
 
     def "explosive rule yields failure result that provides context"() {
@@ -74,7 +77,7 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(dependency, targetModuleId, result)
 
         then:
         1 * result.failed(_) >> { ModuleVersionResolveException e ->

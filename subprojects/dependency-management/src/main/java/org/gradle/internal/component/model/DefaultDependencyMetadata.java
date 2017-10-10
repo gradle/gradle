@@ -84,7 +84,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
         return artifacts;
     }
 
-    protected boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
+    protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
         for (String configuration : configurations) {
             if (configuration.equals("*")) {
                 return true;

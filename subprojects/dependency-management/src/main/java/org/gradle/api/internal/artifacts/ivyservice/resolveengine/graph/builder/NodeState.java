@@ -126,7 +126,7 @@ class NodeState implements DependencyGraphNode {
         return metaData.isTransitive();
     }
 
-    public void visitOutgoingDependencies(Collection<EdgeState> target) {
+    public void visitOutgoingDependencies(Collection<EdgeState> target, OptionalDependenciesHandler optionalDependenciesHandler) {
         // If this configuration's version is in conflict, don't do anything
         // If not traversed before, add all selected outgoing edges
         // If traversed before, and the selected modules have changed, remove previous outgoing edges and add outgoing edges again with
@@ -166,17 +166,14 @@ class NodeState implements DependencyGraphNode {
         }
 
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(
-            resolveState.getOptionalDependencies(),
-            resolveState.getModuleIdentifierFactory(),
-            resolveState.getDependencySubstitutionApplicator(),
-            isOptionalConfiguration);
+        optionalDependenciesHandler.start(isOptionalConfiguration);
         for (DependencyMetadata dependency : metaData.getDependencies()) {
-            if (isExcluded(resolutionFilter, dependency)) {
+            DependencyState dependencyState = new DependencyState(dependency, resolveState.getModuleIdentifierFactory());
+            if (isExcluded(resolutionFilter, dependencyState)) {
                 continue;
             }
-            if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependency)) {
-                EdgeState dependencyEdge = new EdgeState(this, dependency, resolutionFilter, resolveState);
+            if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependencyState)) {
+                EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                 outgoingEdges.add(dependencyEdge);
                 target.add(dependencyEdge);
             }
@@ -216,7 +213,8 @@ class NodeState implements DependencyGraphNode {
         }
     }
 
-    private boolean isExcluded(ModuleExclusion selector, DependencyMetadata dependency) {
+    private boolean isExcluded(ModuleExclusion selector, DependencyState dependencyState) {
+        DependencyMetadata dependency = dependencyState.getDependencyMetadata();
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
             LOGGER.debug("{} is filtered.", dependency);
             return true;
@@ -224,7 +222,7 @@ class NodeState implements DependencyGraphNode {
         if (selector == ModuleExclusions.excludeNone()) {
             return false;
         }
-        ModuleIdentifier targetModuleId = resolveState.getModuleIdentifierFactory().module(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier targetModuleId = dependencyState.getModuleIdentifier();
         if (selector.excludeModule(targetModuleId)) {
             LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
             return true;

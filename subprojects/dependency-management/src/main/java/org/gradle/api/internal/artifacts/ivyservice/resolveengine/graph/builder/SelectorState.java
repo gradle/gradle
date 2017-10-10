@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -35,18 +36,20 @@ class SelectorState implements DependencyGraphSelector {
     private final DependencyMetadata dependencyMetadata;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
+    private final ModuleIdentifier targetModuleId;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private ComponentState selected;
     private BuildableComponentIdResolveResult idResolveResult;
     private VersionSelector versionSelector;
 
-    SelectorState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState) {
+    SelectorState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
         this.dependencyMetadata = dependencyMetadata;
         this.resolver = resolver;
         this.resolveState = resolveState;
-        targetModule = resolveState.getModule(resolveState.getModuleIdentifierFactory().module(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()));
+        this.targetModule = resolveState.getModule(targetModuleId);
+        this.targetModuleId = targetModuleId;
     }
 
     @Override
@@ -92,7 +95,7 @@ class SelectorState implements DependencyGraphSelector {
         }
 
         idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(dependencyMetadata, idResolveResult);
+        resolver.resolve(dependencyMetadata, targetModuleId, idResolveResult);
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
             return null;

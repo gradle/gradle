@@ -53,12 +53,12 @@ class EdgeState implements DependencyGraphEdge {
     private ComponentState targetModuleRevision;
     private ModuleVersionResolveException targetNodeSelectionFailure;
 
-    EdgeState(NodeState from, DependencyMetadata dependencyMetadata, ModuleExclusion moduleExclusion, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion moduleExclusion, ResolveState resolveState) {
         this.from = from;
-        this.dependencyMetadata = dependencyMetadata;
+        this.dependencyMetadata = dependencyState.getDependencyMetadata();
         this.moduleExclusion = moduleExclusion;
         this.resolveState = resolveState;
-        this.selector = resolveState.getSelector(dependencyMetadata);
+        this.selector = resolveState.getSelector(dependencyMetadata, dependencyState.getModuleIdentifier());
     }
 
     @Override

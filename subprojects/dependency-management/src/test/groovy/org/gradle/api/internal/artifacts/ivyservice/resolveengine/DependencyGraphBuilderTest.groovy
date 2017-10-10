@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ResolveException
@@ -1026,8 +1027,12 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.id)
-        0 * idResolver.resolve(dependencyMetaData, _)
+        0 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _)
         0 * metaDataResolver.resolve(to.componentId, _, _)
+    }
+
+    private ModuleIdentifier moduleId(DependencyMetadata dependencyMetaData) {
+        moduleIdentifierFactory.module(dependencyMetaData.requested.group, dependencyMetaData.requested.name)
     }
 
     def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
@@ -1056,7 +1061,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], def from, String to) {
         def dependencyMetaData = dependsOn(args, from, newId("group", to, "1.0"))
-        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetadata dep, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _) >> { DependencyMetadata dep, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
         }
     }
@@ -1081,7 +1086,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def selectorResolvesTo(DependencyMetadata dependencyMetaData, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
-        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetadata dep, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _) >> { DependencyMetadata dep, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result ->
             result.resolved(id, mvId)
         }
     }

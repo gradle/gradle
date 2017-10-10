@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
@@ -156,8 +157,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
-            delegate.getComponentIdResolver().resolve(dependency, result);
+        public void resolve(final DependencyMetadata dependency, ModuleIdentifier targetModuleId, final BuildableComponentIdResolveResult result) {
+            delegate.getComponentIdResolver().resolve(dependency, targetModuleId, result);
         }
 
         @Override
