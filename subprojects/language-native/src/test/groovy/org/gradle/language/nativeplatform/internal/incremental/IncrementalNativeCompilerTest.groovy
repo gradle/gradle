@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskInternal
@@ -41,8 +40,8 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
-    def directoryTreeFactory = TestFiles.directoryFileTreeFactory()
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+    def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -99,7 +98,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
        then:
        compiler.importsAreIncludes
        where:
@@ -115,14 +114,14 @@ class IncrementalNativeCompilerTest extends Specification {
         def compilation = Mock(IncrementalCompilation)
         def taskInputs = Mock(DiscoveredInputRecorder)
         def includedFile = temporaryFolder.file("include")
-        compilation.discoveredInputs >> [includedFile ]
+        compilation.discoveredInputs >> [includedFile]
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
 
         then:
-        1 * spec.getSourceFiles() >> []
-        1 * taskInputs.newInput(includedFile)
+        1 * taskInputs.newInputs(ImmutableSet.of(includedFile))
+        1 * spec.getIncludeRoots() >> []
         0 * spec._
     }
 
@@ -135,29 +134,21 @@ class IncrementalNativeCompilerTest extends Specification {
         def includeDir = temporaryFolder.createDir("includes")
         def includedFile = includeDir.createFile("include")
         def notIncludedFile = includeDir.createFile("notIncluded")
-        def sourceFile = temporaryFolder.file("source")
         def includeRoots = [ includeDir ]
 
         def compilation = Mock(IncrementalCompilation)
-        def sourceState = Mock(CompilationFileState)
-        def sourceFiles = ImmutableSet.copyOf([sourceFile])
-        def map = ImmutableMap.copyOf(Collections.singletonMap(sourceFile, sourceState))
-        def finalState = new CompilationState(sourceFiles, map)
 
         compilation.discoveredInputs >> [includedFile]
-        compilation.getFinalState() >> finalState
-        sourceState.getResolvedIncludes() >> ImmutableSet.copyOf([new ResolvedInclude("MACRO", null)])
+        compilation.macroIncludeUsedInSources >> true
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
 
         then:
-        1 * spec.getSourceFiles() >> [ sourceFile ]
         1 * spec.getIncludeRoots() >> includeRoots
         0 * spec._
 
-        2 * taskInputs.newInput(includedFile)
-        1 * taskInputs.newInput(notIncludedFile)
+        1 * taskInputs.newInputs(ImmutableSet.of(includedFile, notIncludedFile))
         0 * taskInputs._
     }
 }

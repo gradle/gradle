@@ -156,7 +156,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "recompiles library and relinks executable with library source file change"() {
+    def "recompiles library and relinks executable after library source file change"() {
         given:
         run "installMainExecutable"
         maybeWait()

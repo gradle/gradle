@@ -16,11 +16,21 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 
-public interface IncrementalCompilerBuilder {
-    <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, HeaderDependenciesCollector headerDependenciesCollector);
+public interface IncrementalCompileFiles {
+
+    CompilationState getCurrent();
+
+    void processSource(File sourceFile);
+
+    List<File> getModifiedSources();
+
+    List<File> getRemovedSources();
+
+    Set<File> getDiscoveredInputs();
+
+    boolean isSourceFilesUseMacroIncludes();
 }

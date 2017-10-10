@@ -16,11 +16,20 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.NonNullApi;
 
-public interface IncrementalCompilerBuilder {
-    <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, HeaderDependenciesCollector headerDependenciesCollector);
+import java.io.File;
+import java.util.List;
+
+@NonNullApi
+public interface HeaderDependenciesCollector {
+    HeaderDependenciesCollector NOOP = new HeaderDependenciesCollector() {
+        @Override
+        public ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+            return ImmutableSortedSet.of();
+        }
+    };
+
+    ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
 }

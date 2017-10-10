@@ -18,6 +18,7 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
@@ -32,6 +33,7 @@ import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -52,11 +54,13 @@ import java.util.concurrent.Callable;
  * @since 4.1
  */
 @Incubating
+@NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
+        project.getPluginManager().apply(DependPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();

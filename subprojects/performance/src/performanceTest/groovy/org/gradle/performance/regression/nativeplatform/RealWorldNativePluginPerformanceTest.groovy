@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.LogFiles
 import org.gradle.performance.measure.MeasuredOperation
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -32,6 +33,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = ["4.3-20171004093631+0000"]
     }
 
+    @Ignore("wolfs: rebaseline when a nightly with discovered inputs is available")
     @Unroll
     def "build on #testProject with #parallelWorkers parallel workers"() {
         given:
@@ -59,6 +61,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         "nativeMonolithicOverlapping" | 12
     }
 
+    @Ignore("wolfs: rebaseline when a nightly with discovered inputs is available")
     @Unroll
     def "build with #changeType change on #testProject"() {
         given:

@@ -22,7 +22,8 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
-class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec {
+class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec implements CppTaskNames {
+
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
@@ -51,7 +52,19 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         run('publish')
 
         then:
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(
+            compileAndLinkTasks(debug),
+            compileAndLinkTasks(release),
+            ":generatePomFileForDebugPublication",
+            ":generateMetadataFileForDebugPublication",
+            ":publishDebugPublicationToMavenRepository",
+            ":generatePomFileForMainPublication",
+            ":generateMetadataFileForMainPublication",
+            ":publishMainPublicationToMavenRepository",
+            ":generatePomFileForReleasePublication",
+            ":generateMetadataFileForReleasePublication",
+            ":publishReleasePublicationToMavenRepository",
+            ":publish")
 
         def repo = new MavenFileRepository(file("repo"))
 
@@ -142,4 +155,5 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
         greeterReleaseModule.assertPublished()
     }
+
 }

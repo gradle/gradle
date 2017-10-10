@@ -72,7 +72,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -481,9 +480,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
-        public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            assertThat(plannedTasks, containsInAnyOrder(taskPaths));
-            outputResult.assertTasksExecuted(taskPaths);
+        public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+            ArrayList<String> flattenedTasks = new ArrayList<String>();
+            GUtil.flatten(taskPaths, flattenedTasks);
+            assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
+            outputResult.assertTasksExecuted(flattenedTasks);
             return this;
         }
 
@@ -499,13 +500,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return new HashSet<String>(skippedTasks);
         }
 
-        public ExecutionResult assertTasksSkipped(String... taskPaths) {
+        @Override
+        public ExecutionResult assertTasksSkipped(Object... taskPaths) {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> expected = new HashSet<String>();
+            GUtil.flatten(taskPaths, expected);
             assertThat(skippedTasks, equalTo(expected));
-            outputResult.assertTasksSkipped(taskPaths);
+            outputResult.assertTasksSkipped(expected);
             return this;
         }
 
@@ -518,14 +521,16 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
-        public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
+        @Override
+        public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> expected = new HashSet<String>();
+            GUtil.flatten(taskPaths, expected);
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
-            outputResult.assertTasksNotSkipped(taskPaths);
+            outputResult.assertTasksNotSkipped(expected);
             return this;
         }
 
