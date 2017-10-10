@@ -44,6 +44,10 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
 
+    static boolean hasFailure(String error) {
+        return FAILURE_PATTERN.matcher(error).find();
+    }
+
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);
 

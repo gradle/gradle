@@ -191,13 +191,16 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
         String output = getStandardOutput();
         String error = getErrorOutput();
-        boolean processSucceeded = execResult.getExitValue() == 0;
-        ExecutionResult executionResult = processSucceeded ? toExecutionResult(output, error) : toExecutionFailure(output, error);
+        
+        // Exit value is unreliable for determination of process failure.
+        // On rare occasions, exitValue == 0 when the process is expected to fail, and the error output indicates failure.
+        boolean buildFailed = execResult.getExitValue() != 0 || OutputScrapingExecutionFailure.hasFailure(error);
+        ExecutionResult executionResult = buildFailed ? toExecutionFailure(output, error) : toExecutionResult(output, error);
 
-        if (expectFailure && processSucceeded) {
+        if (expectFailure && !buildFailed) {
             throw unexpectedBuildStatus(execResult, output, error, "did not fail", executionResult);
         }
-        if (!expectFailure && !processSucceeded) {
+        if (!expectFailure && buildFailed) {
             throw unexpectedBuildStatus(execResult, output, error, "failed", executionResult);
         }
 
