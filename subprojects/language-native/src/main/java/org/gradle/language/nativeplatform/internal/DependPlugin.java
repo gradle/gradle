@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.plugins;
+package org.gradle.language.nativeplatform.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -31,7 +31,6 @@ import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.nativeplatform.tasks.Depend;
 import org.gradle.model.ModelMap;
