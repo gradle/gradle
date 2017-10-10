@@ -150,6 +150,16 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
     }
 
+    def "setTargets removes existing platforms"() {
+        given:
+        platform.name >> "SomePlatform"
+        toolChain.target("SomePlatform", Mock(Action))
+        toolChain.setTargets("NoPlatform", Mock(Action))
+
+        expect:
+        !toolChain.select(platform).available
+    }
+
     def "selected toolChain applies platform configuration action"() {
         def platform1 = Mock(NativePlatformInternal)
         def platform2 = Mock(NativePlatformInternal)
