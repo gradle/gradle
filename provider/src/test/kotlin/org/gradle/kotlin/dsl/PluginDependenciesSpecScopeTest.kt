@@ -46,7 +46,7 @@ class PluginDependenciesSpecScopeTest {
 
     @Test
     fun `given build-scan plugin accessor, it should create a single request with default version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = "1.9")) {
+        expecting(plugin(id = "com.gradle.build-scan", version = "1.9.1")) {
             `build-scan`
         }
     }
