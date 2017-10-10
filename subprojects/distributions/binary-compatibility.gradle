@@ -98,6 +98,8 @@ task checkBinaryCompatibility(type: JapicmpTask) {
 
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
+    inputs.property("currentVersion", baseVersion)
+    inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
     newClasspath = files(publicProjects.configurations.runtimeClasspath)
@@ -117,7 +119,8 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
         addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
-        addSetupRule(SinceAnnotationMissingRuleSetup, foldersWithAPISources.collectEntries { [(it): it] })
+        addSetupRule(SinceAnnotationMissingRuleAPISourceFoldersSetup, foldersWithAPISources.collectEntries { [(it): it] })
+        addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: baseVersion])
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
 
         includedClasses = toPatterns(publicApiIncludes)

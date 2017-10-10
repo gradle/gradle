@@ -133,6 +133,32 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("Unable to parse local Maven settings: " + m2.userSettingsFile.absolutePath)
     }
 
+    def "fail if metadata in local repo corrupts and remote repo is #remoteStatus"() {
+        given:
+        def corruptLocalPom = m2.mavenRepo().rootDir.file('group/projectA/1.2/projectA-1.2.pom')
+        corruptLocalPom << "invalid content"
+
+        if (remoteStatus == 'valid') {
+            def remoteRepo = maven("remote")
+            remoteRepo.module('group', 'projectA', '1.2').publish()
+
+            buildFile << """
+            repositories{
+                maven { url "${remoteRepo.uri}" }
+            }
+            """
+        }
+
+        when:
+        runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause("Could not parse POM $corruptLocalPom.absolutePath")
+
+        where:
+        remoteStatus << ['valid', 'invalid']
+    }
+
     def "mavenLocal is ignored if no local maven repository exists"() {
         given:
         def anotherRepo = maven("another-local-repo")
