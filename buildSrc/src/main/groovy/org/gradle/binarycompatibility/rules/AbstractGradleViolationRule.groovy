@@ -30,17 +30,14 @@ import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
-import org.gradle.util.GradleVersion
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
 
     private final Map<ApiChange, String> acceptedApiChanges
-    private final currentVersion
 
     AbstractGradleViolationRule(Map<String, String> acceptedApiChanges) {
         this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges)
-        this.currentVersion = GradleVersion.current().baseVersion.version
     }
 
     private static boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {
@@ -149,6 +146,6 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     String getCurrentVersion() {
-        return currentVersion
+        return context.getUserData().get("currentVersion")
     }
 }

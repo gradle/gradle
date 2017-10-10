@@ -20,20 +20,19 @@ import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.util.Map;
-import java.util.Set;
 
-public class SinceAnnotationMissingRuleSetup implements SetupRule {
+public class SinceAnnotationMissingRuleCurrentGradleVersionSetup implements SetupRule {
 
-    private final Set<String> apiSourceFolders;
+    private final String currentVersion;
 
-    public SinceAnnotationMissingRuleSetup(Map<String, String> sourceFolders) {
-        this.apiSourceFolders = sourceFolders.keySet();
+    public SinceAnnotationMissingRuleCurrentGradleVersionSetup(Map<String, String> currentVersion) {
+        this.currentVersion = currentVersion.get("currentVersion");
     }
 
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContext context) {
         Map<String, Object> userData = (Map<String, Object>) context.getUserData();
-        userData.put("apiSourceFolders", apiSourceFolders);
+        userData.put("currentVersion", currentVersion);
     }
 
 }
