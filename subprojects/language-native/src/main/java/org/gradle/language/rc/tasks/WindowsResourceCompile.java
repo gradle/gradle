@@ -118,7 +118,8 @@ public class WindowsResourceCompile extends DefaultTask {
     }
 
     private DefaultHeaderDependenciesCollector createDependenciesCollector() {
-        return new DefaultHeaderDependenciesCollector(((ProjectInternal) getProject()).getServices().get(DirectoryFileTreeFactory.class));
+        DirectoryFileTreeFactory directoryFileTreeFactory = ((ProjectInternal) getProject()).getServices().get(DirectoryFileTreeFactory.class);
+        return new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
     }
 
     /**

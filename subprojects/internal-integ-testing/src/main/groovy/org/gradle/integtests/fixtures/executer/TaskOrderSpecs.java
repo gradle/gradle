@@ -63,10 +63,6 @@ public class TaskOrderSpecs {
     }
 
     public static TaskOrderSpec exact(Object[] constraints) {
-        return exact(Arrays.asList(constraints));
-    }
-
-    public static TaskOrderSpec exact(List<Object> constraints) {
         List<Object> flattenedConstraints = new ArrayList<Object>();
         GUtil.flatten(constraints, flattenedConstraints);
         return new ExactOrderSpec(flattenedConstraints);
