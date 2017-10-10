@@ -27,7 +27,7 @@ android {
 dependencies {
     compile("com.android.support:appcompat-v7:23.4.0")
     compile("com.android.support.constraint:constraint-layout:1.0.0-alpha8")
-    compile(kotlin("stdlib"))
+    compile(kotlin("stdlib", "1.1.51"))
 }
 
 repositories {
