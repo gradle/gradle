@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -82,8 +81,9 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     /**
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
+     * @param specs
      */
-    protected void unpackIntersection(ImmutableSet.Builder<AbstractModuleExclusion> specs) {
+    protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);
     }
 
