@@ -16,12 +16,17 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleHandle
+
+import static org.gradle.util.TextUtil.getPlatformLineSeparator
+
 final class BuildScanUserInputFixture {
 
     public static final String DUMMY_TASK_NAME = 'doSomething'
     public static final String QUESTION = "Accept license?"
     public static final String YES = 'yes'
     public static final String NO = 'no'
+    public static final int EOF = 4
     public static final String PROMPT = "$QUESTION [$YES, $NO]"
     private static final String ANSWER_PREFIX = 'License accepted:'
 
@@ -56,5 +61,15 @@ final class BuildScanUserInputFixture {
 
     static String answerOutput(Boolean answer) {
         "$ANSWER_PREFIX $answer"
+    }
+
+    static void writeToStdInAndClose(GradleHandle gradleHandle, input) {
+        gradleHandle.stdinPipe.write(input)
+        writeLineSeparatorToStdInAndClose(gradleHandle)
+    }
+
+    private static void writeLineSeparatorToStdInAndClose(GradleHandle gradleHandle) {
+        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
+        gradleHandle.stdinPipe.close()
     }
 }

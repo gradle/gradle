@@ -18,13 +18,8 @@ package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleHandle
-
-import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
-
-    protected static final int EOF = 4
 
     protected void interactiveExecution() {
         executer.withStdinPipe().withForceInteractive(true)
@@ -44,15 +39,5 @@ class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     protected void withParallel() {
         executer.withArgument('--parallel')
-    }
-
-    static void writeToStdInAndClose(GradleHandle gradleHandle, input) {
-        gradleHandle.stdinPipe.write(input)
-        writeLineSeparatorToStdInAndClose(gradleHandle)
-    }
-
-    static void writeLineSeparatorToStdInAndClose(GradleHandle gradleHandle) {
-        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.close()
     }
 }
