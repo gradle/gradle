@@ -145,11 +145,6 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 
 The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folder and dependency defines an additional `gradle_source_sets` classpath attribute. The attribute specifies to which sourceSet the entry belonged. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
-### Support for PMD incremental analysis
-
-TBD
-
-The default version of PMD is now [PMD 5.8.1](https://pmd.github.io/2017/07/01/PMD-5.8.1/).
 
 ### More use cases supported using the `plugins {}` block
 
@@ -320,7 +315,6 @@ This behaviour might cause potentially nondeterministic resolution result. Now G
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
-- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
 - [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
 - [Evgeny Mandrikov](https://github.com/Godin) - JaCoCo plugin uses version 0.7.9 by default (gradle/gradle#2892)
 
