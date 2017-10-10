@@ -54,9 +54,8 @@ class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<
         return getOrElse(null);
     }
 
-    @Nullable
     @Override
-    public List<T> getOrElse(@Nullable List<T> defaultValue) {
+    public List<T> getOrElse(List<T> defaultValue) {
         List<T> list = provider.getOrNull();
         if (list == null) {
             return defaultValue;

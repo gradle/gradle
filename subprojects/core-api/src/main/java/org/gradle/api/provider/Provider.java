@@ -64,8 +64,7 @@ public interface Provider<T> {
      * @return the value or the default value.
      * @since 4.3
      */
-    @Nullable
-    T getOrElse(@Nullable T defaultValue);
+    T getOrElse(T defaultValue);
 
     /**
      * Returns a new {@link Provider} whose value is the value of this provider transformed using the given function.

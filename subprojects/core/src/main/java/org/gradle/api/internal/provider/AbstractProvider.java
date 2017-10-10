@@ -18,8 +18,6 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 
-import javax.annotation.Nullable;
-
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
 public abstract class AbstractProvider<T> implements ProviderInternal<T> {
@@ -35,9 +33,8 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
         return evaluatedValue;
     }
 
-    @Nullable
     @Override
-    public T getOrElse(@Nullable T defaultValue) {
+    public T getOrElse(T defaultValue) {
         T value = getOrNull();
         if (value != null) {
             return value;
