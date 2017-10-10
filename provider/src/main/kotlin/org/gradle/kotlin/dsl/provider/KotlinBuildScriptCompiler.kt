@@ -71,7 +71,7 @@ class KotlinBuildScriptCompiler(
     fun compile(): (Project) -> Unit =
         when {
             topLevelScript -> compileTopLevelScript()
-            else -> compileScriptPlugin()
+            else           -> compileScriptPlugin()
         }
 
     fun compileForClassPath(): (Project) -> Unit = { target ->
