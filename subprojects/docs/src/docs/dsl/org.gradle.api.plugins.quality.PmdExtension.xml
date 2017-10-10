@@ -44,10 +44,6 @@
                 <td>consoleOutput</td>
                 <td><literal>false</literal></td>
             </tr>
-            <tr>
-                <td>incrementalAnalysis</td>
-                <td><literal>false</literal></td>
-            </tr>
         </table>
     </section>
     <section>

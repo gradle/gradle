@@ -36,12 +36,4 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
         return !TestPrecondition.WINDOWS.fulfilled || VersionNumber.parse("5.5.1") <= versionNumber
     }
 
-    static boolean supportIncrementalAnalysis() {
-        return versionNumber >= VersionNumber.parse('5.6.0')
-    }
-
-    // https://github.com/pmd/pmd/issues/618
-    static boolean fileLockingIssuesSolvedWithIncrementalAnalysis() {
-        return !TestPrecondition.WINDOWS.fulfilled || versionNumber >= VersionNumber.parse('6.0.0')
-    }
 }
