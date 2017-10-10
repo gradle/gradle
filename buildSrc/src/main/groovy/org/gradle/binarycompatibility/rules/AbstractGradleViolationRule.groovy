@@ -136,7 +136,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
-            rejection.getHumanExplanation() + """. If you did this intentionally, you need to accept the change and explain yourself:
+            rejection.getHumanExplanation() + """. If you did this intentionally, please accept the change and provide an explanation:
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#${id}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="${id}">
                   <div class="well">
