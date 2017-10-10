@@ -145,7 +145,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
-                println "Configured buildB"
                 allprojects {
                     apply plugin: 'java'
                 }
@@ -168,9 +167,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
-
-        output.count("Configured buildB") == 2
-    }
+   }
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
         given:
