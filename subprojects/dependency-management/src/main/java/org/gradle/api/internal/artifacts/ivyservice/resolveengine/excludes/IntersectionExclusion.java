@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
+
+import java.util.Collection;
 
 /**
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
@@ -91,7 +92,7 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
      * @param specs
      */
     @Override
-    protected void unpackIntersection(ImmutableSet.Builder<AbstractModuleExclusion> specs) {
+    protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(excludeSpecs);
     }
 

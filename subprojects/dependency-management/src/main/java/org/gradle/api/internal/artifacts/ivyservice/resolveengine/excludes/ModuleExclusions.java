@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -218,12 +219,22 @@ public class ModuleExclusions {
             return two;
         }
 
-        ImmutableSet.Builder<AbstractModuleExclusion> builder = ImmutableSet.builder();
+        AbstractModuleExclusion aOne = (AbstractModuleExclusion) one;
+        AbstractModuleExclusion aTwo = (AbstractModuleExclusion) two;
 
-        ((AbstractModuleExclusion) one).unpackIntersection(builder);
-        ((AbstractModuleExclusion) two).unpackIntersection(builder);
+        List<AbstractModuleExclusion> builder = Lists.newArrayListWithExpectedSize(estimateSize(aOne) + estimateSize(aTwo));
 
-        return asIntersection(builder.build());
+        aOne.unpackIntersection(builder);
+        aTwo.unpackIntersection(builder);
+
+        return asIntersection(ImmutableSet.copyOf(builder));
+    }
+
+    private static int estimateSize(AbstractModuleExclusion ex) {
+        if (ex instanceof AbstractCompositeExclusion) {
+            return ((AbstractCompositeExclusion) ex).getFilters().size();
+        }
+        return 1;
     }
 
     /**
