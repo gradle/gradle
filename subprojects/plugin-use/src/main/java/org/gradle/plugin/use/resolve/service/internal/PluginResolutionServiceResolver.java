@@ -155,7 +155,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         if (request.getModule() == null) {
             return metadata.implementation.get("gav");
         } else {
-            return request.getModule();
+            return request.getModule().toString();
         }
     }
 
