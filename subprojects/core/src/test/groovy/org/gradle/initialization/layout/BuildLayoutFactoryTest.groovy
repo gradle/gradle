@@ -40,7 +40,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "returns current directory when it contains a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.testDirectory
@@ -60,7 +60,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "returns current directory when no ancestor directory contains a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and: "temporary tree created out of the Gradle build tree"
         def tmpDir = File.createTempFile("stop-", "-at").canonicalFile
@@ -84,7 +84,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "looks for sibling directory called 'master' that it contains a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("current")
@@ -105,7 +105,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "searches ancestors for a directory called 'master' that contains a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -126,7 +126,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "ignores 'master' directory when it does not contain a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -148,7 +148,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "returns closest ancestor directory that contains a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -170,7 +170,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "prefers the current directory as root directory with a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -192,7 +192,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "prefers the 'master' directory over ancestor directory with a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -214,7 +214,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "returns start directory when search upwards is disabled with a #settingsFilename file when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -235,7 +235,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "returns current directory when no settings or wrapper properties files found when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("sub/current")
@@ -253,7 +253,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "can override build layout by specifying the settings file to #overrideSettingsFilename with existing #settingsFilename when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("current")
@@ -280,7 +280,7 @@ class BuildLayoutFactoryTest extends Specification {
     @Unroll
     def "can override build layout by specifying an empty settings script with existing #settingsFilename when script languages #extensions"() {
         given:
-        def locator = new BuildLayoutFactory(scriptFileResolver(extensions))
+        def locator = buildLayoutFactoryFor(extensions)
 
         and:
         def currentDir = tmpDir.createDir("current")
@@ -299,6 +299,10 @@ class BuildLayoutFactoryTest extends Specification {
         where:
         extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
         settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+    }
+
+    BuildLayoutFactory buildLayoutFactoryFor(List<String> extensions) {
+        new BuildLayoutFactory(scriptFileResolver(extensions))
     }
 
     ScriptFileResolver scriptFileResolver(List<String> extensions) {
