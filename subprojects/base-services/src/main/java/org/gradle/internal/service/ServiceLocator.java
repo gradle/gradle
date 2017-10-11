@@ -23,8 +23,6 @@ public interface ServiceLocator {
 
     <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException;
 
-    <T> List<T> getAllLenient(Class<T> serviceType);
-
     <T> DefaultServiceLocator.ServiceFactory<T> getFactory(Class<T> serviceType) throws UnknownServiceException;
 
     @Nullable

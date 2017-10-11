@@ -32,10 +32,6 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
         return forScriptingLanguages(DefaultScriptingLanguages.create());
     }
 
-    public static ScriptFileResolver forLenientScriptingLanguages() {
-        return forScriptingLanguages(DefaultScriptingLanguages.createLenient());
-    }
-
     public static ScriptFileResolver forScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {
         List<String> extensions = new ArrayList<String>();
         for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {

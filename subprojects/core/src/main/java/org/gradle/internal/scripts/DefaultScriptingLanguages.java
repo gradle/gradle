@@ -26,10 +26,6 @@ public class DefaultScriptingLanguages implements ScriptingLanguages {
         return new DefaultScriptingLanguages(new DefaultServiceLocator(DefaultScriptingLanguages.class.getClassLoader()).getAll(ScriptingLanguage.class));
     }
 
-    static ScriptingLanguages createLenient() {
-        return new DefaultScriptingLanguages(new DefaultServiceLocator(DefaultScriptingLanguages.class.getClassLoader()).getAllLenient(ScriptingLanguage.class));
-    }
-
     private final Iterable<ScriptingLanguage> scriptingLanguages;
 
     private DefaultScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {

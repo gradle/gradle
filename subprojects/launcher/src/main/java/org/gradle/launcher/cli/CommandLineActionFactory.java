@@ -45,6 +45,8 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -67,7 +69,7 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
-    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(DefaultScriptFileResolver.forLenientScriptingLanguages());
+    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(lenientScriptFileResolver());
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -111,6 +113,15 @@ public class CommandLineActionFactory {
         out.println();
         parser.printUsage(out);
         out.println();
+    }
+
+    private ScriptFileResolver lenientScriptFileResolver() {
+        try {
+            return DefaultScriptFileResolver.forDefaultScriptingLanguages();
+        } catch (ServiceLookupException e) {
+            // Kotlin ScriptingLanguage provider will fail to load on JVMs < 6
+            return DefaultScriptFileResolver.empty();
+        }
     }
 
     private static class BuiltInActions implements CommandLineAction {
