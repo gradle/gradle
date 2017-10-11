@@ -42,7 +42,7 @@ class SwiftBasePluginTest extends Specification {
     def "adds compile task for component"() {
         def binary = Stub(SwiftBinary)
         binary.name >> name
-        binary.module >> project.providers.property(String)
+        binary.module >> project.objects.property(String)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -62,7 +62,7 @@ class SwiftBasePluginTest extends Specification {
     }
 
     def "adds link and install task for executable"() {
-        def module = project.providers.property(String)
+        def module = project.objects.property(String)
         module.set("TestApp")
         def executable = Stub(SwiftExecutable)
         executable.name >> name
@@ -90,7 +90,7 @@ class SwiftBasePluginTest extends Specification {
     }
 
     def "adds link task for shared library"() {
-        def module = project.providers.property(String)
+        def module = project.objects.property(String)
         module.set("TestLib")
         def library = Stub(SwiftSharedLibrary)
         library.name >> name
@@ -114,9 +114,9 @@ class SwiftBasePluginTest extends Specification {
     }
 
     def "adds link task for bundle"() {
-        def module = project.providers.property(String)
+        def module = project.objects.property(String)
         module.set("TestBundle")
-        def infoPlist = project.providers.property(RegularFile)
+        def infoPlist = project.objects.property(RegularFile)
         def bundleBinary = Stub(SwiftBundle)
         bundleBinary.name >> name
         bundleBinary.module >> module

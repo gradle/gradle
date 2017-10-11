@@ -20,8 +20,8 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
 import javax.inject.Inject;
@@ -45,11 +45,11 @@ public class XcodeTarget implements Named {
     private String outputFileType;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations, ProviderFactory providers) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
         this.name = name;
         this.id = id;
-        this.debugOutputFile = providers.property(FileSystemLocation.class);
-        this.releaseOutputFile = providers.property(FileSystemLocation.class);
+        this.debugOutputFile = objectFactory.property(FileSystemLocation.class);
+        this.releaseOutputFile = objectFactory.property(FileSystemLocation.class);
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.importPaths = fileOperations.files();

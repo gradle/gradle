@@ -18,18 +18,22 @@ package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
 import org.gradle.api.internal.provider.DefaultListProperty;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final DefaultProviderFactory providerFactory;
 
     public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
+        providerFactory = new DefaultProviderFactory();
     }
 
     @Override
@@ -40,6 +44,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
         return instantiator.newInstance(type, parameters);
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType) {
+        return providerFactory.property(valueType);
     }
 
     @Override

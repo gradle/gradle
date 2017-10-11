@@ -19,6 +19,7 @@ package org.gradle.api.model;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.util.List;
@@ -73,6 +74,20 @@ public interface ObjectFactory {
     <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
 
     /**
+     * Creates a {@link Property} implementation to hold values of the given type.
+     *
+     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification.
+     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
+     * <p>
+     * Any other data type than the standard Java data types returns a property with no value defined.
+     *
+     * @param valueType The type of the property.
+     * @return The property. Never returns null.
+     * @since 4.3
+     */
+    <T> Property<T> property(Class<T> valueType);
+
+    /**
      * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type. The property with have an empty list as its initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
@@ -80,7 +95,6 @@ public interface ObjectFactory {
      * @param elementType The type of element.
      * @param <T> The type of element.
      * @return The property. Never returns null;
-     * @throws IllegalArgumentException If the element type is a parameterized type.
      * @since 4.3
      */
     <T> ListProperty<T> listProperty(Class<T> elementType);

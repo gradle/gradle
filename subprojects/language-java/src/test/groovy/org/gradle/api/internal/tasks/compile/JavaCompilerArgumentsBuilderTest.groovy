@@ -17,10 +17,10 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions(new DefaultProviderFactory())
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -169,7 +169,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = new CompileOptions(new DefaultProviderFactory())
+        def compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
         spec.compileOptions = compileOptions
 
@@ -179,7 +179,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "generates -bootclasspath option via deprecated property"() {
-        def compileOptions = new CompileOptions(new DefaultProviderFactory())
+        def compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
         spec.compileOptions = compileOptions
         def options = builder.build()

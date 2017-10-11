@@ -67,7 +67,6 @@ public interface ProviderFactory {
      *
      * @param valueType The type of the property.
      * @return The property. Never returns null.
-     * @throws IllegalArgumentException If the value type is a parameterized type.
      */
     <T> PropertyState<T> property(Class<T> valueType);
 }

@@ -50,7 +50,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final RegularFileVar outputFile;
 
     public GenerateModuleMetadata() {
-        publication = getProject().getProviders().property(Publication.class);
+        publication = getProject().getObjects().property(Publication.class);
         outputFile = newOutputFile();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());

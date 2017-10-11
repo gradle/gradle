@@ -17,9 +17,9 @@ package org.gradle.api.internal.tasks.compile
 
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,7 +33,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.groovyClasspath = spec.compileClasspath
         spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = new CompileOptions(new DefaultProviderFactory())
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.groovyCompileOptions = new GroovyCompileOptions()
     }
 

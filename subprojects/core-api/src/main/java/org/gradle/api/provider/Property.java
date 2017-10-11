@@ -23,9 +23,7 @@ import javax.annotation.Nullable;
 /**
  * A {@code Provider} representation for capturing the state of a property. The value can be provided by using the method {@link #set(Object)} or {@link #set(Provider)}.
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
- * through the factory methods {@link org.gradle.api.Project#property(Class)} or
- * {@link ProviderFactory#property(Class)}.
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#property(Class)}. There are also several specialized subtypes of this interface that can be created using various other factory methods.
  *
  * @param <T> Type of value represented by the property
  * @since 4.3

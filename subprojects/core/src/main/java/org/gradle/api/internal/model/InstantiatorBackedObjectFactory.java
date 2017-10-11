@@ -18,6 +18,7 @@ package org.gradle.api.internal.model;
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -31,6 +32,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     @Override
     public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
         throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType) {
+        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
     }
 
     @Override

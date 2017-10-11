@@ -23,6 +23,13 @@ import spock.lang.Specification
 class DefaultObjectFactoryTest extends Specification {
     def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator))
 
+    def "can create a property"() {
+        expect:
+        def property = factory.property(Boolean)
+        property.present
+        !property.get()
+    }
+
     def "can create a List property"() {
         expect:
         def property = factory.listProperty(String)

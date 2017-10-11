@@ -23,8 +23,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
@@ -45,14 +45,14 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Configuration implementation;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
-        baseName = providerFactory.property(String.class);
+        baseName = objectFactory.property(String.class);
 
         names = Names.of(name);
         implementation = configurations.maybeCreate(names.withSuffix("implementation"));

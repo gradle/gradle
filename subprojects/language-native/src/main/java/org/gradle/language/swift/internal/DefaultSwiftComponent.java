@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftComponent;
@@ -35,11 +35,11 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Names names;
     private final Configuration implementation;
 
-    public DefaultSwiftComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
-        module = providerFactory.property(String.class);
+        module = objectFactory.property(String.class);
 
         names = Names.of(name);
         implementation = configurations.maybeCreate(names.withSuffix("implementation"));
