@@ -98,16 +98,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
             }
         });
+        getOutputs().doNotCacheIf("Native caching is not enabled", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task task) {
+                return !Boolean.getBoolean("org.gradle.caching.native");
+            }
+        });
         getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return !AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
-            }
-        });
-        getOutputs().doNotCacheIf("Native caching is not enabled", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                return !task.getProject().getGradle().getStartParameter().isNativeCachingEnabled();
             }
         });
         dependsOn(includes);

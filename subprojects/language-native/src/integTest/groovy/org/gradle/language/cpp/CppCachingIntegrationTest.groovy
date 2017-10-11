@@ -16,18 +16,17 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.initialization.StartParameterBuildOptions.NativeCachingOption
-import org.gradle.integtests.fixtures.BuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 
-class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements BuildCacheFixture {
+class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
     CppAppWithLibraries app = new CppAppWithLibraries()
     String compilationTask = ':compileDebugCpp'
 
     def setupProjectInDirectory(TestFile project) {
-        project.file('settings.gradle').text = "include 'lib1', 'lib2'"
+        project.file('settings.gradle') << "include 'lib1', 'lib2'"
         project.file('build.gradle').text = """
             apply plugin: 'cpp-executable'
             dependencies {
@@ -48,7 +47,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         app.loggerLib.writeToProject(project.file("lib2"))
         app.main.writeToProject(project)
         executer.beforeExecute {
-            withArgument("-D${NativeCachingOption.GRADLE_PROPERTY}=true")
+            withArgument("-Dorg.gradle.caching.native=true")
         }
     }
 

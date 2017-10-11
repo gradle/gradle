@@ -28,6 +28,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.minimumVersion = "4.2"
         runner.targetVersions = ["4.3-20171004093631+0000"]
         checkIfCacheUsed = false // TODO: Until the base version supports caching
+        runner.args += "-Dorg.gradle.native.caching=true"
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {

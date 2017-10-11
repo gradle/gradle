@@ -41,7 +41,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
 
     def setup() {
         runner.cleanTasks = ["clean"]
-        runner.args = [StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY, StartParameterBuildOptions.NativeCachingOption.GRADLE_PROPERTY].collect { "-D${it}=true" }
+        runner.args = ["-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         buildCacheServer.logRequests = false
         cacheDir = temporaryFolder.file("local-cache")
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {

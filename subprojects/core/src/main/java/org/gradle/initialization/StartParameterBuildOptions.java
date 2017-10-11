@@ -55,7 +55,6 @@ public class StartParameterBuildOptions {
         options.add(new IncludeBuildOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
-        options.add(new NativeCachingOption());
         options.add(new BuildScanOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -267,19 +266,6 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(boolean value, StartParameter settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
-        }
-    }
-
-    public static class NativeCachingOption extends BooleanBuildOption<StartParameter> {
-        public static final String GRADLE_PROPERTY = "org.gradle.caching.native";
-
-        public NativeCachingOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameter settings, Origin origin) {
-            settings.setNativeCachingEnabled(value);
         }
     }
 
