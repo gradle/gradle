@@ -33,10 +33,6 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final ModuleVersionSelector artifact;
     private final PluginRequestInternal originalRequest;
 
-    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
-    }
-
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
         this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
     }

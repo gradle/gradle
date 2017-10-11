@@ -19,13 +19,13 @@ package org.gradle.plugin.use.resolve.internal
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
+import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
@@ -43,7 +43,7 @@ class CorePluginResolverTest extends Specification {
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new StringScriptSource("test", "test"))
     }
 
     def "non core plugins are ignored"() {
