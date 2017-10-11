@@ -251,7 +251,6 @@ task smallCppMulti(type: CppMultiProjectGeneratorTask) {
     templateArgs = [
         functionCount: 1
     ]
-    rootProjectTemplates = ['cpp-multi-project-root']
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
@@ -261,7 +260,6 @@ task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
     templateArgs = [
         functionCount: 2
     ]
-    rootProjectTemplates = ['cpp-multi-project-root']
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
@@ -271,7 +269,6 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
     templateArgs = [
         functionCount: 3
     ]
-    rootProjectTemplates = ['cpp-multi-project-root']
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
