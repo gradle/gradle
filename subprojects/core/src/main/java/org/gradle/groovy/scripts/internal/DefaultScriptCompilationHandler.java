@@ -78,13 +78,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int HAS_METHODS_FLAG = 2;
 
     private final ClassLoaderCache classLoaderCache;
-    private final String[] importPackages;
     private final Map<String, List<String>> simpleNameToFQN;
 
     public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
         simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
-        importPackages = importsReader.getImportPackages();
     }
 
     @Override
@@ -289,7 +287,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     super.visitClass(node);
                 }
             };
-            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, importPackages, simpleNameToFQN);
+            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
             this.resolveVisitor = resolveVisitor;
             this.progressCallback = new ProgressCallback() {
                 @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.build.docs.dsl.source;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -34,7 +34,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 @CacheableTask
 public class GenerateDefaultImportsTask extends DefaultTask {
@@ -42,7 +46,6 @@ public class GenerateDefaultImportsTask extends DefaultTask {
     private File importsDestFile;
     private File mappingDestFile;
     private Set<String> excludePatterns = new LinkedHashSet<String>();
-    private Set<String> extraPackages = new LinkedHashSet<String>();
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
@@ -88,19 +91,6 @@ public class GenerateDefaultImportsTask extends DefaultTask {
         excludePatterns.add(name);
     }
 
-    @Input
-    public Set<String> getExtraPackages() {
-        return extraPackages;
-    }
-
-    public void setExtraPackages(Set<String> extraPackages) {
-        this.extraPackages = extraPackages;
-    }
-
-    public void extraPackage(String name) {
-        extraPackages.add(name);
-    }
-
     @TaskAction
     public void generate() throws IOException {
         SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>();
@@ -117,9 +107,8 @@ public class GenerateDefaultImportsTask extends DefaultTask {
                 excludedPackages.add(excludePattern);
             }
         }
-        final Set<String> packages = new TreeSet<String>();
-        packages.addAll(extraPackages);
-        final Multimap<String, String> simpleNames = HashMultimap.create();
+        final Set<String> packages = new LinkedHashSet<>();
+        final Multimap<String, String> simpleNames = LinkedHashMultimap.create();
 
         repository.each(new Action<ClassMetaData>() {
             public void execute(ClassMetaData classMetaData) {

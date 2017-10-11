@@ -19,13 +19,24 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UnknownDomainObjectException;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance;
 
-import java.io.*;
-import java.util.*;
-
 public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements ClassMetaDataRepository<T> {
-    private final Map<String, T> classes = new HashMap<String, T>();
+    private final Map<String, T> classes = new TreeMap<>();
 
     @SuppressWarnings("unchecked")
     public void load(File repoFile) {
