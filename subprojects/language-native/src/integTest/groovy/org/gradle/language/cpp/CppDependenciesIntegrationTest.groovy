@@ -87,7 +87,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     private void assertTasksExecutedFor(String buildType) {
-        assert result.assertTasksExecuted(":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}")
+        assert result.assertTasksExecuted(":app:depend${buildType}Cpp", ":hello:depend${buildType}Cpp", ":log:depend${buildType}Cpp", ":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}")
     }
 
     private void assertAppHasOutputFor(String buildType) {
