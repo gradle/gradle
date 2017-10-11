@@ -78,13 +78,14 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
                 VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem);
                 File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
+
                 //TODO: Allow user to provide settings script in VcsMapping
                 if (!(new File(dependencyWorkingDir, "settings.gradle").exists())
                     && !(new File(dependencyWorkingDir, "settings.gradle.kts").exists())) {
                     throw new GradleException(
                         String.format(
-                            "Missing settings script: %s must contain settings.gradle or settings.kts.gradle.",
-                            spec.getUniqueId()));
+                            "Included build from '%s' must contain a settings file.",
+                            spec.getDisplayName()));
                 }
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory

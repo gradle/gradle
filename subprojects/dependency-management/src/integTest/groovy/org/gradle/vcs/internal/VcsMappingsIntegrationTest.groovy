@@ -144,7 +144,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         fails('assemble')
         assertRepoCheckedOut()
-        failureCauseContains('Missing settings script')
+        failureCauseContains("Included build from '")
+        failureCauseContains("' must contain a settings file.")
     }
 
     void assertRepoCheckedOut(String repoName="dep") {
