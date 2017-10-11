@@ -37,6 +37,7 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -50,7 +51,6 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
@@ -288,8 +288,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forDefaultScriptingLanguages();
-        ParametersConverter parametersConverter = new ParametersConverter(scriptFileResolver);
+        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(DefaultScriptFileResolver.forDefaultScriptingLanguages());
+        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

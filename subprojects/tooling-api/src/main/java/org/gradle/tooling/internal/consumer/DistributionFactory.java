@@ -23,7 +23,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.time.Clock;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
@@ -45,12 +44,12 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
     private final Clock clock;
-    private final ScriptFileResolver scriptFileResolver;
+    private final BuildLayoutFactory buildLayoutFactory;
     private File distributionBaseDir;
 
-    public DistributionFactory(Clock clock, ScriptFileResolver scriptFileResolver) {
+    public DistributionFactory(Clock clock, BuildLayoutFactory buildLayoutFactory) {
         this.clock = clock;
-        this.scriptFileResolver = scriptFileResolver;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     public void setDistributionBaseDir(File distributionBaseDir) {
@@ -61,7 +60,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory(scriptFileResolver).getLayoutFor(projectDir, searchUpwards);
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir, clock);
@@ -74,7 +73,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, "Gradle installation '" + gradleHomeDir + "'",
-                "Gradle installation directory '" + gradleHomeDir + "'");
+            "Gradle installation directory '" + gradleHomeDir + "'");
     }
 
     /**
@@ -145,7 +144,7 @@ public class DistributionFactory {
         }
 
         private File determineRealUserHomeDir(final File userHomeDir) {
-            if(distributionBaseDir != null) {
+            if (distributionBaseDir != null) {
                 return distributionBaseDir;
             }
 

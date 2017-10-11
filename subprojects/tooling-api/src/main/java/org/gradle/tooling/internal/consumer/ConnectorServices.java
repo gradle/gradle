@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -84,7 +85,7 @@ public class ConnectorServices {
         }
 
         protected DistributionFactory createDistributionFactory(Clock clock) {
-            return new DistributionFactory(clock, DefaultScriptFileResolver.forDefaultScriptingLanguages());
+            return new DistributionFactory(clock, new BuildLayoutFactory(DefaultScriptFileResolver.forDefaultScriptingLanguages()));
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {

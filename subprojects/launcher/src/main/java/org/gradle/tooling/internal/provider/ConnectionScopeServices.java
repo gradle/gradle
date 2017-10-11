@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -70,7 +71,7 @@ public class ConnectionScopeServices {
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
-                scriptFileResolver,
+                new BuildLayoutFactory(scriptFileResolver),
                 daemonClientFactory,
                 buildActionExecuter,
                 new PayloadSerializer(
