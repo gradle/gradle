@@ -338,6 +338,7 @@ We would like to thank the following community members for making contributions 
 - [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
 - [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
 - [Evgeny Mandrikov](https://github.com/Godin) - JaCoCo plugin uses version 0.7.9 by default (gradle/gradle#2892)
+- [Raymond Chiu](https://github.com/rschiu) - Fix incremental compilation of generated Java files with $ in their name (gradle/gradle#3133)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
