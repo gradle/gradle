@@ -26,7 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -145,7 +145,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                if (!property.getters.isEmpty() && PropertyState.class.isAssignableFrom(property.getType())) {
+                if (!property.getters.isEmpty() && Property.class.isAssignableFrom(property.getType())) {
                     builder.addPropertyStateSetters(property, property.getters.get(0));
                     continue;
                 }

@@ -18,7 +18,10 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+
+import java.util.List;
 
 /**
  * A factory for creating various kinds of model objects.
@@ -68,4 +71,17 @@ public interface ObjectFactory {
      * @since 4.2
      */
     <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
+
+    /**
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type. The property with have an empty list as its initial value.
+     *
+     * <p>The implementation will return immutable {@link List} values from its query methods.</p>
+     *
+     * @param elementType The type of element.
+     * @param <T> The type of element.
+     * @return The property. Never returns null;
+     * @throws IllegalArgumentException If the element type is a parameterized type.
+     * @since 4.3
+     */
+    <T> ListProperty<T> listProperty(Class<T> elementType);
 }

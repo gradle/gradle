@@ -20,7 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
@@ -38,8 +38,8 @@ public class XcodeTarget implements Named {
     private String taskName;
     private String gradleCommand;
 
-    private final PropertyState<FileSystemLocation> debugOutputFile;
-    private final PropertyState<FileSystemLocation> releaseOutputFile;
+    private final Property<FileSystemLocation> debugOutputFile;
+    private final Property<FileSystemLocation> releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
@@ -64,11 +64,11 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public PropertyState<FileSystemLocation> getDebugOutputFile() {
+    public Property<FileSystemLocation> getDebugOutputFile() {
         return debugOutputFile;
     }
 
-    public PropertyState<FileSystemLocation> getReleaseOutputFile() {
+    public Property<FileSystemLocation> getReleaseOutputFile() {
         return releaseOutputFile;
     }
 

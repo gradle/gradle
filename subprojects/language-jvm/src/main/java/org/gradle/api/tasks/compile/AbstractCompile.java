@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -29,7 +29,7 @@ import java.io.File;
  * The base class for all JVM-based language compilation tasks.
  */
 public abstract class AbstractCompile extends SourceTask {
-    private final PropertyState<File> destinationDir;
+    private final Property<File> destinationDir;
     private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;

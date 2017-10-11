@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 
 /**
  * Configuration for a Swift component, such as a library or executable, defining the source files that make up the component plus other settings.
@@ -38,7 +38,7 @@ public interface SwiftComponent extends SoftwareComponent {
     /**
      * Defines the Swift module for this component. The default value is calculated from the project name.
      */
-    PropertyState<String> getModule();
+    Property<String> getModule();
 
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.

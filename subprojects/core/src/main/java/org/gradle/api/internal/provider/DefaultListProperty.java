@@ -25,7 +25,7 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 import java.util.List;
 
-class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
+public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
     private Provider<? extends List<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
 

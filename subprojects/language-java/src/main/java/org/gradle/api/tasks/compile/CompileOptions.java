@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.CompileClasspath;
@@ -84,7 +84,7 @@ public class CompileOptions extends AbstractOptions {
 
     private FileCollection annotationProcessorPath;
 
-    private final PropertyState<File> annotationProcessorGeneratedSourcesDirectory;
+    private final Property<File> annotationProcessorGeneratedSourcesDirectory;
 
     @Inject
     public CompileOptions(ProviderFactory providerFactory) {

@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
@@ -55,7 +55,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
-    private final PropertyState<File> outputDir;
+    private final Property<File> outputDir;
 
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.name = name;

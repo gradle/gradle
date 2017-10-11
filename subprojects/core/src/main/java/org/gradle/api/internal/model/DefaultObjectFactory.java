@@ -17,7 +17,9 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,5 +40,10 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
         return instantiator.newInstance(type, parameters);
+    }
+
+    @Override
+    public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        return new DefaultListProperty<T>(elementType);
     }
 }

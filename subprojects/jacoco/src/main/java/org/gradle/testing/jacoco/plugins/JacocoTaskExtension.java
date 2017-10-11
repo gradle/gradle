@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
@@ -58,7 +58,7 @@ public class JacocoTaskExtension {
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private final PropertyState<File> destinationFile;
+    private final Property<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();

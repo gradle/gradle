@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -64,8 +64,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private PropertyState<File> configDir;
-
+    private Property<File> configDir;
 
     /**
      * The Checkstyle configuration file to use.

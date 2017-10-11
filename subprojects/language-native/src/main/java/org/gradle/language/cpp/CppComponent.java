@@ -23,7 +23,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -39,7 +39,7 @@ public interface CppComponent extends SoftwareComponent {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
      */
-    PropertyState<String> getBaseName();
+    Property<String> getBaseName();
 
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.

@@ -19,7 +19,7 @@ package org.gradle.api.reporting.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
@@ -37,8 +37,8 @@ public class SimpleReport implements ConfigurableReport {
     private Factory<String> displayName;
     private FileResolver fileResolver;
 
-    private final PropertyState<File> destination;
-    private final PropertyState<Boolean> enabled;
+    private final Property<File> destination;
+    private final Property<Boolean> enabled;
     private final Project project;
     private OutputType outputType;
 

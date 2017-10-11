@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -30,6 +31,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     @Override
     public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
         throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
+    }
+
+    @Override
+    public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
     }
 
     @Override

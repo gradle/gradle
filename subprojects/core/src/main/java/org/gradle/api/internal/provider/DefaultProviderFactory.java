@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -60,10 +59,5 @@ public class DefaultProviderFactory implements ProviderFactory {
         }
 
         return propertyState;
-    }
-
-    @Override
-    public <T> ListProperty<T> listProperty(Class<T> elementType) {
-        return new DefaultListProperty<T>(elementType);
     }
 }

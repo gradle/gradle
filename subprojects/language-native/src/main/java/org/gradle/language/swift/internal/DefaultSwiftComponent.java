@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -30,7 +30,7 @@ import java.util.Collections;
 
 public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
     private final FileCollection swiftSource;
-    private final PropertyState<String> module;
+    private final Property<String> module;
     private final String name;
     private final Names names;
     private final Configuration implementation;
@@ -57,7 +57,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public PropertyState<String> getModule() {
+    public Property<String> getModule() {
         return module;
     }
 

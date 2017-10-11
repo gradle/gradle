@@ -23,7 +23,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
@@ -40,7 +40,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
-    private final PropertyState<String> baseName;
+    private final Property<String> baseName;
     private final Names names;
     private final Configuration implementation;
 
@@ -82,7 +82,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public PropertyState<String> getBaseName() {
+    public Property<String> getBaseName() {
         return baseName;
     }
 

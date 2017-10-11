@@ -22,7 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -73,7 +73,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(application.getReleaseExecutable());
 
         // Setup component
-        final PropertyState<String> module = application.getModule();
+        final Property<String> module = application.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
         // Configure compile task

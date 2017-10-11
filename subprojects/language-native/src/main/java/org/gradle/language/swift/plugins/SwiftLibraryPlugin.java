@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
@@ -75,7 +75,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.getComponents().add(library.getReleaseSharedLibrary());
 
         // Setup component
-        final PropertyState<String> module = library.getModule();
+        final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
         // Configure compile task

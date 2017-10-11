@@ -22,7 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
@@ -45,7 +45,7 @@ public class JacocoPluginExtension {
     private final JacocoAgentJar agent;
 
     private String toolVersion;
-    private final PropertyState<File> reportsDir;
+    private final Property<File> reportsDir;
 
     /**
      * Creates a Jacoco plugin extension.

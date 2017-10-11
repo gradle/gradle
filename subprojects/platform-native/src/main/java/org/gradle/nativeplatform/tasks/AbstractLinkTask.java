@@ -64,7 +64,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         libs = getProject().files();
         source = getProject().files();
         outputFile = newOutputFile();
-        linkerArgs = getProject().getProviders().listProperty(String.class);
+        linkerArgs = getProject().getObjects().listProperty(String.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
