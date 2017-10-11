@@ -86,7 +86,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
     public Object configure(List newEntries) {
         Set<ClasspathEntry> updatedEntries = Sets.newLinkedHashSet();
         for (ClasspathEntry entry : entries) {
-            if (!isDependency(entry) && !isJreContainer(entry) && !isOutputLocation(entry)) {
+            if (!isDependency(entry) && !isJreContainer(entry)) {
                 updatedEntries.add(entry);
             }
         }
@@ -133,10 +133,6 @@ public class Classpath extends XmlPersistableConfigurationObject {
 
     private boolean isJreContainer(ClasspathEntry entry) {
         return entry instanceof Container && ((Container) entry).getPath().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER");
-    }
-
-    private boolean isOutputLocation(ClasspathEntry entry) {
-        return entry instanceof Output;
     }
 
     /**

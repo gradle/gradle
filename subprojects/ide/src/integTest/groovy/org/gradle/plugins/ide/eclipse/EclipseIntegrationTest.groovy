@@ -129,7 +129,7 @@ sourceSets {
         def classpath = parseClasspathFile()
 
         def outputs = findEntries(classpath, "output")
-        assert outputs*.@path == ["bin/default"]
+        assert outputs*.@path == ["bin"]
 
         def sources = findEntries(classpath, "src")
         sources.each { assert !it.attributes().containsKey("path") }

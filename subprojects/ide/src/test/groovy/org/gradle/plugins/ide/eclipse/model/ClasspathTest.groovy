@@ -33,7 +33,6 @@ public class ClasspathTest extends Specification {
         new Output("bin")]
     final projectDependency = [customEntries[0]]
     final jreContainer = [customEntries[1]]
-    final outputLocation = [customEntries[6]]
 
     final allDependencies = [customEntries[0], customEntries[2], customEntries[4]]
 
@@ -54,16 +53,16 @@ public class ClasspathTest extends Specification {
         classpath.entries == customEntries
     }
 
-    def "configure overwrites output location, dependencies and jre container and appends all other entries"() {
+    def "configure overwrites dependencies and jre container and appends all other entries"() {
         def constructorEntries = [createSomeLibrary()]
 
         when:
         classpath.load(customClasspathReader)
-        def newEntries = constructorEntries + projectDependency + jreContainer + outputLocation
+        def newEntries = constructorEntries + projectDependency + jreContainer
         classpath.configure(newEntries)
 
         then:
-        def entriesToBeKept = customEntries - allDependencies - jreContainer - outputLocation
+        def entriesToBeKept = customEntries - allDependencies - jreContainer
         classpath.entries == entriesToBeKept + newEntries
     }
 
