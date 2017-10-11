@@ -56,7 +56,7 @@ public class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.project = project;
         this.agent = agent;
-        reportsDir = project.property(File.class);
+        reportsDir = project.getObjects().property(File.class);
     }
 
     /**

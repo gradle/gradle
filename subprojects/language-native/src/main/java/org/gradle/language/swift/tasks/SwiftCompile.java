@@ -43,7 +43,7 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     private final Property<String> moduleName;
 
     public SwiftCompile() {
-        moduleName = getProject().property(String.class);
+        moduleName = getProject().getObjects().property(String.class);
     }
 
     @Override

@@ -82,7 +82,7 @@ public class JacocoTaskExtension {
     public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
-        destinationFile = project.property(File.class);
+        destinationFile = project.getObjects().property(File.class);
     }
 
     /**

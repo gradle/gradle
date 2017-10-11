@@ -67,6 +67,8 @@ public interface ProviderFactory {
      *
      * @param valueType The type of the property.
      * @return The property. Never returns null.
+     * @deprecated Use {@link org.gradle.api.model.ObjectFactory#property(Class)} instead.
      */
+    @Deprecated
     <T> PropertyState<T> property(Class<T> valueType);
 }

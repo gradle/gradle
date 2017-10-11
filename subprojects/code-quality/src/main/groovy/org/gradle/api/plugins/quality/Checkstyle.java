@@ -82,7 +82,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
-        configDir = getProject().property(File.class);
+        configDir = getObjectFactory().property(File.class);
         reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 

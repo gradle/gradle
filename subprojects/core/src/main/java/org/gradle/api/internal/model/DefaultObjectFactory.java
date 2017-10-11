@@ -48,7 +48,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        return providerFactory.property(valueType);
+        return providerFactory.propertyNoNag(valueType);
     }
 
     @Override

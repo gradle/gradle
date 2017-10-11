@@ -313,6 +313,14 @@ The `--recompile-scripts` flag would be ignored in some cases. To avoid confusio
 
 Instead of the `file()` and `files()` methods on `TaskDestroyables`, now there is a single `TaskDestroyables.register()` method.
 
+### Changes to `Provider` types
+
+- `PropertyState` has been renamed to `Property`. The `PropertyState` interface is deprecated and will be removed in Gradle 5.0.
+- The following methods that create `PropertyState` instances have been replaced with the `ObjectFactory.property()` method. These methods are deprecated and will be removed in Gradle 5.0:
+    - `Project.property()`
+    - `Script.property()`
+    - `ProviderFactory.property()`
+
 ### Other deprecations
 
 * `CompileOptions.bootClasspath` is deprecated in favor of the new `bootstrapClasspath` property.

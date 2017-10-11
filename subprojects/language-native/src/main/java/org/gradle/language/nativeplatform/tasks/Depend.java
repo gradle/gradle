@@ -86,7 +86,7 @@ public class Depend extends DefaultTask {
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
         this.headerDependenciesFile = newOutputFile();
-        this.importsAreIncludes = getProject().property(Boolean.class);
+        this.importsAreIncludes = getProject().getObjects().property(Boolean.class);
         this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }

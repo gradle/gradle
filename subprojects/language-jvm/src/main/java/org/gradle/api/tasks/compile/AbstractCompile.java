@@ -35,7 +35,7 @@ public abstract class AbstractCompile extends SourceTask {
     private String targetCompatibility;
 
     public AbstractCompile() {
-        this.destinationDir = getProject().property(File.class);
+        this.destinationDir = getProject().getObjects().property(File.class);
     }
 
     protected abstract void compile();

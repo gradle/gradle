@@ -51,8 +51,8 @@ public class SimpleReport implements ConfigurableReport {
         this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
-        destination = project.property(File.class);
-        enabled = project.property(Boolean.class);
+        destination = project.getObjects().property(File.class);
+        enabled = project.getObjects().property(Boolean.class);
         this.project = project;
     }
 

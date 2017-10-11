@@ -44,7 +44,7 @@ import java.io.File;
 public class JacocoMerge extends JacocoBase {
 
     private FileCollection executionData;
-    private final Property<File> destinationFile = getProject().property(File.class);
+    private final Property<File> destinationFile = getProject().getObjects().property(File.class);
 
     /**
      * Collection of execution data files to merge.

@@ -9,11 +9,11 @@ class GreetingPlugin implements Plugin<Project> {
 }
 
 class GreetingPluginExtension {
-    final PropertyState<String> message
+    final Property<String> message
     final ConfigurableFileCollection outputFiles
 
     GreetingPluginExtension(Project project) {
-        message = project.property(String)
+        message = project.objects.property(String)
         message.set('Hello from GreetingPlugin')
         outputFiles = project.files()
     }
@@ -24,7 +24,7 @@ class GreetingPluginExtension {
 }
 
 class Greeting extends DefaultTask {
-    final PropertyState<String> message = project.property(String)
+    final Property<String> message = project.objects.property(String)
     final ConfigurableFileCollection outputFiles = project.files()
 
     void setOutputFiles(FileCollection outputFiles) {
