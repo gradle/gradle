@@ -1,3 +1,5 @@
+import org.gradle.ShadedJar
+
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
