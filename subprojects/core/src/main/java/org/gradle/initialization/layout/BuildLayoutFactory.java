@@ -28,6 +28,10 @@ import java.io.File;
 @UsedByScanPlugin
 public class BuildLayoutFactory {
 
+    public static BuildLayoutFactory forDefaultScriptingLanguages() {
+        return new BuildLayoutFactory();
+    }
+
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
 
     private final ScriptFileResolver scriptFileResolver;

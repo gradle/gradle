@@ -50,7 +50,6 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
@@ -288,7 +287,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(DefaultScriptFileResolver.forDefaultScriptingLanguages());
+        BuildLayoutFactory buildLayoutFactory = BuildLayoutFactory.forDefaultScriptingLanguages();
         ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
