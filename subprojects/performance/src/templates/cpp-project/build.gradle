@@ -1,3 +1,15 @@
 plugins {
+    <% if (projectType == 'exe') { %>
+    id 'cpp-executable'
+    <% } else { %>
     id 'cpp-library'
+    <% } %>
 }
+
+<% if (projectDeps.size() > 0) { %>
+dependencies {
+    <% projectDeps.each() { %>
+    implementation project(":${it}")
+    <% } %>
+}
+<% } %>
