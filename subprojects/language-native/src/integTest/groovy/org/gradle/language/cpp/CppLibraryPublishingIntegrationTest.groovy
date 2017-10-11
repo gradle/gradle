@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
-class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec {
+class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec implements CppTaskNames {
+
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
@@ -53,7 +54,21 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         run('publish')
 
         then:
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(
+            compileAndLinkTasks(debug),
+            compileAndLinkTasks(release),
+            ":generatePomFileForDebugPublication",
+            ":generateMetadataFileForDebugPublication",
+            ":publishDebugPublicationToMavenRepository",
+            ":cppHeaders",
+            ":generatePomFileForMainPublication",
+            ":generateMetadataFileForMainPublication",
+            ":publishMainPublicationToMavenRepository",
+            ":generatePomFileForReleasePublication",
+            ":generateMetadataFileForReleasePublication",
+            ":publishReleasePublicationToMavenRepository",
+            ":publish"
+        )
 
         def headersZip = file("build/headers/cpp-api-headers.zip")
         new ZipTestFixture(headersZip).hasDescendants(lib.publicHeaders.files*.name)
@@ -279,4 +294,5 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
+
 }

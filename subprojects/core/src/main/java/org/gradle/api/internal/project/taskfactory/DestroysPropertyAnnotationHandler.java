@@ -33,7 +33,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
         context.setConfigureAction(new UpdateAction() {
             @Override
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getDestroyables().files(futureValue);
+                task.getDestroyables().register(futureValue);
             }
         });
     }

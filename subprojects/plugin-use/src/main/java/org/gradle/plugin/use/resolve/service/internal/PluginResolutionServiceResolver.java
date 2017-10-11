@@ -35,6 +35,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -78,10 +79,6 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        if (pluginRequest.getModule() != null) {
-            result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
-            return;
-        }
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
             return;
@@ -102,9 +99,9 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             } else {
                 PluginUseMetaData metaData = response.getResponse();
                 if (metaData.legacy) {
-                    handleLegacy(metaData, result);
+                    handleLegacy(metaData, result, pluginRequest);
                 } else {
-                    ClassPath classPath = resolvePluginDependencies(metaData);
+                    ClassPath classPath = resolvePluginDependencies(metaData, pluginRequest);
                     PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
                     result.found(getDescription(), resolution);
                 }
@@ -112,7 +109,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         }
     }
 
-    private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
+    private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result, final PluginRequest pluginRequest) {
         final PluginId pluginId = DefaultPluginId.of(metadata.id);
         result.found(getDescription(), new PluginResolution() {
             @Override
@@ -121,7 +118,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             }
 
             public void execute(PluginResolveContext context) {
-                context.addLegacy(pluginId, metadata.implementation.get("repo"), metadata.implementation.get("gav"));
+                context.addLegacy(pluginId, metadata.implementation.get("repo"), getGav(pluginRequest, metadata));
             }
         });
     }
@@ -130,7 +127,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return versionSelectorScheme.parseSelector(version).isDynamic();
     }
 
-    private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
+    private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata, PluginRequest pluginRequest) {
         DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
 
         RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
@@ -141,7 +138,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             }
         });
 
-        Dependency dependency = resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
+        Dependency dependency = resolution.getDependencyHandler().create(getGav(pluginRequest, metadata));
 
         ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
         ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
@@ -151,6 +148,14 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             return new DefaultClassPath(files);
         } catch (ResolveException e) {
             throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
+        }
+    }
+
+    private Object getGav(PluginRequest request, PluginUseMetaData metadata) {
+        if (request.getModule() == null) {
+            return metadata.implementation.get("gav");
+        } else {
+            return request.getModule().toString();
         }
     }
 

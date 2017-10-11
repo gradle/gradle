@@ -22,12 +22,15 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
+
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    def setup() {
+    def configureCacheForBuildSrc() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
 
     def "buildSrc is loaded from cache"() {
+        configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
 
@@ -50,6 +53,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
+        configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
         file("input.txt") << "input"
         buildFile << """
@@ -74,6 +78,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
+        configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()
         file("input.txt") << "input"
@@ -116,6 +121,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "cacheable task with cache disabled doesn't get cached"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -248,6 +254,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "optional file output is not stored when there is no output"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -312,6 +319,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "plural output files are only restored when map keys match"() {
+        configureCacheForBuildSrc()
         file("input.txt") << "data"
         file("buildSrc/src/main/groovy/CustomTask.groovy") << """
             import org.gradle.api.*
@@ -676,6 +684,67 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         skipped ":weirdOutput"
         expectedOutput.file
+    }
+
+    @Unroll
+    def "local state declared via #api API is destroyed when task is loaded from cache"() {
+        def localStateFile = file("local-state.json")
+        buildFile << defineTaskWithLocalState(useRuntimeApi)
+
+        when:
+        withBuildCache().succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        localStateFile.assertIsFile()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "customTask"
+        then:
+        skipped ":customTask"
+        localStateFile.assertDoesNotExist()
+
+        where:
+        useRuntimeApi << [true, false]
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Unroll
+    def "local state declared via #api API is not destroyed when task is not loaded from cache"() {
+        def localStateFile = file("local-state.json")
+        buildFile << defineTaskWithLocalState(useRuntimeApi)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        localStateFile.assertIsFile()
+
+        when:
+        cleanBuildDir()
+        succeeds "customTask", "-PassertLocalState"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi << [true, false]
+        api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @Unroll
+    def "null local state declared via #api API is supported"() {
+        buildFile << defineTaskWithLocalState(useRuntimeApi, localStateFile)
+
+        when:
+        succeeds "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        where:
+        useRuntimeApi | localStateFile
+        true          | "{ null }"
+        false         | "null"
+        api = useRuntimeApi ? "runtime" : "annotation"
     }
 
     private static String defineProducerTask() {

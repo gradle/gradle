@@ -27,13 +27,14 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.Factories
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
@@ -565,7 +566,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
             getFiles() >> project.files()
         }
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFilesReadOnly() >> []
+            getFiles() >> project.files()
+        }
+        _ * mock.localState >> Stub(TaskLocalStateInternal) {
+            getFiles() >> project.files()
         }
         _ * mock.path >> ":${name}"
         return mock
@@ -601,7 +605,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
             getFiles() >> project.files()
         }
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFiles() >> []
+            getFiles() >> project.files()
+        }
+        _ * mock.localState >> Stub(TaskLocalStateInternal) {
+            getFiles() >> project.files()
         }
         _ * mock.path >> ":${name}"
         return mock

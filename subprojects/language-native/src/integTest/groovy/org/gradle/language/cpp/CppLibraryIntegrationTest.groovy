@@ -25,7 +25,8 @@ import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
 
-class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
+
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
@@ -39,9 +40,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -77,7 +78,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -97,14 +98,14 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executer.withArgument("--info")
         succeeds "linkRelease"
 
-        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
+        result.assertTasksExecuted(compileAndLinkTasks(release))
         sharedLibrary("build/lib/main/release/hello").assertExists()
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
         succeeds "linkDebug"
 
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug")
+        result.assertTasksExecuted(compileAndLinkTasks(debug))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         !output.contains('compiling with feature enabled')
     }
@@ -133,7 +134,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -161,7 +162,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -180,7 +181,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -202,7 +203,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
@@ -224,7 +225,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -255,14 +256,14 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds ":lib1:assemble"
 
-        result.assertTasksExecuted(":lib3:compileDebugCpp", ":lib3:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
         succeeds ":lib1:linkRelease"
 
-        result.assertTasksExecuted(":lib3:compileReleaseCpp", ":lib3:linkRelease", ":lib2:compileReleaseCpp", ":lib2:linkRelease", ":lib1:compileReleaseCpp", ":lib1:linkRelease")
+        result.assertTasksExecuted compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release)
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
@@ -295,7 +296,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted(":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':lib2', ':lib1'], debug), ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
     }

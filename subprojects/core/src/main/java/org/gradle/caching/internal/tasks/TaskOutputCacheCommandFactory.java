@@ -37,6 +37,7 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -113,7 +114,7 @@ public class TaskOutputCacheCommandFactory {
         }
 
         @Override
-        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) throws IOException {
+        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
@@ -129,6 +130,8 @@ public class TaskOutputCacheCommandFactory {
                     throw new UnrecoverableTaskOutputUnpackingException(String.format("Failed to unpack outputs for %s, and then failed to clean up; see log above for details", task), e);
                 }
                 throw new GradleException(String.format("Failed to unpack outputs for %s", task), e);
+            } finally {
+                cleanLocalState();
             }
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
 
@@ -185,19 +188,33 @@ public class TaskOutputCacheCommandFactory {
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build());
         }
 
+        private void cleanLocalState() {
+            for (File localStateFile : ((TaskLocalStateInternal) task.getLocalState()).getFiles()) {
+                try {
+                    remove(localStateFile);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", task, localStateFile), ex);
+                }
+            }
+        }
+
         private void cleanupOutputsAfterUnpackFailure() {
             for (ResolvedTaskOutputFilePropertySpec outputProperty : outputProperties) {
                 File outputFile = outputProperty.getOutputFile();
-                if (outputFile != null && outputFile.exists()) {
-                    try {
-                        if (outputFile.isDirectory()) {
-                            FileUtils.cleanDirectory(outputFile);
-                        } else {
-                            FileUtils.forceDelete(outputFile);
-                        }
-                    } catch (IOException ex) {
-                        throw new UncheckedIOException(String.format("Failed to clean up files for output property '%s' of %s: %s", outputProperty.getPropertyName(), task, outputFile), ex);
-                    }
+                try {
+                    remove(outputFile);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(String.format("Failed to clean up files for output property '%s' of %s: %s", outputProperty.getPropertyName(), task, outputFile), ex);
+                }
+            }
+        }
+
+        private void remove(File file) throws IOException {
+            if (file != null && file.exists()) {
+                if (file.isDirectory()) {
+                    FileUtils.cleanDirectory(file);
+                } else {
+                    FileUtils.forceDelete(file);
                 }
             }
         }

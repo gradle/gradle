@@ -243,6 +243,12 @@ When a task input property is modified, Gradle is unable to determine how this p
             </sample>
 ++++
 
+[[sec:storing_incremental_task_state]]
+==== Storing incremental state for cached tasks
+
+Using Gradle's `IncrementalTaskInputs` is not the only way to create tasks that only works on changes since the last execution. Tools like the Kotlin compiler provide incrementality as a built-in feature. The way this is typically implemented is that the tool stores some analysis data about the state of the previous execution in some file. If such state files are <<sec:task_output_caching_inputs,relocatable>>, then they can be declared as outputs of the task. This way when the task's results are loaded from cache, the next execution can already use the analysis data loaded from cache, too.
+
+However, if the state files are non-relocatable, then they can't be shared via the build cache. Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state to confuse the tool during the next execution. Gradle can ensure such stale files are removed if they are declared via `task.localState.register()` or a property is marked with the `@LocalState` annotation.
 
 [[worker_api]]
 === The Worker API

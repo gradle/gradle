@@ -69,7 +69,7 @@ public interface ExecutionResult {
     /**
      * Asserts that exactly the given set of tasks have been executed in any order. Note: ignores buildSrc tasks.
      */
-    ExecutionResult assertTasksExecuted(String... taskPaths);
+    ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
@@ -86,7 +86,7 @@ public interface ExecutionResult {
     /**
      * Asserts that exactly the given set of tasks have been skipped. Note: ignores buildSrc tasks.
      */
-    ExecutionResult assertTasksSkipped(String... taskPaths);
+    ExecutionResult assertTasksSkipped(Object... taskPaths);
 
     /**
      * Asserts the given task has been skipped. Note: ignores buildSrc tasks.
@@ -96,7 +96,7 @@ public interface ExecutionResult {
     /**
      * Asserts that exactly the given set of tasks have not been skipped. Note: ignores buildSrc tasks.
      */
-    ExecutionResult assertTasksNotSkipped(String... taskPaths);
+    ExecutionResult assertTasksNotSkipped(Object... taskPaths);
 
     /**
      * Asserts that the given task has not been skipped. Note: ignores buildSrc tasks.

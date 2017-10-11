@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -363,6 +364,85 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         void onlyOutputFileHasBeenRemoved() {
             assert !outputFile.exists()
             assert file(outputDir).exists()
+        }
+    }
+
+    @ToBeImplemented("We don't currently clean up local state")
+    def "stale local state file is removed after input source directory is emptied"() {
+        def taskWithLocalState = new TaskWithLocalState()
+        taskWithLocalState.createInputs()
+        buildScript(taskWithLocalState.buildScript)
+
+        when:
+        succeeds(taskWithLocalState.taskPath)
+
+        then:
+        taskWithLocalState.localStateFile.exists()
+        executedAndNotSkipped(taskWithLocalState.taskPath)
+
+        when:
+        taskWithLocalState.removeInputs()
+
+        and:
+        succeeds(taskWithLocalState.taskPath)
+
+        then:
+        // FIXME This should be localStateHasBeenRemoved(), and the task should not be skipped
+        taskWithLocalState.localStateHasNotBeenRemoved()
+        skipped(taskWithLocalState.taskPath)
+    }
+
+    class TaskWithLocalState {
+        String localStateDir = "build/state"
+        String outputFile = "build/output.txt"
+        File inputFile = file('src/data/input.txt')
+        String taskName = 'test'
+
+        String getBuildScript() {
+            """       
+                apply plugin: 'base'
+
+                task ${taskName} {
+                    def sources = file("src")
+                    inputs.dir sources skipWhenEmpty()
+                    outputs.file "$outputFile"
+                    localState.register "$localStateDir"
+                    doLast {
+                        file("${localStateDir}").mkdirs()
+                        files(sources).asFileTree.visit { details ->
+                            if (!details.directory) {
+                                def output = file("${localStateDir}/\${details.relativePath}.info")
+                                output.parentFile.mkdirs()
+                                output.text = "Analysis for \${details.relativePath}"
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        String getTaskPath() {
+            ":${taskName}"
+        }
+
+        TestFile getLocalStateFile() {
+            file("${localStateDir}/data/input.txt.info")
+        }
+
+        void removeInputs() {
+            inputFile.parentFile.deleteDir()
+        }
+
+        void createInputs() {
+            inputFile.text = "input"
+        }
+
+        void localStateHasBeenRemoved() {
+            assert !file(localStateDir).exists()
+        }
+
+        void localStateHasNotBeenRemoved() {
+            assert file(localStateDir).exists()
         }
     }
 

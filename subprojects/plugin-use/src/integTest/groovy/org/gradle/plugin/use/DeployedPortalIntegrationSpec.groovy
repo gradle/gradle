@@ -106,4 +106,32 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
         failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
     }
+
+    def "can resolve and plugin from portal with buildscript notation"() {
+        given:
+        def helloWorldGroup = 'org.gradle'
+        def helloWorldName = 'gradle-hello-world-plugin'
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    maven {
+                        url "https://plugins.gradle.org/m2/"
+                    }
+                }
+                dependencies {
+                    classpath "$helloWorldGroup:$helloWorldName:$HELLO_WORLD_PLUGIN_VERSION"
+                }
+            }
+
+            apply plugin: "$HELLO_WORLD_PLUGIN_ID"
+        """
+
+        then:
+        succeeds("helloWorld")
+
+        and:
+        output.contains("Hello World!")
+    }
 }

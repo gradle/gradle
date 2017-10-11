@@ -16,14 +16,17 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Issue
+
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "4.1.2"
+                id "nebula.dependency-recommender" version "5.0.0"
             }
 
             ${jcenterRepository()}
@@ -42,11 +45,12 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         runner('build').build()
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '5.6.0'
+                id 'nebula.plugin-plugin' version '5.17.2'
             }
         """
 
@@ -65,6 +69,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         runner('groovydoc').build()
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -73,7 +78,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             plugins {
-                id "nebula.lint" version "7.3.5"
+                id "nebula.lint" version "8.3.1"
             }
 
             apply plugin: 'java'
@@ -86,7 +91,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('lintGradle').build()
+        def result = runner('autoLintGradle').build()
 
         then:
         int numOfRepoBlockLines = 14 + jcenterRepository().readLines().size()
@@ -106,11 +111,12 @@ testCompile('junit:junit:4.7')""")
         buildFile.text.contains("testCompile 'junit:junit:4.7'")
     }
 
+    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
     def 'nebula dependency lock plugin'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "4.9.4"
+                id "nebula.dependency-lock" version "4.9.5"
             }
         """.stripIndent()
 

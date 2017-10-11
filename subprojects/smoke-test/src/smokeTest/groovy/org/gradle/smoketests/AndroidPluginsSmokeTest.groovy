@@ -21,6 +21,11 @@ import spock.lang.Unroll
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'

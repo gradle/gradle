@@ -17,6 +17,7 @@ package org.gradle.language.c.plugins;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
@@ -27,6 +28,7 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
+import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
@@ -44,11 +46,13 @@ import java.util.Map;
  * Adds core C language support.
  */
 @Incubating
+@NonNullApi
 public class CLangPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
+        project.getPluginManager().apply(DependPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
