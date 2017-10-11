@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.testing.performance.generator.tasks.CppProjectGeneratorTask
+
+import org.gradle.testing.performance.generator.tasks.CppMultiProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
@@ -21,7 +22,6 @@ import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGen
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
-
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
@@ -218,16 +218,16 @@ task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
 }
 
 // === Native Current Model Plugins ===
-task smallCppLibrary(type: CppProjectGeneratorTask) {
+task smallCppApp(type: CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
     templateArgs = [
-        functionCount: 1
+        functionCount: 2
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task mediumCppLibrary(type: CppProjectGeneratorTask) {
+task mediumCppApp(type: CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 100
     templateArgs = [
@@ -236,12 +236,42 @@ task mediumCppLibrary(type: CppProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task bigCppLibrary(type: CppProjectGeneratorTask) {
+task bigCppApp(type: CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 500
     templateArgs = [
         functionCount: 50
     ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task smallCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 11
+    sourceFiles = 2
+    templateArgs = [
+        functionCount: 1
+    ]
+    rootProjectTemplates = ['cpp-multi-project-root']
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 101
+    sourceFiles = 4
+    templateArgs = [
+        functionCount: 2
+    ]
+    rootProjectTemplates = ['cpp-multi-project-root']
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task bigCppMulti(type: CppMultiProjectGeneratorTask) {
+    projects = 201
+    sourceFiles = 8
+    templateArgs = [
+        functionCount: 3
+    ]
+    rootProjectTemplates = ['cpp-multi-project-root']
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 

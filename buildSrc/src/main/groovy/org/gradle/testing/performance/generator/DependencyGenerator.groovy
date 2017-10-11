@@ -15,74 +15,99 @@
  */
 
 package org.gradle.testing.performance.generator
-
 /**
  * Generates project dependencies for generated test projects used in performance tests
  *
- * In order to generate realistic project dependencies, we split the projects to layers (numberOfLayers) and generate
- * dependencies to projects in the specified upper layers (maxReferenceHigherLayers) . The sizes of different layers are created so that
- * the first layer is smallest and the size of the following layer is multiplied from the previous layer size (layerRatio).
- * formula used:
- *   total_number_of_projects = x + (x * r) + (x * r^2) + (x * r^3) + ... + (x * r^(n-1))
- *   where r = layer ratio, x = size of first layer, n = number of layers
- * when numberOfProjects = 150, numberOfLayers = 5 and layerRatio = 2.0, this results in layer sizes of 4, 9, 19, 38, 80
- * The last layer size is adjusted so the sum of layer sizes equals the number of projects.
+ * In order to generate realistic project dependencies, we split the projects to layers and generate
+ * dependencies to projects in lower layers. The sizes of different layers are created so that
+ * the first and last layers are the smallest and the layers in the middle are the largest.
+ *
+ * For example when numberOfProjects = 150, 10 layers will be created with sizes of
+ * [1, 2, 6, 16, 50, 50, 16, 6, 2, 1]
  *
  * The dependencies are picked randomly with a random number generator that is seeded with the project number.
  * This way the function returns the same results each time it is evaluated.
- *
  */
 class DependencyGenerator {
-    int numberOfProjects
-    int numberOfLayers = 5
-    double layerRatio = 2.0d
-    int numberOfDependencies = 5
-    int maxReferenceHigherLayers = 2
+    Integer numberOfProjects
+    Integer maxProjectDependencies = 5
 
     def calculateLayerSizes() {
-        assert numberOfProjects >= numberOfLayers
-
-        // distribute projects in layers so that the sizes of subsequent layers are a multiply of the layer ratio
-
-        // total_number_of_projects = x + (x * r) + (x * r^2) + (x * r^3) + ... + (x * r^(n-1))
-        // where r = layer ratio, x = size of first layer, n = number of layers
-
-        // solve x "size of first layer" from previous equation
-        def multiplierSum = (1..numberOfLayers).collect {
-            if ( it == 1) {
-                1
-            } else {
-                layerRatio.power(it - 1)
-            }
-        }.sum()
-        def firstLayerSize = numberOfProjects / multiplierSum
-
-        // calculate layer sizes by using multiplier r^(n-1)*x
-        def layerSizes = (1..numberOfLayers).collect {
-            if ( it == 1) {
-                Math.max(firstLayerSize as int, 1)
-            } else {
-                Math.max((layerRatio.power(it - 1) * firstLayerSize) as int, 1)
-            }
-        }
-
-        // adjust the number of projects in last layer to match total number of projects
-        def currentSum = layerSizes.sum()
-        def difference = Math.abs(currentSum-numberOfProjects)
-        if(currentSum > numberOfProjects) {
-            layerSizes[-1] -= difference
-        } else if (currentSum < numberOfProjects) {
-            layerSizes[-1] += difference
-        }
-
-        assert layerSizes.sum() == numberOfProjects
-
-        layerSizes
+        Deque<Integer> layerSizes = new ArrayDeque<>()
+        recursiveLayers(numberOfProjects, layerSizes)
+        layerSizes as List
     }
 
-    def splitProjectsInLayers(layerSizes) {
+    def static recursiveLayers(Integer numberOfProjects, Deque<Integer> layerSizes) {
+        if (numberOfProjects == 0) {
+            return true
+        }
+        if (numberOfProjects < 0) {
+            return false
+        }
+
+        Integer middle = numberOfProjects / 3
+        if (middle == 0) {
+            middle = 1
+        }
+        if (isEven(middle) && isOdd(numberOfProjects)) {
+            middle -= 1
+        }
+        Integer middleInc = 1
+        if (isOdd(numberOfProjects)) {
+            middleInc = 2
+        }
+
+        while (middle < numberOfProjects) {
+            for (v in layerSizes) {
+                if (middle >= v) {
+                    return false
+                }
+            }
+            def remaining
+            if (isEven(numberOfProjects)) {
+                remaining = numberOfProjects - middle * 2
+                layerSizes.addLast(middle)
+                layerSizes.addFirst(middle)
+            } else {
+                remaining = numberOfProjects - middle
+                layerSizes.addLast(middle)
+            }
+
+            def result = recursiveLayers(remaining, layerSizes)
+            if (result) {
+                return true
+            } else {
+                layerSizes.removeLast()
+                if (isEven(numberOfProjects)) {
+                    layerSizes.removeFirst()
+                }
+                middle += middleInc
+            }
+        }
+
+        if (middle == numberOfProjects) {
+            layerSizes.addLast(middle)
+            return true
+        } else {
+            return false
+        }
+    }
+
+    def static isOdd(value) {
+        return value % 2 == 1
+    }
+
+    def static isEven(value) {
+        return value % 2 == 0
+    }
+
+    def static splitProjectsInLayers(List<Integer> layerSizes) {
+        if (layerSizes.isEmpty()) {
+            return []
+        }
         int currentProjectNumber = 1
-        (1..numberOfLayers).collect {
+        (1..layerSizes.size()).collect {
             def maxProjects = layerSizes[it-1]
             (1..maxProjects).collect {
                 currentProjectNumber++
@@ -95,26 +120,33 @@ class DependencyGenerator {
      *
      * @return map where key is projectNumber, value is a collection of projectNumbers that are the dependencies
      */
-    Map<Integer, Collection<Integer>> createDependencies() {
-        def layerSizes = calculateLayerSizes()
-        def projectsInLayers = splitProjectsInLayers(layerSizes)
+    DependencyInfo createDependencies() {
+        DependencyInfo info = new DependencyInfo()
+        info.layerSizes = calculateLayerSizes()
+        def numLayersToDependOn = Math.max(info.layerSizes.size() / 3 as int, 1)
+        def projectsInLayers = splitProjectsInLayers(info.layerSizes)
 
-        def allProjectDependencies = [:]
+        info.dependencies = [:]
         projectsInLayers.eachWithIndex { projectsForLayer, layerIndex ->
             projectsForLayer.each { projectNumber ->
                 def resolvedDependencies = []
-                def startingLayer = Math.max(layerIndex - maxReferenceHigherLayers, 0)
+                def startingLayer = Math.max(layerIndex - numLayersToDependOn, 0)
                 if(startingLayer < layerIndex) {
                     def possibleDependencies = (startingLayer..<layerIndex).collect {
                         projectsInLayers[it]
                     }.flatten()
                     // use Random with projectNumber as seed, so that we get same results each time
                     Collections.shuffle(possibleDependencies, new Random(projectNumber as long))
-                    resolvedDependencies = possibleDependencies.take(numberOfDependencies).sort()
+                    resolvedDependencies = possibleDependencies.take(maxProjectDependencies).sort()
                 }
-                allProjectDependencies.put(projectNumber, resolvedDependencies)
+                info.dependencies.put(projectNumber, resolvedDependencies as Collection<Integer>)
             }
         }
-        allProjectDependencies
+        info
+    }
+
+    class DependencyInfo {
+        List<Integer> layerSizes
+        Map<Integer, Collection<Integer>> dependencies
     }
 }

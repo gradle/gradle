@@ -72,6 +72,9 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         println "  project templates: ${subProjectTemplates}"
         println "  number of external dependencies: ${numberOfExternalDependencies}"
 
+        // For Subclasses
+        initialize()
+
         while (projects.size() < projectCount) {
             def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
             projects << project
@@ -246,6 +249,9 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
 
     Map getTaskArgs() {
         [:]
+    }
+
+    void initialize() {
     }
 
     abstract void generateProjectSource(File projectDir, TestProject testProject, Map args);

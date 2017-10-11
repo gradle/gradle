@@ -1,0 +1,3 @@
+rootProject.name = 'root'
+<% subprojects.each() { %>
+include "${it}" <% } %>
