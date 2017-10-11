@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -59,6 +60,10 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     private DefaultPluginRequest createScanPluginRequest() {
         DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(BUILD_SCAN_PLUGIN_GROUP, BUILD_SCAN_PLUGIN_NAME, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION);
-        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, 0, "", artifact);
+        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, getOrigin(), artifact);
+    }
+
+    private static String getOrigin() {
+        return String.format("auto-applied plugin by declaring %s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
     }
 }

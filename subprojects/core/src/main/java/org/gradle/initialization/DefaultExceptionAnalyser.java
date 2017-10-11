@@ -29,6 +29,8 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.plugin.use.internal.PluginOriginUtil.scriptSourceDisplayName;
+
 public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecutionListener {
     private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
 
@@ -71,7 +73,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             }
         }
 
-        return new LocationAwareException(actualException, source, lineNumber);
+        return new LocationAwareException(actualException, scriptSourceDisplayName(source, lineNumber));
     }
 
     private Throwable findDeepestRootException(Throwable exception) {

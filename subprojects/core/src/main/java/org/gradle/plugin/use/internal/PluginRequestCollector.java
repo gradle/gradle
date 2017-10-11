@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.plugin.use.internal.PluginOriginUtil.scriptSourceDisplayName;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -92,7 +93,7 @@ public class PluginRequestCollector {
     public List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
             public PluginRequestInternal transform(DependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
+                return new DefaultPluginRequest(original.id, original.version, original.apply, scriptSourceDisplayName(scriptSource, original.lineNumber));
             }
         });
 
@@ -109,11 +110,10 @@ public class PluginRequestCollector {
                 PluginRequestInternal first = pluginRequests.get(0);
                 PluginRequestInternal second = pluginRequests.get(1);
 
-                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
+                InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested (" + first.getOrigin() + ")");
+                throw new LocationAwareException(exception, second.getOrigin());
             }
         }
         return pluginRequests;
     }
-
 }
