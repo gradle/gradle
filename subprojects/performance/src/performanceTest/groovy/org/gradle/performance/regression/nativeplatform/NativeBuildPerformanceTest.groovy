@@ -17,13 +17,12 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.3-20171004093631+0000"]
+        runner.targetVersions = ["4.3-20171011120745+0000"]
     }
 
     @Unroll
@@ -50,7 +49,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "multiNative"  | '256m'       | null
     }
 
-    @Ignore("wolfs: rebaseline when a nightly with discovered inputs is available")
     def "clean assemble on manyProjectsNative"() {
         given:
         runner.testProject = "manyProjectsNative"
