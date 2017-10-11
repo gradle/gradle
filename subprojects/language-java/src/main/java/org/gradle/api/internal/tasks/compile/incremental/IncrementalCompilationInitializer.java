@@ -68,6 +68,8 @@ class IncrementalCompilationInitializer {
             //the stale class might be a source class that was deleted
             //it's no harm to include it in sourceToCompile anyway
             sourceToCompile.include(path.concat(".java"));
+            //if inner classes exists as a separate .java file, they need to be recompiled too.
+            sourceToCompile.include(path.concat("$*.java"));
         }
     }
 }
