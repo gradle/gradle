@@ -827,9 +827,9 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void addsSetterMethodsForPropertyWhoseTypeIsPropertyState() throws Exception {
+    public void addsSetterMethodsForPropertyWhoseTypeIsProperty() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, TestUtil.objectFactory());
+        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -848,9 +848,9 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyStateWhenTheyAlreadyExist() throws Exception {
+    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, TestUtil.objectFactory());
+        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -1361,11 +1361,11 @@ public class AsmBackedClassGeneratorTest {
     public static class AnnotatedBean {
     }
 
-    public static class BeanWithPropertyState {
+    public static class BeanWithProperty {
         private final Property<String> prop;
         private final Property<String> prop2;
 
-        public BeanWithPropertyState(ObjectFactory factory) {
+        public BeanWithProperty(ObjectFactory factory) {
             this.prop = factory.property(String.class);
             this.prop2 = factory.property(String.class);
         }

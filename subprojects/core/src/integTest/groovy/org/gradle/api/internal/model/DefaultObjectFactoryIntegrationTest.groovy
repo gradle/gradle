@@ -72,7 +72,7 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "services are injected into instances using constructor or getter"() {
         buildFile << """
             class Thing1 {
-                final PropertyState<String> name
+                final Property<String> name
                 
                 @javax.inject.Inject
                 Thing1(ObjectFactory objects) { this.name = objects.property(String) }

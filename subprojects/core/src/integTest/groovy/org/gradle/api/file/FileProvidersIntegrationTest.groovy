@@ -54,7 +54,7 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
 class SomeExtension {
-    final PropertyState<Directory> prop
+    final Property<Directory> prop
     
     @javax.inject.Inject
     SomeExtension(ProjectLayout layout) {
@@ -202,7 +202,7 @@ assert custom.prop.get().asFile == file("file4")
         given:
         buildFile << """
 class SomeExtension {
-    final PropertyState<RegularFile> prop
+    final Property<RegularFile> prop
     
     @javax.inject.Inject
     SomeExtension(ProjectLayout layout) {

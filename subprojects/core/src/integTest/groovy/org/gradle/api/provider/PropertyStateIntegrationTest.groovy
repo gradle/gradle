@@ -30,8 +30,9 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
     def "receives deprecation warning when using #expr"() {
         given:
         buildFile << """
-def p = $expr
+PropertyState<String> p = $expr
 p.set("123")
+p.get()
 """
 
         when:
@@ -170,7 +171,7 @@ class SomeExtension {
 }
 
 class SomeTask extends DefaultTask {
-    final PropertyState<String> prop = project.objects.property(String)
+    final Property<String> prop = project.objects.property(String)
 }
 
 extensions.create('custom', SomeExtension, objects)
@@ -214,7 +215,7 @@ task wrongValueType {
     }
 }
 
-task wrongPropertyStateType {
+task wrongPropertyType {
     doLast {
         custom.prop = objects.property(Integer)
     }
@@ -236,10 +237,10 @@ task wrongRuntimeType {
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
-        fails("wrongPropertyStateType")
+        fails("wrongPropertyType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyStateType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyType'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
