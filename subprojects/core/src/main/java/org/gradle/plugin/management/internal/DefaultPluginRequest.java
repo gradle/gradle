@@ -28,7 +28,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final PluginId id;
     private final String version;
     private final boolean apply;
-    private final int lineNumber;
+    private final Integer lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
     private final PluginRequestInternal originalRequest;
@@ -81,7 +81,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public int getLineNumber() {
+    public Integer getLineNumber() {
         return lineNumber;
     }
 
