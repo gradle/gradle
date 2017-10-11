@@ -43,7 +43,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.name == "gradle-core"
         dependency.version == "4.4-beta2"
         dependency.transitive
-        !dependency.optional
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.targetConfiguration == null
@@ -106,7 +105,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
         when:
         dependency.transitive = false
-        dependency.optional = true
         copy = dependency.copy()
 
         then:
@@ -119,7 +117,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.version == dependency.version
         assert copiedDependency.targetConfiguration == dependency.targetConfiguration
         assert copiedDependency.transitive == dependency.transitive
-        assert copiedDependency.optional == dependency.optional
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
 
