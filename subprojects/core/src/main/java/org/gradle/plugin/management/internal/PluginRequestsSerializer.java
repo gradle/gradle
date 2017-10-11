@@ -35,7 +35,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
             String version = decoder.readNullableString();
             boolean apply = decoder.readBoolean();
             String origin = decoder.readString();
-            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, origin, null));
+            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, origin));
         }
         return new DefaultPluginRequests(requests);
     }

@@ -18,7 +18,6 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
 
@@ -30,10 +29,6 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final String origin;
     private final ModuleVersionSelector artifact;
     private final PluginRequestInternal originalRequest;
-
-    public DefaultPluginRequest(String id, String version, boolean apply, String origin) {
-        this(DefaultPluginId.of(id), version, apply, origin);
-    }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, String origin) {
         this(id, version, apply, origin, null);
