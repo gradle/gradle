@@ -98,16 +98,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
             }
         });
-        getOutputs().cacheIf("Header dependency analysis provided", new Spec<Task>() {
+        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                return AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
+                return !AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
             }
         });
-        getOutputs().cacheIf("Native caching is enabled", new Spec<Task>() {
+        getOutputs().doNotCacheIf("Native caching is not enabled", new Spec<Task>() {
             @Override
-            public boolean isSatisfiedBy(Task element) {
-                return element.getProject().getGradle().getStartParameter().isNativeCachingEnabled();
+            public boolean isSatisfiedBy(Task task) {
+                return !task.getProject().getGradle().getStartParameter().isNativeCachingEnabled();
             }
         });
         dependsOn(includes);
@@ -285,6 +285,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }

@@ -16,6 +16,7 @@
 package org.gradle.language.cpp.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.language.cpp.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -24,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
  * Compiles C++ source files into object files.
  */
 @Incubating
+@CacheableTask
 public class CppCompile extends AbstractNativeSourceCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
