@@ -57,6 +57,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
+    public static List<String> flattenTaskPaths(Object[] taskPaths) {
+        return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
+    }
+
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = TextUtil.normaliseLineSeparators(output);
         this.error = TextUtil.normaliseLineSeparators(error);
@@ -150,7 +154,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        List<String> expectedTasks = org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.<String>newArrayList()));
+        List<String> expectedTasks = flattenTaskPaths(taskPaths);
         assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
         return this;
     }
@@ -167,8 +171,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new HashSet<String>();
-        GUtil.flatten(taskPaths, expectedTasks);
+        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
         assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
         return this;
     }
@@ -182,8 +185,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
-        Set<String> expectedTasks = new HashSet<String>();
-        GUtil.flatten(taskPaths, expectedTasks);
+        Set<String> expectedTasks = new HashSet<String>(flattenTaskPaths(taskPaths));
         assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
         return this;
     }
