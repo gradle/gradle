@@ -15,9 +15,11 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,13 +49,10 @@ public class DefaultServiceLocator implements ServiceLocator {
 
     @Override
     public <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException {
-        List<T> services = new ArrayList<T>();
         List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType);
+        ArrayList<T> services = new ArrayList<T>();
         for (ServiceFactory<T> factory : factories) {
-            T service = factory.create();
-            if (service != null) {
-                services.add(service);
-            }
+            services.add(factory.create());
         }
         return services;
     }
@@ -171,6 +170,7 @@ public class DefaultServiceLocator implements ServiceLocator {
             return implementationClass;
         }
 
+        @Nonnull
         public T create() {
             return newInstance();
         }
@@ -178,7 +178,7 @@ public class DefaultServiceLocator implements ServiceLocator {
         public T newInstance(Object... params) {
             try {
                 return DirectInstantiator.instantiate(implementationClass, params);
-            } catch (Throwable t) {
+            } catch (ObjectInstantiationException t) {
                 throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
             }
         }
