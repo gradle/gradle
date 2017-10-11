@@ -17,9 +17,6 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
@@ -28,22 +25,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.minimumVersion = "4.2"
         runner.targetVersions = ["4.3-20171004093631+0000"]
         checkIfCacheUsed = false // TODO: Until the base version supports caching
-        runner.args += "-Dorg.gradle.native.caching=true"
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isFirstRunWithCache(invocationInfo)) {
-                    // TODO: Fix version constraint as soon as we have a nightly including the depend plugin
-                    new TestFile(invocationInfo.projectDir).file('build.gradle') << """      
-                    allprojects {
-                        if (org.gradle.util.GradleVersion.current() != org.gradle.util.GradleVersion.version('4.3-20171004093631+0000')) {
-                            apply plugin: Class.forName('org.gradle.language.nativeplatform.plugins.DependPlugin')
-                        }
-                    }
-                    """
-                }
-            }
-        })
+        runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
     @Unroll
@@ -52,7 +34,6 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.testProject = testProject
         runner.tasksToRun = [task]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
 
         when:
         def result = runner.run()
