@@ -26,15 +26,14 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -89,17 +88,12 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     protected abstract List<String> getPCHArgs(T spec);
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
-        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
-
         File outputFile = compilerOutputFileNamingSchemeFactory.create()
                 .withObjectFileNameSuffix(fileSuffix)
                 .withOutputBaseFolder(objectFileDir)
                 .map(sourceFile);
-        File outputDirectory = outputFile.getParentFile();
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
-        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        GFileUtils.mkdirs(outputFile.getParentFile());
+        return outputFile;
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {

@@ -18,11 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitRepository
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
 
