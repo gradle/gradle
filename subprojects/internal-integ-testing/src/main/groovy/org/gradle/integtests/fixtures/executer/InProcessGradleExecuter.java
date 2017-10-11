@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.Lists;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -59,6 +60,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -481,8 +483,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            ArrayList<String> flattenedTasks = new ArrayList<String>();
-            GUtil.flatten(taskPaths, flattenedTasks);
+            List<String> flattenedTasks = CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
             assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;

@@ -32,7 +32,6 @@ import org.hamcrest.core.StringContains;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -151,8 +150,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        List<String> expectedTasks = new ArrayList<String>();
-        GUtil.flatten(taskPaths, expectedTasks);
+        List<String> expectedTasks = org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.<String>newArrayList()));
         assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(expectedTasks.toArray()));
         return this;
     }
