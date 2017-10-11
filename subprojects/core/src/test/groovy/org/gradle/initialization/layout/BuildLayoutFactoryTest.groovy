@@ -29,10 +29,17 @@ import spock.lang.Unroll
 class BuildLayoutFactoryTest extends Specification {
 
     // This pair of constants is used to unroll most of the tests in this class
-    static final def SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS =
-        [[], ['.gradle.kts'], ['.gradle.kts'], ['.gradle.kts', '.tic'], ['.gradle.kts', '.tac'], ['.tic', '.gradle.kts'], ['.tac', '.gradle.kts']]
-    static final def SETTINGS_FILENAME_PERMUTATIONS =
-        ['settings.gradle', 'settings.gradle', 'settings.gradle.kts', 'settings.gradle', 'settings.gradle.kts', 'settings.gradle', 'settings.gradle.kts']
+    //
+    // | settings file name   | scripting language extensions |
+    static final def TEST_CASES = [
+        ['settings.gradle',     []],
+        ['settings.gradle',     ['.gradle.kts']],
+        ['settings.gradle.kts', ['.gradle.kts']],
+        ['settings.gradle',     ['.gradle.kts', '.tic']],
+        ['settings.gradle.kts', ['.gradle.kts', '.tac']],
+        ['settings.gradle',     ['.tic', '.gradle.kts']],
+        ['settings.gradle.kts', ['.tac', '.gradle.kts']],
+    ]
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -53,8 +60,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -98,8 +104,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -119,8 +124,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -141,8 +145,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -163,8 +166,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -185,8 +187,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -207,8 +208,7 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -228,8 +228,7 @@ class BuildLayoutFactoryTest extends Specification {
         isEmpty(layout.settingsScriptSource)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     @Unroll
@@ -272,9 +271,8 @@ class BuildLayoutFactoryTest extends Specification {
         refersTo(layout.settingsScriptSource, settingsFile)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
-        overrideSettingsFilename << SETTINGS_FILENAME_PERMUTATIONS.collect { "some-$it" }
+        [settingsFilename, extensions] << TEST_CASES
+        overrideSettingsFilename = "some-$settingsFilename"
     }
 
     @Unroll
@@ -297,8 +295,7 @@ class BuildLayoutFactoryTest extends Specification {
         isEmpty(layout.settingsScriptSource)
 
         where:
-        extensions << SCRIPT_LANGUAGE_EXTENSION_PERMUTATIONS
-        settingsFilename << SETTINGS_FILENAME_PERMUTATIONS
+        [settingsFilename, extensions] << TEST_CASES
     }
 
     BuildLayoutFactory buildLayoutFactoryFor(List<String> extensions) {
