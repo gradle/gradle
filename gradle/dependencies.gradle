@@ -109,7 +109,8 @@ libraries += [
         'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r@jar', // 4.6+ requires Java 8
         libraries.commons_httpclient,
         libraries.jsch
-    ]
+    ],
+    testng: 'org.testng:testng:6.3.1'
 ]
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
@@ -227,6 +228,8 @@ allprojects {
                 details.useTarget(libraries.cglib)
             } else if (details.requested.group == 'org.apache.ivy') {
                 details.useTarget(libraries.ivy)
+            } else if (details.requested.group == 'org.testng') {
+                details.useTarget(libraries.testng)
             }
         }
     }
