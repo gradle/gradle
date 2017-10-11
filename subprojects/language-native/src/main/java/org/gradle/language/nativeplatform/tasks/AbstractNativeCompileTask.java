@@ -98,7 +98,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
             }
         });
-        getOutputs().doNotCacheIf("Native caching is not enabled", new Spec<Task>() {
+        getOutputs().doNotCacheIf("Experimental native caching is not enabled", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 return !Boolean.getBoolean("org.gradle.caching.native");

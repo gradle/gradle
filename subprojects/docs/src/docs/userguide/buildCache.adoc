@@ -161,10 +161,11 @@ Caching is then enabled for api:org.gradle.language.c.tasks.CCompile[] and api:o
 
 [NOTE]
 ====
-Caching native tasks is still experimental and some caveats apply:
+Caching native tasks is experimental.
+Some inputs to the compilation tasks are not tracked yet, which can cause false cache hits:
 
-* The toolchain is not tracked as an input to the compilation tasks
-* System headers provided by the compiler are not tracked
+* The compiler type and version, thus object files produced by different compilers will be treated as identical.
+* System headers, thus object files produced with different versions of system libraries will be treated as identical.
 ====
 
 All other tasks are currently not cacheable, but this may change in the future for other languages (Kotlin) or domains (native, Android, Play).

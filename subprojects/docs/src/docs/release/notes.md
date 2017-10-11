@@ -217,12 +217,12 @@ See the user guide section on the [`plugins {}` block](userguide/plugins.html#se
 
 ### Experimental caching for C/C++ compilation
 
-This release adds support for using the build cache with C/C++ compilation.
-To enable that feature the system property `org.gradle.native.caching` has to be set to `true`.
-Caching C/C++ compilation is still experimental and some caveats apply:
+This release adds _experimental_ support for using the build cache with C/C++ compilation.
+To enable this feature the system property `org.gradle.native.caching` has to be set to `true`.
+Some inputs to the compilation tasks are not tracked yet, which can cause false cache hits:
 
-* The toolchain is not tracked as an input to the compilation tasks
-* System headers provided by the compiler are not tracked
+* The compiler type and version, thus object files produced by different compilers will be treated as identical.
+* System headers, thus object files produced with different versions of system libraries will be treated as identical. 
 
 ## Promoted features
 
