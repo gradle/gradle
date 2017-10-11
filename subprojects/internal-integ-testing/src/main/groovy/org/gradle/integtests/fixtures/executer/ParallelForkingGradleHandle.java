@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.SingleMessageLogger;
 
@@ -56,8 +58,7 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
         @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            Set<String> expectedTasks = new HashSet<String>();
-            GUtil.flatten(taskPaths, expectedTasks);
+            Set<String> expectedTasks = new HashSet<String>(CollectionUtils.toStringList(GUtil.flatten(taskPaths, Sets.newHashSet())));
             assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), new HashSet<String>(getExecutedTasks()), equalTo(expectedTasks));
             return this;
         }
