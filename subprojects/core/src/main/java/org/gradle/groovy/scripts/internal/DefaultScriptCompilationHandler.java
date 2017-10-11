@@ -78,13 +78,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int HAS_METHODS_FLAG = 2;
 
     private final ClassLoaderCache classLoaderCache;
-    private final String[] defaultImportPackages;
+    private final String[] importPackages;
     private final Map<String, List<String>> simpleNameToFQN;
 
     public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
-        defaultImportPackages = importsReader.getImportPackages();
         simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
+        importPackages = importsReader.getImportPackages();
     }
 
     @Override
@@ -118,7 +118,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(source, compilerConfiguration, codeSource, customVerifier, this);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -281,7 +281,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private class CustomCompilationUnit extends CompilationUnit {
-        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
+        public CustomCompilationUnit(final ScriptSource script, CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.verifier = new Verifier() {
                 public void visitClass(ClassNode node) {
@@ -289,7 +289,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     super.visitClass(node);
                 }
             };
-            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
+            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, importPackages, simpleNameToFQN);
             this.resolveVisitor = resolveVisitor;
             this.progressCallback = new ProgressCallback() {
                 @Override
@@ -297,8 +297,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     if (phase == Phases.CANONICALIZATION) {
                         Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
                         if (!deprecatedImports.isEmpty()) {
-                            DeprecationLogger.nagUserWith("Using " + Joiner.on(",").join(deprecatedImports)
-                                + " from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0");
+                            DeprecationLogger.nagUserWith(StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports)
+                                + " from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0");
                         }
                     }
                 }
