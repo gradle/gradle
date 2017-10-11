@@ -21,7 +21,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -62,7 +61,7 @@ public class ConnectionScopeServices {
 
     ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter,
                                                 DaemonClientFactory daemonClientFactory,
-                                                ScriptFileResolver scriptFileResolver,
+                                                BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
                                                 JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
@@ -71,7 +70,7 @@ public class ConnectionScopeServices {
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
-                new BuildLayoutFactory(scriptFileResolver),
+                buildLayoutFactory,
                 daemonClientFactory,
                 buildActionExecuter,
                 new PayloadSerializer(

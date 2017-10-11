@@ -28,6 +28,12 @@ import java.io.File;
 @UsedByScanPlugin
 public class BuildLayoutFactory {
 
+    /**
+     * Constructs a {@code BuildLayoutFactory} that searches for script files
+     * matching all available scripting languages.
+     *
+     * @see ScriptFileResolver
+     */
     public static BuildLayoutFactory forDefaultScriptingLanguages() {
         return new BuildLayoutFactory();
     }
@@ -42,8 +48,10 @@ public class BuildLayoutFactory {
 
     /**
      * This constructor should not be used in Gradle.
-     * It's sole purpose is backwards compatibility with the build scan plugin.
-     * {@link #BuildLayoutFactory(ScriptFileResolver)} should be used instead.
+     * Its sole purpose is backwards compatibility with the build scan plugin.
+     *
+     * {@code BuildLayoutFactory} should be either consumed as a service or instantiated via
+     * {@link #forDefaultScriptingLanguages()}.
      */
     @Deprecated
     public BuildLayoutFactory() {

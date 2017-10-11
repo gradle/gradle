@@ -66,6 +66,7 @@ import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -325,6 +326,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     ScriptFileResolver createScriptFileResolver(ScriptingLanguages scriptingLanguages) {
         return DefaultScriptFileResolver.forScriptingLanguages(scriptingLanguages);
+    }
+
+    BuildLayoutFactory createBuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+        return new BuildLayoutFactory(scriptFileResolver);
     }
 
     TaskInputsListener createTaskInputsListener() {
