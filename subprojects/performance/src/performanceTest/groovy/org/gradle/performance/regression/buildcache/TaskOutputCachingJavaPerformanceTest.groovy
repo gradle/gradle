@@ -264,10 +264,6 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.cleanTasks = ["clean"]
     }
 
-    /**
-     * In order to compare the different cache backends we define the scenarios for the
-     * tests here.
-     */
     def getScenarios() {
         [
             [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],

@@ -101,8 +101,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         getOutputs().cacheIf("Header dependency analysis provided", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                AbstractNativeCompileTask compileTask = (AbstractNativeCompileTask) element;
-                return compileTask.getHeaderDependenciesFile().isPresent();
+                return AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
             }
         });
         getOutputs().cacheIf("Native caching is enabled", new Spec<Task>() {
