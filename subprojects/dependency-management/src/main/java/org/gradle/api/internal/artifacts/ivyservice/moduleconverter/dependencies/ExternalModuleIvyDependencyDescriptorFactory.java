@@ -39,7 +39,6 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
-        boolean optional = externalModuleDependency.isOptional();
 
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
@@ -48,7 +47,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
                 selector, requested, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
-                excludes, force, changing, transitive, optional);
+                excludes, force, changing, transitive);
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

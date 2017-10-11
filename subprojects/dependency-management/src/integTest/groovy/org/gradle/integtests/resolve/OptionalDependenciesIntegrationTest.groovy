@@ -19,60 +19,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-    void "only first level optional dependency are integrated into the result of resolution"() {
-        given:
-        mavenRepo.module("org", "foo", '1.0').publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo:1.0') {
-                   optional = true
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.0.jar'] // included because 1st level
-                }
-            }
-        """
-
-        settingsFile << 'include "b"'
-        file("b/build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf project(path:':', configuration:'conf')
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == []
-                }
-            }
-        """
-
-        when:
-        run 'checkDeps'
-
-        then:
-        noExceptionThrown()
-    }
-
     void "optional dependency is included into the result of resolution when a hard dependency is also added"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module("org", "foo", '1.1').publish()
+        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
+
+        mavenRepo.module("org", "root1", "1.0")
+            .dependsOn(foo11, optional:true)
+            .publish()
+        mavenRepo.module("org", "root2", "1.0")
+            .dependsOn(foo10)
+            .publish()
 
         buildFile << """
             repositories {
@@ -82,15 +39,13 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
             dependencies {
-                conf('org:foo:1.1') {
-                   optional = true
-                }
-                conf 'org:foo:1.0'
+                conf 'org:root1:1.0'
+                conf 'org:root2:1.0'
             }
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
+                    assert files == ['foo-1.1.jar', 'root1-1.0.jar', 'root2-1.0.jar']
                 }
             }
         """
@@ -104,9 +59,13 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "optional dependency is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module("org", "foo", '1.1').publish()
+        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", "1.0").publish()
+
+        mavenRepo.module("org", "root", "1.0")
+            .dependsOn(foo11, optional:true)
+            .publish()
 
         buildFile << """
             repositories {
@@ -116,15 +75,13 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
             dependencies {
-                conf('org:foo:1.1') {
-                   optional = true
-                }
+                conf('org:root:1.0')
                 conf 'org:bar:1.0'
             }
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.1.jar']
+                    assert files == ['bar-1.0.jar', 'foo-1.1.jar', 'root-1.0.jar']
                 }
             }
         """
@@ -142,6 +99,9 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.1').publish()
         mavenRepo.module("org", "foo", '1.2').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", "[1.0,1.2]").publish()
+        mavenRepo.module("org", "root", "1.0")
+            .dependsOn(mavenRepo.module("org", "foo", '[1.0,1.1]'), optional:true)
+            .publish()
 
         buildFile << """
             repositories {
@@ -151,72 +111,16 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
             dependencies {
-                conf('org:foo:[1.0,1.1]') {
-                   optional = true
-                }
+                conf('org:root:1.0')
                 conf 'org:bar:1.0'
             }
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.1.jar']
+                    assert files == ['bar-1.0.jar', 'foo-1.1.jar', 'root-1.0.jar']
                 }
             }
         """
-
-        when:
-        run 'checkDeps'
-
-        then:
-        noExceptionThrown()
-    }
-
-    void "transitive dependencies of an optional dependency are not included in the graph"() {
-        given:
-        mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.0').publish()
-        mavenRepo.module("org", "bar", '1.0').publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo:1.0') {
-                   optional = true
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.0.jar']
-                }
-            }
-        """
-
-        settingsFile << 'include "b"'
-        file("b/build.gradle") << """
-            repositories {
-                // this repo is not necessary but added for the sake of testing, in
-                // case the optional handling is not done properly
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf project(path:':', configuration:'conf')
-            }
-
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == []
-                }
-            }
-"""
 
         when:
         run 'checkDeps'
@@ -227,9 +131,13 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "transitive dependencies of an optional dependency do not participate in conflict resolution"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
+        def foo10 = mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
         mavenRepo.module("org", "bar", '1.0').publish()
         mavenRepo.module("org", "bar", '1.1').publish()
+
+        mavenRepo.module("org", "root", "1.0")
+            .dependsOn(foo10, optional:true)
+            .publish()
 
         buildFile << """
             repositories {
@@ -239,37 +147,13 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
             dependencies {
-                conf('org:foo:1.0') {
-                   optional = true
-                }
+                conf 'org:root:1.0'
                 conf 'org:bar:1.0'
             }
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.1.jar', 'foo-1.0.jar']
-                }
-            }
-        """
-
-        settingsFile << 'include "b"'
-        file("b/build.gradle") << """
-            repositories {
-                // this repo is not necessary but added for the sake of testing, in
-                // case the optional handling is not done properly
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf project(path:':', configuration:'conf')
-            }
-
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar']
+                    assert files == ['bar-1.0.jar', 'root-1.0.jar']
                 }
             }
         """
@@ -345,8 +229,14 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "optional dependency on substituted module is recognized properly"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module("org", "foo", '1.1').publish()
+        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
+        def bar10 = mavenRepo.module("org", "bar", '1.0').publish()
+        def bar11 = mavenRepo.module("org", "bar", '1.1').publish()
+        mavenRepo.module("org", "root", "1.0")
+            .dependsOn(bar11, optional:true)
+            .dependsOn(foo10)
+            .publish()
 
         buildFile << """
             repositories {
@@ -364,15 +254,12 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             dependencies {
-                conf('org:bar:1.1') {
-                   optional = true
-                }
-                conf 'org:foo:1.0'
+                conf 'org:root:1.0'
             }
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
+                    assert files == ['foo-1.1.jar', 'root-1.0.jar']
                 }
             }
         """

@@ -1079,7 +1079,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.id.group, excluded.id.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector, selector, "default", null, "default", [] as Set<IvyArtifactName>,
-            excludeRules, force, false, transitive, optional)
+            excludeRules, force, false, transitive)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData

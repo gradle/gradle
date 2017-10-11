@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 
@@ -27,7 +26,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private String version;
     private boolean changing;
     private boolean force;
-    private boolean optional;
 
     public AbstractExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
@@ -43,7 +41,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         super.copyTo(target);
         target.setForce(isForce());
         target.setChanging(isChanging());
-        target.setOptional(isOptional());
     }
 
     protected boolean isContentEqualsFor(ExternalModuleDependency dependencyRhs) {
@@ -86,17 +83,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     public ExternalModuleDependency setChanging(boolean changing) {
         validateMutation(this.changing, changing);
         this.changing = changing;
-        return this;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return optional;
-    }
-
-    @Override
-    public ModuleDependency setOptional(boolean optional) {
-        this.optional = optional;
         return this;
     }
 }
