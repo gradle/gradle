@@ -20,10 +20,16 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
 
 class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
     CppAppWithLibraries app = new CppAppWithLibraries()
     String compilationTask = ':compileDebugCpp'
+
+    def setup() {
+        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
+        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
 
     def setupProjectInDirectory(TestFile project) {
         project.file('settings.gradle') << "include 'lib1', 'lib2'"
