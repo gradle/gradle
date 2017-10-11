@@ -19,65 +19,30 @@ package org.gradle.performance.regression.buildcache
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.generator.JavaTestProject
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
-import org.junit.Rule
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Unroll
-class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
-
-    private TestFile cacheDir
-    private String protocol = "http"
-    private boolean pushToRemote
-
-    @Rule
-    HttpBuildCacheServer buildCacheServer = new HttpBuildCacheServer(temporaryFolder)
+class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
-        buildCacheServer.logRequests = false
-        cacheDir = temporaryFolder.file("local-cache")
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isRunWithCache(invocationInfo)) {
-                    if (!buildCacheServer.isRunning()) {
-                        buildCacheServer.start()
-                    }
-                    def settings = new TestFile(invocationInfo.projectDir).file('settings.gradle')
-                    if (isFirstRunWithCache(invocationInfo)) {
-                        cacheDir.deleteDir().mkdirs()
-                        buildCacheServer.cacheDir.deleteDir().mkdirs()
-                        settings << remoteCacheSettingsScript
-                    }
-                    assert buildCacheServer.uri.toString().startsWith("${protocol}://")
-                    assert settings.text.contains(buildCacheServer.uri.toString())
-                }
-            }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (isLastRun(invocationInfo)) {
-                    assert !(buildCacheServer.cacheDir.allDescendants().empty && cacheDir.allDescendants().isEmpty())
-                    assert pushToRemote || buildCacheServer.cacheDir.allDescendants().empty
-                }
-            }
-        })
+        runner.warmUpRuns = 5
+        runner.runs = 13
+        runner.minimumVersion = "3.5"
+        runner.targetVersions = ["4.3-20171009150001+0000"]
     }
 
     def "clean #tasks on #testProject with remote http cache"() {
@@ -240,24 +205,6 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
-    private BuildExperimentListenerAdapter cleanLocalCache() {
-        new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                cacheDir.deleteDir().mkdirs()
-            }
-        }
-    }
-
-    private BuildExperimentListenerAdapter cleanRemoteCache() {
-        new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                buildCacheServer.cacheDir.deleteDir().mkdirs()
-            }
-        }
-    }
-
     private BuildExperimentListenerAdapter touchCacheArtifacts() {
         new BuildExperimentListenerAdapter() {
             @Override
@@ -310,26 +257,18 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
     }
 
-    private String getRemoteCacheSettingsScript() {
-        """
-            def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
-            buildCache {
-                local {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
-                }
-                remote(httpCacheClass) {
-                    url = '${buildCacheServer.uri}/' 
-                    push = ${pushToRemote}
-                }
-            }
-        """.stripIndent()
-    }
-
     private def setupTestProject(JavaTestProject testProject, String tasks) {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
         runner.cleanTasks = ["clean"]
+    }
+
+    def getScenarios() {
+        [
+            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
+            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
+        ]
     }
 
 }

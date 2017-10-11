@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -94,6 +96,18 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             @Override
             public String call() throws Exception {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+            }
+        });
+        getOutputs().doNotCacheIf("Experimental native caching is not enabled", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task task) {
+                return !Boolean.getBoolean("org.gradle.caching.native");
+            }
+        });
+        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return !AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
             }
         });
         dependsOn(includes);
@@ -271,6 +285,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }
