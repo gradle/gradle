@@ -129,6 +129,9 @@ Task types need to opt-in to task output caching using the `@api:org.gradle.api.
 Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
 
+[[sec:task_output_caching_cacheable_tasks]]
+===== Built-in cacheable tasks
+
 Currently, the following built-in Gradle tasks are cacheable:
 
 * Java toolchain:
@@ -155,8 +158,11 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
+[[sec:task_output_caching_native_tasks]]
+===== Caching native compilation
+
 It is also possible to enable caching for the native toolchain.
-This can be done by setting the system property `org.gradle.native.caching` to `true`.
+This can be done by setting the system property `org.gradle.caching.native` to `true`.
 Caching is then enabled for api:org.gradle.language.c.tasks.CCompile[] and api:org.gradle.language.cpp.tasks.CppCompile[].
 
 [NOTE]
@@ -167,6 +173,9 @@ Some inputs to the compilation tasks are not tracked yet, which can cause false 
 * The compiler type and version, thus object files produced by different compilers will be treated as identical.
 * System headers, thus object files produced with different versions of system libraries will be treated as identical.
 ====
+
+[[sec:task_output_caching_non_cacheable_tasks]]
+===== Non-cacheable tasks
 
 All other tasks are currently not cacheable, but this may change in the future for other languages (Kotlin) or domains (native, Android, Play).
 Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.

@@ -32,7 +32,7 @@ Add-->
 
 ### Experimental task output caching for C/C++ compilation
 
-This release adds _experimental_ support for using the build cache with C/C++ compilation.
+This release adds _experimental_ support for using the [build cache with C/C++ compilation](userguide/build_cache.html#sec:task_output_caching_native_tasks).
 To enable this feature the system property `org.gradle.caching.native` has to be set to `true`.
 
     // gradle.properties
