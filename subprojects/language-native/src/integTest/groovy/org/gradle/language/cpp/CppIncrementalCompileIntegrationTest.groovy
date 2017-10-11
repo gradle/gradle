@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
@@ -26,14 +25,8 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputAppWithLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.junit.Assume
 
-class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
-
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
-    }
+class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"

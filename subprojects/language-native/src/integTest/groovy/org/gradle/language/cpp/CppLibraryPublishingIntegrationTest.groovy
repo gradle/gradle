@@ -16,19 +16,12 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AbstractNativePublishingIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.junit.Assume
 
-class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec implements CppTaskNames {
-
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
-    }
+class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
