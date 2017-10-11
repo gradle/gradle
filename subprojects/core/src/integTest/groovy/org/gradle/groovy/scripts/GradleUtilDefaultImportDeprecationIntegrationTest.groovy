@@ -22,6 +22,10 @@ import spock.lang.Issue
 @Issue('https://github.com/gradle/gradle/issues/1793')
 class GradleUtilDefaultImportDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.requireOwnGradleUserHomeDir()
+    }
+
     def "no deprecation warning with #importStatement and #className"() {
         given:
         buildFile << """
@@ -32,11 +36,8 @@ task noop{
     }
 }
 """
-        when:
+        expect:
         succeeds('noop')
-
-        then:
-        !output.contains("from org.gradle.util internal package which was deprecated now.")
 
         where:
         importStatement                        | className
@@ -57,7 +58,24 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("Using GradleVersion from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0")
+        outputContains("build.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
+    }
+
+    def "deprecation warning points to the offending file"() {
+        file("foo.gradle") << '''
+task noop{
+    doLast {
+        GradleVersion.current() 
+    }
+}
+'''
+        buildFile << "apply from: 'foo.gradle'"
+        when:
+        executer.expectDeprecationWarning()
+        succeeds('noop')
+
+        then:
+        outputContains("foo.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
     }
 
     def "multiple implicit imports will only be warned once"() {
@@ -74,6 +92,6 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("Using CollectionUtils,GradleVersion from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0")
+        outputContains("build.gradle' is using CollectionUtils and GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
     }
 }
