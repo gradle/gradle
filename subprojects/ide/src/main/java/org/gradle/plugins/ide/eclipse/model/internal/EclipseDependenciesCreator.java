@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -150,7 +151,7 @@ public class EclipseDependenciesCreator {
 
         Collection<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
         if (sourceSets != null) {
-            out.getEntryAttributes().put("gradle_source_sets", Joiner.on(',').join(sourceSets));
+            out.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, Joiner.on(',').join(sourceSets));
         }
         return out;
     }

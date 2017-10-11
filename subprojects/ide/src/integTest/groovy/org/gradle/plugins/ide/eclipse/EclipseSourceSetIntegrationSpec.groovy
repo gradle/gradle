@@ -43,8 +43,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_source_sets', 'main,test')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_source_sets', 'test')
+        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test')
+        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
     def "Source sets defined on source folders"() {
@@ -61,8 +61,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_source_sets', 'main')
-        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_source_sets', 'test')
+        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_used_by_scope', 'main')
+        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
     def "Source set information is customizable in whenMerged block"() {
@@ -81,8 +81,8 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             eclipse.classpath.file.whenMerged {
                 def testDir = entries.find { entry -> entry.path == 'src/test/java' }
                 def guavaDep = entries.find { entry -> entry.path.contains 'guava-18.0.jar' }
-                testDir.entryAttributes['gradle_source_sets'] = 'test,integTest'
-                guavaDep.entryAttributes['gradle_source_sets'] = 'main,test,integTest'
+                testDir.entryAttributes['gradle_used_by_scope'] = 'test,integTest'
+                guavaDep.entryAttributes['gradle_used_by_scope'] = 'main,test,integTest'
             }
         """
         file('src/test/java').mkdirs()
@@ -92,9 +92,9 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_source_sets', 'test,integTest')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_source_sets', 'test')
-        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_source_sets', 'main,test,integTest')
+        classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test,integTest')
+        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
+        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test,integTest')
     }
 
     def "Source dirs have default output locations"() {

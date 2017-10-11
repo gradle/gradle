@@ -37,13 +37,17 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         def testDirAttributes = project.sourceDirectories.find { it.path == 'src/test/java' }.classpathAttributes
 
         then:
-        mainDirAttributes.size() == 1
-        mainDirAttributes[0].name == 'gradle_source_sets'
+        mainDirAttributes.size() == 2
+        mainDirAttributes[0].name == 'gradle_scope'
         mainDirAttributes[0].value == 'main'
+        mainDirAttributes[1].name == 'gradle_used_by_scope'
+        mainDirAttributes[1].value == 'main,test'
 
-        testDirAttributes.size() == 1
-        testDirAttributes[0].name == 'gradle_source_sets'
+        testDirAttributes.size() == 2
+        testDirAttributes[0].name == 'gradle_scope'
         testDirAttributes[0].value == 'test'
+        testDirAttributes[1].name == 'gradle_used_by_scope'
+        testDirAttributes[1].value == 'test'
     }
 
     def "Source folder defines additional classpath attributes"() {
@@ -68,8 +72,9 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
 
         then:
         project.sourceDirectories.size() == 1
-        project.sourceDirectories[0].classpathAttributes.size() == 3
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_source_sets' && it.value == 'main'}
+        project.sourceDirectories[0].classpathAttributes.size() == 4
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'main'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test'}
         project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1'}
         project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2'}
     }
@@ -83,7 +88,9 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
                classpath {
                    file {
                        whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes['gradle_source_sets'] = 'main,test'
+                           def entry = classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }
+                           entry.entryAttributes['gradle_scope'] = 'foo'
+                           entry.entryAttributes['gradle_used_by_scope'] = 'foo,bar'
                        }
                    }
                }
@@ -96,7 +103,8 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
 
         then:
         project.sourceDirectories.size() == 1
-        project.sourceDirectories[0].classpathAttributes.size() == 1
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_source_sets' && it.value == 'main,test'}
+        project.sourceDirectories[0].classpathAttributes.size() == 2
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'foo'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'foo,bar'}
     }
 }
