@@ -85,6 +85,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -481,8 +482,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            ArrayList<String> flattenedTasks = new ArrayList<String>();
-            GUtil.flatten(taskPaths, flattenedTasks);
+            List<String> flattenedTasks = flattenTaskPaths(taskPaths);
             assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;
@@ -505,8 +505,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>();
-            GUtil.flatten(taskPaths, expected);
+            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             outputResult.assertTasksSkipped(expected);
             return this;
@@ -526,8 +525,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (GradleContextualExecuter.isParallel()) {
                 return this;
             }
-            Set<String> expected = new HashSet<String>();
-            GUtil.flatten(taskPaths, expected);
+            Set<String> expected = new HashSet<String>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
             outputResult.assertTasksNotSkipped(expected);
