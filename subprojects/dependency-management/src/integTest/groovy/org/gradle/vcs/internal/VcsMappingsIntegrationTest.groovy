@@ -128,6 +128,25 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoNotCheckedOut("does-not-exist")
     }
 
+    def 'missing settings has clear error'() {
+        file('dep/settings.gradle').delete()
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails('assemble')
+        assertRepoCheckedOut()
+        failureCauseContains('Missing settings script')
+    }
+
     void assertRepoCheckedOut(String repoName="dep") {
         def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
         checkout.file("checkedout").assertIsFile()
