@@ -25,7 +25,7 @@ import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest{
+class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
     int firstWarmupWithCache = 1
 
     def setup() {
@@ -43,8 +43,8 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
      */
     def getScenarios() {
         [
-            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
-            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
+            [LARGE_MONOLITHIC_JAVA_PROJECT, 'compileJava'],
+            [LARGE_JAVA_MULTI_PROJECT, 'compileJava']
         ]
     }
 

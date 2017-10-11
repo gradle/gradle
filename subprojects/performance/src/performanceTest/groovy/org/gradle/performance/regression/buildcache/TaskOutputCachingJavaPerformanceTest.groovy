@@ -27,6 +27,7 @@ import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
+import org.gradle.performance.mutator.ApplyAlternatingAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -330,6 +331,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
         runner.cleanTasks = ["clean"]
+        runner.addBuildExperimentListener(new ApplyAlternatingAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario["assemble"]))
     }
 
 }
