@@ -75,6 +75,7 @@ class PluginBuilder {
         """
 
         writePluginDescriptors(pluginIds)
+        projectDir.file('settings.gradle').write('')
         executer.inDirectory(projectDir).withTasks("jar").run()
     }
 
