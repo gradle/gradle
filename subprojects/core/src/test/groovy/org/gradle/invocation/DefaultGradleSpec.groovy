@@ -383,11 +383,11 @@ class DefaultGradleSpec extends Specification {
     def "has identity path"() {
         given:
         def child1 = classGenerator.newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
-        child1.rootProject = project('child1')
+        child1.rootProjectName = 'child1'
 
         and:
         def child2 = classGenerator.newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
-        child2.rootProject = project('child2')
+        child2.rootProjectName = 'child2'
 
         expect:
         gradle.identityPath == Path.ROOT
