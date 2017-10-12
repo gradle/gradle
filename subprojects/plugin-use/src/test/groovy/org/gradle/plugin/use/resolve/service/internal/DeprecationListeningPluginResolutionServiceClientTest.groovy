@@ -19,6 +19,7 @@ package org.gradle.plugin.use.resolve.service.internal
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient.toMessage
@@ -92,6 +93,6 @@ class DeprecationListeningPluginResolutionServiceClientTest extends Specificatio
     }
 
     static PluginRequestInternal request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new StringScriptSource("test", "test"))
     }
 }

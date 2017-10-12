@@ -28,32 +28,24 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final PluginId id;
     private final String version;
     private final boolean apply;
-    private final int lineNumber;
+    private final Integer lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
     private final PluginRequestInternal originalRequest;
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
         this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
     }
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
+    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, String scriptDisplayName) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
     }
 
-    public DefaultPluginRequest(PluginRequestInternal from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getModule());
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
         this(id, version, apply, lineNumber, scriptDisplayName, artifact, null);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
                                 PluginRequestInternal originalRequest) {
         this.id = id;
         this.version = version;
@@ -85,7 +77,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public int getLineNumber() {
+    public Integer getLineNumber() {
         return lineNumber;
     }
 
