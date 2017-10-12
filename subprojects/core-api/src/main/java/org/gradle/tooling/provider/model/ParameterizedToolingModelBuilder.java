@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 /**
  * Responsible for building parameterized tooling models to return to the tooling API client.
  *
- * <p>The {@link #buildAll(String, T, Project)} method is called to create a model for a given project using a given parameter.
+ * <p>The {@link #buildAll(String, Object, Project)} method is called to create a model for a given project using a given parameter.
  * The model is serialized to the client process and passed to the client application.</p>
  *
  * <p>The model object is adapted to the Java type that is used by the client by generating a view, or wrapper object, over the model object.
