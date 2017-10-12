@@ -54,7 +54,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
@@ -62,6 +61,7 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+    private String rootProjectName;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
@@ -114,14 +114,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return path;
     }
 
-    @Nullable
     @Override
     public Path findIdentityPath() {
         if (identityPath == null) {
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProject == null) {
+                if (rootProjectName == null) {
                     // Not known yet
                     return null;
                 }
@@ -130,7 +129,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProject.getName());
+                this.identityPath = parentIdentityPath.child(rootProjectName);
             }
         }
         return identityPath;
@@ -432,5 +431,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
+    }
+
+    public void setRootProjectName(String rootProjectName) {
+        this.rootProjectName = rootProjectName;
     }
 }

@@ -139,6 +139,8 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
+    // NOTE: This doesn't actually verify that the build scan produced is useful
+    // We're only checking that we don't explode
     def "can use build scan plugin with source dependencies"() {
         executer.withStdinPipe().withForceInteractive(true).requireGradleDistribution()
         settingsFile << """
