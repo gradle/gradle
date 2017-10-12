@@ -26,12 +26,23 @@ import java.util.List;
  * Uses an option file for arguments passed to Visual C++.
  */
 class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
+    private File workingDir;
+
     public VisualCppOptionsFileArgsWriter(File tempDir) {
         super(tempDir);
     }
 
+    public VisualCppOptionsFileArgsWriter(File workingDir, File tempDir) {
+        super(tempDir);
+        this.workingDir = workingDir;
+    }
+
     @Override
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
-        return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
+        if (workingDir == null) {
+            return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
+        } else {
+            return ArgWriter.argsFileGenerator(workingDir, new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
+        }
     }
 }

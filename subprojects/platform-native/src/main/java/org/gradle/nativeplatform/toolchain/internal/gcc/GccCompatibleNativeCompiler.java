@@ -44,7 +44,7 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    protected void addOptionsFileArgs(T spec, List<String> args, File tempDir) {
         OptionsFileArgsWriter writer = new GccOptionsFileArgsWriter(tempDir);
         // modifies args in place
         writer.execute(args);

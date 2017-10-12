@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.List;
@@ -56,7 +57,7 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
 
     protected void addIncludeArgs(T spec, List<String> args) {
         for (File file : spec.getIncludeRoots()) {
-            args.add("/I" + file.getAbsolutePath());
+            args.add("/I" + GFileUtils.relativize(spec.getWorkingDir(), file));
         }
     }
 

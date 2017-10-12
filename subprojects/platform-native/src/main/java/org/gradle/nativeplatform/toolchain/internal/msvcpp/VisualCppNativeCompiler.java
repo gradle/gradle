@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,16 +42,16 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     protected List<String> getOutputArgs(T spec, File outputFile) {
         List<String> args = new ArrayList<String>();
         if (spec.isDebuggable()) {
-            args.add("/Fd" + new File(outputFile.getParentFile(), outputFile.getName() + ".pdb"));
+            args.add("/Fd" + GFileUtils.relativize(spec.getWorkingDir(), new File(outputFile.getParentFile(), outputFile.getName() + ".pdb")));
         }
         // MSVC doesn't allow a space between Fo and the file name
-        args.add("/Fo" + outputFile.getAbsolutePath());
+        args.add("/Fo" + GFileUtils.relativize(spec.getWorkingDir(), outputFile));
         return args;
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
-        OptionsFileArgsWriter writer = new VisualCppOptionsFileArgsWriter(tempDir);
+    protected void addOptionsFileArgs(T spec, List<String> args, File tempDir) {
+        OptionsFileArgsWriter writer = new VisualCppOptionsFileArgsWriter(spec.getWorkingDir(), tempDir);
         // modifies args in place
         writer.execute(args);
     }
@@ -58,6 +59,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     @Override
     protected List<String> getPCHArgs(T spec) {
         List<String> pchArgs = new ArrayList<String>();
+        // TODO: Check if this needs to be relativized too.
         if (spec.getPreCompiledHeader() != null && spec.getPreCompiledHeaderObjectFile() != null) {
             String lastHeader = spec.getPreCompiledHeader();
 
