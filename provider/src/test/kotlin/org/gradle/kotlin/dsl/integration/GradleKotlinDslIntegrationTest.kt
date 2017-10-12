@@ -386,6 +386,24 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 not(containsString("myTask.foo"))))
     }
 
+    @Test
+    fun `build with groovy settings and kotlin-dsl build script succeeds`() {
+
+        withFile("settings.gradle", """
+            println("Groovy DSL Settings")
+        """)
+
+        withBuildScript("""
+            println("Kotlin DSL Build Script")
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Groovy DSL Settings"),
+                containsString("Kotlin DSL Build Script")))
+    }
+
     private
     val fixturesRepository: File
         get() = File(rootProjectDir, "fixtures/repository").absoluteFile
