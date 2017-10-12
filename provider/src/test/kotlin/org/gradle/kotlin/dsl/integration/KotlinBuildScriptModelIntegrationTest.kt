@@ -87,7 +87,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
-        withSettingsScript("include(\"foo\", \"bar\")")
+        withSettingsScript("include(arrayOf(\"foo\", \"bar\"))")
 
         fun withFixture(fixture: String) =
             withClassJar("libs/$fixture.jar", DeepThought::class.java)
@@ -238,7 +238,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         matches: Matcher<Iterable<String>>) {
 
         val subProjectName = "sub"
-        withSettingsScript("include(\"$subProjectName\")")
+        withSettingsScript("include(arrayOf(\"$subProjectName\"))")
 
         withBuildScript(rootProjectScript)
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
