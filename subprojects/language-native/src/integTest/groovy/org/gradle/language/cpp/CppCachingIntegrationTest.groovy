@@ -112,6 +112,9 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
     private void assertSameSnapshots(Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
         assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
+        if (nonDeterministicCompilation) {
+            return
+        }
         snapshotsInOriginalLocation.each { path, originalSnapshot ->
             def newSnapshot = snapshotsInNewLocation[path]
             assert originalSnapshot.hash == newSnapshot.hash

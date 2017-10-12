@@ -146,7 +146,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
@@ -200,7 +200,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -225,7 +225,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
@@ -233,20 +233,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
-    }
-
-    private boolean nonDeterministicCompilation() {
-        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
-        toolChain.visualCpp || objectiveCWithAslr()
-    }
-
-    // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings)
-    // We saw this behaviour only on linux so far.
-    boolean objectiveCWithAslr() {
-        return (sourceType == "Objc" || sourceType == "Objcpp") &&
-                OperatingSystem.current().isLinux() &&
-                toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -481,7 +467,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if(objectiveCWithAslr()){
+        if(objectiveCWithAslr){
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
