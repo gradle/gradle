@@ -38,16 +38,19 @@ class SourceFoldersCreatorTest extends Specification {
     DirectoryTree javaTree;
     DirectoryTree resourcesTree;
     File projectRootFolder;
+    File defaultOutputFolder;
 
     def setup() {
         sourceSet = Mock()
         java = Mock()
         resources = Mock()
         allSource = Mock()
+        _ * sourceSet.name >> 'source_set'
         _ * sourceSet.allSource >> allSource
         _ * sourceSet.allJava >> java
         _ * sourceSet.resources >> resources
         projectRootFolder = tempFolder.newFolder("project-root")
+        defaultOutputFolder = new File(projectRootFolder, 'bin/default')
     }
 
     def "applies excludes/includes for src folders"() {
@@ -126,7 +129,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.includes >> resourcesTree.patterns.includes
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
-        return new SourceFoldersCreator().getRegularSourceFolders([sourceSet], { File file -> file.path })
+        return new SourceFoldersCreator().getRegularSourceFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {
@@ -140,7 +143,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.srcDirs >> [resourcesTree.dir]
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> allExtTrees + [javaTree, resourcesTree]
-        return new SourceFoldersCreator().getExternalSourceFolders([sourceSet], { File file -> file.path })
+        return new SourceFoldersCreator().getExternalSourceFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
     }
 
     private def dirTree(String sourceDirName, List excludes, List includes) {
