@@ -35,6 +35,13 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineVersionLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
@@ -128,7 +135,11 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class));
+        VisualCppMetadataProvider visualCppMetadataProvider = new DefaultVisualCppMetadataProvider(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
+        VisualStudioVersionLocator commandLineLocator = new CommandLineVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
+        VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
+        VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), commandLineLocator, windowsRegistryLocator, versionDeterminer, NativeServicesTestFixture.getInstance().get(SystemInfo.class));
         final List<VisualStudioLocator.SearchResult> searchResults = vsLocator.locateAllVisualStudioVersions();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();

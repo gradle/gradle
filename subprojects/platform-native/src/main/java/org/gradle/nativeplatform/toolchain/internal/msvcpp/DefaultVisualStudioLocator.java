@@ -19,14 +19,14 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Transformer;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -38,11 +38,7 @@ import java.util.*;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
-    private static final String[] REGISTRY_BASEPATHS = {
-        "SOFTWARE\\",
-        "SOFTWARE\\Wow6432Node\\"
-    };
-    private static final String REGISTRY_ROOTPATH_VC = "Microsoft\\VisualStudio\\SxS\\VC7";
+
     private static final String PATH_COMMON = "Common7/";
     private static final String PATH_COMMONTOOLS = PATH_COMMON + "Tools/";
     private static final String PATH_COMMONIDE = PATH_COMMON + "IDE/";
@@ -53,14 +49,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final OperatingSystem os;
-    private final WindowsRegistry windowsRegistry;
+    private final VisualStudioVersionLocator commandLineLocator;
+    private final VisualStudioVersionLocator windowsRegistryLocator;
+    private final VisualStudioMetaDataProvider versionDeterminer;
     private final SystemInfo systemInfo;
     private VisualStudioInstall pathInstall;
     private boolean initialised;
 
-    public DefaultVisualStudioLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+    public DefaultVisualStudioLocator(OperatingSystem os, VisualStudioVersionLocator commandLineLocator, VisualStudioVersionLocator windowsRegistryLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
         this.os = os;
-        this.windowsRegistry = windowsRegistry;
+        this.commandLineLocator = commandLineLocator;
+        this.windowsRegistryLocator = windowsRegistryLocator;
+        this.versionDeterminer = versionDeterminer;
         this.systemInfo = systemInfo;
     }
 
@@ -94,8 +94,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     @Override
     public SearchResult locateDefaultVisualStudioInstall(File candidate) {
-        initializeVisualStudioInstalls();
-
         if (candidate != null) {
             return locateUserSpecifiedInstall(candidate);
         }
@@ -105,45 +103,40 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private void initializeVisualStudioInstalls() {
         if (!initialised) {
-            locateInstallsInRegistry();
-            locateInstallInPath();
+            locateInstallsWith(commandLineLocator);
+
+            if (foundInstalls.size() < 1) {
+                locateInstallsWith(windowsRegistryLocator);
+            }
+
+            if (foundInstalls.size() < 1) {
+                locateInstallInPath();
+            }
+
             initialised = true;
         }
     }
 
-    private void locateInstallsInRegistry() {
-        for (String baseKey : REGISTRY_BASEPATHS) {
-            locateInstallsInRegistry(baseKey);
+    private void locateInstallsWith(VisualStudioVersionLocator versionLocator) {
+        List<VisualStudioMetadata> installs = versionLocator.getVisualStudioInstalls();
+
+        for (VisualStudioMetadata install : installs) {
+            addInstallIfValid(install);
         }
     }
 
-    private void locateInstallsInRegistry(String baseKey) {
-        List<String> visualCppVersions;
-        try {
-            visualCppVersions = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);
-        } catch (MissingRegistryEntryException e) {
-            // No Visual Studio information available in the registry
-            return;
-        }
+    private void addInstallIfValid(VisualStudioMetadata install) {
+        File visualCppDir = install.getVisualCppDir();
+        File visualStudioDir = install.getInstallDir();
 
-        for (String valueName : visualCppVersions) {
-            if (!valueName.matches("\\d+\\.\\d+")) {
-                // Ignore the other values
-                continue;
-            }
-            File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, valueName));
-            visualCppDir = FileUtils.canonicalize(visualCppDir);
-            File visualStudioDir = visualCppDir.getParentFile();
-
-            if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
-                LOGGER.debug("Found Visual C++ {} at {}", valueName, visualCppDir);
-                VersionNumber version = VersionNumber.parse(valueName);
-                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + valueName, visualStudioDir, visualCppDir, version);
-                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
-                foundInstalls.put(visualStudioDir, visualStudio);
-            } else {
-                LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
-            }
+        if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
+            LOGGER.debug("Found Visual C++ {} at {}", install.getVersion(), visualCppDir);
+            VersionNumber version = install.getVersion();
+            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + install.getVisualCppVersion(), visualStudioDir, visualCppDir, install.getVisualCppVersion());
+            VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+            foundInstalls.put(visualStudioDir, visualStudio);
+        } else {
+            LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
         }
     }
 
@@ -154,39 +147,50 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return;
         }
 
-        File visualCppDir = FileUtils.canonicalize(compilerInPath.getParentFile().getParentFile());
-        if (!isVisualCpp(visualCppDir)) {
-            visualCppDir = visualCppDir.getParentFile();
+        VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromCompiler(compilerInPath);
+
+        if (install != null) {
+            File visualCppDir = install.getVisualCppDir();
             if (!isVisualCpp(visualCppDir)) {
-                LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", compilerInPath);
-                return;
+                visualCppDir = visualCppDir.getParentFile();
+                if (!isVisualCpp(visualCppDir)) {
+                    LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", compilerInPath);
+                    return;
+                }
+            }
+            LOGGER.debug("Found Visual C++ install {} using system path", visualCppDir);
+
+            File visualStudioDir = install.getInstallDir();
+            if (!foundInstalls.containsKey(visualStudioDir)) {
+                String displayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from system path" : install.getVersion().toString();
+                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayVersion, visualStudioDir, visualCppDir, install.getVersion());
+                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+                foundInstalls.put(visualStudioDir, visualStudio);
             }
         }
-        LOGGER.debug("Found Visual C++ install {} using system path", visualCppDir);
-
-        File visualStudioDir = visualCppDir.getParentFile();
-        if (!foundInstalls.containsKey(visualStudioDir)) {
-            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ from system path", visualStudioDir, visualCppDir, VersionNumber.UNKNOWN);
-            VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
-            foundInstalls.put(visualStudioDir, visualStudio);
-        }
-        pathInstall = foundInstalls.get(visualStudioDir);
     }
 
     private SearchResult locateUserSpecifiedInstall(File candidate) {
-        File visualStudioDir = FileUtils.canonicalize(candidate);
-        File visualCppDir = new File(visualStudioDir, "VC");
-        if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
-            LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
+        VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
+
+        if (install != null) {
+            File visualStudioDir = install.getInstallDir();
+            File visualCppDir = install.getVisualCppDir();
+            if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
+                LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
+                return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
+            }
+
+            if (!foundInstalls.containsKey(visualStudioDir)) {
+                String displayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from user provided path" : install.getVersion().toString();
+                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayVersion, visualStudioDir, visualCppDir, install.getVersion());
+                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+                foundInstalls.put(visualStudioDir, visualStudio);
+            }
+            return new InstallFound(foundInstalls.get(visualStudioDir));
+        } else {
             return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
-
-        if (!foundInstalls.containsKey(visualStudioDir)) {
-            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ from user provided path", visualStudioDir, visualCppDir, VersionNumber.UNKNOWN);
-            VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
-            foundInstalls.put(visualStudioDir, visualStudio);
-        }
-        return new InstallFound(foundInstalls.get(visualStudioDir));
     }
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
@@ -219,9 +223,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private SearchResult determineDefaultInstall() {
-        if (pathInstall != null) {
-            return new InstallFound(pathInstall);
-        }
+        initializeVisualStudioInstalls();
 
         VisualStudioInstall candidate = null;
 
@@ -284,61 +286,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
-        }
-    }
-
-    static class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
-        private final List<File> paths;
-        private final File binPath;
-        private final File libPath;
-        private final File includePath;
-        private final String assemblerFilename;
-        private final Map<String, String> definitions;
-        private final File compilerPath;
-
-        DefaultArchitectureDescriptor(List<File> paths, File binPath, File libPath, File compilerPath, File includePath, String assemblerFilename, Map<String, String> definitions) {
-            this.paths = paths;
-            this.binPath = binPath;
-            this.libPath = libPath;
-            this.includePath = includePath;
-            this.assemblerFilename = assemblerFilename;
-            this.definitions = definitions;
-            this.compilerPath = compilerPath;
-        }
-
-        @Override
-        public List<File> getPaths() {
-            return paths;
-        }
-
-        @Override
-        public File getBinaryPath() {
-            return binPath;
-        }
-
-        @Override
-        public File getLibraryPath() {
-            return libPath;
-        }
-
-        @Override
-        public File getIncludePath() {
-            return includePath;
-        }
-
-        @Override
-        public String getAssemblerFilename() {
-            return assemblerFilename;
-        }
-
-        @Override
-        public Map<String, String> getDefinitions() {
-            return definitions;
-        }
-
-        @Override
-        public boolean isInstalled() {
-            return binPath.exists() && compilerPath.exists() && libPath.exists();
         }
     }
 

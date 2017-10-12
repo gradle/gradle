@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.fixtures.binaryinfo
 
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -25,6 +26,14 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineVersionLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import javax.annotation.Nullable
 
@@ -46,7 +55,11 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     static @Nullable VisualStudioInstall findVisualStudio() {
-        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.instance.get(WindowsRegistry), NativeServices.instance.get(SystemInfo))
+        VisualCppMetadataProvider visualCppMetadataProvider = new DefaultVisualCppMetadataProvider(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
+        VisualStudioVersionLocator commandLineLocator = new CommandLineVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
+        VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
+        VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
+        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), commandLineLocator, windowsRegistryLocator, versionDeterminer, NativeServices.instance.get(SystemInfo))
         return vsLocator.locateDefaultVisualStudioInstall().visualStudio
     }
 

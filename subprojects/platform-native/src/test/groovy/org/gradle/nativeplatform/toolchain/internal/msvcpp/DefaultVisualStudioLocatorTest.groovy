@@ -16,14 +16,16 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.SystemInfo
-import net.rubygrapefruit.platform.WindowsRegistry
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator.ArchitectureDescriptorBuilder
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
@@ -34,53 +36,52 @@ import spock.lang.Unroll
 
 class DefaultVisualStudioLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final WindowsRegistry windowsRegistry =  Stub(WindowsRegistry)
+    final VisualStudioVersionLocator commandLineLocator = Mock(VisualStudioVersionLocator)
+    final VisualStudioVersionLocator windowsRegistryLocator = Mock(VisualStudioVersionLocator)
+    final VisualStudioMetaDataProvider versionDeterminer = Mock(VisualStudioMetaDataProvider)
     final SystemInfo systemInfo =  Stub(SystemInfo)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
     }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, windowsRegistry, systemInfo)
+    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, commandLineLocator, windowsRegistryLocator, versionDeterminer, systemInfo)
 
     def "use highest visual studio version found in the registry"() {
-        def dir1 = vsDir("vs1");
-        def dir2 = vsDir("vs2");
+        def dir1 = vsDir("vs1")
+        def dir2 = vsDir("vs2")
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "12.0", "ignore-me"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ 12.0"
+        result.visualStudio.name == "Visual C++ 12.0.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == dir2
         result.visualStudio.visualCpp
     }
 
-    def "can locate all versions of visual studio"() {
-        def dir1 = vsDir("vs1");
-        def dir2 = vsDir("vs2");
+    def "can locate all versions of visual studio using registry"() {
+        def dir1 = vsDir("vs1")
+        def dir2 = vsDir("vs2")
         def dir3 = vsDir("vs3")
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "12.0", "13.0", "ignore-me"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "13.0") >> dir3.absolutePath + "/VC"
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0"), legacyVsInstall(dir3, "13.0")] }
 
         when:
         def allResults = visualStudioLocator.locateAllVisualStudioVersions()
 
         then:
         allResults.size() == 3
-        allResults.collect { it.visualStudio.name } == [ "Visual C++ 13.0", "Visual C++ 12.0", "Visual C++ 11.0" ]
+        allResults.collect { it.visualStudio.name } == [ "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
         allResults.every { it.available }
     }
 
@@ -88,7 +89,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         given:
-        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         operatingSystem.findInPath(_) >> null
 
         when:
@@ -109,7 +111,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         given:
-        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         operatingSystem.findInPath(_) >> null
 
         when:
@@ -131,7 +134,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def vsDir = vsDir("vs")
 
         given:
-        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * versionDeterminer.getVisualStudioMetadataFromCompiler(_) >> legacyVsInstall(vsDir, null)
         operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
 
         when:
@@ -144,24 +149,6 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.baseDir == vsDir
     }
 
-    def "locates visual studio installation based on executables in path when locating all versions"() {
-        def dir1 = vsDir("vs1");
-        def dir2 = vsDir("vs2");
-
-        given:
-        operatingSystem.findInPath("cl.exe") >> dir2.file("VC/bin/cl.exe")
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "ignore-me"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
-
-        when:
-        def allResults = visualStudioLocator.locateAllVisualStudioVersions()
-
-        then:
-        allResults.size() == 2
-        allResults.every { it.available }
-        allResults.collect { it.visualStudio.name } == [ "Visual C++ 11.0", "Visual C++ from system path" ]
-    }
-
     def "uses visual studio using specified install dir"() {
         def vsDir1 = vsDir("vs")
         def vsDir2 = vsDir("vs-2")
@@ -169,8 +156,10 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignored.absolutePath + "/VC"
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> legacyVsInstall(vsDir1, null)
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> legacyVsInstall(vsDir2, null)
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
@@ -195,12 +184,12 @@ class DefaultVisualStudioLocatorTest extends Specification {
     def "visual studio not found when specified directory does not look like an install"() {
         def visitor = Mock(TreeVisitor)
         def providedDir = tmpDir.createDir("vs")
-        def ignoredDir = vsDir("vs-2")
+        def ignored = vsDir("vs-2")
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignoredDir.absolutePath + "/VC"
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
@@ -217,26 +206,6 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("The specified installation directory '$providedDir' does not appear to contain a Visual Studio installation.")
     }
 
-    def "fills in meta-data from registry for install discovered using the system path"() {
-        def vsDir = vsDir("vs")
-
-        given:
-        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
-
-        and:
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
-
-        when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
-
-        then:
-        result.available
-        result.visualStudio.name == "Visual C++ 12.0"
-        result.visualStudio.version == VersionNumber.parse("12.0")
-        result.visualStudio.baseDir == vsDir
-    }
-
     def "fills in meta-data from registry for user specified install"() {
         def vsDir = vsDir("vs")
 
@@ -244,15 +213,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         and:
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
-
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(vsDir, "12.0")
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ 12.0"
+        result.visualStudio.name == "Visual C++ 12.0.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == vsDir
     }
@@ -263,12 +230,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def vcDir = new File(vsDir, "VC")
 
         given:
-        operatingSystem.findInPath(_) >> null
         systemInfo.getArchitecture() >> systemArchitecture
-
-        and:
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(vsDir, "12.0")
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
@@ -330,5 +293,14 @@ class DefaultVisualStudioLocatorTest extends Specification {
                 Architectures.forInput(name)
             }
         }
+    }
+
+    VisualStudioMetadata legacyVsInstall(File installDir, String version) {
+        return new VisualStudioMetadataBuilder()
+            .installDir(installDir)
+            .visualCppDir(new File(installDir, "VC"))
+            .visualCppVersion(VersionNumber.parse(version))
+            .version(VersionNumber.parse(version))
+            .build()
     }
 }
