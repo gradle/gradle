@@ -6,8 +6,18 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ProjectRootOfTest : FolderBasedTest() {
+@RunWith(Parameterized::class)
+class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest() {
+
+    companion object {
+        @Parameterized.Parameters(name = "{0}")
+        @JvmStatic
+        fun testCases(): Iterable<Array<Any>> =
+            listOf(arrayOf<Any>("settings.gradle"), arrayOf<Any>("settings.gradle.kts"))
+    }
 
     @Test
     fun `given a script file under a nested project it should return the nested project root`() {
@@ -15,8 +25,8 @@ class ProjectRootOfTest : FolderBasedTest() {
         withFolders {
             "root" {
                 "nested-project-root" {
-                    // a nested project is detected by the presence of a settings.gradle file
-                    withFile("settings.gradle")
+                    // a nested project is detected by the presence of a settings file
+                    withFile(settingsFileName)
                     "sub-project" {
                         withFile("build.gradle.kts")
                     }
@@ -57,8 +67,8 @@ class ProjectRootOfTest : FolderBasedTest() {
             }
             "separate" {
                 "nested-project-root" {
-                    // a nested project is detected by the presence of a settings.gradle file
-                    withFile("settings.gradle")
+                    // a nested project is detected by the presence of a settings file
+                    withFile(settingsFileName)
                     "sub-project" {
                         withFile("build.gradle.kts")
                     }
