@@ -221,6 +221,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         LinkerSpec spec = createLinkerSpec();
         spec.setTargetPlatform(getTargetPlatform());
         spec.setTempDir(getTemporaryDir());
+        spec.setWorkingDir(getProject().getRootDir());
         spec.setOutputFile(getOutputFile());
 
         spec.objectFiles(getSource());

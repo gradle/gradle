@@ -80,6 +80,7 @@ public class Assemble extends DefaultTask {
 
         DefaultAssembleSpec spec = new DefaultAssembleSpec();
         spec.setTempDir(getTemporaryDir());
+        spec.setWorkingDir(getProject().getRootDir());
 
         spec.setObjectFileDir(getObjectFileDir());
         spec.source(getSource());

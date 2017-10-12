@@ -24,6 +24,9 @@ import java.io.File;
 import java.util.List;
 
 public interface BinaryToolSpec extends CompileSpec {
+    File getWorkingDir();
+    void setWorkingDir(File workingDir);
+
     NativePlatform getTargetPlatform();
 
     void setTargetPlatform(NativePlatform platform);
