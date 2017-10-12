@@ -315,7 +315,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "org.xtext.xtend" version "1.0.19"
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
