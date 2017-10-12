@@ -29,6 +29,14 @@ open class AbstractIntegrationTest {
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
+    fun withSettingsScript(script: String, produceFile: (String) -> File = this::newFile): File =
+        withSettingsScriptIn(".", script, produceFile)
+
+    protected
+    fun withSettingsScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+        withFile("$baseDir/settings.gradle.kts", script, produceFile)
+
+    protected
     fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
         withBuildScriptIn(".", script, produceFile)
 
@@ -76,7 +84,7 @@ open class AbstractIntegrationTest {
         existing(fileName).let {
             when {
                 it.isFile -> it
-                else -> newFile(fileName)
+                else      -> newFile(fileName)
             }
         }
 

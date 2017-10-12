@@ -87,9 +87,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
-        withFile("settings.gradle.kts", """
-            include("foo", "bar")
-        """)
+        withSettingsScript("include(\"foo\", \"bar\")")
 
         fun withFixture(fixture: String) =
             withClassJar("libs/$fixture.jar", DeepThought::class.java)
@@ -184,7 +182,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertSourcePathIncludesKotlinPluginSourcesGiven(
             rootProjectScript = "",
-            subProjectScript ="""
+            subProjectScript = """
                 buildscript {
                     dependencies { classpath(embeddedKotlin("gradle-plugin")) }
                     repositories { jcenter() }
@@ -240,7 +238,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         matches: Matcher<Iterable<String>>) {
 
         val subProjectName = "sub"
-        withFile("settings.gradle.kts", "include(\"$subProjectName\")")
+        withSettingsScript("include(\"$subProjectName\")")
 
         withBuildScript(rootProjectScript)
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)

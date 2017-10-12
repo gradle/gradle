@@ -330,11 +330,9 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        existing("settings.gradle.kts").appendText("""
-            include("sub-project")
-        """)
+        withSettingsScript("include(\"sub-project\")")
 
-        withFile("sub-project/build.gradle.kts", """
+        withBuildScriptIn("sub-project", """
             task("compute") {
                 doLast {
                     val computer = ${DeepThought::class.qualifiedName}()
@@ -351,7 +349,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given non-existing build script file name set in settings do not fail`() {
 
-        withFile("settings.gradle.kts", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
+        withSettingsScript("rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
     }

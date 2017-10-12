@@ -15,7 +15,7 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     fun setUpTestPluginRepository() {
         val testRepository = normaliseFileSeparators(absolutePathOf("build/repository"))
         val futureVersion = loadTestProperties()["version"]
-        withFile("settings.gradle.kts", """
+        withSettingsScript("""
             pluginManagement {
                 repositories {
                     maven { setUrl("$testRepository") }
