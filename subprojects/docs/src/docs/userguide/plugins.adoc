@@ -161,7 +161,7 @@ If the restrictions of the new syntax are prohibitive, the recommended approach 
 [[sec:subprojects_plugins_dsl]]
 ===== Applying plugins to subprojects
 
-If you have a <<multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin version»` in the `subprojects` block:
+If you have a <<multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block:
 
 ++++
 <sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
