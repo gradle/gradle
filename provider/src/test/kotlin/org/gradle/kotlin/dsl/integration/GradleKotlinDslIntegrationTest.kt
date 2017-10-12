@@ -330,8 +330,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        existing("settings.gradle").appendText("""
-            include 'sub-project'
+        existing("settings.gradle.kts").appendText("""
+            include("sub-project")
         """)
 
         withFile("sub-project/build.gradle.kts", """
@@ -351,7 +351,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given non-existing build script file name set in settings do not fail`() {
 
-        withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
+        withFile("settings.gradle.kts", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
     }

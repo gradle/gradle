@@ -126,8 +126,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can access configurations registered by declared plugins via jit accessor`() {
 
-        withFile("settings.gradle", """
-            include "a", "b", "c"
+        withFile("settings.gradle.kts", """
+            include("a", "b", "c")
         """)
 
         withFile("a/build.gradle.kts", """
@@ -235,8 +235,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
-        withFile("settings.gradle", """
-            include 'a'
+        withFile("settings.gradle.kts", """
+            include("a")
         """)
         withFile("a/build.gradle.kts")
 

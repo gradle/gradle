@@ -87,8 +87,8 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
-        withFile("settings.gradle", """
-            include 'foo', 'bar'
+        withFile("settings.gradle.kts", """
+            include("foo", "bar")
         """)
 
         fun withFixture(fixture: String) =
@@ -240,7 +240,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         matches: Matcher<Iterable<String>>) {
 
         val subProjectName = "sub"
-        withFile("settings.gradle", "include '$subProjectName'")
+        withFile("settings.gradle.kts", "include(\"$subProjectName\")")
 
         withBuildScript(rootProjectScript)
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
