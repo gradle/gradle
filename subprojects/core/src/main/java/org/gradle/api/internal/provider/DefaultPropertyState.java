@@ -94,9 +94,8 @@ public class DefaultPropertyState<T> implements PropertyInternal<T> {
         return provider.getOrNull();
     }
 
-    @Nullable
     @Override
-    public T getOrElse(@Nullable T defaultValue) {
+    public T getOrElse(T defaultValue) {
         T t = provider.getOrNull();
         if (t == null) {
             return defaultValue;

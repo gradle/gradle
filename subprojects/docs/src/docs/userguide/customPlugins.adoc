@@ -99,7 +99,7 @@ In this example, we configure the `greet` task `destination` property as a closu
 
 Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers the mutable type api:org.gradle.api.provider.PropertyState[] for representing a property that should be lazily evaluated e.g. during execution time. The method api:org.gradle.api.provider.PropertyState#set(T)[] provides the value, api:org.gradle.api.provider.Provider#get()[] returns the value upon request.
+The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers the mutable type api:org.gradle.api.provider.Property[] for representing a property that should be lazily evaluated e.g. during execution time. The method api:org.gradle.api.provider.Property#set(T)[] provides the value, api:org.gradle.api.provider.Provider#get()[] returns the value upon request.
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
@@ -110,7 +110,7 @@ The following demonstrates the usage of the type for mapping an extension proper
         </sample>
 ++++
 
-The example above uses instances of api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.PropertyState[]. The main difference between these two interfaces is attributed to mutability. A api:org.gradle.api.provider.Provider[] is immutable and can be created with the method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. api:org.gradle.api.provider.PropertyState[] extends the interface api:org.gradle.api.provider.Provider[], represents a mutable value and can be created with the method api:org.gradle.api.Project#property(java.lang.Class)[]. Please note that the provider types are not intended for implementation by build script or plugin authors.
+The example above uses instances of api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.Property[]. The main difference between these two interfaces is attributed to mutability. A api:org.gradle.api.provider.Provider[] is immutable and can be created with the method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. api:org.gradle.api.provider.Property[] extends the interface api:org.gradle.api.provider.Provider[], represents a mutable value and can be created with the method api:org.gradle.api.Project#property(java.lang.Class)[]. Please note that the provider types are not intended for implementation by build script or plugin authors.
 
 [NOTE]
 ====

@@ -29,7 +29,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
@@ -90,7 +90,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(component.getBundle());
 
         // Setup component
-        final PropertyState<String> module = component.getModule();
+        final Property<String> module = component.getModule();
         module.set(GUtil.toCamelCase(project.getName() + "Test"));
 
         // Configure compile task

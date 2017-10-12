@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,10 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "services are injected into instances using constructor or getter"() {
         buildFile << """
             class Thing1 {
-                final PropertyState<String> name
+                final Property<String> name
                 
                 @javax.inject.Inject
-                Thing1(ProviderFactory providers) { this.name = providers.property(String) }
+                Thing1(ObjectFactory objects) { this.name = objects.property(String) }
             }
             
             class Thing2 {

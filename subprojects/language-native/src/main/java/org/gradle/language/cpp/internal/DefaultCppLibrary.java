@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -39,8 +38,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final Configuration api;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
-        super(name, fileOperations, providerFactory, configurations);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+        super(name, fileOperations, objectFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
         debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());

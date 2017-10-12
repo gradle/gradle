@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.internal
+package org.gradle.api.internal.model
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.util.TestUtil
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
-class DefaultCppApplicationTest extends Specification {
-    def "has debug and release executables"() {
-        def app = new DefaultCppApplication("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
 
+class DefaultObjectFactoryTest extends Specification {
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator))
+
+    def "can create a property"() {
         expect:
-        app.debugExecutable.name == "mainDebug"
-        app.debugExecutable.debuggable
-        app.releaseExecutable.name == "mainRelease"
-        !app.releaseExecutable.debuggable
-        app.developmentBinary == app.debugExecutable
+        def property = factory.property(Boolean)
+        property.present
+        !property.get()
     }
+
+    def "can create a List property"() {
+        expect:
+        def property = factory.listProperty(String)
+        property.present
+        property.get() == []
+    }
+
 }

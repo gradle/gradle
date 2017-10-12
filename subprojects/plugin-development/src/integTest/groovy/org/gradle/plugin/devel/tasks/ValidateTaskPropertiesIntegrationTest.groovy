@@ -160,15 +160,15 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.Provider;
-            import org.gradle.api.provider.PropertyState;
+            import org.gradle.api.provider.Property;
             
             import java.io.File;
             import java.util.concurrent.Callable;
 
             public class MyTask extends DefaultTask {
                 private final Provider<String> text;
-                private final PropertyState<File> file;
-                private final PropertyState<Pojo> pojo;
+                private final Property<File> file;
+                private final Property<Pojo> pojo;
 
                 public MyTask() {
                     text = getProject().provider(new Callable<String>() {
@@ -177,9 +177,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                             return "Hello World!";
                         }
                     });
-                    file = getProject().property(File.class);
+                    file = getProject().getObjects().property(File.class);
                     file.set(new File("some/dir"));
-                    pojo = getProject().property(Pojo.class);
+                    pojo = getProject().getObjects().property(Pojo.class);
                 }
 
                 @Input

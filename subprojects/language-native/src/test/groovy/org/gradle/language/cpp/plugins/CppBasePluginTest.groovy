@@ -57,7 +57,7 @@ class CppBasePluginTest extends Specification {
     }
 
     def "adds link and install task for executable"() {
-        def baseName = project.providers.property(String)
+        def baseName = project.objects.property(String)
         baseName.set("test_app")
         def executable = Stub(CppExecutable)
         executable.name >> name
@@ -85,7 +85,7 @@ class CppBasePluginTest extends Specification {
     }
 
     def "adds link task for shared library"() {
-        def baseName = project.providers.property(String)
+        def baseName = project.objects.property(String)
         baseName.set("test_lib")
         def library = Stub(CppSharedLibrary)
         library.name >> name

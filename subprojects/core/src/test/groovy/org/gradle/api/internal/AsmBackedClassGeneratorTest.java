@@ -23,14 +23,15 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.TestUtil;
 import org.junit.Test;
 import spock.lang.Issue;
 
@@ -826,9 +827,9 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void addsSetterMethodsForPropertyWhoseTypeIsPropertyState() throws Exception {
+    public void addsSetterMethodsForPropertyWhoseTypeIsProperty() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -847,9 +848,9 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyStateWhenTheyAlreadyExist() throws Exception {
+    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
 
@@ -1360,20 +1361,20 @@ public class AsmBackedClassGeneratorTest {
     public static class AnnotatedBean {
     }
 
-    public static class BeanWithPropertyState {
-        private final PropertyState<String> prop;
-        private final PropertyState<String> prop2;
+    public static class BeanWithProperty {
+        private final Property<String> prop;
+        private final Property<String> prop2;
 
-        public BeanWithPropertyState(ProviderFactory factory) {
+        public BeanWithProperty(ObjectFactory factory) {
             this.prop = factory.property(String.class);
             this.prop2 = factory.property(String.class);
         }
 
-        public PropertyState<String> getProp() {
+        public Property<String> getProp() {
             return prop;
         }
 
-        public PropertyState<String> getProp2() {
+        public Property<String> getProp2() {
             return prop2;
         }
 

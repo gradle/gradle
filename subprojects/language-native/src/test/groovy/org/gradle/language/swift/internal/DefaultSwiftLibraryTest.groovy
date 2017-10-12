@@ -20,10 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-
 
 class DefaultSwiftLibraryTest extends Specification {
     def api = Stub(TestConfiguration)
@@ -33,7 +31,7 @@ class DefaultSwiftLibraryTest extends Specification {
     def setup() {
         _ * configurations.maybeCreate("api") >> api
         _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
-        library = new DefaultSwiftLibrary("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), configurations)
+        library = new DefaultSwiftLibrary("main", TestUtil.objectFactory(), Stub(FileOperations), configurations)
     }
 
     def "has api configuration"() {

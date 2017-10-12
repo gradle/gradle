@@ -383,7 +383,9 @@ public interface Script {
      * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
      * @see org.gradle.api.provider.ProviderFactory#property(Class)
      * @since 4.0
+     * @deprecated Use {@link org.gradle.api.model.ObjectFactory#property(Class)} instead.
      */
     @Incubating
+    @Deprecated
     <T> PropertyState<T> property(Class<T> clazz);
 }

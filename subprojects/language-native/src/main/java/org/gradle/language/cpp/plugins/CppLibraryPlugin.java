@@ -88,7 +88,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
 
         // Add the library extension
-        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getObjects(), fileOperations, providers, project.getConfigurations());
+        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());

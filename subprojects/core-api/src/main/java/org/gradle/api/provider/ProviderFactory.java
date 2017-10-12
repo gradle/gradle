@@ -19,7 +19,6 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -68,20 +67,8 @@ public interface ProviderFactory {
      *
      * @param valueType The type of the property.
      * @return The property. Never returns null.
-     * @throws IllegalArgumentException If the value type is a parameterized type.
+     * @deprecated Use {@link org.gradle.api.model.ObjectFactory#property(Class)} instead.
      */
+    @Deprecated
     <T> PropertyState<T> property(Class<T> valueType);
-
-    /**
-     * Creates a {@link PropertyState} implementation to hold a {@link List} of the given element type. The property with have an empty list as its initial value.
-     *
-     * <p>The implementation will return immutable {@link List} values from its query methods.</p>
-     *
-     * @param elementType The type of element.
-     * @param <T> The type of element.
-     * @return The property. Never returns null;
-     * @throws IllegalArgumentException If the element type is a parameterized type.
-     * @since 4.3
-     */
-    <T> ListProperty<T> listProperty(Class<T> elementType);
 }

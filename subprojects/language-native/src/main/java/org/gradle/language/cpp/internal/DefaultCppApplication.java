@@ -19,7 +19,6 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 
@@ -30,8 +29,8 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     private final DefaultCppExecutable release;
 
     @Inject
-    public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
-        super(name, fileOperations, providerFactory, configurations);
+    public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+        super(name, fileOperations, objectFactory, configurations);
         debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
         release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
     }

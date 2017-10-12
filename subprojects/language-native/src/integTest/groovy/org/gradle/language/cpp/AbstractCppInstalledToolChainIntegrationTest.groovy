@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider;
+package org.gradle.language.cpp
 
-import org.gradle.api.Incubating;
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.junit.Assume
 
-import java.util.List;
+class AbstractCppInstalledToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-/**
- * Represents a property whose type is a {@link List} of elements of type {@link T}.
- *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
- *
- * @param <T> the type of elements.
- * @since 4.3
- */
-@Incubating
-public interface ListProperty<T> extends Property<List<T>> {
+    def setup() {
+        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
+        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
 }

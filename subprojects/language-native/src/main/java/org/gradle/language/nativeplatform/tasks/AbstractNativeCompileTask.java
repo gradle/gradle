@@ -90,7 +90,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         includes = getProject().files();
         source = getProject().files();
         objectFileDir = newOutputDirectory();
-        compilerArgs = getProject().getProviders().listProperty(String.class);
+        compilerArgs = getProject().getObjects().listProperty(String.class);
         headerDependenciesFile = newInputFile();
         getInputs().property("outputType", new Callable<String>() {
             @Override

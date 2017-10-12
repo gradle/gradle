@@ -26,7 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -145,8 +145,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                if (!property.getters.isEmpty() && PropertyState.class.isAssignableFrom(property.getType())) {
-                    builder.addPropertyStateSetters(property, property.getters.get(0));
+                if (!property.getters.isEmpty() && Property.class.isAssignableFrom(property.getType())) {
+                    builder.addPropertySetters(property, property.getters.get(0));
                     continue;
                 }
 
@@ -467,7 +467,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addActionMethod(Method method) throws Exception;
 
-        void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception;
+        void addPropertySetters(PropertyMetaData property, Method getter) throws Exception;
 
         void generateServiceRegistrySupportMethods() throws Exception;
 

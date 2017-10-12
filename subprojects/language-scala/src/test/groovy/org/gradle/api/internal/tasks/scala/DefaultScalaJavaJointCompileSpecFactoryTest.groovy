@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
-        CompileOptions options = new CompileOptions(Mock(ProviderFactory))
+        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork
         options.forkOptions.javaHome = javaHome == null ? null : new File(javaHome)
         DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options)

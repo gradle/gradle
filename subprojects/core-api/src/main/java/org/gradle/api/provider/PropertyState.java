@@ -18,8 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * A {@code Provider} representation for capturing the state of a property. The value can be provided by using the method {@link #set(Object)} or {@link #set(Provider)}.
  *
@@ -46,22 +44,9 @@ import javax.annotation.Nullable;
  *
  * @param <T> Type of value represented by property state
  * @since 4.0
+ * @deprecated Use {@link Property} instead.
  */
 @Incubating
-public interface PropertyState<T> extends Provider<T> {
-    /**
-     * Sets the value of the property the given value.
-     *
-     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
-     *
-     * @param value The value, can be null.
-     */
-    void set(@Nullable T value);
-
-    /**
-     * Sets the property to have the same value of the given provider. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
-     *
-     * @param provider Provider
-     */
-    void set(Provider<? extends T> provider);
+@Deprecated
+public interface PropertyState<T> extends Property<T> {
 }

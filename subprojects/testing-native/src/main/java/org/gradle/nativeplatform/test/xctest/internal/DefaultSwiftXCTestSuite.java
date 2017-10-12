@@ -21,7 +21,6 @@ import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
@@ -34,8 +33,8 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     private final DirectoryVar resourceDirectory;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations, ProjectLayout projectLayout) {
-        super(name, fileOperations, providerFactory, configurations);
+    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
+        super(name, fileOperations, objectFactory, configurations);
 
         resourceDirectory = projectLayout.newDirectoryVar();
         resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));

@@ -20,10 +20,10 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.provider.DefaultProviderFactory
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.language.cpp.CppBinary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,14 +31,14 @@ class DefaultCppComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
-    def providerFactory = new DefaultProviderFactory()
+    def objectFactory = TestUtil.objectFactory()
     def implementation = Stub(Configuration)
     def configurations = Stub(ConfigurationContainer)
     DefaultCppComponent component
 
     def setup() {
         _ * configurations.maybeCreate("implementation") >> implementation
-        component = new TestComponent("main", fileOperations, providerFactory, configurations)
+        component = new TestComponent("main", fileOperations, objectFactory, configurations)
     }
 
     def "has an implementation configuration"() {
@@ -133,8 +133,8 @@ class DefaultCppComponentTest extends Specification {
         def h1 = tmpDir.createFile("src/a/headers")
         def f2 = tmpDir.createFile("src/b/cpp/b.cpp")
         def h2 = tmpDir.createFile("src/b/headers")
-        def c1 = new TestComponent("a", fileOperations, providerFactory, configurations)
-        def c2 = new TestComponent("b", fileOperations, providerFactory, configurations)
+        def c1 = new TestComponent("a", fileOperations, objectFactory, configurations)
+        def c2 = new TestComponent("b", fileOperations, objectFactory, configurations)
 
         expect:
         c1.cppSource.files == [f1] as Set
@@ -144,8 +144,8 @@ class DefaultCppComponentTest extends Specification {
     }
 
     static class TestComponent extends DefaultCppComponent {
-        TestComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
-            super(name, fileOperations, providerFactory, configurations)
+        TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+            super(name, fileOperations, objectFactory, configurations)
         }
 
         @Override

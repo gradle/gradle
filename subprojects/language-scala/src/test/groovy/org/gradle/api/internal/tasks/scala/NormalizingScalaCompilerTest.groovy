@@ -17,12 +17,12 @@ package org.gradle.api.internal.tasks.scala
 
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,7 +36,7 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar")]
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
-        spec.compileOptions = new CompileOptions(new DefaultProviderFactory())
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.scalaCompileOptions = new BaseScalaCompileOptions()
     }
 

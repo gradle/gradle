@@ -16,21 +16,14 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
-import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
 
-class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
-
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
-    }
+class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
     def "skip compile and link tasks when no source"() {
         given:

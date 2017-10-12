@@ -13,26 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultObjectFactory implements ObjectFactory {
+public class InstantiatorBackedObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
-    private final NamedObjectInstantiator namedObjectInstantiator;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator) {
+    public InstantiatorBackedObjectFactory(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.namedObjectInstantiator = namedObjectInstantiator;
     }
 
     @Override
-    public <T extends Named> T named(final Class<T> type, final String name) {
-        return namedObjectInstantiator.named(type, name);
+    public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
+        throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType) {
+        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
+    }
+
+    @Override
+    public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
     }
 
     @Override

@@ -22,7 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.file.RegularFileVar;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -46,11 +46,11 @@ import java.io.Writer;
  */
 @Incubating
 public class GenerateModuleMetadata extends DefaultTask {
-    private final PropertyState<Publication> publication;
+    private final Property<Publication> publication;
     private final RegularFileVar outputFile;
 
     public GenerateModuleMetadata() {
-        publication = getProject().getProviders().property(Publication.class);
+        publication = getProject().getObjects().property(Publication.class);
         outputFile = newOutputFile();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
@@ -61,7 +61,7 @@ public class GenerateModuleMetadata extends DefaultTask {
      * Returns the module to generate the metadata file for.
      */
     @Internal
-    public PropertyState<Publication> getPublication() {
+    public Property<Publication> getPublication() {
         return publication;
     }
 
