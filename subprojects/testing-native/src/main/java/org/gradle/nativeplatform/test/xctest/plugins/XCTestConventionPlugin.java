@@ -26,7 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -76,7 +76,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // TODO - Add dependency on main component when Swift plugins are applied
 
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 

@@ -18,7 +18,7 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
@@ -31,7 +31,7 @@ public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundl
     private final Provider<RegularFile> informationPropertyList;
 
     @Inject
-    public DefaultSwiftBundle(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryVar resourceDirectory) {
+    public DefaultSwiftBundle(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
         super(name, objectFactory, module, debuggable, source, configurations, implementation);
 
         informationPropertyList = resourceDirectory.file("Info.plist");

@@ -22,9 +22,9 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -78,13 +78,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
-    private final DirectoryVar objectFileDir;
+    private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
     private ImmutableList<String> includePaths;
-    private final RegularFileVar headerDependenciesFile;
+    private final RegularFileProperty headerDependenciesFile;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -245,7 +245,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.3
      */
     @OutputDirectory
-    public DirectoryVar getObjectFileDir() {
+    public DirectoryProperty getObjectFileDir() {
         return objectFileDir;
     }
 
@@ -326,7 +326,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.3
      */
     @Internal
-    public RegularFileVar getHeaderDependenciesFile() {
+    public RegularFileProperty getHeaderDependenciesFile() {
         return headerDependenciesFile;
     }
 

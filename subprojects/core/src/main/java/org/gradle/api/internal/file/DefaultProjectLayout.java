@@ -19,11 +19,13 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
@@ -54,7 +56,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar getBuildDirectory() {
+    public DirectoryProperty getBuildDirectory() {
         return buildDir;
     }
 
@@ -69,17 +71,17 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar newOutputDirectory(Task producer) {
+    public DirectoryProperty newOutputDirectory(Task producer) {
         return new BuildableDirectoryVar(projectDir.fileResolver, producer);
     }
 
     @Override
-    public RegularFileVar newOutputFile(Task producer) {
+    public RegularFileProperty newOutputFile(Task producer) {
         return new BuildableRegularFileVar(projectDir.fileResolver, producer);
     }
 
     @Override
-    public RegularFileVar newInputFile(final Task consumer) {
+    public RegularFileProperty newInputFile(final Task consumer) {
         final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
         consumer.dependsOn(new AbstractTaskDependency() {
             @Override
@@ -91,7 +93,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar newInputDirectory(final Task consumer) {
+    public DirectoryProperty newInputDirectory(final Task consumer) {
         final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
         consumer.dependsOn(new AbstractTaskDependency() {
             @Override

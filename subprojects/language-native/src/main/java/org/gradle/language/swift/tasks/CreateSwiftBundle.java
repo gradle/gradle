@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
@@ -43,9 +43,9 @@ import java.nio.charset.Charset;
  */
 @Incubating
 public class CreateSwiftBundle extends DefaultTask {
-    private final RegularFileVar informationFile;
-    private final RegularFileVar executableFile;
-    private final DirectoryVar outputDir;
+    private final RegularFileProperty informationFile;
+    private final RegularFileProperty executableFile;
+    private final DirectoryProperty outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
@@ -100,18 +100,18 @@ public class CreateSwiftBundle extends DefaultTask {
     }
 
     @OutputDirectory
-    public DirectoryVar getOutputDir() {
+    public DirectoryProperty getOutputDir() {
         return outputDir;
     }
 
     @InputFile
-    public RegularFileVar getExecutableFile() {
+    public RegularFileProperty getExecutableFile() {
         return executableFile;
     }
 
     @Optional
     @InputFiles
-    public RegularFileVar getInformationFile() {
+    public RegularFileProperty getInformationFile() {
         return informationFile;
     }
 }

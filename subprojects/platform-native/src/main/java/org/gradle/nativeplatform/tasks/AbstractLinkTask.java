@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -55,7 +55,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean debuggable;
-    private final RegularFileVar outputFile;
+    private final RegularFileProperty outputFile;
     private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
@@ -111,7 +111,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.1
      */
     @OutputFile
-    public RegularFileVar getBinaryFile() {
+    public RegularFileProperty getBinaryFile() {
         return outputFile;
     }
 

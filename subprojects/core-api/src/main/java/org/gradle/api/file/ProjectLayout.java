@@ -38,7 +38,7 @@ public interface ProjectLayout {
     /**
      * Returns the build directory for the project.
      */
-    DirectoryVar getBuildDirectory();
+    DirectoryProperty getBuildDirectory();
 
     /**
      * Creates a new {@link DirectoryVar} that uses the project directory to resolve paths, if required. The var has no initial value.

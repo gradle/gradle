@@ -26,7 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.ProjectLayout;
@@ -225,7 +225,7 @@ public class XcodePlugin extends IdePlugin {
         final Sync syncTask = project.getTasks().create("sync" + GUtil.toCamelCase(component.getName()) + "BundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
             @Override
             public void execute(Sync task) {
-                final DirectoryVar builtProductsDir = getBuiltProductsDir();
+                final DirectoryProperty builtProductsDir = getBuiltProductsDir();
                 task.onlyIf(new Spec<Task>() {
                     @Override
                     public boolean isSatisfiedBy(Task element) {
@@ -259,8 +259,8 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().addTarget(target);
     }
 
-    private DirectoryVar getBuiltProductsDir() {
-        DirectoryVar result = projectLayout.newDirectoryVar();
+    private DirectoryProperty getBuiltProductsDir() {
+        DirectoryProperty result = projectLayout.newDirectoryVar();
         String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
         if (builtProductsPath != null) {
             result.set(new File(builtProductsPath));

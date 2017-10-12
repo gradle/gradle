@@ -323,10 +323,17 @@ Instead of the `file()` and `files()` methods on `TaskDestroyables`, now there i
 
 ## Potential breaking changes
 
+### Changes to incubating `Provider` types
+
+- `AbstractTask.newOutputDirectory()` return type has changed to `DirectoryProperty` from `DirectoryVar`.
+- `AbstractTask.newOutputFile()` return type has changed to `RegularFileProperty` from `RegularFileVar`.
+- `AbstractTask.newInputFile()` return type has changed to `RegularFileProperty` from `RegularFileVar`.
+- `ProjectLayout.getBuildDirectory()` return type has changed to `DirectoryProperty` from `DirectoryVar`.
+
 ### Changes to incubating native compile and link tasks
 
 - `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
-- `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
+- `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryProperty` from `File`.
 - `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
 
 ### Incremental build respects order of declared output files
