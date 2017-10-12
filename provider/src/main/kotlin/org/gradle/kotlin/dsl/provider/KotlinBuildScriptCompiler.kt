@@ -75,10 +75,6 @@ class KotlinBuildScriptCompiler(
             else           -> compileScriptPlugin()
         }
 
-    fun asKotlinScriptPluginTarget(configuration: (KotlinScriptPluginTarget<*>) -> Unit): (Any) -> Unit = { anyTarget ->
-        configuration(kotlinScriptPluginTargetFor(anyTarget))
-    }
-
     fun compileForClassPath(): (Any) -> Unit =
         asKotlinScriptPluginTarget { target ->
             ignoringErrors { executeBuildscriptBlockOn(target) }
@@ -102,6 +98,11 @@ class KotlinBuildScriptCompiler(
                 prepareAndExecuteScriptBodyOn(target)
             }
         }
+
+    private
+    fun asKotlinScriptPluginTarget(configuration: (KotlinScriptPluginTarget<*>) -> Unit): (Any) -> Unit = { anyTarget ->
+        configuration(kotlinScriptPluginTargetFor(anyTarget))
+    }
 
     private
     fun prepareAndExecuteScriptBodyOn(target: KotlinScriptPluginTarget<*>) {
