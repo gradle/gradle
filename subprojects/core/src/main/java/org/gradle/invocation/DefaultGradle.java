@@ -80,6 +80,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
+        this.rootProjectName = startParameter.getCurrentDir().getName();
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -120,10 +121,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProjectName == null) {
-                    // Not known yet
-                    return null;
-                }
                 Path parentIdentityPath = parent.findIdentityPath();
                 if (parentIdentityPath == null) {
                     // Not known yet

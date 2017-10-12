@@ -143,6 +143,9 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     // We're only checking that we don't explode
     def "can use build scan plugin with source dependencies"() {
         executer.withStdinPipe().withForceInteractive(true).requireGradleDistribution()
+        def initScript = file("init.gradle") << """
+            // do nothing
+        """
         settingsFile << """
             sourceControl {
                 vcsMappings {
@@ -157,7 +160,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
-        def gradleHandle = executer.withTasks("resolve", "--scan").start()
+        def gradleHandle = executer.usingInitScript(initScript).withTasks("resolve", "--scan").start()
         writeToStdInAndClose(gradleHandle, YES.bytes)
 
         then:
