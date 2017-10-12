@@ -101,9 +101,9 @@ class CachingKotlinCompiler(
     data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
 
     fun compileGradleScript(
+        scriptTemplate: KClass<out Any>,
         scriptPath: String,
         script: String,
-        scriptTemplate: KClass<out Any>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 

@@ -243,9 +243,9 @@ class KotlinBuildScriptCompiler(
     private
     fun compileScriptFileFor(target: KotlinScriptPluginTarget<*>, classPath: ClassPath) =
         kotlinCompiler.compileGradleScript(
+            target.scriptTemplate,
             scriptPath,
             script,
-            target.scriptTemplate,
             classPath,
             targetScope.exportClassLoader)
 
