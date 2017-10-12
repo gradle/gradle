@@ -15,8 +15,8 @@ class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest(
     companion object {
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
-        fun testCases(): Iterable<Array<Any>> =
-            listOf(arrayOf<Any>("settings.gradle"), arrayOf<Any>("settings.gradle.kts"))
+        fun testCases() =
+            listOf(arrayOf("settings.gradle"), arrayOf("settings.gradle.kts"))
     }
 
     @Test
