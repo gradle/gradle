@@ -87,10 +87,10 @@ abstract class NativeCompilerTest extends Specification {
         def sourceFile = testDir.file("source.ext")
 
         when:
-        def args = compiler.getSourceArgs(sourceFile)
+        def args = compiler.getSourceArgs(sourceFile, testDir)
 
         then:
-        args == [ sourceFile.absoluteFile.toString() ]
+        args == [ 'source.ext' ]
     }
 
     @Unroll

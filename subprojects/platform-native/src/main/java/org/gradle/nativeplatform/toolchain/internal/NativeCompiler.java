@@ -78,8 +78,9 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         };
     }
 
-    protected List<String> getSourceArgs(File sourceFile) {
-        return Collections.singletonList(sourceFile.getAbsolutePath());
+    @SuppressWarnings("Since15")
+    protected List<String> getSourceArgs(File sourceFile, File workingDir) {
+        return Collections.singletonList(workingDir.toPath().relativize(sourceFile.toPath()).toString());
     }
 
     protected abstract List<String> getOutputArgs(T spec, File outputFile);
@@ -138,7 +139,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
-        List<String> sourceArgs = getSourceArgs(sourceFile);
+        List<String> sourceArgs = getSourceArgs(sourceFile, objectDir);
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileExtension));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
