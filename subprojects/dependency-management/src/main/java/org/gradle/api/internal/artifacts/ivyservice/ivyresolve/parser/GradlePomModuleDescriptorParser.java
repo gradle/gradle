@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
@@ -102,11 +101,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
-            PomReader parentPomReader = parsePom(parserSettings,
+            ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
                 pomReader.getParentGroupId(),
                 pomReader.getParentArtifactId(),
-                pomReader.getParentVersion(),
-                pomReader.getAllPomProperties());
+                pomReader.getParentVersion());
+            PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
             pomReader.setPomParent(parentPomReader);
         }
         pomReader.resolveGAV();
@@ -123,7 +122,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         mdBuilder.getComponentIdentifier(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleComponentIdentifier.newId(relocation));
+                PomReader relocatedModule = parsePomForId(parserSettings, (ModuleComponentIdentifier) DefaultModuleComponentSelector.newSelector(relocation.getGroup(), relocation.getName(), relocation.getVersion()), Maps.<String, String>newHashMap());
 
                 Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
                 for (PomDependencyData pomDependencyData : pomDependencyDataList) {
@@ -174,8 +173,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         for (PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
             if (isDependencyImportScoped(currentDependencyMgt)) {
-                PomReader importDescr = parseImportedPom(parseContext, currentDependencyMgt);
-                for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importDescr.getDependencyMgt().entrySet()) {
+                ModuleComponentSelector importedId = DefaultModuleComponentSelector.newSelector(currentDependencyMgt.getGroupId(), currentDependencyMgt.getArtifactId(), currentDependencyMgt.getVersion());
+                PomReader importedPom = parsePomForSelector(parseContext, importedId, Maps.<String, String>newHashMap());
+                for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importedPom.getDependencyMgt().entrySet()) {
                     if (!importedDependencyMgts.containsKey(entry.getKey())) {
                         importedDependencyMgts.put(entry.getKey(), entry.getValue());
                     }
@@ -195,31 +195,18 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return DEPENDENCY_IMPORT_SCOPE.equals(dependencyMgt.getScope());
     }
 
-    private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
-        return parsePom(parseContext, pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion(), Maps.<String, String>newHashMap());
-    }
-
-    private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId) throws IOException, SAXException {
-        return parsePom(parseContext, parentId, Maps.<String, String>newHashMap());
-    }
-
-    private PomReader parsePom(DescriptorParseContext parseContext, String groupId, String artifactId, String version, Map<String, String> childProperties) throws IOException, SAXException {
-        if (isDynamicVersion(version)) {
-            return parsePom(parseContext, DefaultModuleComponentSelector.newSelector(groupId, artifactId, version), childProperties);
-        } else {
-            return parsePom(parseContext, DefaultModuleComponentIdentifier.newId(groupId, artifactId, version), childProperties);
-        }
-    }
-
-    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentIdentifier identifier, Map<String, String> childProperties) throws IOException, SAXException {
+    private PomReader parsePomForId(DescriptorParseContext parseContext, ModuleComponentIdentifier identifier, Map<String, String> childProperties) throws IOException, SAXException {
         return parsePomResource(parseContext, parseContext.getMetaDataArtifact(identifier, ArtifactType.MAVEN_POM), childProperties);
     }
 
-    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties) throws IOException, SAXException {
-        ModuleVersionSelector versionSelector = DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersion());
-        DependencyMetadata metadata = new MavenDependencyMetadata(MavenScope.Compile, false, versionSelector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
-        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(metadata, ArtifactType.MAVEN_POM);
+    private PomReader parsePomForSelector(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties) throws IOException, SAXException {
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(toDependencyMetadata(selector), ArtifactType.MAVEN_POM);
         return parsePomResource(parseContext, localResource, childProperties);
+    }
+
+    private DependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
+        ModuleVersionSelector versionSelector = DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersion());
+        return new MavenDependencyMetadata(MavenScope.Compile, false, versionSelector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {
@@ -227,9 +214,5 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme, moduleIdentifierFactory);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
-    }
-
-    private boolean isDynamicVersion(String version) {
-        return mavenVersionSelectorScheme.parseSelector(version).isDynamic();
     }
 }
