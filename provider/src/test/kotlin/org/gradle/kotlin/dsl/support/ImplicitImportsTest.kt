@@ -21,6 +21,6 @@ class ImplicitImportsTest : AbstractIntegrationTest() {
         val result = build("help")
 
         // then:
-        assertThat(result.output, containsString("*org.gradle.jvm.tasks.Jar*"))
+        assertThat(result.output, containsString("*org.gradle.api.tasks.bundling.Jar*"))
     }
 }
