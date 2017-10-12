@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -112,7 +113,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
     private void assertSameSnapshots(Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
         assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
-        if (nonDeterministicCompilation) {
+        if (nonDeterministicCompilation || (toolChain.displayName == "clang" && OperatingSystem.current().isLinux())) {
             return
         }
         snapshotsInOriginalLocation.each { path, originalSnapshot ->
