@@ -17,6 +17,8 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
@@ -35,6 +37,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     public AbstractNativeSourceCompileTask() {
         super();
+        getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return getPreCompiledHeader() != null;
+            }
+        });
     }
 
     @Override
