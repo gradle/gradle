@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -60,6 +61,7 @@ public class ConnectionScopeServices {
 
     ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter,
                                                 DaemonClientFactory daemonClientFactory,
+                                                BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
                                                 JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
@@ -68,6 +70,7 @@ public class ConnectionScopeServices {
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
+                buildLayoutFactory,
                 daemonClientFactory,
                 buildActionExecuter,
                 new PayloadSerializer(

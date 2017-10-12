@@ -15,15 +15,49 @@
  */
 package org.gradle.initialization.layout;
 
+import javax.annotation.Nullable;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolver;
 
 import java.io.File;
 
 @UsedByScanPlugin
 public class BuildLayoutFactory {
+
+    /**
+     * Constructs a {@code BuildLayoutFactory} that searches for script files
+     * matching all available scripting languages.
+     *
+     * @see ScriptFileResolver
+     */
+    public static BuildLayoutFactory forDefaultScriptingLanguages() {
+        return new BuildLayoutFactory();
+    }
+
+    private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
+
+    private final ScriptFileResolver scriptFileResolver;
+
+    public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+        this.scriptFileResolver = scriptFileResolver;
+    }
+
+    /**
+     * This constructor should not be used in Gradle.
+     * Its sole purpose is backwards compatibility with the build scan plugin.
+     *
+     * {@code BuildLayoutFactory} should be either consumed as a service or instantiated via
+     * {@link #forDefaultScriptingLanguages()}.
+     */
+    @Deprecated
+    public BuildLayoutFactory() {
+        this(DefaultScriptFileResolver.forDefaultScriptingLanguages());
+    }
+
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
@@ -36,14 +70,14 @@ public class BuildLayoutFactory {
      */
     public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
         if (configuration.isUseEmptySettings()) {
-            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), null);
+            return buildLayoutFrom(configuration, null);
         }
         File explicitSettingsFile = configuration.getSettingsFile();
         if (explicitSettingsFile != null) {
             if (!explicitSettingsFile.isFile()) {
                 throw new MissingResourceException(explicitSettingsFile.toURI(), String.format("Could not read settings file '%s' as it does not exist.", explicitSettingsFile.getAbsolutePath()));
             }
-            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), explicitSettingsFile);
+            return buildLayoutFrom(configuration, explicitSettingsFile);
         }
 
         File currentDir = configuration.getCurrentDir();
@@ -51,25 +85,36 @@ public class BuildLayoutFactory {
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
 
-    BuildLayout getLayoutFor(File currentDir, File stopAt) {
-        File settingsFile = new File(currentDir, Settings.DEFAULT_SETTINGS_FILE);
-        if (settingsFile.isFile()) {
-            return layout(currentDir, currentDir, settingsFile);
-        }
-        for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
-            settingsFile = new File(candidate, Settings.DEFAULT_SETTINGS_FILE);
-            if (settingsFile.isFile()) {
-                return layout(candidate, candidate, settingsFile);
-            }
-            settingsFile = new File(candidate, "master/" + Settings.DEFAULT_SETTINGS_FILE);
-            if (settingsFile.isFile()) {
-                return layout(candidate, settingsFile.getParentFile(), settingsFile);
-            }
-        }
-        return layout(currentDir, currentDir, settingsFile);
+    private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
+        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile);
     }
 
-    private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
-        return new BuildLayout(rootDir, settingsDir, FileUtils.canonicalize(settingsFile));
+    @Nullable
+    public File findExistingSettingsFileIn(File directory) {
+        File defaultSettingsFile = new File(directory, Settings.DEFAULT_SETTINGS_FILE);
+        return defaultSettingsFile.isFile()
+            ? defaultSettingsFile
+            : scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
+    }
+
+    BuildLayout getLayoutFor(File currentDir, File stopAt) {
+        File settingsFile = findExistingSettingsFileIn(currentDir);
+        if (settingsFile != null) {
+            return layout(currentDir, settingsFile);
+        }
+        for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
+            settingsFile = findExistingSettingsFileIn(candidate);
+            if (settingsFile == null) {
+                settingsFile = findExistingSettingsFileIn(new File(candidate, "master"));
+            }
+            if (settingsFile != null) {
+                return layout(candidate, settingsFile);
+            }
+        }
+        return layout(currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
+    }
+
+    private BuildLayout layout(File rootDir, File settingsFile) {
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile));
     }
 }

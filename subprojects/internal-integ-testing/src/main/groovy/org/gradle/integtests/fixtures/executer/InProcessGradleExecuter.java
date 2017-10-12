@@ -37,6 +37,7 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -286,7 +287,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        ParametersConverter parametersConverter = new ParametersConverter();
+        BuildLayoutFactory buildLayoutFactory = BuildLayoutFactory.forDefaultScriptingLanguages();
+        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

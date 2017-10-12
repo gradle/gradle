@@ -44,10 +44,12 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
     private final Clock clock;
+    private final BuildLayoutFactory buildLayoutFactory;
     private File distributionBaseDir;
 
-    public DistributionFactory(Clock clock) {
+    public DistributionFactory(Clock clock, BuildLayoutFactory buildLayoutFactory) {
         this.clock = clock;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     public void setDistributionBaseDir(File distributionBaseDir) {
@@ -58,7 +60,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir, clock);
@@ -71,7 +73,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, "Gradle installation '" + gradleHomeDir + "'",
-                "Gradle installation directory '" + gradleHomeDir + "'");
+            "Gradle installation directory '" + gradleHomeDir + "'");
     }
 
     /**
@@ -142,7 +144,7 @@ public class DistributionFactory {
         }
 
         private File determineRealUserHomeDir(final File userHomeDir) {
-            if(distributionBaseDir != null) {
+            if (distributionBaseDir != null) {
                 return distributionBaseDir;
             }
 

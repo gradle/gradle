@@ -25,14 +25,15 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.LayoutCommandLineConverter;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
@@ -43,6 +44,9 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -65,6 +69,8 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
+    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(lenientScriptFileResolver());
+
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
      * command-line args.
@@ -78,6 +84,7 @@ public class CommandLineActionFactory {
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
         return new WithLogging(loggingServices,
+            buildLayoutFactory,
             args,
             loggingConfiguration,
             new ExceptionReportingAction(
@@ -87,7 +94,7 @@ public class CommandLineActionFactory {
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(buildLayoutFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -106,6 +113,15 @@ public class CommandLineActionFactory {
         out.println();
         parser.printUsage(out);
         out.println();
+    }
+
+    private ScriptFileResolver lenientScriptFileResolver() {
+        try {
+            return DefaultScriptFileResolver.forDefaultScriptingLanguages();
+        } catch (ServiceLookupException e) {
+            // Kotlin ScriptingLanguage provider will fail to load on JVMs < 6
+            return DefaultScriptFileResolver.empty();
+        }
     }
 
     private static class BuiltInActions implements CommandLineAction {
@@ -181,12 +197,14 @@ public class CommandLineActionFactory {
 
     private static class WithLogging implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
+        private final BuildLayoutFactory buildLayoutFactory;
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
+        WithLogging(ServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
             this.loggingServices = loggingServices;
+            this.buildLayoutFactory = buildLayoutFactory;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
@@ -197,7 +215,7 @@ public class CommandLineActionFactory {
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
             CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter();
             CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter();
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(buildLayoutFactory);
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();

@@ -17,6 +17,8 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
@@ -27,7 +29,7 @@ class LayoutToPropertiesConverterTest extends Specification {
 
     @Rule SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def converter = new LayoutToPropertiesConverter()
+    def converter = new LayoutToPropertiesConverter(new BuildLayoutFactory(DefaultScriptFileResolver.empty()))
     BuildLayoutParameters layout
     Map<String, String> props = new HashMap<String, String>()
 

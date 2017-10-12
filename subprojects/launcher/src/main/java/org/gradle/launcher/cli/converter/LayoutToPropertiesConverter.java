@@ -42,8 +42,10 @@ import java.util.Properties;
 public class LayoutToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public LayoutToPropertiesConverter() {
+    public LayoutToPropertiesConverter(BuildLayoutFactory buildLayoutFactory) {
+        this.buildLayoutFactory = buildLayoutFactory;
         allBuildOptions.addAll(BuildLayoutParametersBuildOptions.get());
         allBuildOptions.addAll(StartParameterBuildOptions.get());
         allBuildOptions.addAll(LoggingConfigurationBuildOptions.get());
@@ -73,8 +75,7 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(File currentDir, boolean searchUpwards, Map<String, String> result) {
-        BuildLayoutFactory factory = new BuildLayoutFactory();
-        BuildLayout layout = factory.getLayoutFor(currentDir, searchUpwards);
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, searchUpwards);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 

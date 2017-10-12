@@ -19,9 +19,18 @@ import org.gradle.scripts.ScriptingLanguage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
+
+    public static ScriptFileResolver empty() {
+        return new DefaultScriptFileResolver(Collections.<String>emptyList());
+    }
+
+    public static ScriptFileResolver forDefaultScriptingLanguages() {
+        return forScriptingLanguages(DefaultScriptingLanguages.create());
+    }
 
     public static ScriptFileResolver forScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {
         List<String> extensions = new ArrayList<String>();

@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -75,7 +74,7 @@ public class BuildLayoutParametersBuildOptions {
 
     public static class NoSearchUpwardsOption extends EnabledOnlyBooleanBuildOption<BuildLayoutParameters> {
         public NoSearchUpwardsOption() {
-            super(null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a " + Settings.DEFAULT_SETTINGS_FILE + " file."));
+            super(null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a settings file."));
         }
 
         @Override

@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -37,6 +38,7 @@ public class ConnectorServices {
         checkJavaVersion();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
+
     public static CancellationTokenSource createCancellationTokenSource() {
         checkJavaVersion();
         return new DefaultCancellationTokenSource();
@@ -82,7 +84,7 @@ public class ConnectorServices {
         }
 
         protected DistributionFactory createDistributionFactory(Clock clock) {
-            return new DistributionFactory(clock);
+            return new DistributionFactory(clock, BuildLayoutFactory.forDefaultScriptingLanguages());
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {

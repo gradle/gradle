@@ -313,14 +313,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(AutoAppliedPluginHandler.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
                                                                 IncludedBuildRegistry includedBuildRegistry) {
         return new DefaultSettingsLoaderFactory(
-            new DefaultSettingsFinder(new BuildLayoutFactory()),
+            new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
             new BuildSourceBuilder(
                 nestedBuildFactory,

@@ -19,10 +19,10 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -33,11 +33,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final WorkerLeaseService workerLeaseService;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, BuildLayoutFactory buildLayoutFactory) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.workerLeaseService = workerLeaseService;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -50,8 +52,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        if (!new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE).exists()) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE));
+        File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(settings.getSettingsDir());
+        if (settingsFile == null) {
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a settings file.", includedBuild.getName()));
         }
     }
 
