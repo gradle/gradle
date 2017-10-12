@@ -41,12 +41,13 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
-    ProjectInternal getRootProject();
+    ProjectInternal getRootProject() throws IllegalStateException;
 
     GradleInternal getParent();
 
     GradleInternal getRoot();
 
+    @Nullable
     BuildOperationState getBuildOperation();
     void setBuildOperation(BuildOperationState operation);
 
@@ -91,7 +92,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
-     * is executed, {@link #getRootProject()} will return null.
+     * is executed, {@link #getRootProject()} will throw {@link IllegalStateException}.
      *
      * @param rootProject The root project for this build.
      */
