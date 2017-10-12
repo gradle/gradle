@@ -22,11 +22,12 @@ import org.gradle.api.provider.PropertyState;
 /**
  * Represents some configurable regular file location, whose value is mutable and not necessarily currently known until later.
  * <p>
- * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
- * using the {@link ProjectLayout#newFileVar()} method.
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ProjectLayout#newFileVar()} method.
  *
  * @since 4.1
+ * @deprecated Use {@link RegularFileProperty} instead.
  */
 @Incubating
+@Deprecated
 public interface RegularFileVar extends RegularFileProperty, PropertyState<RegularFile> {
 }

@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -62,11 +63,23 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public DirectoryVar newDirectoryVar() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newDirectoryVar()", "ProjectLayout.directoryProperty()");
+        return directoryProperty();
+    }
+
+    @Override
+    public DirectoryVar directoryProperty() {
         return new DefaultDirectoryVar(projectDir.fileResolver);
     }
 
     @Override
     public RegularFileVar newFileVar() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newFileVar()", "ProjectLayout.fileProperty()");
+        return fileProperty();
+    }
+
+    @Override
+    public RegularFileVar fileProperty() {
         return new DefaultRegularFileVar(projectDir.fileResolver);
     }
 

@@ -260,7 +260,7 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private DirectoryProperty getBuiltProductsDir() {
-        DirectoryProperty result = projectLayout.newDirectoryVar();
+        DirectoryProperty result = projectLayout.directoryProperty();
         String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
         if (builtProductsPath != null) {
             result.set(new File(builtProductsPath));

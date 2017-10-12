@@ -22,11 +22,12 @@ import org.gradle.api.provider.PropertyState;
 /**
  * Represents some configurable directory location, whose value is mutable and is not necessarily currently known until later.
  * <p>
- * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
- * using the {@link ProjectLayout#newDirectoryVar()} method.
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ProjectLayout#newDirectoryVar()} method.
  *
  * @since 4.1
+ * @deprecated Use {@link DirectoryProperty} instead.
  */
 @Incubating
+@Deprecated
 public interface DirectoryVar extends DirectoryProperty, PropertyState<Directory> {
 }

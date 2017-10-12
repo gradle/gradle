@@ -218,16 +218,25 @@ All Command line options that allow to enable a feature (e.g. `--no-parallel` tu
 
 ### Improvements for plugin authors
 
+This release of Gradle continues to add features that build on the `Provider` and `Property` (previously called `PropertyState`) concepts added in Gradle 4.0. These types help plugin authors implement tasks and other model elements whose property values are derived from the values of other configurable properties. 
+
+#### Task input directories
+
 In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.
 
-It added factory methods on `DefaultTask` - i.e. `newInputFile()`, `newOutputFile()`, and `newOutputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an output directory, and `RegularFileVar` instances that represent an output file or directory. When used as an output directory or file property, these instances carry dependency information about the producing task. When used as an input file property, the producing task is tracked as a dependency of the consuming task. Similar support for input files is done using `ConfigurableFileCollection` and friends, as has been possible for quite a while.
+It added factory methods on `DefaultTask` - i.e. `newInputFile()`, `newOutputFile()`, and `newOutputDirectory()` - to allow a task implementation class to create `DirectoryProperty` instances that represent an output directory, and `RegularFileProperty` instances that represent an input or output file. When used as an output directory or file property, these instances carry dependency information about the producing task. When used as an input file property, the producing task is tracked as a dependency of the consuming task. Similar support for input files is done using `ConfigurableFileCollection` and friends, as has been possible for quite a while.
 
-In Gradle 4.3, we added a new factory method on `DefaultTask` - i.e. `newInputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an input directory.
+In Gradle 4.3, we added a new factory method on `DefaultTask` - i.e. `newInputDirectory()` - to allow a task implementation class to create `DirectoryProperty` instances that represent an input directory. These instances can be used with the `@InputDirectory` annotation, which automatically adds a task dependency on the producing task.
 
-TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
-TBD: `ListProperty<T>`
-TBD: `Provider.map()`
-TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
+#### Using `Provider` and `Property` types
+
+The `@Input` annotation now supports the `Provider<T>` and `Property<T>` types. This allows a task to use these types for input properties that are lazily calculated.
+
+The Groovy DSL now supports setting the value of a property with type `Property<Directory>` and `Property<RegularFile>` using a `File`.
+
+Several methods have been added to `Provider` to query the current value of the `Provider` or transform the future value of the `Provider`.
+
+A new `ListProperty<T>` type has been added to add conveniences for dealing with properties of type `List<T>`.  
 
 ### Default JaCoCo updated to version 0.7.9
 
@@ -312,10 +321,14 @@ Instead of the `file()` and `files()` methods on `TaskDestroyables`, now there i
 ### Changes to `Provider` types
 
 - `PropertyState` has been renamed to `Property`. The `PropertyState` interface is deprecated and will be removed in Gradle 5.0.
+- `DirectoryVar` has been renamed to `DirectoryProperty`. The `DirectoryVar` interface is deprecated and will be removed in Gradle 5.0.
+- `RegularFileVar` has been renamed to `RegularFileProperty`. The `RegularFileVar` interface is deprecated and will be removed in Gradle 5.0.
 - The following methods that create `PropertyState` instances have been replaced with the `ObjectFactory.property()` method. These methods are deprecated and will be removed in Gradle 5.0:
     - `Project.property()`
     - `Script.property()`
     - `ProviderFactory.property()`
+- The `ProjectLayout.newDirectoryVar()` method has been deprecated, and is replaced with the `directoryProperty()` method.
+- The `ProjectLayout.newFileVar()` method has been deprecated, and is replaced with the `fileProperty()` method.
 
 ### Other deprecations
 
