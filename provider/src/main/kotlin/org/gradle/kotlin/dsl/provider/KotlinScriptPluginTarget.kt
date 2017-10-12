@@ -49,67 +49,47 @@ fun unsupportedTarget(target: Any): Nothing =
 
 
 internal
-interface KotlinScriptPluginTarget<T : Any> {
+sealed class KotlinScriptPluginTarget<T : Any>(
+    open val `object`: T,
+    val targetType: KClass<T>,
+    val scriptTemplate: KClass<*>,
+    val rootDir: File,
+    val gradleUserHomeDir: File,
+    val gradleHomeDir: File?,
+    val logDir: File,
+    val supportsBuildscriptBlock: Boolean = false,
+    val supportsPluginsBlock: Boolean = false,
+    val pluginManager: PluginManagerInternal? = null,
+    val providesAccessors: Boolean = false) {
 
-    val `object`: T
-    val targetType: KClass<T>
-    val scriptTemplate: KClass<*>
-
-    val rootDir: File
-    val gradleUserHomeDir: File
-    val gradleHomeDir: File?
-
-    val logDir: File
-
-    val supportsBuildscriptBlock
-        get() = false
-
-    val supportsPluginsBlock
-        get() = false
-
-    val pluginManager: PluginManagerInternal?
-        get() = null
-
-    val providesAccessors
-        get() = false
-
-    fun accessorsClassPath(classPath: ClassPath) =
+    open fun accessorsClassPath(classPath: ClassPath) =
         AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
 }
 
-
 internal
-class KotlinScriptPluginProjectTarget(
-    override val `object`: Project,
-    override val targetType: KClass<Project> = Project::class,
-    override val scriptTemplate: KClass<*> = KotlinBuildScript::class,
-    override val supportsBuildscriptBlock: Boolean = true) : KotlinScriptPluginTarget<Project> {
+data class KotlinScriptPluginProjectTarget(override val `object`: Project) : KotlinScriptPluginTarget<Project>(
+    `object`,
+    targetType = Project::class,
+    scriptTemplate = KotlinBuildScript::class,
+    rootDir = `object`.rootDir,
+    gradleUserHomeDir = `object`.gradle.gradleUserHomeDir,
+    gradleHomeDir = `object`.gradle.gradleHomeDir,
+    logDir = `object`.buildDir,
+    supportsBuildscriptBlock = true,
+    supportsPluginsBlock = true,
+    pluginManager = (`object` as ProjectInternal).pluginManager,
+    providesAccessors = true) {
 
-    override val rootDir: File get() = `object`.rootDir
-    override val gradleUserHomeDir: File get() = `object`.gradle.gradleUserHomeDir
-    override val gradleHomeDir: File? get() = `object`.gradle.gradleHomeDir
-
-    override val logDir: File get() = `object`.buildDir
-
-    override val supportsPluginsBlock = true
-    override val pluginManager: PluginManagerInternal
-        get() = (`object` as ProjectInternal).pluginManager
-
-    override val providesAccessors = true
     override fun accessorsClassPath(classPath: ClassPath) =
         accessorsClassPathFor(`object`, classPath)
 }
 
-
 internal
-class KotlinScriptPluginSettingsTarget(
-    override val `object`: Settings,
-    override val targetType: KClass<Settings> = Settings::class,
-    override val scriptTemplate: KClass<*> = KotlinSettingsScript::class) : KotlinScriptPluginTarget<Settings> {
-
-    override val rootDir: File get() = `object`.rootDir
-    override val gradleUserHomeDir: File get() = `object`.gradle.gradleUserHomeDir
-    override val gradleHomeDir: File? get() = `object`.gradle.gradleHomeDir
-
-    override val logDir: File get() = File(`object`.rootDir, "build")
-}
+data class KotlinScriptPluginSettingsTarget(override val `object`: Settings) : KotlinScriptPluginTarget<Settings>(
+    `object`,
+    targetType = Settings::class,
+    scriptTemplate = KotlinSettingsScript::class,
+    rootDir = `object`.rootDir,
+    gradleUserHomeDir = `object`.gradle.gradleUserHomeDir,
+    gradleHomeDir = `object`.gradle.gradleHomeDir,
+    logDir = File(`object`.rootDir, "build"))
