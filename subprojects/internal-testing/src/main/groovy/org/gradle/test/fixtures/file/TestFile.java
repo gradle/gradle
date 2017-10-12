@@ -732,5 +732,13 @@ public class TestFile extends File {
             this.modTime = modTime;
             this.hash = hash;
         }
+
+        public long getModTime() {
+            return modTime;
+        }
+
+        public HashCode getHash() {
+            return hash;
+        }
     }
 }

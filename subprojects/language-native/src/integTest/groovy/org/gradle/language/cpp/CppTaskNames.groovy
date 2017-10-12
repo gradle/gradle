@@ -45,21 +45,21 @@ trait CppTaskNames {
         installTask(project, RELEASE)
     }
 
-    String[] compileTasks(String project = '', String variant) {
-        ["${project}:depend${variant}Cpp", "${project}:compile${variant}Cpp"] as String[]
+    String[] compileTasks(String project = '', String buildType) {
+        ["${project}:depend${buildType}Cpp", "${project}:compile${buildType}Cpp"] as String[]
     }
 
-    String linkTask(String project = '', String variant) {
-        "${project}:link${variant}"
+    String linkTask(String project = '', String buildType) {
+        "${project}:link${buildType}"
     }
 
-    String installTask(String project = '', String variant) {
-        "${project}:install${variant}"
+    String installTask(String project = '', String buildType) {
+        "${project}:install${buildType}"
     }
 
-    String[] compileAndLinkTasks(List<String> projects = [''], String variant) {
+    String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
-            [*compileTasks(project, variant), linkTask(project, variant)]
+            [*compileTasks(project, buildType), linkTask(project, buildType)]
         }.flatten()
     }
 
