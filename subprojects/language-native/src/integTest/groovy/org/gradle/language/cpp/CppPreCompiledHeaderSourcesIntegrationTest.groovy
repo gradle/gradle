@@ -16,13 +16,33 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 
-class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
+class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest implements DirectoryBuildCacheFixture {
+
     @Override
     IncrementalHelloWorldApp getApp() {
         return new CppHelloWorldApp()
     }
+
+    def "caching is disabled if precompiled headers are configured" () {
+        writeStandardSourceFiles()
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.caching.native=true")
+        }
+
+        when:
+        buildFile << preCompiledHeaderComponent()
+        withBuildCache().run "helloSharedLibrary", "--info"
+
+        then:
+        libAndPCHTasksExecuted()
+        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        output.contains "Caching disabled for task ':compileHelloSharedLibraryCppPreCompiledHeader': Caching has not been enabled for the task"
+        output.contains "Caching disabled for task ':compileHelloSharedLibraryHelloCpp': 'Pre-compiled headers are used' satisfied"
+    }
+
 }

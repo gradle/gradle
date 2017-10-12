@@ -107,7 +107,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                return !AbstractNativeCompileTask.this.getHeaderDependenciesFile().isPresent();
+                return !getHeaderDependenciesFile().isPresent();
             }
         });
         dependsOn(includes);
