@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToStdInAndClose
+
 class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     GitRepository first = new GitRepository('first', testDirectory)
@@ -134,5 +137,29 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         second.commit("change message", file("second/build.gradle"))
         then:
         succeeds("resolve")
+    }
+
+    def "can use build scan plugin with source dependencies"() {
+        executer.withStdinPipe().withForceInteractive(true).requireGradleDistribution()
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    addRule('org.test group rule') { details ->
+                        if (details.requested.group == "org.test") {
+                            from vcs(GitVersionControlSpec) {
+                                url = file(details.requested.module).toURI()
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        def gradleHandle = executer.withTasks("resolve", "--scan").start()
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+
+        then:
+        def result = gradleHandle.waitForFinish()
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
     }
 }
