@@ -21,10 +21,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
@@ -53,8 +53,8 @@ import java.io.File;
 public class InstallExecutable extends DefaultTask {
     private ToolChain toolChain;
     private NativePlatform platform;
-    private final DirectoryVar destinationDir;
-    private final RegularFileVar executable;
+    private final DirectoryProperty destinationDir;
+    private final RegularFileProperty executable;
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
@@ -101,7 +101,7 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.1
      */
     @OutputDirectory
-    public DirectoryVar getInstallDirectory() {
+    public DirectoryProperty getInstallDirectory() {
         return destinationDir;
     }
 
@@ -131,7 +131,7 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.1
      */
     @Internal("Covered by inputFileIfExists")
-    public RegularFileVar getSourceFile() {
+    public RegularFileProperty getSourceFile() {
         return executable;
     }
 

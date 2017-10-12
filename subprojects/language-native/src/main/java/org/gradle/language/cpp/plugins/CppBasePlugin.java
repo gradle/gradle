@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -63,7 +63,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(DependPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 

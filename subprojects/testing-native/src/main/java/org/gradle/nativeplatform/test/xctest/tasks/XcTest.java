@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
@@ -50,27 +50,27 @@ public class XcTest extends Test {
 
     @InputDirectory
     public File getTestBundleDir() {
-        return ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
+        return ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
     }
 
     public void setTestBundleDir(File testBundleDir) {
-        ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+        ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
     }
 
     public void setTestBundleDir(Provider<? extends Directory> testBundleDir) {
-        ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+        ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
     }
 
     @Internal
     public File getWorkingDir() {
-        return ((DirectoryVar) getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
+        return ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
     }
 
     public void setWorkingDir(File workingDir) {
-        ((DirectoryVar) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
+        ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
     }
 
     public void setWorkingDir(Provider<? extends Directory> workingDir) {
-        ((DirectoryVar) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
+        ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
     }
 }

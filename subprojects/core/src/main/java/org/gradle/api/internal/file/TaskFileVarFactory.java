@@ -17,15 +17,15 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 
 public interface TaskFileVarFactory {
-    DirectoryVar newOutputDirectory(Task producer);
+    DirectoryProperty newOutputDirectory(Task producer);
 
-    RegularFileVar newOutputFile(Task producer);
+    RegularFileProperty newOutputFile(Task producer);
 
-    RegularFileVar newInputFile(Task consumer);
+    RegularFileProperty newInputFile(Task consumer);
 
-    DirectoryVar newInputDirectory(Task consumer);
+    DirectoryProperty newInputDirectory(Task consumer);
 }

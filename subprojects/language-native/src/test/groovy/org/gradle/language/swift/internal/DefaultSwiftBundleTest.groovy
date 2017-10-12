@@ -38,7 +38,7 @@ class DefaultSwiftBundleTest extends Specification {
 
     def setup() {
         def projectLayout = new DefaultProjectLayout(tmpDir.testDirectory, TestFiles.resolver(tmpDir.testDirectory))
-        resourceDirectory = projectLayout.newDirectoryVar()
+        resourceDirectory = projectLayout.directoryProperty()
         resourceDirectory.set(tmpDir.file("resources"))
 
         binary = new DefaultSwiftBundle("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  Stub(ConfigurationContainer), Stub(Configuration), resourceDirectory)

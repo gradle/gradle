@@ -38,20 +38,40 @@ public interface ProjectLayout {
     /**
      * Returns the build directory for the project.
      */
-    DirectoryVar getBuildDirectory();
+    DirectoryProperty getBuildDirectory();
 
     /**
      * Creates a new {@link DirectoryVar} that uses the project directory to resolve paths, if required. The var has no initial value.
+     *
+     * @deprecated Use {@link #directoryProperty()} instead.
      */
+    @Deprecated
     DirectoryVar newDirectoryVar();
 
     /**
-     * Creates a new {@link RegularFileVar} that uses the project directory to resolve paths, if required. The var has no initial value.
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve paths, if required. The property has no initial value.
+     *
+     * @since 4.3
      */
+    DirectoryProperty directoryProperty();
+
+    /**
+     * Creates a new {@link RegularFileVar} that uses the project directory to resolve paths, if required. The var has no initial value.
+     *
+     * @deprecated Use {@link #fileProperty()} instead.
+     */
+    @Deprecated
     RegularFileVar newFileVar();
 
     /**
-     * Creates a {@link RegularFile} implementation whose location is calculated from the given {@link Provider}.
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve paths, if required. The property has no initial value.
+     *
+     * @since 4.3
+     */
+    RegularFileProperty fileProperty();
+
+    /**
+     * Creates a {@link RegularFile} provider whose location is calculated from the given {@link Provider}.
      */
     Provider<RegularFile> file(Provider<File> file);
 }

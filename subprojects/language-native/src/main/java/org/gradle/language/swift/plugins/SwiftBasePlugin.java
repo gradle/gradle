@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -67,7 +67,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         // TODO - Merge with CppBasePlugin to remove code duplication
 
         final TaskContainerInternal tasks = project.getTasks();
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 

@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.component.ComponentWithVariants;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
@@ -47,7 +47,7 @@ import java.io.Writer;
 @Incubating
 public class GenerateModuleMetadata extends DefaultTask {
     private final Property<Publication> publication;
-    private final RegularFileVar outputFile;
+    private final RegularFileProperty outputFile;
 
     public GenerateModuleMetadata() {
         publication = getProject().getObjects().property(Publication.class);
@@ -69,7 +69,7 @@ public class GenerateModuleMetadata extends DefaultTask {
      * Returns the output file location.
      */
     @OutputFile
-    public RegularFileVar getOutputFile() {
+    public RegularFileProperty getOutputFile() {
         return outputFile;
     }
 

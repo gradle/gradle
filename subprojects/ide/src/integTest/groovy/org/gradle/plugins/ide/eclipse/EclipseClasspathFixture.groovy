@@ -65,55 +65,19 @@ class EclipseClasspathFixture {
         return matches[0]
     }
 
-    EclipseSourceDir sourceDir(String path) {
-        def matches = getSourceDirs().findAll { it.path == path }
-        assert matches.size() == 1
-        return matches[0]
-    }
-
     List<EclipseLibrary> getLibs() {
         return this.classpath.classpathentry.findAll { it.@kind == 'lib' }.collect { new EclipseLibrary(it) }
-    }
-
-    List<EclipseSourceDir> getSourceDirs() {
-        return this.classpath.classpathentry.findAll { it.@kind == 'src' && !it.@path.startsWith('/') }.collect { new EclipseSourceDir(it) }
     }
 
     List<EclipseLibrary> getVars() {
         return this.classpath.classpathentry.findAll { it.@kind == 'var' }.collect { new EclipseLibrary(it) }
     }
 
-    abstract class EclipseClasspathEntry {
+    class EclipseLibrary {
         final Node entry
 
-        EclipseClasspathEntry(Node entry) {
-            this.entry = entry
-        }
-
-        void assertHasAttribute(String key, String value) {
-            assert entry.attributes.find { it.attribute[0].@name == key && it.attribute[0].@value == value }
-        }
-    }
-
-    class EclipseSourceDir extends EclipseClasspathEntry {
-
-        EclipseSourceDir(Node entry) {
-            super(entry)
-        }
-
-        String getPath() {
-            return entry.@path
-        }
-
-        void assertOutputLocation(String output) {
-            assert entry.@output == output
-        }
-    }
-
-    class EclipseLibrary extends EclipseClasspathEntry {
-
         EclipseLibrary(Node entry) {
-            super(entry)
+            this.entry = entry
         }
 
         String getJarName() {
@@ -162,7 +126,8 @@ class EclipseClasspathFixture {
 
         String getJavadocLocation() {
             assert entry.attributes
-            entry.attributes[0].find { it.@name == 'javadoc_location' }.@value
+            assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
+            entry.attributes[0].attribute[0].@value
         }
 
         void assertHasJavadoc(File file) {
@@ -176,17 +141,19 @@ class EclipseClasspathFixture {
         }
 
         void assertHasNoJavadoc() {
-            assert !entry.attributes.find { it.attribute[0].@name == 'javadoc_location' }
+            assert entry.attributes.isEmpty()
         }
 
         void assertIsDeployedTo(String path) {
             assert entry.attributes
-            assert entry.attributes[0].find { it.@name == 'org.eclipse.jst.component.dependency' && it.@value == path }
+            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.dependency'
+            assert entry.attributes[0].attribute[0].@value == path
         }
 
         void assertIsExcludedFromDeployment() {
             assert entry.attributes
-            assert entry.attributes[0].find { it.@name == 'org.eclipse.jst.component.nondependency' && it.@value == '' }
+            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.nondependency'
+            assert entry.attributes[0].attribute[0].@value == ''
         }
 
         void assertHasNoDeploymentAttributes() {

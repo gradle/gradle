@@ -29,8 +29,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -1002,7 +1002,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
      * @since 4.1
      */
     @Incubating
-    protected DirectoryVar newOutputDirectory() {
+    protected DirectoryProperty newOutputDirectory() {
         return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
     }
 
@@ -1013,7 +1013,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
      * @since 4.1
      */
     @Incubating
-    protected RegularFileVar newOutputFile() {
+    protected RegularFileProperty newOutputFile() {
         return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
     }
 
@@ -1024,7 +1024,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
      * @since 4.1
      */
     @Incubating
-    protected RegularFileVar newInputFile() {
+    protected RegularFileProperty newInputFile() {
         return getServices().get(TaskFileVarFactory.class).newInputFile(this);
     }
 
@@ -1035,7 +1035,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
      * @since 4.3
      */
     @Incubating
-    protected DirectoryVar newInputDirectory() {
+    protected DirectoryProperty newInputDirectory() {
         return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
     }
 }

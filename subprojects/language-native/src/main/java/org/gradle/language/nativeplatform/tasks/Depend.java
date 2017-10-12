@@ -24,7 +24,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Property;
@@ -72,7 +72,7 @@ public class Depend extends DefaultTask {
     private final HeaderDependenciesCollector headerDependenciesCollector;
     private ImmutableList<String> includePaths;
     private Property<Boolean> importsAreIncludes;
-    private final RegularFileVar headerDependenciesFile;
+    private final RegularFileProperty headerDependenciesFile;
 
     private CSourceParser sourceParser;
     private final FileHasher hasher;
@@ -162,7 +162,7 @@ public class Depend extends DefaultTask {
     }
 
     @OutputFile
-    public RegularFileVar getHeaderDependenciesFile() {
+    public RegularFileProperty getHeaderDependenciesFile() {
         return headerDependenciesFile;
     }
 

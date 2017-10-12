@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
@@ -83,7 +83,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         final TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
         ProviderFactory providers = project.getProviders();
 
