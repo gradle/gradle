@@ -51,8 +51,8 @@ public class OptionalDependenciesHandler {
     }
 
     private ModuleIdentifier lookupModuleIdentifier(DependencyState dependencyState) {
-        DependencySubstitutionApplicator.SubstitutionResult application = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
-        DependencySubstitutionInternal details = application.getResult();
+        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
+        DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
             ComponentSelector target = details.getTarget();
             if (target instanceof ModuleComponentSelector) {
