@@ -19,12 +19,8 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParameters;
-import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
 /**
  * An adapter for {@link InternalParameterAcceptingConnection}.
@@ -37,8 +33,8 @@ public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerC
     public ParameterAcceptingConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
         final InternalParameterAcceptingConnection connection = (InternalParameterAcceptingConnection) delegate;
-        Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
-        actionRunner = new ParameterActionRunner(connection, exceptionTransformer, getVersionDetails());
+        Transformer<RuntimeException, RuntimeException> exceptionTransformer = new CancellationExceptionTransformer();
+        actionRunner = new ParametrizedActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 
     @Override
@@ -46,17 +42,4 @@ public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerC
         return actionRunner;
     }
 
-    private static class ParameterActionRunner extends CancellableActionRunner {
-        private final InternalParameterAcceptingConnection executor;
-
-        ParameterActionRunner(InternalParameterAcceptingConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
-            super(null, exceptionTransformer, versionDetails);
-            this.executor = executor;
-        }
-
-        @Override
-        protected <T> BuildResult<T> execute(InternalBuildActionAdapter<T> buildActionAdapter, InternalCancellationToken cancellationTokenAdapter, BuildParameters operationParameters) {
-            return executor.run(buildActionAdapter, cancellationTokenAdapter, operationParameters);
-        }
-    }
 }

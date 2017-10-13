@@ -30,7 +30,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 
 import java.io.File;
 
-public class CancellableActionRunner implements ActionRunner {
+class CancellableActionRunner implements ActionRunner {
     private final InternalCancellableConnection executor;
     private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
     private final VersionDetails versionDetails;

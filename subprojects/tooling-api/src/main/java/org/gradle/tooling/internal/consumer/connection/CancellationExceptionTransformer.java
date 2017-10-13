@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 
-public class ExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
+class CancellationExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
     public RuntimeException transform(RuntimeException e) {
         for (Throwable t = e; t != null; t = t.getCause()) {
             if ("org.gradle.api.BuildCancelledException".equals(t.getClass().getName())
