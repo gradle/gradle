@@ -42,7 +42,7 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
 
     def "defaults to empty list"() {
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.present
         property.get() == []
         property.getOrNull() == []
@@ -51,7 +51,7 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
 
     def "returns immutable copy of value"() {
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.set(["abc"])
 
         property.present
@@ -68,7 +68,7 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
 
     def "get returns a snapshot of the current value of the source list"() {
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         def l = ["abc"]
         property.set(l)
 
@@ -88,7 +88,7 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         provider.get() >>> [["123"], ["abc"]]
 
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.set(provider)
 
         def v = property.get()
@@ -104,7 +104,7 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         def transformer = Mock(Transformer)
 
         given:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.set(["abc"])
         def provider = property.map(transformer)
 
@@ -124,9 +124,36 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         0 * _
     }
 
-    def "can add value to the provider"() {
+    def "can add value to empty property"() {
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
+
+        def v = property.get()
+        v instanceof ImmutableList
+        v == []
+
+        property.add("123")
+
+        def v2 = property.get()
+        v2 instanceof ImmutableList
+        v2 == ["123"]
+
+        property.add(Providers.of("456"))
+
+        def v3 = property.get()
+        v3 instanceof ImmutableList
+        v3 == ["123", "456"]
+
+        property.addAll(Providers.of(["789"]))
+
+        def v4 = property.get()
+        v4 instanceof ImmutableList
+        v4 == ["123", "456", "789"]
+    }
+
+    def "can add value to property"() {
+        expect:
+        def property = property()
         property.set(["abc"])
 
         property.present
@@ -153,12 +180,13 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         v4 == ["abc", "123", "456", "789"]
     }
 
-    def "can add provider to an empty provider"() {
-        def provider = Stub(ProviderInternal)
-        provider.get() >>> ["123", "abc"]
+    def "can add provider to empty property"() {
+        def delegateProvider = Stub(ProviderInternal)
+        delegateProvider.get() >>> ["123", "abc"]
+        def provider = new DefaultProvider({ delegateProvider.get() })
 
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.add(provider)
 
         def v = property.get()
@@ -170,12 +198,30 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         v2 == ["abc"]
     }
 
-    def "can add provider of a collection to an empty provider"() {
+    def "can add provider to property"() {
+        def delegateProvider = Stub(ProviderInternal)
+        delegateProvider.get() >>> ["123", "abc"]
+        def provider = new DefaultProvider({ delegateProvider.get() })
+
+        expect:
+        def property = property()
+        property.add(provider)
+
+        def v = property.get()
+        v instanceof ImmutableList
+        v == ["123"]
+
+        def v2 = property.get()
+        v2 instanceof ImmutableList
+        v2 == ["abc"]
+    }
+
+    def "can add provider of a collection to empty property"() {
         def provider = Stub(ProviderInternal)
         provider.get() >>> [["123"], ["abc"]]
 
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.addAll(provider)
 
         def v = property.get()
@@ -187,12 +233,12 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         v2 == ["abc"]
     }
 
-    def "can add provider of a collection to the provider"() {
+    def "can add provider of a collection to the property"() {
         def provider = Stub(ProviderInternal)
         provider.get() >>> [["123"], ["abc"]]
 
         expect:
-        def property = new DefaultListProperty<String>(String)
+        def property = property()
         property.set(["aaa"])
         property.addAll(provider)
 
@@ -205,44 +251,91 @@ class DefaultListPropertyTest extends PropertySpec<List<String>> {
         v2 == ["aaa", "abc"]
     }
 
-    def "can set to null value to remove value after adding values"() {
-        given:
+    def "can set null value to remove any added values"() {
         def property = property()
         property.add("abc")
-        property.set(null)
+        property.add(Providers.of("def"))
+        property.addAll(Providers.of(["hij"]))
 
         expect:
+        property.set(null)
+
         !property.present
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
         property.getOrElse(null) == null
     }
 
-    def "can add to the property after set to null"() {
-        given:
-        def provider = Stub(ProviderInternal)
-        provider.get() >> ["123"]
+    def "throws IllegalStateException when getting after adding values to a no value list property"() {
         def property = property()
         property.set(null)
-        property.addAll(provider)
+        property.addAll(Providers.of(["123"]))
 
-        expect:
-        def v = property.get()
-        v instanceof ImmutableList
-        v == ["123"]
+        when:
+        property.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == Providers.NULL_VALUE
     }
 
-    def "can set to value to override added values"() {
-        given:
+    def "throws IllegalStateException when getting after adding providers that resolve to no value"() {
+        def property = property()
+        property.addAll(Providers.notDefined())
+
+        when:
+        property.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == Providers.NULL_VALUE
+    }
+
+    def "can add provider of empty list to empty property"() {
+        def property = property()
+
+        expect:
+        property.addAll(Providers.of([]))
+
+        def v = property.get()
+        v instanceof ImmutableList
+        v == []
+    }
+
+    def "can add provider of empty list to property"() {
+        def property = property()
+        property.set(["aaa"])
+
+        expect:
+        property.addAll(Providers.of([]))
+
+        def v = property.get()
+        v instanceof ImmutableList
+        v == ["aaa"]
+    }
+
+    def "can set value to override added values"() {
         def property = property()
         property.add("abc")
         property.add(Providers.of("def"))
         property.addAll(Providers.of(["hij"]))
-        property.set(["123", "456"])
 
         expect:
+        property.set(["123", "456"])
+
         def v = property.get()
         v instanceof ImmutableList
         v == ["123", "456"]
+    }
+
+    def "throws NullPointerException when adding a null value to the property"() {
+        def property = property()
+
+        when:
+        property.add(null)
+
+        then:
+        def ex = thrown(NullPointerException)
+        ex.message == "Cannot add a null value to the property."
     }
 }

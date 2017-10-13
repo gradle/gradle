@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,15 +33,16 @@ public interface ListProperty<T> extends Property<List<T>> {
     /**
      * Adds an element to the property without evaluating existing providers already present.
      *
-     * @param element The element, can be null.
+     * @param element The element
+     * @throws NullPointerException if the specified element is null
      * @since 4.4
      */
     void add(T element);
 
     /**
      * Adds an element to the property given by the provider without evaluating existing providers already present.
-     * set. This property will track the value of the provider and query its value each time the value of the property
-     * is queried. When the provider has no value, the element in the property will also have no value.
+     * This property will track the value of the provider and query its value each time the value of the property
+     * is queried. When the provider has no value, the property will be consider as having no value.
      *
      * @param provider Provider
      * @since 4.4
@@ -52,11 +52,10 @@ public interface ListProperty<T> extends Property<List<T>> {
     /**
      * Adds a collection of elements to the property given by the provider without evaluating existing providers
      * already present. This property will track the value of the provider and query its value each time the value of
-     * the property is queried. When the provider has no value, the collection of element in the property will also
-     * have no value.
+     * the property is queried. When the provider has no value, the property will be consider as having no value.
      *
      * @param provider Provider of elements
      * @since 4.4
      */
-    void addAll(Provider<? extends Collection<T>> provider);
+    void addAll(Provider<? extends Iterable<T>> provider);
 }
