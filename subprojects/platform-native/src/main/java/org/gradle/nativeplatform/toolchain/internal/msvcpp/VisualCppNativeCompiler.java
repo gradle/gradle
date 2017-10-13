@@ -42,10 +42,10 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     protected List<String> getOutputArgs(T spec, File outputFile) {
         List<String> args = new ArrayList<String>();
         if (spec.isDebuggable()) {
-            args.add("/Fd" + GFileUtils.relativize(spec.getWorkingDir(), new File(outputFile.getParentFile(), outputFile.getName() + ".pdb")));
+            args.add("/Fd" + GFileUtils.relativizeToBase(spec.getWorkingDir(), new File(outputFile.getParentFile(), outputFile.getName() + ".pdb")));
         }
         // MSVC doesn't allow a space between Fo and the file name
-        args.add("/Fo" + GFileUtils.relativize(spec.getWorkingDir(), outputFile));
+        args.add("/Fo" + GFileUtils.relativizeToBase(spec.getWorkingDir(), outputFile));
         return args;
     }
 

@@ -78,7 +78,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     protected List<String> getSourceArgs(T spec, File sourceFile) {
-        return Collections.singletonList(GFileUtils.relativize(spec.getWorkingDir(), sourceFile));
+        return Collections.singletonList(GFileUtils.relativizeToBase(spec.getWorkingDir(), sourceFile));
     }
 
     protected abstract List<String> getOutputArgs(T spec, File outputFile);

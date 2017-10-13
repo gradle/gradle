@@ -90,7 +90,7 @@ public class ArgWriter implements ArgCollector {
                 } catch (IOException e) {
                     throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
                 }
-                return Collections.singletonList("@" + GFileUtils.relativize(workingDir, argsFile));
+                return Collections.singletonList("@" + GFileUtils.relativizeToBase(workingDir, argsFile));
             }
         };
     }

@@ -56,8 +56,9 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {
+        File workingDir = spec.getWorkingDir();
         for (File file : spec.getIncludeRoots()) {
-            args.add("/I" + GFileUtils.relativize(spec.getWorkingDir(), file));
+            args.add("/I" + GFileUtils.relativizeToBase(workingDir, file));
         }
     }
 
