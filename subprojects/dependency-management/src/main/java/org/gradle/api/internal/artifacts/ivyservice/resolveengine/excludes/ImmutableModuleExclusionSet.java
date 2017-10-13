@@ -87,7 +87,7 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
 
     /**
      * This method optimizes module exclusion lookup, based on empirical data showing that the set can be very large, but would contain mostly direct module exclusion nodes. So instead of always
-     * iterating over all modules, we can perform a fast lookup using a set of excluded modules first, then only iterate on the remaining exclusions.
+     * iterating over all excluded modules, we can perform a fast lookup using a set of excluded modules first, then only iterate on the remaining exclusions.
      *
      * @param id the module to check
      * @return true if it's excluded
