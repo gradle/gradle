@@ -35,8 +35,8 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     }
 
     public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
-        DefaultDependencySubstitutionApplicator.Application application = applicator.apply(dependency);
-        if (application.getFailure() != null) {
+        DependencySubstitutionApplicator.SubstitutionResult application = applicator.apply(dependency);
+        if (application.hasFailure()) {
             result.failed(new ModuleVersionResolveException(dependency.getSelector(), application.getFailure()));
             return;
         }

@@ -18,24 +18,29 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 
+/**
+ * A dependency substitution applicator is responsible for applying substitution rules to dependency metadata.
+ * Substitution result may either be the same module (no substitution), a different module (target of the substitution
+ * is going to be different) or a failure.
+ */
 public interface DependencySubstitutionApplicator {
-    Application apply(DependencyMetadata dependency);
+    SubstitutionResult apply(DependencyMetadata dependency);
 
-    class Application {
+    class SubstitutionResult {
         private final DependencySubstitutionInternal result;
         private final Throwable failure;
 
-        private Application(DependencySubstitutionInternal result, Throwable failure) {
+        private SubstitutionResult(DependencySubstitutionInternal result, Throwable failure) {
             this.result = result;
             this.failure = failure;
         }
 
-        public static Application of(DependencySubstitutionInternal details) {
-            return new Application(details, null);
+        public static SubstitutionResult failed(DependencySubstitutionInternal details) {
+            return new SubstitutionResult(details, null);
         }
 
-        public static Application of(Throwable err) {
-            return new Application(null, err);
+        public static SubstitutionResult failed(Throwable err) {
+            return new SubstitutionResult(null, err);
         }
 
         public DependencySubstitutionInternal getResult() {
@@ -45,5 +50,7 @@ public interface DependencySubstitutionApplicator {
         public Throwable getFailure() {
             return failure;
         }
+
+        public boolean hasFailure() { return failure != null; }
     }
 }
