@@ -21,21 +21,22 @@ import org.gradle.util.VersionNumber;
 public enum VisualStudioVersion {
     VISUALSTUDIO_2012("11.0", "2012"),
     VISUALSTUDIO_2013("12.0", "2013"),
-    VISUALSTUDIO_2015("14.0", "2015");
+    VISUALSTUDIO_2015("14.0", "2015"),
+    VISUALSTUDIO_2017("15.0", "2017");
 
-    private final VersionNumber visualCppVersion;
-    private final String version;
+    private final VersionNumber version;
+    private final String year;
 
-    VisualStudioVersion(String visualCppVersion, String version) {
-        this.visualCppVersion = VersionNumber.parse(visualCppVersion);
-        this.version = version;
+    VisualStudioVersion(String version, String year) {
+        this.version = VersionNumber.parse(version);
+        this.year = year;
     }
 
-    public VersionNumber getVisualCppVersion() {
-        return visualCppVersion;
-    }
-
-    public String getVersion() {
+    public VersionNumber getVersion() {
         return version;
+    }
+
+    public String getYear() {
+        return year;
     }
 }

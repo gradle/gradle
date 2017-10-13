@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
@@ -44,7 +45,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String PATH_COMMONIDE = PATH_COMMON + "IDE/";
     private static final String PATH_BIN = "bin/";
     private static final String PATH_INCLUDE = "include/";
-    private static final String COMPILER_FILENAME = "cl.exe";
+    private static final String LEGACY_COMPILER_FILENAME = "cl.exe";
+    private static final String VS15_COMPILER_FILENAME = "HostX86/x86/cl.exe";
     private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
 
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
@@ -53,7 +55,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private final VisualStudioVersionLocator windowsRegistryLocator;
     private final VisualStudioMetaDataProvider versionDeterminer;
     private final SystemInfo systemInfo;
-    private VisualStudioInstall pathInstall;
     private boolean initialised;
 
     public DefaultVisualStudioLocator(OperatingSystem os, VisualStudioVersionLocator commandLineLocator, VisualStudioVersionLocator windowsRegistryLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
@@ -129,11 +130,11 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();
 
-        if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
+        if (isValidInstall(install)) {
             LOGGER.debug("Found Visual C++ {} at {}", install.getVersion(), visualCppDir);
             VersionNumber version = install.getVersion();
-            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + install.getVisualCppVersion(), visualStudioDir, visualCppDir, install.getVisualCppVersion());
-            VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + install.getVisualCppVersion(), visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
+            VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + version, visualStudioDir, version, visualCpp);
             foundInstalls.put(visualStudioDir, visualStudio);
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
@@ -141,7 +142,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private void locateInstallInPath() {
-        File compilerInPath = os.findInPath(COMPILER_FILENAME);
+        File compilerInPath = os.findInPath(LEGACY_COMPILER_FILENAME);
         if (compilerInPath == null) {
             LOGGER.debug("No visual c++ compiler found in system path.");
             return;
@@ -151,20 +152,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
         if (install != null) {
             File visualCppDir = install.getVisualCppDir();
-            if (!isVisualCpp(visualCppDir)) {
-                visualCppDir = visualCppDir.getParentFile();
-                if (!isVisualCpp(visualCppDir)) {
-                    LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", compilerInPath);
-                    return;
-                }
+            if (!isValidInstall(install)) {
+                LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", compilerInPath);
+                return;
             }
             LOGGER.debug("Found Visual C++ install {} using system path", visualCppDir);
 
             File visualStudioDir = install.getInstallDir();
             if (!foundInstalls.containsKey(visualStudioDir)) {
                 String displayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from system path" : install.getVersion().toString();
-                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayVersion, visualStudioDir, visualCppDir, install.getVersion());
-                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+                String displayCppVersion = install.getVisualCppVersion() == VersionNumber.UNKNOWN ? "from system path" : install.getVisualCppVersion().toString();
+                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayCppVersion, visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
+                VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + displayVersion, visualStudioDir, install.getVersion(), visualCpp);
                 foundInstalls.put(visualStudioDir, visualStudio);
             }
         }
@@ -176,15 +175,16 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         if (install != null) {
             File visualStudioDir = install.getInstallDir();
             File visualCppDir = install.getVisualCppDir();
-            if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
+            if (!isValidInstall(install)) {
                 LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
                 return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
             }
 
             if (!foundInstalls.containsKey(visualStudioDir)) {
                 String displayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from user provided path" : install.getVersion().toString();
-                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayVersion, visualStudioDir, visualCppDir, install.getVersion());
-                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+                String displayCppVersion = install.getVisualCppVersion() == VersionNumber.UNKNOWN ? "from user provided path" : install.getVisualCppVersion().toString();
+                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayCppVersion, visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
+                VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + displayVersion, visualStudioDir, install.getVersion(), visualCpp);
                 foundInstalls.put(visualStudioDir, visualStudio);
             }
             return new InstallFound(foundInstalls.get(visualStudioDir));
@@ -193,21 +193,60 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
+    private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version, Compatibility compatibility) {
+        switch(compatibility) {
+            case LEGACY:
+                return buildLegacyVisualCppInstall(name, vsPath, basePath, version);
+            case VS15_OR_LATER:
+                return buildVS15VisualCppInstall(name, vsPath, basePath, version);
+            default:
+                throw new IllegalArgumentException("Cannot build VisualCpp install for unknown compatibility level: " + compatibility);
+        }
+    }
+
+    private VisualCppInstall buildLegacyVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
 
         List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
 
-        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_X86);
-        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_X86);
-        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.IA64_ON_X86);
-        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86);
 
         boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
         if (isNativeAmd64) {
             // Prefer 64-bit tools when building on a 64-bit OS
-            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_AMD64);
-            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_AMD64);
-            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64);
+        }
+
+        // populates descriptors, last descriptor in wins for a given architecture
+        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
+            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            if (descriptor.isInstalled()) {
+                descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
+            }
+        }
+
+        return new VisualCppInstall(name, version, descriptors);
+    }
+
+    private VisualCppInstall buildVS15VisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
+
+        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
+
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_X86_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_ARM_ON_X86);
+
+        boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
+        if (isNativeAmd64) {
+            // Prefer 64-bit tools when building on a 64-bit OS
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64);
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
@@ -236,12 +275,25 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path.") : new InstallFound(candidate);
     }
 
-    private static boolean isVisualStudio(File candidate) {
-        return new File(candidate, PATH_COMMON).isDirectory() && isVisualCpp(new File(candidate, "VC"));
+    private static boolean isValidInstall(VisualStudioMetadata install) {
+        switch(install.getCompatibility()) {
+            case LEGACY:
+                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
+                    && isLegacyVisualCpp(install.getVisualCppDir());
+            case VS15_OR_LATER:
+                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
+                    && isVS15VisualCpp(install.getVisualCppDir());
+            default:
+                throw new IllegalArgumentException("Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
+        }
     }
 
-    private static boolean isVisualCpp(File candidate) {
-        return new File(candidate, PATH_BIN + COMPILER_FILENAME).isFile();
+    private static boolean isLegacyVisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + LEGACY_COMPILER_FILENAME).isFile();
+    }
+
+    private static boolean isVS15VisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + VS15_COMPILER_FILENAME).isFile();
     }
 
     private static class InstallFound implements SearchResult {
@@ -290,26 +342,42 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     enum ArchitectureDescriptorBuilder {
-        AMD64_ON_AMD64("amd64", "bin/amd64", "lib/amd64", "ml64.exe"),
-        AMD64_ON_X86("amd64", "bin/x86_amd64", "lib/amd64", "ml64.exe") {
+        LEGACY_AMD64_ON_AMD64("amd64", "bin/amd64", "lib/amd64", "ml64.exe"),
+        VS15_AMD64_ON_AMD64("amd64", "bin/HostX64/x64", "lib/x64", "ml64.exe"),
+
+        LEGACY_AMD64_ON_X86("amd64", "bin/x86_amd64", "lib/amd64", "ml64.exe") {
             @Override
             File getCrossCompilePath(File basePath) {
-                return X86_ON_X86.getBinPath(basePath);
+                return LEGACY_X86_ON_X86.getBinPath(basePath);
+            }
+        },
+        VS15_AMD64_ON_X86("amd64", "bin/HostX86/x64", "lib/x64", "ml64.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return VS15_X86_ON_X86.getBinPath(basePath);
             }
         },
 
-        X86_ON_AMD64("x86", "bin/amd64_x86", "lib", "ml.exe") {
+        LEGACY_X86_ON_AMD64("x86", "bin/amd64_x86", "lib", "ml.exe") {
             @Override
             File getCrossCompilePath(File basePath) {
-                return AMD64_ON_AMD64.getBinPath(basePath);
+                return LEGACY_AMD64_ON_AMD64.getBinPath(basePath);
             }
         },
-        X86_ON_X86("x86", "bin", "lib", "ml.exe"),
-
-        ARM_ON_AMD64("arm", "bin/amd64_arm", "lib/arm", "armasm.exe") {
+        VS15_X86_ON_AMD64("x86", "bin/HostX64/x86", "lib/x86", "ml.exe") {
             @Override
             File getCrossCompilePath(File basePath) {
-                return AMD64_ON_AMD64.getBinPath(basePath);
+                return VS15_AMD64_ON_AMD64.getBinPath(basePath);
+            }
+        },
+
+        LEGACY_X86_ON_X86("x86", "bin", "lib", "ml.exe"),
+        VS15_X86_ON_X86("x86", "bin/HostX86/x86", "lib/x86", "ml.exe"),
+
+        LEGACY_ARM_ON_AMD64("arm", "bin/amd64_arm", "lib/arm", "armasm.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return LEGACY_AMD64_ON_AMD64.getBinPath(basePath);
             }
 
             @Override
@@ -319,10 +387,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
                 return definitions;
             }
         },
-        ARM_ON_X86("arm", "bin/x86_arm", "lib/arm", "armasm.exe") {
+        VS15_ARM_ON_AMD64("arm", "bin/Hostx64/arm", "lib/arm", "armasm.exe") {
             @Override
             File getCrossCompilePath(File basePath) {
-                return X86_ON_X86.getBinPath(basePath);
+                return VS15_AMD64_ON_AMD64.getBinPath(basePath);
             }
 
             @Override
@@ -333,10 +401,37 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         },
 
-        IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe")  {
+        LEGACY_ARM_ON_X86("arm", "bin/x86_arm", "lib/arm", "armasm.exe") {
             @Override
             File getCrossCompilePath(File basePath) {
-                return X86_ON_X86.getBinPath(basePath);
+                return LEGACY_X86_ON_X86.getBinPath(basePath);
+            }
+
+            @Override
+            Map<String, String> getDefinitions() {
+                Map<String, String> definitions = super.getDefinitions();
+                definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+                return definitions;
+            }
+        },
+        VS15_ARM_ON_X86("arm", "bin/HostX86/arm", "lib/arm", "armasm.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return VS15_X86_ON_X86.getBinPath(basePath);
+            }
+
+            @Override
+            Map<String, String> getDefinitions() {
+                Map<String, String> definitions = super.getDefinitions();
+                definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+                return definitions;
+            }
+        },
+
+        LEGACY_IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe")  {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return LEGACY_X86_ON_X86.getBinPath(basePath);
             }
         };
 
@@ -361,7 +456,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         File getCompilerPath(File basePath) {
-            return new File(getBinPath(basePath), COMPILER_FILENAME);
+            return new File(getBinPath(basePath), LEGACY_COMPILER_FILENAME);
         }
 
         File getCrossCompilePath(File basePath) {
@@ -386,6 +481,61 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
             File includePath = new File(basePath, PATH_INCLUDE);
             return new DefaultArchitectureDescriptor(paths, getBinPath(basePath), getLibPath(basePath), getCompilerPath(basePath), includePath, asmFilename, getDefinitions());
+        }
+    }
+
+    private static class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
+        private final List<File> paths;
+        private final File binPath;
+        private final File libPath;
+        private final File includePath;
+        private final String assemblerFilename;
+        private final Map<String, String> definitions;
+        private final File compilerPath;
+
+        DefaultArchitectureDescriptor(List<File> paths, File binPath, File libPath, File compilerPath, File includePath, String assemblerFilename, Map<String, String> definitions) {
+            this.paths = paths;
+            this.binPath = binPath;
+            this.libPath = libPath;
+            this.includePath = includePath;
+            this.assemblerFilename = assemblerFilename;
+            this.definitions = definitions;
+            this.compilerPath = compilerPath;
+        }
+
+        @Override
+        public List<File> getPaths() {
+            return paths;
+        }
+
+        @Override
+        public File getBinaryPath() {
+            return binPath;
+        }
+
+        @Override
+        public File getLibraryPath() {
+            return libPath;
+        }
+
+        @Override
+        public File getIncludePath() {
+            return includePath;
+        }
+
+        @Override
+        public String getAssemblerFilename() {
+            return assemblerFilename;
+        }
+
+        @Override
+        public Map<String, String> getDefinitions() {
+            return definitions;
+        }
+
+        @Override
+        public boolean isInstalled() {
+            return binPath.exists() && compilerPath.exists() && libPath.exists();
         }
     }
 }

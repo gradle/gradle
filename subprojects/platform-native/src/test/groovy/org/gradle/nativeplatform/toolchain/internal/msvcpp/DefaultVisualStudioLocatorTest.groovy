@@ -60,10 +60,33 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ 12.0.0"
+        result.visualStudio.name == "Visual Studio 12.0.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == dir2
-        result.visualStudio.visualCpp
+        result.visualStudio.visualCpp.name == "Visual C++ 12.0.0"
+        result.visualStudio.visualCpp.version == VersionNumber.parse("12.0")
+    }
+
+    def "use highest visual studio version found from the command line"() {
+        def dir1 = vsDir("vs1")
+        def dir2 = vsDir("vs2")
+        def dir3 = vs2017Dir("vs3")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir3, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
+        0 * windowsRegistryLocator.getVisualStudioInstalls()
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio 15.0.0"
+        result.visualStudio.version == VersionNumber.parse("15.0")
+        result.visualStudio.baseDir == dir3
+        result.visualStudio.visualCpp.name == "Visual C++ 1.2.3-4"
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
     }
 
     def "can locate all versions of visual studio using registry"() {
@@ -81,11 +104,31 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         allResults.size() == 3
-        allResults.collect { it.visualStudio.name } == [ "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
+        allResults.collect { it.visualStudio.visualCpp.name } == [ "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
         allResults.every { it.available }
     }
 
-    def "visual studio not available when nothing in registry and executable not found in path"() {
+    def "can locate all versions of visual studio using command line"() {
+        def dir1 = vsDir("vs1")
+        def dir2 = vsDir("vs2")
+        def dir3 = vsDir("vs3")
+        def dir4 = vs2017Dir("vs4")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir4, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0"), legacyVsInstall(dir3, "13.0")] }
+        0 * windowsRegistryLocator.getVisualStudioInstalls()
+
+        when:
+        def allResults = visualStudioLocator.locateAllVisualStudioVersions()
+
+        then:
+        allResults.size() == 4
+        allResults.collect { it.visualStudio.visualCpp.name } == [ "Visual C++ 1.2.3-4", "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
+        allResults.every { it.available }
+    }
+
+    def "visual studio not available when nothing in registry or command line and executable not found in path"() {
         def visitor = Mock(TreeVisitor)
 
         given:
@@ -107,7 +150,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
     }
 
-    def "visual studio not available when locating all versions and nothing in registry and executable not found in path"() {
+    def "visual studio not available when locating all versions and nothing in registry or command line and executable not found in path"() {
         def visitor = Mock(TreeVisitor)
 
         given:
@@ -130,7 +173,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
     }
 
-    def "locates visual studio installation based on executables in path"() {
+    def "locates legacy visual studio installation based on executables in path"() {
         def vsDir = vsDir("vs")
 
         given:
@@ -144,12 +187,35 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ from system path"
+        result.visualStudio.name == "Visual Studio from system path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir
+        result.visualStudio.visualCpp.name == "Visual C++ from system path"
+        result.visualStudio.visualCpp.version == VersionNumber.UNKNOWN
     }
 
-    def "uses visual studio using specified install dir"() {
+    def "locates visual studio 2017 installation based on executables in path"() {
+        def vsDir = vs2017Dir("vs")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * versionDeterminer.getVisualStudioMetadataFromCompiler(_) >> vs2017Install(vsDir, null)
+        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe")
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio from system path"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir
+        result.visualStudio.visualCpp.name == "Visual C++ 1.2.3-4"
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
+    }
+
+    def "uses legacy visual studio using specified install dir"() {
         def vsDir1 = vsDir("vs")
         def vsDir2 = vsDir("vs-2")
         def ignored = vsDir("vs-3")
@@ -167,7 +233,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ from user provided path"
+        result.visualStudio.name == "Visual Studio from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir1
 
@@ -176,7 +242,39 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ from user provided path"
+        result.visualStudio.name == "Visual Studio from user provided path"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir2
+    }
+
+    def "uses visual studio 2017 using specified install dir"() {
+        def vsDir1 = vs2017Dir("vs")
+        def vsDir2 = vs2017Dir("vs-2")
+        def ignored = vs2017Dir("vs-3")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
+        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, null)
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> vs2017Install(vsDir2, null)
+        assert visualStudioLocator.locateDefaultVisualStudioInstall().available
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir1)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio from user provided path"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir1
+
+        when:
+        result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir2)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir2
     }
@@ -206,7 +304,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("The specified installation directory '$providedDir' does not appear to contain a Visual Studio installation.")
     }
 
-    def "fills in meta-data from registry for user specified install"() {
+    def "fills in meta-data for user specified install"() {
         def vsDir = vsDir("vs")
 
         given:
@@ -219,13 +317,15 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual C++ 12.0.0"
+        result.visualStudio.name == "Visual Studio 12.0.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == vsDir
+        result.visualStudio.visualCpp.name == "Visual C++ 12.0.0"
+        result.visualStudio.visualCpp.version == VersionNumber.parse("12.0")
     }
 
     @Unroll
-    def "finds correct paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
+    def "finds correct legacy paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
         def vsDir = fullVsDir("vs", is64BitInstall)
         def vcDir = new File(vsDir, "VC")
 
@@ -243,21 +343,61 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
-        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.AMD64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.AMD64_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.AMD64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.X86_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.X86_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.X86_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "ia64"         | false          | ArchitectureDescriptorBuilder.IA64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | true           | ArchitectureDescriptorBuilder.IA64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | false          | ArchitectureDescriptorBuilder.IA64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "ia64"         | false          | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | true           | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | false          | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.ARM_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.ARM_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.ARM_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
+    }
+
+    @Unroll
+    def "finds correct VS15 paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
+        def vsDir = fullVs2017Dir("vs", is64BitInstall)
+        def vcDir = new File(vsDir, "VC/Tools/MSVC/1.2.3.4")
+
+        given:
+        systemInfo.getArchitecture() >> systemArchitecture
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> vs2017Install(vsDir, "15.0")
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
+
+        then:
+        result.visualStudio.visualCpp.getCompiler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
+        result.visualStudio.visualCpp.getLibraryPath(platform(targetPlatform)) == expectedBuilder.getLibPath(vcDir)
+        result.visualStudio.visualCpp.getAssembler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
+
+        where:
+        os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.VS15_X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.VS15_X86_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
+    }
+
+    def vs2017Dir(String name) {
+        def dir = tmpDir.createDir(name)
+        dir.createDir("Common7")
+        dir.createFile("VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe")
+        dir.createFile("VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt").text = "1.2.3.4"
+        return dir
     }
 
     def vsDir(String name) {
@@ -271,7 +411,42 @@ class DefaultVisualStudioLocatorTest extends Specification {
     def fullVsDir(String name, boolean is64BitInstall) {
         def dir = vsDir(name)
         def vcDir = new File(dir, "VC")
-        for (ArchitectureDescriptorBuilder builder : ArchitectureDescriptorBuilder.values()) {
+        createCompilers(vcDir, is64BitInstall) { it in [
+            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64,
+            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64,
+            ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86,
+            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64,
+            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
+        ]}
+        return dir
+    }
+
+    def fullVs2017Dir(String name, boolean is64BitInstall) {
+        def dir = vs2017Dir(name)
+        def vcDir = new File(dir, "VC/Tools/MSVC/1.2.3.4")
+        createCompilers(vcDir, is64BitInstall) { it in [
+            ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86,
+            ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86,
+            ArchitectureDescriptorBuilder.VS15_X86_ON_X86,
+            ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_X86_ON_X86,
+            ArchitectureDescriptorBuilder.VS15_ARM_ON_X86,
+            ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
+        ]}
+        return dir
+    }
+
+    def createCompilers(File vcDir, boolean is64BitInstall, Closure condition) {
+        for (ArchitectureDescriptorBuilder builder : ArchitectureDescriptorBuilder.values().findAll(condition)) {
             if (requires64BitInstall(builder) && !is64BitInstall) {
                 continue;
             }
@@ -280,11 +455,17 @@ class DefaultVisualStudioLocatorTest extends Specification {
             builder.getLibPath(vcDir).mkdirs()
             new File(builder.getBinPath(vcDir), "cl.exe").createNewFile()
         }
-        return dir
     }
 
     boolean requires64BitInstall(ArchitectureDescriptorBuilder builders) {
-        return builders in [ ArchitectureDescriptorBuilder.AMD64_ON_AMD64, ArchitectureDescriptorBuilder.X86_ON_AMD64, ArchitectureDescriptorBuilder.ARM_ON_AMD64 ]
+        return builders in [
+            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64,
+            ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64,
+            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64,
+            ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64
+        ]
     }
 
     def platform(String name) {
@@ -301,6 +482,16 @@ class DefaultVisualStudioLocatorTest extends Specification {
             .visualCppDir(new File(installDir, "VC"))
             .visualCppVersion(VersionNumber.parse(version))
             .version(VersionNumber.parse(version))
+            .build()
+    }
+
+    VisualStudioMetadata vs2017Install(File installDir, String version) {
+        return new VisualStudioMetadataBuilder()
+            .installDir(installDir)
+            .visualCppDir(new File(installDir, "VC/Tools/MSVC/1.2.3.4"))
+            .visualCppVersion(VersionNumber.parse("1.2.3.4"))
+            .version(VersionNumber.parse(version))
+            .compatibility(VisualStudioMetadata.Compatibility.VS15_OR_LATER)
             .build()
     }
 }

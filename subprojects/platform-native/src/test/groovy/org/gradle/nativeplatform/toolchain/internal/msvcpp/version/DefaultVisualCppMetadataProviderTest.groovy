@@ -55,7 +55,7 @@ class DefaultVisualCppMetadataProviderTest extends Specification {
         def installDir = tmpDir.createDir("dir1")
 
         given:
-        installDir.createFile("VC/Auxiliary/Build/Microsoft.VCToolsVersion.default").text = "1.2.3.4"
+        installDir.createFile("VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt").text = "1.2.3.4"
 
         when:
         VisualCppMetadata metadata = metadataProvider.getVisualCppFromMetadataFile(installDir)

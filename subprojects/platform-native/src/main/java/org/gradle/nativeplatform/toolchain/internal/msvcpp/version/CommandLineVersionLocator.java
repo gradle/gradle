@@ -49,7 +49,7 @@ public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocato
         "ProgramFilesDir (x86)"
     };
 
-    private static final String REGISTRY_PATH_WINDOWS = "Microsoft\\Windows\\CurrentVersion";
+    private static final String REGISTRY_PATH_WINDOWS = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion";
     private static final String VISUAL_STUDIO_INSTALLER = "Microsoft Visual Studio/Installer";
     private static final String VSWHERE_EXE = "vswhere.exe";
     private static final String INSTALLATION_PATH_KEY = "installationPath";

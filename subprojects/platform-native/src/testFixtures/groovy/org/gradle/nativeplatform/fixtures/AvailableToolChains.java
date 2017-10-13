@@ -128,7 +128,7 @@ public class AvailableToolChains {
         return CollectionUtils.findFirst(VisualStudioVersion.values(), new Spec<VisualStudioVersion>() {
             @Override
             public boolean isSatisfiedBy(VisualStudioVersion candidate) {
-                return candidate.getVisualCppVersion().equals(version);
+                return candidate.getVersion().getMajor() == version.getMajor();
             }
         });
     }
@@ -182,7 +182,7 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findGccs() {
         GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
-
+        
         Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
         if (!gppCandidates.isEmpty()) {
@@ -244,6 +244,7 @@ public class AvailableToolChains {
         private final String displayName;
         protected final String pathVarName;
         private final String objectFileNameSuffix;
+        private VersionNumber versionNumber = VersionNumber.UNKNOWN;
 
         private String originalPath;
 
@@ -251,6 +252,11 @@ public class AvailableToolChains {
             this.displayName = displayName;
             this.pathVarName = OperatingSystem.current().getPathVar();
             this.objectFileNameSuffix = OperatingSystem.current().isWindows() ? ".obj" : ".o";
+        }
+
+        public InstalledToolChain(String displayName, VersionNumber versionNumber) {
+            this(displayName);
+            this.versionNumber = versionNumber;
         }
 
         InstalledToolChain inPath(File... pathEntries) {
@@ -354,12 +360,20 @@ public class AvailableToolChains {
             return displayName.replaceAll("\\W", "");
         }
 
+        public VersionNumber getVersionNumber() {
+            return versionNumber;
+        }
+
         public abstract String getUnitTestPlatform();
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
         protected GccCompatibleToolChain(String displayName) {
             super(displayName);
+        }
+
+        protected GccCompatibleToolChain(String displayName, VersionNumber versionNumber) {
+            super(displayName, versionNumber);
         }
 
         protected String find(String tool) {
@@ -394,6 +408,10 @@ public class AvailableToolChains {
     public static class InstalledGcc extends GccCompatibleToolChain {
         public InstalledGcc(String name) {
             super(name);
+        }
+
+        public InstalledGcc(String name, VersionNumber versionNumber) {
+            super(name, versionNumber);
         }
 
         @Override
@@ -517,7 +535,7 @@ public class AvailableToolChains {
         private File installDir;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
-            super("visual c++ " + version.getVersion() + " (" + version.getVisualCppVersion().toString() + ")");
+            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")", version.getVersion());
         }
 
         @Override
@@ -540,15 +558,15 @@ public class AvailableToolChains {
                 case VISUALCPP:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2012.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2012.getVersion()) >= 0;
                 case VISUALCPP_2013:
-                    return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2013.getVersion());
                 case VISUALCPP_2013_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2013.getVersion()) >= 0;
                 case VISUALCPP_2015:
-                    return version.equals(VISUALSTUDIO_2015.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2015.getVersion());
                 case VISUALCPP_2015_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2015.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2015.getVersion()) >= 0;
                 default:
                     return false;
             }

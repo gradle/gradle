@@ -117,12 +117,24 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(LIBRARY)
         executedAndNotSkipped linkTaskDebug(LIBRARY)
         skipped compileTasksDebug(APP)
-        executedAndNotSkipped linkTaskDebug(APP)
+        if (linkTimeFileShouldChange()) {
+            executedAndNotSkipped linkTaskDebug(APP)
+        } else {
+            executed linkTaskDebug(APP)
+        }
         executedAndNotSkipped installApp
 
         and:
         install.assertInstalled()
         install.exec().out == app.alternateLibraryOutput
+    }
+
+    boolean linkTimeFileShouldChange() {
+        // With VisualCpp versions < 15, timestamps are embedded in the .lib files
+        // causing downstream link tasks to re-execute any time they are built.
+        // With Visual Studio 2017 (version 15) the .lib is identical when the exported
+        // symbols do not change, so downstream consumers do not need to relink.
+        return !(toolChain.visualCpp && toolChain.versionNumber.major >= 15)
     }
 
     def "recompiles binary when header file changes"() {

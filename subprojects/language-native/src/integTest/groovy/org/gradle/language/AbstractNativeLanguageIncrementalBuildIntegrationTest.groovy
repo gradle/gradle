@@ -176,8 +176,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
+        if (linkTimeFileShouldChange()) {
+            executedAndNotSkipped ":linkMainExecutable"
+            executedAndNotSkipped ":mainExecutable"
+        } else {
+            skipped ":linkMainExecutable"
+            skipped ":mainExecutable"
+        }
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -263,13 +268,26 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
+        if (linkTimeFileShouldChange()) {
+            executedAndNotSkipped ":linkMainExecutable"
+            executedAndNotSkipped ":mainExecutable"
+        } else {
+            skipped ":linkMainExecutable"
+            skipped ":mainExecutable"
+        }
         executedAndNotSkipped ":installMainExecutable"
 
         and:
         install.assertInstalled()
         install.exec().out == app.frenchOutput
+    }
+
+    boolean linkTimeFileShouldChange() {
+        // With VisualCpp versions < 15, timestamps are embedded in the .lib files
+        // causing downstream link tasks to re-execute any time they are built.
+        // With Visual Studio 2017 (version 15) the .lib is identical when the exported
+        // symbols do not change, so downstream consumers do not need to relink.
+        return !(toolChain.visualCpp && toolChain.versionNumber.major >= 15)
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

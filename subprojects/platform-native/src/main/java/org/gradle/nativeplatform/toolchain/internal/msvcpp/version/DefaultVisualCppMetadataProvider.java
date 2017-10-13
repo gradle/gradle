@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvider {
-    private static final String VS15_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default";
+    private static final String VS15_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt";
     private static final String VS15_COMPILER_PATH_PREFIX = "VC/Tools/MSVC";
 
     private static final String[] REGISTRY_BASEPATHS = {
