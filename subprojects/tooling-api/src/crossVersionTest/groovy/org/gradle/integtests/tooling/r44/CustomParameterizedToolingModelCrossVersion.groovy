@@ -169,7 +169,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
             assert failure instanceof BuildActionFailureException
             GradleConnectionException cause = failure.cause
             assert cause instanceof UnsupportedVersionException
-            assert cause.message == "Gradle version ${version} used does not support parameterized tooling models."
+            assert cause.message == "Gradle version ${version} does not support parameterized tooling models."
         }
     }
 

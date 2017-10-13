@@ -22,20 +22,20 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.Model;
 
-public class ParameterValidatingController extends AbstractBuildController {
+public class BuildControllerWithoutParameterSupport extends AbstractBuildController {
 
     private final VersionDetails gradleVersion;
     private final BuildController delegate;
 
-    public ParameterValidatingController(VersionDetails gradleVersion, BuildController delegate) {
+    public BuildControllerWithoutParameterSupport(VersionDetails gradleVersion, BuildController delegate) {
         this.gradleVersion = gradleVersion;
         this.delegate = delegate;
     }
 
     @Override
     public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
-        if (!gradleVersion.supportsParameterizedToolingModels() && (parameterType != null || parameterInitializer != null)) {
-            throw new UnsupportedVersionException(String.format("Gradle version %s used does not support parameterized tooling models.", gradleVersion.getVersion()));
+        if (parameterType != null || parameterInitializer != null) {
+            throw new UnsupportedVersionException(String.format("Gradle version %s does not support parameterized tooling models.", gradleVersion.getVersion()));
         }
         return delegate.getModel(target, modelType, parameterType, parameterInitializer);
     }

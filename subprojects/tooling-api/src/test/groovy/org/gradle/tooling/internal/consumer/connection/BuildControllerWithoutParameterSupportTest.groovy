@@ -22,34 +22,16 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import spock.lang.Specification
 
-class ParameterValidatingControllerTest extends Specification {
+class BuildControllerWithoutParameterSupportTest extends Specification {
     def version = Mock(VersionDetails)
     def delegate = Mock(BuildController)
-    def controller = new ParameterValidatingController(version, delegate)
+    def controller = new BuildControllerWithoutParameterSupport(version, delegate)
 
-    def "simply delegates for versions supporting parameterized models for parameter not null"() {
-        def model = new Object()
-        def modelType = Object.class
-        def parameterType = Object.class
-        def parameterInitializer = Mock(Action)
-
-        given:
-        _ * version.supportsParameterizedToolingModels() >> true
-        _ * delegate.getModel(_, modelType, parameterType, parameterInitializer) >> model
-
-        when:
-        def result = controller.getModel(null, modelType, parameterType, parameterInitializer)
-
-        then:
-        result == model
-    }
-
-    def "simply delegates for versions not supporting parameterized models for parameter null"() {
+    def "delegates when no parameter is given"() {
         def model = new Object()
         def modelType = Object.class
 
         given:
-        _ * version.supportsParameterizedToolingModels() >> true
         _ * delegate.getModel(_, modelType, null, null) >> model
 
         when:
@@ -59,22 +41,19 @@ class ParameterValidatingControllerTest extends Specification {
         result == model
     }
 
-    def "throws exception for versions not supporting parameterized models for parameter not null"() {
-        def model = new Object()
+    def "throws exception when parameter is given"() {
         def modelType = Object.class
         def parameterType = Object.class
         def parameterInitializer = Mock(Action)
 
         given:
-        _ * version.getVersion() >> "4.4"
-        _ * version.supportsParameterizedToolingModels() >> false
-        _ * delegate.getModel(_, modelType, parameterType, parameterInitializer) >> model
+        _ * version.getVersion() >> "4.1"
 
         when:
         controller.getModel(null, modelType, parameterType, parameterInitializer)
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "Gradle version 4.4 used does not support parameterized tooling models."
+        e.message == "Gradle version 4.1 does not support parameterized tooling models."
     }
 }

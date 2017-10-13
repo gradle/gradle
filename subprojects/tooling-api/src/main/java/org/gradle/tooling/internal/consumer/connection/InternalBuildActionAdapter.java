@@ -59,7 +59,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
                 return buildController.getModel(target, modelIdentifier);
             }
         }, new ModelMapping(), rootDir);
-        buildControllerAdapter  = new ParameterValidatingController(versionDetails, buildControllerAdapter);
+        buildControllerAdapter  = new BuildControllerWithoutParameterSupport(versionDetails, buildControllerAdapter);
         if (!versionDetails.maySupportModel(BuildInvocations.class)) {
             buildControllerAdapter= new BuildInvocationsAdapterController(protocolToModelAdapter, buildControllerAdapter);
         }
