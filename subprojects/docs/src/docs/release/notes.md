@@ -2,6 +2,28 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Support version ranges in parent elements
+
+Gradle now suppoprts version range in parent elements of POM, which was introduced by [Maven 3.2.2](https://maven.apache.org/docs/3.2.2/release-notes.html):
+
+> Parent elements can now use bounded ranges in the version specification. You can now consistently use ranges for all intra-project dependencies, of which parents are a special case but still considered a dependency of projects that inherit from them. The following is now permissible:
+
+```
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache</groupId>
+    <artifactId>apache</artifactId>
+    <version>[3.0,4.0)</version>
+  </parent>
+  <groupId>org.apache.maven.its.mng2199</groupId>
+  <artifactId>valid</artifactId>
+  <version>1</version>
+  <packaging>pom</packaging>
+</project>
+```
+
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
