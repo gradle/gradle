@@ -18,13 +18,13 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
-    String buildType = debug
 
     def setupProject(TestFile project = temporaryFolder.testDirectory) {
         project.file('settings.gradle') << "include 'lib1', 'lib2'"
@@ -55,28 +55,29 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
     @Unroll
     def 'compilation can be cached (#buildType)'() {
+        def f = new NativeCachingFixture(buildType: buildType, test: this)
         setupProject()
-        this.buildType = buildType
 
         when:
-        withBuildCache().run compilationTask
+        withBuildCache().run f.compilationTask
 
         then:
-        compileIsNotCached()
+        f.compileIsNotCached()
 
         when:
         withBuildCache().run 'clean', installTask(buildType)
 
         then:
-        compileIsCached()
+        f.compileIsCached()
         installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
 
         where:
         buildType << [debug, release]
     }
 
-    def "compilation task is relocatable"() {
-        buildType = release
+    @Unroll
+    def "compilation task is relocatable (#buildType)"() {
+        def f = new NativeCachingFixture(buildType: buildType, test: this)
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
         setupProject(originalLocation)
@@ -84,68 +85,84 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         when:
         inDirectory(originalLocation)
-        withBuildCache().run compilationTask
+        withBuildCache().run f.compilationTask
 
-        def snapshotsInOriginalLocation = snapshotObjects(originalLocation)
+        def snapshotsInOriginalLocation = f.snapshotObjects(originalLocation)
 
         then:
-        executedAndNotSkipped compilationTask
+        executedAndNotSkipped f.compilationTask
 
         when:
         executer.beforeExecute {
             usingProjectDirectory(newLocation)
         }
-        run compilationTask
+        run f.compilationTask
 
         then:
-        executedAndNotSkipped(compilationTask)
-        assertSameSnapshots(snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        executedAndNotSkipped(f.compilationTask)
+        f.assertSameSnapshots(snapshotsInOriginalLocation, f.snapshotObjects(newLocation))
 
         when:
         run 'clean'
-        withBuildCache().run compilationTask, installTask(buildType)
+        withBuildCache().run f.compilationTask, installTask(buildType)
 
         then:
-        skipped compilationTask
-        assertSameSnapshots(snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        skipped f.compilationTask
+        f.assertSameSnapshots(snapshotsInOriginalLocation, f.snapshotObjects(newLocation))
         installation(newLocation.file("build/install/main/${buildType.toLowerCase()}")).exec().out == app.expectedOutput
+
+        where:
+        buildType << [debug, release]
     }
 
-    private void assertSameSnapshots(Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
-        assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
-        if (nonDeterministicCompilation || (toolChain.displayName == "clang" && OperatingSystem.current().isLinux())) {
-            return
-        }
-        snapshotsInOriginalLocation.each { path, originalSnapshot ->
-            def newSnapshot = snapshotsInNewLocation[path]
-            assert originalSnapshot.hash == newSnapshot.hash
-        }
-    }
+    class NativeCachingFixture {
+        String buildType
+        AbstractInstalledToolChainIntegrationSpec test
 
-    Map<String, TestFile.Snapshot> snapshotObjects(TestFile projectDir) {
-        def objDir = projectDir.file('build/obj')
-        def objects = objDir.allDescendants()
-        def snapshots = objects.collectEntries { path ->
-            def obj = objDir.file(path)
-            if (!obj.isFile()) {
-                return null
+        void assertSameSnapshots(Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
+            assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
+            if (nonDeterministicCompilation || absolutePathsInFile) {
+                return
             }
-            [(path): obj.snapshot()]
+            snapshotsInOriginalLocation.each { path, originalSnapshot ->
+                def newSnapshot = snapshotsInNewLocation[path]
+                assert originalSnapshot.hash == newSnapshot.hash
+            }
         }
-        return snapshots
-    }
 
-    String getCompilationTask() {
-        ":compile${buildType}Cpp"
-    }
+        boolean isAbsolutePathsInFile() {
+            buildType == debug || clangOnLinux
+        }
 
-    void compileIsCached(TestFile projectDir = temporaryFolder.testDirectory) {
-        skipped compilationTask
-        objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
-    }
+        static boolean isClangOnLinux() {
+            toolChain.displayName == "clang" && OperatingSystem.current().isLinux()
+        }
 
-    void compileIsNotCached() {
-        executedAndNotSkipped compilationTask
+        Map<String, TestFile.Snapshot> snapshotObjects(TestFile projectDir) {
+            def objDir = projectDir.file('build/obj')
+            def objects = objDir.allDescendants()
+            def snapshots = objects.collectEntries { path ->
+                def obj = objDir.file(path)
+                if (!obj.isFile()) {
+                    return null
+                }
+                [(path): obj.snapshot()]
+            }
+            return snapshots
+        }
+
+        String getCompilationTask() {
+            ":compile${buildType}Cpp"
+        }
+
+        void compileIsCached(TestFile projectDir = temporaryFolder.testDirectory) {
+            test.skipped compilationTask
+            objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
+        }
+
+        void compileIsNotCached() {
+            test.executedAndNotSkipped compilationTask
+        }
     }
 
 }
