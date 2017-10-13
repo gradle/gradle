@@ -73,4 +73,22 @@ final class BuildScanUserInputFixture {
         gradleHandle.stdinPipe.flush()
         gradleHandle.stdinPipe.close()
     }
+
+    static void expectRenderedPromptAndAnswer(GradleHandle gradleHandle, Boolean expectedAnswer) {
+        expectRenderedPrompt(gradleHandle, true)
+        expectRenderedAnswer(gradleHandle, expectedAnswer)
+    }
+
+    static void expectNoPromptAndNullAnswer(GradleHandle gradleHandle) {
+        expectRenderedPrompt(gradleHandle, false)
+        expectRenderedAnswer(gradleHandle, null)
+    }
+
+    private static void expectRenderedPrompt(GradleHandle gradleHandle, boolean rendered) {
+        assert gradleHandle.standardOutput.contains(PROMPT) == rendered
+    }
+
+    private static void expectRenderedAnswer(GradleHandle gradleHandle, Boolean answer) {
+        assert gradleHandle.standardOutput.contains(answerOutput(answer))
+    }
 }
