@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -27,7 +26,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
-import java.util.List;
+import java.util.Collections;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 
@@ -48,11 +47,10 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        List<PluginRequestInternal> requests = Lists.newArrayList();
         if (shouldApplyScanPlugin(target)) {
-            requests.add(createScanPluginRequest());
+            return new DefaultPluginRequests(Collections.<PluginRequestInternal>singletonList(createScanPluginRequest()));
         }
-        return new DefaultPluginRequests(requests);
+        return DefaultPluginRequests.EMPTY;
     }
 
     private boolean shouldApplyScanPlugin(Project target) {

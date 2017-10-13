@@ -42,8 +42,13 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         }
         Project project = (Project) pluginTarget;
 
+        PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
+        if (autoAppliedPlugins.isEmpty()) {
+            return initialRequests;
+        }
+
         List<PluginRequestInternal> merged = Lists.newArrayList(initialRequests);
-        for (PluginRequestInternal autoAppliedPlugin : registry.getAutoAppliedPlugins(project)) {
+        for (PluginRequestInternal autoAppliedPlugin : autoAppliedPlugins) {
             if (!isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, project)) {
                 merged.add(autoAppliedPlugin);
             }

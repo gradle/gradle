@@ -29,6 +29,9 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readSmallInt();
+        if (requestCount == 0) {
+            return DefaultPluginRequests.EMPTY;
+        }
         List<PluginRequestInternal> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
             PluginId pluginId = DefaultPluginId.unvalidated(decoder.readString());

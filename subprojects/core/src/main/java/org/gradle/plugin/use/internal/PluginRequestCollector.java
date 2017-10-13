@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -86,10 +87,14 @@ public class PluginRequestCollector {
     }
 
     public PluginRequests getPluginRequests() {
+        if (specs.isEmpty()) {
+            return DefaultPluginRequests.EMPTY;
+        }
         return new DefaultPluginRequests(listPluginRequests());
     }
 
-    public List<PluginRequestInternal> listPluginRequests() {
+    @VisibleForTesting
+    List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
             public PluginRequestInternal transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
