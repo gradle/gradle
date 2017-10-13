@@ -207,7 +207,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void setRootProject(ProjectInternal rootProject) {
         this.rootProject = rootProject;
-        setBuildName(rootProject.getName());
     }
 
     @Override
