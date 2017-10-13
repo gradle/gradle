@@ -85,6 +85,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compileTopLevelScript(): (Any) -> Unit =
         asKotlinScriptPluginTarget { target ->
+            target.configure()
             withUnexpectedBlockHandling {
                 executeBuildscriptBlockOn(target)
                 prepareAndExecuteScriptBodyOn(target)
@@ -94,6 +95,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compileScriptPlugin(): (Any) -> Unit =
         asKotlinScriptPluginTarget { target ->
+            target.configure()
             withUnexpectedBlockHandling {
                 prepareAndExecuteScriptBodyOn(target)
             }

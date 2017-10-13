@@ -64,6 +64,8 @@ sealed class KotlinScriptPluginTarget<T : Any>(
 
     open fun accessorsClassPath(classPath: ClassPath) =
         AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+
+    open fun configure() = Unit
 }
 
 internal
@@ -82,6 +84,14 @@ data class KotlinScriptPluginProjectTarget(override val `object`: Project) : Kot
 
     override fun accessorsClassPath(classPath: ClassPath) =
         accessorsClassPathFor(`object`, classPath)
+
+    override fun configure() {
+        `object`.run {
+            afterEvaluate {
+                plugins.apply(KotlinScriptBasePlugin::class.java)
+            }
+        }
+    }
 }
 
 internal
