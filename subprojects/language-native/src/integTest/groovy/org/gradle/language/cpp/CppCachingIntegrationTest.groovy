@@ -18,10 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
@@ -53,9 +51,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         }
     }
 
-    @Unroll
-    def 'compilation can be cached (#buildType)'() {
-        def f = new NativeCachingFixture(buildType: buildType, test: this)
+    def 'compilation can be cached'() {
+        def f = new NativeCachingFixture(buildType: buildType)
         setupProject()
 
         when:
@@ -75,9 +72,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildType << [debug, release]
     }
 
-    @Unroll
-    def "compilation task is relocatable (#buildType)"() {
-        def f = new NativeCachingFixture(buildType: buildType, test: this)
+    def "compilation task is relocatable"() {
+        def f = new NativeCachingFixture(buildType: buildType)
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
         setupProject(originalLocation)
@@ -115,9 +111,12 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildType << [debug, release]
     }
 
+    String getSourceType() {
+        return 'Cpp'
+    }
+
     class NativeCachingFixture {
         String buildType
-        AbstractInstalledToolChainIntegrationSpec test
 
         void assertSameSnapshots(Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
             assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
@@ -156,12 +155,12 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         }
 
         void compileIsCached(TestFile projectDir = temporaryFolder.testDirectory) {
-            test.skipped compilationTask
+            skipped compilationTask
             objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
         }
 
         void compileIsNotCached() {
-            test.executedAndNotSkipped compilationTask
+            executedAndNotSkipped compilationTask
         }
     }
 
