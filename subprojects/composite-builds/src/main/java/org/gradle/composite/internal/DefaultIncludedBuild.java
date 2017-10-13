@@ -41,9 +41,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private boolean resolvedDependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
-    private String name;
+    private String buildName;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(String buildName, File projectDir, Factory<GradleLauncher> launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.buildName = buildName;
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
         this.parentLease = parentLease;
@@ -61,10 +62,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public String getName() {
-        if (name == null) {
-            name = getLoadedSettings().getRootProject().getName();
-        }
-        return name;
+        return buildName;
     }
 
     @Override

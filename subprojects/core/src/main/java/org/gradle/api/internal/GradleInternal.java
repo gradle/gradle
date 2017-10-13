@@ -110,6 +110,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     void setIdentityPath(Path path);
 
-    void setRootProjectName(String rootProjectDescriptor);
+    void setBuildName(String buildName);
 
 }

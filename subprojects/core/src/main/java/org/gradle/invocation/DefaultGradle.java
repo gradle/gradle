@@ -61,7 +61,7 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
-    private String rootProjectName;
+    private String buildName;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
@@ -80,7 +80,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
-        this.rootProjectName = startParameter.getCurrentDir().getName();
+
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -121,12 +121,17 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
+                if (buildName == null) {
+                    // Not known yet
+                    return null;
+                }
+
                 Path parentIdentityPath = parent.findIdentityPath();
                 if (parentIdentityPath == null) {
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProjectName);
+                this.identityPath = parentIdentityPath.child(buildName);
             }
         }
         return identityPath;
@@ -430,7 +435,10 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         throw new UnsupportedOperationException();
     }
 
-    public void setRootProjectName(String rootProjectName) {
-        this.rootProjectName = rootProjectName;
+    public void setBuildName(String buildName) {
+        if (this.buildName!=null) {
+            throw new IllegalStateException(String.format("Cannot change build name to '%s', build '%s' has already been set.", buildName, this.buildName));
+        }
+        this.buildName = buildName;
     }
 }

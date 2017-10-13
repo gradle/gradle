@@ -70,7 +70,8 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
     @Override
     public IncludedBuildInternal addExplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
-        return registerBuild(buildDirectory, nestedBuildFactory);
+        // Assume the build name is the same as the root directory name
+        return registerBuild(buildDirectory.getName(), buildDirectory, nestedBuildFactory);
     }
 
     @Override
@@ -121,17 +122,18 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     public ConfigurableIncludedBuild addImplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDirectory);
         if (includedBuild == null) {
-            includedBuild = registerBuild(buildDirectory, nestedBuildFactory);
+            // TODO: Should the name be coming from the VCS mapping instead?
+            includedBuild = registerBuild(buildDirectory.getName(), buildDirectory, nestedBuildFactory);
             registerProjects(Collections.<IncludedBuild>singletonList(includedBuild));
         }
         return includedBuild;
     }
 
-    private IncludedBuildInternal registerBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    private IncludedBuildInternal registerBuild(String buildName, File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
         IncludedBuildInternal includedBuild = includedBuilds.get(buildDirectory);
         if (includedBuild == null) {
-            includedBuild = includedBuildFactory.createBuild(buildDirectory, nestedBuildFactory);
+            includedBuild = includedBuildFactory.createBuild(buildName, buildDirectory, nestedBuildFactory);
             includedBuilds.put(buildDirectory, includedBuild);
         }
         return includedBuild;
