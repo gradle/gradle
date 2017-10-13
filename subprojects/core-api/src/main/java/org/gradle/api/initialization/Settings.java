@@ -41,7 +41,7 @@ import java.io.File;
  * <h3>Assembling a Multi-Project Build</h3>
  *
  * <p>One of the purposes of the <code>Settings</code> object is to allow you to declare the projects which are to be
- * included in the build. You add projects to the build using the {@link #include(String[])} method.  There is always a
+ * included in the build. You add projects to the build using the {@link #include(String...)} method.  There is always a
  * root project included in a build.  It is added automatically when the <code>Settings</code> object is created.  The
  * root project's name defaults to the name of the directory containing the settings file. The root project's project
  * directory defaults to the directory containing the settings file.</p>
@@ -108,7 +108,7 @@ public interface Settings extends PluginAware {
      *
      * @param projectPaths the projects to add.
      */
-    void include(String[] projectPaths);
+    void include(String... projectPaths);
 
     /**
      * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
@@ -122,7 +122,7 @@ public interface Settings extends PluginAware {
      *
      * @param projectNames the projects to add.
      */
-    void includeFlat(String[] projectNames);
+    void includeFlat(String... projectNames);
 
     /**
      * <p>Returns this settings object.</p>
