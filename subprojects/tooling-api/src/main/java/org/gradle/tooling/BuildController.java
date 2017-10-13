@@ -123,10 +123,10 @@ public interface BuildController {
      * @param <T> The model type.
      * @param parameterType The parameter type.
      * @param <P> The parameter type.
-     * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
+     * @param parameterInitializer Action to configure the parameter
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
-     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
+     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parametrized models.
      *
      * @since 4.4
      */
@@ -141,7 +141,7 @@ public interface BuildController {
      * @param <T> The model type.
      * @param parameterType The parameter type.
      * @param <P> The parameter type.
-     * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
+     * @param parameterInitializer Action to configure the parameter
      * @return The model.
      *
      * @since 4.4
@@ -164,10 +164,10 @@ public interface BuildController {
      * @param <T> The model type.
      * @param parameterType The parameter type.
      * @param <P> The parameter type.
-     * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
+     * @param parameterInitializer Action to configure the parameter
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
-     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
+     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parametrized models.
      *
      * @since 4.4
      */
@@ -183,7 +183,7 @@ public interface BuildController {
      * @param <T> The model type.
      * @param parameterType The parameter type.
      * @param <P> The parameter type.
-     * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
+     * @param parameterInitializer Action to configure the parameter
      * @return The model.
      *
      * @since 4.4

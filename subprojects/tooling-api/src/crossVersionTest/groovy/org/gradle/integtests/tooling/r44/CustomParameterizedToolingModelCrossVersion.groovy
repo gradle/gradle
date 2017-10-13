@@ -175,7 +175,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
 
     @TargetGradleVersion(">=4.4")
     @ToolingApiVersion(">=4.4")
-    def "can use one model output as input for other"() {
+    def "can use one model output as input for another"() {
         when:
         def model = withConnection { connection ->
             connection.action(new MultipleParametersAction()).run()
@@ -192,7 +192,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
 
     @TargetGradleVersion(">=4.4")
     @ToolingApiVersion(">=4.4")
-    def "error when passing parameter to non parameterized builder"() {
+    def "error when passing parameter to non parametrized builder"() {
         def handler = Mock(ResultHandler)
 
         when:
