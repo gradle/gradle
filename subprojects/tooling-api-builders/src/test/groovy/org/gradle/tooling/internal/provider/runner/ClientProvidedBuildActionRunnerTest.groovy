@@ -27,6 +27,7 @@ import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.provider.*
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -140,5 +141,25 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
 
         then:
         1 * buildController.run()
+    }
+
+    def "can run action InternalActionVersion2"() {
+        given:
+        def model = new Object()
+        def output = Mock(SerializedPayload)
+        def internalAction = Mock(InternalBuildActionVersion2)
+
+        when:
+        runner.run(clientProvidedBuildAction, buildController)
+
+        then:
+        1 * internalAction.execute(_) >> model
+        1 * payloadSerializer.deserialize(action) >> internalAction
+        1 * payloadSerializer.serialize(model) >> output
+        1 * buildController.setResult(_) >> { BuildActionResult result ->
+            assert result.failure == null
+            assert result.result == output
+        }
+        0 * buildController.run()
     }
 }

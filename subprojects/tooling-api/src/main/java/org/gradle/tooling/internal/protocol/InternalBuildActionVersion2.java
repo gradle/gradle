@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,16 @@ import java.io.Serializable;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is implemented by all consumer versions from 1.8-rc-1.</p>
- * <p>Provider compatibility: This interface is consumed by all provider versions from 1.8-rc-1 to 4.3. It is also used by later providers when the consumer does not
- * implement newer interfaces.
- * </p>
+ * <p>Consumer compatibility: This interface is implemented by all consumer versions from 4.4.</p>
+ * <p>Provider compatibility: This interface is consumed by all provider versions from 4.4.</p>
  *
- * @since 1.8-rc-1
- * @deprecated 4.4. Use {@link InternalBuildActionVersion2} instead.
+ * @since 4.4
  */
-@Deprecated
-public interface InternalBuildAction<T> extends InternalProtocolInterface, Serializable {
+public interface InternalBuildActionVersion2<T> extends InternalProtocolInterface, Serializable {
     /**
      * Performs some action against a build and returns a result.
      *
-     * @since 1.8-rc-1
-     * @deprecated 4.4. Use {@link InternalBuildActionVersion2#execute(InternalBuildControllerVersion2)} instead.
+     * @since 4.4
      */
-    @Deprecated
-    T execute(InternalBuildController buildController);
+    T execute(InternalBuildControllerVersion2 buildController);
 }

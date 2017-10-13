@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,23 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
-import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.Model;
-import org.gradle.tooling.model.gradle.BuildInvocations;
 
-public class BuildInvocationsAdapterController extends AbstractBuildController {
+public class BuildControllerWithoutParameterSupport extends AbstractBuildController {
 
-    private final ProtocolToModelAdapter adapter;
+    private final VersionDetails gradleVersion;
     private final BuildController delegate;
 
-    public BuildInvocationsAdapterController(ProtocolToModelAdapter adapter, BuildController delegate) {
-        this.adapter = adapter;
+    public BuildControllerWithoutParameterSupport(VersionDetails gradleVersion, BuildController delegate) {
+        this.gradleVersion = gradleVersion;
         this.delegate = delegate;
     }
 
     @Override
     public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
-        if (modelType.equals(BuildInvocations.class)) {
-            GradleProject gradleProject = delegate.getModel(target, GradleProject.class, parameterType, parameterInitializer);
-            return adapter.adapt(modelType, new BuildInvocationsConverter().convert(gradleProject));
+        if (parameterType != null || parameterInitializer != null) {
+            throw new UnsupportedVersionException(String.format("Gradle version %s does not support parameterized tooling models.", gradleVersion.getVersion()));
         }
         return delegate.getModel(target, modelType, parameterType, parameterInitializer);
     }

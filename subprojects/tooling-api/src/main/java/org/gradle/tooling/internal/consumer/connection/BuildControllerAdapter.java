@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
@@ -32,15 +32,16 @@ import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.internal.Exceptions;
 
 import java.io.File;
+import java.lang.reflect.Proxy;
 
 class BuildControllerAdapter extends AbstractBuildController implements BuildController {
-    private final InternalBuildController buildController;
+    private final InternalBuildControllerAdapter buildController;
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
     private final File rootDir;
 
-    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildController buildController, ModelMapping modelMapping, File rootDir) {
+    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildControllerAdapter buildController, ModelMapping modelMapping, File rootDir) {
         this.adapter = adapter;
         this.buildController = buildController;
         this.modelMapping = modelMapping;
@@ -49,13 +50,16 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         resultAdapter = adapter.newGraph();
     }
 
-    public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
+    @Override
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
         Object originalTarget = target == null ? null : adapter.unpack(target);
 
+        P parameter = initializeParameter(parameterType, parameterInitializer);
+
         BuildResult<?> result;
         try {
-            result = buildController.getModel(originalTarget, modelIdentifier);
+            result = buildController.getModel(originalTarget, modelIdentifier, parameter);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }
@@ -63,6 +67,28 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
         applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
         return viewBuilder.build(result.getModel());
+    }
+
+    private <P> P initializeParameter(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        validateParameters(parameterType, parameterInitializer);
+        if (parameterType != null) {
+            // TODO: move this to ObjectFactory
+            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class[]{parameterType}, new ToolingParameterProxy()));
+            parameterInitializer.execute(parameter);
+            return parameter;
+        } else {
+            return null;
+        }
+    }
+
+    private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
+            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parametrized model request.");
+        }
+
+        if (parameterType != null && !ToolingParameterProxy.isValid(parameterType)) {
+            throw new IllegalArgumentException(parameterType.getName() + " is not a valid parameter type. Parameter types need to be interfaces with only getters and setters.");
+        }
     }
 
     private String getProjectPath(Model target) {
