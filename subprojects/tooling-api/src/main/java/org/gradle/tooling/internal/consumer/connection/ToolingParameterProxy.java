@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * <p>These proxies do not support any kind of nesting.
  */
-public class ParameterInstantiatorBeanProxy implements InvocationHandler {
+public class ToolingParameterProxy implements InvocationHandler {
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

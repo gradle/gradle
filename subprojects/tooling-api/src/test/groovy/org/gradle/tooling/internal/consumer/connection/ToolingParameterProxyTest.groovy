@@ -20,11 +20,11 @@ import org.gradle.testing.internal.util.Specification
 
 import java.lang.reflect.Proxy
 
-class ParameterInstantiatorBeanProxyTest extends Specification {
+class ToolingParameterProxyTest extends Specification {
 
     def "returns parameter valid when well defined"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(ValidParameter)
+        boolean isValid = ToolingParameterProxy.isValid(ValidParameter)
 
         then:
         assert isValid
@@ -32,7 +32,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
 
     def "returns parameter invalid when not a getter or setter"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(InvalidParameter1)
+        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter1)
 
         then:
         assert !isValid
@@ -40,7 +40,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
 
     def "returns parameter invalid when setter not correct"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(InvalidParameter2)
+        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter2)
 
         then:
         assert !isValid
@@ -48,7 +48,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
 
     def "returns parameter invalid when setter and getter have different types"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(InvalidParameter3)
+        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter3)
 
         then:
         assert !isValid
@@ -56,7 +56,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
 
     def "returns parameter invalid when no getter for setter"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(InvalidParameter4)
+        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter4)
 
         then:
         assert !isValid
@@ -64,7 +64,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
 
     def "returns parameter invalid when no setter for getter"() {
         when:
-        boolean isValid = ParameterInstantiatorBeanProxy.isValid(InvalidParameter5)
+        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter5)
 
         then:
         assert !isValid
@@ -73,7 +73,7 @@ class ParameterInstantiatorBeanProxyTest extends Specification {
     def "getter gets what setter sets"() {
         Class<?>[] classes = [ValidParameter]
         when:
-        def parameter = Proxy.newProxyInstance(ValidParameter.getClassLoader(), classes, new ParameterInstantiatorBeanProxy())
+        def parameter = Proxy.newProxyInstance(ValidParameter.getClassLoader(), classes, new ToolingParameterProxy())
 
         then:
         assert parameter instanceof ValidParameter

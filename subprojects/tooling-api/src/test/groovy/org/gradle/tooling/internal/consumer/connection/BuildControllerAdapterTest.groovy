@@ -22,13 +22,16 @@ import org.gradle.tooling.internal.adapter.ObjectGraphAdapter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
+import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.model.Element
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
 class BuildControllerAdapterTest extends Specification {
-    def internalController = Mock(BuildControllerAdapter.InternalBuildControllerWrapper)
+    def internalController = Mock(InternalBuildControllerAdapter)
     def graphAdapter = Mock(ObjectGraphAdapter)
     def adapter = Mock(ProtocolToModelAdapter) {
         newGraph() >> graphAdapter
@@ -175,15 +178,27 @@ class BuildControllerAdapterTest extends Specification {
         })
 
         then:
-        UnknownModelException e1 = thrown()
-        e1.message == "Invalid parameter."
+        NullPointerException e1 = thrown()
+        e1.message == "parameterType and parameterInitializer both need to be set for a parameterized model request."
 
         when:
         controller.getModel(GradleBuild, ValidParameter, null)
 
         then:
-        UnknownModelException e2 = thrown()
-        e2.message == "Invalid parameter."
+        NullPointerException e2 = thrown()
+        e2.message == "parameterType and parameterInitializer both need to be set for a parameterized model request."
+    }
+
+    def "error when invalid parameter type is used"() {
+        when:
+        controller.getModel(GradleBuild, InvalidParameter, new Action() {
+            @Override
+            void execute(Object o) {}
+        })
+
+        then:
+        IllegalArgumentException e1 = thrown()
+        e1.message == "org.gradle.tooling.internal.consumer.connection.BuildControllerAdapterTest\$InvalidParameter is not a valid parameter type. Parameter types need to be interfaces with only getters and setters."
     }
 
     interface ValidParameter {
@@ -191,5 +206,9 @@ class BuildControllerAdapterTest extends Specification {
         String getValue()
         void setBooleanValue(boolean booleanValue)
         boolean isBooleanValue()
+    }
+
+    class InvalidParameter {
+        String foo
     }
 }

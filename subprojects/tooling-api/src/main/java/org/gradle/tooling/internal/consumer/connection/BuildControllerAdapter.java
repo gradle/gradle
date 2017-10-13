@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -36,13 +35,13 @@ import java.io.File;
 import java.lang.reflect.Proxy;
 
 class BuildControllerAdapter extends AbstractBuildController implements BuildController {
-    private final InternalBuildControllerWrapper buildController;
+    private final InternalBuildControllerAdapter buildController;
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
     private final File rootDir;
 
-    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildControllerWrapper buildController, ModelMapping modelMapping, File rootDir) {
+    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildControllerAdapter buildController, ModelMapping modelMapping, File rootDir) {
         this.adapter = adapter;
         this.buildController = buildController;
         this.modelMapping = modelMapping;
@@ -56,16 +55,7 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
         Object originalTarget = target == null ? null : adapter.unpack(target);
 
-        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null) || (parameterType != null && !ParameterInstantiatorBeanProxy.isValid(parameterType))) {
-            throw new UnknownModelException("Invalid parameter.");
-        }
-
-        P parameter = null;
-        if (parameterType != null) {
-            // TODO: use Gradle proxy instead of a common java proxy
-            parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class[]{parameterType}, new ParameterInstantiatorBeanProxy()));
-            parameterInitializer.execute(parameter);
-        }
+        P parameter = initializeParameter(parameterType, parameterInitializer);
 
         BuildResult<?> result;
         try {
@@ -79,19 +69,33 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         return viewBuilder.build(result.getModel());
     }
 
+    private <P> P initializeParameter(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        validateParameters(parameterType, parameterInitializer);
+        if (parameterType != null) {
+            // TODO: move this to ObjectFactory
+            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class[]{parameterType}, new ToolingParameterProxy()));
+            parameterInitializer.execute(parameter);
+            return parameter;
+        } else {
+            return null;
+        }
+    }
+
+    private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
+            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parametrized model request.");
+        }
+
+        if (parameterType != null && !ToolingParameterProxy.isValid(parameterType)) {
+            throw new IllegalArgumentException(parameterType.getName() + " is not a valid parameter type. Parameter types need to be interfaces with only getters and setters.");
+        }
+    }
+
     private String getProjectPath(Model target) {
         if (target instanceof ProjectModel) {
             return ((ProjectModel) target).getProjectIdentifier().getProjectPath();
         } else {
             return ":";
         }
-    }
-
-    /**
-     * Interface representing either an {@link org.gradle.tooling.internal.protocol.InternalBuildController}
-     * or an {@link org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2}.
-     */
-    public interface InternalBuildControllerWrapper {
-        BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter);
     }
 }

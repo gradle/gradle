@@ -53,7 +53,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
      */
     public T execute(final InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new BuildControllerAdapter.InternalBuildControllerWrapper() {
+        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new InternalBuildControllerAdapter() {
             @Override
             public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) {
                 return buildController.getModel(target, modelIdentifier);
@@ -71,7 +71,7 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
      */
     public T execute(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new BuildControllerAdapter.InternalBuildControllerWrapper() {
+        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new InternalBuildControllerAdapter() {
             @Override
             public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) {
                 return buildController.getModel(target, modelIdentifier, parameter);
