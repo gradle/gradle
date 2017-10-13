@@ -314,9 +314,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def expectPluginQuery() {
-        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
-            legacy = true
-        }
+        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
     }
 
     MavenHttpModule publishPlugin(String impl) {

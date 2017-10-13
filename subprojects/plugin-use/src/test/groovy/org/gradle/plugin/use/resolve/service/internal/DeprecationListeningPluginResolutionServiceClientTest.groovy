@@ -29,7 +29,7 @@ class DeprecationListeningPluginResolutionServiceClientTest extends Specificatio
     public static final String PORTAL_URL_1 = "http://foo"
     public static final PluginRequestInternal REQUEST_1 = request("foo")
     public static final String PLUGIN_URL_1 = "$PORTAL_URL_1/foo/1"
-    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", false)
+    public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType")
     public static final ClientStatus CLIENT_STATUS_1 = new ClientStatus("One")
     public static final ClientStatus CLIENT_STATUS_2 = new ClientStatus("Two")
     public static final ErrorResponse ERROR_1 = new ErrorResponse("ERROR", "error")

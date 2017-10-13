@@ -34,14 +34,12 @@ public class PluginUseMetaData {
     public final String version;
     public final Map<String, String> implementation;
     public final String implementationType;
-    public final boolean legacy;
 
-    public PluginUseMetaData(String id, String version, Map<String, String> implementation, String implementationType, boolean legacy) {
+    public PluginUseMetaData(String id, String version, Map<String, String> implementation, String implementationType) {
         this.id = id;
         this.version = version;
         this.implementation = implementation;
         this.implementationType = implementationType;
-        this.legacy = legacy;
     }
 
     @Override
@@ -55,9 +53,6 @@ public class PluginUseMetaData {
 
         PluginUseMetaData that = (PluginUseMetaData) o;
 
-        if (legacy != that.legacy) {
-            return false;
-        }
         if (!id.equals(that.id)) {
             return false;
         }
@@ -80,18 +75,16 @@ public class PluginUseMetaData {
         result = 31 * result + version.hashCode();
         result = 31 * result + implementation.hashCode();
         result = 31 * result + implementationType.hashCode();
-        result = 31 * result + (legacy ? 1 : 0);
         return result;
     }
 
     public static class Serializer extends AbstractSerializer<PluginUseMetaData> {
         public PluginUseMetaData read(Decoder decoder) throws Exception {
             return new PluginUseMetaData(
-                    decoder.readString(),
-                    decoder.readString(),
-                    BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
-                    decoder.readString(),
-                    decoder.readBoolean()
+                decoder.readString(),
+                decoder.readString(),
+                BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
+                decoder.readString()
             );
         }
 
@@ -100,7 +93,6 @@ public class PluginUseMetaData {
             encoder.writeString(value.version);
             BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER.write(encoder, value.implementation);
             encoder.writeString(value.implementationType);
-            encoder.writeBoolean(value.legacy);
         }
     }
 }

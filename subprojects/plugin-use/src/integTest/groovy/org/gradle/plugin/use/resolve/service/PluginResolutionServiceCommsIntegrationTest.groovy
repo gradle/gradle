@@ -113,9 +113,8 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        errorResolvingPlugin()
-        failure.assertHasCause("Failed to resolve all plugin dependencies from " + portal.m2repo.uri)
         failure.assertHasCause("Could not find my:plugin:1.0.")
+        failureCauseContains("${portal.m2repo.uri}/my/plugin/1.0/plugin-1.0.pom")
     }
 
     def "portal JSON response with unknown implementation type fails plugin resolution"() {
@@ -340,8 +339,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
 
         expect:
         fails("verify")
-        errorResolvingPlugin()
-        failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
+        failure.assertHasCause("Could not resolve foo:bar:1.0.")
         failure.assertThatCause(matchesRegexp(".*?Connect to localhost:\\d+ (\\[.*\\])? failed: Connection refused.*"))
     }
 

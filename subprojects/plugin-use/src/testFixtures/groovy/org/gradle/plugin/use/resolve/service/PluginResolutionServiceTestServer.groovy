@@ -106,7 +106,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     static class PluginUseResponse {
         String id
         String version
-        Boolean legacy
+        Boolean legacy = true
 
         static class Implementation {
             String gav
