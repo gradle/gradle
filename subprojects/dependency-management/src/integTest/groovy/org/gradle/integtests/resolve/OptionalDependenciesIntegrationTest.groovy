@@ -129,7 +129,7 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "transitive dependencies of an optional dependency do not participate in conflict resolution"() {
+    void "transitive dependencies of an optional dependency do not participate in conflict resolution if it is not included elsewhere"() {
         given:
         def foo10 = mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
         mavenRepo.module("org", "bar", '1.0').publish()
@@ -154,68 +154,6 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def files = configurations.conf*.name.sort()
                     assert files == ['bar-1.0.jar', 'root-1.0.jar']
-                }
-            }
-        """
-
-        when:
-        run 'checkDeps'
-
-        then:
-        noExceptionThrown()
-    }
-
-    void "optionality of Maven modules is respected"() {
-        given:
-        def bar = mavenRepo.module('org', 'bar', '1.0').publish()
-        mavenRepo.module('org', 'foo', '1.0').dependsOn(bar, optional: true).publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:foo:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.0.jar']
-                }
-            }
-        """
-
-        when:
-        run 'checkDeps'
-
-        then:
-        noExceptionThrown()
-    }
-
-    void "optional Maven dependency is included if hard dependency is added too"() {
-        given:
-        def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
-        def bar11 = mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'foo', '1.0').dependsOn(bar11, optional: true).publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:foo:1.0'
-                conf 'org:bar:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.1.jar', 'foo-1.0.jar']
                 }
             }
         """
