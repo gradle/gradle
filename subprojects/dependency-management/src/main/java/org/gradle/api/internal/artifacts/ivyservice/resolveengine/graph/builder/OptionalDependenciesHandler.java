@@ -24,21 +24,16 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * This class is responsible for maintaining the state of optional dependencies which are "pending".
- * In other words, when an optional dependency is added to the graph, it is "pending" until a hard
- * dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred
- * to the optional dependency are restarted.
+ * This class is responsible for maintaining the state of optional dependencies which are "pending". In other words, when an optional dependency is added to the graph, it is "pending" until a hard
+ * dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the optional dependency are restarted.
  *
- * This class also makes a special case of the "optional" configuration, for backwards compatibility:
- * the optional configuration used to store optional dependencies. But if we no longer resolve optional
- * dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the
- * state of optional dependencies if they belong to the "optional" configuration.
+ * This class also makes a special case of the "optional" configuration, for backwards compatibility: the optional configuration used to store optional dependencies. But if we no longer resolve
+ * optional dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the state of optional dependencies if they belong to the "optional" configuration.
  */
 public class OptionalDependenciesHandler {
-    private final Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies;
+    private final OptionalDependenciesState optionalDependencies;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
 
@@ -46,7 +41,7 @@ public class OptionalDependenciesHandler {
     private boolean isOptionalConfiguration;
     private List<PendingOptionalDependencies> noLongerOptional;
 
-    public OptionalDependenciesHandler(Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies,
+    public OptionalDependenciesHandler(OptionalDependenciesState optionalDependencies,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        DependencySubstitutionApplicator dependencySubstitutionApplicator) {
 
@@ -70,26 +65,20 @@ public class OptionalDependenciesHandler {
 
     boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState) {
         ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
-        PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.get(key);
+        PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.getPendingOptionalDependencies(key);
+        boolean pending = pendingOptionalDependencies.isPending();
 
-        if (dependencyState.getDependencyMetadata().isOptional() && !isOptionalConfiguration) {
-            if (pendingOptionalDependencies == null || pendingOptionalDependencies.isPending()) {
-                if (pendingOptionalDependencies == null) {
-                    pendingOptionalDependencies = new PendingOptionalDependencies();
-                    optionalDependencies.put(key, pendingOptionalDependencies);
-                }
+        if (dependencyState.getDependencyMetadata().isOptional() && !isOptionalConfiguration && pending) {
                 pendingOptionalDependencies.addNode(node);
                 return true;
-            }
-        } else {
-            if (pendingOptionalDependencies != null && pendingOptionalDependencies.isPending()) {
-                if (noLongerOptional == null) {
-                    noLongerOptional = Lists.newLinkedList();
-                }
-                noLongerOptional.add(pendingOptionalDependencies);
-            }
         }
-        optionalDependencies.put(key, PendingOptionalDependencies.NOT_OPTIONAL);
+        if (pending) {
+            if (noLongerOptional == null) {
+                noLongerOptional = Lists.newLinkedList();
+            }
+            noLongerOptional.add(pendingOptionalDependencies);
+        }
+        optionalDependencies.notOptional(key);
         return false;
     }
 

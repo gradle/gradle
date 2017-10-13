@@ -17,23 +17,24 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Sets;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class PendingOptionalDependencies {
-    static final PendingOptionalDependencies NOT_OPTIONAL = new PendingOptionalDependencies(null);
-
     private boolean noLongerOptional;
     private final Set<NodeState> affectedComponents;
 
-    public PendingOptionalDependencies() {
-        this(Sets.<NodeState>newLinkedHashSet());
+    public static PendingOptionalDependencies pending() {
+        return new PendingOptionalDependencies(Sets.<NodeState>newLinkedHashSet(), false);
     }
 
-    public PendingOptionalDependencies(Set<NodeState> nodeStates) {
+    public static PendingOptionalDependencies notOptional() {
+        return new PendingOptionalDependencies(Collections.<NodeState>emptySet(), true);
+    }
+
+    private PendingOptionalDependencies(Set<NodeState> nodeStates, boolean noLongerOptional) {
         this.affectedComponents = nodeStates;
-        if (nodeStates == null) {
-            noLongerOptional = true;
-        }
+        this.noLongerOptional = noLongerOptional;
     }
 
     void addNode(NodeState state) {
