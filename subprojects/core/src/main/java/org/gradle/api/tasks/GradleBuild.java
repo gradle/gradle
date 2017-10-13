@@ -148,6 +148,7 @@ public class GradleBuild extends ConventionTask {
     void build() {
         BuildController buildController = nestedBuildFactory.nestedBuildController(getStartParameter());
         try {
+            buildController.getGradle().setBuildName(getDir().getName());
             buildController.run();
         } finally {
             buildController.stop();

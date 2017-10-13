@@ -207,6 +207,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void setRootProject(ProjectInternal rootProject) {
         this.rootProject = rootProject;
+        setBuildName(rootProject.getName());
     }
 
     @Override
@@ -436,7 +437,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     public void setBuildName(String buildName) {
-        if (this.buildName!=null) {
+        if (this.buildName!=null && !this.buildName.equals(buildName)) {
             throw new IllegalStateException(String.format("Cannot change build name to '%s', build '%s' has already been set.", buildName, this.buildName));
         }
         this.buildName = buildName;
