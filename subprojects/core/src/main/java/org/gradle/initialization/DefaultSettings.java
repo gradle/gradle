@@ -120,7 +120,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         return projectDescriptor;
     }
 
-    public void include(String[] projectPaths) {
+    public void include(String... projectPaths) {
         for (String projectPath : projectPaths) {
             String subPath = "";
             String[] pathElements = removeTrailingColon(projectPath).split(":");
@@ -137,7 +137,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         }
     }
 
-    public void includeFlat(String[] projectNames) {
+    public void includeFlat(String... projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
                 new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
