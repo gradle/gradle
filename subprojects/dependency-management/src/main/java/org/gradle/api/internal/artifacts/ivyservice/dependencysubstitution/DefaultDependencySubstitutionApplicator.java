@@ -29,15 +29,15 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
     }
 
     @Override
-    public Application apply(DependencyMetadata dependency) {
+    public SubstitutionResult apply(DependencyMetadata dependency) {
         ComponentSelector selector = dependency.getSelector();
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
         try {
             rule.execute(details);
         } catch (Throwable e) {
-            return Application.of(e);
+            return SubstitutionResult.failed(e);
         }
-        return Application.of(details);
+        return SubstitutionResult.failed(details);
     }
 
 }

@@ -56,7 +56,7 @@ public class OptionalDependenciesHandler {
     }
 
     private ModuleIdentifier toKey(DependencyState dependencyState) {
-        DependencySubstitutionApplicator.Application application = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
+        DependencySubstitutionApplicator.SubstitutionResult application = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
         DependencySubstitutionInternal details = application.getResult();
         if (details != null && details.isUpdated()) {
             ComponentSelector target = details.getTarget();

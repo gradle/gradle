@@ -29,7 +29,7 @@ import java.util.Map;
 @NotThreadSafe
 public class CachingDependencySubstitutionApplicator implements DependencySubstitutionApplicator {
     private final DependencySubstitutionApplicator delegate;
-    private final Map<ComponentSelector, Application> cache = Maps.newHashMap();
+    private final Map<ComponentSelector, SubstitutionResult> cache = Maps.newHashMap();
 
     public CachingDependencySubstitutionApplicator(DependencySubstitutionApplicator delegate) {
         this.delegate = delegate;
@@ -37,9 +37,9 @@ public class CachingDependencySubstitutionApplicator implements DependencySubsti
 
 
     @Override
-    public Application apply(DependencyMetadata dependency) {
+    public SubstitutionResult apply(DependencyMetadata dependency) {
         ComponentSelector selector = dependency.getSelector();
-        Application application = cache.get(selector);
+        SubstitutionResult application = cache.get(selector);
         if (application == null) {
             application = delegate.apply(dependency);
             cache.put(selector, application);
