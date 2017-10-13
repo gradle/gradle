@@ -16,6 +16,7 @@
 package org.gradle.internal.scripts;
 
 import java.io.File;
+import javax.annotation.Nullable;
 
 /**
  * Resolves script files according to available {@link org.gradle.scripts.ScriptingLanguage} providers.
@@ -31,5 +32,6 @@ public interface ScriptFileResolver {
      * @param basename the base name of the script file, i.e. its file name excluding the extension
      * @return the resolved script file present on disk, or {@literal null} if none were found
      */
+    @Nullable
     File resolveScriptFile(File dir, String basename);
 }
