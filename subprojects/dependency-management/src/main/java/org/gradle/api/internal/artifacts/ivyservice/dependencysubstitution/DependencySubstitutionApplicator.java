@@ -35,7 +35,7 @@ public interface DependencySubstitutionApplicator {
             this.failure = failure;
         }
 
-        public static SubstitutionResult failed(DependencySubstitutionInternal details) {
+        public static SubstitutionResult of(DependencySubstitutionInternal details) {
             return new SubstitutionResult(details, null);
         }
 

@@ -37,7 +37,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
         } catch (Throwable e) {
             return SubstitutionResult.failed(e);
         }
-        return SubstitutionResult.failed(details);
+        return SubstitutionResult.of(details);
     }
 
 }
