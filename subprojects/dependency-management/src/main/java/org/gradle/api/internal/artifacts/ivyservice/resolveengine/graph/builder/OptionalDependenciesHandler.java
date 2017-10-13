@@ -55,7 +55,7 @@ public class OptionalDependenciesHandler {
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
     }
 
-    private ModuleIdentifier toKey(DependencyState dependencyState) {
+    private ModuleIdentifier lookupModuleIdentifier(DependencyState dependencyState) {
         DependencySubstitutionApplicator.SubstitutionResult application = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
         DependencySubstitutionInternal details = application.getResult();
         if (details != null && details.isUpdated()) {
@@ -69,7 +69,7 @@ public class OptionalDependenciesHandler {
     }
 
     boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState) {
-        ModuleIdentifier key = toKey(dependencyState);
+        ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
         PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.get(key);
 
         if (dependencyState.getDependencyMetadata().isOptional() && !isOptionalConfiguration) {
