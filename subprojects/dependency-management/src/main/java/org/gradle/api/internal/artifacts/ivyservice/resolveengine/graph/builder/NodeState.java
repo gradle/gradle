@@ -167,21 +167,24 @@ class NodeState implements DependencyGraphNode {
 
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
         optionalDependenciesHandler.start(isOptionalConfiguration);
-        for (DependencyMetadata dependency : metaData.getDependencies()) {
-            DependencyState dependencyState = new DependencyState(dependency, resolveState.getModuleIdentifierFactory());
-            if (isExcluded(resolutionFilter, dependencyState)) {
-                continue;
+        try {
+            for (DependencyMetadata dependency : metaData.getDependencies()) {
+                DependencyState dependencyState = new DependencyState(dependency, resolveState.getModuleIdentifierFactory());
+                if (isExcluded(resolutionFilter, dependencyState)) {
+                    continue;
+                }
+                if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependencyState)) {
+                    EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
+                    outgoingEdges.add(dependencyEdge);
+                    target.add(dependencyEdge);
+                }
             }
-            if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependencyState)) {
-                EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
-                outgoingEdges.add(dependencyEdge);
-                target.add(dependencyEdge);
-            }
+            previousTraversalExclusions = resolutionFilter;
+        } finally {
+            // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
+            optionalDependenciesHandler.complete();
         }
-        previousTraversalExclusions = resolutionFilter;
 
-        // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
-        optionalDependenciesHandler.complete();
     }
 
     private List<EdgeState> findTransitiveIncomingEdges(boolean hasIncomingEdges) {
