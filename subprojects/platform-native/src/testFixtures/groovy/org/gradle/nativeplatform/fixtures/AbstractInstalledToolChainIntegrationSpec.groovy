@@ -50,10 +50,6 @@ allprojects { p ->
         })
     }
 
-    String getSourceType() {
-        return null
-    }
-
     NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
         return new NativeInstallationFixture(file(installDir), os)
     }
