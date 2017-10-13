@@ -46,10 +46,11 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     @Override
     public ModuleVersionIdentifier moduleWithVersion(String group, String name, String version) {
         ModuleIdentifier mi = module(group, name);
-        return doWithVersion(version, mi);
+        return moduleWithVersion(mi, version);
     }
 
-    private ModuleVersionIdentifier doWithVersion(String version, ModuleIdentifier mi) {
+    @Override
+    public ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier mi, String version) {
         Map<String, ModuleVersionIdentifier> byVersion = idToVersions.get(mi);
         if (byVersion == null) {
             byVersion = idToVersions.get(mi);
@@ -64,11 +65,6 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
             byVersion.put(version, identifier);
         }
         return identifier;
-    }
-
-    @Override
-    public ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier mi, String version) {
-        return doWithVersion(version, mi);
     }
 
     @Override
