@@ -20,8 +20,13 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
 
+/**
+ * This caching substitutor is not indended to be called from places where it can be executed concurrently.
+ */
+@NotThreadSafe
 public class CachingDependencySubstitutionApplicator implements DependencySubstitutionApplicator {
     private final DependencySubstitutionApplicator delegate;
     private final Map<ComponentSelector, Application> cache = Maps.newHashMap();
