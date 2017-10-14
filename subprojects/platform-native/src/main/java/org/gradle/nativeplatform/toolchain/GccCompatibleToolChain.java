@@ -51,6 +51,8 @@ public interface GccCompatibleToolChain extends NativeToolChain {
 
     /**
      * Override the current platform configuration with target platforms specified by name
+     *
+     * @since 4.4
      */
     void setTargets(String... platformNames);
 
