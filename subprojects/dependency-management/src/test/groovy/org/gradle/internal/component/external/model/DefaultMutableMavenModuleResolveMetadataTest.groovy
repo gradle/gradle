@@ -169,7 +169,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.contentHash == contentHash
     }
 
-    def "can attach variants"() {
+    def "can attach variants with files"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
@@ -202,7 +202,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def immutable2 = immutable.asMutable().asImmutable()
         immutable2.variants.size() == 2
         immutable2.variants[0].name == "api"
+        immutable2.variants[0].files.size() == 2
         immutable2.variants[1].name == "runtime"
+        immutable2.variants[1].files.size() == 1
 
         def copy = immutable.asMutable()
         copy.addVariant("link", attributes())
@@ -210,9 +212,52 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def immutable3 = copy.asImmutable()
         immutable3.variants.size() == 3
         immutable3.variants[0].name == "api"
+        immutable3.variants[0].files.size() == 2
         immutable3.variants[1].name == "runtime"
+        immutable3.variants[1].files.size() == 1
         immutable3.variants[2].name == "link"
         immutable3.variants[2].files.empty
+    }
+
+    def "can attach variants with dependencies"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+
+        given:
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"))
+        v1.addDependency("g1", "m1", "v1")
+        v1.addDependency("g2", "m2", "v2")
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
+        v2.addDependency("g1", "m1", "v1")
+
+        def immutable = metadata.asImmutable()
+
+        expect:
+        immutable.variants.size() == 2
+        immutable.variants[0].dependencies.size() == 2
+        immutable.variants[0].dependencies[0].group == "g1"
+        immutable.variants[0].dependencies[0].module == "m1"
+        immutable.variants[0].dependencies[0].version == "v1"
+        immutable.variants[0].dependencies[1].group == "g2"
+        immutable.variants[0].dependencies[1].module == "m2"
+        immutable.variants[0].dependencies[1].version == "v2"
+        immutable.variants[1].dependencies.size() == 1
+        immutable.variants[1].dependencies[0].group == "g1"
+        immutable.variants[1].dependencies[0].module == "m1"
+        immutable.variants[1].dependencies[0].version == "v1"
+
+        def immutable2 = immutable.asMutable().asImmutable()
+        immutable2.variants[0].dependencies.size() == 2
+        immutable2.variants[1].dependencies.size() == 1
+
+        def copy = immutable.asMutable()
+        copy.addVariant("link", attributes())
+
+        def immutable3 = copy.asImmutable()
+        immutable3.variants.size() == 3
+        immutable3.variants[0].dependencies.size() == 2
+        immutable3.variants[1].dependencies.size() == 1
+        immutable3.variants[2].dependencies.empty
     }
 
     def "variants are attached as children of configuration used for variant aware selection"() {

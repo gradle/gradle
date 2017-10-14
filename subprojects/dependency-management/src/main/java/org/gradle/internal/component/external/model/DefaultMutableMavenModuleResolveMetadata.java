@@ -159,7 +159,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
             builder.addAll(variants);
         }
         for (MutableVariantImpl variant : newVariants) {
-            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.files)));
+            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.files)));
         }
         return builder.build();
     }
@@ -167,6 +167,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
         private final ImmutableAttributes attributes;
+        private final List<DependencyImpl> dependencies = new ArrayList<DependencyImpl>();
         private final List<FileImpl> files = new ArrayList<FileImpl>();
 
         MutableVariantImpl(String name, ImmutableAttributes attributes) {
@@ -176,6 +177,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
         @Override
         public void addDependency(String group, String module, String version) {
+            dependencies.add(new DependencyImpl(group, module, version));
         }
 
         @Override
@@ -204,16 +206,45 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
     }
 
+    private static class DependencyImpl implements ComponentVariant.Dependency {
+        private final String group;
+        private final String module;
+        private final String version;
+
+        DependencyImpl(String group, String module, String version) {
+            this.group = group;
+            this.module = module;
+            this.version = version;
+        }
+
+        @Override
+        public String getGroup() {
+            return group;
+        }
+
+        @Override
+        public String getModule() {
+            return module;
+        }
+
+        @Override
+        public String getVersion() {
+            return version;
+        }
+    }
+
     private static class ImmutableVariantImpl implements ComponentVariant, VariantMetadata {
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;
+        private final ImmutableList<DependencyImpl> dependencies;
         private final ImmutableList<FileImpl> files;
 
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<FileImpl> files) {
+        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<FileImpl> files) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
+            this.dependencies = dependencies;
             this.files = files;
         }
 
@@ -230,6 +261,11 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         @Override
         public ImmutableAttributes getAttributes() {
             return attributes;
+        }
+
+        @Override
+        public ImmutableList<? extends Dependency> getDependencies() {
+            return dependencies;
         }
 
         @Override

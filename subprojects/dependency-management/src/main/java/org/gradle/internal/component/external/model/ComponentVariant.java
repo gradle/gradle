@@ -20,12 +20,22 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.VariantMetadata;
 
 /**
- * TODO - this should replace or merge into VariantMetadata
+ * TODO - this should replace or merge into VariantMetadata, OutgoingVariant, ConfigurationMetadata
  */
 public interface ComponentVariant extends VariantMetadata {
     String getName();
 
+    ImmutableList<? extends Dependency> getDependencies();
+
     ImmutableList<? extends File> getFiles();
+
+    interface Dependency {
+        String getGroup();
+
+        String getModule();
+
+        String getVersion();
+    }
 
     interface File {
         String getName();

@@ -116,7 +116,17 @@ public class ModuleMetadataSerializer {
             for (ComponentVariant variant : metadata.getVariants()) {
                 encoder.writeString(variant.getName());
                 writeAttributes(variant.getAttributes());
-                writeFiles(variant.getFiles());
+                writeVariantDependencies(variant.getDependencies());
+                writeVariantFiles(variant.getFiles());
+            }
+        }
+
+        private void writeVariantDependencies(List<? extends ComponentVariant.Dependency> dependencies) throws IOException {
+            encoder.writeSmallInt(dependencies.size());
+            for (ComponentVariant.Dependency dependency : dependencies) {
+                encoder.writeString(dependency.getGroup());
+                encoder.writeString(dependency.getModule());
+                encoder.writeString(dependency.getVersion());
             }
         }
 
@@ -129,7 +139,7 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeFiles(List<? extends ComponentVariant.File> files) throws IOException {
+        private void writeVariantFiles(List<? extends ComponentVariant.File> files) throws IOException {
             encoder.writeSmallInt(files.size());
             for (ComponentVariant.File file : files) {
                 encoder.writeString(file.getName());
@@ -348,7 +358,8 @@ public class ModuleMetadataSerializer {
                 String name = decoder.readString();
                 ImmutableAttributes attributes = readAttributes();
                 MutableComponentVariant variant = metadata.addVariant(name, attributes);
-                readFiles(variant);
+                readVariantDependencies(variant);
+                readVariantFiles(variant);
             }
         }
 
@@ -363,7 +374,14 @@ public class ModuleMetadataSerializer {
             return attributes;
         }
 
-        private void readFiles(MutableComponentVariant variant) throws IOException {
+        private void readVariantDependencies(MutableComponentVariant variant) throws IOException {
+            int count = decoder.readSmallInt();
+            for (int i = 0; i < count; i++) {
+                variant.addDependency(decoder.readString(), decoder.readString(), decoder.readString());
+            }
+        }
+
+        private void readVariantFiles(MutableComponentVariant variant) throws IOException {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 variant.addFile(decoder.readString(), decoder.readString());
