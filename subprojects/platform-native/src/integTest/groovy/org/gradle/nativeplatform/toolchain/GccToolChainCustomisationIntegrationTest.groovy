@@ -220,7 +220,7 @@ model {
             architecture 'x64'
         }
         custom {
-            architecture 'x64'
+            architecture 'foo'
         }
     }
     toolChains {
@@ -228,7 +228,7 @@ model {
             target('x86')
             target('x86_64')
         }
-        customToolchain(Gcc) {
+        customToolchain(${toolChain.implementationClass}) {
             setTargets('custom')
             eachPlatform {
                 cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
@@ -238,7 +238,7 @@ model {
         }
     }
     components {
-        main {
+        all {
             targetPlatform "x86"
             targetPlatform "x86_64"
             targetPlatform "custom"
@@ -246,11 +246,11 @@ model {
     }
 }
 """
-        succeeds "mainExecutable"
+        succeeds "assemble"
 
         then:
         executable("build/exe/main/x86/main").exec().out == helloWorldApp.englishOutput
-        executable("build/exe/main/x64/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/x86_64/main").exec().out == helloWorldApp.englishOutput
         executable("build/exe/main/custom/main").exec().out == helloWorldApp.frenchOutput
     }
 
