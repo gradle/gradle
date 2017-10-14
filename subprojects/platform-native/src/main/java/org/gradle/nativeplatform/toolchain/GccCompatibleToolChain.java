@@ -49,16 +49,10 @@ public interface GccCompatibleToolChain extends NativeToolChain {
      */
     void target(String platformName, Action<? super GccPlatformToolChain> action);
 
-
     /**
-     * Override the current platform configuration with a single target platform specified by name
+     * Override the current platform configuration with target platforms specified by name
      */
-    void setTargets(String platformName);
-
-    /**
-     * Override the current platform configuration with a single target platform specified by name, with additional configuration action
-     */
-    void setTargets(String platformName, Action<? super GccPlatformToolChain> action);
+    void setTargets(String... platformNames);
 
     /**
      * Adds an action that can fine-tune the tool configuration for each platform supported by this tool chain.

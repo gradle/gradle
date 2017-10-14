@@ -125,17 +125,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     @Override
-    public void setTargets(String platformName) {
+    public void setTargets(String... platformNames) {
         platformConfigs.clear();
         configInsertLocation = 0;
-        target(platformName);
-    }
-
-    @Override
-    public void setTargets(String platformName, Action<? super GccPlatformToolChain> action) {
-        platformConfigs.clear();
-        configInsertLocation = 0;
-        target(platformName, action);
+        for (String platformName : platformNames) {
+            target(platformName);
+        }
     }
 
     @Override

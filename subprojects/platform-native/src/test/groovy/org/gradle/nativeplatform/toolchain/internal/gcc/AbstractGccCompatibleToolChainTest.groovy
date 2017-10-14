@@ -154,7 +154,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         given:
         platform.name >> "SomePlatform"
         toolChain.target("SomePlatform", Mock(Action))
-        toolChain.setTargets("NoPlatform", Mock(Action))
+        toolChain.setTargets("NoPlatform")
 
         expect:
         !toolChain.select(platform).available
