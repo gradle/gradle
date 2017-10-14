@@ -54,6 +54,9 @@ apply plugin: 'swift-executable'
 
         project.products.children.size() == 1
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+
+        rootXcodeProject.schemeFiles.size() == 1
+        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
     }
 
     def "can create xcode project for Swift library"() {
@@ -80,6 +83,9 @@ apply plugin: 'swift-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+
+        rootXcodeProject.schemeFiles.size() == 1
+        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
     @Requires(TestPrecondition.MAC_OS_X)

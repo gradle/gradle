@@ -97,7 +97,9 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
         action.setBuildConfiguration(BUILD_DEBUG);
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
-            action.setBuildableProductRunnable(buildableReference);
+            if (PBXTarget.ProductType.TOOL.equals(xcodeTarget.getProductType())) {
+                action.setBuildableProductRunnable(buildableReference);
+            }
             action.setBuildableReference(buildableReference);
             break;
         }
