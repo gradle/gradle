@@ -26,7 +26,7 @@ import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 
-class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecification {
+class ParametrizedToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -139,7 +139,7 @@ class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecificatio
     }
 
     @TargetGradleVersion(">=4.4")
-    @ToolingApiVersion(">=1.8")
+    @ToolingApiVersion(">=2.0")
     def "can get model without parameters for old gradle versions"() {
         when:
         def model = withConnection { connection ->
