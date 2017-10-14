@@ -202,6 +202,59 @@ model {
         executable("build/exe/execTest/alwaysFrench/execTest").exec().out == "C compiler used"
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "can configure setTargets with alternate toolchain"() {
+        def binDir = testDirectory.createDir("bin")
+        wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
+
+        when:
+        buildFile << """
+model {
+    platforms {
+        x86 { 
+            architecture 'x86'
+        }
+        x86_64 {
+            architecture 'x64'
+        }
+        custom {
+            architecture 'x64'
+        }
+    }
+    toolChains {
+        ${toolChain.id} {
+            target('x86')
+            target('x86_64')
+        }
+        customToolchain(Gcc) {
+            setTargets('custom')
+            eachPlatform {
+                cCompiler.executable = '${binDir.absolutePath}/french-c-compiler'
+                staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
+                linker.executable = '${binDir.absolutePath}/linker'
+            }
+        }
+    }
+    components {
+        main {
+            targetPlatform "x86"
+            targetPlatform "x86_64"
+            targetPlatform "custom"
+        }
+    }
+}
+"""
+        succeeds "mainExecutable"
+
+        then:
+        executable("build/exe/main/x86/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/x64/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/custom/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+
     def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {
         def script = binDir.file(OperatingSystem.current().getExecutableName(wrapperName))
         if (OperatingSystem.current().windows) {
