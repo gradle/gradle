@@ -18,4 +18,6 @@ package org.gradle.internal.component.external.model;
 
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
+
+    void addDependency(String group, String module, String version);
 }

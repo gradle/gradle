@@ -52,7 +52,8 @@ class ModuleMetadataParserTest extends Specification {
             {
                 "name": "api",
                 "attributes": { "usage": "compile" },
-                "files": [ { "name": "a.zip", "url": "a.zop" } ]
+                "files": [ { "name": "a.zip", "url": "a.zop" } ],
+                "dependencies": [ { "group": "g1", "module": "m1", "version": "v1" } ]
             }
         ]
     }
@@ -61,6 +62,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
+        1 * variant.addDependency("g1", "m1", "v1")
         0 * _
     }
 
@@ -132,6 +134,44 @@ class ModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses content with dependencies"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "variants": [
+            {
+                "name": "api",
+                "dependencies": [ 
+                    { "group": "g1", "module": "m1", "version": "v1" },
+                    { "version": "v2", "group": "g2", "module": "m2" }
+                ],
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "dependencies": [ 
+                    { "module": "m3", "group": "g3", "version": "v3" }
+                ],
+                "name": "runtime"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addDependency("g1", "m1", "v1")
+        1 * variant1.addDependency("g2", "m2", "v2")
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addDependency("g3", "m3", "v3")
+        0 * _
+    }
+
     def "parses minimal variant"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
@@ -148,7 +188,8 @@ class ModuleMetadataParserTest extends Specification {
             {
                 "attributes": { },
                 "files": [],
-                "name": "runtime"
+                "name": "runtime",
+                "dependencies": []
             }
         ]
     }
@@ -243,6 +284,39 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes()) >> variant
+        0 * metadata._
+    }
+
+    def "ignores unknown dependency values"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def variant = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "variants": [
+            {
+                "name": "api",
+                "dependencies": [{
+                    "group": "g",
+                    "module": "m",
+                    "version": "v",
+                    "otherString": "string",
+                    "otherNumber": 123,
+                    "otherBoolean": true,
+                    "otherNull": null,
+                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+                    "otherArray": [ "a", 123, false, [], null, { } ]
+                }]
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * variant.addDependency("g", "m", "v")
         0 * metadata._
     }
 

@@ -102,6 +102,7 @@ public class ModuleMetadataParser {
         String variantName = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         List<ModuleFile> files = Collections.emptyList();
+        List<ModuleDependency> dependencies = Collections.emptyList();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             if (name.equals("name")) {
@@ -110,6 +111,8 @@ public class ModuleMetadataParser {
                 attributes = consumeAttributes(reader);
             } else if (name.equals("files")) {
                 files = consumeFiles(reader);
+            } else if (name.equals("dependencies")) {
+                dependencies = consumeDependencies(reader);
             } else {
                 consumeAny(reader);
             }
@@ -120,6 +123,36 @@ public class ModuleMetadataParser {
         for (ModuleFile file : files) {
             variant.addFile(file.name, file.uri);
         }
+        for (ModuleDependency dependency : dependencies) {
+            variant.addDependency(dependency.group, dependency.module, dependency.version);
+        }
+    }
+
+    private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
+        List<ModuleDependency> dependencies = new ArrayList<ModuleDependency>();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            reader.beginObject();
+            String group = null;
+            String module = null;
+            String version = null;
+            while (reader.peek() != END_OBJECT) {
+                String name = reader.nextName();
+                if (name.equals("group")) {
+                    group = reader.nextString();
+                } else if (name.equals("module")) {
+                    module = reader.nextString();
+                } else if (name.equals("version")) {
+                    version = reader.nextString();
+                } else {
+                    consumeAny(reader);
+                }
+            }
+            dependencies.add(new ModuleDependency(group, module, version));
+            reader.endObject();
+        }
+        reader.endArray();
+        return dependencies;
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
@@ -162,14 +195,25 @@ public class ModuleMetadataParser {
         reader.skipValue();
     }
 
-    class ModuleFile {
+    private class ModuleFile {
         final String name;
         final String uri;
 
-        public ModuleFile(String name, String uri) {
+        ModuleFile(String name, String uri) {
             this.name = name;
             this.uri = uri;
         }
     }
 
+    private class ModuleDependency {
+        final String group;
+        final String module;
+        final String version;
+
+        ModuleDependency(String group, String module, String version) {
+            this.group = group;
+            this.module = module;
+            this.version = version;
+        }
+    }
 }

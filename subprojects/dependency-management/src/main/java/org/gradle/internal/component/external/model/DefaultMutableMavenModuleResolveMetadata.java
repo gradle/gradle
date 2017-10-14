@@ -175,6 +175,10 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
 
         @Override
+        public void addDependency(String group, String module, String version) {
+        }
+
+        @Override
         public void addFile(String name, String uri) {
             files.add(new FileImpl(name, uri));
         }

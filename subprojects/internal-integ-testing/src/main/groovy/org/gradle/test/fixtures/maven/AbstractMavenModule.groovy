@@ -337,20 +337,31 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         moduleDir.createDir()
         def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
         def artifact = getArtifact([:])
-        file.text = """
+        def value = new StringBuilder()
+        value << """
             { 
                 "formatVersion": "0.2", 
                 "builtBy": { "gradle": { } },
                 "variants": [
                     { 
-                        "name": "runtime",
+                        "name": "default",
                         "files": [
                             { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
+                        ],
+                        "dependencies": [
+"""
+        value << dependencies.collect { d ->
+            "  { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": \"$d.version\" }\n"
+        }.join(",\n")
+
+        value << """                        
                         ]
                     }
                 ]
             }
         """
+
+        file.text = value.toString()
     }
 
     @Override
