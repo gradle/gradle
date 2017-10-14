@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
@@ -73,6 +74,21 @@ public class ModuleMetadataFileGenerator {
                 jsonWriter.name(Usage.USAGE_ATTRIBUTE.getName());
                 jsonWriter.value(variant.getUsage().getName());
                 jsonWriter.endObject();
+                if (!variant.getDependencies().isEmpty()) {
+                    jsonWriter.name("dependencies");
+                    jsonWriter.beginArray();
+                    for (ModuleDependency moduleDependency : variant.getDependencies()) {
+                        jsonWriter.beginObject();
+                        jsonWriter.name("group");
+                        jsonWriter.value(moduleDependency.getGroup());
+                        jsonWriter.name("module");
+                        jsonWriter.value(moduleDependency.getName());
+                        jsonWriter.name("version");
+                        jsonWriter.value(moduleDependency.getVersion());
+                        jsonWriter.endObject();
+                    }
+                    jsonWriter.endArray();
+                }
                 if (!variant.getArtifacts().isEmpty()) {
                     jsonWriter.name("files");
                     jsonWriter.beginArray();

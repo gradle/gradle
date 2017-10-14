@@ -339,7 +339,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def artifact = getArtifact([:])
         file.text = """
             { 
-                "formatVersion": "0.1", 
+                "formatVersion": "0.2", 
                 "builtBy": { "gradle": { } },
                 "variants": [
                     { 

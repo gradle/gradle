@@ -39,7 +39,7 @@ import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
 
 public class ModuleMetadataParser {
-    public static final String FORMAT_VERSION = "0.1";
+    public static final String FORMAT_VERSION = "0.2";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
 
@@ -67,7 +67,7 @@ public class ModuleMetadataParser {
                     }
                     String version = reader.nextString();
                     if (!version.equals(FORMAT_VERSION)) {
-                        throw new RuntimeException(String.format("Unsupported format version '%s' specified in module metadata. This version of Gradle supports only format version %s.", version, FORMAT_VERSION));
+                        throw new RuntimeException(String.format("Unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s only.", version, FORMAT_VERSION));
                     }
                     consumeTopLevelElements(reader, metadata);
                     return null;

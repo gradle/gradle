@@ -218,7 +218,7 @@ dependencies {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -292,7 +292,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -384,7 +384,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "lot-o-files",
@@ -457,7 +457,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "lot-o-files",
@@ -532,7 +532,7 @@ task checkDebug {
         c.publish()
         c.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -563,7 +563,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -636,7 +636,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -852,7 +852,7 @@ dependencies {
 
     def "reports failure to accept module metadata with unexpected format version"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
-        m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace("0.1", "123.67")
+        m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace("0.2", "123.67")
 
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -879,7 +879,7 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports only format version 0.1")
+        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version 0.2 only.")
 
         when:
         server.resetExpectations()
@@ -892,7 +892,7 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports only format version 0.1")
+        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version 0.2 only.")
     }
 
     def "reports failure to locate files"() {
@@ -903,7 +903,7 @@ dependencies {
         m.publish()
         m.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "lot-o-files",

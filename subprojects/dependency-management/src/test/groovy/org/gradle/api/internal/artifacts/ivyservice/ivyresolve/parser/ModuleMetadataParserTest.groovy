@@ -33,7 +33,7 @@ class ModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "0.1" }'), metadata)
+        parser.parse(resource('{ "formatVersion": "0.2" }'), metadata)
 
         then:
         0 * metadata._
@@ -46,7 +46,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
         "variants": [
             {
@@ -72,7 +72,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "variants": [
             {
                 "name": "api",
@@ -100,7 +100,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "variants": [
             {
                 "name": "api",
@@ -140,7 +140,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "variants": [
             {
                 "name": "api"
@@ -176,7 +176,7 @@ class ModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''{ 
-            "formatVersion": "0.1",
+            "formatVersion": "0.2",
             "otherString": "string",
             "otherNumber": 123,
             "otherBoolean": true,
@@ -195,7 +195,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "variants": [
             {
                 "name": "api",
@@ -222,7 +222,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.1", 
+        "formatVersion": "0.2", 
         "variants": [
             {
                 "name": "api",
@@ -299,7 +299,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse module metadata <resource>"
-        e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports only format version 0.1."
+        e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.2 only."
     }
 
     def attributes(Map<String, String> values) {

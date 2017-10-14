@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.internal
 
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
@@ -42,7 +43,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.1",
+  "formatVersion": "0.2",
   "createdBy": {
     "gradle": {
       "version": "${GradleVersion.current().version}",
@@ -53,7 +54,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 """
     }
 
-    def "writes file for component with variants"() {
+    def "writes file for component with variants with files"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
         def usage1 = Stub(Usage)
@@ -84,7 +85,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.1",
+  "formatVersion": "0.2",
   "createdBy": {
     "gradle": {
       "version": "${GradleVersion.current().version}",
@@ -113,6 +114,77 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "name": "thing.dll",
           "url": "module-1.2-windows.dll"
+        }
+      ]
+    }
+  ]
+}
+"""
+    }
+
+    def "writes file for component with variants with dependencies"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def usage1 = Stub(Usage)
+        usage1.name >> "api"
+        def usage2 = Stub(Usage)
+        usage2.name >> "runtime"
+
+        def d1 = Stub(ModuleDependency)
+        d1.group >> "g1"
+        d1.name >> "m1"
+        d1.version >> "v1"
+
+        def d2 = Stub(ModuleDependency)
+        d2.group >> "g2"
+        d2.name >> "m2"
+        d2.version >> "v2"
+
+        def v1 = Stub(UsageContext)
+        v1.usage >> usage1
+        v1.dependencies >> [d1]
+        def v2 = Stub(UsageContext)
+        v2.usage >> usage2
+        v2.dependencies >> [d2]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(id, component, writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "0.2",
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  },
+  "variants": [
+    {
+      "name": "api",
+      "attributes": {
+        "org.gradle.api.attributes.Usage": "api"
+      },
+      "dependencies": [
+        {
+          "group": "g1",
+          "module": "m1",
+          "version": "v1"
+        }
+      ]
+    },
+    {
+      "name": "runtime",
+      "attributes": {
+        "org.gradle.api.attributes.Usage": "runtime"
+      },
+      "dependencies": [
+        {
+          "group": "g2",
+          "module": "m2",
+          "version": "v2"
         }
       ]
     }

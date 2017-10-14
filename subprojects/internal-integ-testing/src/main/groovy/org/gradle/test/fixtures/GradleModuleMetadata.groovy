@@ -30,7 +30,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '0.1'
+        assert values.formatVersion == '0.2'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
@@ -94,8 +94,24 @@ class GradleModuleMetadata {
             this.values = values
         }
 
-        List<?> getFiles() {
+        List<Dependency> getDependencies() {
+            return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version) }
+        }
+
+        List<File> getFiles() {
             return (values.files ?: []).collect { new File(it.name, it.url) }
+        }
+    }
+
+    static class Dependency {
+        final String group
+        final String module
+        final String version
+
+        Dependency(String group, String module, String version) {
+            this.group = group
+            this.module = module
+            this.version = version
         }
     }
 

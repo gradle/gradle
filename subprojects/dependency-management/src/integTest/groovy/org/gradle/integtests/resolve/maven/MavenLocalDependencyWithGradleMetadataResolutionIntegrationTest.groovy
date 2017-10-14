@@ -75,7 +75,7 @@ dependencies {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -140,7 +140,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -203,7 +203,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "lot-o-files",
@@ -254,7 +254,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "lot-o-files",
@@ -303,7 +303,7 @@ task checkDebug {
         c.publish()
         c.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",
@@ -334,7 +334,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
     "variants": [
         {
             "name": "debug",

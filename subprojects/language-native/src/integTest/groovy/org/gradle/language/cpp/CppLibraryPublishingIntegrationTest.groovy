@@ -77,9 +77,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 1
-        mainMetadata.variant("cplusplus-api").files.size() == 1
-        mainMetadata.variant("cplusplus-api").files[0].name == 'cpp-api-headers.zip'
-        mainMetadata.variant("cplusplus-api").files[0].url == 'test-1.2-cpp-api-headers.zip'
+        def api = mainMetadata.variant("cplusplus-api")
+        api.dependencies.empty
+        api.files.size() == 1
+        api.files[0].name == 'cpp-api-headers.zip'
+        api.files[0].url == 'test-1.2-cpp-api-headers.zip'
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
@@ -91,12 +93,16 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 2
-        debugMetadata.variant('native-link').files.size() == 1
-        debugMetadata.variant('native-link').files[0].name == linkLibraryName('test')
-        debugMetadata.variant('native-link').files[0].url == withLinkLibrarySuffix("test_debug-1.2")
-        debugMetadata.variant('native-runtime').files.size() == 1
-        debugMetadata.variant('native-runtime').files[0].name == sharedLibraryName('test')
-        debugMetadata.variant('native-runtime').files[0].url == withSharedLibrarySuffix("test_debug-1.2")
+        def debugLink = debugMetadata.variant('native-link')
+        debugLink.dependencies.empty
+        debugLink.files.size() == 1
+        debugLink.files[0].name == linkLibraryName('test')
+        debugLink.files[0].url == withLinkLibrarySuffix("test_debug-1.2")
+        def debugRuntime = debugMetadata.variant('native-runtime')
+        debugRuntime.dependencies.empty
+        debugRuntime.files.size() == 1
+        debugRuntime.files[0].name == sharedLibraryName('test')
+        debugRuntime.files[0].url == withSharedLibrarySuffix("test_debug-1.2")
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
@@ -108,12 +114,16 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 2
-        releaseMetadata.variant('native-link').files.size() == 1
-        releaseMetadata.variant('native-link').files[0].name == linkLibraryName('test')
-        releaseMetadata.variant('native-link').files[0].url == withLinkLibrarySuffix("test_release-1.2")
-        releaseMetadata.variant('native-runtime').files.size() == 1
-        releaseMetadata.variant('native-runtime').files[0].name == sharedLibraryName('test')
-        releaseMetadata.variant('native-runtime').files[0].url == withSharedLibrarySuffix("test_release-1.2")
+        def releaseLink = releaseMetadata.variant('native-link')
+        releaseLink.dependencies.empty
+        releaseLink.files.size() == 1
+        releaseLink.files[0].name == linkLibraryName('test')
+        releaseLink.files[0].url == withLinkLibrarySuffix("test_release-1.2")
+        def releaseRuntime = releaseMetadata.variant('native-runtime')
+        releaseRuntime.dependencies.empty
+        releaseRuntime.files.size() == 1
+        releaseRuntime.files[0].name == sharedLibraryName('test')
+        releaseRuntime.files[0].url == withSharedLibrarySuffix("test_release-1.2")
     }
 
     def "can publish a library and its dependencies to a Maven repository"() {
@@ -155,15 +165,59 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
         deckModule.assertPublished()
 
+        def deckMetadata = deckModule.parsedModuleMetadata
+        def deckApi = deckMetadata.variant("cplusplus-api")
+        deckApi.dependencies.size() == 1
+        deckApi.dependencies[0].group == "some.group"
+        deckApi.dependencies[0].module == "card"
+        deckApi.dependencies[0].version == "1.2"
+
         def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
         deckDebugModule.assertPublished()
+
         deckDebugModule.parsedPom.scopes.size() == 1
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
+
+        def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
+        def deckDebugLink = deckDebugMetadata.variant("native-link")
+        deckDebugLink.dependencies.size() == 2
+        deckDebugLink.dependencies[0].group == "some.group"
+        deckDebugLink.dependencies[0].module == "shuffle"
+        deckDebugLink.dependencies[0].version == "1.2"
+        deckDebugLink.dependencies[1].group == "some.group"
+        deckDebugLink.dependencies[1].module == "card"
+        deckDebugLink.dependencies[1].version == "1.2"
+        def deckDebugRuntime = deckDebugMetadata.variant("native-runtime")
+        deckDebugRuntime.dependencies.size() == 2
+        deckDebugRuntime.dependencies[0].group == "some.group"
+        deckDebugRuntime.dependencies[0].module == "shuffle"
+        deckDebugRuntime.dependencies[0].version == "1.2"
+        deckDebugRuntime.dependencies[1].group == "some.group"
+        deckDebugRuntime.dependencies[1].module == "card"
+        deckDebugRuntime.dependencies[1].version == "1.2"
 
         def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
         deckReleaseModule.assertPublished()
         deckReleaseModule.parsedPom.scopes.size() == 1
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
+
+        def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
+        def deckReleaseLink = deckReleaseMetadata.variant("native-link")
+        deckReleaseLink.dependencies.size() == 2
+        deckReleaseLink.dependencies[0].group == "some.group"
+        deckReleaseLink.dependencies[0].module == "shuffle"
+        deckReleaseLink.dependencies[0].version == "1.2"
+        deckReleaseLink.dependencies[1].group == "some.group"
+        deckReleaseLink.dependencies[1].module == "card"
+        deckReleaseLink.dependencies[1].version == "1.2"
+        def deckReleaseRuntime = deckReleaseMetadata.variant("native-runtime")
+        deckReleaseRuntime.dependencies.size() == 2
+        deckReleaseRuntime.dependencies[0].group == "some.group"
+        deckReleaseRuntime.dependencies[0].module == "shuffle"
+        deckReleaseRuntime.dependencies[0].version == "1.2"
+        deckReleaseRuntime.dependencies[1].group == "some.group"
+        deckReleaseRuntime.dependencies[1].module == "card"
+        deckReleaseRuntime.dependencies[1].version == "1.2"
 
         def cardModule = repo.module('some.group', 'card', '1.2')
         cardModule.assertPublished()
