@@ -18,11 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.internal.DirectoryRepositorySpec
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
 
@@ -51,17 +48,21 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
         assertAppHasOutputFor("release")
     }
 
-    def "can depend on C++ libraries from VCS"() {
+    // NOTE: This method is named in a short way because of the maximum path length
+    // on Windows.
+    def "from VCS"() {
         given:
         settingsFile << """
+            import ${DirectoryRepositorySpec.canonicalName}
+
             include 'app'
 
             sourceControl {
                 vcsMappings {
                     addRule("org.gradle.cpp VCS rule") { details ->
                         if (details.requested.group == "org.gradle.cpp") {
-                            from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                            from vcs(DirectoryRepositorySpec) {
+                                sourceDir = file(details.requested.module)
                             }
                         }
                     }
@@ -109,7 +110,6 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     private writeHelloLibrary() {
         def libraryPath = file("hello")
-        def libraryRepo = GitRepository.init(libraryPath)
         app.greeterLib.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
@@ -121,13 +121,10 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
             }
         """
         libraryPath.file("settings.gradle").touch()
-        libraryRepo.commit("initial commit", libraryRepo.listFiles())
-        libraryRepo.close()
     }
 
     private writeLogLibrary() {
         def logPath = file("log")
-        def logRepo = GitRepository.init(logPath)
         app.loggerLib.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
@@ -135,7 +132,5 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
             version = '1.0'
         """
         logPath.file("settings.gradle").touch()
-        logRepo.commit("initial commit", logRepo.listFiles())
-        logRepo.close()
     }
 }
