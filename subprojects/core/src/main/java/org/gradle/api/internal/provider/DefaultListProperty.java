@@ -25,7 +25,6 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
@@ -37,7 +36,7 @@ public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListPr
     @Override
     public void add(final T element) {
         addAll(Providers.of(ImmutableList.of(
-            Preconditions.checkNotNull(element, "Cannot add a null value to the property."))));
+            Preconditions.checkNotNull(element, "Cannot add a null value to a list property."))));
     }
 
     @Override
@@ -52,12 +51,11 @@ public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListPr
 
     @Override
     public void addAll(final Provider<? extends Iterable<T>> providerOfElements) {
-        final Provider<? extends List<T>> baseProvider = provider;
-        provider = new DefaultProvider<List<T>>(new Callable<List<T>>() {
+        provider = provider.map(new Transformer<List<T>, List<T>>() {
             @Override
-            public List<T> call() {
+            public List<T> transform(List<T> ts) {
                 return ImmutableList.<T>builder()
-                    .addAll(baseProvider.get())
+                    .addAll(ts)
                     .addAll(providerOfElements.get())
                     .build();
             }

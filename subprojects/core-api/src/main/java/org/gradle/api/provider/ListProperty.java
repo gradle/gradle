@@ -41,8 +41,10 @@ public interface ListProperty<T> extends Property<List<T>> {
 
     /**
      * Adds an element to the property given by the provider without evaluating existing providers already present.
-     * This property will track the value of the provider and query its value each time the value of the property
-     * is queried. When the provider has no value, the property will be consider as having no value.
+     * <p>
+     *     The given provider will be queried when it's time to get the value of the property.
+     *     This property will be unchanged if its value is not defined.
+     * </p>
      *
      * @param provider Provider
      * @since 4.4
@@ -51,8 +53,10 @@ public interface ListProperty<T> extends Property<List<T>> {
 
     /**
      * Adds a collection of elements to the property given by the provider without evaluating existing providers
-     * already present. This property will track the value of the provider and query its value each time the value of
-     * the property is queried. When the provider has no value, the property will be consider as having no value.
+     * <p>
+     *     The given provider will be queried when it's time to get the value of the property.
+     *     This property will be unchanged if its value is not defined.
+     * </p>
      *
      * @param provider Provider of elements
      * @since 4.4
