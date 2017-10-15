@@ -71,13 +71,13 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
         writeLogLibrary()
 
         when:
-        succeeds ":app:installDebug"
+        succeeds ":app:installDebug", "--info"
         then:
         assertTasksExecutedFor("Debug")
         assertAppHasOutputFor("debug")
 
         when:
-        succeeds ":app:installRelease"
+        succeeds ":app:installRelease", "--info"
         then:
         assertTasksExecutedFor("Release")
         assertAppHasOutputFor("release")
