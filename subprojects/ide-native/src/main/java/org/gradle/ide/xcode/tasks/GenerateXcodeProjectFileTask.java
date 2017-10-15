@@ -79,17 +79,17 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             project.getMainGroup().getChildren().add(fileReference);
         }
 
-        for (XcodeTarget target : xcodeProject.getTargets()) {
-            project.getTargets().add(toGradlePbxTarget(target));
-            project.getTargets().add(toIndexPbxTarget(target));
+        for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
+            project.getTargets().add(toGradlePbxTarget(xcodeTarget));
+            project.getTargets().add(toIndexPbxTarget(xcodeTarget));
 
-            if (PBXTarget.ProductType.UNIT_TEST.equals(target.getProductType())) {
+            if (xcodeTarget.isUnitTest()) {
                 // Creates XCTest configuration only if XCTest are present.
                 project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG);
             } else {
-                File debugOutputFile = target.getDebugOutputFile().get().getAsFile();
+                File debugOutputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
                 PBXFileReference fileReference = new PBXFileReference(debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
-                fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
+                fileReference.setExplicitFileType(Optional.of(xcodeTarget.getOutputFileType()));
                 project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
             }
         }
@@ -116,7 +116,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     }
 
     private PBXTarget toGradlePbxTarget(XcodeTarget xcodeTarget) {
-        if (PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType())) {
+        if (xcodeTarget.isUnitTest()) {
             return toXCTestPbxTarget(xcodeTarget);
         }
         return toToolAndLibraryPbxTarget(xcodeTarget);

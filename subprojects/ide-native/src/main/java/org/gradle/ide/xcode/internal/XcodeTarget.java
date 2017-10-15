@@ -88,6 +88,14 @@ public class XcodeTarget implements Named {
         this.productType = productType;
     }
 
+    public boolean isRunnable() {
+        return PBXTarget.ProductType.TOOL.equals(getProductType());
+    }
+
+    public boolean isUnitTest() {
+        return PBXTarget.ProductType.UNIT_TEST.equals(getProductType());
+    }
+
     public String getProductName() {
         return productName;
     }
