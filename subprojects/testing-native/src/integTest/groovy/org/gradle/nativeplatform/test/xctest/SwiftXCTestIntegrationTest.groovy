@@ -112,7 +112,6 @@ apply plugin: 'swift-executable'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
-        assertMainSymbolIsAbsent(machOBundle("build/bundle/main/debug/App"))
     }
 
     def "can test features of a single file Swift library using a single test source file"() {
@@ -131,7 +130,7 @@ apply plugin: 'swift-library'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
-        assertMainSymbolIsAbsent(machOBundle("build/bundle/main/debug/Greeter"))
+        assertMainSymbolIsAbsent(machOBundle("build/exe/test/GreeterTest"))
     }
 
     private void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {

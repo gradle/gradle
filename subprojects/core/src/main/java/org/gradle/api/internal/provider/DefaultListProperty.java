@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.ListProperty;
@@ -24,12 +25,43 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
     private Provider<? extends List<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
 
     public DefaultListProperty(Class<T> elementType) {
+    }
+
+    @Override
+    public void add(final T element) {
+        addAll(Providers.of(ImmutableList.of(
+            Preconditions.checkNotNull(element, "Cannot add a null value to the property."))));
+    }
+
+    @Override
+    public void add(final Provider<? extends T> providerOfElement) {
+        addAll(providerOfElement.map(new Transformer<Iterable<T>, T>() {
+            @Override
+            public Iterable<T> transform(T t) {
+                return ImmutableList.of(t);
+            }
+        }));
+    }
+
+    @Override
+    public void addAll(final Provider<? extends Iterable<T>> providerOfElements) {
+        final Provider<? extends List<T>> baseProvider = provider;
+        provider = new DefaultProvider<List<T>>(new Callable<List<T>>() {
+            @Override
+            public List<T> call() {
+                return ImmutableList.<T>builder()
+                    .addAll(baseProvider.get())
+                    .addAll(providerOfElements.get())
+                    .build();
+            }
+        });
     }
 
     @Nullable

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -50,7 +49,6 @@ import org.gradle.util.GUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -95,15 +93,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
-        // TODO - Avoid evaluating the arguments here
-        final List<String> currentCompilerArguments = compile.getCompilerArgs().getOrElse(Collections.<String>emptyList());
-        compile.getCompilerArgs().set(project.provider(new Callable<List<String>>() {
+        compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
             @Override
             public List<String> call() throws Exception {
                 File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                return Lists.newArrayList(Iterables.concat(
-                    Arrays.asList("-g", "-F" + frameworkDir.getAbsolutePath()),
-                    currentCompilerArguments));
+                return Arrays.asList("-g", "-F" + frameworkDir.getAbsolutePath());
             }
         }));
 

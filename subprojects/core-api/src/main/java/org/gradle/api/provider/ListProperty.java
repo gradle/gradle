@@ -30,4 +30,32 @@ import java.util.List;
  */
 @Incubating
 public interface ListProperty<T> extends Property<List<T>> {
+    /**
+     * Adds an element to the property without evaluating existing providers already present.
+     *
+     * @param element The element
+     * @throws NullPointerException if the specified element is null
+     * @since 4.4
+     */
+    void add(T element);
+
+    /**
+     * Adds an element to the property given by the provider without evaluating existing providers already present.
+     * This property will track the value of the provider and query its value each time the value of the property
+     * is queried. When the provider has no value, the property will be consider as having no value.
+     *
+     * @param provider Provider
+     * @since 4.4
+     */
+    void add(Provider<? extends T> provider);
+
+    /**
+     * Adds a collection of elements to the property given by the provider without evaluating existing providers
+     * already present. This property will track the value of the provider and query its value each time the value of
+     * the property is queried. When the provider has no value, the property will be consider as having no value.
+     *
+     * @param provider Provider of elements
+     * @since 4.4
+     */
+    void addAll(Provider<? extends Iterable<T>> provider);
 }
