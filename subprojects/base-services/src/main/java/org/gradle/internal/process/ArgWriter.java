@@ -18,7 +18,7 @@ package org.gradle.internal.process;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,34 +67,6 @@ public class ArgWriter implements ArgCollector {
         };
     }
 
-
-    /**
-     * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
-     */
-    public static Transformer<List<String>, List<String>> argsFileGenerator(final File workingDir, final File argsFile, final Transformer<ArgWriter, PrintWriter> argWriterFactory) {
-        return new Transformer<List<String>, List<String>>() {
-            @Override
-            public List<String> transform(List<String> args) {
-                if (args.isEmpty()) {
-                    return args;
-                }
-                argsFile.getParentFile().mkdirs();
-                try {
-                    PrintWriter writer = new PrintWriter(argsFile);
-                    try {
-                        ArgWriter argWriter = argWriterFactory.transform(writer);
-                        argWriter.args(args);
-                    } finally {
-                        writer.close();
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
-                }
-                return Collections.singletonList("@" + GFileUtils.relativizeToBase(workingDir, argsFile));
-            }
-        };
-    }
-
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
@@ -116,6 +88,9 @@ public class ArgWriter implements ArgCollector {
                     }
                 } catch (IOException e) {
                     throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
+                }
+                if (OperatingSystem.current().isWindows()) {
+                    return Collections.singletonList("@\\\\?\\" + argsFile.getAbsolutePath());
                 }
                 return Collections.singletonList("@" + argsFile.getAbsolutePath());
             }

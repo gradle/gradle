@@ -39,10 +39,6 @@ class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
 
     @Override
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
-        if (workingDir == null) {
-            return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
-        } else {
-            return ArgWriter.argsFileGenerator(workingDir, new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
-        }
+        return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).transform(originalArgs);
     }
 }
