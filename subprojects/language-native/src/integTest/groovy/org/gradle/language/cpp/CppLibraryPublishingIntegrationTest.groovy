@@ -76,12 +76,16 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         main.parsedPom.scopes.isEmpty()
 
         def mainMetadata = main.parsedModuleMetadata
-        mainMetadata.variants.size() == 1
+        mainMetadata.variants.size() == 3
         def api = mainMetadata.variant("cplusplus-api")
         api.dependencies.empty
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
+        mainMetadata.variant("native-link").files.size() == 0
+        mainMetadata.variant("native-link").dependencies.size() == 1
+        mainMetadata.variant("native-link").files.size() == 0
+        mainMetadata.variant("native-link").dependencies.size() == 1
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()

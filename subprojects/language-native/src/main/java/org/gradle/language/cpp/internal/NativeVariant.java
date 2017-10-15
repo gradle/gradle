@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -60,36 +59,9 @@ public class NativeVariant implements SoftwareComponentInternal {
     @Override
     public Set<? extends UsageContext> getUsages() {
         if (linkElements == null) {
-            return ImmutableSet.of(new SimpleUsage(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         } else {
-            return ImmutableSet.of(new SimpleUsage(linkUsage, linkElements.getAllArtifacts(), linkElements), new SimpleUsage(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
-        }
-    }
-
-    private static class SimpleUsage implements UsageContext {
-        private final Usage usage;
-        private final Set<? extends PublishArtifact> artifacts;
-        private final Set<ModuleDependency> dependencies;
-
-        SimpleUsage(Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-            this.usage = usage;
-            this.artifacts = artifacts;
-            this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-        }
-
-        @Override
-        public Usage getUsage() {
-            return usage;
-        }
-
-        @Override
-        public Set<? extends PublishArtifact> getArtifacts() {
-            return artifacts;
-        }
-
-        @Override
-        public Set<ModuleDependency> getDependencies() {
-            return dependencies;
+            return ImmutableSet.of(new DefaultUsageContext(linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         }
     }
 }

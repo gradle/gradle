@@ -221,7 +221,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
                                 NativeRuntimeVariant debugVariant = new NativeRuntimeVariant("debug", mainVariant, linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
-                                mainVariant.addVariant(debugVariant);
+                                // TODO - make release variant visible as well
+                                mainVariant.addVariant(publication.getGroupId(), publication.getArtifactId(), publication.getVersion(), debugVariant);
                                 publication.from(debugVariant);
                             }
                         });
@@ -233,7 +234,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
                                 NativeRuntimeVariant releaseVariant = new NativeRuntimeVariant("release", mainVariant, linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
-                                mainVariant.addVariant(releaseVariant);
+                                // TODO - make release variant visible as well. Needs better support in the dependency resolution engine and module metadata
+                                mainVariant.addNonVisibleVariant(releaseVariant);
                                 publication.from(releaseVariant);
                             }
                         });

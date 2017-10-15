@@ -16,39 +16,25 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultCppBinary implements CppBinary {
@@ -89,8 +75,8 @@ public class DefaultCppBinary implements CppBinary {
         nativeRuntime.extendsFrom(implementation);
 
         includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig)));
-        linkLibraries = new FileCollectionAdapter(new LinkLibs(nativeLink, configurations));
-        runtimeLibraries = new FileCollectionAdapter(new RuntimeLibs(nativeRuntime, configurations));
+        linkLibraries = nativeLink;
+        runtimeLibraries = nativeRuntime;
     }
 
     @Inject
@@ -182,185 +168,6 @@ public class DefaultCppBinary implements CppBinary {
                 result = files;
             }
             return result;
-        }
-    }
-
-    private class LinkLibs implements MinimalFileSet, Buildable {
-        private final ConfigurationContainer configurations;
-        private final Configuration configuration;
-        private Set<File> result;
-
-        LinkLibs(Configuration configuration, ConfigurationContainer configurations) {
-            this.configuration = configuration;
-            this.configurations = configurations;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Link libraries of " + DefaultCppBinary.this;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return configuration.getBuildDependencies();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            if (result == null) {
-                // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
-
-                // Collect up the external components in the result to resolve again to get the debug variant of each dependency
-                configuration.getResolvedConfiguration().rethrowFailure();
-                Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
-                List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
-                for (ResolvedComponentResult component : components) {
-                    if (component.getId() instanceof ModuleComponentIdentifier) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        // TODO - use the correct variant
-                        String module = id.getModule() + "_debug";
-                        // TODO - use naming scheme for target platform
-                        DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
-                        mappedDependency.setTransitive(false);
-                        externalDependencies.add(mappedDependency);
-                    }
-                }
-
-                // Collect the files from anything other than an external component, use these directly in the result
-                ArtifactCollection artifacts = configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
-                    @Override
-                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
-                            @Override
-                            public boolean isSatisfiedBy(ComponentIdentifier element) {
-                                return !(element instanceof ModuleComponentIdentifier);
-                            }
-                        });
-                    }
-                }).getArtifacts();
-                Set<File> files = new LinkedHashSet<File>();
-                for (ResolvedArtifactResult artifact : artifacts) {
-                    files.add(artifact.getFile());
-                }
-
-                // Collect up the files of the debug variants of external components
-                // Conflict resolution isn't applied to implementation dependencies
-                // The files of the result are not ordered as they would be if the original configuration is resolved
-                // This is also broken when a runtime dependency is satisfied by an included build
-                if (!externalDependencies.isEmpty()) {
-                    Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
-                    files.addAll(mappedConfiguration.getFiles());
-                }
-
-                result = files;
-            }
-            return result;
-        }
-    }
-
-    private class RuntimeLibs implements MinimalFileSet, Buildable {
-        private final ConfigurationContainer configurations;
-        private final Configuration configuration;
-        private Set<File> result;
-
-        RuntimeLibs(Configuration configuration, ConfigurationContainer configurations) {
-            this.configuration = configuration;
-            this.configurations = configurations;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Runtime libraries for " + DefaultCppBinary.this;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return configuration.getBuildDependencies();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            if (result == null) {
-                // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
-
-                // Collect up the external components in the result to resolve again to get the debug variant of each dependency
-                configuration.getResolvedConfiguration().rethrowFailure();
-                Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
-                List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
-                for (ResolvedComponentResult component : components) {
-                    if (component.getId() instanceof ModuleComponentIdentifier) {
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        // TODO - use the correct variant
-                        String module = id.getModule() + "_debug";
-                        // TODO - use naming scheme for target platform
-                        DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
-                        externalDependencies.add(mappedDependency);
-                    }
-                }
-
-                // Collect the files from anything other than an external component, use these directly in the result
-                ArtifactCollection artifacts = configuration.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
-                    @Override
-                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
-                            @Override
-                            public boolean isSatisfiedBy(ComponentIdentifier element) {
-                                return !(element instanceof ModuleComponentIdentifier);
-                            }
-                        });
-                    }
-                }).getArtifacts();
-                Set<File> files = new LinkedHashSet<File>();
-                for (ResolvedArtifactResult artifact : artifacts) {
-                    files.add(artifact.getFile());
-                }
-
-                // Resolve again to collect all the runtime dependencies
-                // This is intentionally dumb and will improve later
-                // Conflict resolution isn't applied to implementation dependencies
-                // The files of the result are not ordered as they would be if the original configuration is resolved
-                // This is also broken when a runtime dependency is satisfied by an included build
-                if (!externalDependencies.isEmpty()) {
-                    Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    // Redirect transitive runtime dependencies
-                    mappedConfiguration.getResolutionStrategy().eachDependency(new Action<DependencyResolveDetails>() {
-                        @Override
-                        public void execute(DependencyResolveDetails details) {
-                            ModuleVersionSelector requested = details.getRequested();
-                            if (!requested.getName().endsWith("_debug")) {
-                                details.useTarget(requested.getGroup() + ":" + requested.getName() + "_debug:" + requested.getVersion());
-                            }
-                        }
-                    });
-
-                    // Collect up the identifiers to resolve again to get the debug variant of each external component
-                    mappedConfiguration.getResolvedConfiguration().rethrowFailure();
-                    Set<ResolvedComponentResult> runtimeComponents = mappedConfiguration.getIncoming().getResolutionResult().getAllComponents();
-                    List<Dependency> artifactDependencies = new ArrayList<Dependency>();
-                    for (ResolvedComponentResult component : runtimeComponents) {
-                        if (!(component.getId() instanceof ModuleComponentIdentifier)) {
-                            continue;
-                        }
-                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
-                        DefaultExternalModuleDependency artifactDependency = new DefaultExternalModuleDependency(id.getGroup(), id.getModule(), id.getVersion());
-                        artifactDependency.setTransitive(false);
-                        artifactDependencies.add(artifactDependency);
-                    }
-
-                    mappedConfiguration = configurations.detachedConfiguration(artifactDependencies.toArray(new Dependency[0]));
-                    mappedConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE));
-                    files.addAll(mappedConfiguration.getFiles());
-                }
-
-                result = files;
-            }
-            return result;
-        }
-
-        private String getLibraryName(String baseName) {
-            // TODO - use naming scheme for target platform
-            return OperatingSystem.current().getSharedLibraryName(baseName);
         }
     }
 }
