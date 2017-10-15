@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
@@ -314,21 +313,6 @@ class DefaultGradleSpec extends Specification {
 
         then:
         1 * listenerManager.useLogger(logger)
-    }
-
-    def "get settings throws exception when settings is not available"() {
-        when:
-        gradle.settings
-
-        then:
-        thrown IllegalStateException
-
-        when:
-        def settings = Stub(SettingsInternal)
-        gradle.settings = settings
-
-        then:
-        gradle.settings == settings
     }
 
     def "get root project throws exception when root project is not available"() {

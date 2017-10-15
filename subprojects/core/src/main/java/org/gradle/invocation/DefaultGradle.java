@@ -28,7 +28,6 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -63,7 +62,6 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
-    private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
@@ -195,19 +193,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public StartParameter getStartParameter() {
         return startParameter;
-    }
-
-    @Override
-    public SettingsInternal getSettings() {
-        if (settings == null) {
-            throw new IllegalStateException("The settings are not yet available for " + this + ".");
-        }
-        return settings;
-    }
-
-    @Override
-    public void setSettings(SettingsInternal settings) {
-        this.settings = settings;
     }
 
     @Override

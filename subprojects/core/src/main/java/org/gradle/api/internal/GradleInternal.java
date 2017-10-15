@@ -67,22 +67,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
 
     /**
-     * The settings for this build.
-     *
-     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
-     * @return the settings for this build
-     */
-    SettingsInternal getSettings() throws IllegalStateException;
-
-    /**
-     * Called by the BuildLoader after the settings are loaded.
-     * Until the BuildLoader is executed, {@link #getSettings()} will throw {@link IllegalStateException}.
-     *
-     * @param settings The settings for this build.
-     */
-    void setSettings(SettingsInternal settings);
-
-    /**
      * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
      * is executed, {@link #getDefaultProject()} will return null.
      *
