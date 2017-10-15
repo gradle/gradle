@@ -21,8 +21,6 @@ import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.text.TreeFormatter;
 
-import java.util.Collections;
-
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
 public class IncompatibleConfigurationSelectionException extends RuntimeException {
@@ -37,7 +35,7 @@ public class IncompatibleConfigurationSelectionException extends RuntimeExceptio
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, String targetConfiguration) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Configuration '" + targetConfiguration + "' in " + targetComponent.getComponentId().getDisplayName() + " does not match the consumer attributes");
-        formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, Collections.singletonList(targetComponent.getConfiguration(targetConfiguration)),  targetConfiguration);
+        formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration));
         return formatter.toString();
     }
 

@@ -65,10 +65,11 @@ dependencies {
         }
     }
 
-    def "uses runtime dependencies from pom and files from selected variant"() {
+    def "uses dependencies and files from selected variant"() {
+        def c = mavenRepo.module("test", "c", "2.2").publish()
         def b = mavenRepo.module("test", "b", "2.0").publish()
         def a = mavenRepo.module("test", "a", "1.2")
-            .dependsOn(b)
+            .dependsOn("test", "ignore-me", "0.1")
             .withModuleMetadata()
         a.artifact(classifier: 'debug')
         a.artifact(classifier: 'release')
@@ -82,14 +83,16 @@ dependencies {
             "attributes": {
                 "buildType": "debug"
             },
-            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ]
+            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ],
+            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
         },
         {
             "name": "release",
             "attributes": {
                 "buildType": "release"
             },
-            "files": [ { "name": "a-1.2-release.jar", "url": "a-1.2-release.jar" } ]
+            "files": [ { "name": "a-1.2-release.jar", "url": "a-1.2-release.jar" } ],
+            "dependencies": [ { "group": "test", "module": "c", "version": "2.2" } ]
         }
     ]
 }
@@ -117,14 +120,12 @@ task checkDebug {
     doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar'] }
 }
 task checkRelease {
-    doLast { assert configurations.release.files*.name == ['a-1.2-release.jar', 'b-2.0.jar'] }
+    doLast { assert configurations.release.files*.name == ['a-1.2-release.jar', 'c-2.2.jar'] }
 }
 """
 
         expect:
         succeeds("checkDebug")
-
-        and:
 
         and:
         succeeds("checkRelease")
@@ -133,7 +134,6 @@ task checkRelease {
     def "variant can define zero files or multiple files"() {
         def b = mavenRepo.module("test", "b", "2.0").publish()
         def a = mavenRepo.module("test", "a", "1.2")
-            .dependsOn(b)
             .withModuleMetadata()
         a.artifact(classifier: 'api')
         a.artifact(classifier: 'runtime')
@@ -150,13 +150,15 @@ task checkRelease {
             "files": [ 
                 { "name": "a-1.2-api.jar", "url": "a-1.2-api.jar" },
                 { "name": "a-1.2-runtime.jar", "url": "a-1.2-runtime.jar" } 
-            ]
+            ],
+            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
         },
         {
             "name": "release",
             "attributes": {
                 "buildType": "release"
-            }
+            },
+            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
         }
     ]
 }
@@ -328,7 +330,6 @@ task checkDebug {
         b.publish()
 
         def a = mavenRepo.module("test", "a", "1.2")
-            .dependsOn(b)
             .withModuleMetadata()
         a.artifact(classifier: 'debug')
         a.publish()
@@ -341,13 +342,15 @@ task checkDebug {
             "attributes": {
                 "buildType": "debug"
             },
-            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ]
+            "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ],
+            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
         },
         {
             "name": "release",
             "attributes": {
                 "buildType": "release"
-            }
+            },
+            "dependencies": [ { "group": "test", "module": "c", "version": "preview" } ]
         }
     ]
 }
@@ -375,7 +378,7 @@ task checkDebug {
     doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
 }
 task checkRelease {
-    doLast { assert configurations.release.files*.name == ['b-2.0.jar'] }
+    doLast { assert configurations.release.files*.name == [] }
 }
 """
 

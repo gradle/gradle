@@ -260,7 +260,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable3.variants[2].dependencies.empty
     }
 
-    def "variants are attached as children of configuration used for variant aware selection"() {
+    def "variants are attached as consumable configurations used for variant aware selection"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
 
@@ -270,29 +270,46 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def v1 = metadata.addVariant("api", attributes1)
         v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
+        v1.addDependency("g1", "m1", "v1")
         def v2 = metadata.addVariant("runtime", attributes2)
         v2.addFile("f2", "f2-version.zip")
+        v2.addDependency("g2", "m2", "v2")
+        v2.addDependency("g3", "m3", "v3")
 
         expect:
         def immutable = metadata.asImmutable()
-        immutable.consumableConfigurationsHavingAttributes.size() == 1
-        def defaultConfiguration = immutable.consumableConfigurationsHavingAttributes[0]
-        defaultConfiguration.name == 'default'
-        defaultConfiguration.variants.size() == 2
+        immutable.consumableConfigurationsHavingAttributes.size() == 2
 
-        defaultConfiguration.variants[0].asDescribable().displayName == "group:module:version variant api"
-        defaultConfiguration.variants[0].attributes == attributes1
-        defaultConfiguration.variants[0].artifacts.size() == 2
-        def artifacts1 = defaultConfiguration.variants[0].artifacts as List
+        def api = immutable.consumableConfigurationsHavingAttributes[0]
+        api.name == 'api'
+        api.attributes == attributes1
+
+        api.dependencies.size() == 1
+        api.dependencies[0].selector.group == "g1"
+        api.dependencies[0].selector.module == "m1"
+        api.dependencies[0].selector.version == "v1"
+
+        api.variants.size() == 1
+        api.variants[0].asDescribable().displayName == "group:module:version variant api"
+        api.variants[0].attributes == attributes1
+        api.variants[0].artifacts.size() == 2
+        def artifacts1 = api.variants[0].artifacts as List
         artifacts1[0].name.name == 'f1'
         artifacts1[0].name.type == 'jar'
         artifacts1[0].name.classifier == null
         artifacts1[0].name.extension == 'jar'
 
-        defaultConfiguration.variants[1].asDescribable().displayName == "group:module:version variant runtime"
-        defaultConfiguration.variants[1].attributes == attributes2
-        defaultConfiguration.variants[1].artifacts.size() == 1
-        def artifacts2 = defaultConfiguration.variants[1].artifacts as List
+        def runtime = immutable.consumableConfigurationsHavingAttributes[1]
+        runtime.name == 'runtime'
+        runtime.attributes == attributes2
+        runtime.variants.size() == 1
+
+        runtime.dependencies.size() == 2
+
+        runtime.variants[0].asDescribable().displayName == "group:module:version variant runtime"
+        runtime.variants[0].attributes == attributes2
+        runtime.variants[0].artifacts.size() == 1
+        def artifacts2 = runtime.variants[0].artifacts as List
         artifacts2[0].name.name == 'f2'
         artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null

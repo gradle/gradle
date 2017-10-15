@@ -22,9 +22,8 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
@@ -37,13 +36,9 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
     }
 
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
-        TreeSet<String> configurationNames = new TreeSet<String>(targetComponent.getConfigurationNames());
-        List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
-        for (String name : configurationNames) {
-            ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
-            if (targetComponentConfiguration.isCanBeConsumed() && !targetComponentConfiguration.getAttributes().isEmpty()) {
-                configurations.add(targetComponentConfiguration);
-            }
+        Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
+        for (ConfigurationMetadata configurationMetadata : targetComponent.getConsumableConfigurationsHavingAttributes()) {
+            configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Unable to find a matching configuration of " + targetComponent.getComponentId().getDisplayName());
@@ -53,8 +48,8 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
         } else {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
-            for (String config : configurationNames) {
-                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configurations, config);
+            for (ConfigurationMetadata configuration : configurations.values()) {
+                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration);
             }
         }
         formatter.endChildren();

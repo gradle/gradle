@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.VariantMetadata;
 
 /**
+ * An _immutable_ view of the variant of a component.
+ *
  * TODO - this should replace or merge into VariantMetadata, OutgoingVariant, ConfigurationMetadata
  */
 public interface ComponentVariant extends VariantMetadata {
