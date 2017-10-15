@@ -28,6 +28,7 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     private File tempDir;
     private NativePlatform platform;
     private BuildOperationLogger oplogger;
+    private File workingDir;
 
     @Override
     public NativePlatform getTargetPlatform() {
@@ -87,5 +88,15 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     @Override
     public void setOperationLogger(BuildOperationLogger oplogger) {
         this.oplogger = oplogger;
+    }
+
+    @Override
+    public File getWorkingDir() {
+        return workingDir;
+    }
+
+    @Override
+    public void setWorkingDir(File workingDir) {
+        this.workingDir = workingDir;
     }
 }

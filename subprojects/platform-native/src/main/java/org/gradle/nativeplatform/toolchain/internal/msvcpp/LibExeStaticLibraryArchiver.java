@@ -53,7 +53,7 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     @Override
     protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
-            "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+            "archiving " + spec.getOutputFile().getName(), spec, args);
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
@@ -65,7 +65,7 @@ class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiver
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    protected void addOptionsFileArgs(StaticLibraryArchiverSpec spec, List<String> args, File tempDir) {
         new VisualCppOptionsFileArgsWriter(tempDir).execute(args);
     }
 

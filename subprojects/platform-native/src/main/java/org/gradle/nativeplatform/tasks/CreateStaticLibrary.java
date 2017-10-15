@@ -92,6 +92,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
 
         StaticLibraryArchiverSpec spec = new DefaultStaticLibraryArchiverSpec();
         spec.setTempDir(getTemporaryDir());
+        spec.setWorkingDir(getProject().getRootDir());
         spec.setOutputFile(getOutputFile());
         spec.objectFiles(getSource());
         spec.args(getStaticLibArgs());

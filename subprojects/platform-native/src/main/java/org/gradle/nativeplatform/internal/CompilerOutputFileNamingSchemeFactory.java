@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.RelativeFilePathResolver;
 
+import javax.annotation.Nonnull;
+
 public class CompilerOutputFileNamingSchemeFactory implements Factory<CompilerOutputFileNamingScheme> {
     private final RelativeFilePathResolver fileResolver;
 
@@ -27,6 +29,7 @@ public class CompilerOutputFileNamingSchemeFactory implements Factory<CompilerOu
     }
 
     @Override
+    @Nonnull
     public CompilerOutputFileNamingScheme create() {
         return new CompilerOutputFileNamingScheme(fileResolver);
     }

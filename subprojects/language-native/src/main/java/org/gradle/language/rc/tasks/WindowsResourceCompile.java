@@ -95,6 +95,7 @@ public class WindowsResourceCompile extends DefaultTask {
 
         NativeCompileSpec spec = new DefaultWindowsResourceCompileSpec();
         spec.setTempDir(getTemporaryDir());
+        spec.setWorkingDir(getProject().getRootDir());
         spec.setObjectFileDir(getOutputDir());
         spec.include(getIncludes());
         spec.source(getSource());

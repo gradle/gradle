@@ -26,8 +26,15 @@ import java.util.List;
  * Uses an option file for arguments passed to Visual C++.
  */
 class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
+    private File workingDir;
+
     public VisualCppOptionsFileArgsWriter(File tempDir) {
         super(tempDir);
+    }
+
+    public VisualCppOptionsFileArgsWriter(File workingDir, File tempDir) {
+        super(tempDir);
+        this.workingDir = workingDir;
     }
 
     @Override

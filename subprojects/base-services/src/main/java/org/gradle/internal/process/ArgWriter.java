@@ -18,6 +18,7 @@ package org.gradle.internal.process;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,6 +88,9 @@ public class ArgWriter implements ArgCollector {
                     }
                 } catch (IOException e) {
                     throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
+                }
+                if (OperatingSystem.current().isWindows()) {
+                    return Collections.singletonList("@\\\\?\\" + argsFile.getAbsolutePath());
                 }
                 return Collections.singletonList("@" + argsFile.getAbsolutePath());
             }

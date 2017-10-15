@@ -27,6 +27,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,16 @@ import java.util.List;
 import java.util.zip.Checksum;
 
 public class GFileUtils {
+
+    public static String relativizeToBase(File baseDir, File file) {
+        Path basePath = baseDir.toPath();
+        Path filePath = file.toPath();
+        if (filePath.startsWith(basePath)) {
+            return basePath.relativize(filePath).toString();
+        } else {
+            return filePath.toString();
+        }
+    }
 
     public static FileInputStream openInputStream(File file) {
         try {

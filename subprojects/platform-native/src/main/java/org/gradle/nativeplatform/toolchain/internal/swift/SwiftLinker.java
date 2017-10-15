@@ -40,13 +40,13 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    protected void addOptionsFileArgs(LinkerSpec spec, List<String> args, File tempDir) {
     }
 
     @Override
     protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
-            "linking " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+            "linking " + spec.getOutputFile().getName(), spec, args);
 
         return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

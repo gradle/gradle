@@ -57,7 +57,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    protected void addOptionsFileArgs(SwiftCompileSpec spec, List<String> args, File tempDir) {
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
@@ -122,7 +122,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 }
 
                 CommandLineToolInvocation perFileInvocation =
-                    newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
+                    newInvocation("compiling swift file(s)", spec, Iterables.concat(genericArgs, outputArgs, importRootArgs));
                 buildQueue.add(perFileInvocation);
             }
         };

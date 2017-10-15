@@ -21,7 +21,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
@@ -75,18 +74,14 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
         if (useCommandFile) {
             // Shorten args and write out an options.txt file
             // This must be called only once per execute()
-            addOptionsFileArgs(args, spec.getTempDir());
+            addOptionsFileArgs(spec, args, spec.getTempDir());
         }
         return args;
     }
 
-    protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
+    protected abstract void addOptionsFileArgs(T spec, List<String> args, File tempDir);
 
-    protected CommandLineToolInvocation newInvocation(String name, File workingDirectory, Iterable<String> args, BuildOperationLogger operationLogger) {
-        return invocationContext.createInvocation(name, workingDirectory, args, operationLogger);
-    }
-
-    protected CommandLineToolInvocation newInvocation(String name, Iterable<String> args, BuildOperationLogger operationLogger) {
-        return invocationContext.createInvocation(name, args, operationLogger);
+    protected CommandLineToolInvocation newInvocation(String name, T spec, Iterable<String> args) {
+        return invocationContext.createInvocation(name, spec.getWorkingDir(), args, spec.getOperationLogger());
     }
 }
