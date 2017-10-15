@@ -16,11 +16,10 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.vcs.internal.DirectoryRepositorySpec
 
-class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new CppAppWithLibraries()
 
     def "can combine C++ builds in a composite"() {
