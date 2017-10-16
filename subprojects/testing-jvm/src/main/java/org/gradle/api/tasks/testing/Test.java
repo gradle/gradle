@@ -49,7 +49,6 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
@@ -58,7 +57,6 @@ import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -70,7 +68,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -84,13 +81,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -163,18 +157,12 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
-    private final ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
-    private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
 
     private TestExecuter testExecuter;
     private FileCollection testClassesDirs;
-    private File binResultsDir;
     private PatternFilterable patternSet;
-    private boolean ignoreFailures;
     private FileCollection classpath;
     private TestFramework testFramework;
     private boolean scanForTestClasses = true;
@@ -185,14 +173,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
-        ListenerManager listenerManager = getListenerManager();
-        testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
-        testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
-        testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
         Instantiator instantiator = getInstantiator();
-        testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
 
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
@@ -203,16 +186,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected InetAddressFactory getInetAddressFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ProgressLoggerFactory getProgressLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
     }
 
@@ -233,21 +206,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -275,11 +233,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal
     ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
-    }
-
-    @Internal
-    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
-        return testListenerInternalBroadcaster;
     }
 
     @Internal
@@ -656,15 +609,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
+        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
         parentProgressLogger.setDescription("Test Execution");
         parentProgressLogger.started();
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
-        testListenerInternalBroadcaster.add(testWorkerProgressListener);
+        getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
 
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
 
         if (testExecuter == null) {
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
@@ -687,7 +640,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             testWorkerProgressListener.completeAll();
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
-            testListenerInternalBroadcaster.removeAll();
+            getTestListenerInternalBroadcaster().removeAll();
             outputWriter.close();
         }
 
@@ -741,48 +694,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
         }
         return msg;
-    }
-
-    /**
-     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
-     * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
-     * get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
-     *
-     * @param listener The listener to add.
-     */
-    public void addTestListener(TestListener listener) {
-        testListenerBroadcaster.add(listener);
-    }
-
-    /**
-     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
-     *
-     * @param listener The listener to add.
-     */
-    public void addTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.add(listener);
-    }
-
-    /**
-     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(org.gradle.api.tasks.testing.TestListener)} on this task.
-     * If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
-     *
-     * @param listener The listener to remove.
-     */
-    public void removeTestListener(TestListener listener) {
-        testListenerBroadcaster.remove(listener);
-    }
-
-    /**
-     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)}
-     * on this task.  If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
-     *
-     * @param listener The listener to remove.
-     */
-    public void removeTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.remove(listener);
     }
 
     /**
@@ -1010,27 +921,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the root folder for the test results in internal binary format.
-     *
-     * @return the test result directory, containing the test results in binary format.
-     */
-    @OutputDirectory
-    @Incubating
-    public File getBinResultsDir() {
-        return binResultsDir;
-    }
-
-    /**
-     * Sets the root folder for the test results in internal binary format.
-     *
-     * @param binResultsDir The root folder
-     */
-    @Incubating
-    public void setBinResultsDir(File binResultsDir) {
-        this.binResultsDir = binResultsDir;
-    }
-
-    /**
      * Returns the include patterns for test execution.
      *
      * @see #include(String...)
@@ -1074,22 +964,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public Test setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
     }
 
     @Internal
@@ -1408,16 +1282,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         action.execute(filter);
     }
 
-    // only way I know of to determine current log level
-    private LogLevel determineCurrentLogLevel() {
-        for (LogLevel level : LogLevel.values()) {
-            if (getLogger().isEnabled(level)) {
-                return level;
-            }
-        }
-        throw new AssertionError("could not determine current log level");
-    }
-
+    // Copied
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
         switch (testLogging.getExceptionFormat()) {
             case SHORT:

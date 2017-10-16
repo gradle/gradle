@@ -22,9 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -121,18 +119,18 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         xcTest.setTestBundleDir(bundle.getOutputDir());
         xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
         // TODO - should respect changes to reports dir
-        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
-            @Override
-            public File transform(Directory directory) {
-                return directory.getAsFile();
-            }
-        }));
-        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").map(new Transformer<File, Directory>() {
-            @Override
-            public File transform(Directory directory) {
-                return directory.getAsFile();
-            }
-        }));
+//        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
+//            @Override
+//            public File transform(Directory directory) {
+//                return directory.getAsFile();
+//            }
+//        }));
+//        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").map(new Transformer<File, Directory>() {
+//            @Override
+//            public File transform(Directory directory) {
+//                return directory.getAsFile();
+//            }
+//        }));
         xcTest.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
