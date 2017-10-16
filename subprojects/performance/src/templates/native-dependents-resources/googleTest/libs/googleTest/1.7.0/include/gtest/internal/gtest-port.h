@@ -95,7 +95,7 @@
 //   GTEST_OS_HPUX     - HP-UX
 //   GTEST_OS_LINUX    - Linux
 //     GTEST_OS_LINUX_ANDROID - Google Android
-//   GTEST_OS_MAC      - Mac OS X
+//   GTEST_OS_MAC      - macOS
 //     GTEST_OS_IOS    - iOS
 //       GTEST_OS_IOS_SIMULATOR - iOS simulator
 //   GTEST_OS_NACL     - Google Native Client (NaCl)
@@ -109,7 +109,7 @@
 //     GTEST_OS_WINDOWS_MOBILE   - Windows Mobile
 //   GTEST_OS_ZOS      - z/OS
 //
-// Among the platforms, Cygwin, Linux, Max OS X, and Windows have the
+// Among the platforms, Cygwin, Linux, macOS, and Windows have the
 // most stable support.  Since core members of the Google Test project
 // don't have access to other platforms, support for them may be less
 // stable.  If you notice any problems on your platform, please notify
@@ -523,7 +523,7 @@
 # endif
 
 // C++11 specifies that <tuple> provides std::tuple. Use that if gtest is used
-// in C++11 mode and libstdc++ isn't very old (binaries targeting OS X 10.6
+// in C++11 mode and libstdc++ isn't very old (binaries targeting Mac OS X 10.6
 // can build with clang but need to use gcc4.2's libstdc++).
 # if GTEST_LANG_CXX11 && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20110325)
 #  define GTEST_ENV_HAS_STD_TUPLE_ 1

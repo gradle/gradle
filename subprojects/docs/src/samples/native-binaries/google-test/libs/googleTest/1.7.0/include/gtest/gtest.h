@@ -2226,7 +2226,7 @@ bool StaticAssertTypeEq() {
 // Note that we call GetTestTypeId() instead of GetTypeId<
 // ::testing::Test>() here to get the type ID of testing::Test.  This
 // is to work around a suspected linker bug when using Google Test as
-// a framework on Mac OS X.  The bug causes GetTypeId<
+// a framework on macOS.  The bug causes GetTypeId<
 // ::testing::Test>() to return different values depending on whether
 // the call is from the Google Test framework itself or from user test
 // code.  GetTestTypeId() is guaranteed to always return the same

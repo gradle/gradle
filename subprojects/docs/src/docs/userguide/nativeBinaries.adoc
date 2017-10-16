@@ -33,7 +33,7 @@ The native software plugins make use of the Gradle <<software_model,software mod
 
 The native software plugins provide:
 
-* Support for building native libraries and applications on Windows, Linux, OS X and other platforms.
+* Support for building native libraries and applications on Windows, Linux, macOS and other platforms.
 * Support for several source languages.
 * Support for building different variants of the same software, for different architectures, operating systems, or for any purpose.
 * Incremental parallel compilation, precompiled headers.
@@ -77,7 +77,7 @@ The following tool chains are supported:
 | http://clang.llvm.org[Clang]
 |
 
-| Mac OS X
+| macOS
 | XCode
 | Uses the Clang tool chain bundled with XCode.
 
@@ -102,11 +102,11 @@ The following tool chains are unofficially supported. They generally work fine, 
 | Tool Chain
 | Notes
 
-| Mac OS X
+| macOS
 | http://gcc.gnu.org/[GCC] from Macports
 |
 
-| Mac OS X
+| macOS
 | http://clang.llvm.org[Clang] from Macports
 |
 
@@ -145,10 +145,10 @@ To build on Windows, install a compatible version of Visual Studio. The native p
 
 Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not supported.
 
-[[sec:os_x]]
-==== OS X
+[[sec:macOS]]
+==== macOS
 
-To build on OS X, you should install XCode. The native plugins will discover the XCode installation using the system PATH.
+To build on macOS, you should install XCode. The native plugins will discover the XCode installation using the system PATH.
 
 The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains, you will need to make the tool chain the default using the `port select` command and add Macports to the system PATH.
 

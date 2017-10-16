@@ -23,20 +23,20 @@ import org.gradle.internal.os.OperatingSystem
  * Helper class for adding Yourkit Java Profiler (YJP) agent start up arguments for builds launched in performance tests.
  * <p>
  * Currently, YJP_HOME environment variable or YJP_AGENT_PATH environment variable is used to locate the agent library file. This is not needed if you install YJP in /opt/yjp on Linux
- * or rename the application as "yjp" on Mac OS X (directory: /Applications/yjp.app). These locations are searched by default.
+ * or rename the application as "yjp" on macOS (directory: /Applications/yjp.app). These locations are searched by default.
  *
  * <p>
  * Examples of specifying YJP_HOME
  * <pre>
  * export YJP_HOME="/opt/yjp" # on linux
- * export YJP_HOME="/Applications/yjp.app/Contents/Resources" # on Mac OS X
+ * export YJP_HOME="/Applications/yjp.app/Contents/Resources" # on macOS
  * </pre>
  *
  * <p>
  * Examples of specifying YJP_AGENT_PATH directly
  * <pre>
  * export YJP_AGENT_PATH="/opt/yjp/bin/linux-x86-64/libyjpagent.so" # on linux
- * export YJP_AGENT_PATH="/Applications/yjp.app/Contents/Resources/bin/mac/libyjpagent.jnilib" # on Mac OS X
+ * export YJP_AGENT_PATH="/Applications/yjp.app/Contents/Resources/bin/mac/libyjpagent.jnilib" # on macOS
  * </pre>
  *
  * <p>
