@@ -16,23 +16,35 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins
 
+import org.eclipse.jgit.api.Git
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new CppHelloWorldApp()
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
 
     def "can run tests"() {
+        def googleTestRepo = Git.cloneRepository().
+            setDirectory(file("googletest")).
+            setURI("https://github.com/gradle/googletest").
+            call()
+        googleTestRepo.close()
+        file("googletest/settings.gradle").assertIsFile()
+
+        settingsFile << """
+            includeBuild "googletest"
+        """
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: ${NewGoogleTestConventionPlugin.canonicalName}
+
+            dependencies {
+                testImplementation 'com.google:googletest:1.9.0'
+            }
         """
 
         app.library.writeSources(file("src/main"))
         app.googleTestTests.writeSources(file("src/test"))
-
-        prebuiltDir.copyTo(file("libs"))
 
         expect:
         succeeds("googleTest")

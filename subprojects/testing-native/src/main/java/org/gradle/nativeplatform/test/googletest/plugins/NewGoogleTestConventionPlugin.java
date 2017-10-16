@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -40,10 +39,6 @@ import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestS
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 
 /**
@@ -83,27 +78,9 @@ public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(component.getDevelopmentBinary());
 
         // Configure compile task
-        // TODO: Add path to google test headers
-        final File frameworkDir = fileOperations.file("libs/googleTest/1.7.0");
-
         CppCompile compile = (CppCompile) tasks.getByName("compileTestDebugCpp");
-        compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                // TODO: Use dependency
-                return Arrays.asList("-g", "-I" + new File(frameworkDir, "include").getAbsolutePath());
-            }
-        }));
-
         // Add a link task
         final LinkExecutable link = (LinkExecutable) tasks.getByName("linkTestDebug");
-        link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
-            @Override
-            public List<String> call() throws Exception {
-                // TODO: Use dependency
-                return Lists.newArrayList("-L" + new File(frameworkDir, "lib/osx").getAbsolutePath(), "-lgtest");
-            }
-        }));
 
         configureTestedComponent(project);
 
