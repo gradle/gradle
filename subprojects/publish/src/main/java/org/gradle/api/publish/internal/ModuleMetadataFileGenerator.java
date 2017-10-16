@@ -45,9 +45,22 @@ public class ModuleMetadataFileGenerator {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
+        writeComponentWithVariants(coordinates, component, jsonWriter);
+        jsonWriter.flush();
+        writer.append('\n');
+    }
+
+    private void writeComponentWithVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
-        jsonWriter.name("formatVersion");
-        jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
+        Set<UsageContext> variants = new LinkedHashSet<UsageContext>();
+        collectVariants(component, variants);
+        writeFormat(jsonWriter);
+        writeCreator(jsonWriter);
+        writeVariants(coordinates, jsonWriter, variants);
+        jsonWriter.endObject();
+    }
+
+    private void writeCreator(JsonWriter jsonWriter) throws IOException {
         jsonWriter.name("createdBy");
         jsonWriter.beginObject();
         jsonWriter.name("gradle");
@@ -58,72 +71,100 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.value(buildInvocationScopeId.getId().asString());
         jsonWriter.endObject();
         jsonWriter.endObject();
-        Set<UsageContext> variants = new LinkedHashSet<UsageContext>();
-        collectVariants(component, variants);
-        if (!variants.isEmpty()) {
-            jsonWriter.name("variants");
-            jsonWriter.beginArray();
-            for (UsageContext variant : variants) {
-                jsonWriter.beginObject();
-                jsonWriter.name("name");
-                // TODO - give the variant a name
-                jsonWriter.value(variant.getUsage().getName());
-                jsonWriter.name("attributes");
-                jsonWriter.beginObject();
-                // TODO - include correct attributes
-                jsonWriter.name(Usage.USAGE_ATTRIBUTE.getName());
-                jsonWriter.value(variant.getUsage().getName());
-                jsonWriter.endObject();
-                if (!variant.getDependencies().isEmpty()) {
-                    jsonWriter.name("dependencies");
-                    jsonWriter.beginArray();
-                    for (ModuleDependency moduleDependency : variant.getDependencies()) {
-                        jsonWriter.beginObject();
-                        jsonWriter.name("group");
-                        jsonWriter.value(moduleDependency.getGroup());
-                        jsonWriter.name("module");
-                        jsonWriter.value(moduleDependency.getName());
-                        jsonWriter.name("version");
-                        jsonWriter.value(moduleDependency.getVersion());
-                        jsonWriter.endObject();
-                    }
-                    jsonWriter.endArray();
-                }
-                if (!variant.getArtifacts().isEmpty()) {
-                    jsonWriter.name("files");
-                    jsonWriter.beginArray();
-                    for (PublishArtifact artifact : variant.getArtifacts()) {
-                        jsonWriter.beginObject();
-                        jsonWriter.name("name");
-                        jsonWriter.value(artifact.getFile().getName());
+    }
 
-                        jsonWriter.name("url");
-                        // TODO - do not assume Maven layout
-                        StringBuilder artifactPath = new StringBuilder();
-                        artifactPath.append(coordinates.getName());
-                        artifactPath.append('-');
-                        artifactPath.append(coordinates.getVersion());
-                        if (GUtil.isTrue(artifact.getClassifier())) {
-                            artifactPath.append('-');
-                            artifactPath.append(artifact.getClassifier());
-                        }
-                        if (GUtil.isTrue(artifact.getExtension())) {
-                            artifactPath.append('.');
-                            artifactPath.append(artifact.getExtension());
-                        }
-                        jsonWriter.value(artifactPath.toString());
+    private void writeFormat(JsonWriter jsonWriter) throws IOException {
+        jsonWriter.name("formatVersion");
+        jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
+    }
 
-                        jsonWriter.endObject();
-                    }
-                    jsonWriter.endArray();
-                }
-                jsonWriter.endObject();
-            }
-            jsonWriter.endArray();
+    private void writeVariants(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, Set<UsageContext> variants) throws IOException {
+        if (variants.isEmpty()) {
+            return;
         }
+        jsonWriter.name("variants");
+        jsonWriter.beginArray();
+        for (UsageContext variant : variants) {
+            writeVariant(coordinates, jsonWriter, variant);
+        }
+        jsonWriter.endArray();
+    }
+
+    private void writeVariant(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, UsageContext variant) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        // TODO - give the variant a name
+        jsonWriter.value(variant.getUsage().getName());
+        jsonWriter.name("attributes");
+        jsonWriter.beginObject();
+        // TODO - include correct attributes
+        jsonWriter.name(Usage.USAGE_ATTRIBUTE.getName());
+        jsonWriter.value(variant.getUsage().getName());
         jsonWriter.endObject();
-        jsonWriter.flush();
-        writer.append('\n');
+
+        writeDependencies(jsonWriter, variant);
+        writeArtifacts(coordinates, jsonWriter, variant);
+
+        jsonWriter.endObject();
+    }
+
+    private void writeArtifacts(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, UsageContext variant) throws IOException {
+        if (variant.getArtifacts().isEmpty()) {
+            return;
+        }
+        jsonWriter.name("files");
+        jsonWriter.beginArray();
+        for (PublishArtifact artifact : variant.getArtifacts()) {
+            writeArtifact(coordinates, jsonWriter, artifact);
+        }
+        jsonWriter.endArray();
+    }
+
+    private void writeArtifact(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, PublishArtifact artifact) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        jsonWriter.value(artifact.getFile().getName());
+
+        jsonWriter.name("url");
+        // TODO - do not assume Maven layout
+        StringBuilder artifactPath = new StringBuilder();
+        artifactPath.append(coordinates.getName());
+        artifactPath.append('-');
+        artifactPath.append(coordinates.getVersion());
+        if (GUtil.isTrue(artifact.getClassifier())) {
+            artifactPath.append('-');
+            artifactPath.append(artifact.getClassifier());
+        }
+        if (GUtil.isTrue(artifact.getExtension())) {
+            artifactPath.append('.');
+            artifactPath.append(artifact.getExtension());
+        }
+        jsonWriter.value(artifactPath.toString());
+
+        jsonWriter.endObject();
+    }
+
+    private void writeDependencies(JsonWriter jsonWriter, UsageContext variant) throws IOException {
+        if (variant.getDependencies().isEmpty()) {
+            return;
+        }
+        jsonWriter.name("dependencies");
+        jsonWriter.beginArray();
+        for (ModuleDependency moduleDependency : variant.getDependencies()) {
+            writeDependency(jsonWriter, moduleDependency);
+        }
+        jsonWriter.endArray();
+    }
+
+    private void writeDependency(JsonWriter jsonWriter, ModuleDependency moduleDependency) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("group");
+        jsonWriter.value(moduleDependency.getGroup());
+        jsonWriter.name("module");
+        jsonWriter.value(moduleDependency.getName());
+        jsonWriter.name("version");
+        jsonWriter.value(moduleDependency.getVersion());
+        jsonWriter.endObject();
     }
 
     private void collectVariants(ComponentWithVariants component, Set<UsageContext> dest) {
