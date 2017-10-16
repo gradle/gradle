@@ -17,22 +17,39 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
+import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
+import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -42,6 +59,8 @@ import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Abstract class for all test task.
@@ -52,6 +71,7 @@ public abstract class AbstractTestTask extends ConventionTask {
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
+    protected TestExecuter testExecuter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -72,6 +92,15 @@ public abstract class AbstractTestTask extends ConventionTask {
     @Internal
     protected ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
         return testOutputListenerBroadcaster;
+    }
+
+    /**
+     * Sets the testExecuter property.
+     *
+     * @since 4.2
+     */
+    protected void setTestExecuter(TestExecuter testExecuter) {
+        this.testExecuter = testExecuter;
     }
 
     /**
@@ -327,5 +356,81 @@ public abstract class AbstractTestTask extends ConventionTask {
      */
     public void testLogging(Action<? super TestLoggingContainer> action) {
         action.execute(testLogging);
+    }
+
+    protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
+
+    @TaskAction
+    public void executeTests() {
+        LogLevel currentLevel = determineCurrentLogLevel();
+        TestLogging levelLogging = getTestLogging().get(currentLevel);
+        TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
+        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
+        addTestListener(eventLogger);
+        addTestOutputListener(eventLogger);
+
+        File binaryResultsDir = getBinResultsDir();
+        getProject().delete(binaryResultsDir);
+        getProject().mkdir(binaryResultsDir);
+
+        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
+        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
+
+        TestOutputStore.Writer outputWriter = testOutputStore.writer();
+        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
+
+        addTestListener(testReportDataCollector);
+        addTestOutputListener(testReportDataCollector);
+
+        TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
+        addTestListener(testCountLogger);
+
+        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
+
+        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
+        parentProgressLogger.setDescription("Test Execution");
+        parentProgressLogger.started();
+        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
+        getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
+
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
+
+        if (testExecuter == null) {
+            testExecuter = createTestExecuter();
+        }
+
+        try {
+            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
+        } finally {
+            parentProgressLogger.completed();
+            testExecuter = null;
+            testWorkerProgressListener.completeAll();
+            getTestListenerBroadcaster().removeAll();
+            getTestOutputListenerBroadcaster().removeAll();
+            getTestListenerInternalBroadcaster().removeAll();
+            outputWriter.close();
+        }
+
+        new TestResultSerializer(binaryResultsDir).write(results.values());
+
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
+
+        createReporting();
+
+        if (testCountLogger.hadFailures()) {
+            handleTestFailures();
+        }
+    }
+
+    protected abstract void createReporting();
+
+    private void handleTestFailures() {
+        String message = "There were failing tests";
+
+        if (getIgnoreFailures()) {
+            getLogger().warn(message);
+        } else {
+            throw new GradleException(message);
+        }
     }
 }

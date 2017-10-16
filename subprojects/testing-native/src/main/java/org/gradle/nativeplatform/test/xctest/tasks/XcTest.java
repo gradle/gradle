@@ -16,40 +16,20 @@
 
 package org.gradle.nativeplatform.test.xctest.tasks;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
-import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
-import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.nativeplatform.test.xctest.internal.NativeTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -104,97 +84,12 @@ public class XcTest extends AbstractTestTask {
         this.workingDir.set(workingDir);
     }
 
-    @TaskAction
-    public void executeTests() {
-        LogLevel currentLevel = determineCurrentLogLevel();
-        TestLogging levelLogging = getTestLogging().get(currentLevel);
-        TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
-        addTestListener(eventLogger);
-        addTestOutputListener(eventLogger);
-
-        File binaryResultsDir = getBinResultsDir();
-        getProject().delete(binaryResultsDir);
-        getProject().mkdir(binaryResultsDir);
-
-        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
-
-        TestOutputStore.Writer outputWriter = testOutputStore.writer();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
-
-        addTestListener(testReportDataCollector);
-        addTestOutputListener(testReportDataCollector);
-
-        TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
-        addTestListener(testCountLogger);
-
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
-
-        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
-        parentProgressLogger.setDescription("Test Execution");
-        parentProgressLogger.started();
-        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
-        getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
-
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
-
-        NativeTestExecuter testExecuter = objectFactory.newInstance(NativeTestExecuter.class);
-
-        try {
-            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
-        } finally {
-            parentProgressLogger.completed();
-            testExecuter = null;
-            testWorkerProgressListener.completeAll();
-            getTestListenerBroadcaster().removeAll();
-            getTestOutputListenerBroadcaster().removeAll();
-            getTestListenerInternalBroadcaster().removeAll();
-            outputWriter.close();
-        }
-
-        new TestResultSerializer(binaryResultsDir).write(results.values());
-
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
-
-//        try {
-//            if (testReporter == null) {
-//                testReporter = new DefaultTestReport(getBuildOperationExecutor());
-//            }
-
-//            JUnitXmlReport junitXml = reports.getJunitXml();
-//            if (junitXml.isEnabled()) {
-//                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-//                    ? TestOutputAssociation.WITH_TESTCASE
-//                    : TestOutputAssociation.WITH_SUITE;
-//                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
-//                binary2JUnitXmlReportGenerator.generate();
-//            }
-
-//            DirectoryReport html = reports.getHtml();
-//            if (!html.isEnabled()) {
-//                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-//            } else {
-//                testReporter.generateReport(testResultsProvider, html.getDestination());
-//            }
-//        } finally {
-//            CompositeStoppable.stoppable(testResultsProvider).stop();
-//            testReporter = null;
-//            testFramework = null;
-//        }
-
-        if (testCountLogger.hadFailures()) {
-            handleTestFailures();
-        }
+    @Override
+    protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
+        return objectFactory.newInstance(NativeTestExecuter.class);
     }
 
-    private void handleTestFailures() {
-        String message = "There were failing tests";
-
-        if (getIgnoreFailures()) {
-            getLogger().warn(message);
-        } else {
-            throw new GradleException(message);
-        }
+    @Override
+    protected void createReporting() {
     }
 }

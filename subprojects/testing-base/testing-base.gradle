@@ -20,6 +20,8 @@ dependencies {
     compile project(':core')
     compile project(':reporting')
     compile project(':platformBase')
+
+    compile libraries.kryo
 }
 
 useTestFixtures()

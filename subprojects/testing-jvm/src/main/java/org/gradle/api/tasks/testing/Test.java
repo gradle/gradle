@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
-import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
@@ -155,7 +155,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
 
-    private TestExecuter testExecuter;
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
     private FileCollection classpath;
@@ -214,15 +213,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
-    }
-
-    /**
-     * Sets the testExecuter property.
-     *
-     * @since 4.2
-     */
-    protected void setTestExecuter(TestExecuter testExecuter) {
-        this.testExecuter = testExecuter;
     }
 
     /**
@@ -610,11 +600,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
-                getServices().get(BuildOperationExecutor.class),
-                getServices().get(StartParameter.class).getMaxWorkerCount(),
-                getServices().get(Clock.class));
+            setTestExecuter(createTestExecuter());
         }
 
         JavaVersion javaVersion = getJavaVersion();
@@ -626,7 +612,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);
         } finally {
             parentProgressLogger.completed();
-            testExecuter = null;
+            setTestExecuter(null);
             testWorkerProgressListener.completeAll();
             getTestListenerBroadcaster().removeAll();
             getTestOutputListenerBroadcaster().removeAll();
@@ -667,6 +653,20 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
+    }
+
+    @Override
+    protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
+        return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+            getServices().get(WorkerLeaseRegistry.class),
+            getServices().get(BuildOperationExecutor.class),
+            getServices().get(StartParameter.class).getMaxWorkerCount(),
+            getServices().get(Clock.class));
+    }
+
+    @Override
+    protected void createReporting() {
+
     }
 
     private String createNoMatchingTestErrorMessage() {
