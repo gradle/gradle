@@ -34,7 +34,7 @@ def setCommitId = { String commitId ->
 }
 
 pluginManager.withPlugin("com.gradle.build-scan") {
-    if (gradle.startParameter.taskNames == ["verifyTestFilesCleanup"]) {
+    if (gradle.startParameter.taskNames in [["verifyTestFilesCleanup"], ["killExistingProcessesStartedByGradle"]]) {
         buildScan.publishOnFailure()
     } else {
         buildScan.publishAlways()
