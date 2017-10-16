@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.googletest.internal;
+package org.gradle.nativeplatform.test.cpp.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuite;
+import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 
 import javax.inject.Inject;
 
-public class DefaultGoogleTestTestSuite extends DefaultCppApplication implements GoogleTestTestSuite {
+public class DefaultCppTestSuite extends DefaultCppApplication implements CppTestSuite {
     @Inject
-    public DefaultGoogleTestTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, objectFactory, fileOperations, configurations);
     }
 }

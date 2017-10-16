@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.googletest.plugins;
+package org.gradle.nativeplatform.test.cpp.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -33,26 +33,27 @@ import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuite;
-import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuite;
+import org.gradle.nativeplatform.test.cpp.CppTestSuite;
+import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 import javax.inject.Inject;
 
 
 /**
- * A plugin that sets up the infrastructure for testing native binaries with GoogleTest testing framework.
+ * A plugin that sets up the infrastructure for testing C++ binaries.
+ *
  * It also adds conventions on top of it.
  *
  * @since 4.4
  */
 @Incubating
-public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
+public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
     private final ObjectFactory objectFactory;
     private final FileOperations fileOperations;
 
     @Inject
-    public NewGoogleTestConventionPlugin(FileOperations fileOperations, ObjectFactory objectFactory) {
+    public CppTestConventionPlugin(FileOperations fileOperations, ObjectFactory objectFactory) {
         this.fileOperations = fileOperations;
         this.objectFactory = objectFactory;
     }
@@ -65,7 +66,7 @@ public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
         final TaskContainer tasks = project.getTasks();
 
         // TODO: What should this name be?
-        GoogleTestTestSuite component = objectFactory.newInstance(DefaultGoogleTestTestSuite.class, "test", objectFactory, fileOperations, configurations);
+        CppTestSuite component = objectFactory.newInstance(DefaultCppTestSuite.class, "test", objectFactory, fileOperations, configurations);
         component.getBaseName().set("test");
 
         // Register components created for the test component and test binaries
@@ -91,25 +92,25 @@ public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().withType(CppExecutablePlugin.class, projectConfiguration);
 
         // TODO: Replace with new native test task
-        final RunTestExecutable googleTest = tasks.create("googleTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+        final RunTestExecutable testTask = tasks.create("cpptest", RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
-            public void execute(RunTestExecutable googleTest) {
+            public void execute(RunTestExecutable testTask) {
                 // TODO: It would be nice if the CppApplication had a Provider<File> getExecutableFile() that lazily
                 // carried the output path around and dependency information
                 final LinkExecutable link = (LinkExecutable) tasks.getByName("linkTestDebug");
-                googleTest.setExecutable(link.getOutputFile());
-                googleTest.dependsOn(link);
+                testTask.setExecutable(link.getOutputFile());
+                testTask.dependsOn(link);
 
                 // TODO: This should be lazy to honor changes to the build directory
                 final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-                googleTest.setOutputDir(buildDirectory.dir("test-results/test").get().getAsFile());
+                testTask.setOutputDir(buildDirectory.dir("test-results/cpptest").get().getAsFile());
             }
         });
 
         tasks.getByName("check", new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.dependsOn(googleTest);
+                task.dependsOn(testTask);
             }
         });
     }

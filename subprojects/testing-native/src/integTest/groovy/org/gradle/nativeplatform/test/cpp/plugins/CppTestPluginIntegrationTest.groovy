@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.googletest.plugins
+package org.gradle.nativeplatform.test.cpp.plugins
 
 import org.eclipse.jgit.api.Git
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
 
-class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new CppHelloWorldApp()
 
     def "can run tests"() {
@@ -37,7 +37,7 @@ class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIn
         """
         buildFile << """
             apply plugin: 'cpp-library'
-            apply plugin: ${NewGoogleTestConventionPlugin.canonicalName}
+            apply plugin: 'cpp-test'
 
             dependencies {
                 testImplementation 'com.google:googletest:1.9.0'
@@ -52,9 +52,9 @@ class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIn
         app.googleTestTests.writeSources(file("src/test"))
 
         expect:
-        succeeds("googleTest")
+        succeeds("cpptest")
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/test/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/cpptest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []

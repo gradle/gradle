@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.googletest;
+package org.gradle.nativeplatform.test.cpp;
 
 import org.gradle.language.cpp.CppComponent;
 
-public interface GoogleTestTestSuite extends CppComponent {
+public interface CppTestSuite extends CppComponent {
 }
