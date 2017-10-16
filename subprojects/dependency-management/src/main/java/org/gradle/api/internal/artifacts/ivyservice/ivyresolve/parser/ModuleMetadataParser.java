@@ -195,7 +195,7 @@ public class ModuleMetadataParser {
         reader.skipValue();
     }
 
-    private class ModuleFile {
+    private static class ModuleFile {
         final String name;
         final String uri;
 
@@ -205,7 +205,7 @@ public class ModuleMetadataParser {
         }
     }
 
-    private class ModuleDependency {
+    private static class ModuleDependency {
         final String group;
         final String module;
         final String version;
