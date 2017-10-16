@@ -21,6 +21,7 @@ import com.dd.plist.NSString;
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
@@ -28,6 +29,7 @@ import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXBuildFile;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXFileReference;
+import org.gradle.ide.xcode.internal.xcodeproj.PBXGroup;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXLegacyTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXNativeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXProject;
@@ -44,9 +46,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_RELEASE;
-import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.*;
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
 
 /**
@@ -73,11 +73,10 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG);
         project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE);
 
-        for (File source : xcodeProject.getSources().getAsFileTree()) {
-            PBXFileReference fileReference = toFileReference(source);
-            pathToFileReference.put(source.getAbsolutePath(), fileReference);
-            project.getMainGroup().getChildren().add(fileReference);
-        }
+        addToGroup(project.getMainGroup(), xcodeProject.getGroups().getSources(), "Sources");
+        addToGroup(project.getMainGroup(), xcodeProject.getGroups().getHeaders(), "Headers");
+        addToGroup(project.getMainGroup(), xcodeProject.getGroups().getTests(), "Tests");
+        addToGroup(project.getMainGroup(), xcodeProject.getGroups().getRoot());
 
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             project.getTargets().add(toGradlePbxTarget(xcodeTarget));
@@ -104,6 +103,20 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
                 dict.putAll(rootObject);
             }
         });
+    }
+
+    private void addToGroup(PBXGroup mainGroup, FileCollection sources, String groupName) {
+        if (!sources.isEmpty()) {
+            addToGroup(mainGroup.getOrCreateChildGroupByName(groupName), sources);
+        }
+    }
+
+    private void addToGroup(PBXGroup group, FileCollection sources) {
+        for (File source : sources.getAsFileTree()) {
+            PBXFileReference fileReference = toFileReference(source);
+            pathToFileReference.put(source.getAbsolutePath(), fileReference);
+            group.getChildren().add(fileReference);
+        }
     }
 
     @Override

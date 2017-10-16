@@ -18,6 +18,7 @@ package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeProject;
 
 import javax.inject.Inject;
@@ -30,21 +31,17 @@ public class DefaultXcodeProject implements XcodeProject {
     public static final String BUILD_RELEASE = "Release";
     public static final String TEST_DEBUG = "__GradleTestRunner_Debug";
 
-    private final ConfigurableFileCollection sources;
+    private final Groups groups;
     private List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
     private File locationDir;
 
     @Inject
-    public DefaultXcodeProject(FileOperations fileOperations) {
-        this.sources = fileOperations.files();
+    public DefaultXcodeProject(ObjectFactory objectFactory) {
+        this.groups = objectFactory.newInstance(Groups.class);
     }
 
-    public void addSourceFile(File sourceFile) {
-        sources.from(sourceFile);
-    }
-
-    public ConfigurableFileCollection getSources() {
-        return sources;
+    public Groups getGroups() {
+        return groups;
     }
 
     public List<XcodeTarget> getTargets() {
@@ -61,5 +58,36 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public void setLocationDir(File locationDir) {
         this.locationDir = locationDir;
+    }
+
+    public static class Groups {
+        private final ConfigurableFileCollection sources;
+        private final ConfigurableFileCollection tests;
+        private final ConfigurableFileCollection headers;
+        private final ConfigurableFileCollection root;
+
+        @Inject
+        public Groups(FileOperations fileOperations) {
+            this.sources = fileOperations.files();
+            this.tests = fileOperations.files();
+            this.headers = fileOperations.files();
+            this.root = fileOperations.files();
+        }
+
+        public ConfigurableFileCollection getRoot() {
+            return root;
+        }
+
+        public ConfigurableFileCollection getSources() {
+            return sources;
+        }
+
+        public ConfigurableFileCollection getTests() {
+            return tests;
+        }
+
+        public ConfigurableFileCollection getHeaders() {
+            return headers;
+        }
     }
 }

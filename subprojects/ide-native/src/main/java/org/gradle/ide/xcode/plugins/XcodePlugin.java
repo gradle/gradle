@@ -141,7 +141,7 @@ public class XcodePlugin extends IdePlugin {
 
     private void includeBuildFileInProject(Project project) {
         if (project.getBuildFile().exists()) {
-            xcode.getProject().addSourceFile(project.getBuildFile());
+            xcode.getProject().getGroups().getRoot().from(project.getBuildFile());
         }
     }
 
@@ -215,11 +215,11 @@ public class XcodePlugin extends IdePlugin {
     private void configureXcodeForXCTest(final Project project, PBXTarget.ProductType productType) {
         SwiftXCTestSuite component = project.getExtensions().getByType(SwiftXCTestSuite.class);
         FileCollection sources = component.getSwiftSource();
-        xcode.getProject().getSources().from(sources);
+        xcode.getProject().getGroups().getTests().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
         final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
-        xcode.getProject().getSources().from(bundleDebug.getInformationFile());
+        xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
 
         // Sync the binary to the BUILT_PRODUCTS_DIR
         final Sync syncTask = project.getTasks().create("sync" + GUtil.toCamelCase(component.getName()) + "BundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
@@ -271,7 +271,7 @@ public class XcodePlugin extends IdePlugin {
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
         SwiftComponent component = project.getExtensions().getByType(SwiftComponent.class);
         FileCollection sources = component.getSwiftSource();
-        xcode.getProject().getSources().from(sources);
+        xcode.getProject().getGroups().getSources().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
@@ -307,10 +307,10 @@ public class XcodePlugin extends IdePlugin {
     private void configureXcodeForCpp(Project project, PBXTarget.ProductType productType) {
         CppComponent component = project.getExtensions().getByType(CppComponent.class);
         FileCollection sources = component.getCppSource();
-        xcode.getProject().getSources().from(sources);
+        xcode.getProject().getGroups().getSources().from(sources);
 
         FileCollection headers = component.getHeaderFiles();
-        xcode.getProject().getSources().from(headers);
+        xcode.getProject().getGroups().getHeaders().from(headers);
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
         // TODO - should use the _install_ task for an executable

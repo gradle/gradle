@@ -20,17 +20,17 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 
 class SwiftAppWithXCTest extends XCTestSourceElement implements AppElement {
-    final app = new SwiftApp()
-    final test = new SwiftAppTest(app.greeter, app.sum, app.multiply)
+    final main = new SwiftApp()
+    final test = new SwiftAppTest(main.greeter, main.sum, main.multiply)
 
-    List<SourceFile> files = app.files + test.files
+    List<SourceFile> files = main.files + test.files
     List<XCTestSourceFileElement> testSuites = test.testSuites
 
-    String expectedOutput = app.expectedOutput
+    String expectedOutput = main.expectedOutput
 
     @Override
     void writeToProject(TestFile projectDir) {
-        app.writeToProject(projectDir)
+        main.writeToProject(projectDir)
         test.writeToProject(projectDir)
     }
 }
