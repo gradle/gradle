@@ -17,13 +17,18 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.junit.Assume
 
 class AbstractCppInstalledToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+        Assume.assumeTrue(worksWithPlugin(toolChain))
+    }
+
+    boolean worksWithPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
+        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
     }
 
 }

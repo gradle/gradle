@@ -16,9 +16,11 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
 
 class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -211,5 +213,54 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         fails installApp
         and:
         executedAndNotSkipped compileTasksDebug(APP)
+    }
+
+    def "recompiles binary when toolchain changes"() {
+        initScript.text = ""
+        def availableToolchains = AvailableToolChains.toolChains.findAll { it.available && worksWithPlugin(it) && !(it instanceof AvailableToolChains.InstalledSwiftc) }
+        availableToolchains.each {
+            println it
+        }
+        Assume.assumeTrue(availableToolchains.size() > 1)
+        buildFile.text = """ 
+            allprojects {
+                apply plugin: ${availableToolchains[0].pluginClass}
+                apply plugin: ${availableToolchains[1].pluginClass}
+                
+                model {
+                    toolChains {
+                        if (findProperty('useAlternativeToolChain')) {
+                            ${availableToolchains[0].buildScriptConfig}
+                        } else {
+                            ${availableToolchains[1].buildScriptConfig}
+                        }
+                    }
+                }                                    
+            }
+            project(':library') {
+                apply plugin: 'cpp-library'
+                library {
+                    publicHeaders.from('src/main/headers')
+                }
+            }
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':library')
+                }
+            }
+        """
+
+        when:
+        run ':app:compileDebugCpp'
+
+        then:
+        executedAndNotSkipped ':app:compileDebugCpp'
+
+        when:
+        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true'
+
+        then:
+        executedAndNotSkipped ':app:compileDebugCpp'
     }
 }
