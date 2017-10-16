@@ -46,7 +46,7 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
     }
 
     @Override
-    protected String getTypeName() {
+    public String getTypeName() {
         return "Clang";
     }
 

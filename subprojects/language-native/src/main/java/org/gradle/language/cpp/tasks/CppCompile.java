@@ -15,11 +15,18 @@
  */
 package org.gradle.language.cpp.tasks;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
 import org.gradle.language.cpp.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 /**
  * Compiles C++ source files into object files.
@@ -32,4 +39,17 @@ public class CppCompile extends AbstractNativeSourceCompileTask {
         return new DefaultCppCompileSpec();
     }
 
+    /**
+     * The C++ compiler used, including the type and the version.
+     *
+     * @since 4.4
+     */
+    @Input
+    protected String getCompiler() {
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        String version = toolProvider.getVersion(ToolType.CPP_COMPILER);
+        return Joiner.on(" ").join(((ExtendableToolChain) toolChain).getTypeName(), ToolType.CPP_COMPILER.getToolName(), version);
+    }
 }

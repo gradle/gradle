@@ -39,6 +39,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompil
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
@@ -51,8 +53,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final boolean useCommandFile;
     private final WorkerLeaseService workerLeaseService;
+    private final CompilerMetaDataProvider metaDataProvider;
 
-    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider metaDataProvider) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
@@ -60,6 +63,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         this.useCommandFile = useCommandFile;
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
+        this.metaDataProvider = metaDataProvider;
     }
 
     @Override
@@ -155,5 +159,12 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     public String getPCHFileExtension() {
         return ".h.gch";
+    }
+
+    @Override
+    public String getVersion(ToolType toolType) {
+        GccCommandLineToolConfigurationInternal commandLineTool = toolRegistry.getTool(toolType);
+        CommandLineToolSearchResult searchResult = toolSearchPath.locate(commandLineTool.getToolType(), commandLineTool.getExecutable());
+        return metaDataProvider.getGccMetaData(searchResult.getTool(), ((DefaultGccPlatformToolChain) toolRegistry).getCompilerProbeArgs()).getVersion().toString();
     }
 }

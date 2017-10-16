@@ -75,6 +75,11 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public String getVersion(ToolType toolType) {
+        throw failure();
+    }
+
+    @Override
     public <T> T get(Class<T> toolType) {
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
