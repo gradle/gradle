@@ -51,6 +51,8 @@ public interface DependencySubstitutionApplicator {
             return failure;
         }
 
-        public boolean hasFailure() { return failure != null; }
+        public boolean hasFailure() {
+            return failure != null;
+        }
     }
 }

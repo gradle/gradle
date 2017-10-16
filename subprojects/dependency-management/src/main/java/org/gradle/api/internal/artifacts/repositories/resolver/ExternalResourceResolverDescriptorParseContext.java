@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
@@ -45,10 +46,12 @@ import java.io.File;
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final ComponentResolvers mainResolvers;
     private final FileResourceRepository fileResourceRepository;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.mainResolvers = mainResolvers;
         this.fileResourceRepository = fileResourceRepository;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -60,7 +63,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     @Override
     public LocallyAvailableExternalResource getMetaDataArtifact(DependencyMetadata dependencyMetadata, ArtifactType artifactType) {
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, idResolveResult);
+        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, moduleIdentifierFactory.module(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()), idResolveResult);
         return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 

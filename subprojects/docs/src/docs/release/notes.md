@@ -70,7 +70,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Support for Maven optional dependencies
+### Maven optional dependencies may lead to different dependency resolution result
 
 Supporting optional dependencies means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
 Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those.

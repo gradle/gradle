@@ -218,7 +218,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return null;
         }
 
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository, moduleIdentifierFactory);
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 
