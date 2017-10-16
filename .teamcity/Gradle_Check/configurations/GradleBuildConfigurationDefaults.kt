@@ -132,7 +132,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
                 buildFile = "gradle/buildTagging.gradle"
-                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% $java7HomeParameter"
+                gradleParams = "$gradleParameterString -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
                 useGradleWrapper = true
             }
         }
