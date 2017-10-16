@@ -59,11 +59,9 @@ sealed class KotlinScriptPluginTarget<T : Any>(
     val logDir: File,
     val supportsBuildscriptBlock: Boolean = false,
     val supportsPluginsBlock: Boolean = false,
-    val pluginManager: PluginManagerInternal? = null,
-    val providesAccessors: Boolean = false) {
+    val pluginManager: PluginManagerInternal? = null) {
 
-    open fun accessorsClassPath(classPath: ClassPath) =
-        AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+    open fun accessorsClassPath(classPath: ClassPath): AccessorsClassPath? = null
 
     open fun configure() = Unit
 }
@@ -79,8 +77,7 @@ data class KotlinScriptPluginProjectTarget(override val `object`: Project) : Kot
     logDir = `object`.buildDir,
     supportsBuildscriptBlock = true,
     supportsPluginsBlock = true,
-    pluginManager = (`object` as ProjectInternal).pluginManager,
-    providesAccessors = true) {
+    pluginManager = (`object` as ProjectInternal).pluginManager) {
 
     override fun accessorsClassPath(classPath: ClassPath) =
         accessorsClassPathFor(`object`, classPath)

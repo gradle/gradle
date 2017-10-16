@@ -122,10 +122,8 @@ class KotlinBuildScriptCompiler(
 
     private
     fun accessorsClassPathFor(target: KotlinScriptPluginTarget<*>): ClassPath =
-        if (topLevelScript && target.providesAccessors)
-            target.accessorsClassPath(compilationClassPath).bin
-        else
-            ClassPath.EMPTY
+        target.takeIf { topLevelScript }?.accessorsClassPath(compilationClassPath)?.bin
+            ?: ClassPath.EMPTY
 
     private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
