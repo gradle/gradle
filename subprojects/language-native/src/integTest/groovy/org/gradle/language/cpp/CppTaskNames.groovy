@@ -46,7 +46,11 @@ trait CppTaskNames {
     }
 
     String[] compileTasks(String project = '', String buildType) {
-        ["${project}:depend${buildType}Cpp", "${project}:compile${buildType}Cpp"] as String[]
+        ["${project}:depend${buildType}Cpp", compileTask(project, buildType)] as String[]
+    }
+
+    String compileTask(String project = '', String buildType) {
+        "${project}:compile${buildType}Cpp"
     }
 
     String linkTask(String project = '', String buildType) {
