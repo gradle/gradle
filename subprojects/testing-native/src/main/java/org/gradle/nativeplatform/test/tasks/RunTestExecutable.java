@@ -45,6 +45,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     @Override
     protected void exec() {
         // Make convention mapping work
+        getOutputDir().mkdirs();
         setExecutable(getExecutable());
         setWorkingDir(getOutputDir());
 
@@ -69,7 +70,6 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
 
     }
 
-    @OutputDirectory
     public File getOutputDir() {
         return outputDir;
     }
