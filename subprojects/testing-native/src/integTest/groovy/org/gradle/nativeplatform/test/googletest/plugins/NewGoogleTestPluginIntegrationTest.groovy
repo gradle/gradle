@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.test.googletest.plugins
 import org.eclipse.jgit.api.Git
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
 
 class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new CppHelloWorldApp()
@@ -41,6 +42,10 @@ class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIn
             dependencies {
                 testImplementation 'com.google:googletest:1.9.0'
             }
+
+            tasks.withType(RunTestExecutable) {
+                args "--gtest_output=xml:test_detail.xml"
+            }
         """
 
         app.library.writeSources(file("src/main"))
@@ -49,5 +54,10 @@ class NewGoogleTestPluginIntegrationTest extends AbstractCppInstalledToolChainIn
         expect:
         succeeds("googleTest")
 
+        def testResults = new GoogleTestTestResults(file("build/test-results/test/test_detail.xml"))
+        testResults.suiteNames == ['HelloTest']
+        testResults.suites['HelloTest'].passingTests == ['test_sum']
+        testResults.suites['HelloTest'].failingTests == []
+        testResults.checkTestCases(1, 1, 0)
     }
 }

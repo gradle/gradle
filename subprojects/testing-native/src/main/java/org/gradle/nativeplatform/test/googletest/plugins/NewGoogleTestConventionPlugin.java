@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -61,53 +60,24 @@ public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
-        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainer tasks = project.getTasks();
 
-        // TODO - Reuse logic from Cpp Plugin
-        // TODO - component name and extension name aren't the same
-        // TODO - should use a different directory as the convention?
-        // Add the component extension
+        final ConfigurationContainer configurations = project.getConfigurations();
+        final TaskContainer tasks = project.getTasks();
 
-        GoogleTestTestSuite component = objectFactory.newInstance(DefaultGoogleTestTestSuite.class, "test", objectFactory, fileOperations, configurations);
         // TODO: What should this name be?
+        GoogleTestTestSuite component = objectFactory.newInstance(DefaultGoogleTestTestSuite.class, "test", objectFactory, fileOperations, configurations);
         component.getBaseName().set("test");
-        project.getExtensions().add(GoogleTestTestSuite.class, "googletest", component);
+
+        // Register components created for the test component and test binaries
         project.getComponents().add(component);
         project.getComponents().add(component.getDevelopmentBinary());
 
-        // Configure compile task
-        CppCompile compile = (CppCompile) tasks.getByName("compileTestDebugCpp");
-        // Add a link task
-        final LinkExecutable link = (LinkExecutable) tasks.getByName("linkTestDebug");
-
-        configureTestedComponent(project);
-
-        final RunTestExecutable googleTest = tasks.create("googleTest", RunTestExecutable.class);
-        // TODO: Do this lazily
-        // googleTest.setExecutable(link.getOutputFile());
-        googleTest.dependsOn(link);
-        googleTest.doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                googleTest.setExecutable(link.getOutputFile());
-            }
-        });
-        googleTest.setOutputDir(buildDirectory.dir("test-results").get().getAsFile());
-
-        Task check = tasks.getByName("check");
-        check.dependsOn(googleTest);
-    }
-
-    private void configureTestedComponent(final Project project) {
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
-                TaskContainer tasks = project.getTasks();
-
                 CppCompile compileMain = tasks.withType(CppCompile.class).getByName("compileDebugCpp");
                 CppCompile compileTest = tasks.withType(CppCompile.class).getByName("compileTestDebugCpp");
+
                 // TODO: This should probably be just the main component's public headers?
                 compileTest.includes(compileMain.getIncludes());
 
@@ -115,7 +85,33 @@ public class NewGoogleTestConventionPlugin implements Plugin<ProjectInternal> {
                 linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
             }
         };
+
         project.getPlugins().withType(CppLibraryPlugin.class, projectConfiguration);
+        // TODO: We will get symbol conflicts with executables since they already have a main()
         project.getPlugins().withType(CppExecutablePlugin.class, projectConfiguration);
+
+        // TODO: Replace with new native test task
+        final RunTestExecutable googleTest = tasks.create("googleTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+            @Override
+            public void execute(RunTestExecutable googleTest) {
+                // TODO: It would be nice if the CppApplication had a Provider<File> getExecutableFile() that lazily
+                // carried the output path around and dependency information
+                final LinkExecutable link = (LinkExecutable) tasks.getByName("linkTestDebug");
+                googleTest.setExecutable(link.getOutputFile());
+                googleTest.dependsOn(link);
+
+                // TODO: This should be lazy to honor changes to the build directory
+                final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
+                googleTest.setOutputDir(buildDirectory.dir("test-results/test").get().getAsFile());
+            }
+        });
+
+        tasks.getByName("check", new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(googleTest);
+            }
+        });
     }
+
 }
