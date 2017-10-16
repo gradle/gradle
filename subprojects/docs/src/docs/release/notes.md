@@ -305,26 +305,6 @@ task myTask {
 }
 ```
 
-### Calling `TaskInputs` methods with incorrect parameters
-
-`TaskInputs.file()` used to accept anything that `files()` would, and the same was true for `dir()`. Starting with Gradle 4.3 this behavior is deprecated, and only values that resolve to a single file or directory are accepted.
-
-Do not do this:
-
-```
-task myTask {
-    inputs.dir fileTree(...)
-}
-```
-
-Do this instead:
-
-```
-task myTask {
-    inputs.files fileTree(...)
-}
-```
-
 ### Deprecation of `TaskInternal.execute()`
 
 In this release we deprecate calling `TaskInternal.execute()`. Calling `task.execute()` should never be necessary.
