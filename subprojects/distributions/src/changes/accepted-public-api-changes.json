@@ -136,11 +136,6 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.createTestExecutionSpec()",
-            "acceptation": "Extracted super class out of Test which was already stable"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.setTestExecuter(org.gradle.api.internal.tasks.testing.detection.TestExecuter)",
             "acceptation": "Extracted super class out of Test which was already stable",
             "changes": [
