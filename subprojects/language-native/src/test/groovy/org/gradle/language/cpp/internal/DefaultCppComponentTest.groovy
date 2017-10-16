@@ -55,22 +55,24 @@ class DefaultCppComponentTest extends Specification {
     def "can include individual source files"() {
         def f1 = tmpDir.createFile("a.cpp")
         def f2 = tmpDir.createFile("b.c++")
+        def f3 = tmpDir.createFile("c.cc")
 
         expect:
-        component.source.from(f1, f2)
-        component.cppSource.files == [f1, f2] as Set
+        component.source.from(f1, f2, f3)
+        component.cppSource.files == [f1, f2, f3] as Set
     }
 
     def "can include source files from a directory"() {
         def d = tmpDir.createDir("dir")
         def f1 = d.createFile("a.cpp")
         def f2 = d.createFile("nested/b.cpp")
+        def f3 = d.createFile("c.cc")
         d.createFile("ignore.txt")
         d.createFile("other/ignore.txt")
 
         expect:
         component.source.from(d)
-        component.cppSource.files == [f1, f2] as Set
+        component.cppSource.files == [f1, f2, f3] as Set
     }
 
     def "uses source layout convention when no other source files specified"() {
