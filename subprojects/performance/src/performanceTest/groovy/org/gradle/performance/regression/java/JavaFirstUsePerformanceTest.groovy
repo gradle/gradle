@@ -17,7 +17,6 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -26,7 +25,6 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    @Ignore
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject
@@ -34,7 +32,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.useDaemon = false
-        runner.targetVersions = ["4.4-20171016000004+0000"]
+        runner.targetVersions = ["4.4-20171016130954+0000"]
 
         when:
         def result = runner.run()
