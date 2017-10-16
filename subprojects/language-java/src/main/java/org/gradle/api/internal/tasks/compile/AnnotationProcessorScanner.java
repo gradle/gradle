@@ -22,20 +22,17 @@ import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-import com.google.common.io.Resources;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.internal.cache.FileContentCacheFactory;
+import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 import org.gradle.util.DeprecationLogger;
 
 /**
@@ -43,7 +40,7 @@ import org.gradle.util.DeprecationLogger;
  */
 class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<Map<String, String>> {
 
-    private static final Pattern CLASSNAME = Pattern.compile("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\‌​.)+\\p{javaJavaIdent‌​ifierStart}\\p{javaJ‌​avaIdentifierPart}*");
+    private static final Pattern CLASSNAME = Pattern.compile("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\‌​.)+\\p{javaJavaIdentifierPart}\\p{javaJavaIdentifierPart}*");
 
     private static final String INCAP_DECLARATION = "INCAP";
 
@@ -63,7 +60,7 @@ class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<M
             return result;
         }
 
-        if (fileType == FileType.RegularFile && FileUtils.isJar(file.getName())) {
+        if (fileType == FileType.RegularFile && FileUtils.hasExtension(file, "jar")) {
             try {
                 ZipFile zipFile = new ZipFile(file);
                 try {
