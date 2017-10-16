@@ -16,14 +16,20 @@
 
 package org.gradle.api.tasks.testing;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
+import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -31,6 +37,8 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,10 +48,10 @@ import java.io.File;
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask {
-    protected final ListenerBroadcast<TestListener> testListenerBroadcaster;
-    protected final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    protected final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
-    protected final TestLoggingContainer testLogging;
+    private final ListenerBroadcast<TestListener> testListenerBroadcaster;
+    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
+    private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
+    private final TestLoggingContainer testLogging;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -56,6 +64,19 @@ public abstract class AbstractTestTask extends ConventionTask {
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
     }
 
+    @Internal
+    protected ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+        return testListenerBroadcaster;
+    }
+
+    @Internal
+    protected ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
+        return testOutputListenerBroadcaster;
+    }
+
+    /**
+     * @since 4.4
+     */
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
     // only way I know of to determine current log level
@@ -174,5 +195,137 @@ public abstract class AbstractTestTask extends ConventionTask {
     @Inject
     protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
+    }
+
+    protected TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
+        switch (testLogging.getExceptionFormat()) {
+            case SHORT:
+                return new ShortExceptionFormatter(testLogging);
+            case FULL:
+                return new FullExceptionFormatter(testLogging);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Adds a closure to be notified when output from the test received. A {@link TestDescriptor} and {@link TestOutputEvent} instance are
+     * passed to the closure as a parameter.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * test {
+     *    onOutput { descriptor, event -&gt;
+     *        if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *            logger.error("Test: " + descriptor + ", error: " + event.message)
+     *        }
+     *    }
+     * }
+     * </pre>
+     *
+     * @param closure The closure to call.
+     */
+    public void onOutput(Closure closure) {
+        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
+    }
+
+    /**
+     * <p>Adds a closure to be notified before a test suite is executed. A {@link TestDescriptor} instance is passed to the closure as a parameter.</p>
+     *
+     * <p>This method is also called before any test suites are executed. The provided descriptor will have a null parent suite.</p>
+     *
+     * @param closure The closure to call.
+     */
+    public void beforeSuite(Closure closure) {
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
+    }
+
+    /**
+     * <p>Adds a closure to be notified after a test suite has executed. A {@link TestDescriptor} and {@link TestResult} instance are passed to the closure as a
+     * parameter.</p>
+     *
+     * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent suite.</p>
+     *
+     * @param closure The closure to call.
+     */
+    public void afterSuite(Closure closure) {
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
+    }
+
+    /**
+     * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is passed to the closure as a parameter.
+     *
+     * @param closure The closure to call.
+     */
+    public void beforeTest(Closure closure) {
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
+    }
+
+    /**
+     * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link TestResult} instance are passed to the closure as a parameter.
+     *
+     * @param closure The closure to call.
+     */
+    public void afterTest(Closure closure) {
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
+    }
+
+    /**
+     * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
+     * </pre>
+     *
+     * For further information see {@link TestLoggingContainer}.
+     *
+     * @return this
+     */
+    @Internal
+    // TODO:LPTR Should be @Nested with @Console inside
+    public TestLoggingContainer getTestLogging() {
+        return testLogging;
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
+     *
+     * @param closure configure closure
+     */
+    public void testLogging(Closure closure) {
+        ConfigureUtil.configure(closure, testLogging);
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
+     *
+     * @param action configure action
+     * @since 3.5
+     */
+    public void testLogging(Action<? super TestLoggingContainer> action) {
+        action.execute(testLogging);
     }
 }

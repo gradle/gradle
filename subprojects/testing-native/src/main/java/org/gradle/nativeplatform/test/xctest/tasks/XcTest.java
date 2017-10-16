@@ -27,8 +27,6 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
-import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
@@ -71,6 +69,10 @@ public class XcTest extends AbstractTestTask {
         workingDir = getProject().getLayout().directoryProperty();
     }
 
+    /**
+     * {@inheritDoc}
+     * @since 4.4
+     */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
         return new XCTestTestExecutionSpec(workingDir.getAsFile().get(), testBundleDir.getAsFile().get(), getPath());
@@ -105,14 +107,11 @@ public class XcTest extends AbstractTestTask {
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
-        TestLogging levelLogging = testLogging.get(currentLevel);
+        TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-//        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
-//            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
-//        }
 
         File binaryResultsDir = getBinResultsDir();
         getProject().delete(binaryResultsDir);
@@ -130,7 +129,7 @@ public class XcTest extends AbstractTestTask {
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
+        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
         parentProgressLogger.setDescription("Test Execution");
@@ -148,8 +147,8 @@ public class XcTest extends AbstractTestTask {
             parentProgressLogger.completed();
             testExecuter = null;
             testWorkerProgressListener.completeAll();
-            testListenerBroadcaster.removeAll();
-            testOutputListenerBroadcaster.removeAll();
+            getTestListenerBroadcaster().removeAll();
+            getTestOutputListenerBroadcaster().removeAll();
             getTestListenerInternalBroadcaster().removeAll();
             outputWriter.close();
         }
@@ -186,17 +185,6 @@ public class XcTest extends AbstractTestTask {
 
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        }
-    }
-
-    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
-            case SHORT:
-                return new ShortExceptionFormatter(testLogging);
-            case FULL:
-                return new FullExceptionFormatter(testLogging);
-            default:
-                throw new AssertionError();
         }
     }
 

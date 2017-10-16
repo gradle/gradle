@@ -49,8 +49,6 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
-import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
@@ -74,13 +72,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -90,7 +86,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -228,16 +223,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     protected void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
-    }
-
-    @Internal
-    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerBroadcaster;
-    }
-
-    @Internal
-    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
-        return testOutputListenerBroadcaster;
     }
 
     /**
@@ -577,6 +562,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     * @since 4.4
+     */
+    @Incubating
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
     }
@@ -584,7 +574,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
-        TestLogging levelLogging = testLogging.get(currentLevel);
+        TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
@@ -609,7 +599,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
+        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
         parentProgressLogger.setDescription("Test Execution");
@@ -638,8 +628,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             parentProgressLogger.completed();
             testExecuter = null;
             testWorkerProgressListener.completeAll();
-            testListenerBroadcaster.removeAll();
-            testOutputListenerBroadcaster.removeAll();
+            getTestListenerBroadcaster().removeAll();
+            getTestOutputListenerBroadcaster().removeAll();
             getTestListenerInternalBroadcaster().removeAll();
             outputWriter.close();
         }
@@ -694,69 +684,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
         }
         return msg;
-    }
-
-    /**
-     * <p>Adds a closure to be notified before a test suite is executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} instance is passed to the closure as a parameter.</p>
-     *
-     * <p>This method is also called before any test suites are executed. The provided descriptor will have a null parent suite.</p>
-     *
-     * @param closure The closure to call.
-     */
-    public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
-    }
-
-    /**
-     * <p>Adds a closure to be notified after a test suite has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link TestResult} instance are passed to the closure as a
-     * parameter.</p>
-     *
-     * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent suite.</p>
-     *
-     * @param closure The closure to call.
-     */
-    public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
-    }
-
-    /**
-     * Adds a closure to be notified before a test is executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} instance is passed to the closure as a parameter.
-     *
-     * @param closure The closure to call.
-     */
-    public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
-    }
-
-    /**
-     * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link TestResult} instance are passed to the closure as a parameter.
-     *
-     * @param closure The closure to call.
-     */
-    public void afterTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
-    }
-
-    /**
-     * Adds a closure to be notified when output from the test received. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are
-     * passed to the closure as a parameter.
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * test {
-     *    onOutput { descriptor, event -&gt;
-     *        if (event.destination == TestOutputEvent.Destination.StdErr) {
-     *            logger.error("Test: " + descriptor + ", error: " + event.message)
-     *        }
-     *    }
-     * }
-     * </pre>
-     *
-     * @param closure The closure to call.
-     */
-    public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
     }
 
     /**
@@ -1167,64 +1094,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * test.testLogging {
-     *     exceptionFormat "full"
-     * }
-     * </pre>
-     *
-     * For further information see {@link TestLoggingContainer}.
-     *
-     * @return this
-     */
-    @Internal
-    // TODO:LPTR Should be @Nested with @Console inside
-    public TestLoggingContainer getTestLogging() {
-        return testLogging;
-    }
-
-    /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * // makes the standard streams (err and out) visible at console when running tests
-     * test.testLogging {
-     *    showStandardStreams = true
-     * }
-     * </pre>
-     *
-     * @param closure configure closure
-     */
-    public void testLogging(Closure closure) {
-        ConfigureUtil.configure(closure, testLogging);
-    }
-
-    /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * // makes the standard streams (err and out) visible at console when running tests
-     * test.testLogging {
-     *    showStandardStreams = true
-     * }
-     * </pre>
-     *
-     * @param action configure action
-     * @since 3.5
-     */
-    public void testLogging(Action<? super TestLoggingContainer> action) {
-        action.execute(testLogging);
-    }
-
-    /**
      * The reports that this task potentially produces.
      *
      * @return The reports that this task potentially produces
@@ -1280,18 +1149,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Incubating
     public void filter(Action<TestFilter> action) {
         action.execute(filter);
-    }
-
-    // Copied
-    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
-            case SHORT:
-                return new ShortExceptionFormatter(testLogging);
-            case FULL:
-                return new FullExceptionFormatter(testLogging);
-            default:
-                throw new AssertionError();
-        }
     }
 
     private void handleTestFailures() {
