@@ -168,6 +168,26 @@ int main(int argc, char **argv) {
         }
     }
 
+
+    TestNativeComponent getCatchTests() {
+        return new TestNativeComponent() {
+            List<SourceFile> sourceFiles = [
+                sourceFile("cpp", "test.cpp", """
+#define CATCH_CONFIG_MAIN  
+#include "catch.hpp"
+#include "hello.h"
+
+TEST_CASE("Testing sum", "[sum]") {
+  REQUIRE(sum(0, 2) == 2);
+  REQUIRE(sum(0, -2) == -2);
+  REQUIRE(sum(2, 2) == 4);
+}"""),
+            ]
+            List<SourceFile> headerFiles = [
+            ]
+        }
+    }
+
     SourceFile getBrokenFile() {
         return sourceFile("cpp", "broken.cpp", """'broken""")
     }

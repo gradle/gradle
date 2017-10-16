@@ -16,31 +16,23 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.eclipse.jgit.api.Git
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
 
 class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
-    def app = new CppHelloWorldApp()
-
-    def "can run tests"() {
-        def googleTestRepo = Git.cloneRepository().
-            setDirectory(file("googletest")).
-            setURI("https://github.com/gradle/googletest").
-            call()
-        googleTestRepo.close()
-        file("googletest/settings.gradle").assertIsFile()
-
-        settingsFile << """
-            includeBuild "googletest"
-        """
+    def "can run tests with google test"() {
+        def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'cpp-test'
+            
+            repositories {
+                maven { url "https://repo.gradle.org/gradle/repo" }
+            }
 
             dependencies {
-                testImplementation 'com.google:googletest:1.9.0'
+                testImplementation 'org.gradle:googletest:1.8.0'
             }
 
             tasks.withType(RunTestExecutable) {
@@ -59,5 +51,29 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
+    }
+
+    def "can run tests with catch"() {
+        def app = new CppHelloWorldApp()
+
+        // Download the single header
+        def url = new URL('https://raw.githubusercontent.com/philsquared/Catch/7818e2666d5cc7bb1d912acb22b68f6669b74520/single_include/catch.hpp')
+        file("src/test/headers/catch.hpp").text = url.text
+
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'cpp-test'
+
+            tasks.withType(RunTestExecutable) {
+                args "-r", "xml", "-o", "catch.xml"
+            }
+        """
+
+        app.library.writeSources(file("src/main"))
+        app.catchTests.writeSources(file("src/test"))
+
+        expect:
+        succeeds("cpptest")
+        file("build/test-results/cpptest/catch.xml").assertIsFile()
     }
 }
