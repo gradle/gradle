@@ -126,7 +126,7 @@ public class SourceFoldersCreator {
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
-        Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sourceSets);
+        Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
             List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
             for (DirectoryTree tree : sortedSourceDirs) {

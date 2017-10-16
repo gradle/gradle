@@ -61,7 +61,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
         then:
         EclipseClasspathFixture classpath = classpath('.')
-        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_used_by_scope', 'main')
+        classpath.sourceDir('src/main/java').assertHasAttribute('gradle_used_by_scope', 'main,test')
         classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 

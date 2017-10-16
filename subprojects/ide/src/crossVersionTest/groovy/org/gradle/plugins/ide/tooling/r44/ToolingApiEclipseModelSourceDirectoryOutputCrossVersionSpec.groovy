@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r43
+package org.gradle.plugins.ide.tooling.r44
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=4.3')
-@TargetGradleVersion(">=4.3")
+@ToolingApiVersion('>=4.4')
+@TargetGradleVersion(">=4.4")
 class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends ToolingApiSpecification {
 
     def "Source directories have default output"() {
