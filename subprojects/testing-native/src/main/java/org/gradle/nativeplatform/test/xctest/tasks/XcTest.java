@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
@@ -30,6 +32,7 @@ import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Map;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -90,6 +93,6 @@ public class XcTest extends AbstractTestTask {
     }
 
     @Override
-    protected void createReporting() {
+    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
     }
 }

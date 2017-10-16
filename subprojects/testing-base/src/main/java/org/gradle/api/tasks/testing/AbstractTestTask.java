@@ -25,12 +25,9 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -411,20 +408,16 @@ public abstract class AbstractTestTask extends ConventionTask {
             outputWriter.close();
         }
 
-        new TestResultSerializer(binaryResultsDir).write(results.values());
-
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
-
-        createReporting();
+        createReporting(results, testOutputStore);
 
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
     }
 
-    protected abstract void createReporting();
+    protected abstract void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore);
 
-    private void handleTestFailures() {
+    protected void handleTestFailures() {
         String message = "There were failing tests";
 
         if (getIgnoreFailures()) {

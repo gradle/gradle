@@ -33,10 +33,9 @@ import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
-import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
@@ -46,17 +45,9 @@ import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsPro
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
-import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
-import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
-import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
@@ -71,7 +62,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -80,7 +70,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -96,7 +85,6 @@ import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -563,64 +551,30 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @TaskAction
     public void executeTests() {
-        LogLevel currentLevel = determineCurrentLogLevel();
-        TestLogging levelLogging = getTestLogging().get(currentLevel);
-        TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
-        addTestListener(eventLogger);
-        addTestOutputListener(eventLogger);
-        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
-            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
-        }
-
-        File binaryResultsDir = getBinResultsDir();
-        getProject().delete(binaryResultsDir);
-        getProject().mkdir(binaryResultsDir);
-
-        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
-
-        TestOutputStore.Writer outputWriter = testOutputStore.writer();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
-
-        addTestListener(testReportDataCollector);
-        addTestOutputListener(testReportDataCollector);
-
-        TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
-        addTestListener(testCountLogger);
-
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
-
-        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
-        parentProgressLogger.setDescription("Test Execution");
-        parentProgressLogger.started();
-        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
-        getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
-
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
-
-        if (testExecuter == null) {
-            setTestExecuter(createTestExecuter());
-        }
 
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
 
-        try {
-            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
-        } finally {
-            parentProgressLogger.completed();
-            setTestExecuter(null);
-            testWorkerProgressListener.completeAll();
-            getTestListenerBroadcaster().removeAll();
-            getTestOutputListenerBroadcaster().removeAll();
-            getTestListenerInternalBroadcaster().removeAll();
-            outputWriter.close();
+        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
+            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
+        super.executeTests();
+    }
 
-        new TestResultSerializer(binaryResultsDir).write(results.values());
+    @Override
+    protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
+        return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+            getServices().get(WorkerLeaseRegistry.class),
+            getServices().get(BuildOperationExecutor.class),
+            getServices().get(StartParameter.class).getMaxWorkerCount(),
+            getServices().get(Clock.class));
+    }
+
+    @Override
+    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
+        new TestResultSerializer(getBinResultsDir()).write(results.values());
 
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
 
@@ -632,8 +586,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.isEnabled()) {
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-                        ? TestOutputAssociation.WITH_TESTCASE
-                        : TestOutputAssociation.WITH_SUITE;
+                    ? TestOutputAssociation.WITH_TESTCASE
+                    : TestOutputAssociation.WITH_SUITE;
                 Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
@@ -649,24 +603,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             testReporter = null;
             testFramework = null;
         }
-
-        if (testCountLogger.hadFailures()) {
-            handleTestFailures();
-        }
-    }
-
-    @Override
-    protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
-        return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-            getServices().get(WorkerLeaseRegistry.class),
-            getServices().get(BuildOperationExecutor.class),
-            getServices().get(StartParameter.class).getMaxWorkerCount(),
-            getServices().get(Clock.class));
-    }
-
-    @Override
-    protected void createReporting() {
-
     }
 
     private String createNoMatchingTestErrorMessage() {
@@ -1151,7 +1087,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         action.execute(filter);
     }
 
-    private void handleTestFailures() {
+    @Override
+    protected void handleTestFailures() {
         String message = "There were failing tests";
 
         DirectoryReport htmlReport = reports.getHtml();
