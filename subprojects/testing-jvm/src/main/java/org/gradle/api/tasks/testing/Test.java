@@ -26,12 +26,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
+import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -161,7 +161,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
+public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -624,6 +624,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
+    protected JvmTestExecutionSpec createTestExecutionSpec() {
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
+    }
+
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
@@ -676,7 +680,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
 
         try {
-            testExecuter.execute(this, resultProcessor);
+            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
         } finally {
             parentProgressLogger.completed();
             testExecuter = null;

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -52,7 +50,7 @@ import java.util.Deque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NativeTestExecuter implements TestExecuter {
+public class NativeTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
         return new DefaultExecHandleBuilder();
     }
@@ -77,17 +75,17 @@ public class NativeTestExecuter implements TestExecuter {
     }
 
     @Override
-    public void execute(Test testTask, TestResultProcessor testResultProcessor) {
+    public void execute(XCTestTestExecutionSpec testTestExecutionSpec, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = ((DirectoryProperty)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
-        File workingDir = ((DirectoryProperty)testTask.getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
+        File executable = testTestExecutionSpec.getTestBundleDir();
+        File workingDir = testTestExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
         Runnable detector = new NativeTestDetector(processor);
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testTestExecutionSpec.getPath(), "Gradle Test Run " + testTestExecutionSpec.getPath()).run();
     }
 
     static class NativeTestDetector implements Runnable {
