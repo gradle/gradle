@@ -17,14 +17,15 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.webapp.WebAppContext
+import spock.lang.Ignore
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -62,6 +63,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         })
     }
 
+    @Ignore
     def "resolves dependencies from external repository"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
@@ -82,6 +84,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         stopServer()
     }
 
+    @Ignore
     def "resolves dependencies from external repository (parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
