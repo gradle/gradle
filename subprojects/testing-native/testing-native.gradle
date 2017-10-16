@@ -27,7 +27,8 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':platformNative')
 useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":platformBase")
+useTestFixtures(project: ':platformBase')
+useTestFixtures(project: ':testingBase')
 
 useClassycle()
 strictCompile()
