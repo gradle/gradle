@@ -18,7 +18,7 @@ package org.gradle.api.publish.internal;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.component.ChildComponent;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -48,20 +48,16 @@ public class ProjectDependencyPublicationResolver {
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
         Set<? extends PublicationInternal> publications = publishing.getPublications().withType(PublicationInternal.class);
-        Set<SoftwareComponent> components = new HashSet<SoftwareComponent>(publications.size());
+        Set<SoftwareComponent> ignored = new HashSet<SoftwareComponent>();
         for (PublicationInternal publication : publications) {
-            if (publication.getComponent() != null) {
-                components.add(publication.getComponent());
+            if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
+                ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
+                ignored.addAll(parent.getVariants());
             }
         }
         Set<PublicationInternal> topLevel = new LinkedHashSet<PublicationInternal>();
         for (PublicationInternal publication : publications) {
-            if (publication.getComponent() == null || !(publication.getComponent() instanceof ChildComponent)) {
-                topLevel.add(publication);
-                continue;
-            }
-            ChildComponent childComponent = (ChildComponent) publication.getComponent();
-            if (!components.contains(childComponent.getOwner())) {
+            if (publication.getComponent() == null || !ignored.contains(publication.getComponent())) {
                 topLevel.add(publication);
             }
         }

@@ -27,5 +27,5 @@ import java.util.Set;
  */
 @Incubating
 public interface ComponentWithVariants {
-    Set<? extends ChildComponent> getVariants();
+    Set<? extends SoftwareComponent> getVariants();
 }

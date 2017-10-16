@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.ChildComponent;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
-    private final Set<ChildComponent> variants = new HashSet<ChildComponent>();
+    private final Set<SoftwareComponent> variants = new HashSet<SoftwareComponent>();
     private final Set<Child> visible = new LinkedHashSet<Child>();
     private final String name;
     private final Usage usage;
@@ -64,7 +64,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     }
 
     @Override
-    public Set<? extends ChildComponent> getVariants() {
+    public Set<? extends SoftwareComponent> getVariants() {
         return variants;
     }
 
@@ -72,7 +72,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
      * Adds a child variant that is visible to consumers.
      * TODO - remove the coordinates. Needs better support from the publishing infrastructure
      */
-    public void addVariant(String group, String module, String version, ChildComponent variant) {
+    public void addVariant(String group, String module, String version, SoftwareComponent variant) {
         variants.add(variant);
         visible.add(new Child(group, module, version, (SoftwareComponentInternal) variant));
     }
@@ -81,7 +81,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
      * Adds a child variant that is not visible to consumers.
      * TODO - remove this. Needs better support for declaring the attributes of a variant so they can be included in the published metadata
      */
-    public void addNonVisibleVariant(ChildComponent variant) {
+    public void addNonVisibleVariant(SoftwareComponent variant) {
         variants.add(variant);
     }
 

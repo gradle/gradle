@@ -220,7 +220,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeRuntimeVariant debugVariant = new NativeRuntimeVariant("debug", mainVariant, linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
+                                NativeRuntimeVariant debugVariant = new NativeRuntimeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
                                 // TODO - make release variant visible as well
                                 mainVariant.addVariant(publication.getGroupId(), publication.getArtifactId(), publication.getVersion(), debugVariant);
                                 publication.from(debugVariant);
@@ -233,7 +233,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeRuntimeVariant releaseVariant = new NativeRuntimeVariant("release", mainVariant, linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
+                                NativeRuntimeVariant releaseVariant = new NativeRuntimeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
                                 // TODO - make release variant visible as well. Needs better support in the dependency resolution engine and module metadata
                                 mainVariant.addNonVisibleVariant(releaseVariant);
                                 publication.from(releaseVariant);

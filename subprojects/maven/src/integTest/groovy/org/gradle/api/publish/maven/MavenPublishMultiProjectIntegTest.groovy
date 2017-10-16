@@ -102,15 +102,15 @@ Found the following publications in project ':project3':
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
         createBuildScripts("""
 // TODO - replace this with a public API when available
-class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ChildComponent {
+class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ComponentWithVariants {
     String name = 'extra'
     Set usages = []
-    SoftwareComponent owner
+    Set variants = []
 }
 
 project(":project3") {
-    def c1 = new ExtraComp(owner: components.java)
-    def c2 = new ExtraComp(owner: c1)
+    def c1 = new ExtraComp()
+    def c2 = new ExtraComp(variants: [c1, components.java])
     publishing {
         publications {
             extra1(MavenPublication) {
@@ -121,9 +121,9 @@ project(":project3") {
             }
             extra2(MavenPublication) {
                 from c2
-                groupId "extra.group"
-                artifactId "extra2"
-                version "extra"
+                groupId "custom"
+                artifactId "custom3"
+                version "456"
             }
         }
     }
@@ -134,7 +134,7 @@ project(":project3") {
         succeeds "publish"
 
         then:
-        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
+        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0", "custom:custom3:456")
     }
 
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {

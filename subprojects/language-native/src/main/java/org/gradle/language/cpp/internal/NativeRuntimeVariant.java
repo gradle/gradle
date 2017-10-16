@@ -20,32 +20,22 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.ChildComponent;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 
 import java.util.Set;
 
-public class NativeRuntimeVariant extends NativeVariant implements ChildComponent, ComponentWithVariants {
-    private final SoftwareComponent parent;
-
-    public NativeRuntimeVariant(String name, SoftwareComponent parent, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+public class NativeRuntimeVariant extends NativeVariant implements SoftwareComponent, ComponentWithVariants {
+    public NativeRuntimeVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
         super(name, usage, artifacts, dependencies);
-        this.parent = parent;
     }
 
-    public NativeRuntimeVariant(String name, SoftwareComponent parent, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
+    public NativeRuntimeVariant(String name, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
         super(name, linkUsage, linkElements, runtimeUsage, runtimeElements);
-        this.parent = parent;
     }
 
     @Override
-    public SoftwareComponent getOwner() {
-        return parent;
-    }
-
-    @Override
-    public Set<? extends ChildComponent> getVariants() {
+    public Set<SoftwareComponent> getVariants() {
         return ImmutableSet.of();
     }
 }
