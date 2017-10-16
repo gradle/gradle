@@ -8,7 +8,7 @@ The module metadata file is a JSON file that is intended to be published alongsi
 
 The module metadata file is intended to be machine generated rather than written by a human, but is intended to be human readable.
 
-The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example. Version 0.2 intentionally does not satisfy this, and later versions will add the missing data.
+The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example. Version 0.2 does not satisfy this goal, and later versions will add the missing data.
 
 In version 0.2, the module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings will be added by later versions.
 
@@ -92,6 +92,9 @@ This value must contain an array with zero or more elements. Each element must b
             },
             "files": [
                 { "name": "mylib-api.jar", "url": "mylib-api-1.2.jar" }
+            ],
+            "dependencies": [
+                { "group": "some.group", "module": "other-lib", "version": "3.4" }
             ]
         },
         {
@@ -101,6 +104,9 @@ This value must contain an array with zero or more elements. Each element must b
             },
             "files": [
                 { "name": "mylib.jar", "url": "mylib-1.2.jar" }
+            ],
+            "dependencies": [
+                { "group": "some.group", "module": "other-lib", "version": "3.4" }
             ]
         }
     ]
