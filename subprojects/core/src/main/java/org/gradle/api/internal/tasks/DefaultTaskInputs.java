@@ -31,6 +31,8 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -110,14 +112,18 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return file(new StaticValue(path));
+                return fileInternal(new StaticValue(path), RUNTIME_INPUT_FILE_VALIDATOR);
             }
         });
     }
 
     @Override
     public TaskInputFilePropertyBuilderInternal file(ValidatingValue value) {
-        return addSpec(value, INPUT_FILE_VALIDATOR);
+        return fileInternal(value, INPUT_FILE_VALIDATOR);
+    }
+
+    private TaskInputFilePropertyBuilderInternal fileInternal(ValidatingValue value, ValidationAction validator) {
+        return addSpec(value, validator);
     }
 
     @Override
@@ -125,15 +131,19 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return dir(new StaticValue(dirPath));
+                return dir(new StaticValue(dirPath), RUNTIME_INPUT_DIRECTORY_VALIDATOR);
             }
         });
     }
 
     @Override
     public TaskInputFilePropertyBuilderInternal dir(final ValidatingValue dirPath) {
+        return dir(dirPath, INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private TaskInputFilePropertyBuilderInternal dir(ValidatingValue dirPath, ValidationAction validator) {
         FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return addSpec(new FileTreeValue(dirPath, fileTree), INPUT_DIRECTORY_VALIDATOR);
+        return addSpec(new FileTreeValue(dirPath, fileTree), validator);
     }
 
     @Override
@@ -206,7 +216,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public TaskInputPropertyBuilder property(final String name, @Nullable final Object value) {
         return taskMutator.mutate("TaskInputs.property(String, Object)", new Callable<TaskInputPropertyBuilder>() {
             @Override
-            public TaskInputPropertyBuilder call() throws Exception {
+            public TaskInputPropertyBuilder call() {
                 return property(name, new StaticValue(value));
             }
         });
@@ -362,6 +372,24 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             }
         }
     };
+
+    private static final ValidationAction RUNTIME_INPUT_FILE_VALIDATOR = wrapRuntimeApiValidator("file", INPUT_FILE_VALIDATOR);
+
+    private static final ValidationAction RUNTIME_INPUT_DIRECTORY_VALIDATOR = wrapRuntimeApiValidator("dir", INPUT_DIRECTORY_VALIDATOR);
+
+    private static ValidationAction wrapRuntimeApiValidator(final String method, final ValidationAction validator) {
+        return new ValidationAction() {
+            @Override
+            public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+                try {
+                    validator.validate(propertyName, value, context, severity);
+                } catch (UnsupportedNotationException ex) {
+                    DeprecationLogger.nagUserOfDeprecated("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead");
+                }
+            }
+        };
+    }
+
 
     private static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);
