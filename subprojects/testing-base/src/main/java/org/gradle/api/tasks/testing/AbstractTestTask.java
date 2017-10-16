@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -42,6 +43,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -63,12 +65,11 @@ import java.util.Map;
  * Abstract class for all test task.
  * @since 4.4
  */
-public abstract class AbstractTestTask extends ConventionTask {
+public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
-    protected TestExecuter testExecuter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -92,17 +93,11 @@ public abstract class AbstractTestTask extends ConventionTask {
     }
 
     /**
-     * Sets the testExecuter property.
+     * Creates test execution specification. For internal use only.
      *
-     * @since 4.2
-     */
-    protected void setTestExecuter(TestExecuter testExecuter) {
-        this.testExecuter = testExecuter;
-    }
-
-    /**
      * @since 4.4
      */
+    @Incubating
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
     // only way I know of to determine current log level
@@ -355,6 +350,12 @@ public abstract class AbstractTestTask extends ConventionTask {
         action.execute(testLogging);
     }
 
+    /**
+     * Creates test executer. For internal use only.
+     *
+     * @since 4.4
+     */
+    @Incubating
     protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
 
     @TaskAction
@@ -392,21 +393,20 @@ public abstract class AbstractTestTask extends ConventionTask {
 
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
 
-        if (testExecuter == null) {
-            testExecuter = createTestExecuter();
-        }
+        TestExecuter testExecuter = createTestExecuter();
 
         try {
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);
         } finally {
             parentProgressLogger.completed();
-            testExecuter = null;
             testWorkerProgressListener.completeAll();
             getTestListenerBroadcaster().removeAll();
             getTestOutputListenerBroadcaster().removeAll();
             getTestListenerInternalBroadcaster().removeAll();
             outputWriter.close();
         }
+
+        new TestResultSerializer(binaryResultsDir).write(results.values());
 
         createReporting(results, testOutputStore);
 
@@ -415,8 +415,18 @@ public abstract class AbstractTestTask extends ConventionTask {
         }
     }
 
+    /**
+     * Creates reporting. For internal use only.
+     * @since 4.4
+     */
+    @Incubating
     protected abstract void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore);
 
+    /**
+     * Handle test failures. For internal use only.
+     * @since 4.4
+     */
+    @Incubating
     protected void handleTestFailures() {
         String message = "There were failing tests";
 

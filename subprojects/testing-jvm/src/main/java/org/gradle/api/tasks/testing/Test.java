@@ -45,7 +45,6 @@ import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsPro
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.reporting.DirectoryReport;
@@ -60,7 +59,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
@@ -138,7 +136,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
+public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
 
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
@@ -152,6 +150,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private int maxParallelForks = 1;
     private TestReporter testReporter;
     private final TestTaskReports reports;
+    private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -565,17 +564,19 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Override
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
-        return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-            getServices().get(WorkerLeaseRegistry.class),
-            getServices().get(BuildOperationExecutor.class),
-            getServices().get(StartParameter.class).getMaxWorkerCount(),
-            getServices().get(Clock.class));
+        if (testExecuter == null) {
+            return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(BuildOperationExecutor.class),
+                getServices().get(StartParameter.class).getMaxWorkerCount(),
+                getServices().get(Clock.class));
+        } else {
+            return testExecuter;
+        }
     }
 
     @Override
     protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
-        new TestResultSerializer(getBinResultsDir()).write(results.values());
-
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
 
         try {
@@ -1108,5 +1109,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         } else {
             throw new GradleException(message);
         }
+    }
+
+    /**
+     * Sets the testExecuter property.
+     *
+     * @since 4.2
+     */
+    void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
+        this.testExecuter = testExecuter;
     }
 }
