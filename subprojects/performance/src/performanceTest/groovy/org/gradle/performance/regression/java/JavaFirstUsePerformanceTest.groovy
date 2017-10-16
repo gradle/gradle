@@ -32,7 +32,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.useDaemon = false
-        runner.targetVersions = ["4.3-20171009150001+0000"]
+        runner.targetVersions = ["4.4-20171016000004+0000"]
 
         when:
         def result = runner.run()
