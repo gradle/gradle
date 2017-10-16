@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
+ * Abstract class for all test task.
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask {
@@ -46,9 +47,6 @@ public abstract class AbstractTestTask extends ConventionTask {
     private File binResultsDir;
     private boolean ignoreFailures;
 
-    /**
-     *
-     */
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
@@ -161,6 +159,7 @@ public abstract class AbstractTestTask extends ConventionTask {
     /**
      * {@inheritDoc}
      */
+    @Internal
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }

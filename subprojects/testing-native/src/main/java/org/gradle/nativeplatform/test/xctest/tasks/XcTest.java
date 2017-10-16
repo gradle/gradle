@@ -64,10 +64,6 @@ public class XcTest extends AbstractTestTask {
     private final DirectoryProperty workingDir;
     private final ObjectFactory objectFactory;
 
-    /**
-     *
-     * @param objectFactory
-     */
     @Inject
     public XcTest(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
@@ -80,59 +76,32 @@ public class XcTest extends AbstractTestTask {
         return new XCTestTestExecutionSpec(workingDir.getAsFile().get(), testBundleDir.getAsFile().get(), getPath());
     }
 
-    /**
-     *
-     * @return
-     */
     @InputDirectory
     public File getTestBundleDir() {
         return testBundleDir.getAsFile().get();
     }
 
-    /**
-     *
-     * @param testBundleDir
-     */
     public void setTestBundleDir(File testBundleDir) {
         this.testBundleDir.set(testBundleDir);
     }
 
-    /**
-     *
-     * @param testBundleDir
-     */
     public void setTestBundleDir(Provider<? extends Directory> testBundleDir) {
         this.testBundleDir.set(testBundleDir);
     }
 
-    /**
-     *
-     * @return
-     */
     @Internal
     public File getWorkingDir() {
         return workingDir.getAsFile().get();
     }
 
-    /**
-     *
-     * @param workingDir
-     */
     public void setWorkingDir(File workingDir) {
         this.workingDir.set(workingDir);
     }
 
-    /**
-     *
-     * @param workingDir
-     */
     public void setWorkingDir(Provider<? extends Directory> workingDir) {
         this.workingDir.set(workingDir);
     }
 
-    /**
-     *
-     */
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
