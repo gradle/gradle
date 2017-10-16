@@ -22,9 +22,11 @@ dependencies {
     compile project(':platformBase')
 
     compile libraries.kryo
+
+    testFixturesCompile project(':internalIntegTesting')
 }
 
 useTestFixtures()
 useTestFixtures(project: ':messaging')
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":logging")
+useTestFixtures(project: ':platformBase')
+useTestFixtures(project: ':logging')
