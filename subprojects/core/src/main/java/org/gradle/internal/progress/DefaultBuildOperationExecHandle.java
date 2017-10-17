@@ -58,17 +58,17 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
     @Override
     public BuildOperationExecHandle startChild(BuildOperationDescriptor.Builder descriptionBuilder) {
 
-            BuildOperationDescriptor descriptor = createChildDescriptor(descriptionBuilder);
-            DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
+        BuildOperationDescriptor descriptor = createChildDescriptor(descriptionBuilder);
+        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
 
-            assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
 
-            childOperation.setRunning(true);
-            listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
-            ProgressLogger progressLogger = createProgressLogger(childOperation);
+        childOperation.setRunning(true);
+        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
+        ProgressLogger progressLogger = createProgressLogger(childOperation);
 //            LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
 
-            return new DefaultBuildOperationExecHandle(buildOperationIdFactory, progressLoggerFactory, listener, clock, descriptor, parent, childOperation, progressLogger);
+        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, progressLoggerFactory, listener, clock, descriptor, parent, childOperation, progressLogger);
 //            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
 //
 //            progressLogger.completed(context.status, context.failure != null);
@@ -85,6 +85,27 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
 
     }
 
+    @Override
+    public void runChild(RunnableBuildOperation buildOperation) {
+
+        BuildOperationDescriptor descriptor = createChildDescriptor(buildOperation.description());
+        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
+
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
+
+        childOperation.setRunning(true);
+        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
+        DefaultBuildOperationExecutor.DefaultBuildOperationContext context = new DefaultBuildOperationExecutor.DefaultBuildOperationContext();
+        try {
+            runChild(buildOperation);
+        } catch (Throwable t) {
+            context.thrown(t);
+        } finally {
+            listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+            currentOperation.setRunning(false);
+        }
+    }
+
 
     public void failed(Throwable t) {
         context.failed(t);
@@ -94,7 +115,7 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
 
     /**
      * TODO check if all childs have finished too
-     * */
+     */
     private void doFinish(Object result, Throwable failure) {
         listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), clock.getCurrentTime(), failure, result));
 

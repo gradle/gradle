@@ -20,8 +20,10 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecHandle;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 
@@ -44,9 +46,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     @Override
     public synchronized void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
         if (testDescriptor.getParent() != null) {
-            System.out.println("TestListenerBuildOperationAdapter.started");
-            System.out.println("testDescriptor.getName() = " + testDescriptor.getName());
-
             BuildOperationExecHandle parentOperationExecHandle = runningTests.get(testDescriptor.getParent());
             BuildOperationDescriptor.Builder description = BuildOperationDescriptor.displayName(testDescriptor.getName()).details(new TestBuildOperationType.Details() {
                 @Override
@@ -75,7 +74,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 //                description.parent(buildOperationExecutor.getCurrentOperation());
                 BuildOperationExecHandle handle = buildOperationExecutor.start(description);
                 runningTests.put(testDescriptor, handle);
-
             } else {
                 BuildOperationExecHandle handle = parentOperationExecHandle.startChild(description);
                 runningTests.put(testDescriptor, handle);
@@ -86,18 +84,43 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     @Override
     public synchronized void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         if (testDescriptor.getParent() != null) {
-            System.out.println("TestListenerBuildOperationAdapter.completed");
-            System.out.println("testDescriptor.getName() = " + testDescriptor.getName());
             BuildOperationExecHandle buildOperationExecHandle = runningTests.remove(testDescriptor);
             buildOperationExecHandle.finish(new BuildOperationTestResult(testResult));
         }
     }
 
     @Override
-    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
+    public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         if (testDescriptor.getParent() != null) {
+            BuildOperationExecHandle buildOperationExecHandle = runningTests.get(testDescriptor);
+            buildOperationExecHandle.runChild(new RunnableBuildOperation(){
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(testDescriptor.getName()).details(new TestOutputBuildOperationType.Details(){});
+                }
+
+                @Override
+                public void run(BuildOperationContext context) {
+                    context.setResult(new DefaultTestOutputBuildOperationResult(event));
+                }
+            });
+
+
 //            BuildOperationExecHandle buildOperationExecHandle = runningTests.remove(testDescriptor);
 //            buildOperationExecHandle.finish(new BuildOperationTestResult(testDescriptor));
+        }
+    }
+
+    private class DefaultTestOutputBuildOperationResult implements TestOutputBuildOperationType.Result{
+        private final TestOutputEvent event;
+
+        public DefaultTestOutputBuildOperationResult(TestOutputEvent event){
+            this.event = event;
+        }
+
+        @Override
+        public TestOutputEvent getOutput() {
+            return event;
         }
     }
 }

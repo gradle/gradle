@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.api.tasks.testing;
 
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationType;
 
-public interface BuildOperationExecHandle {
-    void finish(Object result);
+/**
+ * Outputs of a Test.
+ */
+public class TestOutputBuildOperationType implements BuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
 
-    BuildOperationExecHandle startChild(BuildOperationDescriptor.Builder description);
+    /**
+     * Details of a test output
+     */
+    public interface Details {
+    }
 
-    void runChild(RunnableBuildOperation buildOperation);
+    /**
+     * The output of a test
+     */
+    public interface Result {
+        TestOutputEvent getOutput();
+    }
 }
