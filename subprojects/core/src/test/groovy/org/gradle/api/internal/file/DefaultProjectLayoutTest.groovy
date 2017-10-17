@@ -45,7 +45,7 @@ class DefaultProjectLayoutTest extends Specification {
 
     def "can resolve directory relative to project directory"() {
         def pathProvider = Stub(Provider)
-        _ * pathProvider.get() >>> ["a", "b"]
+        _ * pathProvider.getOrNull() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
         expect:
@@ -125,7 +125,7 @@ class DefaultProjectLayoutTest extends Specification {
 
     def "can create directory var"() {
         def pathProvider = Stub(Provider)
-        _ * pathProvider.get() >> { "../other-dir" }
+        _ * pathProvider.getOrNull() >> { "../other-dir" }
         _ * pathProvider.present >> true
         def otherDir = tmpDir.file("other-dir")
 
@@ -394,8 +394,8 @@ class DefaultProjectLayoutTest extends Specification {
         tree.files
 
         then:
-        def e5 = thrown(IllegalStateException)
-        e5.message == 'No value has been specified for this provider.'
+        def e5 = thrown(IllegalArgumentException)
+        e5.message == "Cannot convert path to File. path='value: null'"
     }
 
     def "cannot set the value of a directory var using incompatible type"() {

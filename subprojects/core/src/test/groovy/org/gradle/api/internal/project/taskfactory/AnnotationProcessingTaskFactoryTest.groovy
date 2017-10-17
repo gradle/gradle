@@ -210,6 +210,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDirs                | 'output-dirs'
         TaskWithOptionalNestedBean                | 'bean'
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
+        TaskWithOptionalInputFileAsProvider       | 'input-file'
     }
 
     def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
@@ -270,16 +271,17 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "No value has been specified for property '$property'.")
 
         where:
-        type                | property
-        TaskWithInputFile   | 'inputFile'
-        TaskWithOutputFile  | 'outputFile'
-        TaskWithOutputFiles | 'outputFiles'
-        TaskWithInputFiles  | 'input'
-        TaskWithOutputDir   | 'outputDir'
-        TaskWithOutputDirs  | 'outputDirs'
-        TaskWithInputDir    | 'inputDir'
-        TaskWithInput       | 'inputValue'
-        TaskWithNestedBean  | 'bean.inputFile'
+        type                        | property
+        TaskWithInputFile           | 'inputFile'
+        TaskWithOutputFile          | 'outputFile'
+        TaskWithOutputFiles         | 'outputFiles'
+        TaskWithInputFiles          | 'input'
+        TaskWithOutputDir           | 'outputDir'
+        TaskWithOutputDirs          | 'outputDirs'
+        TaskWithInputDir            | 'inputDir'
+        TaskWithInput               | 'inputValue'
+        TaskWithNestedBean          | 'bean.inputFile'
+        TaskWithInputFileAsProvider | 'inputFile'
     }
 
     def validationActionFailsWhenSpecifiedOutputFileIsADirectory() {

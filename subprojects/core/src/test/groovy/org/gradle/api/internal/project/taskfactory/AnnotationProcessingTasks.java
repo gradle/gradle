@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -182,6 +183,22 @@ public class AnnotationProcessingTasks {
 
         @InputFile
         public File getInputFile() {
+            return inputFile;
+        }
+    }
+
+    public static class TaskWithInputFileAsProvider extends TaskWithAction {
+        RegularFileVar inputFile;
+
+        public TaskWithInputFileAsProvider(File inputFile) {
+            this.inputFile = newInputFile();
+            if (inputFile != null) {
+                this.inputFile.set(inputFile);
+            }
+        }
+
+        @InputFile
+        public RegularFileVar getInputFile() {
             return inputFile;
         }
     }
@@ -392,6 +409,20 @@ public class AnnotationProcessingTasks {
         @org.gradle.api.tasks.Optional
         public File getInputFile() {
             return null;
+        }
+    }
+
+    public static class TaskWithOptionalInputFileAsProvider extends TaskWithAction {
+        RegularFileVar inputFile;
+
+        public TaskWithOptionalInputFileAsProvider() {
+            inputFile = newInputFile();
+        }
+
+        @InputFile
+        @org.gradle.api.tasks.Optional
+        public RegularFileVar getInputFile() {
+            return inputFile;
         }
     }
 
