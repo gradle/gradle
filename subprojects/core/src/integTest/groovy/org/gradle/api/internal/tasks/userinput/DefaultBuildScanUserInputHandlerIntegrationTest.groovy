@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.userinput
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.junit.Ignore
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
