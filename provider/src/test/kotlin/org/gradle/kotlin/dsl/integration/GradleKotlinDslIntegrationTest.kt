@@ -330,7 +330,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        withSettings("include(arrayOf(\"sub-project\"))")
+        withSettings("include(\"sub-project\")")
 
         withBuildScriptIn("sub-project", """
             task("compute") {
