@@ -169,7 +169,6 @@ public class NativeTestExecuter implements TestExecuter<XCTestTestExecutionSpec>
 
         @Override
         public void text(String text) {
-            System.out.print(text);
             if (text.startsWith("Test Suite")) {
                 Matcher testSuiteMatcher = TEST_SUITE_NAME_PATTERN.matcher(text);
                 if (!testSuiteMatcher.find()) {

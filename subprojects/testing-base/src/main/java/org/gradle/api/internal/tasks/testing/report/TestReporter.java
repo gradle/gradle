@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Test execution
-sourceCompatibility = 1.6
+package org.gradle.api.internal.tasks.testing.report;
 
-dependencies {
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':platformBase')
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 
-    compile libraries.kryo
+import java.io.File;
 
-    testFixturesCompile project(':internalIntegTesting')
+public interface TestReporter {
+    void generateReport(TestResultsProvider testResultsProvider, File reportDir);
 }
-
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':logging')
-useTestFixtures(project: ':baseServices')

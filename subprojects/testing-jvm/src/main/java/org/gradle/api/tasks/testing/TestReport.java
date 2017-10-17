@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
+import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;

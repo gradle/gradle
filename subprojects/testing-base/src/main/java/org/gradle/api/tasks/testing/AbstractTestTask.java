@@ -21,14 +21,20 @@ import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -36,16 +42,21 @@ import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
+import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
+import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -53,6 +64,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ConfigureUtil;
 
@@ -66,10 +78,12 @@ import java.util.Map;
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
+    protected final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
+    protected TestReporter testReporter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -80,6 +94,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
+
+        reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
+        reports.getJunitXml().setEnabled(true);
+        reports.getHtml().setEnabled(true);
     }
 
     @Internal
@@ -90,6 +108,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Internal
     protected ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
         return testOutputListenerBroadcaster;
+    }
+
+    @Inject
+    protected InetAddressFactory getInetAddressFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * ATM. for testing only
+     */
+    void setTestReporter(TestReporter testReporter) {
+        this.testReporter = testReporter;
     }
 
     /**
@@ -415,12 +445,67 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
+
+    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
+
+        try {
+            if (testReporter == null) {
+                testReporter = new DefaultTestReport(getBuildOperationExecutor());
+            }
+
+            JUnitXmlReport junitXml = reports.getJunitXml();
+            if (junitXml.isEnabled()) {
+                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
+                    ? TestOutputAssociation.WITH_TESTCASE
+                    : TestOutputAssociation.WITH_SUITE;
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
+                binary2JUnitXmlReportGenerator.generate();
+            }
+
+            DirectoryReport html = reports.getHtml();
+            if (!html.isEnabled()) {
+                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+            } else {
+                testReporter.generateReport(testResultsProvider, html.getDestination());
+            }
+        } finally {
+            CompositeStoppable.stoppable(testResultsProvider).stop();
+            testReporter = null;
+        }
+    }
+
     /**
-     * Creates reporting. For internal use only.
-     * @since 4.4
+     * The reports that this task potentially produces.
+     *
+     * @return The reports that this task potentially produces
      */
-    @Incubating
-    protected abstract void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore);
+    @Nested
+    public TestTaskReports getReports() {
+        return reports;
+    }
+
+    /**
+     * Configures the reports that this task potentially produces.
+     *
+     * @param closure The configuration
+     * @return The reports that this task potentially produces
+     */
+    public TestTaskReports reports(Closure closure) {
+        return reports(new ClosureBackedAction<TestTaskReports>(closure));
+    }
+
+    /**
+     * Configures the reports that this task potentially produces.
+     *
+     *
+     * @param configureAction The configuration
+     * @return The reports that this task potentially produces
+     */
+    public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
+        configureAction.execute(reports);
+        return reports;
+    }
 
     /**
      * Handle test failures. For internal use only.

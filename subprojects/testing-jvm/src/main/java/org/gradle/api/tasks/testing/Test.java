@@ -25,12 +25,10 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -38,14 +36,6 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
-import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
-import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
@@ -64,13 +54,11 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.JavaForkOptions;
@@ -148,8 +136,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
-    private TestReporter testReporter;
-    private final TestTaskReports reports;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -158,16 +144,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setEnableAssertions(true);
         Instantiator instantiator = getInstantiator();
 
-        reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
-        reports.getJunitXml().setEnabled(true);
-        reports.getHtml().setEnabled(true);
-
         filter = instantiator.newInstance(DefaultTestFilter.class);
-    }
-
-    @Inject
-    protected InetAddressFactory getInetAddressFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -193,13 +170,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Inject
     protected ModuleRegistry getModuleRegistry() {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * ATM. for testing only
-     */
-    void setTestReporter(TestReporter testReporter) {
-        this.testReporter = testReporter;
     }
 
     /**
@@ -559,7 +529,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
             addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
-        super.executeTests();
+
+        try {
+            super.executeTests();
+        } finally {
+            testFramework = null;
+        }
     }
 
     @Override
@@ -572,37 +547,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 getServices().get(Clock.class));
         } else {
             return testExecuter;
-        }
-    }
-
-    @Override
-    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
-
-        try {
-            if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
-            }
-
-            JUnitXmlReport junitXml = reports.getJunitXml();
-            if (junitXml.isEnabled()) {
-                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-                    ? TestOutputAssociation.WITH_TESTCASE
-                    : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
-                binary2JUnitXmlReportGenerator.generate();
-            }
-
-            DirectoryReport html = reports.getHtml();
-            if (!html.isEnabled()) {
-                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-            } else {
-                testReporter.generateReport(testResultsProvider, html.getDestination());
-            }
-        } finally {
-            CompositeStoppable.stoppable(testResultsProvider).stop();
-            testReporter = null;
-            testFramework = null;
         }
     }
 
@@ -1031,41 +975,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * The reports that this task potentially produces.
-     *
-     * @return The reports that this task potentially produces
-     */
-    @Nested
-    @Override
-    public TestTaskReports getReports() {
-        return reports;
-    }
-
-    /**
-     * Configures the reports that this task potentially produces.
-     *
-     * @param closure The configuration
-     * @return The reports that this task potentially produces
-     */
-    @Override
-    public TestTaskReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<TestTaskReports>(closure));
-    }
-
-    /**
-     * Configures the reports that this task potentially produces.
-     *
-     *
-     * @param configureAction The configuration
-     * @return The reports that this task potentially produces
-     */
-    @Override
-    public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
-        configureAction.execute(reports);
-        return reports;
-    }
-
-    /**
      * Allows filtering tests for execution.
      *
      * @return filter object
@@ -1092,12 +1001,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected void handleTestFailures() {
         String message = "There were failing tests";
 
-        DirectoryReport htmlReport = reports.getHtml();
+        DirectoryReport htmlReport = getReports().getHtml();
         if (htmlReport.isEnabled()) {
             String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
             message = message.concat(". See the report at: " + reportUrl);
         } else {
-            DirectoryReport junitXmlReport = reports.getJunitXml();
+            DirectoryReport junitXmlReport = getReports().getJunitXml();
             if (junitXmlReport.isEnabled()) {
                 String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
                 message = message.concat(". See the results at: " + resultsUrl);

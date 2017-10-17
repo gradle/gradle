@@ -33,7 +33,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
+import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.internal.work.WorkerLeaseRegistry

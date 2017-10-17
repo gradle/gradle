@@ -91,8 +91,4 @@ public class XcTest extends AbstractTestTask {
     protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
         return objectFactory.newInstance(NativeTestExecuter.class);
     }
-
-    @Override
-    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
-    }
 }

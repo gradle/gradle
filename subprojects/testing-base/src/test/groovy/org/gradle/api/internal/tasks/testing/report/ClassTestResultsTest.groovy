@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Test execution
-sourceCompatibility = 1.6
+package org.gradle.api.internal.tasks.testing.report
 
-dependencies {
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':platformBase')
+import spock.lang.Specification
 
-    compile libraries.kryo
-
-    testFixturesCompile project(':internalIntegTesting')
+class ClassTestResultsTest extends Specification {
+    def determinesSimpleName() {
+        expect:
+        new ClassTestResults(1, 'org.gradle.Test', null).simpleName == 'Test'
+        new ClassTestResults(2, 'Test', null).simpleName == 'Test'
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':logging')
-useTestFixtures(project: ':baseServices')
