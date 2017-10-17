@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
@@ -61,6 +62,7 @@ class DefaultSettingsTest {
     ScriptFileResolver scriptFileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
+    ScriptHandler settingsScriptHandler
     DefaultPluginManager pluginManager
 
     @Before
@@ -79,6 +81,7 @@ class DefaultSettingsTest {
         scriptFileResolver = context.mock(ScriptFileResolver.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
+        settingsScriptHandler = context.mock(ScriptHandler.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
@@ -108,7 +111,8 @@ class DefaultSettingsTest {
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
         settings = classGenerator.newInstance(DefaultSettings, serviceRegistryFactory,
-                gradleMock, classLoaderScope, rootClassLoaderScope, settingsDir, scriptSourceMock, startParameter);
+                gradleMock, classLoaderScope, rootClassLoaderScope, settingsScriptHandler,
+                settingsDir, scriptSourceMock, startParameter);
     }
 
     @Test
@@ -122,6 +126,7 @@ class DefaultSettingsTest {
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
         assertEquals(settings.rootProject.buildFileName, Project.DEFAULT_BUILD_FILE);
         assertSame(gradleMock, settings.gradle)
+        assertSame(settingsScriptHandler, settings.buildscript)
     }
 
     @Test

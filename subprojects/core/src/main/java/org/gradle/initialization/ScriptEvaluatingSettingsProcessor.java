@@ -17,11 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -37,17 +35,14 @@ import java.util.Map;
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScriptEvaluatingSettingsProcessor.class);
 
-    private final ScriptHandlerFactory scriptHandlerFactory;
     private final SettingsFactory settingsFactory;
     private final IGradlePropertiesLoader propertiesLoader;
     private final ScriptPluginFactory configurerFactory;
 
     public ScriptEvaluatingSettingsProcessor(ScriptPluginFactory configurerFactory,
-                                             ScriptHandlerFactory scriptHandlerFactory,
                                              SettingsFactory settingsFactory,
                                              IGradlePropertiesLoader propertiesLoader) {
         this.configurerFactory = configurerFactory;
-        this.scriptHandlerFactory = scriptHandlerFactory;
         this.settingsFactory = settingsFactory;
         this.propertiesLoader = propertiesLoader;
     }
@@ -68,8 +63,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private void applySettingsScript(SettingsLocation settingsLocation, final SettingsInternal settings) {
         ScriptSource settingsScriptSource = settingsLocation.getSettingsScriptSource();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(settingsScriptSource, settingsClassLoaderScope);
-        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, settingsClassLoaderScope, settings.getRootClassLoaderScope(), true);
+        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, settings.getBuildscript(), settingsClassLoaderScope, settings.getRootClassLoaderScope(), true);
         configurer.apply(settings);
     }
 

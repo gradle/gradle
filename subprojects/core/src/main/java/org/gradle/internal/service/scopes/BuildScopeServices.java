@@ -352,10 +352,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
                     scriptPluginFactory,
-                    scriptHandlerFactory,
                     new SettingsFactory(
                         instantiator,
-                        serviceRegistryFactory
+                        serviceRegistryFactory,
+                        scriptHandlerFactory
                     ),
                     propertiesLoader
                 ),
