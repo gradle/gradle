@@ -16,22 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
-import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppExecutable;
 
-/**
- * An C++ test suite.
- *
- * @since 4.4
- */
-@Incubating
-public interface CppTestSuite extends CppComponent {
-    Property<CppComponent> getTestedComponent();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    CppTestExecutable getDevelopmentBinary();
+public interface CppTestExecutable extends CppExecutable {
 }

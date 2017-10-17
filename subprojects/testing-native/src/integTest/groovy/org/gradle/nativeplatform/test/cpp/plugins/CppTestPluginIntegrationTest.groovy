@@ -50,7 +50,8 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         succeeds("check")
 
         then:
-        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp", ":dependUnitTestDebugCpp", ":compileUnitTestDebugCpp", ":linkUnitTestDebug", ":installUnitTestDebug", ":runUnitTest", ":check")
+        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp",
+            ":dependUnitTestExecutableCpp", ":compileUnitTestExecutableCpp", ":linkUnitTestExecutable", ":installUnitTestExecutable", ":runUnitTest", ":check")
 
         def testResults = new GoogleTestTestResults(file("build/test-results/unitTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']

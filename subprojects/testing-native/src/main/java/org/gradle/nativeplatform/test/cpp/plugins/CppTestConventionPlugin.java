@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
@@ -28,6 +27,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -66,23 +66,22 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         final ConfigurationContainer configurations = project.getConfigurations();
         final TaskContainer tasks = project.getTasks();
 
-        CppTestSuite component = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", objectFactory, fileOperations, configurations);
-
-        // Register components created for the test component and test binaries
-        project.getComponents().add(component);
-        project.getComponents().add(component.getDevelopmentBinary());
-        project.getExtensions().add(CppTestSuite.class, "unitTest", component);
+        final CppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", objectFactory, fileOperations, configurations);
+        // Register components created for the test Component and test binaries
+        project.getComponents().add(testComponent);
+        project.getComponents().add(testComponent.getDevelopmentBinary());
+        project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
+                CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
+                testComponent.getTestedComponent().set(mainComponent);
+
+                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestExecutable");
+                //linkTest.source(mainComponent.getDevelopmentBinary());
+
                 CppCompile compileMain = tasks.withType(CppCompile.class).getByName("compileDebugCpp");
-                CppCompile compileTest = tasks.withType(CppCompile.class).getByName("compileUnitTestDebugCpp");
-
-                // TODO: This should probably be just the main component's public headers?
-                compileTest.includes(compileMain.getIncludes());
-
-                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestDebug");
                 linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
             }
         };
@@ -99,7 +98,7 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
                 testTask.setDescription("Executes C++ unit tests.");
 
                 // TODO: It would be nice if the installation was a thing we could get path/dependencies from vs going to the task
-                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestDebug");
+                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestExecutable");
                 testTask.setExecutable(installTask.getRunScript());
                 testTask.dependsOn(installTask);
 
@@ -109,11 +108,6 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        tasks.getByName("check", new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(testTask);
-            }
-        });
+        tasks.getByName("check").dependsOn(testTask);
     }
 }

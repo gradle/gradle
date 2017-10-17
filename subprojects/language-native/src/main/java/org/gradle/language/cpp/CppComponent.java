@@ -89,4 +89,6 @@ public interface CppComponent extends SoftwareComponent {
      * Returns the binary of the component to use as the default for development.
      */
     CppBinary getDevelopmentBinary();
+
+    FileCollection getAllHeaderDirs();
 }
