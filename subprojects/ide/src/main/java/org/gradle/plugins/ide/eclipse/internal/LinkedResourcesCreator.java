@@ -35,7 +35,7 @@ public class LinkedResourcesCreator {
         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
         EclipseClasspath classpath = project.getExtensions().getByType(EclipseModel.class).getClasspath();
         File defaultOutputDir = classpath == null ? project.file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH) : classpath.getDefaultOutputDir();
-        List<SourceFolder> sourceFolders = new SourceFoldersCreator().getExternalSourceFolders(sourceSets, new Function<File, String>() {
+        List<SourceFolder> sourceFolders = new SourceFoldersCreator().getBasicExternalSourceFolders(sourceSets, new Function<File, String>() {
             @Override
             public String apply(File dir) {
                 return project.relativePath(dir);

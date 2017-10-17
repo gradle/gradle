@@ -18,6 +18,8 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
@@ -31,12 +33,14 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.CollectionUtils;
 
+import javax.xml.transform.Source;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,6 +85,51 @@ public class SourceFoldersCreator {
     }
 
     /**
+     * Returns the same list of {@link #getRegularSourceFolders} but the result entries only define the name and the directory properties.
+     *
+     * @return source folders that live outside of the project
+     */
+    public List<SourceFolder> getBasicExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
+        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(basicSourceFolders, new Spec<SourceFolder>() {
+            @Override
+            public boolean isSatisfiedBy(SourceFolder sourceFolder) {
+                return sourceFolder.getPath().contains("..");
+            }
+        });
+
+        Collection<SourceFolder> externalSourceFolders = partitionedFolders.getLeft();
+        Collection<SourceFolder> regularSourceFolders = partitionedFolders.getRight();
+
+        List<String> sources = Lists.newArrayList(Collections2.transform(regularSourceFolders, new Function<SourceFolder, String>() {
+            @Override
+            public String apply(SourceFolder sourceFolder) {
+                return sourceFolder.getName();
+            }
+        }));
+        return trimAndDedup(externalSourceFolders, sources);
+    }
+
+
+    private List<SourceFolder> basicProjectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        ArrayList<SourceFolder> entries = Lists.newArrayList();
+        List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
+        for (SourceSet sourceSet : sortedSourceSets) {
+            List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
+            for (DirectoryTree tree : sortedSourceDirs) {
+                File dir = tree.getDir();
+                if (dir.isDirectory()) {
+                    SourceFolder folder = new SourceFolder(provideRelativePath.apply(dir), null);
+                    folder.setDir(dir);
+                    folder.setName(dir.getName());
+                    entries.add(folder);
+                }
+            }
+        }
+        return entries;
+    }
+
+    /**
      * see {@link #getRegularSourceFolders}
      *
      * @return source folders that live outside of the project
@@ -103,7 +152,7 @@ public class SourceFoldersCreator {
         return trimAndDedup(externalSourceFolders, sources);
     }
 
-    private List<SourceFolder> trimAndDedup(List<SourceFolder> externalSourceFolders, List<String> givenSources) {
+    private List<SourceFolder> trimAndDedup(Collection<SourceFolder> externalSourceFolders, List<String> givenSources) {
         // externals are mapped to linked resources so we just need a name of the resource, without full path
         // non unique folder names are naively deduped by adding parent filename as a prefix till unique
         // since this seems like a rare edge case this simple approach should be enough
@@ -194,7 +243,7 @@ public class SourceFoldersCreator {
         return true;
     }
 
-    private Map<SourceSet, String> collectSourceSetOutputPaths(List<SourceSet> sourceSets, String defaultOutputPath) {
+    private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath) {
         Set<String> existingPaths = Sets.newHashSet(defaultOutputPath);
         Map<SourceSet, String> result = Maps.newHashMap();
         for (SourceSet sourceSet : sourceSets) {
