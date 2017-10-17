@@ -18,15 +18,18 @@ package org.gradle.internal.dependencylock.reader;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.dependencylock.model.DependencyLock;
+import org.gradle.internal.dependencylock.model.DependencyVersion;
+import org.gradle.internal.dependencylock.model.GroupAndName;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JsonDependencyLockReader implements DependencyLockReader {
 
@@ -45,11 +48,27 @@ public class JsonDependencyLockReader implements DependencyLockReader {
 
             try {
                 Object json = parser.parse(new FileReader(lockFile));
-                JSONArray allLocks = (JSONArray) json;
+                JSONArray allLocks = (JSONArray)json;
 
-                for (Object configuration : allLocks) {
-                    JSONObject config = (JSONObject)configuration;
-                    System.out.println(config.toString());
+                for (Object lock : allLocks) {
+                    JSONObject configurationBasedLock = (JSONObject)lock;
+                    String configurationName = (String)configurationBasedLock.get("configuration");
+                    JSONArray dependencies = (JSONArray)configurationBasedLock.get("dependencies");
+                    Map<GroupAndName, DependencyVersion> dependencyMapping = new HashMap<GroupAndName, DependencyVersion>();
+                    dependencyLock.getMapping().put(configurationName, dependencyMapping);
+
+                    for (Object dependency : dependencies) {
+                        JSONObject dependencyObject = (JSONObject) dependency;
+                        String coordinates = (String)dependencyObject.get("coordinates");
+                        String[] groupAndNameString = coordinates.split(":");
+                        String requestedVersion = (String)dependencyObject.get("requestedVersion");
+                        String lockedVersion = (String)dependencyObject.get("lockedVersion");
+                        GroupAndName groupAndName = new GroupAndName(groupAndNameString[0], groupAndNameString[1]);
+                        DependencyVersion dependencyVersion = new DependencyVersion();
+                        dependencyVersion.setDeclaredVersion(requestedVersion);
+                        dependencyVersion.setResolvedVersion(lockedVersion);
+                        dependencyMapping.put(groupAndName, dependencyVersion);
+                    }
                 }
             } catch (ParseException e) {
                 throw new RuntimeException(e);

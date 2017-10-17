@@ -16,7 +16,6 @@
 
 package org.gradle.internal.dependencylock.model;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.HashMap;
@@ -28,9 +27,7 @@ public class DependencyLock {
 
     private final SortedMap<String, Map<GroupAndName, DependencyVersion>> mapping = new TreeMap<String, Map<GroupAndName, DependencyVersion>>();
 
-    public void addDependency(Configuration configuration, ModuleVersionIdentifier moduleVersionIdentifier) {
-        String configurationName = configuration.getName();
-
+    public void addDependency(String configurationName, ModuleVersionIdentifier moduleVersionIdentifier) {
         if (mapping.containsKey(configurationName)) {
             DependencyVersion dependencyVersion = new DependencyVersion();
             dependencyVersion.setDeclaredVersion(moduleVersionIdentifier.getVersion());

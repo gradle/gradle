@@ -57,7 +57,8 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
                 dependencies.add(dependency);
             }
 
-            configuration.put(mapping.getKey(), dependencies);
+            configuration.put("configuration", mapping.getKey());
+            configuration.put("dependencies", dependencies);
             allLocks.add(configuration);
         }
 

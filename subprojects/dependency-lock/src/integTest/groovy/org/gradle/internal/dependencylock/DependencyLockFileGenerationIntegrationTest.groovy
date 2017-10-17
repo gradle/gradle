@@ -55,7 +55,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
 
         then:
-        file('dependencies.lock').text == '[{"myConf":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
+        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
     }
 
     def "can generate lock file all configurations"() {
@@ -74,6 +74,6 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
 
         then:
-        file('dependencies.lock').text == '[{"compile":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"compileClasspath":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"default":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"runtime":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"runtimeClasspath":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"testCompile":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"testCompileClasspath":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"testRuntime":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"testRuntimeClasspath":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]'
+        file('dependencies.lock').text == '[{"configuration":"compile","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"compileClasspath","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"default","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"runtime","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"runtimeClasspath","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"testCompile","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"testCompileClasspath","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"testRuntime","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"testRuntimeClasspath","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]'
     }
 }

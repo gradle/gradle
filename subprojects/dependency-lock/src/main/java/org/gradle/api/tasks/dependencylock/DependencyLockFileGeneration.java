@@ -74,14 +74,14 @@ public class DependencyLockFileGeneration extends DefaultTask {
             @Override
             public void execute(final Configuration configuration) {
                 if (configuration.isCanBeResolved()) {
-                    String configurationName = configuration.getName();
+                    final String configurationName = configuration.getName();
 
                     configuration.getAllDependencies().withType(ExternalDependency.class, new Action<ExternalDependency>() {
                         @Override
                         public void execute(ExternalDependency externalDependency) {
                             if (!(getVersionSelectorScheme().parseSelector(externalDependency.getVersion()) instanceof ExactVersionSelector)) {
                                 ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion());
-                                dependencyLock.addDependency(configuration, moduleVersionIdentifier);
+                                dependencyLock.addDependency(configurationName, moduleVersionIdentifier);
                             }
                         }
                     });
