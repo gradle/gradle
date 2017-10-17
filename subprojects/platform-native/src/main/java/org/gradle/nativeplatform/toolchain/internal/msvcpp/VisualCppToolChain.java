@@ -76,7 +76,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     }
 
     @Override
-    public String getTypeName() {
+    protected String getTypeName() {
         return "Visual Studio";
     }
 

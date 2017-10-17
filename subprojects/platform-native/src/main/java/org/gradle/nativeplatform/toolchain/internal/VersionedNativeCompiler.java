@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc.version;
+package org.gradle.nativeplatform.toolchain.internal;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.util.VersionNumber;
 
-public interface CompilerMetaDataProvider {
-    GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs);
+public interface VersionedNativeCompiler {
+    @Internal
+    VersionNumber getVersion();
+    @Input
+    String getVersionString();
+    @Input
+    String getType();
 }

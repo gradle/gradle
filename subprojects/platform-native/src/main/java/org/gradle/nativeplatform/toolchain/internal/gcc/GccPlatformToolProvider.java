@@ -30,6 +30,8 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToo
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.VersionedOutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
@@ -40,11 +42,13 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
+
+import java.io.File;
 
 class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
@@ -69,8 +73,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
+        GccVersionResult gccMetadata = gccMetadata(cppCompilerTool);
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        return new VersionedOutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension(), compilerType(gccMetadata), gccMetadata.getVersion());
     }
 
     @Override
@@ -83,8 +88,13 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
+        GccVersionResult gccMetadata = gccMetadata(cCompilerTool);
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        return new VersionedOutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension(), compilerType(gccMetadata), gccMetadata.getVersion());
+    }
+
+    private String compilerType(GccVersionResult gccMetadata) {
+        return gccMetadata.isClang() ? ClangToolChain.DEFAULT_NAME : GccToolChain.DEFAULT_NAME;
     }
 
     @Override
@@ -142,6 +152,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(staticLibArchiverTool), context(staticLibArchiverTool), workerLeaseService);
     }
 
+    private GccVersionResult gccMetadata(GccCommandLineToolConfigurationInternal cppCompilerTool) {
+        File gccLocation = toolSearchPath.locate(cppCompilerTool.getToolType(), cppCompilerTool.getExecutable()).getTool();
+        return metaDataProvider.getGccMetaData(gccLocation, ((DefaultGccPlatformToolChain) toolRegistry).getCompilerProbeArgs());
+    }
+
     private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
@@ -159,12 +174,5 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     public String getPCHFileExtension() {
         return ".h.gch";
-    }
-
-    @Override
-    public String getVersion(ToolType toolType) {
-        GccCommandLineToolConfigurationInternal commandLineTool = toolRegistry.getTool(toolType);
-        CommandLineToolSearchResult searchResult = toolSearchPath.locate(commandLineTool.getToolType(), commandLineTool.getExecutable());
-        return metaDataProvider.getGccMetaData(searchResult.getTool(), ((DefaultGccPlatformToolChain) toolRegistry).getCompilerProbeArgs()).getVersion().toString();
     }
 }

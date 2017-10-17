@@ -430,7 +430,10 @@ public class AvailableToolChains {
             return GccCompilerPlugin.class.getSimpleName();
         }
 
-
+        @Override
+        public String getId() {
+            return "gcc";
+        }
     }
 
     public static class InstalledWindowsGcc extends InstalledGcc {

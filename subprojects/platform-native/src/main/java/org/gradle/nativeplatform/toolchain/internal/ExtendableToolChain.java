@@ -44,7 +44,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         return name;
     }
 
-    public abstract String getTypeName();
+    protected abstract String getTypeName();
 
     @Override
     public String getDisplayName() {

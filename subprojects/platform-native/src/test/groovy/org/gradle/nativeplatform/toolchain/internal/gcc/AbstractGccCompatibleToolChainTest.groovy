@@ -360,7 +360,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
 
         @Override
-        String getTypeName() {
+        protected String getTypeName() {
             return "Test"
         }
     }

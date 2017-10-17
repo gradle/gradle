@@ -111,7 +111,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     }
 
     @Override
-    public String getTypeName() {
+    protected String getTypeName() {
         return "Swift Compiler";
     }
 }

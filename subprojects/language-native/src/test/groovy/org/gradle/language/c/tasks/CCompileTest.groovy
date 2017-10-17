@@ -22,10 +22,9 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
-import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
-import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -33,7 +32,7 @@ import org.gradle.util.TestUtil
 class CCompileTest extends AbstractProjectBuilderSpec {
 
     CCompile cCompile
-    def toolChain = Mock(ExtendableToolChain)
+    def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CCompileSpec> cCompiler = Mock(Compiler)
@@ -59,13 +58,11 @@ class CCompileTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * toolChain.outputType >> "c"
-        _ * toolChain.getTypeName() >> "GNU GCC"
-        _ * platformToolChain.getVersion(ToolType.C_COMPILER) >> "9.0.0"
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         _ * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
+        _ * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.name >> "testPch"
         pch.projectPath >> ":"

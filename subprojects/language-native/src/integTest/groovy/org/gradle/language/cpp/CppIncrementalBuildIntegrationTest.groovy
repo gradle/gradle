@@ -258,9 +258,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped ':app:compileDebugCpp'
 
         when:
-        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true'
+        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true', "--info"
 
         then:
         executedAndNotSkipped ':app:compileDebugCpp'
+        output =~ /Value of input property 'compilerIdentifier\.(versionString|type)' has changed for task ':app:compileDebugCpp'/
     }
 }

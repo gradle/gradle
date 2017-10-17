@@ -28,6 +28,4 @@ public interface PlatformToolProvider extends ToolProvider {
     String getSharedLibraryLinkFileName(String libraryPath);
 
     String getStaticLibraryName(String libraryPath);
-
-    String getVersion(ToolType toolType);
 }

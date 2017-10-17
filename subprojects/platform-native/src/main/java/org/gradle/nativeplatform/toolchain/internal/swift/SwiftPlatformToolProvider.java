@@ -83,9 +83,4 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
         return baseInvocation;
     }
-
-    @Override
-    public String getVersion(ToolType toolType) {
-        return "UNKNOWN";
-    }
 }

@@ -38,7 +38,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    public String getTypeName() {
+    protected String getTypeName() {
         return "GNU GCC";
     }
 
