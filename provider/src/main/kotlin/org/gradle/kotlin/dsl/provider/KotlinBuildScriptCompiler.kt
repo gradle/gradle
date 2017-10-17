@@ -119,7 +119,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun accessorsClassPathFor(target: KotlinScriptPluginTarget<*>): ClassPath =
-        target.takeIf { topLevelScript }?.accessorsClassPath(compilationClassPath)?.bin
+        target.takeIf { topLevelScript }?.accessorsClassPathFor(compilationClassPath)?.bin
             ?: ClassPath.EMPTY
 
     private
@@ -270,7 +270,7 @@ class KotlinBuildScriptCompiler(
     private
     fun executeScriptOf(scriptClass: Class<*>, target: KotlinScriptPluginTarget<*>) {
         try {
-            instantiate(scriptClass, target.targetType, target.`object`)
+            instantiate(scriptClass, target.type, target.`object`)
         } catch (e: InvocationTargetException) {
             throw e.targetException
         }

@@ -37,8 +37,8 @@ import kotlin.reflect.KClass
 internal
 fun kotlinScriptPluginTargetFor(target: Any): KotlinScriptPluginTarget<*> =
     when (target) {
-        is Project  -> KotlinScriptPluginProjectTarget(target)
-        is Settings -> KotlinScriptPluginSettingsTarget(target)
+        is Project  -> projectScriptTarget(target)
+        is Settings -> settingsScriptTarget(target)
         else        -> unsupportedTarget(target)
     }
 
@@ -48,47 +48,46 @@ fun unsupportedTarget(target: Any): Nothing =
     throw IllegalArgumentException("Unsupported target ${target::class.qualifiedName}: $target")
 
 
+private
+fun settingsScriptTarget(settings: Settings) =
+    KotlinScriptPluginTarget(
+        settings,
+        type = Settings::class,
+        scriptTemplate = KotlinSettingsScript::class,
+        rootDir = settings.rootDir)
+
+
+private
+fun projectScriptTarget(project: Project) =
+    KotlinScriptPluginTarget(
+        project,
+        type = Project::class,
+        scriptTemplate = KotlinBuildScript::class,
+        rootDir = project.rootDir,
+        supportsBuildscriptBlock = true,
+        supportsPluginsBlock = true,
+        pluginManager = (project as ProjectInternal).pluginManager,
+        accessorsClassPath = { accessorsClassPathFor(project, it) },
+        configure = {
+            project.run {
+                afterEvaluate {
+                    plugins.apply(KotlinScriptBasePlugin::class.java)
+                }
+            }
+        })
+
+
 internal
-sealed class KotlinScriptPluginTarget<T : Any>(
-    open val `object`: T,
-    val targetType: KClass<T>,
+data class KotlinScriptPluginTarget<T : Any>(
+    val `object`: T,
+    val type: KClass<T>,
     val scriptTemplate: KClass<*>,
     val rootDir: File,
     val supportsBuildscriptBlock: Boolean = false,
     val supportsPluginsBlock: Boolean = false,
-    val pluginManager: PluginManagerInternal? = null) {
+    val pluginManager: PluginManagerInternal? = null,
+    val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
+    val configure: () -> Unit = {}) {
 
-    open fun accessorsClassPath(classPath: ClassPath): AccessorsClassPath? = null
-
-    open fun configure() = Unit
+    fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath.invoke(classPath)
 }
-
-
-internal
-data class KotlinScriptPluginProjectTarget(override val `object`: Project) : KotlinScriptPluginTarget<Project>(
-    `object`,
-    targetType = Project::class,
-    scriptTemplate = KotlinBuildScript::class,
-    rootDir = `object`.rootDir,
-    supportsBuildscriptBlock = true,
-    supportsPluginsBlock = true,
-    pluginManager = (`object` as ProjectInternal).pluginManager) {
-
-    override fun accessorsClassPath(classPath: ClassPath) =
-        accessorsClassPathFor(`object`, classPath)
-
-    override fun configure() {
-        `object`.run {
-            afterEvaluate {
-                plugins.apply(KotlinScriptBasePlugin::class.java)
-            }
-        }
-    }
-}
-
-internal
-data class KotlinScriptPluginSettingsTarget(override val `object`: Settings) : KotlinScriptPluginTarget<Settings>(
-    `object`,
-    targetType = Settings::class,
-    scriptTemplate = KotlinSettingsScript::class,
-    rootDir = `object`.rootDir)
