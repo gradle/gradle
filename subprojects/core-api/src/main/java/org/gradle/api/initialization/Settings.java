@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.vcs.SourceControl;
@@ -130,6 +131,17 @@ public interface Settings extends PluginAware {
      * @return This settings object. Never returns null.
      */
     Settings getSettings();
+
+    /**
+     * Returns the build script handler for settings. You can use this handler to query details about the build
+     * script for settings, and manage the classpath used to compile and execute the settings script.
+     *
+     * @return the classpath handler. Never returns null.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    ScriptHandler getBuildscript();
 
     /**
      * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
