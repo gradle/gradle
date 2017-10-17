@@ -29,11 +29,11 @@ open class GreetingPlugin : Plugin<Project> {
 open class GreetingPluginExtension(project: Project) {
 
     private
-    val messageState = project.property<String>()
+    val messageProperty = project.objects.property<String>()
 
-    var message by messageState
+    var message by messageProperty
 
-    val messageProvider: Provider<String> get() = messageState
+    val messageProvider: Provider<String> get() = messageProperty
 
     var outputFiles by project.files()
 }
@@ -41,15 +41,15 @@ open class GreetingPluginExtension(project: Project) {
 open class Greeting : DefaultTask() {
 
     private
-    val messageState = project.property<String>()
+    val messageProperty = project.objects.property<String>()
 
     @get:Input
-    var message by messageState
+    var message by messageProperty
 
     @get:OutputFiles
     var outputFiles by project.files()
 
-    fun provideMessage(message: Provider<String>) = messageState.set(message)
+    fun provideMessage(message: Provider<String>) = messageProperty.set(message)
 
     @TaskAction
     fun printMessage() {
