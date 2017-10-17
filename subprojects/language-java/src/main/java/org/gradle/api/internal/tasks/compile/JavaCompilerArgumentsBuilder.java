@@ -195,6 +195,10 @@ public class JavaCompilerArgumentsBuilder {
                          + MappingFileConstants.MAPPING_FILE_FOLDER_OPTION
                          + "="
                          + spec.getIncrementalAnnotationProcessorWorkingDir());
+                args.add("-A"
+                    + MappingFileConstants.INCAP_INCREMENTAL_OPTION
+                    + "="
+                    + "true");
             }
         }
 
