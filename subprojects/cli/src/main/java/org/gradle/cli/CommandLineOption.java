@@ -23,7 +23,7 @@ public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();
     private Class<?> argumentType = Void.TYPE;
     private String description;
-    private String deprecationWarning;
+    private boolean deprecated;
     private boolean incubating;
     private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
 
@@ -57,12 +57,11 @@ public class CommandLineOption {
         if (description != null) {
             result.append(description);
         }
-        if (deprecationWarning != null) {
+        if (deprecated) {
             if (result.length() > 0) {
                 result.append(' ');
             }
-            result.append("[deprecated - ");
-            result.append(deprecationWarning);
+            result.append("[deprecated - is scheduled to be removed in Gradle 5.0");
             result.append("]");
         }
         if (incubating) {
@@ -87,8 +86,8 @@ public class CommandLineOption {
         return argumentType == List.class;
     }
 
-    public CommandLineOption deprecated(String deprecationWarning) {
-        this.deprecationWarning = deprecationWarning;
+    public CommandLineOption deprecated() {
+        this.deprecated = true;
         return this;
     }
 
@@ -97,8 +96,8 @@ public class CommandLineOption {
         return this;
     }
 
-    public String getDeprecationWarning() {
-        return deprecationWarning;
+    public boolean isDeprecated() {
+        return deprecated;
     }
 
     public boolean isIncubating() {

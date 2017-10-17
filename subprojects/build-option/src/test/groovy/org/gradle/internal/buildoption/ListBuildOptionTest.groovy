@@ -68,8 +68,8 @@ class ListBuildOptionTest extends Specification {
         CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
         assertMultipleArgument(longOption)
         assertMultipleArgument(shortOption)
-        assertNoDeprecationWarning(longOption)
-        assertNoDeprecationWarning(shortOption)
+        assertDeprecated(longOption, false)
+        assertDeprecated(shortOption, false)
     }
 
     def "can configure incubating command line option"() {
@@ -92,19 +92,16 @@ class ListBuildOptionTest extends Specification {
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-            .deprecated(deprecationWarning)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+        assertDeprecated(commandLineParser.optionsByString[LONG_OPTION], true)
+        assertDeprecated(commandLineParser.optionsByString[SHORT_OPTION], true)
     }
 
     def "can apply from command line"() {

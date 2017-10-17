@@ -386,8 +386,8 @@ class CommandLineParserTest extends Specification {
     }
 
     def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
-        parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
-        parser.option('b').deprecated('will be removed')
+        parser.option('a', 'long-option').hasDescription('this is option a').deprecated()
+        parser.option('b').deprecated()
         parser.option('c').hasDescription('option c').incubating()
         parser.option('d').incubating()
         def outstr = new StringWriter()
@@ -405,7 +405,7 @@ class CommandLineParserTest extends Specification {
     def showsDeprecationWarning() {
         def outstr = new StringWriter()
         def parser = new CommandLineParser(outstr)
-        parser.option("foo").hasDescription("usless option, just for testing").deprecated("Please use --bar instead.")
+        parser.option("foo").hasDescription("usless option, just for testing").deprecated()
         parser.option("x").hasDescription("I'm not deprecated")
 
         when:

@@ -83,7 +83,7 @@ public class LoggingConfigurationBuildOptions {
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
             }
 
             parser.allowOneOf(ALL_SHORT_OPTIONS);
@@ -135,7 +135,7 @@ public class LoggingConfigurationBuildOptions {
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
             }
 
             parser.allowOneOf(ALL_SHORT_OPTIONS);

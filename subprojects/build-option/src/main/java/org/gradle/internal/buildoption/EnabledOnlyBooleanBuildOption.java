@@ -46,7 +46,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.isDeprecated(), config.isIncubating());
         }
     }
 
