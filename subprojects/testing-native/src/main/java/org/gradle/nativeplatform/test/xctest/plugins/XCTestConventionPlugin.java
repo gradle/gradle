@@ -42,6 +42,7 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -68,6 +69,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     @Override
     public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(TestingBasePlugin.class);
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         // TODO - Add dependency on main component when Swift plugins are applied
@@ -115,22 +117,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         final XcTest xcTest = tasks.create("xcTest", XcTest.class);
         // TODO - should respect changes to build directory
-        xcTest.setBinResultsDir(project.file("build/results/test/bin"));
         xcTest.setTestBundleDir(bundle.getOutputDir());
         xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
-        // TODO - should respect changes to reports dir
-//        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
-//            @Override
-//            public File transform(Directory directory) {
-//                return directory.getAsFile();
-//            }
-//        }));
-//        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").map(new Transformer<File, Directory>() {
-//            @Override
-//            public File transform(Directory directory) {
-//                return directory.getAsFile();
-//            }
-//        }));
         xcTest.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {

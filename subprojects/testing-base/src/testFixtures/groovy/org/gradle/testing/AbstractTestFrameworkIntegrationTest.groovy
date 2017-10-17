@@ -60,4 +60,22 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         outputContains "START Test Case [SomeTest] [$failingTestCaseName]"
         outputContains "FINISH Test Case [SomeTest] [$failingTestCaseName] [FAILURE] [1]"
     }
+
+    def "test results conventions are consistent"() {
+        given:
+        createPassingFailingTest()
+
+        buildFile << """
+            task verifyTestResultConventions {
+                doLast {
+                    assert ${testTaskName}.reports.junitXml.destination == file('build/test-results/${testTaskName}')
+                    assert ${testTaskName}.reports.html.destination == file('build/reports/tests/${testTaskName}')
+                    assert ${testTaskName}.binResultsDir == file('build/test-results/${testTaskName}/binary')
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyTestResultConventions"
+    }
 }
