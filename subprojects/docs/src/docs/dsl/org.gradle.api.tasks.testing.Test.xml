@@ -115,30 +115,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>addTestListener</td>
-            </tr>
-            <tr>
-                <td>removeTestListener</td>
-            </tr>
-            <tr>
-                <td>addTestOutputListener</td>
-            </tr>
-            <tr>
-                <td>removeTestOutputListener</td>
-            </tr>
-            <tr>
-                <td>beforeSuite</td>
-            </tr>
-            <tr>
-                <td>afterSuite</td>
-            </tr>
-            <tr>
-                <td>beforeTest</td>
-            </tr>
-            <tr>
-                <td>afterTest</td>
-            </tr>
-            <tr>
                 <td>include</td>
             </tr>
             <tr>
@@ -173,12 +149,6 @@
             </tr>
             <tr>
                 <td>copyTo</td>
-            </tr>
-            <tr>
-                <td>onOutput</td>
-            </tr>
-            <tr>
-                <td>testLogging</td>
             </tr>
             <tr>
                 <td>reports</td>

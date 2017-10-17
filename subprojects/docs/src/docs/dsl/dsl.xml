@@ -474,6 +474,9 @@
                 <td>org.gradle.api.tasks.bundling.Tar</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.testing.AbstractTestTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.testing.Test</td>
             </tr>
             <tr>
