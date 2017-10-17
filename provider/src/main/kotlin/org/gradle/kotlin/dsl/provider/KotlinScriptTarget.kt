@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 
-import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
@@ -66,7 +64,6 @@ fun projectScriptTarget(project: Project) =
         rootDir = project.rootDir,
         supportsBuildscriptBlock = true,
         supportsPluginsBlock = true,
-        pluginManager = (project as ProjectInternal).pluginManager,
         accessorsClassPath = { accessorsClassPathFor(project, it) },
         prepare = {
             project.run {
@@ -85,7 +82,6 @@ data class KotlinScriptTarget<T : Any>(
     val rootDir: File,
     val supportsBuildscriptBlock: Boolean = false,
     val supportsPluginsBlock: Boolean = false,
-    val pluginManager: PluginManagerInternal? = null,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
 
