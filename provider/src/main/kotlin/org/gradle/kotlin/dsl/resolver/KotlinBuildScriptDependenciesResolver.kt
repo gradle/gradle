@@ -219,7 +219,9 @@ class KotlinBuildScriptDependencies(
 internal
 fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
-    fun isProjectRoot(dir: File) = File(dir, "settings.gradle").isFile
+    // TODO:pm remove hardcoded reference to settings.gradle
+    fun isProjectRoot(dir: File) =
+        File(dir, "settings.gradle.kts").isFile || File(dir, "settings.gradle").isFile
 
     tailrec fun test(dir: File): File =
         when {

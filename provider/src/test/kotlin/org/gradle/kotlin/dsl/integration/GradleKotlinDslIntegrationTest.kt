@@ -330,11 +330,9 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        existing("settings.gradle").appendText("""
-            include 'sub-project'
-        """)
+        withSettings("include(arrayOf(\"sub-project\"))")
 
-        withFile("sub-project/build.gradle.kts", """
+        withBuildScriptIn("sub-project", """
             task("compute") {
                 doLast {
                     val computer = ${DeepThought::class.qualifiedName}()
@@ -351,7 +349,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given non-existing build script file name set in settings do not fail`() {
 
-        withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
+        withSettings("rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
     }
@@ -386,6 +384,24 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             allOf(
                 containsString("Optional extra property value: null"),
                 not(containsString("myTask.foo"))))
+    }
+
+    @Test
+    fun `build with groovy settings and kotlin-dsl build script succeeds`() {
+
+        withFile("settings.gradle", """
+            println 'Groovy DSL Settings'
+        """)
+
+        withBuildScript("""
+            println("Kotlin DSL Build Script")
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Groovy DSL Settings"),
+                containsString("Kotlin DSL Build Script")))
     }
 
     private

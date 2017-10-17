@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -51,7 +50,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     fun compile(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-        topLevelScript: Boolean): (Project) -> Unit =
+        topLevelScript: Boolean): (Any) -> Unit =
 
         compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
             if (topLevelScript && inClassPathMode())
