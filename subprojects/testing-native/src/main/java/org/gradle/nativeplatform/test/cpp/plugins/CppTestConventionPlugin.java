@@ -27,12 +27,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
@@ -72,6 +73,7 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         // Register components created for the test component and test binaries
         project.getComponents().add(component);
         project.getComponents().add(component.getDevelopmentBinary());
+        // TODO: Need to register component as a project extension too
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
@@ -95,11 +97,13 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         final RunTestExecutable testTask = tasks.create("cpptest", RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
             public void execute(RunTestExecutable testTask) {
-                // TODO: It would be nice if the CppApplication had a Provider<File> getExecutableFile() that lazily
-                // carried the output path around and dependency information
-                final LinkExecutable link = (LinkExecutable) tasks.getByName("linkTestDebug");
-                testTask.setExecutable(link.getOutputFile());
-                testTask.dependsOn(link);
+                testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                testTask.setDescription("Executes C++ tests.");
+
+                // TODO: It would be nice if the installation was a thing we could get path/dependencies from vs going to the task
+                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTestDebug");
+                testTask.setExecutable(installTask.getRunScript());
+                testTask.dependsOn(installTask);
 
                 // TODO: This should be lazy to honor changes to the build directory
                 final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
@@ -114,5 +118,4 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
             }
         });
     }
-
 }
