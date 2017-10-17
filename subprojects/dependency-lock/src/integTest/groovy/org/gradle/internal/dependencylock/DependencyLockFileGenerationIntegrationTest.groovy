@@ -26,7 +26,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
             apply plugin: 'dependency-lock'
 
             repositories {
-                maven { url "   ${mavenRepo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
         """
     }
