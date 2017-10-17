@@ -54,7 +54,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
@@ -62,6 +61,7 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+    private String buildName;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
@@ -80,6 +80,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
+
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -114,23 +115,23 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return path;
     }
 
-    @Nullable
     @Override
     public Path findIdentityPath() {
         if (identityPath == null) {
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProject == null) {
+                if (buildName == null) {
                     // Not known yet
                     return null;
                 }
+
                 Path parentIdentityPath = parent.findIdentityPath();
                 if (parentIdentityPath == null) {
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProject.getName());
+                this.identityPath = parentIdentityPath.child(buildName);
             }
         }
         return identityPath;
@@ -432,5 +433,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
+    }
+
+    public void setBuildName(String buildName) {
+        if (this.buildName!=null && !this.buildName.equals(buildName)) {
+            throw new IllegalStateException(String.format("Cannot change build name to '%s', build '%s' has already been set.", buildName, this.buildName));
+        }
+        this.buildName = buildName;
     }
 }

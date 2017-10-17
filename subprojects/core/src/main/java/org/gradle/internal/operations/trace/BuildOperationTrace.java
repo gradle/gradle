@@ -52,7 +52,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
  *
  * Imposes no overhead when not enabled.
- * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
+ * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationsFixture.
  *
  * Three files are created:
  *

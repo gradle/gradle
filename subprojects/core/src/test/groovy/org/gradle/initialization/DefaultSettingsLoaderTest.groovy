@@ -46,6 +46,7 @@ class DefaultSettingsLoaderTest extends Specification {
         startParameter.setCurrentDir(settingsLocation.getSettingsDir())
 
         settings.getProjectRegistry() >> projectRegistry
+        settings.getRootProject() >> projectDescriptor
         projectRegistry.getAllProjects() >> WrapUtil.toSet(projectDescriptor)
         projectDescriptor.getProjectDir() >> settingsLocation.settingsDir
         projectDescriptor.getBuildFile() >> new File(settingsLocation.getSettingsDir(), "build.gradle")

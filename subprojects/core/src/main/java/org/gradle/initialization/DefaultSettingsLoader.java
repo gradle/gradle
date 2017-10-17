@@ -45,7 +45,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
-
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
 
         if (spec.containsProject(settings.getProjectRegistry())) {

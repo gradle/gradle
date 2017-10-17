@@ -21,5 +21,5 @@ import org.gradle.initialization.NestedBuildFactory;
 import java.io.File;
 
 public interface IncludedBuildFactory {
-    IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildInternal createBuild(String buildName, File buildDirectory, NestedBuildFactory nestedBuildFactory);
 }

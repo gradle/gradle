@@ -59,10 +59,10 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildInternal createBuild(String buildName, File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDirectory);
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
+        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildName, buildDirectory, nestedBuildFactory, startParameter);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildName, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);
@@ -70,11 +70,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
+        private final String buildName;
         private final File buildDirectory;
         private final NestedBuildFactory nestedBuildFactory;
         private final StartParameter buildStartParam;
 
-        public ContextualGradleLauncherFactory(File buildDirectory, NestedBuildFactory nestedBuildFactory, StartParameter buildStartParam) {
+        public ContextualGradleLauncherFactory(String buildName, File buildDirectory, NestedBuildFactory nestedBuildFactory, StartParameter buildStartParam) {
+            this.buildName = buildName;
             this.buildDirectory = buildDirectory;
             this.nestedBuildFactory = nestedBuildFactory;
             this.buildStartParam = buildStartParam;
@@ -84,6 +86,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
             GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(participantStartParam);
+            gradleLauncher.getGradle().setBuildName(buildName);
             return gradleLauncher;
         }
 
