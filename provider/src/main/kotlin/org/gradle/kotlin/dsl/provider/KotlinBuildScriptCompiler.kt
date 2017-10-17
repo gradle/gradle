@@ -43,6 +43,10 @@ import kotlin.reflect.KClass
 
 
 internal
+typealias KotlinScript = (Any) -> Unit
+
+
+internal
 class KotlinBuildScriptCompiler(
     val kotlinCompiler: CachingKotlinCompiler,
     val scriptSource: ScriptSource,
@@ -66,22 +70,22 @@ class KotlinBuildScriptCompiler(
         buildscriptBlockCompilationClassPath + scriptHandler.scriptClassPath
     }
 
-    fun compile(): (Any) -> Unit =
+    fun compile() =
         when {
             topLevelScript -> compileTopLevelScript()
             else           -> compileScriptPlugin()
         }
 
-    fun compileForClassPath(): (Any) -> Unit =
-        asKotlinScriptPluginTarget { target ->
+    fun compileForClassPath() =
+        asKotlinScript { target ->
             ignoringErrors { executeBuildscriptBlockOn(target) }
             ignoringErrors { prepareTargetClassLoaderScopeOf(target) }
             ignoringErrors { executeScriptBodyOn(target) }
         }
 
     private
-    fun compileTopLevelScript(): (Any) -> Unit =
-        asKotlinScriptPluginTarget { target ->
+    fun compileTopLevelScript() =
+        asKotlinScript { target ->
             withUnexpectedBlockHandling {
                 executeBuildscriptBlockOn(target)
                 prepareAndExecuteScriptBodyOn(target)
@@ -89,28 +93,28 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun compileScriptPlugin(): (Any) -> Unit =
-        asKotlinScriptPluginTarget { target ->
+    fun compileScriptPlugin() =
+        asKotlinScript { target ->
             withUnexpectedBlockHandling {
                 prepareAndExecuteScriptBodyOn(target)
             }
         }
 
     private
-    fun asKotlinScriptPluginTarget(configuration: (KotlinScriptPluginTarget<*>) -> Unit): (Any) -> Unit = { anyTarget ->
-        val target = kotlinScriptPluginTargetFor(anyTarget)
-        target.configure()
-        configuration(target)
+    fun asKotlinScript(script: (KotlinScriptTarget<*>) -> Unit): KotlinScript = { target ->
+        val scriptTarget = kotlinScriptTargetFor(target)
+        scriptTarget.prepare()
+        script(scriptTarget)
     }
 
     private
-    fun prepareAndExecuteScriptBodyOn(target: KotlinScriptPluginTarget<*>) {
+    fun prepareAndExecuteScriptBodyOn(target: KotlinScriptTarget<*>) {
         prepareTargetClassLoaderScopeOf(target)
         executeScriptBodyOn(target)
     }
 
     private
-    fun executeScriptBodyOn(target: KotlinScriptPluginTarget<*>) {
+    fun executeScriptBodyOn(target: KotlinScriptTarget<*>) {
         val accessorsClassPath = accessorsClassPathFor(target)
         val compiledScript = compileScriptFileFor(target, compilationClassPath + accessorsClassPath)
         val scriptScope = scriptClassLoaderScopeWith(accessorsClassPath)
@@ -118,7 +122,7 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun accessorsClassPathFor(target: KotlinScriptPluginTarget<*>): ClassPath =
+    fun accessorsClassPathFor(target: KotlinScriptTarget<*>): ClassPath =
         target.takeIf { topLevelScript }?.accessorsClassPathFor(compilationClassPath)?.bin
             ?: ClassPath.EMPTY
 
@@ -127,7 +131,7 @@ class KotlinBuildScriptCompiler(
         targetScope.createChild("script").apply { local(accessorsClassPath) }
 
     private
-    fun executeBuildscriptBlockOn(target: KotlinScriptPluginTarget<*>) {
+    fun executeBuildscriptBlockOn(target: KotlinScriptTarget<*>) {
         setupEmbeddedKotlinForBuildscript()
         if (target.supportsBuildscriptBlock) {
             extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
@@ -137,7 +141,7 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun executeBuildscriptBlockOn(target: KotlinScriptPluginTarget<*>, buildscriptRange: IntRange) {
+    fun executeBuildscriptBlockOn(target: KotlinScriptTarget<*>, buildscriptRange: IntRange) {
         val compiledScript = compileBuildscriptBlock(buildscriptRange)
         executeCompiledScript(compiledScript, buildscriptBlockClassLoaderScope(), target)
     }
@@ -160,14 +164,14 @@ class KotlinBuildScriptCompiler(
     fun executeCompiledScript(
         compiledScript: CachingKotlinCompiler.CompiledScript,
         scope: ClassLoaderScope,
-        target: KotlinScriptPluginTarget<*>) {
+        target: KotlinScriptTarget<*>) {
 
         val scriptClass = classFrom(compiledScript, scope)
         executeScriptWithContextClassLoader(scriptClass, target)
     }
 
     private
-    fun prepareTargetClassLoaderScopeOf(target: KotlinScriptPluginTarget<*>) {
+    fun prepareTargetClassLoaderScopeOf(target: KotlinScriptTarget<*>) {
         targetScope.export(classPathProvider.gradleApiExtensions)
         if (target.supportsPluginsBlock) {
             executePluginsBlockOn(target)
@@ -175,7 +179,7 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun executePluginsBlockOn(target: KotlinScriptPluginTarget<*>) {
+    fun executePluginsBlockOn(target: KotlinScriptTarget<*>) {
         val pluginRequests = collectPluginRequestsFromPluginsBlock()
         applyPluginsTo(target, pluginRequests)
     }
@@ -217,7 +221,7 @@ class KotlinBuildScriptCompiler(
         extractTopLevelSectionFrom(script, "plugins")
 
     private
-    fun applyPluginsTo(target: KotlinScriptPluginTarget<*>, pluginRequests: PluginRequests) {
+    fun applyPluginsTo(target: KotlinScriptTarget<*>, pluginRequests: PluginRequests) {
         pluginRequestsHandler.handle(
             pluginRequests, scriptHandler, target.`object` as PluginAwareInternal, targetScope)
     }
@@ -239,7 +243,7 @@ class KotlinBuildScriptCompiler(
             baseScope.exportClassLoader)
 
     private
-    fun compileScriptFileFor(target: KotlinScriptPluginTarget<*>, classPath: ClassPath) =
+    fun compileScriptFileFor(target: KotlinScriptTarget<*>, classPath: ClassPath) =
         kotlinCompiler.compileGradleScript(
             target.scriptTemplate,
             scriptPath,
@@ -261,14 +265,14 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun executeScriptWithContextClassLoader(scriptClass: Class<*>, target: KotlinScriptPluginTarget<*>) {
+    fun executeScriptWithContextClassLoader(scriptClass: Class<*>, target: KotlinScriptTarget<*>) {
         withContextClassLoader(scriptClass.classLoader) {
             executeScriptOf(scriptClass, target)
         }
     }
 
     private
-    fun executeScriptOf(scriptClass: Class<*>, target: KotlinScriptPluginTarget<*>) {
+    fun executeScriptOf(scriptClass: Class<*>, target: KotlinScriptTarget<*>) {
         try {
             instantiate(scriptClass, target.type, target.`object`)
         } catch (e: InvocationTargetException) {

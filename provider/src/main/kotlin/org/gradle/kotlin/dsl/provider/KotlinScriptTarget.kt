@@ -35,7 +35,7 @@ import kotlin.reflect.KClass
 
 
 internal
-fun kotlinScriptPluginTargetFor(target: Any): KotlinScriptPluginTarget<*> =
+fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<*> =
     when (target) {
         is Project  -> projectScriptTarget(target)
         is Settings -> settingsScriptTarget(target)
@@ -50,7 +50,7 @@ fun unsupportedTarget(target: Any): Nothing =
 
 private
 fun settingsScriptTarget(settings: Settings) =
-    KotlinScriptPluginTarget(
+    KotlinScriptTarget(
         settings,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
@@ -59,7 +59,7 @@ fun settingsScriptTarget(settings: Settings) =
 
 private
 fun projectScriptTarget(project: Project) =
-    KotlinScriptPluginTarget(
+    KotlinScriptTarget(
         project,
         type = Project::class,
         scriptTemplate = KotlinBuildScript::class,
@@ -68,7 +68,7 @@ fun projectScriptTarget(project: Project) =
         supportsPluginsBlock = true,
         pluginManager = (project as ProjectInternal).pluginManager,
         accessorsClassPath = { accessorsClassPathFor(project, it) },
-        configure = {
+        prepare = {
             project.run {
                 afterEvaluate {
                     plugins.apply(KotlinScriptBasePlugin::class.java)
@@ -78,7 +78,7 @@ fun projectScriptTarget(project: Project) =
 
 
 internal
-data class KotlinScriptPluginTarget<T : Any>(
+data class KotlinScriptTarget<T : Any>(
     val `object`: T,
     val type: KClass<T>,
     val scriptTemplate: KClass<*>,
@@ -87,7 +87,7 @@ data class KotlinScriptPluginTarget<T : Any>(
     val supportsPluginsBlock: Boolean = false,
     val pluginManager: PluginManagerInternal? = null,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
-    val configure: () -> Unit = {}) {
+    val prepare: () -> Unit = {}) {
 
     fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath.invoke(classPath)
 }
