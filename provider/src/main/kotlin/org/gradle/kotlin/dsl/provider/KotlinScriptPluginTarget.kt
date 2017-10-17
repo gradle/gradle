@@ -20,7 +20,6 @@ import org.gradle.api.initialization.Settings
 
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
@@ -55,8 +54,6 @@ sealed class KotlinScriptPluginTarget<T : Any>(
     val targetType: KClass<T>,
     val scriptTemplate: KClass<*>,
     val rootDir: File,
-    val gradle: Gradle,
-    val logDir: File,
     val supportsBuildscriptBlock: Boolean = false,
     val supportsPluginsBlock: Boolean = false,
     val pluginManager: PluginManagerInternal? = null) {
@@ -64,10 +61,6 @@ sealed class KotlinScriptPluginTarget<T : Any>(
     open fun accessorsClassPath(classPath: ClassPath): AccessorsClassPath? = null
 
     open fun configure() = Unit
-
-    val gradleUserHomeDir get() = gradle.gradleUserHomeDir
-
-    val gradleHomeDir get() = gradle.gradleHomeDir
 }
 
 
@@ -77,8 +70,6 @@ data class KotlinScriptPluginProjectTarget(override val `object`: Project) : Kot
     targetType = Project::class,
     scriptTemplate = KotlinBuildScript::class,
     rootDir = `object`.rootDir,
-    gradle = `object`.gradle,
-    logDir = `object`.buildDir,
     supportsBuildscriptBlock = true,
     supportsPluginsBlock = true,
     pluginManager = (`object` as ProjectInternal).pluginManager) {
@@ -100,6 +91,4 @@ data class KotlinScriptPluginSettingsTarget(override val `object`: Settings) : K
     `object`,
     targetType = Settings::class,
     scriptTemplate = KotlinSettingsScript::class,
-    rootDir = `object`.rootDir,
-    gradle = `object`.gradle,
-    logDir = File(`object`.rootDir, "build"))
+    rootDir = `object`.rootDir)

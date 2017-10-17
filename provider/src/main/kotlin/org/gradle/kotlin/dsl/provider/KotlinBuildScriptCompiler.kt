@@ -28,7 +28,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.compilerMessageFor
-import org.gradle.kotlin.dsl.support.userHome
 
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -39,8 +38,6 @@ import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertL
 import java.io.File
 
 import java.lang.reflect.InvocationTargetException
-
-import java.util.*
 
 import kotlin.reflect.KClass
 
@@ -275,9 +272,6 @@ class KotlinBuildScriptCompiler(
         try {
             instantiate(scriptClass, target.targetType, target.`object`)
         } catch (e: InvocationTargetException) {
-            if (e.cause is Error) {
-                tryToLogClassLoaderHierarchyOf(scriptClass, target)
-            }
             throw e.targetException
         }
     }
@@ -301,61 +295,6 @@ class KotlinBuildScriptCompiler(
     private
     fun unexpectedBlockMessage(block: UnexpectedBlock) =
         "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
-
-    private
-    fun tryToLogClassLoaderHierarchyOf(scriptClass: Class<*>, target: KotlinScriptPluginTarget<*>) {
-        try {
-            logClassLoaderHierarchyOf(scriptClass, target)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private
-    fun logClassLoaderHierarchyOf(scriptClass: Class<*>, target: KotlinScriptPluginTarget<*>) {
-        classLoaderHierarchyFileFor(target).writeText(
-            classLoaderHierarchyJsonFor(scriptClass, targetScope, pathFormatterFor(target)))
-    }
-
-    private
-    fun classLoaderHierarchyFileFor(target: KotlinScriptPluginTarget<*>) =
-        File(target.logDir, "ClassLoaderHierarchy.json").apply {
-            parentFile.mkdirs()
-        }
-
-    private
-    fun pathFormatterFor(target: KotlinScriptPluginTarget<*>): PathStringFormatter {
-        val baseDirs = baseDirsOf(target)
-        return { pathString ->
-            var result = pathString
-            baseDirs.forEach { baseDir ->
-                result = result.replace(baseDir.second, baseDir.first)
-            }
-            result
-        }
-    }
-
-    private
-    fun baseDirsOf(target: KotlinScriptPluginTarget<*>) =
-        arrayListOf<Pair<String, String>>().apply {
-            withBaseDir("PROJECT_ROOT", target.rootDir)
-            withBaseDir("GRADLE_USER", target.gradleUserHomeDir)
-            withOptionalBaseDir("GRADLE", target.gradleHomeDir)
-            withBaseDir("HOME", userHome())
-        }
-
-    private
-    fun ArrayList<Pair<String, String>>.withOptionalBaseDir(key: String, dir: File?) {
-        dir?.let { withBaseDir(key, it) }
-    }
-
-    private
-    fun ArrayList<Pair<String, String>>.withBaseDir(key: String, dir: File) {
-        val label = '$' + key
-        add(label + '/' to dir.toURI().toURL().toString())
-        add(label to dir.canonicalPath)
-    }
-
 }
 
 
