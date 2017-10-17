@@ -1,6 +1,12 @@
 // Compiler daemon
 sourceCompatibility = 1.6
 
+repositories {
+    maven {
+        url  "https://dl.bintray.com/incap/incap"
+    }
+}
+
 dependencies {
     compile libraries.groovy
     compile project(":core")
@@ -8,7 +14,7 @@ dependencies {
     compile project(":languageJvm")
 
     // // INCAP!
-    compile 'org.gradle.incap:incap-build-client:1.0.0-SNAPSHOT'
+    compile 'org.gradle.incap:incap-build-client:0.0.2'
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
