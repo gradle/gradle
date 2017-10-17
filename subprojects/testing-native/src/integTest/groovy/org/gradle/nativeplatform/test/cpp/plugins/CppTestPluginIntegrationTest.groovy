@@ -19,8 +19,11 @@ package org.gradle.nativeplatform.test.cpp.plugins
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+    @Requires(TestPrecondition.MAC_OS_X)
     def "can run tests with google test"() {
         def app = new CppHelloWorldApp()
         buildFile << """
