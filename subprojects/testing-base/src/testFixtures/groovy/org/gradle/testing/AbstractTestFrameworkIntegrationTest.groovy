@@ -17,6 +17,8 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.hamcrest.Matchers
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
@@ -77,5 +79,39 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         expect:
         succeeds "verifyTestResultConventions"
+    }
+
+    def "test results show passing and failing tests"() {
+        given:
+        createPassingFailingTest()
+
+        buildFile << """
+            ${testTaskName}.ignoreFailures = true
+        """
+
+        when:
+        succeeds "check"
+
+        then:
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
+        result.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
+        result.testClass('SomeTest').assertTestFailed(failingTestCaseName, Matchers.containsString("test failure message"))
+        result.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+    }
+
+    def "test results capture test output"() {
+        given:
+        createPassingFailingTest()
+
+        buildFile << """
+            ${testTaskName}.ignoreFailures = true
+        """
+
+        when:
+        succeeds "check"
+
+        then:
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
+        result.testClass('SomeTest').assertStderr(Matchers.containsString("some error output"))
     }
 }

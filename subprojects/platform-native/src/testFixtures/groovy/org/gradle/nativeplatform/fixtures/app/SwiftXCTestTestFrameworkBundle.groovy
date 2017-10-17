@@ -22,9 +22,9 @@ class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
     List<XCTestSourceFileElement> testSuites = [
         new XCTestSourceFileElement() {
             String testSuiteName = "SomeTest"
-            List<XCTestCaseElement> testCases = [testCase("testFail", "XCTAssert(false)", true)]
+            List<XCTestCaseElement> testCases = [testCase("testFail", FAILING_TEST, true)]
             String moduleName = "AppTest"
-        },
+        }.withImport("Darwin"),
         new XCTestSourceFileElement() {
             String testSuiteName = "SomeOtherTest"
             List<XCTestCaseElement> testCases = [testCase("testPass", "XCTAssert(true)", false)]
@@ -36,4 +36,10 @@ class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
     List<SourceFile> getFiles() {
         super.files + [emptyInfoPlist()]
     }
+
+    private static String FAILING_TEST = """
+        fputs("some error output", __stderrp)
+        
+        XCTAssert(false, "test failure message")
+    """
 }
