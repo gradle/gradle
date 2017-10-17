@@ -60,7 +60,11 @@ public class ClasspathUtil {
             public void visitClassPath(URL[] classPath) {
                 for (URL url : classPath) {
                     try {
-                        implementationClassPath.add(new File(toURI(url)));
+                        URI uri = toURI(url);
+                        String scheme = uri.getScheme();
+                        if ((scheme != null) && scheme.equalsIgnoreCase("file")) { //don't assume every URL supplied here is a file
+                            implementationClassPath.add(new File(uri));
+                        }
                     } catch (URISyntaxException e) {
                         throw new UncheckedException(e);
                     }
