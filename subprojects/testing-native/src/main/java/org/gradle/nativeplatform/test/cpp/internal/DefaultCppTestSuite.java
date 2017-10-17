@@ -28,5 +28,6 @@ public class DefaultCppTestSuite extends DefaultCppApplication implements CppTes
     @Inject
     public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, objectFactory, fileOperations, configurations);
+        getBaseName().set(name);
     }
 }

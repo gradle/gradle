@@ -66,25 +66,23 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         final ConfigurationContainer configurations = project.getConfigurations();
         final TaskContainer tasks = project.getTasks();
 
-        // TODO: What should this name be?
-        CppTestSuite component = objectFactory.newInstance(DefaultCppTestSuite.class, "test", objectFactory, fileOperations, configurations);
-        component.getBaseName().set("test");
+        CppTestSuite component = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", objectFactory, fileOperations, configurations);
 
         // Register components created for the test component and test binaries
         project.getComponents().add(component);
         project.getComponents().add(component.getDevelopmentBinary());
-        // TODO: Need to register component as a project extension too
+        project.getExtensions().add(CppTestSuite.class, "unitTest", component);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
                 CppCompile compileMain = tasks.withType(CppCompile.class).getByName("compileDebugCpp");
-                CppCompile compileTest = tasks.withType(CppCompile.class).getByName("compileTestDebugCpp");
+                CppCompile compileTest = tasks.withType(CppCompile.class).getByName("compileUnitTestDebugCpp");
 
                 // TODO: This should probably be just the main component's public headers?
                 compileTest.includes(compileMain.getIncludes());
 
-                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTestDebug");
+                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestDebug");
                 linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
             }
         };
@@ -94,20 +92,20 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().withType(CppExecutablePlugin.class, projectConfiguration);
 
         // TODO: Replace with new native test task
-        final RunTestExecutable testTask = tasks.create("cpptest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+        final RunTestExecutable testTask = tasks.create("runUnitTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
             public void execute(RunTestExecutable testTask) {
                 testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                testTask.setDescription("Executes C++ tests.");
+                testTask.setDescription("Executes C++ unit tests.");
 
                 // TODO: It would be nice if the installation was a thing we could get path/dependencies from vs going to the task
-                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTestDebug");
+                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestDebug");
                 testTask.setExecutable(installTask.getRunScript());
                 testTask.dependsOn(installTask);
 
                 // TODO: This should be lazy to honor changes to the build directory
                 final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-                testTask.setOutputDir(buildDirectory.dir("test-results/cpptest").get().getAsFile());
+                testTask.setOutputDir(buildDirectory.dir("test-results/unitTest").get().getAsFile());
             }
         });
 

@@ -35,7 +35,7 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
             }
 
             dependencies {
-                testImplementation 'org.gradle:googletest:1.8.0'
+                unitTestImplementation 'org.gradle:googletest:1.8.0'
             }
 
             tasks.withType(RunTestExecutable) {
@@ -44,15 +44,15 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         """
 
         app.library.writeSources(file("src/main"))
-        app.googleTestTests.writeSources(file("src/test"))
+        app.googleTestTests.writeSources(file("src/unitTest"))
 
         when:
-        succeeds("cpptest")
+        succeeds("check")
 
         then:
-        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp", ":dependTestDebugCpp", ":compileTestDebugCpp", ":linkTestDebug", ":installTestDebug", ":cpptest")
+        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp", ":dependUnitTestDebugCpp", ":compileUnitTestDebugCpp", ":linkUnitTestDebug", ":installUnitTestDebug", ":runUnitTest", ":check")
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/cpptest/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/unitTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
@@ -64,7 +64,7 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         // Download the single header
         def url = new URL('https://raw.githubusercontent.com/philsquared/Catch/7818e2666d5cc7bb1d912acb22b68f6669b74520/single_include/catch.hpp')
-        file("src/test/headers/catch.hpp").text = url.text
+        file("src/unitTest/headers/catch.hpp").text = url.text
 
         buildFile << """
             apply plugin: 'cpp-library'
@@ -76,10 +76,10 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         """
 
         app.library.writeSources(file("src/main"))
-        app.catchTests.writeSources(file("src/test"))
+        app.catchTests.writeSources(file("src/unitTest"))
 
         expect:
-        succeeds("cpptest")
-        file("build/test-results/cpptest/catch.xml").assertIsFile()
+        succeeds("check")
+        file("build/test-results/unitTest/catch.xml").assertIsFile()
     }
 }
