@@ -64,8 +64,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdInAndClose(gradleHandle, YES.bytes)
+        writeToStdIn(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFinish()
+        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
@@ -82,8 +83,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdInAndClose(gradleHandle, NO.bytes)
+        writeToStdIn(gradleHandle, NO.bytes)
         def result = gradleHandle.waitForFinish()
+        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
@@ -103,8 +105,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdInAndClose(gradleHandle, EOF)
+        writeToStdIn(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
+        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
