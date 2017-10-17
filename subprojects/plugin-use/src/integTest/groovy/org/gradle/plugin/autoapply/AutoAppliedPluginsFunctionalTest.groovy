@@ -28,7 +28,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 @LeaksFileHandles
 class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
-    private static final String BUILD_SCAN_LICENSE_QUESTION = 'Do you accept the Gradle Cloud Services license agreement (https://gradle.com/terms-of-service)? [yes, no]'
+    private static final String BUILD_SCAN_LICENSE_QUESTION = 'Publishing a build scan to scans.gradle.com requires accepting the Terms of Service defined at https://scans.gradle.com/terms-of-service. Do you accept these terms?'
     private static final String BUILD_SCAN_SUCCESSFUL_PUBLISHING = 'Publishing build scan'
     private static final String BUILD_SCAN_PLUGIN_CONFIG_PROBLEM = 'The build scan was not published due to a configuration problem.'
     private static final String BUILD_SCAN_LICENSE_NOTE = 'The Gradle Cloud Services license agreement has not been agreed to.'
