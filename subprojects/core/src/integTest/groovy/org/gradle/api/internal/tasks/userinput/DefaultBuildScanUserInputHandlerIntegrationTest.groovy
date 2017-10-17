@@ -89,9 +89,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
-        gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
+        gradleHandle.cancelWithEOT().waitForFinish()
         expectRenderedPromptAndAnswer(gradleHandle, null)
 
         where:
@@ -111,9 +109,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
-        gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
+        gradleHandle.cancelWithEOT().waitForFinish()
         expectRenderedPromptAndAnswer(gradleHandle, null)
 
         cleanup:
@@ -143,7 +139,6 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         input    | stdin     | accepted
         YES      | YES.bytes | true
         NO       | NO.bytes  | false
-        'ctrl-d' | EOF       | null
     }
 
     def "can ask for license acceptance when build is executed in parallel"() {
