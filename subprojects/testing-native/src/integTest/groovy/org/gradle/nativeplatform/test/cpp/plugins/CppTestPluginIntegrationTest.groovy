@@ -46,8 +46,11 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         app.library.writeSources(file("src/main"))
         app.googleTestTests.writeSources(file("src/test"))
 
-        expect:
+        when:
         succeeds("cpptest")
+
+        then:
+        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp", ":dependTestDebugCpp", ":compileTestDebugCpp", ":linkTestDebug", ":installTestDebug", ":cpptest")
 
         def testResults = new GoogleTestTestResults(file("build/test-results/cpptest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
