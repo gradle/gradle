@@ -85,5 +85,5 @@ data class KotlinScriptTarget<T : Any>(
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
 
-    fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath.invoke(classPath)
+    fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)
 }
