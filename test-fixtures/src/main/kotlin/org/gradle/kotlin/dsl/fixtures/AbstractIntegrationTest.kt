@@ -9,6 +9,7 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
+
 import java.io.File
 
 
@@ -29,11 +30,11 @@ open class AbstractIntegrationTest {
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
-    fun withSettingsScript(script: String, produceFile: (String) -> File = this::newFile): File =
-        withSettingsScriptIn(".", script, produceFile)
+    fun withSettings(script: String, produceFile: (String) -> File = this::newFile): File =
+        withSettingsIn(".", script, produceFile)
 
     protected
-    fun withSettingsScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withSettingsIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
         withFile("$baseDir/settings.gradle.kts", script, produceFile)
 
     protected

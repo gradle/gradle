@@ -126,7 +126,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can access configurations registered by declared plugins via jit accessor`() {
 
-        withSettingsScript("""
+        withSettings("""
             include(arrayOf("a", "b", "c"))
         """)
 
@@ -235,7 +235,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
-        withSettingsScript("include(arrayOf(\"a\"))")
+        withSettings("include(arrayOf(\"a\"))")
         withBuildScriptIn("a", "")
 
         val aTasks = build(":a:tasks").output

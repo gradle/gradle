@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
+
 
 /**
  * Base class for Kotlin settings scripts.
