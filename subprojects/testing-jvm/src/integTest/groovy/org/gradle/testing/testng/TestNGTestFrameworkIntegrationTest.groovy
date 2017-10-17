@@ -26,7 +26,10 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.testng.annotations.Test
-                public void ${failingTestCaseName}() { assert false : "test failure message"; }
+                public void ${failingTestCaseName}() { 
+                    System.err.println("some error output");
+                    assert false : "test failure message"; 
+                }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """

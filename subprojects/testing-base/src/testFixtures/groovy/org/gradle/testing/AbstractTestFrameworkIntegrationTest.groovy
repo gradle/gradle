@@ -114,4 +114,15 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
         result.testClass('SomeTest').assertStderr(Matchers.containsString("some error output"))
     }
+
+    def "failing tests cause report url to be printed"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        fails "check"
+
+        then:
+        errorOutput.contains("There were failing tests. See the report at:")
+    }
 }

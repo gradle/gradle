@@ -997,29 +997,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         action.execute(filter);
     }
 
-    @Override
-    protected void handleTestFailures() {
-        String message = "There were failing tests";
-
-        DirectoryReport htmlReport = getReports().getHtml();
-        if (htmlReport.isEnabled()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-            message = message.concat(". See the report at: " + reportUrl);
-        } else {
-            DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.isEnabled()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                message = message.concat(". See the results at: " + resultsUrl);
-            }
-        }
-
-        if (getIgnoreFailures()) {
-            getLogger().warn(message);
-        } else {
-            throw new GradleException(message);
-        }
-    }
-
     /**
      * Sets the testExecuter property.
      *

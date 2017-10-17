@@ -59,6 +59,7 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -507,13 +508,20 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return reports;
     }
 
-    /**
-     * Handle test failures. For internal use only.
-     * @since 4.4
-     */
-    @Incubating
-    protected void handleTestFailures() {
+    private void handleTestFailures() {
         String message = "There were failing tests";
+
+        DirectoryReport htmlReport = getReports().getHtml();
+        if (htmlReport.isEnabled()) {
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
+            message = message.concat(". See the report at: " + reportUrl);
+        } else {
+            DirectoryReport junitXmlReport = getReports().getJunitXml();
+            if (junitXmlReport.isEnabled()) {
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                message = message.concat(". See the results at: " + resultsUrl);
+            }
+        }
 
         if (getIgnoreFailures()) {
             getLogger().warn(message);
