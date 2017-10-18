@@ -32,7 +32,7 @@ import java.util.Map;
 
 /**
  * Emitting build operations for tests
- * */
+ */
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private final BuildOperationExecutor buildOperationExecutor;
     private final Map<TestDescriptorInternal, BuildOperationExecHandle> runningTests = new HashMap<TestDescriptorInternal, BuildOperationExecHandle>();
@@ -45,6 +45,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public synchronized void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+        System.out.println("testDescriptor.getName() started = " + testDescriptor.getName());
         if (testDescriptor.getParent() != null) {
             BuildOperationExecHandle parentOperationExecHandle = runningTests.get(testDescriptor.getParent());
             BuildOperationDescriptor.Builder description = BuildOperationDescriptor.displayName(testDescriptor.getName()).details(new TestBuildOperationType.Details() {
@@ -71,7 +72,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
             if (parentOperationExecHandle == null) {
                 description.parent(parentOperationState);
-//                description.parent(buildOperationExecutor.getCurrentOperation());
                 BuildOperationExecHandle handle = buildOperationExecutor.start(description);
                 runningTests.put(testDescriptor, handle);
             } else {
@@ -83,6 +83,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public synchronized void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+        System.out.println("testDescriptor.getName() completed = " + testDescriptor.getName());
         if (testDescriptor.getParent() != null) {
             BuildOperationExecHandle buildOperationExecHandle = runningTests.remove(testDescriptor);
             buildOperationExecHandle.finish(new BuildOperationTestResult(testResult));
@@ -91,12 +92,14 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
+        System.out.println("testDescriptor output = " + testDescriptor.getName());
         if (testDescriptor.getParent() != null) {
             BuildOperationExecHandle buildOperationExecHandle = runningTests.get(testDescriptor);
-            buildOperationExecHandle.runChild(new RunnableBuildOperation(){
+            buildOperationExecHandle.emitChildBuildOperation(new RunnableBuildOperation() {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName(testDescriptor.getName()).details(new TestOutputBuildOperationType.Details(){});
+                    return BuildOperationDescriptor.displayName(testDescriptor.getName() + "--" + event.getDestination()).details(new TestOutputBuildOperationType.Details() {
+                    });
                 }
 
                 @Override
@@ -105,16 +108,13 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
                 }
             });
 
-
-//            BuildOperationExecHandle buildOperationExecHandle = runningTests.remove(testDescriptor);
-//            buildOperationExecHandle.finish(new BuildOperationTestResult(testDescriptor));
         }
     }
 
-    private class DefaultTestOutputBuildOperationResult implements TestOutputBuildOperationType.Result{
+    private class DefaultTestOutputBuildOperationResult implements TestOutputBuildOperationType.Result {
         private final TestOutputEvent event;
 
-        public DefaultTestOutputBuildOperationResult(TestOutputEvent event){
+        public DefaultTestOutputBuildOperationResult(TestOutputEvent event) {
             this.event = event;
         }
 

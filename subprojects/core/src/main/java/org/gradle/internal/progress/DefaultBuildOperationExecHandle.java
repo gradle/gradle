@@ -17,99 +17,67 @@
 package org.gradle.internal.progress;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.operations.*;
 import org.gradle.internal.operations.BuildOperationExecHandle;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Clock;
 
 public class DefaultBuildOperationExecHandle implements org.gradle.internal.operations.BuildOperationExecHandle {
     private final BuildOperationIdFactory buildOperationIdFactory;
-    private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationListener listener;
     private final Clock clock;
     private final BuildOperationDescriptor descriptor;
     private final DefaultBuildOperationExecutor.DefaultBuildOperationState parent;
     private final DefaultBuildOperationExecutor.DefaultBuildOperationState currentOperation;
-    private final ProgressLogger progressLogger;
     private final DefaultBuildOperationExecutor.DefaultBuildOperationContext context;
 
-    public DefaultBuildOperationExecHandle(BuildOperationIdFactory buildOperationIdFactory, ProgressLoggerFactory progressLoggerFactory, BuildOperationListener listener, Clock clock, BuildOperationDescriptor descriptor, DefaultBuildOperationExecutor.DefaultBuildOperationState parent,
-                                           DefaultBuildOperationExecutor.DefaultBuildOperationState currentOperation,
-                                           ProgressLogger progressLogger) {
+    public DefaultBuildOperationExecHandle(BuildOperationIdFactory buildOperationIdFactory, BuildOperationListener listener, Clock clock, BuildOperationDescriptor descriptor, DefaultBuildOperationExecutor.DefaultBuildOperationState parent,
+                                           DefaultBuildOperationExecutor.DefaultBuildOperationState currentOperation) {
         this.buildOperationIdFactory = buildOperationIdFactory;
-        this.progressLoggerFactory = progressLoggerFactory;
         this.listener = listener;
         this.clock = clock;
         this.descriptor = descriptor;
         this.parent = parent;
         this.currentOperation = currentOperation;
-        this.progressLogger = progressLogger;
         this.context = new DefaultBuildOperationExecutor.DefaultBuildOperationContext();
+    }
+
+    @Override
+    public BuildOperationExecHandle startChild(BuildOperationDescriptor.Builder descriptionBuilder) {
+        BuildOperationDescriptor descriptor = createChildDescriptor(descriptionBuilder);
+        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
+        childOperation.setRunning(true);
+        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
+        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, listener, clock, descriptor, parent, childOperation);
+    }
+
+    @Override
+    public void emitChildBuildOperation(RunnableBuildOperation buildOperation) {
+        BuildOperationDescriptor descriptor = createChildDescriptor(buildOperation.description());
+        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
+        childOperation.setRunning(true);
+        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
+        DefaultBuildOperationExecutor.DefaultBuildOperationContext context = new DefaultBuildOperationExecutor.DefaultBuildOperationContext();
+        try {
+            buildOperation.run(context);
+        } catch (Throwable t) {
+            context.thrown(t);
+        } finally {
+            listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+            childOperation.setRunning(false);
+        }
     }
 
     @Override
     public void finish(Object result) {
         context.setResult(result);
-        progressLogger.completed("Status", false);
         doFinish(result, null);
     }
 
-    @Override
-    public BuildOperationExecHandle startChild(BuildOperationDescriptor.Builder descriptionBuilder) {
-
-        BuildOperationDescriptor descriptor = createChildDescriptor(descriptionBuilder);
-        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
-
-        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
-
-        childOperation.setRunning(true);
-        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
-        ProgressLogger progressLogger = createProgressLogger(childOperation);
-//            LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-
-        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, progressLoggerFactory, listener, clock, descriptor, parent, childOperation, progressLogger);
-//            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-//
-//            progressLogger.completed(context.status, context.failure != null);
-//            listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-//
-//            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-//
-//            if (failure != null) {
-//                throw UncheckedException.throwAsUncheckedException(failure, true);
-//            }
-
-//            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
-//        }
-
-    }
-
-    @Override
-    public void runChild(RunnableBuildOperation buildOperation) {
-
-        BuildOperationDescriptor descriptor = createChildDescriptor(buildOperation.description());
-        DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
-
-        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
-
-        childOperation.setRunning(true);
-        listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
-        DefaultBuildOperationExecutor.DefaultBuildOperationContext context = new DefaultBuildOperationExecutor.DefaultBuildOperationContext();
-        try {
-            runChild(buildOperation);
-        } catch (Throwable t) {
-            context.thrown(t);
-        } finally {
-            listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-            currentOperation.setRunning(false);
-        }
-    }
-
-
     public void failed(Throwable t) {
         context.failed(t);
-        progressLogger.completed("Status", false);
         doFinish(null, t);
     }
 
@@ -118,17 +86,8 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
      */
     private void doFinish(Object result, Throwable failure) {
         listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), clock.getCurrentTime(), failure, result));
-
-        assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-
-        if (parent != null) {
-            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(parent.getId());
-        } else {
-            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
-        }
         currentOperation.setRunning(false);
     }
-//
 
     private BuildOperationDescriptor createChildDescriptor(BuildOperationDescriptor.Builder descriptorBuilder) {
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
@@ -142,9 +101,4 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
         }
     }
 
-    private ProgressLogger createProgressLogger(DefaultBuildOperationExecutor.DefaultBuildOperationState currentOperation) {
-        BuildOperationDescriptor descriptor = currentOperation.getDescription();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
-        return progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
-    }
 }

@@ -95,8 +95,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public BuildOperationExecHandle start(BuildOperationDescriptor.Builder descriptorBuilder) {
-        failIfInResourceLockTransform();
-
         DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
             parent = currentOperation.get();
@@ -108,22 +106,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         currentOperation.setRunning(true);
 
         listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
-        ProgressLogger progressLogger = createProgressLogger(currentOperation);
-        LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-
-        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, progressLoggerFactory, listener, clock, descriptor, parent, currentOperation, progressLogger);
-//            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-//
-//            progressLogger.completed(context.status, context.failure != null);
-//            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-//
-//            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-//
-//            if (failure != null) {
-//                throw UncheckedException.throwAsUncheckedException(failure, true);
-//            }
-
-//            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, listener, clock, descriptor, parent, currentOperation);
     }
 
     @Override
