@@ -106,6 +106,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(resolver.resolveTask((TaskReference) dependency));
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
+            } else if (dependency instanceof TaskDependencyContainer) {
+                ((TaskDependencyContainer)dependency).visitDependencies(context);
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
@@ -115,6 +117,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
+                formats.add("A Provider instance");
                 formats.add("A Closure instance that returns any of the above types");
                 formats.add("A Callable instance that returns any of the above types");
                 formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");
