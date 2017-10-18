@@ -190,7 +190,8 @@ public class JavaCompilerArgumentsBuilder {
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
-                // TODO:  Do we also need to pass -Aincremental?  Does the Annotation Processor need to differentiate?
+
+                //incap options
                 args.add("-A"
                          + MappingFileConstants.MAPPING_FILE_FOLDER_OPTION
                          + "="
