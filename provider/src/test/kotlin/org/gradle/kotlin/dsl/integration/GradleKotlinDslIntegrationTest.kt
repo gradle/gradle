@@ -1,13 +1,17 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
@@ -124,6 +128,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
+        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
 
         withBuildScript("""
             buildscript {
@@ -349,6 +354,38 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
+    }
+
+    @Test
+    fun `optional null extra property requested as a non nullable type throws NPE`() {
+
+        withBuildScript("""
+            val myTask = task("myTask") {
+
+                val foo: Int? by extra { null }
+
+                doLast {
+                    println("Optional extra property value: ${'$'}foo")
+                }
+            }
+
+            val foo: Int by myTask.extra
+
+            afterEvaluate {
+                try {
+                    println("myTask.foo = ${'$'}foo")
+                    require(false, { "Should not happen as `foo`, requested as a Int is effectively null" })
+                } catch (ex: NullPointerException) {
+                    // expected
+                }
+            }
+        """)
+
+        assertThat(
+            build("myTask").output,
+            allOf(
+                containsString("Optional extra property value: null"),
+                not(containsString("myTask.foo"))))
     }
 
     private

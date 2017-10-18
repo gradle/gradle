@@ -186,7 +186,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             rootProjectScript = "",
             subProjectScript ="""
                 buildscript {
-                    dependencies { classpath(kotlin("gradle-plugin")) }
+                    dependencies { classpath(embeddedKotlin("gradle-plugin")) }
                     repositories { jcenter() }
                 }
             """)
@@ -198,7 +198,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertSourcePathIncludesKotlinPluginSourcesGiven(
             rootProjectScript = """
                 buildscript {
-                    dependencies { classpath(kotlin("gradle-plugin")) }
+                    dependencies { classpath(embeddedKotlin("gradle-plugin")) }
                     repositories { jcenter() }
                 }
             """,
@@ -210,7 +210,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertSourcePathIncludesKotlinPluginSourcesGiven(
             rootProjectScript = "",
-            subProjectScript = """ plugins { kotlin("jvm") } """)
+            subProjectScript = """ plugins { kotlin("jvm") version "$embeddedKotlinVersion" } """)
     }
 
     private

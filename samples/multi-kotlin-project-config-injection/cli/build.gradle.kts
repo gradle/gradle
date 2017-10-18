@@ -1,9 +1,6 @@
 plugins {
     application
-}
-
-apply {
-    plugin("kotlin")
+    kotlin("jvm")
 }
 
 application {

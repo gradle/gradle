@@ -18,7 +18,7 @@ open class KotlinLibrary : Plugin<Project> {
         tasks.withType(KotlinCompile::class.java) {
             it.kotlinOptions.apply {
                 freeCompilerArgs = listOf(
-                    "-Xjsr305-annotations=enable",
+                    "-Xjsr305=strict",
                     "-Xskip-runtime-version-check")
             }
         }

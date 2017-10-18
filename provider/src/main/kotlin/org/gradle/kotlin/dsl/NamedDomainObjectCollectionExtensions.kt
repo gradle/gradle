@@ -60,9 +60,9 @@ class NamedDomainObjectCollectionDelegateProvider<T>(
  *
  * @param name The object name
  * @return The object with the given name.
- * @throws UnknownDomainObjectException when there is no such object in this collection.
+ * @throws [UnknownDomainObjectException] when there is no such object in this collection.
  *
- * @see NamedDomainObjectCollection.getByName
+ * @see [NamedDomainObjectCollection.getByName]
  */
 operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
     getByName(name)
@@ -71,9 +71,9 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
 /**
  * Allows a [NamedDomainObjectCollection] to be used as a property delegate.
  *
- * @throws UnknownDomainObjectException upon property access when there is no such object in the given collection.
+ * @throws [UnknownDomainObjectException] upon property access when there is no such object in the given collection.
  *
- * @see NamedDomainObjectCollection.getByName
+ * @see [NamedDomainObjectCollection.getByName]
  */
 inline
 operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =

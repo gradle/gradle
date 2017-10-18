@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.groovy.scripts.StringScriptSource
 
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -45,7 +46,7 @@ class PluginDependenciesSpecScopeTest {
 
     @Test
     fun `given build-scan plugin accessor, it should create a single request with default version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = "1.8")) {
+        expecting(plugin(id = "com.gradle.build-scan", version = "1.9.1")) {
             `build-scan`
         }
     }
@@ -56,6 +57,21 @@ class PluginDependenciesSpecScopeTest {
             `build-scan` version "1.7.1"
         }
     }
+
+    @Test
+    fun `given kotlin plugin accessor, it should create a single request with no version`() {
+        expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = null)) {
+            kotlin("jvm")
+        }
+    }
+
+    @Test
+    fun `given kotlin plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = "1.1.1")) {
+            kotlin("jvm") version "1.1.1"
+        }
+    }
+
 }
 
 
@@ -65,7 +81,7 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
         equalTo(expected.asList()))
 }
 
-fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
+fun plugins(block: PluginDependenciesSpecScope.() -> Unit): List<PluginRequestInternal> =
     PluginRequestCollector(StringScriptSource("script", "")).run {
         PluginDependenciesSpecScope(createSpec(1)).block()
         listPluginRequests()

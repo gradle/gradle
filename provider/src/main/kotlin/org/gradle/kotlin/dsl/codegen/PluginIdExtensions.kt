@@ -37,7 +37,7 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
             write(it)
             write("\n")
         }
-    }}
+    } }
 }
 
 

@@ -1,3 +1,8 @@
+plugins {
+    base
+    kotlin("jvm") version "1.1.51" apply false
+}
+
 allprojects {
 
     group = "org.gradle.kotlin.dsl.samples.multiproject"
@@ -7,10 +12,6 @@ allprojects {
     repositories {
         jcenter()
     }
-}
-
-plugins {
-    base
 }
 
 dependencies {

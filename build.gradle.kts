@@ -26,11 +26,11 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.11.1"
+    version = "0.12.1"
 }
 
-val publishedPluginsVersion by extra { "0.11.2" }
-val futurePluginsVersion = "0.11.3"
+val publishedPluginsVersion by extra { "0.12.0" }
+val futurePluginsVersion = "0.12.1"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
@@ -49,10 +49,6 @@ dependencies {
     publishedProjects.forEach {
         distribution(it)
     }
-}
-
-configure(publishedProjects) {
-    apply<plugins.GskPublishedModule>()
 }
 
 tasks {

@@ -1,17 +1,6 @@
-
-buildscript {
-    dependencies {
-        classpath("com.android.tools.build:gradle:2.3.3")
-        classpath(kotlin("gradle-plugin"))
-    }
-    repositories {
-        jcenter()
-    }
-}
-
-apply {
-    plugin("com.android.application")
-    plugin("kotlin-android")
+plugins {
+    id("com.android.application") version "2.3.3"
+    kotlin("android") version "1.1.51"
 }
 
 android {
@@ -38,10 +27,9 @@ android {
 dependencies {
     compile("com.android.support:appcompat-v7:23.4.0")
     compile("com.android.support.constraint:constraint-layout:1.0.0-alpha8")
-    compile(kotlin("stdlib"))
+    compile(kotlin("stdlib", "1.1.51"))
 }
 
 repositories {
     jcenter()
 }
-

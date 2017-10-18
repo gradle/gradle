@@ -43,6 +43,36 @@ class ExtraPropertiesExtensionsTest {
         use(property)
     }
 
+    @Test
+    fun `can initialize extra property to null via delegate provider`() {
+
+        val extra = mock<ExtraPropertiesExtension> {
+            on { get("property") } doReturn (null as Int?)
+        }
+
+        val property by extra<Int?>(null)
+
+        // property is set eagerly
+        verify(extra).set("property", null)
+
+        // And to prove the type is inferred correctly
+        use(property)
+    }
+
+    @Test
+    fun `can initialize extra property to null using lambda expression`() {
+
+        val extra = mock<ExtraPropertiesExtension>()
+
+        val property by extra { null as Int? }
+
+        // property is set eagerly
+        verify(extra).set("property", null)
+
+        // And to prove the type is inferred correctly
+        use(property)
+    }
+
     private
-    fun use(@Suppress("unused_parameter") property: Int) = Unit
+    fun use(@Suppress("unused_parameter") property: Int?) = Unit
 }

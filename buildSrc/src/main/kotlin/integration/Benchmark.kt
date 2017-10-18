@@ -24,6 +24,7 @@ import criterion.benchmark
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.tooling.GradleConnector
@@ -44,20 +45,27 @@ import java.time.ZoneId
 
 open class Benchmark : DefaultTask() {
 
+    @get:Internal
     var latestInstallation: File? = null
 
+    @get:Internal
     var warmUpRuns = 7
 
+    @get:Internal
     var observationRuns = 11
 
+    @get:Internal
     var maxQuotient: Double = 1.10 // fails if becomes 10% slower
 
+    @get:Internal
     var resultDir: File? = null
 
     @Option(option = "exclude-sample", description = "Excludes a sample from the benchmark.")
+    @get:Internal
     var excludedSamplePatterns = mutableListOf("android")
 
     @Option(option = "include-sample", description = "Includes a sample in the benchmark (disables automatic inclusion).")
+    @get:Internal
     var includedSamplePatterns = mutableListOf<String>()
 
     @Suppress("unused")
@@ -156,6 +164,7 @@ open class Benchmark : DefaultTask() {
     fun resultFileFor(sampleName: String) =
         File(effectiveResultDir, "$sampleName.jsonl")
 
+    @get:Internal
     private
     val effectiveResultDir by lazy {
         resultDir ?: File(project.buildDir, "benchmark")
@@ -177,11 +186,13 @@ open class Benchmark : DefaultTask() {
             "%.6f".format(it.ms)
         }
 
+    @get:Internal
     private
     val ISO8601Now by lazy {
         OffsetDateTime.now(ZoneId.of("UTC")).toString()
     }
 
+    @get:Internal
     private
     val commitHash by lazy {
         println("Attempting to determine current commit hash via environment variable")
