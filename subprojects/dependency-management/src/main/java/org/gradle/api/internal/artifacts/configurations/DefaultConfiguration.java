@@ -119,6 +119,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -360,12 +361,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public Configuration withDependencies(final Action<? super DependencySet> action) {
+        withDependencyActions = withDependencyActions.add(action);
+        return this;
+    }
+
     public void runDependencyActions() {
-        if (dependencies.isEmpty()) {
-            defaultDependencyActions.execute(dependencies);
-        }
-        // Discard actions
+        defaultDependencyActions.execute(dependencies);
+        withDependencyActions.execute(dependencies);
+
+        // Discard actions after execution
         defaultDependencyActions = ImmutableActionSet.empty();
+        withDependencyActions = ImmutableActionSet.empty();
+
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).runDependencyActions();
         }
