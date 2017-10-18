@@ -140,6 +140,7 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void includeBuildFileInProject(Project project) {
+        // TODO: Add other build like files `build.gradle.kts`, `settings.gradle(.kts)`, other `.gradle`, `gradle.properties`
         if (project.getBuildFile().exists()) {
             xcode.getProject().getGroups().getRoot().from(project.getBuildFile());
         }
