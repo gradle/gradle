@@ -23,8 +23,6 @@ import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.Collections;
 
@@ -35,10 +33,6 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
  */
 public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
-    private static final PluginId BUILD_SCAN_PLUGIN_ID = new DefaultPluginId("com.gradle.build-scan");
-    public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
-    private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
-    private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
     private final StartParameter startParameter;
 
     public DefaultAutoAppliedPluginRegistry(StartParameter startParameter) {
@@ -58,8 +52,8 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     }
 
     private DefaultPluginRequest createScanPluginRequest() {
-        DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(BUILD_SCAN_PLUGIN_GROUP, BUILD_SCAN_PLUGIN_NAME, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION);
-        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, null, getScriptDisplayName(), artifact);
+        DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(AutoAppliedBuildScanPlugin.GROUP, AutoAppliedBuildScanPlugin.NAME, AutoAppliedBuildScanPlugin.VERSION);
+        return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }
 
     private static String getScriptDisplayName() {
