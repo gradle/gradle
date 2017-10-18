@@ -17,17 +17,47 @@
 package org.gradle.internal.dependencylock
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
+
+import static org.gradle.internal.dependencylock.fixtures.DependencyLockFixture.basicBuildScriptSetup
+import static org.gradle.internal.dependencylock.fixtures.DependencyLockFixture.copyLibsTask
 
 class DependencyLockFileConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        buildFile << """
-            apply plugin: 'dependency-lock'
+        buildFile << basicBuildScriptSetup(mavenRepo)
+    }
 
-            repositories {
-                maven { url "${mavenRepo.uri}" }
+    @Unroll
+    def "does not use locked version for #criteria"() {
+        given:
+        mavenRepo.module('other', 'dep', '0.1').publish()
+        mavenRepo.module('other', 'dep', '0.2').publish()
+        mavenRepo.module('other', 'dep', '0.3').publish()
+
+        buildFile << """
+            configurations {
+                myConf
+            }
+            
+            dependencies {
+                myConf 'other:dep:+'
             }
         """
+        buildFile << copyLibsTask()
+
+        file('dependencies.lock').text = lockFileContent
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        file('build/libs').assertContainsDescendants('dep-0.3.jar')
+
+        where:
+        criteria                                            | lockFileContent
+        'matching configuration but no matching dependency' | '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]'
+        'matching dependency but no matching configuration' | '[{"configuration":"compile","dependencies":[{"requestedVersion":"+","coordinates":"other:dep","lockedVersion":"0.2"}]}]'
     }
 
     def "can consume lock file and use locked versions"() {
@@ -52,12 +82,8 @@ class DependencyLockFileConsumptionIntegrationTest extends AbstractIntegrationSp
                 myConf 'my:prod:latest.release'
                 myConf 'dep:range:[1.0,2.0]'
             }
-            
-            task copyLibs(type: Copy) {
-                from configurations.myConf
-                into "\$buildDir/libs"
-            }
         """
+        buildFile << copyLibsTask()
 
         file('dependencies.lock').text = '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
 
@@ -67,5 +93,4 @@ class DependencyLockFileConsumptionIntegrationTest extends AbstractIntegrationSp
         then:
         file('build/libs').assertContainsDescendants('dep-0.1.jar', 'bar-1.3.jar', 'prod-3.2.1.jar', 'range-1.7.1.jar')
     }
-
 }
