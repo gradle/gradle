@@ -34,7 +34,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.options.OptionValues;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
