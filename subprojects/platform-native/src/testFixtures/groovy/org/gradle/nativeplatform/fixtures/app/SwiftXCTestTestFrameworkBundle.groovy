@@ -37,7 +37,7 @@ class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
         super.files + [emptyInfoPlist()]
     }
 
-    private static String FAILING_TEST = """
+    private static final String FAILING_TEST = """
         fputs("some error output", __stderrp)
         
         XCTAssert(false, "test failure message")
