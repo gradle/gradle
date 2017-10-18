@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import com.google.common.annotations.VisibleForTesting;
 import groovy.lang.Closure;
 import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
@@ -76,15 +77,22 @@ import java.util.Map;
 
 /**
  * Abstract class for all test task.
+ *
+ * <ul>
+ *     <li>Support for test listeners</li>
+ *     <li>Support for reporting</li>
+ *     <li>Support for report linking in the console output</li>
+ * </ul>
+ *
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
-    protected final TestTaskReports reports;
+    private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
-    protected TestReporter testReporter;
+    private TestReporter testReporter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -101,14 +109,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getHtml().setEnabled(true);
     }
 
-    @Internal
-    protected ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerBroadcaster;
+    @Inject
+    protected ProgressLoggerFactory getProgressLoggerFactory() {
+        throw new UnsupportedOperationException();
     }
 
-    @Internal
-    protected ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
-        return testOutputListenerBroadcaster;
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -116,12 +124,28 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * ATM. for testing only
-     */
-    void setTestReporter(TestReporter testReporter) {
-        this.testReporter = testReporter;
+    @Inject
+    protected BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Creates test executer. For internal use only.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
 
     /**
      * Creates test execution specification. For internal use only.
@@ -131,19 +155,33 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Incubating
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
+    @Internal
+    @VisibleForTesting
+    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
+        return testOutputListenerBroadcaster;
+    }
+
+    @Internal
+    @VisibleForTesting
+    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
+        return testListenerInternalBroadcaster;
+    }
+
+    /**
+     * ATM. for testing only
+     */
+    void setTestReporter(TestReporter testReporter) {
+        this.testReporter = testReporter;
+    }
+
     // only way I know of to determine current log level
-    protected LogLevel determineCurrentLogLevel() {
+    private LogLevel determineCurrentLogLevel() {
         for (LogLevel level : LogLevel.values()) {
             if (getLogger().isEnabled(level)) {
                 return level;
             }
         }
         throw new AssertionError("could not determine current log level");
-    }
-
-    @Inject
-    protected ProgressLoggerFactory getProgressLoggerFactory() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -167,11 +205,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         this.binResultsDir = binResultsDir;
     }
 
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
      * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
@@ -181,11 +214,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     public void addTestListener(TestListener listener) {
         testListenerBroadcaster.add(listener);
-    }
-
-    @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -219,16 +247,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerBroadcaster.remove(listener);
     }
 
-    @Internal
-    protected ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
-        return testListenerInternalBroadcaster;
-    }
-
-    @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -244,12 +262,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         this.ignoreFailures = ignoreFailures;
     }
 
-    @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
-
-    protected TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
+    private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
         switch (testLogging.getExceptionFormat()) {
             case SHORT:
                 return new ShortExceptionFormatter(testLogging);
@@ -381,14 +394,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         action.execute(testLogging);
     }
 
-    /**
-     * Creates test executer. For internal use only.
-     *
-     * @since 4.4
-     */
-    @Incubating
-    protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
-
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
@@ -414,7 +419,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(getTestListenerBroadcaster().getSource(), getTestOutputListenerBroadcaster().getSource()));
+        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), getTestOutputListenerBroadcaster().getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
         parentProgressLogger.setDescription("Test Execution");
@@ -431,7 +436,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } finally {
             parentProgressLogger.completed();
             testWorkerProgressListener.completeAll();
-            getTestListenerBroadcaster().removeAll();
+            testListenerBroadcaster.removeAll();
             getTestOutputListenerBroadcaster().removeAll();
             getTestListenerInternalBroadcaster().removeAll();
             outputWriter.close();
@@ -447,7 +452,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
 
-    protected void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
+    private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
 
         try {

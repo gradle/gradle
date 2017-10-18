@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
@@ -62,7 +64,7 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        lib.assertTestCasesRan(output)
+        lib.assertTestCasesRan(testExecutionResult)
     }
 
     def "can apply swift-executable and xctest plugins together"() {
@@ -141,5 +143,9 @@ apply plugin: 'swift-library'
 
     private void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert !binary.binaryInfo.listSymbols().contains('_main')
+    }
+
+    TestExecutionResult getTestExecutionResult() {
+        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

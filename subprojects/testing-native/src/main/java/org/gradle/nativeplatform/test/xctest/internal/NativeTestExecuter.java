@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
@@ -25,12 +26,10 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -44,7 +43,6 @@ import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.TextUtil;
-import org.testng.collections.Lists;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -57,8 +55,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NativeTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
-    private static Logger LOGGER = Logging.getLogger(NativeTestExecuter.class);
-
     public ExecHandleBuilder getExecHandleBuilder() {
         return new DefaultExecHandleBuilder();
     }

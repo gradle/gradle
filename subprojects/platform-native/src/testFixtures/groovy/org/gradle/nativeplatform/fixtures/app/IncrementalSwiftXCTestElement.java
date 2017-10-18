@@ -16,16 +16,17 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.integtests.fixtures.TestExecutionResult;
+
 import java.util.List;
-import java.util.regex.Pattern;
 
 public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElement implements XCTestElement {
-    public Pattern getExpectedSummaryOutputPattern() {
-        return XCTestSourceElement.toExpectedSummaryOutputPattern("All tests", getTestCount(), getFailureCount());
+    public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
+        XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }
 
-    public Pattern getExpectedAlternateSummaryOutputPattern() {
-        return XCTestSourceElement.toExpectedSummaryOutputPattern("All tests", getAlternateTestCount(), getAlternateFailureCount());
+    public void assertAlternateTestCasesRan(TestExecutionResult testExecutionResult) {
+        XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getAlternateTestSuites());
     }
 
     public abstract List<XCTestSourceFileElement> getTestSuites();

@@ -18,10 +18,10 @@ package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.TestExecutionResult;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public abstract class XCTestSourceElement extends SourceElement implements XCTestElement {
     @Override
@@ -68,41 +68,14 @@ public abstract class XCTestSourceElement extends SourceElement implements XCTes
 
     public abstract List<XCTestSourceFileElement> getTestSuites();
 
-    public void assertTestCasesRan(String output) {
-        for (XCTestSourceFileElement element : getTestSuites()) {
-            element.assertTestCasesRan(output);
-        }
-
-        if (!getExpectedSummaryOutputPattern().matcher(output).find()) {
-            throw new RuntimeException(String.format("Couldn't find test summary with %d failed and %d passing test(s)", getFailureCount(), getPassCount()));
-        }
+    public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
+        assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }
 
-    public Pattern getExpectedSummaryOutputPattern() {
-        return toExpectedSummaryOutputPattern("All tests", getTestCount(), getFailureCount());
-    }
-
-    static Pattern toExpectedSummaryOutputPattern(String testSuiteName, int testCount, int failureCount) {
-        return Pattern.compile(
-            "Test Suite '" + testSuiteName + "' " + toResult(failureCount) + " at .+\n"
-                + "\\s+Executed " + testCount + " " + plurializeIf("test", testCount)
-                + ", with " + failureCount + " " + plurializeIf("failure", failureCount)
-                + " \\(0 unexpected\\)",
-            Pattern.MULTILINE | Pattern.DOTALL);
-    }
-
-    public static String toResult(int failureCount) {
-        if (failureCount > 0) {
-            return "failed";
+    static void assertTestCasesRanInSuite(TestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
+        for (XCTestSourceFileElement element : testSuites) {
+            element.assertTestCasesRan(testExecutionResult.testClass(element.getTestSuiteName()));
         }
-        return "passed";
-    }
-
-    private static String plurializeIf(String noun, int count) {
-        if (count > 1 || count == 0) {
-            return noun + "s";
-        }
-        return noun;
     }
 
     public SourceFile emptyInfoPlist() {
