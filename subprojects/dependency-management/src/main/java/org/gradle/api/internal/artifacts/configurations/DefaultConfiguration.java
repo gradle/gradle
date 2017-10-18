@@ -455,6 +455,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public void run(BuildOperationContext context) {
                 preventFromFurtherMutation();
+                triggerWhenEmptyActionsIfNecessary();
 
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
@@ -487,7 +488,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         } finally {
             insideBeforeResolve = false;
         }
-        triggerWhenEmptyActionsIfNecessary();
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
