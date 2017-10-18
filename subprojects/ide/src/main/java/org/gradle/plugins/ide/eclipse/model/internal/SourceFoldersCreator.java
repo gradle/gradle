@@ -34,11 +34,11 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
-import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,8 +51,8 @@ import java.util.Set;
 
 public class SourceFoldersCreator {
 
-    public List<ClasspathEntry> createSourceFolders(final EclipseClasspath classpath) {
-        List<ClasspathEntry> entries = Lists.newArrayList();
+    public List<SourceFolder> createSourceFolders(final EclipseClasspath classpath) {
+
         Function<File, String> provideRelativePath = new Function<File, String>() {
             @Override
             public String apply(File input) {
@@ -60,26 +60,16 @@ public class SourceFoldersCreator {
             }
         };
         List<SourceFolder> sourceFolders = projectRelativeFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir());
-        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolders, new Spec<SourceFolder>() {
+
+        return collectRegularAndExternalSourceFolders(sourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
             @Override
-            public boolean isSatisfiedBy(SourceFolder sourceFolder) {
-                return sourceFolder.getPath().contains("..");
+            public List<SourceFolder> apply(@Nullable Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
+                List<SourceFolder> entries = Lists.newArrayListWithCapacity(sourceFolders.getLeft().size() + sourceFolders.getRight().size());
+                entries.addAll(sourceFolders.getLeft());
+                entries.addAll(sourceFolders.getRight());
+                return entries;
             }
         });
-
-        Collection<SourceFolder> regularSourceFolders = partitionedFolders.getRight();
-        entries.addAll(regularSourceFolders);
-
-        Collection<SourceFolder> externalSourceFolders = partitionedFolders.getLeft();
-        List<String> regularSourceFolderNames = Lists.newArrayList(Collections2.transform(regularSourceFolders, new Function<SourceFolder, String>() {
-            @Override
-            public String apply(SourceFolder sourceFolder) {
-                return sourceFolder.getName();
-            }
-        }));
-        entries.addAll(trimAndDedup(externalSourceFolders, regularSourceFolderNames));
-
-        return entries;
     }
 
     /**
@@ -89,7 +79,16 @@ public class SourceFoldersCreator {
      */
     public List<SourceFolder> getBasicExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
         List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
-        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(basicSourceFolders, new Spec<SourceFolder>() {
+        return collectRegularAndExternalSourceFolders(basicSourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
+            @Override
+            public List<SourceFolder> apply(@Nullable Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
+                return Lists.newArrayList(sourceFolders.right());
+            }
+        });
+    }
+
+    private <T> T collectRegularAndExternalSourceFolders(List<SourceFolder> sourceFolder, Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, T> collector) {
+        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder, new Spec<SourceFolder>() {
             @Override
             public boolean isSatisfiedBy(SourceFolder sourceFolder) {
                 return sourceFolder.getPath().contains("..");
@@ -105,7 +104,9 @@ public class SourceFoldersCreator {
                 return sourceFolder.getName();
             }
         }));
-        return trimAndDedup(externalSourceFolders, sources);
+        Collection<SourceFolder> dedupedExternalSourceFolders = trimAndDedup(externalSourceFolders, sources);
+
+        return collector.apply(Pair.of(regularSourceFolders, dedupedExternalSourceFolders));
     }
 
     private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
