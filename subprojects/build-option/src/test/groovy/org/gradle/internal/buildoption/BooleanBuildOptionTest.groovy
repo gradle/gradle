@@ -26,6 +26,7 @@ import static org.gradle.internal.buildoption.BuildOptionFixture.*
 class BooleanBuildOptionTest extends Specification {
 
     public static final String DISABLED_LONG_OPTION = "no-$LONG_OPTION"
+    public static final String DISABLED_DESCRIPTION = "Disables option --${LONG_OPTION}."
     def testSettings = new TestSettings()
     def commandLineParser = new CommandLineParser()
 
@@ -69,6 +70,8 @@ class BooleanBuildOptionTest extends Specification {
         assertNoArguments(disabledOption)
         assertNoDeprecationWarning(enabledOption)
         assertNoDeprecationWarning(disabledOption)
+        assertDescription(enabledOption)
+        disabledOption.description == DISABLED_DESCRIPTION
     }
 
     def "can configure incubating command line option"() {
@@ -83,8 +86,12 @@ class BooleanBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[DISABLED_LONG_OPTION], incubating)
+        CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
+        assertIncubating(enabledOption, incubating)
+        assertIncubating(disabledOption, incubating)
+        assertIncubatingDescription(enabledOption, incubating)
+        disabledOption.description == DISABLED_DESCRIPTION + (incubating ? ' [incubating]' : '')
 
         where:
         incubating << [false, true]
@@ -102,8 +109,12 @@ class BooleanBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[DISABLED_LONG_OPTION], deprecationWarning)
+        CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
+        assertDeprecationWarning(enabledOption, deprecationWarning)
+        assertDeprecationWarning(disabledOption, deprecationWarning)
+        assertDeprecatedDescription(enabledOption, deprecationWarning)
+        disabledOption.description == "$DISABLED_DESCRIPTION [deprecated - $deprecationWarning]"
     }
 
     def "can apply from command line"() {
