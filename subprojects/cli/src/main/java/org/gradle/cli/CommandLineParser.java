@@ -454,7 +454,7 @@ public class CommandLineParser {
             if (getHasArgument() && values.isEmpty()) {
                 throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", optionString));
             }
-            
+
             ParsedCommandLineOption parsedOption = commandLine.addOption(optionString.option, option);
             if (values.size() + parsedOption.getValues().size() > 1 && !option.getAllowsMultipleArguments()) {
                 throw new CommandLineArgumentException(String.format("Multiple arguments were provided for command-line option '%s'.", optionString));
@@ -462,8 +462,8 @@ public class CommandLineParser {
             for (String value : values) {
                 parsedOption.addArgument(value);
             }
-            if (option.getDeprecationWarning() != null) {
-                deprecationPrinter.println("The " + optionString + " option is deprecated - " + option.getDeprecationWarning());
+            if (option.isDeprecated()) {
+                deprecationPrinter.println("The " + optionString + " option is deprecated and is scheduled to be removed in Gradle 5.0.");
             }
 
             for (CommandLineOption otherOption : option.getGroupWith()) {
