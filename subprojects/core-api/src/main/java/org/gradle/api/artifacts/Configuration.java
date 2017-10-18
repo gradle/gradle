@@ -369,6 +369,37 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration defaultDependencies(Action<? super DependencySet> action);
 
     /**
+     * Execute the given action before the configuration first participates in
+     * dependency resolution. A {@code Configuration} will participate in dependency resolution
+     * when:
+     * <ul>
+     *     <li>The {@link Configuration} itself is resolved</li>
+     *     <li>Another {@link Configuration} that extends this one is resolved</li>
+     *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
+     * </ul>
+     *
+     * This method is useful for mutating the dependencies for a configuration:
+     * <pre class='autoTested'>
+     * configurations { conf }
+     * configurations['conf'].withDependencies { dependencies -&gt;
+     *      dependencies.each { dependency -&gt;
+     *          if (dependency.version == null) {
+     *              dependency.version = '1.0'
+     *          }
+     *      }
+     * }
+     * </pre>
+     *
+     * Actions will be executed in the order provided.
+     *
+     * @since 4.4
+     * @param action a dependency action to execute before the configuration is used.
+     * @return this
+     */
+    @Incubating
+    Configuration withDependencies(Action<? super DependencySet> action);
+
+    /**
      * Returns all the configurations belonging to the same configuration container as this
      * configuration (including this configuration).
      *
