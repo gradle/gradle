@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -141,7 +140,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(LIBRARY)
         executedAndNotSkipped compileTasksDebug(APP)
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed linkTaskDebug(LIBRARY)
             executed linkTaskDebug(APP), installApp
@@ -166,7 +165,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(LIBRARY)
         executedAndNotSkipped compileTasksDebug(APP)
 
-        if (nonDeterministicCompilation()) {
+        if (nonDeterministicCompilation) {
             // Relinking may (or may not) be required after recompiling
             executed linkTaskDebug(LIBRARY)
             executed linkTaskDebug(APP), installApp
@@ -213,19 +212,4 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         executedAndNotSkipped compileTasksDebug(APP)
     }
-
-    private boolean nonDeterministicCompilation() {
-        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
-        toolChain.visualCpp || objectiveCWithAslr()
-    }
-
-    // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings)
-    // We saw this behaviour only on linux so far.
-    boolean objectiveCWithAslr() {
-        return (sourceType == "Objc" || sourceType == "Objcpp") &&
-            OperatingSystem.current().isLinux() &&
-            toolChain.displayName == "clang"
-    }
-
 }
