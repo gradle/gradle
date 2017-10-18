@@ -187,6 +187,9 @@ public class AvailableToolChains {
                 toolChains.add(gcc);
             }
         }
+        if (toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain("gcc"));
+        }
 
         return toolChains;
     }
