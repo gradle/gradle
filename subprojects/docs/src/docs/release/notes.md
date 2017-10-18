@@ -38,7 +38,9 @@ Previous releases would resolve to `foo:bar:1.0`. However, if no "hard" dependen
 
 ### Eclipse plugin separates output folders
 
-The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folder and dependency defines an additional `gradle_source_sets` classpath attribute. The attribute specifies to which sourceSet the entry belonged. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
+The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
+
+The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
 
 ### Parametrized tooling model builders.
 
