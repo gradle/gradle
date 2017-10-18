@@ -258,6 +258,9 @@ public class NativeTestExecuter implements TestExecuter<XCTestTestExecutionSpec>
                                 xcTestDescriptor.getMessages().add(message);
                             }
                         }
+
+                    // If no current test can be associated to the output, the last known descriptor is used.
+                    // See https://bugs.swift.org/browse/SR-1127 for more information.
                     } else if (lastDescriptor != null) {
                         processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
                     }
