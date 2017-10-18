@@ -96,7 +96,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         public Set<ModuleDependency> getDependencies() {
             if (dependencies == null) {
-                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
+                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
             }
             return dependencies.withType(ModuleDependency.class);
         }
@@ -122,7 +122,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         public Set<ModuleDependency> getDependencies() {
             if (dependencies == null) {
-                dependencies = configurations.findByName(API_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
+                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
             }
             return dependencies.withType(ModuleDependency.class);
         }

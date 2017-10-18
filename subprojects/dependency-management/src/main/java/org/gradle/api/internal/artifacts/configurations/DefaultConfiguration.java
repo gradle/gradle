@@ -1012,6 +1012,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public DependencySet getDependencies() {
+            triggerWhenEmptyActionsIfNecessary();
             return getAllDependencies();
         }
 

@@ -207,4 +207,42 @@ $append
             }
 """
     }
+
+    void "defaultDependencies are included in published ivy descriptor"() {
+        given:
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            configurations.compile.defaultDependencies { deps ->
+                deps.add project.dependencies.create("org.test:default-dependency:1.1")
+            }
+"""
+
+        when:
+        succeeds "publish"
+
+        then:
+        ivyModule.assertPublishedAsJavaModule()
+        ivyModule.parsedIvy.assertDependsOn("org.test:default-dependency:1.1@compile")
+    }
+
 }

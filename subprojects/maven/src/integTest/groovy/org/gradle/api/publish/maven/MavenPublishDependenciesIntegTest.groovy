@@ -171,4 +171,47 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
     }
 
+    void "defaultDependencies are included in published pom file"() {
+        given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            configurations.compile.defaultDependencies { deps ->
+                deps.add project.dependencies.create("org:default-dependency:1.0")
+            }
+            configurations.implementation.defaultDependencies { deps ->
+                deps.add project.dependencies.create("org:default-dependency:1.0")
+            }
+            dependencies {
+                implementation "org:explicit-dependency:1.0"
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublishedAsJavaModule()
+        repoModule.parsedPom.scopes.compile?.expectDependency('org:default-dependency:1.0')
+        repoModule.parsedPom.scopes.runtime?.expectDependency('org:explicit-dependency:1.0')
+    }
+
 }
