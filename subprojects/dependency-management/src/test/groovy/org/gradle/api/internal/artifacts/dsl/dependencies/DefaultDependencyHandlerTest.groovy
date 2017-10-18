@@ -102,7 +102,10 @@ class DefaultDependencyHandlerTest extends Specification {
         ExternalDependency dependency = Mock()
 
         when:
-        def result = dependencyHandler.create("someNotation") { force = true}
+        def result = dependencyHandler.create("someNotation") {
+            force = true
+            version = '1.0'
+        }
 
         then:
         result == dependency
@@ -110,6 +113,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependency.setForce(true)
+        1 * dependency.setVersion('1.0')
     }
 
     void "can use dynamic method to add dependency"() {

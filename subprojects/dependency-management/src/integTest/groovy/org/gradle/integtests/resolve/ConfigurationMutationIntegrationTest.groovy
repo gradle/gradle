@@ -132,6 +132,36 @@ configurations.compile.defaultDependencies { DependencySet deps ->
         }
     }
 
+    def "can use withDependencies to mutate dependency versions"() {
+        when:
+        buildFile << """
+dependencies {
+    compile "org:foo"
+    compile "org:bar:2.2"
+}
+configurations.compile.withDependencies { deps ->
+    def foo = deps.find { it.name == 'foo' }
+    assert foo.version == null
+    foo.version = '1.0'
+
+    def bar = deps.find { it.name == 'bar' }
+    assert bar.version == '2.2'
+    bar.version = null
+}
+configurations.compile.withDependencies { deps ->
+    def bar = deps.find { it.name == 'bar' }
+    assert bar.version == null
+    bar.version = '1.0'
+}
+"""
+
+        then:
+        resolvedGraph {
+            module("org:foo:1.0")
+            module("org:bar:1.0")
+        }
+    }
+
     def "provides useful error message when withDependencies action fails to execute"() {
         when:
         buildFile << """
