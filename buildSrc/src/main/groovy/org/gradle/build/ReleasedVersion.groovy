@@ -42,6 +42,10 @@ class ReleasedVersion {
         [version: version.version, buildTime: TIMESTAMP_FORMAT.format(buildTimeStamp)]
     }
 
+    static ReleasedVersion fromMap(Map<String, String> json) {
+        new ReleasedVersion(json.version, json.buildTime)
+    }
+
     boolean isFinalRelease() {
         version.baseVersion == version
     }
