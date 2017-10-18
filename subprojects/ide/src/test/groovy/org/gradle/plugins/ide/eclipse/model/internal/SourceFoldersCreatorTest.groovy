@@ -129,7 +129,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.includes >> resourcesTree.patterns.includes
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
-        return new SourceFoldersCreator().getRegularSourceFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
+        return new SourceFoldersCreator().projectRelativeFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {
@@ -143,7 +143,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.srcDirs >> [resourcesTree.dir]
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> allExtTrees + [javaTree, resourcesTree]
-        return new SourceFoldersCreator().getExternalSourceFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
+        return new SourceFoldersCreator().getBasicExternalSourceFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
     }
 
     private def dirTree(String sourceDirName, List excludes, List includes) {
