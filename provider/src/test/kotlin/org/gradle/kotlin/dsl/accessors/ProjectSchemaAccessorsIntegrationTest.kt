@@ -144,7 +144,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             repositories { jcenter() }
         """)
 
-        withFile("c/build.gradle.kts","""
+        withFile("c/build.gradle.kts", """
             plugins { `java-library` }
 
             dependencies {

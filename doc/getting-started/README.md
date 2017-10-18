@@ -7,3 +7,4 @@ Please check out these additional notes if you want to know more about:
 
   * [Using Groovy closures in Kotlin](./Closures.md)
   * [Configuring plugins in Kotlin](./Configuring-Plugins.md)
+  * [Kotlin versions and the Gradle Kotlin DSL ](./Kotlin-Versions.md)

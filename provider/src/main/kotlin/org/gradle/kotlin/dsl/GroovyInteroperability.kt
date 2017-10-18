@@ -31,7 +31,7 @@ import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
  * @param T the expected type of the single argument to the closure.
  * @param action the function to be adapted.
  *
- * @see KotlinClosure1
+ * @see [KotlinClosure1]
  */
 fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
     KotlinClosure1(action, this, this)
@@ -44,7 +44,7 @@ fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
  * @param T the expected type of the delegate argument to the closure.
  * @param action the function to be adapted.
  *
- * @see KotlinClosure1
+ * @see [KotlinClosure1]
  */
 fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
     object : Closure<Unit>(this, this) {
@@ -61,7 +61,7 @@ fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
  * @param owner optional owner of the Closure.
  * @param thisObject optional _this Object_ of the Closure.
  *
- * @see Closure
+ * @see [Closure]
  */
 open class KotlinClosure0<V : Any>(
     val function : () -> V?,
@@ -82,7 +82,7 @@ open class KotlinClosure0<V : Any>(
  * @param owner optional owner of the Closure.
  * @param thisObject optional _this Object_ of the Closure.
  *
- * @see Closure
+ * @see [Closure]
  */
 class KotlinClosure1<in T : Any, V : Any>(
     val function: T.() -> V?,
@@ -104,7 +104,7 @@ class KotlinClosure1<in T : Any, V : Any>(
  * @param owner optional owner of the Closure.
  * @param thisObject optional _this Object_ of the Closure.
  *
- * @see Closure
+ * @see [Closure]
  */
 class KotlinClosure2<in T : Any, in U : Any, V : Any>(
     val function: (T, U) -> V?,
@@ -126,7 +126,7 @@ operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
 /**
  * Executes the given [builder] against this object's [GroovyBuilderScope].
  *
- * @see GroovyBuilderScope
+ * @see [GroovyBuilderScope]
  */
 inline
 fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
@@ -155,7 +155,7 @@ fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
  * }
  * ```
  *
- * @see withGroovyBuilder
+ * @see [withGroovyBuilder]
  */
 interface GroovyBuilderScope : GroovyObject {
 
@@ -168,7 +168,12 @@ interface GroovyBuilderScope : GroovyObject {
             }
     }
 
+    val delegate: Any
+
     operator fun String.invoke(vararg arguments: Any?): Any?
+
+    operator fun String.invoke(): Any? =
+        invoke(*emptyArray<Any>())
 
     operator fun <T> String.invoke(vararg arguments: Any?, builder: GroovyBuilderScope.() -> T): Any? =
         invoke(*arguments, closureFor(builder))
@@ -192,29 +197,29 @@ interface GroovyBuilderScope : GroovyObject {
 
 
 private
-class GroovyBuilderScopeForGroovyObject(private val receiver: GroovyObject) : GroovyBuilderScope, GroovyObject by receiver {
+class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : GroovyBuilderScope, GroovyObject by delegate {
 
     override fun String.invoke(vararg arguments: Any?): Any? =
-        receiver.invokeMethod(this, arguments)
+        delegate.invokeMethod(this, arguments)
 }
 
 
 private
-class GroovyBuilderScopeForRegularObject(private val receiver: Any) : GroovyBuilderScope {
+class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBuilderScope {
 
     private
     val groovyMetaClass: MetaClass by lazy {
-        getMetaClass(receiver)
+        getMetaClass(delegate)
     }
 
     override fun invokeMethod(name: String, args: Any?): Any? =
-        groovyMetaClass.invokeMethod(receiver, name, args)
+        groovyMetaClass.invokeMethod(delegate, name, args)
 
     override fun setProperty(propertyName: String, newValue: Any?) =
-        groovyMetaClass.setProperty(receiver, propertyName, newValue)
+        groovyMetaClass.setProperty(delegate, propertyName, newValue)
 
     override fun getProperty(propertyName: String): Any =
-        groovyMetaClass.getProperty(receiver, propertyName)
+        groovyMetaClass.getProperty(delegate, propertyName)
 
     override fun setMetaClass(metaClass: MetaClass?) =
         throw IllegalStateException()
@@ -223,5 +228,5 @@ class GroovyBuilderScopeForRegularObject(private val receiver: Any) : GroovyBuil
         groovyMetaClass
 
     override fun String.invoke(vararg arguments: Any?): Any? =
-        groovyMetaClass.invokeMethod(receiver, this, arguments)
+        groovyMetaClass.invokeMethod(delegate, this, arguments)
 }

@@ -48,27 +48,27 @@ class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
 
     /**
-     * @see NamedDomainObjectContainer.maybeCreate
+     * @see [NamedDomainObjectContainer.maybeCreate]
      */
     inline
     operator fun String.invoke(configuration: T.() -> Unit): T =
         this().apply(configuration)
 
     /**
-     * @see NamedDomainObjectContainer.maybeCreate
+     * @see [NamedDomainObjectContainer.maybeCreate]
      */
     operator fun String.invoke(): T =
         container.maybeCreate(this)
 
     /**
-     * @see PolymorphicDomainObjectContainer.maybeCreate
+     * @see [PolymorphicDomainObjectContainer.maybeCreate]
      */
     inline
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
         this(type).apply(configuration)
 
     /**
-     * @see PolymorphicDomainObjectContainer.maybeCreate
+     * @see [PolymorphicDomainObjectContainer.maybeCreate]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): U =
         polymorphicDomainObjectContainer().maybeCreate(this, type.java)

@@ -1,8 +1,8 @@
-
-apply<plugins.KotlinLibrary>()
+plugins {
+    id("kotlin-library")
+}
 
 dependencies {
-    val compile by configurations
     compile(gradleApi())
 
     compile(project(":provider"))

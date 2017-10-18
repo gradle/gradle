@@ -3,7 +3,7 @@ import build.*
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
-    java // so we can benefit from the `java` accessor below
+    id("kotlin-dsl-published-module")
 }
 
 base {

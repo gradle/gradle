@@ -27,9 +27,9 @@ import kotlin.reflect.KProperty
  *
  * @param name extension name
  * @return extension
- * @throws UnknownDomainObjectException When the given extension is not found.
+ * @throws [UnknownDomainObjectException] When the given extension is not found.
  *
- * @see ExtensionContainer.getByName
+ * @see [ExtensionContainer.getByName]
  */
 operator fun ExtensionContainer.get(name: String): Any =
     getByName(name)
@@ -43,8 +43,8 @@ operator fun ExtensionContainer.get(name: String): Any =
  *
  * @param name extension name
  * @return extension, never null
- * @throws UnknownDomainObjectException When the given extension is not found.
- * @throws IllegalStateException When the given extension cannot be cast to the expected type.
+ * @throws [UnknownDomainObjectException] When the given extension is not found.
+ * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
  */
 inline
 @Suppress("extension_shadowed_by_member")

@@ -29,7 +29,8 @@ class ImplicitImports(private val importsReader: ImportsReader) {
     }
 
     private
-    fun gradleImports() = importsReader.importPackages.map { "$it.*" }
+    fun gradleImports() =
+        importsReader.simpleNameToFullClassNamesMapping.values.map { it.first() }
 
     private
     fun gradleKotlinDslImports() =

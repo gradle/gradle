@@ -29,7 +29,7 @@ import javax.inject.Inject
  * The `embedded-kotlin` plugin.
  *
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
- * adds compile dependencies on `kotlin-stdlib` and `kotlin-reflect`,
+ * adds compile only dependencies on `kotlin-stdlib` and `kotlin-reflect`,
  * configures an embedded repository that contains all embedded Kotlin libraries,
  * and pins them to the embedded Kotlin version.
  */
@@ -48,7 +48,10 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
                 dependencies,
                 embeddedKotlinConfiguration.name,
                 "stdlib", "reflect")
-            configurations.getByName("compile").extendsFrom(embeddedKotlinConfiguration)
+
+            listOf("compileOnly", "testCompileOnly").forEach {
+                configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
+            }
 
             configurations.all {
                 embeddedKotlin.pinDependenciesOn(it, "stdlib", "reflect", "compiler-embeddable")

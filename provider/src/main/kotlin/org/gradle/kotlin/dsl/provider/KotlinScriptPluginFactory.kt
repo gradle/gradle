@@ -35,7 +35,7 @@ import javax.inject.Inject
 class KotlinScriptPluginFactory @Inject internal constructor(
     val classPathProvider: KotlinScriptClassPathProvider,
     val kotlinCompiler: CachingKotlinCompiler,
-    val pluginRequestApplicator: PluginRequestApplicator,
+    val pluginRequestsHandler: PluginRequestsHandler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider) : ScriptPluginFactory {
 
     override fun create(
@@ -70,7 +70,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
             kotlinCompiler,
             scriptSource, topLevelScript,
             scriptHandler as ScriptHandlerInternal,
-            pluginRequestApplicator,
+            pluginRequestsHandler,
             baseScope, targetScope,
             classPathProvider,
             embeddedKotlinProvider)

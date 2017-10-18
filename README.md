@@ -1,7 +1,7 @@
 Gradle Kotlin DSL
 =================
 
-[![TeamCity Build](https://builds.gradle.org/app/rest/builds/buildType:GradleKotlinDSL_Develop/statusIcon)](https://builds.gradle.org/viewType.html?buildTypeId=GradleKotlinDSL_Develop)
+[![TeamCity Build](https://builds.gradle.org/app/rest/builds/buildType:GradleKotlinDSL_Develop/statusIcon.svg)](https://builds.gradle.org/viewType.html?buildTypeId=GradleKotlinDSL_Develop)
 [![TravisCI Build](https://img.shields.io/travis/gradle/kotlin-dsl/develop.svg)](https://travis-ci.org/gradle/kotlin-dsl)
 [![License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 

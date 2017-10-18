@@ -26,7 +26,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  * This class exists for the sole purpose of marking the `plugins` block as a [GradleDsl] thus
  * hiding all members provided by the outer [KotlinBuildScript] scope.
  *
- * @see PluginDependenciesSpec
+ * @see [PluginDependenciesSpec]
  */
 @GradleDsl
 class PluginDependenciesSpecScope(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins

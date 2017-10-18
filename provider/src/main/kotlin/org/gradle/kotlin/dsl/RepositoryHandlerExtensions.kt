@@ -29,8 +29,8 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
  * @param url the base URL of this repository. This URL is used to find both POMs and artifact files.
  * @return The added repository.
  *
- * @see RepositoryHandler.maven
- * @see MavenArtifactRepository.setUrl
+ * @see [RepositoryHandler.maven]
+ * @see [MavenArtifactRepository.setUrl]
  */
 fun RepositoryHandler.maven(url: Any) =
     maven { it.setUrl(url) }
@@ -46,8 +46,8 @@ fun RepositoryHandler.maven(url: Any) =
  * @param action The action to use to configure the repository.
  * @return The added repository.
  *
- * @see RepositoryHandler.maven
- * @see MavenArtifactRepository.setUrl
+ * @see [RepositoryHandler.maven]
+ * @see [MavenArtifactRepository.setUrl]
  */
 fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit) =
     maven {
@@ -66,7 +66,7 @@ fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit
  *
  * @return The added repository.
  *
- * @see RepositoryHandler.ivy
+ * @see [RepositoryHandler.ivy]
  */
 fun RepositoryHandler.ivy(url: Any) =
     ivy { it.setUrl(url) }
@@ -83,7 +83,7 @@ fun RepositoryHandler.ivy(url: Any) =
  *
  * @return The added repository.
  *
- * @see RepositoryHandler.ivy
+ * @see [RepositoryHandler.ivy]
  */
 fun RepositoryHandler.ivy(url: Any, action: IvyArtifactRepository.() -> Unit) =
     ivy {

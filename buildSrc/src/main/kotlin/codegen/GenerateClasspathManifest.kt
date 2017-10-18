@@ -20,23 +20,25 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.plugins.BasePluginConvention
 
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import java.io.File
 
 open class GenerateClasspathManifest : DefaultTask() {
 
+    @get:OutputDirectory
     var outputDirectory: File? = null
 
-    @get:Input
+    @get:InputFiles
     val compileOnly = project.configurations.getByName("compileOnly")
 
-    @get:Input
+    @get:InputFiles
     val runtime = project.configurations.getByName("runtime")
 
-    @get:OutputFile
+    @get:Internal
     val outputFile by lazy {
         File(outputDirectory!!, "${moduleName()}-classpath.properties")
     }
@@ -62,6 +64,7 @@ open class GenerateClasspathManifest : DefaultTask() {
     fun moduleName(): String =
         base.archivesBaseName
 
+    @get:Internal
     private
     val base by lazy {
         project.convention.getPlugin(BasePluginConvention::class.java)
