@@ -24,10 +24,10 @@ class AbstractCppInstalledToolChainIntegrationTest extends AbstractInstalledTool
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithPlugin(toolChain))
+        Assume.assumeTrue(worksWithCppPlugin(toolChain))
     }
 
-    static boolean worksWithPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
+    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
         toolChain.id != "mingw" && toolChain.id != "gcccygwin"
     }
 

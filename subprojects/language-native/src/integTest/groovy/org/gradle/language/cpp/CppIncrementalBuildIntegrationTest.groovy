@@ -16,12 +16,9 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assume
-import spock.lang.Unroll
 
 class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -214,57 +211,5 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         fails installApp
         and:
         executedAndNotSkipped compileTasksDebug(APP)
-    }
-
-    @Unroll
-    def "recompiles binary when toolchain changes to #otherToolChain"() {
-        // We do not want to use the toolchain configuration provided by AbstractInstalledToolChainIntegrationSpec
-        initScript.text = ""
-
-        Assume.assumeFalse("No change in toolchain", otherToolChain == toolChain)
-        buildFile.text = """ 
-            allprojects {
-                apply plugin: ${toolChain.pluginClass}
-                apply plugin: ${otherToolChain.pluginClass}
-                
-                model {
-                    toolChains {
-                        if (findProperty('useAlternativeToolChain')) {
-                            ${toolChain.buildScriptConfig}
-                        } else {
-                            ${otherToolChain.buildScriptConfig}
-                        }
-                    }
-                }                                    
-            }
-            project(':library') {
-                apply plugin: 'cpp-library'
-                library {
-                    publicHeaders.from('src/main/headers')
-                }
-            }
-            project(':app') {
-                apply plugin: 'cpp-executable'
-                dependencies {
-                    implementation project(':library')
-                }
-            }
-        """
-
-        when:
-        run ':app:compileDebugCpp'
-
-        then:
-        executedAndNotSkipped ':app:compileDebugCpp'
-
-        when:
-        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true', "--info"
-
-        then:
-        executedAndNotSkipped ':app:compileDebugCpp'
-        output =~ /Value of input property 'compilerIdentifier\.(versionString|type)' has changed for task ':app:compileDebugCpp'/
-
-        where:
-        otherToolChain << AvailableToolChains.toolChains.findAll { it.available && worksWithPlugin(it) && !(it instanceof AvailableToolChains.InstalledSwiftc) }
     }
 }
