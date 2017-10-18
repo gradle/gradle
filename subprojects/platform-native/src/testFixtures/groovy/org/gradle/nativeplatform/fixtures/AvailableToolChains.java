@@ -459,6 +459,11 @@ public class AvailableToolChains {
             }
             return "UNKNOWN";
         }
+
+        @Override
+        public String getId() {
+            return getDisplayName().replaceAll("\\W", "");
+        }
     }
 
     public static class InstalledSwiftc extends InstalledToolChain {
