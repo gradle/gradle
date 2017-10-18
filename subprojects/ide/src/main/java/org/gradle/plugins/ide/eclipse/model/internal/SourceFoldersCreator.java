@@ -108,6 +108,31 @@ public class SourceFoldersCreator {
         return trimAndDedup(externalSourceFolders, sources);
     }
 
+    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
+        ArrayList<SourceFolder> entries = Lists.newArrayList();
+        List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
+        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
+        Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
+        for (SourceSet sourceSet : sortedSourceSets) {
+            List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
+            for (DirectoryTree tree : sortedSourceDirs) {
+                File dir = tree.getDir();
+                if (dir.isDirectory()) {
+                    String relativePath = provideRelativePath.apply(dir);
+                    SourceFolder folder = new SourceFolder(relativePath, null);
+                    folder.setDir(dir);
+                    folder.setName(dir.getName());
+                    folder.setIncludes(getIncludesForTree(sourceSet, tree));
+                    folder.setExcludes(getExcludesForTree(sourceSet, tree));
+                    folder.setOutput(sourceSetOutputPaths.get(sourceSet));
+                    addScopeAttributes(folder, sourceSet, sourceSetUsages);
+                    entries.add(folder);
+                }
+            }
+        }
+        return entries;
+    }
 
     private List<SourceFolder> basicProjectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
         ArrayList<SourceFolder> entries = Lists.newArrayList();
@@ -143,32 +168,6 @@ public class SourceFoldersCreator {
             trimmedSourceFolders.add(folder);
         }
         return trimmedSourceFolders;
-    }
-
-    public List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
-        String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
-        ArrayList<SourceFolder> entries = Lists.newArrayList();
-        List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
-        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
-        Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
-        for (SourceSet sourceSet : sortedSourceSets) {
-            List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
-            for (DirectoryTree tree : sortedSourceDirs) {
-                File dir = tree.getDir();
-                if (dir.isDirectory()) {
-                    String relativePath = provideRelativePath.apply(dir);
-                    SourceFolder folder = new SourceFolder(relativePath, null);
-                    folder.setDir(dir);
-                    folder.setName(dir.getName());
-                    folder.setIncludes(getIncludesForTree(sourceSet, tree));
-                    folder.setExcludes(getExcludesForTree(sourceSet, tree));
-                    folder.setOutput(sourceSetOutputPaths.get(sourceSet));
-                    addScopeAttributes(folder, sourceSet, sourceSetUsages);
-                    entries.add(folder);
-                }
-            }
-        }
-        return entries;
     }
 
     private void addScopeAttributes(SourceFolder folder, SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
