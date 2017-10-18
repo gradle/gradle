@@ -55,6 +55,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         ConsoleOutput.Rich  | RICH_CONSOLE
     }
 
+    @Ignore("flaky test - sometimes fails with java.io.IOException: Write end dead or Pipe closed")
     @Unroll
     def "can ask for license acceptance in interactive build with daemon and #description console"() {
         given:
