@@ -16,25 +16,17 @@
 
 package org.gradle.api.tasks.dependencylock;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.dependencylock.DefaultDependencyLockCreator;
+import org.gradle.internal.dependencylock.DependencyLockCreator;
 import org.gradle.internal.dependencylock.model.DependencyLock;
-import org.gradle.internal.dependencylock.model.DependencyVersion;
-import org.gradle.internal.dependencylock.model.GroupAndName;
 import org.gradle.internal.dependencylock.writer.DependencyLockWriter;
 import org.gradle.internal.dependencylock.writer.JsonDependencyLockWriter;
 import org.gradle.internal.dependencylock.writer.StandardOutputDependencyLockWriter;
 
 import java.io.File;
-import java.util.Map;
-import java.util.Set;
 
 public class DependencyLockFileGeneration extends DefaultTask {
 
@@ -42,7 +34,8 @@ public class DependencyLockFileGeneration extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        DependencyLock dependencyLock = determineLocks();
+        DependencyLockCreator dependencyLockCreator = new DefaultDependencyLockCreator();
+        DependencyLock dependencyLock = dependencyLockCreator.create(getProject());
 
         DependencyLockWriter standardOutputDependencyLockWriter = new StandardOutputDependencyLockWriter();
         standardOutputDependencyLockWriter.write(dependencyLock);
@@ -57,39 +50,5 @@ public class DependencyLockFileGeneration extends DefaultTask {
 
     public void setLockFile(File lockFile) {
         this.lockFile = lockFile;
-    }
-
-    private DependencyLock determineLocks() {
-        final DependencyLock dependencyLock = new DependencyLock();
-
-        getProject().getConfigurations().all(new Action<Configuration>() {
-            @Override
-            public void execute(final Configuration configuration) {
-                if (configuration.isCanBeResolved()) {
-                    final String configurationName = configuration.getName();
-
-                    configuration.getAllDependencies().withType(ExternalDependency.class, new Action<ExternalDependency>() {
-                        @Override
-                        public void execute(ExternalDependency externalDependency) {
-                            ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion());
-                            dependencyLock.addDependency(configurationName, moduleVersionIdentifier);
-                        }
-                    });
-
-                    Set<ResolvedDependency> resolvedDependencies = configuration.getResolvedConfiguration().getFirstLevelModuleDependencies();
-
-                    for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                        Map<GroupAndName, DependencyVersion> deps = dependencyLock.getMapping().get(configurationName);
-                        GroupAndName groupAndName = new GroupAndName(resolvedDependency.getModuleGroup(), resolvedDependency.getModuleName());
-
-                        if (deps.containsKey(groupAndName)) {
-                            deps.get(groupAndName).setResolvedVersion(resolvedDependency.getModuleVersion());
-                        }
-                    }
-                }
-            }
-        });
-
-        return dependencyLock;
     }
 }
