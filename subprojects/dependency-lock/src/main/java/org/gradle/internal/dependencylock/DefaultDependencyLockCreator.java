@@ -59,11 +59,30 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
                         if (deps.containsKey(groupAndName)) {
                             deps.get(groupAndName).setResolvedVersion(resolvedDependency.getModuleVersion());
                         }
+
+                        visitChildren(resolvedDependency, deps);
                     }
                 }
             }
         });
 
         return dependencyLock;
+    }
+
+    private void visitChildren(ResolvedDependency parent, Map<GroupAndName, DependencyVersion> deps) {
+        if (parent.getChildren().size() > 0) {
+            for (ResolvedDependency child : parent.getChildren()) {
+                GroupAndName groupAndName = new GroupAndName(child.getModuleGroup(), child.getModuleName());
+
+                if (!deps.containsKey(groupAndName)) {
+                    DependencyVersion dependencyVersion = new DependencyVersion();
+                    dependencyVersion.setDeclaredVersion(child.getModuleVersion());
+                    dependencyVersion.setResolvedVersion(child.getModuleVersion());
+                    deps.put(groupAndName, dependencyVersion);
+                }
+
+                visitChildren(child, deps);
+            }
+        }
     }
 }

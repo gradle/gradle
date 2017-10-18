@@ -93,4 +93,31 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         then:
         file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:bar","lockedVersion":"1.5"}]}]'
     }
+
+    def "can create locks for first-level and transitive dependencies"() {
+        given:
+        def fooThirdModule = mavenRepo.module('foo', 'third', '1.5').publish()
+        def fooSecondModule = mavenRepo.module('foo', 'second', '1.6.7').dependsOn(fooThirdModule).publish()
+        mavenRepo.module('foo', 'first', '1.5').dependsOn(fooSecondModule).publish()
+        def barThirdModule = mavenRepo.module('bar', 'third', '2.5').publish()
+        def barSecondModule = mavenRepo.module('bar', 'second', '2.6.7').dependsOn(barThirdModule).publish()
+        mavenRepo.module('bar', 'first', '2.5').dependsOn(barSecondModule).publish()
+
+        buildFile << """
+            configurations {
+                myConf
+            }
+            
+            dependencies {
+                myConf 'foo:first:1.5'
+                myConf 'bar:first:2.+'
+            }
+        """
+
+        when:
+        succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
+
+        then:
+        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"}]}]'
+    }
 }
