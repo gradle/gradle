@@ -21,13 +21,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default</td>
                 </tr>
             </thead>
             <tr>
                 <td>binResultsDir</td>
+                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>reports</td>
+                <td/>
             </tr>
         </table>
     </section>
@@ -65,6 +72,9 @@
             </tr>
             <tr>
                 <td>onOutput</td>
+            </tr>
+            <tr>
+                <td>reports</td>
             </tr>
         </table>
     </section>

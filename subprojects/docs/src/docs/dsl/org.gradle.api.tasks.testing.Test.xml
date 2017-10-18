@@ -17,14 +17,6 @@
                 <td><literal>project.sourceSets.test.output.classesDirs</literal></td>
             </tr>
             <tr>
-                <td>binResultsDir</td>
-                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
-            </tr>
-            <tr>
-                <td>reports</td>
-                <td><literal>project.testReportDir</literal></td>
-            </tr>
-            <tr>
                 <td>classpath</td>
                 <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
@@ -149,9 +141,6 @@
             </tr>
             <tr>
                 <td>copyTo</td>
-            </tr>
-            <tr>
-                <td>reports</td>
             </tr>
             <tr>
                 <td>options</td>
