@@ -93,6 +93,9 @@ public class AvailableToolChains {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
+            } else if (OperatingSystem.current().isMacOsX()) {
+                compilers.add(findClang());
+                compilers.add(findSwiftc());
             } else {
                 compilers.add(findGcc());
                 compilers.add(findClang());
