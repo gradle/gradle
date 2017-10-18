@@ -16,28 +16,27 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
+import org.gradle.api.NonNullApi;
+import org.gradle.nativeplatform.toolchain.NativeCompilerVersion;
 import org.gradle.util.VersionNumber;
 
-public class VersionedOutputCleaningCompiler<T extends NativeCompileSpec> extends OutputCleaningCompiler<T> implements VersionedNativeCompiler {
+import javax.annotation.Nullable;
+
+@NonNullApi
+public class DefaultNativeCompilerVersion implements NativeCompilerVersion {
+
     private final String type;
     private final VersionNumber version;
 
-    public VersionedOutputCleaningCompiler(Compiler<T> compiler, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, String outputFileSuffix, String type, VersionNumber version) {
-        super(compiler, compilerOutputFileNamingSchemeFactory, outputFileSuffix);
+    public DefaultNativeCompilerVersion(String type, VersionNumber version) {
         this.type = type;
         this.version = version;
     }
 
+    @Nullable
     @Override
-    public VersionNumber getVersion() {
-        return version;
-    }
-
-    @Override
-    public String getVersionString() {
-        return version.toString();
+    public String getVersion() {
+        return version == VersionNumber.UNKNOWN ? null : version.toString();
     }
 
     @Override

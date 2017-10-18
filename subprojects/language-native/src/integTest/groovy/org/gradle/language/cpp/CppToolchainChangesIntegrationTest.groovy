@@ -96,7 +96,7 @@ class CppToolchainChangesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':app:compileDebugCpp'
-        output =~ /Value of input property 'compilerIdentifier\.(versionString|type)' has changed for task ':app:compileDebugCpp'/
+        output =~ /Value of input property 'compilerVersion\.(version|type)' has changed for task ':app:compileDebugCpp'/
 
         where:
         toolChains << toolChainPairs

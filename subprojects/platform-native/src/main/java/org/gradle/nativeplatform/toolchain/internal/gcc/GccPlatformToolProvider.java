@@ -30,7 +30,7 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToo
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.VersionedOutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.VersionedNativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -75,7 +75,8 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
         GccVersionResult gccMetadata = gccMetadata(cppCompilerTool);
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        return new VersionedOutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension(), compilerType(gccMetadata), gccMetadata.getVersion());
+        OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        return new VersionedNativeCompiler<CppCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
     }
 
     @Override
@@ -90,7 +91,8 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
         GccVersionResult gccMetadata = gccMetadata(cCompilerTool);
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
-        return new VersionedOutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension(), compilerType(gccMetadata), gccMetadata.getVersion());
+        OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
+        return new VersionedNativeCompiler<CCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
     }
 
     private String compilerType(GccVersionResult gccMetadata) {

@@ -24,14 +24,15 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.NativeCompilerVersion;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.nativeplatform.toolchain.internal.VersionedNativeCompiler;
-import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -52,7 +53,8 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         getOutputs().doNotCacheIf("Could not determine compiler version", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                return getCompilerIdentifier() == null || VersionNumber.UNKNOWN.equals(getCompilerIdentifier().getVersion());
+                NativeCompilerVersion compilerVersion = getCompilerVersion();
+                return compilerVersion == null || compilerVersion.getVersion() == null;
             }
         });
     }
@@ -88,7 +90,8 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      */
     @Nested
     @Optional
-    protected VersionedNativeCompiler getCompilerIdentifier() {
+    @Nullable
+    protected NativeCompilerVersion getCompilerVersion() {
         NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
         NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
@@ -96,6 +99,6 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         if (!(compiler instanceof VersionedNativeCompiler)) {
             return null;
         }
-        return (VersionedNativeCompiler) compiler;
+        return ((VersionedNativeCompiler) compiler).getVersion();
     }
 }

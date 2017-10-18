@@ -16,15 +16,28 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.nativeplatform.toolchain.NativeCompilerVersion;
 import org.gradle.util.VersionNumber;
 
-public interface VersionedNativeCompiler {
-    @Internal
-    VersionNumber getVersion();
-    @Input
-    String getVersionString();
-    @Input
-    String getType();
+public class VersionedNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
+
+    private final NativeCompilerVersion compilerVersion;
+    private final Compiler<T> compiler;
+
+    public VersionedNativeCompiler(Compiler<T> compiler, String type, VersionNumber version) {
+        this.compiler = compiler;
+        this.compilerVersion = new DefaultNativeCompilerVersion(type, version);
+    }
+
+    @Override
+    public WorkResult execute(T spec) {
+        return compiler.execute(spec);
+    }
+
+    public NativeCompilerVersion getVersion() {
+        return compilerVersion;
+    }
+
 }
