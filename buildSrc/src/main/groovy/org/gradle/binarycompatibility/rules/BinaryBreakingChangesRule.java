@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiCompatibilityChange;
+import japicmp.model.JApiConstructor;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiImplementedInterface;
 import me.champeau.gradle.japicmp.report.Violation;
@@ -32,8 +33,7 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
     private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = ImmutableList.of(
         JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
         JApiCompatibilityChange.INTERFACE_REMOVED,            // the removed methods will be reported
-        JApiCompatibilityChange.INTERFACE_ADDED,              // the added methods will be reported
-        JApiCompatibilityChange.CONSTRUCTOR_REMOVED           // we do not consider constructors public API, otherwise we would also need to annotate them with @Incubating
+        JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
     );
 
     public BinaryBreakingChangesRule(Map<String, String> acceptedApiChanges) {
@@ -52,6 +52,12 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
             if (member instanceof JApiImplementedInterface) {
                 // The changes about the interface's methods will be reported already
                 return null;
+            }
+            if (member instanceof JApiConstructor) {
+                if (isInject((JApiConstructor) member)) {
+                    // We do not consider injecting constructors public API
+                    return null;
+                }
             }
             for (JApiCompatibilityChange change : member.getCompatibilityChanges()) {
                 if (IGNORED_CHANGE_TYPES.contains(change)) {

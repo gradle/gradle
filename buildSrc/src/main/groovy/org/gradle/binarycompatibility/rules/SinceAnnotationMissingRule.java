@@ -27,6 +27,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiConstructor;
 import japicmp.model.JApiField;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
@@ -118,6 +119,49 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                 @Override
                 public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName(), field.getName(), enumConstantDeclaration)) {
+                        return new Object();
+                    }
+                    return null;
+                }
+            };
+        } else if (member instanceof JApiConstructor) {
+            final JApiConstructor constructor = (JApiConstructor) member;
+            if (isDeprecated(constructor)) {
+                return null;
+            }
+            className = constructor.getjApiClass().getFullyQualifiedName();
+            visitor = new GenericVisitorAdapter<Object, Void>() {
+                @Override
+                public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(classDeclaration, arg);
+                }
+                @Override
+                public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(annotationDeclaration, arg);
+                }
+                @Override
+                public Object visit(EnumDeclaration enumDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(enumDeclaration, arg);
+                }
+                @Override
+                public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getId().getName(), constructor.getName(), fieldDeclaration)) {
+                        return new Object();
+                    }
+                    return null;
+                }
+                @Override
+                public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName(), constructor.getName(), enumConstantDeclaration)) {
                         return new Object();
                     }
                     return null;

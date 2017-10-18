@@ -3,12 +3,14 @@ package org.gradle.binarycompatibility
 import japicmp.model.JApiAnnotation
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
+import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Severity
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import org.gradle.api.Incubating
+import org.gradle.binarycompatibility.rules.BinaryBreakingChangesRule
 import org.gradle.binarycompatibility.rules.IncubatingMissingRule
 import org.gradle.binarycompatibility.rules.NewIncubatingAPIRule
 import org.gradle.binarycompatibility.rules.SinceAnnotationMissingRule
@@ -17,6 +19,8 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.inject.Inject
+
 class PublicAPIRulesTest extends Specification {
     private final static String TEST_INTERFACE_NAME = 'org.gradle.api.ApiTest'
 
@@ -24,26 +28,31 @@ class PublicAPIRulesTest extends Specification {
     TemporaryFolder tmp = new TemporaryFolder()
     File sourceFile
 
-    def jApiType = Stub(JApiClass) //represents interfaces, enums and annotations
+    def jApiClassifier = Stub(JApiClass) //represents interfaces, enums and annotations
     def jApiMethod = Stub(JApiMethod)
     def jApiField = Stub(JApiField) //represents fields and enum literals
+    def jApiConstructor = Stub(JApiConstructor) //represents fields and enum literals
     def incubatingAnnotation = Stub(JApiAnnotation)
     def deprecatedAnnotation = Stub(JApiAnnotation)
     def overrideAnnotation = Stub(JApiAnnotation)
+    def injectAnnotation = Stub(JApiAnnotation)
 
     def setup() {
         new File(tmp.root, "org/gradle/api").mkdirs()
         sourceFile = tmp.newFile("${TEST_INTERFACE_NAME.replace('.', '/')}.java")
 
-        jApiType.fullyQualifiedName >> TEST_INTERFACE_NAME
+        jApiClassifier.fullyQualifiedName >> TEST_INTERFACE_NAME
         jApiField.name >> 'field'
-        jApiField.jApiClass >> jApiType
+        jApiField.jApiClass >> jApiClassifier
         jApiMethod.name >> 'method'
-        jApiMethod.jApiClass >> jApiType
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiConstructor.name >> 'ApiTest'
+        jApiConstructor.jApiClass >> jApiClassifier
 
         incubatingAnnotation.fullyQualifiedName >> Incubating.name
         deprecatedAnnotation.fullyQualifiedName >> Deprecated.name
         overrideAnnotation.fullyQualifiedName >> Override.name
+        injectAnnotation.fullyQualifiedName >> Inject.name
     }
 
     @Unroll
@@ -67,10 +76,11 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType) == null
 
         where:
-        apiElement  | jApiTypeName
-        'interface' | 'jApiType'
-        'method'    | 'jApiMethod'
-        'field'     | 'jApiField'
+        apiElement    | jApiTypeName
+        'interface'   | 'jApiClassifier'
+        'method'      | 'jApiMethod'
+        'field'       | 'jApiField'
+        'constructor' | 'jApiConstructor'
     }
 
     @Unroll
@@ -79,7 +89,7 @@ class PublicAPIRulesTest extends Specification {
         JApiCompatibility jApiType = getProperty(jApiTypeName)
 
         when:
-        this.jApiType.annotations >> [incubatingAnnotation]
+        this.jApiClassifier.annotations >> [incubatingAnnotation]
 
         def rule = withContext(new IncubatingMissingRule([:]))
 
@@ -87,9 +97,10 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType) == null
 
         where:
-        apiElement | jApiTypeName
-        'method'   | 'jApiMethod'
-        'field'    | 'jApiField'
+        apiElement    | jApiTypeName
+        'method'      | 'jApiMethod'
+        'field'       | 'jApiField'
+        'constructor' | 'jApiConstructor'
     }
 
     @Unroll
@@ -108,7 +119,12 @@ class PublicAPIRulesTest extends Specification {
         : apiElement.startsWith('annotation') ? """
             public @interface $TEST_INTERFACE_NAME { }
         """
-                : """
+        : apiElement in ['class', 'constructor'] ? """
+            public class $TEST_INTERFACE_NAME {
+                public ApiTest() { }
+            }
+        """
+        : """
             public interface $TEST_INTERFACE_NAME {
                 String field = "value";
                 void method();
@@ -141,6 +157,17 @@ class PublicAPIRulesTest extends Specification {
              */
             public @interface $TEST_INTERFACE_NAME { }
         """
+        : apiElement in ['class', 'constructor'] ? """
+            /**
+             * @since 11.38
+             */
+            public class $TEST_INTERFACE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public ApiTest() { }
+            }
+        """
         : """
             /**
              * @since 11.38
@@ -163,13 +190,15 @@ class PublicAPIRulesTest extends Specification {
 
         where:
         apiElement     | jApiTypeName
-        'interface'    | 'jApiType'
+        'interface'    | 'jApiClassifier'
+        'class'        | 'jApiClassifier'
         'method'       | 'jApiMethod'
         'field'        | 'jApiField'
-        'enum'         | 'jApiType'
+        'constructor'  | 'jApiConstructor'
+        'enum'         | 'jApiClassifier'
         'enum literal' | 'jApiField'
         'enum method'  | 'jApiMethod'
-        'annotation'   | 'jApiType'
+        'annotation'   | 'jApiClassifier'
     }
 
     @Unroll
@@ -185,6 +214,14 @@ class PublicAPIRulesTest extends Specification {
             public enum $TEST_INTERFACE_NAME {
                 field;
                 void method() { }
+            }
+        """
+        : apiElement == 'constructor' ? """
+            /**
+             * @since 11.38
+             */
+            public class $TEST_INTERFACE_NAME {
+                public ApiTest() { }
             }
         """
         : """
@@ -206,6 +243,7 @@ class PublicAPIRulesTest extends Specification {
         apiElement     | jApiTypeName
         'method'       | 'jApiMethod'
         'field'        | 'jApiField'
+        'constructor'  | 'jApiConstructor'
         'enum literal' | 'jApiField'
         'enum method'  | 'jApiMethod'
     }
@@ -235,7 +273,7 @@ class PublicAPIRulesTest extends Specification {
 
         where:
         apiElement  | jApiTypeName
-        'interface' | 'jApiType'
+        'interface' | 'jApiClassifier'
         'method'    | 'jApiMethod'
         'field'     | 'jApiField'
     }
@@ -267,16 +305,34 @@ class PublicAPIRulesTest extends Specification {
 
     def "new incubating API does not fail the check but is reported"() {
         given:
-        JApiCompatibility jApiType = jApiMethod
         def rule = withContext(new NewIncubatingAPIRule([:]))
 
         when:
-        jApiType.annotations >> [incubatingAnnotation]
-        def violation = rule.maybeViolation(jApiType)
+        jApiMethod.annotations >> [incubatingAnnotation]
+        def violation = rule.maybeViolation(jApiMethod)
 
         then:
         violation.severity == Severity.info
         violation.humanExplanation == 'New public API in 11.38 (@Incubating)'
+    }
+
+    def "constructors with @Inject annotation are not considered public API"() {
+        given:
+        def rule = withContext(new BinaryBreakingChangesRule([:]))
+        def annotations = []
+        jApiConstructor.annotations >> annotations
+
+        when:
+        annotations.clear()
+
+        then:
+        rule.maybeViolation(jApiConstructor).humanExplanation  =~ 'Is not binary compatible.'
+
+        when:
+        annotations.add(injectAnnotation)
+
+        then:
+        rule.maybeViolation(jApiConstructor) == null
     }
 
     AbstractContextAwareViolationRule withContext(AbstractContextAwareViolationRule rule) {
