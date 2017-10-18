@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.dependencylock.model.DependencyLock;
@@ -34,7 +32,6 @@ import org.gradle.internal.dependencylock.writer.DependencyLockWriter;
 import org.gradle.internal.dependencylock.writer.JsonDependencyLockWriter;
 import org.gradle.internal.dependencylock.writer.StandardOutputDependencyLockWriter;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -51,11 +48,6 @@ public class DependencyLockFileGeneration extends DefaultTask {
         standardOutputDependencyLockWriter.write(dependencyLock);
         DependencyLockWriter jsonDependencyLockWriter = new JsonDependencyLockWriter(getLockFile());
         jsonDependencyLockWriter.write(dependencyLock);
-    }
-
-    @Inject
-    public VersionSelectorScheme getVersionSelectorScheme() {
-        throw new UnsupportedOperationException();
     }
 
     @OutputFile
@@ -79,10 +71,8 @@ public class DependencyLockFileGeneration extends DefaultTask {
                     configuration.getAllDependencies().withType(ExternalDependency.class, new Action<ExternalDependency>() {
                         @Override
                         public void execute(ExternalDependency externalDependency) {
-                            if (!(getVersionSelectorScheme().parseSelector(externalDependency.getVersion()) instanceof ExactVersionSelector)) {
-                                ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion());
-                                dependencyLock.addDependency(configurationName, moduleVersionIdentifier);
-                            }
+                            ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersion());
+                            dependencyLock.addDependency(configurationName, moduleVersionIdentifier);
                         }
                     });
 
