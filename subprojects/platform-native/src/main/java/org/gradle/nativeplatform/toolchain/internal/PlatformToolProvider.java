@@ -18,6 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
+import java.io.File;
+import java.util.List;
+
 public interface PlatformToolProvider extends ToolProvider {
     String getObjectFileExtension();
 
@@ -28,4 +31,6 @@ public interface PlatformToolProvider extends ToolProvider {
     String getSharedLibraryLinkFileName(String libraryPath);
 
     String getStaticLibraryName(String libraryPath);
+
+    List<File> getSystemIncludes();
 }

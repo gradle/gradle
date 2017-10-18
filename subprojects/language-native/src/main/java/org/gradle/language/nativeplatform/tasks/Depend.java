@@ -27,9 +27,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
@@ -47,6 +49,11 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -77,6 +84,8 @@ public class Depend extends DefaultTask {
     private CSourceParser sourceParser;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
+    private Property<NativeToolChain> toolChain;
+    private Property<NativePlatform> targetPlatform;
 
     @Inject
     public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
@@ -86,7 +95,10 @@ public class Depend extends DefaultTask {
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
         this.headerDependenciesFile = newOutputFile();
-        this.importsAreIncludes = getProject().getObjects().property(Boolean.class);
+        ObjectFactory objectFactory = getProject().getObjects();
+        this.importsAreIncludes = objectFactory.property(Boolean.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }
@@ -94,7 +106,7 @@ public class Depend extends DefaultTask {
     @TaskAction
     public void detectHeaders(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        List<File> includeRoots = ImmutableList.copyOf(includes);
+        List<File> includeRoots = ImmutableList.<File>builder().addAll(includes).addAll(selectPlatformToolProvider().getSystemIncludes()).build();
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
@@ -128,14 +140,22 @@ public class Depend extends DefaultTask {
     @Input
     protected Collection<String> getIncludePaths() {
         if (includePaths == null) {
-            Set<File> roots = includes.getFiles();
             ImmutableList.Builder<String> builder = ImmutableList.builder();
+            Set<File> roots = includes.getFiles();
             for (File root : roots) {
+                builder.add(root.getAbsolutePath());
+            }
+            PlatformToolProvider platformToolProvider = selectPlatformToolProvider();
+            for (File root : platformToolProvider.getSystemIncludes()) {
                 builder.add(root.getAbsolutePath());
             }
             includePaths = builder.build();
         }
         return includePaths;
+    }
+
+    private PlatformToolProvider selectPlatformToolProvider() {
+        return ((NativeToolChainInternal) toolChain.get()).select((NativePlatformInternal) targetPlatform.get());
     }
 
     /**
@@ -169,6 +189,26 @@ public class Depend extends DefaultTask {
     @Input
     public Property<Boolean> getImportsAreIncludes() {
         return importsAreIncludes;
+    }
+
+    /**
+     * The toolchain which will be used for compilation.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public Property<NativeToolChain> getToolChain() {
+        return toolChain;
+    }
+
+    /**
+     * The target platform for compilation.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public Property<NativePlatform> getTargetPlatform() {
+        return targetPlatform;
     }
 
 }
