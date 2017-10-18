@@ -56,7 +56,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     }
 
     private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
-        return !(getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) ^ toolChain instanceof AvailableToolChains.InstalledSwiftc);
+        return getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
     }
 
     private static EnumSet<TestPrecondition> getRequirements(Class<?> target) {

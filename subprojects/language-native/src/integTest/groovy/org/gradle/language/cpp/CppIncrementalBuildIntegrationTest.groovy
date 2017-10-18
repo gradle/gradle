@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
+import spock.lang.Unroll
 
 class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -215,24 +216,23 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(APP)
     }
 
-    def "recompiles binary when toolchain changes"() {
+    @Unroll
+    def "recompiles binary when toolchain changes to #otherToolChain"() {
+        // We do not want to use the toolchain configuration provided by AbstractInstalledToolChainIntegrationSpec
         initScript.text = ""
-        def availableToolchains = AvailableToolChains.toolChains.findAll { it.available && worksWithPlugin(it) && !(it instanceof AvailableToolChains.InstalledSwiftc) }
-        availableToolchains.each {
-            println it
-        }
-        Assume.assumeTrue(availableToolchains.size() > 1)
+
+        Assume.assumeFalse("No change in toolchain", otherToolChain == toolChain)
         buildFile.text = """ 
             allprojects {
-                apply plugin: ${availableToolchains[0].pluginClass}
-                apply plugin: ${availableToolchains[1].pluginClass}
+                apply plugin: ${toolChain.pluginClass}
+                apply plugin: ${otherToolChain.pluginClass}
                 
                 model {
                     toolChains {
                         if (findProperty('useAlternativeToolChain')) {
-                            ${availableToolchains[0].buildScriptConfig}
+                            ${toolChain.buildScriptConfig}
                         } else {
-                            ${availableToolchains[1].buildScriptConfig}
+                            ${otherToolChain.buildScriptConfig}
                         }
                     }
                 }                                    
@@ -263,5 +263,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         then:
         executedAndNotSkipped ':app:compileDebugCpp'
         output =~ /Value of input property 'compilerIdentifier\.(versionString|type)' has changed for task ':app:compileDebugCpp'/
+
+        where:
+        otherToolChain << AvailableToolChains.toolChains.findAll { it.available && worksWithPlugin(it) && !(it instanceof AvailableToolChains.InstalledSwiftc) }
     }
 }
