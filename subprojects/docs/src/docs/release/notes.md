@@ -64,6 +64,11 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+### Deprecation of no-rebuild command line options 
+
+The command line options for avoiding a full rebuild of dependent projects in a multi-project builds (`-a`/`--no-rebuild`) were introduced in a very early version of Gradle. 
+Since then Gradle optimized its up-to-date checking for project dependencies which renders the option obsolete. It has been deprecated and will be removed in Gradle 5.0.
+
 <!--
 ### Example deprecation
 -->

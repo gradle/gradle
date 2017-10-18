@@ -26,7 +26,7 @@ The command-line options available for the `gradle` command are listed below:
 
 `-?`, `-h`, `--help`::
 Shows a help message.
-`-a`, `--no-rebuild`::
+`-a`, `--no-rebuild` (deprecated)::
 Do not rebuild project dependencies.
 `--all`::
 Shows additional detail in the task listing. See <<sec:listing_tasks>>.
