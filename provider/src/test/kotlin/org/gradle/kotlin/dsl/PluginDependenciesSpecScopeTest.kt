@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.groovy.scripts.StringScriptSource
 
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -45,8 +46,8 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
-    fun `given build-scan plugin accessor, it should create a single request with default version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = "1.10")) {
+    fun `given build-scan plugin accessor, it should create a single request matching the auto-applied plugin version`() {
+        expecting(plugin(id = "com.gradle.build-scan", version = AutoAppliedBuildScanPlugin.VERSION)) {
             `build-scan`
         }
     }
