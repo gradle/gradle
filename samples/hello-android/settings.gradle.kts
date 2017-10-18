@@ -1,7 +1,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url "https://jcenter.bintray.com/" }
+        maven { setUrl("https://jcenter.bintray.com/") }
     }
     resolutionStrategy {
         eachPlugin {
@@ -12,4 +12,4 @@ pluginManagement {
     }
 }
 
-rootProject.buildFileName = 'build.gradle.kts'
+rootProject.buildFileName = "build.gradle.kts"
