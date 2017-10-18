@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -53,6 +54,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 
 import javax.inject.Inject;
+import org.gradle.util.GFileUtils;
 
 /**
  * Compiles Java source files.
@@ -204,11 +206,15 @@ public class JavaCompile extends AbstractCompile {
 
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
+        File incrementalAnnotationProcessorWorkingDir
+            = new File(getProject().getBuildDir(), "intermediates/annotationProcessing");
+        GFileUtils.mkdirs(incrementalAnnotationProcessorWorkingDir);
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setIncrementalAnnotationProcessorWorkingDir(incrementalAnnotationProcessorWorkingDir);
         spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
