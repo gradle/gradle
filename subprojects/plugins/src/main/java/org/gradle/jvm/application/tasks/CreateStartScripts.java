@@ -51,7 +51,7 @@ import java.io.File;
  * <p>
  * Note: the Gradle {@code "application"} plugin adds a pre-configured task of this type named {@code "startScripts"}.
  * <p>
- * The task generates separate scripts targeted at Microsoft Windows environments and UNIX-like environments (e.g. Linux, Mac OS X).
+ * The task generates separate scripts targeted at Microsoft Windows environments and UNIX-like environments (e.g. Linux, macOS).
  * The actual generation is implemented by the {@link #getWindowsStartScriptGenerator()} and {@link #getUnixStartScriptGenerator()} properties, of type {@link ScriptGenerator}.
  * <p>
  * Example:

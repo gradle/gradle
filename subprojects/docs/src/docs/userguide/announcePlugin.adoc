@@ -20,7 +20,7 @@ The Gradle announce plugin allows you to send custom announcements during a buil
 * http://twitter.com[Twitter]
 * http://manpages.ubuntu.com/manpages/gutsy/man1/notify-send.1.html[notify-send] (Ubuntu)
 * https://sites.google.com/site/snarlapp/home[Snarl] (Windows)
-* http://growl.info/[Growl] (Mac OS X)
+* http://growl.info/[Growl] (macOS)
  
 
 
@@ -72,7 +72,7 @@ The `announce` method takes two String arguments: The message to be sent, and th
 | 
 
 | growl
-| Mac OS X
+| macOS
 | 
 | 
 
@@ -82,7 +82,7 @@ The `announce` method takes two String arguments: The message to be sent, and th
 | Requires the notify-send package to be installed. Use `sudo apt-get install libnotify-bin` to install it.
 
 | local
-| Windows, Mac OS X, Ubuntu
+| Windows, macOS, Ubuntu
 | 
 | Automatically chooses between snarl, growl, and notify-send depending on the current operating system.
 |===

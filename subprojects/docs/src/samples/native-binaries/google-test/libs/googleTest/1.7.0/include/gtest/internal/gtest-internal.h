@@ -425,7 +425,7 @@ TypeId GetTypeId() {
 // Returns the type ID of ::testing::Test.  Always call this instead
 // of GetTypeId< ::testing::Test>() to get the type ID of
 // ::testing::Test, as the latter may give the wrong result due to a
-// suspected linker bug when compiling Google Test as a Mac OS X
+// suspected linker bug when compiling Google Test as a macOS
 // framework.
 GTEST_API_ TypeId GetTestTypeId();
 

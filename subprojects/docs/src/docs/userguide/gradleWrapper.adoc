@@ -25,7 +25,7 @@ The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both the
 
 If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project:
 
-* `./gradlew <task>` (on Unix-like platforms such as Linux and Mac OS X)
+* `./gradlew <task>` (on Unix-like platforms such as Linux and macOS)
 * `gradlew <task>` (on Windows using the gradlew.bat batch file)
 
 Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
