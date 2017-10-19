@@ -362,6 +362,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
+        validateMutation(MutationType.DEPENDENCIES);
         withDependencyActions = withDependencyActions.add(action);
         return this;
     }
