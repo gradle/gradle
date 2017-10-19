@@ -19,6 +19,7 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 
@@ -63,4 +64,7 @@ public interface CppBinary extends SoftwareComponent {
      * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
      */
     FileCollection getRuntimeLibraries();
+
+    DirectoryProperty getObjectsDir();
+    FileCollection getObjects();
 }

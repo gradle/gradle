@@ -33,7 +33,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
 
     @Inject
     public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
+        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
     }
