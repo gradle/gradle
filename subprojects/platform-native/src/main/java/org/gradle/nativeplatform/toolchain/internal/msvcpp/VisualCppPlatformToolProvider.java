@@ -113,7 +113,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
-        return new VersionAwareCompiler<T>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
+        return new VersionAwareCompiler<T>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion(), getSystemIncludes());
     }
 
     @Override
@@ -198,8 +198,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         };
     }
 
-    @Override
-    public List<File> getSystemIncludes() {
+    private List<File> getSystemIncludes() {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         builder.add(visualCpp.getIncludePath(targetPlatform));
         builder.add(sdk.getIncludeDirs());

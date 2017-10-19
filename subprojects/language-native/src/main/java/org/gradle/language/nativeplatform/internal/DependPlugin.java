@@ -40,6 +40,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.platform.base.BinaryTasks;
 
 import java.util.concurrent.Callable;
@@ -143,6 +144,12 @@ public class DependPlugin implements Plugin<Project> {
             @Override
             public NativePlatform call() throws Exception {
                 return compile.getTargetPlatform();
+            }
+        }));
+        depend.getSpec().set(project.provider(new Callable<NativeCompileSpec>() {
+            @Override
+            public NativeCompileSpec call() throws Exception {
+                return compile.createCompileSpec();
             }
         }));
         compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());

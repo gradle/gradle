@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 @CacheableTask
 public class CCompile extends AbstractNativeSourceCompileTask {
     @Override
-    protected NativeCompileSpec createCompileSpec() {
+    public NativeCompileSpec createCompileSpec() {
         return new DefaultCCompileSpec();
     }
 }

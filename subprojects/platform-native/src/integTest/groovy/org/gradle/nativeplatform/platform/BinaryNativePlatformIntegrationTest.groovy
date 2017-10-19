@@ -62,7 +62,7 @@ model {
 
     def "build binary for a default target platform"() {
         given:
-        def arch = currentArch();
+        def arch = currentArch()
 
         when:
         succeeds "mainExecutable"
@@ -174,7 +174,7 @@ model {
     }
 
     def "library with no platform defined is correctly chosen by dependency resolution"() {
-        def arch = currentArch();
+        def arch = currentArch()
 
         given:
         testApp.executable.writeSources(file("src/exe"))
@@ -330,7 +330,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasDescription("Execution failed for task ':dependMainExecutableMainCpp'.")
         failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
   - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
 

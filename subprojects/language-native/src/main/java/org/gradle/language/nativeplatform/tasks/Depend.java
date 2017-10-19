@@ -38,6 +38,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
@@ -52,6 +54,7 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Rege
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -62,6 +65,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -86,6 +90,7 @@ public class Depend extends DefaultTask {
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private Property<NativeToolChain> toolChain;
     private Property<NativePlatform> targetPlatform;
+    private Property<NativeCompileSpec> spec;
 
     @Inject
     public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
@@ -99,6 +104,7 @@ public class Depend extends DefaultTask {
         this.importsAreIncludes = objectFactory.property(Boolean.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.spec = objectFactory.property(NativeCompileSpec.class);
         this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }
@@ -106,7 +112,7 @@ public class Depend extends DefaultTask {
     @TaskAction
     public void detectHeaders(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        List<File> includeRoots = ImmutableList.<File>builder().addAll(includes).addAll(selectPlatformToolProvider().getSystemIncludes()).build();
+        List<File> includeRoots = ImmutableList.<File>builder().addAll(includes).addAll(determineSystemIncludes()).build();
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
@@ -145,13 +151,21 @@ public class Depend extends DefaultTask {
             for (File root : roots) {
                 builder.add(root.getAbsolutePath());
             }
-            PlatformToolProvider platformToolProvider = selectPlatformToolProvider();
-            for (File root : platformToolProvider.getSystemIncludes()) {
+            for (File root : determineSystemIncludes()) {
                 builder.add(root.getAbsolutePath());
             }
             includePaths = builder.build();
         }
         return includePaths;
+    }
+
+    private List<File> determineSystemIncludes() {
+        PlatformToolProvider platformToolProvider = selectPlatformToolProvider();
+        Compiler<?> compiler = platformToolProvider.newCompiler(spec.get().getClass());
+        if (compiler instanceof VersionAwareCompiler) {
+            return ((VersionAwareCompiler<?>) compiler).getSystemIncludes();
+        }
+        return Collections.emptyList();
     }
 
     private PlatformToolProvider selectPlatformToolProvider() {
@@ -211,4 +225,13 @@ public class Depend extends DefaultTask {
         return targetPlatform;
     }
 
+    /**
+     * The spec which will be compiled.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public Property<NativeCompileSpec> getSpec() {
+        return spec;
+    }
 }

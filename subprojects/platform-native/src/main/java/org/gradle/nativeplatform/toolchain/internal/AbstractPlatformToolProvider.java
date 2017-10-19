@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -35,9 +34,6 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppComp
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.util.TreeVisitor;
-
-import java.io.File;
-import java.util.List;
 
 public abstract class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
@@ -75,11 +71,6 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
-    }
-
-    @Override
-    public List<File> getSystemIncludes() {
-        return Lists.newArrayList();
     }
 
     @Override

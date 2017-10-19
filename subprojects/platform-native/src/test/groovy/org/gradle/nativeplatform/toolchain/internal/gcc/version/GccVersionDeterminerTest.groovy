@@ -27,6 +27,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider.CompilerType.CLANG
+import static org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider.CompilerType.GCC
 
 @UsesNativeServices
 class GccVersionDeterminerTest extends Specification {
@@ -68,6 +69,41 @@ class GccVersionDeterminerTest extends Specification {
 #define __clang_patchlevel__ 0
 #define __clang_version__ "5.0 (clang-500.2.79)"
 """
+
+    private static String gccVerboseOutput(includes) {
+        """Using built-in specs.
+COLLECT_GCC=gcc
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.4-2ubuntu1~14.04.3' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3)
+COLLECT_GCC_OPTIONS='-E' '-v' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/cc1 -E -quiet -v -imultiarch x86_64-linux-gnu - -mtune=generic -march=x86-64 -fstack-protector -Wformat -Wformat-security
+ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../../x86_64-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+${includes.collect { " ${it}" }.join('\n') } 
+End of search list.
+"""
+    }
+
+    private static String clangVerboseOutput(includes, frameworks) {
+        """Apple LLVM version 9.0.0 (clang-900.0.38)
+Target: x86_64-apple-darwin16.7.0
+Thread model: posix
+InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx10.12.0 -E -fcolor-diagnostics -dM -o - -x c -
+clang -cc1 version 9.0.0 (clang-900.0.38) default target x86_64-apple-darwin16.7.0
+#include "..." search starts here:
+#include <...> search starts here:
+${includes.collect { " ${it}" }.join('\n') }
+${frameworks.collect { " ${it} (framework directory)" }.join('\n') }
+ /System/Library/Frameworks (framework directory)
+ /Library/Frameworks (framework directory)
+End of search list.
+"""
+    }
 
     @Unroll
     "can scrape version from output of GCC #version"() {
@@ -136,7 +172,7 @@ class GccVersionDeterminerTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine GCC version: failed to execute g++ -dM -E -.")
+        1 * visitor.node("Could not determine GCC version: failed to execute g++ -dM -E -v -.")
     }
 
     def "can scrape ok output for clang"() {
@@ -174,11 +210,35 @@ class GccVersionDeterminerTest extends Specification {
         1 * visitor.node("g++ appears to be GCC rather than Clang. Treating it as GCC.")
     }
 
-    GccVersionResult output(String output, CompilerMetaDataProvider.CompilerType compilerType = CompilerMetaDataProvider.CompilerType.GCC) {
+    def "parses gcc system includes"() {
+        def includes = ['/usr/local', '/usr/some/dir']
+        expect:
+        def result = output gcc4, gccVerboseOutput(includes), GCC
+        result.systemIncludes*.path == includes
+    }
+
+    def "parses clang system includes"() {
+        def includes = [
+            '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
+            '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include',
+            '/usr/include'
+        ]
+        def frameworks = ['/System/Library/Frameworks', '/Library/Frameworks']
+        expect:
+        def result = output clang, clangVerboseOutput(includes, frameworks), CLANG
+        result.systemIncludes*.path == includes
+    }
+
+    GccVersionResult output(String outputStr, CompilerMetaDataProvider.CompilerType compilerType = GCC) {
+        output(outputStr, "", compilerType)
+    }
+
+    GccVersionResult output(String output, String error, CompilerMetaDataProvider.CompilerType compilerType = GCC) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
+        1 * action.setErrorOutput(_) >> { OutputStream errorstr -> errorstr << error; action }
         1 * action.execute() >> result
         new GccVersionDeterminer(execActionFactory, compilerType).getGccMetaData(new File("g++"), [])
     }
