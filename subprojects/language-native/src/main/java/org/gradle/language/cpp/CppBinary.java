@@ -19,7 +19,6 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 
@@ -65,6 +64,10 @@ public interface CppBinary extends SoftwareComponent {
      */
     FileCollection getRuntimeLibraries();
 
-    DirectoryProperty getObjectsDir();
+    /**
+     * Returns the object files created for this binary.
+     * <p>
+     * NOTE: Assumes object files end with <code>.o</code> or <code>.obj</code>.
+     */
     FileCollection getObjects();
 }

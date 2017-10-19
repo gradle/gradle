@@ -17,7 +17,8 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 
 /**
  * A shared library built from C++ source.
@@ -26,6 +27,12 @@ import org.gradle.api.file.RegularFileProperty;
  */
 @Incubating
 public interface CppSharedLibrary extends CppBinary {
-    RegularFileProperty getLinkFile();
-    RegularFileProperty getRuntimeFile();
+    /**
+     * Returns the link-time file for this binary.
+     */
+    Provider<RegularFile> getLinkFile();
+    /**
+     * Returns the run-time file for this binary.
+     */
+    Provider<RegularFile> getRuntimeFile();
 }

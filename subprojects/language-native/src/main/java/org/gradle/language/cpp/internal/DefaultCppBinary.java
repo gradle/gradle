@@ -48,14 +48,14 @@ public class DefaultCppBinary implements CppBinary {
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
-    private final DirectoryProperty intermediateDir;
+    private final DirectoryProperty objectsDir;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.baseName = baseName;
         this.debuggable = debuggable;
         this.sourceFiles = sourceFiles;
-        this.intermediateDir = projectLayout.directoryProperty();
+        this.objectsDir = projectLayout.directoryProperty();
 
         Names names = Names.of(name);
 
@@ -134,14 +134,13 @@ public class DefaultCppBinary implements CppBinary {
         return runtimeLibraries;
     }
 
-    @Override
     public DirectoryProperty getObjectsDir() {
-        return intermediateDir;
+        return objectsDir;
     }
 
     @Override
     public FileCollection getObjects() {
-        return intermediateDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+        return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
     }
 
     private class IncludePath implements MinimalFileSet {

@@ -31,6 +31,9 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -97,7 +100,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                binary.getObjectsDir().set(compile.getObjectFileDir());
+                ((DefaultCppBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
 
                 if (binary instanceof CppExecutable) {
                     // Add a link task
@@ -124,7 +127,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     install.setExecutable(link.getBinaryFile());
                     install.lib(binary.getRuntimeLibraries());
 
-                    ((CppExecutable) binary).getExecutableFile().set(link.getBinaryFile());
+                    ((DefaultCppExecutable) binary).getExecutableFile().set(link.getBinaryFile());
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
@@ -146,8 +149,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    ((CppSharedLibrary) binary).getLinkFile().set(link.getBinaryFile());
-                    ((CppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(link.getBinaryFile());
+                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
                 }
             }
         });
