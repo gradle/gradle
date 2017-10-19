@@ -17,9 +17,9 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.cpp.CppBinary
-import org.gradle.language.cpp.CppExecutable
-import org.gradle.language.cpp.CppSharedLibrary
+import org.gradle.language.cpp.internal.DefaultCppBinary
+import org.gradle.language.cpp.internal.DefaultCppExecutable
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -36,7 +36,7 @@ class CppBasePluginTest extends Specification {
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
 
     def "adds compile task for binary"() {
-        def binary = Stub(CppBinary)
+        def binary = Stub(DefaultCppBinary)
         binary.name >> name
 
         when:
@@ -59,7 +59,7 @@ class CppBasePluginTest extends Specification {
     def "adds link and install task for executable"() {
         def baseName = project.objects.property(String)
         baseName.set("test_app")
-        def executable = Stub(CppExecutable)
+        def executable = Stub(DefaultCppExecutable)
         executable.name >> name
         executable.baseName >> baseName
 
@@ -87,7 +87,7 @@ class CppBasePluginTest extends Specification {
     def "adds link task for shared library"() {
         def baseName = project.objects.property(String)
         baseName.set("test_lib")
-        def library = Stub(CppSharedLibrary)
+        def library = Stub(DefaultCppSharedLibrary)
         library.name >> name
         library.baseName >> baseName
 

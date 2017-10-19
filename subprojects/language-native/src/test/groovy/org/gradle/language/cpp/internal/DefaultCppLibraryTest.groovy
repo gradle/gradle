@@ -18,6 +18,7 @@ package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,12 +32,13 @@ class DefaultCppLibraryTest extends Specification {
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def api = Stub(TestConfiguration)
     def configurations = Stub(ConfigurationContainer)
+    def projectLayout = Mock(ProjectLayout)
     DefaultCppLibrary library
 
     def setup() {
         _ * configurations.maybeCreate("api") >> api
         _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
-        library = new DefaultCppLibrary("main", TestUtil.objectFactory(), fileOperations, configurations)
+        library = new DefaultCppLibrary("main", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
     }
 
     def "has api configuration"() {
@@ -128,8 +130,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", TestUtil.objectFactory(), fileOperations, configurations)
-        def c2 = new DefaultCppLibrary("b", TestUtil.objectFactory(), fileOperations, configurations)
+        def c1 = new DefaultCppLibrary("a", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
+        def c2 = new DefaultCppLibrary("b", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set
