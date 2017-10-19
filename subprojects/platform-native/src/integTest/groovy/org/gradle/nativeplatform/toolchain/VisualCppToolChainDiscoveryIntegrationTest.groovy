@@ -58,7 +58,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescription("Execution failed for task ':dependMainExecutableMainC'.")
         failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation."))
     }
@@ -77,7 +77,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescription("Execution failed for task ':dependMainExecutableMainC'.")
         failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation."))
     }
