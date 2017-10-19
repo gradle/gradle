@@ -404,6 +404,25 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 containsString("Kotlin DSL Build Script")))
     }
 
+    @Test
+    fun `build script can use jre8 extensions`() {
+
+        withBuildScript("""
+
+            // without kotlin-stdlib-jre8 we get:
+            // > Retrieving groups by name is not supported on this platform.
+
+            val regex = Regex("(?<bla>.*)")
+            val groups = regex.matchEntire("abc")?.groups
+            println("*" + groups?.get("bla")?.value + "*")
+
+        """)
+
+       assertThat(
+           build("help").output,
+           containsString("*abc*"))
+    }
+
     private
     val fixturesRepository: File
         get() = File(rootProjectDir, "fixtures/repository").absoluteFile

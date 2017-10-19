@@ -119,7 +119,7 @@ fun resolveSourcesUsing(dependencyHandler: DependencyHandler, components: List<C
 
 
 private
-val builtinKotlinModules = listOf("kotlin-stdlib", "kotlin-reflect")
+val builtinKotlinModules = listOf("kotlin-stdlib-jre8", "kotlin-reflect")
 
 
 private
