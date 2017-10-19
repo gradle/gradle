@@ -120,4 +120,28 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         then:
         file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"}]}]'
     }
+
+    def "writes lock for conflict-resolved dependency version"() {
+        given:
+        def fooSecondModule = mavenRepo.module('foo', 'second', '1.6.7').publish()
+        mavenRepo.module('foo', 'first', '1.5').dependsOn(fooSecondModule).publish()
+        mavenRepo.module('foo', 'second', '1.9').publish()
+
+        buildFile << """
+            configurations {
+                myConf
+            }
+            
+            dependencies {
+                myConf 'foo:first:1.5'
+                myConf 'foo:second:1.9'
+            }
+        """
+
+        when:
+        succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
+
+        then:
+        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.9","coordinates":"foo:second","lockedVersion":"1.9"}]}]'
+    }
 }
