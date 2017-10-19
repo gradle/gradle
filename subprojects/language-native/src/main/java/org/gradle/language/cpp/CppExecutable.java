@@ -17,6 +17,7 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 
 /**
  * An executable built from C++ source.
@@ -25,4 +26,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface CppExecutable extends CppBinary {
+    RegularFileProperty getExecutableFile();
 }
