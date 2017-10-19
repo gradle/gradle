@@ -10,11 +10,7 @@ matrix:
       jdk: openjdk8
     - os: linux
       sudo: false
-      jdk: oraclejdk9 # JDK 9+175 or newer
-      addons:
-        apt:
-          packages:
-            - oracle-java9-installer # Forces use of even newer JDK 9 build
+      jdk: oraclejdk9
 
 script: ./gradlew :provider:check --info --stacktrace --console=plain --max-workers=1 --no-daemon -Dkotlin.compiler.execution.strategy="in-process" -Dkotlin.colors.enabled=false
 
