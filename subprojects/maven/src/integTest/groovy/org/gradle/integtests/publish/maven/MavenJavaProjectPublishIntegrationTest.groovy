@@ -119,6 +119,8 @@ uploadArchives {
 
     void "defaultDependencies are included in published pom file"() {
         given:
+        using m2
+
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
 apply plugin: 'java'
