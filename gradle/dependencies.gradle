@@ -98,7 +98,6 @@ libraries += [
     junit: 'junit:junit:4.12@jar',
     xmlunit: 'xmlunit:xmlunit:1.3',
     equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
-    nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
     xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
     nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
     jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
@@ -115,6 +114,10 @@ libraries += [
 
 libraries.testng = dependencies.module('org.testng:testng:6.3.1') {
     exclude module: 'bsh'
+}
+
+libraries.nekohtml = dependencies.module("net.sourceforge.nekohtml:nekohtml:1.9.14") {
+    dependency libraries.xerces
 }
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
