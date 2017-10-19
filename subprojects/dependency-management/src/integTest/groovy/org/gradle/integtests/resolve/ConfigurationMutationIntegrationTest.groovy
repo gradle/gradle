@@ -147,6 +147,41 @@ configurations.compile.withDependencies {
         failure.assertHasCause("Bad user code")
     }
 
+    def "cannot add withDependencies rule after configuration has been used"() {
+        when:
+        buildFile << """
+            dependencies {
+                compile "org:foo:1.0"
+            }
+            task mutateResolved(type:Copy) {
+                from configurations.compile
+                into "output"
+                doLast {
+                    configurations.compile.withDependencies {
+                        println "Late added"
+                    }
+                }
+            }
+            task mutateParent(type:Copy) {
+                from configurations.compile
+                into "output"
+                doLast {
+                    configurations.conf.withDependencies {
+                        println "Late added"
+                    }
+                }
+            }
+"""
+
+        then:
+        fails "mutateResolved"
+        failure.assertHasCause("Cannot change dependencies of configuration ':compile' after it has been resolved.")
+
+        and:
+        fails "mutateParent"
+        failure.assertHasCause("Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution.")
+    }
+
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
         resolve.prepare()
         succeeds ":checkDeps"
