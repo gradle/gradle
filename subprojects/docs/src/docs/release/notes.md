@@ -36,6 +36,11 @@ As of Gradle 4.4, optional dependencies will participate in dependency resolutio
 For example, if a transitive dependency on `foo:bar:1.1` is optional, but another path in the dependency graph brings `foo:bar:1.0` (not optional), then Gradle will resolve to `foo:bar:1.1`.
 Previous releases would resolve to `foo:bar:1.0`. However, if no "hard" dependency is found on the optional module, then it will **not** be included, as previous Gradle versions did.
 
+### Eclipse plugin separates output folders
+
+The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
+
+The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
 
 ### Parametrized tooling model builders.
 
@@ -79,6 +84,10 @@ Since then Gradle optimized its up-to-date checking for project dependencies whi
 
 Supporting optional dependencies means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
 Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those.
+
+### Changes in the `eclipse` plugin
+
+The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html#org.gradle.plugins.ide.eclipse.model.EclipseClasspath:defaultOutputDir) changed from `${project.projectDir}/bin` to `${project.projectDir}/bin/default`.
 
 ## External contributions
 
