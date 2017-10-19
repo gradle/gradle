@@ -63,7 +63,7 @@ public class SourceFoldersCreator {
 
         return collectRegularAndExternalSourceFolders(sourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
             @Override
-            public List<SourceFolder> apply(@Nullable Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
+            public List<SourceFolder> apply(Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
                 List<SourceFolder> entries = Lists.newArrayListWithCapacity(sourceFolders.getLeft().size() + sourceFolders.getRight().size());
                 entries.addAll(sourceFolders.getLeft());
                 entries.addAll(sourceFolders.getRight());
@@ -81,7 +81,7 @@ public class SourceFoldersCreator {
         List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
         return collectRegularAndExternalSourceFolders(basicSourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
             @Override
-            public List<SourceFolder> apply(@Nullable Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
+            public List<SourceFolder> apply(Pair<Collection<SourceFolder>, Collection<SourceFolder>> sourceFolders) {
                 return Lists.newArrayList(sourceFolders.right());
             }
         });
@@ -203,7 +203,7 @@ public class SourceFoldersCreator {
 
     private boolean containsOutputOf(SourceSet sourceSet, SourceSet otherSourceSet) {
         try {
-            return containsAll(sourceSet.getCompileClasspath(), otherSourceSet.getOutput()) || containsAll(sourceSet.getRuntimeClasspath(), otherSourceSet.getOutput());
+            return containsAll(sourceSet.getRuntimeClasspath(), otherSourceSet.getOutput());
         } catch (Exception e) {
             return false;
         }

@@ -34,6 +34,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
             dependencies {
                 compile 'com.google.guava:guava:18.0'
+                compileOnly 'commons-logging:commons-logging:1.2'
                 testCompile 'junit:junit:4.12'
             }
         """
@@ -44,6 +45,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         then:
         EclipseClasspathFixture classpath = classpath('.')
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test')
+        classpath.lib('commons-logging-1.2.jar').assertHasAttribute('gradle_used_by_scope', '')
         classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 

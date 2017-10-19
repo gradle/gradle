@@ -127,7 +127,6 @@ public class EclipseDependenciesCreator {
         // unresolvable dependencies defined in the configuration.
         ImmutableList.Builder<File> result = ImmutableList.builder();
         try {
-               result.addAll(sourceSet.getCompileClasspath());
                result.addAll(sourceSet.getRuntimeClasspath());
         } catch (Exception e) {
             LOGGER.debug("Failed to collect source sets for Eclipse dependencies", e);
