@@ -142,6 +142,9 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
+
+                    ((CppSharedLibrary) binary).getLinkFile().set(link.getBinaryFile());
+                    ((CppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
                 }
             }
         });
