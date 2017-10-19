@@ -54,11 +54,14 @@ class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFix
                     void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                         if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
                             gradle.ext.originIds[buildOperation.details.task.identityPath] = finishEvent.result.originBuildInvocationId        
+                            println "Finished task: " + buildOperation.details.task.identityPath
                         }
                     }
                 })
                 
                 gradle.buildFinished {
+                    println "Build finished"
+                    println "--------------"
                     gradle.rootProject.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = groovy.json.JsonOutput.toJson(ids)
                 }
             }
