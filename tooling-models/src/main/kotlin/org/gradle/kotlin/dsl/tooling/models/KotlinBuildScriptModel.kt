@@ -18,10 +18,6 @@ package org.gradle.kotlin.dsl.tooling.models
 import java.io.File
 
 
-// TODO Implement parameterized model builder
-class KotlinBuildScriptModelArguments(val scriptPath: String?)
-
-
 interface KotlinBuildScriptModel {
 
     val classPath: List<File>

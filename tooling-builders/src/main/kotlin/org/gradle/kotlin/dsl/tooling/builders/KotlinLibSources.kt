@@ -16,18 +16,13 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.api.Project
-
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
 import org.gradle.internal.classpath.ClassPath
@@ -42,32 +37,12 @@ import org.gradle.language.base.artifact.SourcesArtifact
 
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 
-import kotlin.coroutines.experimental.buildSequence
-
 
 internal
-fun sourcePathFor(settings: Settings): ClassPath =
-    (settings as SettingsInternal).run {
-        var sourcePath = ClassPath.EMPTY
-        val resolvedDependencies = hashSetOf<ModuleVersionIdentifier>()
-        val classpathDependencies = classpathDependenciesOf(buildscript)
-        if (resolvedDependencies.addAll(classpathDependencies)) {
-            sourcePath += resolveSourcesUsing(buildscript.dependencies, classpathDependencies.map { it.toModuleId() })
-        }
-        if (!containsBuiltinKotlinModules(resolvedDependencies)) {
-            sourcePath += kotlinLibSourcesFor(this)
-        }
-        sourcePath
-    }
-
-
-internal
-fun sourcePathFor(project: Project): ClassPath {
-
+fun sourcePathFor(scriptHandlers: List<ScriptHandler>): ClassPath {
     var sourcePath = ClassPath.EMPTY
     val resolvedDependencies = hashSetOf<ModuleVersionIdentifier>()
-
-    for (buildscript in reversedBuildscriptHierarchyOf(project)) {
+    for (buildscript in scriptHandlers.asReversed()) {
         val classpathDependencies = classpathDependenciesOf(buildscript).filter { it !in resolvedDependencies }
         if (resolvedDependencies.addAll(classpathDependencies)) {
             sourcePath += resolveSourcesUsing(buildscript.dependencies, classpathDependencies.map { it.toModuleId() })
@@ -75,21 +50,11 @@ fun sourcePathFor(project: Project): ClassPath {
     }
 
     if (!containsBuiltinKotlinModules(resolvedDependencies)) {
-        sourcePath += kotlinLibSourcesFor(project)
+        sourcePath += kotlinLibSourcesFor(scriptHandlers)
     }
 
     return sourcePath
 }
-
-
-private
-fun reversedBuildscriptHierarchyOf(project: Project) =
-    reversedHierarchyOf(project).map { it.buildscript }
-
-
-private
-fun reversedHierarchyOf(project: Project) =
-    project.hierarchy.toList().asReversed()
 
 
 private
@@ -110,21 +75,11 @@ fun ModuleVersionIdentifier.toModuleId() = moduleId(group, name, version)
 
 
 internal
-fun kotlinLibSourcesFor(settings: Settings): ClassPath =
-    settings.run {
-        if (buildscript.repositories.isEmpty()) ClassPath.EMPTY
-        else resolveKotlinLibSourcesUsing(buildscript.dependencies)
-    }
-
-
-internal
-fun kotlinLibSourcesFor(project: Project): ClassPath =
-    project
-        .hierarchy
-        .filter { it.buildscript.repositories.isNotEmpty() }
-        .map { resolveKotlinLibSourcesUsing(it.buildscript.dependencies) }
+fun kotlinLibSourcesFor(scriptHandlers: List<ScriptHandler>): ClassPath =
+    scriptHandlers
+        .filter { it.repositories.isNotEmpty() }
+        .map { resolveKotlinLibSourcesUsing(it.dependencies) }
         .find { !it.isEmpty } ?: ClassPath.EMPTY
-
 
 private
 fun resolveKotlinLibSourcesUsing(dependencyHandler: DependencyHandler): ClassPath =
@@ -171,16 +126,4 @@ fun moduleId(group: String, module: String, version: String) =
         override fun getModule() = module
         override fun getVersion() = version
         override fun getDisplayName() = "$group:$module:$version"
-    }
-
-
-private
-val org.gradle.api.Project.hierarchy: Sequence<Project>
-    get() = buildSequence {
-        var project = this@hierarchy
-        yield(project)
-        while (project != project.rootProject) {
-            project = project.parent!!
-            yield(project)
-        }
     }
