@@ -42,6 +42,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
             apply plugin: "java"
             apply from: "external.gradle"
         """
+        originalLocation.file('settings.gradle') << localCacheConfiguration()
 
         when:
         executer.usingProjectDirectory(originalLocation)
