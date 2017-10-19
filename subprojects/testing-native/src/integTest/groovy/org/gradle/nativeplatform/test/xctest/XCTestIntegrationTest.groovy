@@ -16,13 +16,15 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -57,7 +59,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
-        testBundle.assertTestCasesRan(output)
+        testBundle.assertTestCasesRan(testExecutionResult)
     }
 
     def "succeeds when test cases pass"() {
@@ -71,7 +73,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.assertTestCasesRan(output)
+        testBundle.assertTestCasesRan(testExecutionResult)
     }
 
     def "can build xctest bundle when Info.plist is missing"() {
@@ -85,7 +87,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.assertTestCasesRan(output)
+        testBundle.assertTestCasesRan(testExecutionResult)
     }
 
     @Unroll
@@ -100,7 +102,7 @@ apply plugin: 'xctest'
 
         then:
         executed(":xcTest")
-        testBundle.assertTestCasesRan(output)
+        testBundle.assertTestCasesRan(testExecutionResult)
 
         where:
         task << ["test", "check", "build"]
@@ -117,7 +119,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
         testBundle.applyChangesToProject(testDirectory)
@@ -125,7 +127,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.expectedAlternateSummaryOutputPattern.matcher(output).find()
+        testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
     def "executes added test suite and case"() {
@@ -139,7 +141,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
         testBundle.applyChangesToProject(testDirectory)
@@ -147,7 +149,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.expectedAlternateSummaryOutputPattern.matcher(output).find()
+        testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
@@ -226,6 +228,10 @@ dependencies {
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/AppTest").assertExists()
-        testBundle.assertTestCasesRan(output)
+        testBundle.assertTestCasesRan(testExecutionResult)
+    }
+
+    TestExecutionResult getTestExecutionResult() {
+        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

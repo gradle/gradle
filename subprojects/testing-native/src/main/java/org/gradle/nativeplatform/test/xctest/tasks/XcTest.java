@@ -19,12 +19,14 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.nativeplatform.test.xctest.internal.NativeTestExecuter;
+import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -35,42 +37,55 @@ import java.io.File;
  * @since 4.2
  */
 @Incubating
-public class XcTest extends Test {
+public class XcTest extends AbstractTestTask {
+    private final DirectoryProperty testBundleDir;
+    private final DirectoryProperty workingDir;
+    private final ObjectFactory objectFactory;
+
     @Inject
     public XcTest(ObjectFactory objectFactory) {
-        setTestExecuter(objectFactory.newInstance(NativeTestExecuter.class));
+        this.objectFactory = objectFactory;
+        testBundleDir = newInputDirectory();
+        workingDir = getProject().getLayout().directoryProperty();
+    }
 
-        getExtensions().getExtraProperties().set("testBundleDir", newInputDirectory());
-        getExtensions().getExtraProperties().set("workingDir", newOutputDirectory());
-        setExecutable("java");
-        setTestClassesDirs(getProject().files());
-        setBootstrapClasspath(getProject().files());
-        setClasspath(getProject().files());
+    /**
+     * {@inheritDoc}
+     * @since 4.4
+     */
+    @Override
+    protected XCTestTestExecutionSpec createTestExecutionSpec() {
+        return new XCTestTestExecutionSpec(workingDir.getAsFile().get(), testBundleDir.getAsFile().get(), getPath());
     }
 
     @InputDirectory
     public File getTestBundleDir() {
-        return ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
+        return testBundleDir.getAsFile().get();
     }
 
     public void setTestBundleDir(File testBundleDir) {
-        ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+        this.testBundleDir.set(testBundleDir);
     }
 
     public void setTestBundleDir(Provider<? extends Directory> testBundleDir) {
-        ((DirectoryProperty) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+        this.testBundleDir.set(testBundleDir);
     }
 
     @Internal
     public File getWorkingDir() {
-        return ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
+        return workingDir.getAsFile().get();
     }
 
     public void setWorkingDir(File workingDir) {
-        ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
+        this.workingDir.set(workingDir);
     }
 
     public void setWorkingDir(Provider<? extends Directory> workingDir) {
-        ((DirectoryProperty) getExtensions().getExtraProperties().get("workingDir")).set(workingDir);
+        this.workingDir.set(workingDir);
+    }
+
+    @Override
+    protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
+        return objectFactory.newInstance(NativeTestExecuter.class);
     }
 }

@@ -85,9 +85,14 @@ Since then Gradle optimized its up-to-date checking for project dependencies whi
 Supporting optional dependencies means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
 Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those.
 
+### Change to the `Test` task structure
+
+Common test framework functionality in the `Test` task has been moved to `AbstractTestTask`. 
+
 ### Changes in the `eclipse` plugin
 
 The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html#org.gradle.plugins.ide.eclipse.model.EclipseClasspath:defaultOutputDir) changed from `${project.projectDir}/bin` to `${project.projectDir}/bin/default`.
+
 
 ## External contributions
 

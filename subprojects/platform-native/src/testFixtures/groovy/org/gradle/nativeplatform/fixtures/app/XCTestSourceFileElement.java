@@ -19,10 +19,11 @@ package org.gradle.nativeplatform.fixtures.app;
 import com.google.common.base.Joiner;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.TestClassExecutionResult;
 import org.gradle.util.CollectionUtils;
+import org.hamcrest.Matchers;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public abstract class XCTestSourceFileElement extends SourceFileElement implements XCTestElement {
     @Override
@@ -107,30 +108,16 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
     public abstract List<XCTestCaseElement> getTestCases();
     public abstract String getModuleName();
 
-    public void assertTestCasesRan(String output) {
-        Pattern testSuiteStartPattern = Pattern.compile(
-            "Test Suite '" + getTestSuiteName() + "' started at ");
-        if (!testSuiteStartPattern.matcher(output).find()) {
-            throw new RuntimeException(String.format("Couldn't find test suite '%s'", getTestSuiteName()));
-        }
+    @SuppressWarnings("unchecked")
+    public void assertTestCasesRan(TestClassExecutionResult testExecutionResult) {
+        testExecutionResult.assertTestCount(getTestCount(), getFailureCount(), 0);
 
         for (XCTestCaseElement testCase : getTestCases()) {
-            Pattern testCaseStartPattern = Pattern.compile(
-                "Test Case '-\\[" + getModuleName() + "." + getTestSuiteName() + " " + testCase.getName() + "]' started.");
-            if (!testCaseStartPattern.matcher(output).find()) {
-                throw new RuntimeException(String.format("Couldn't find test case '%s.%s' from module '%s'", getTestSuiteName(), testCase.getName(), getModuleName()));
+            if (testCase.isExpectFailure()) {
+                testExecutionResult.assertTestFailed(testCase.getName(), Matchers.anything());
+            } else {
+                testExecutionResult.assertTestPassed(testCase.getName());
             }
-
-            Pattern testCaseEndPattern = Pattern.compile(
-                "Test Case '-\\[" + getModuleName() + "." + getTestSuiteName() + " " + testCase.getName() + "]' " + XCTestSourceElement.toResult(testCase.isExpectFailure() ? 1 : 0));
-            if (!testCaseEndPattern.matcher(output).find()) {
-                throw new RuntimeException(String.format("Couldn't find result of test case '%s.%s' from module '%s'", getTestSuiteName(), testCase.getName(), getModuleName()));
-            }
-        }
-
-        Pattern testSuiteSummaryPattern = XCTestSourceElement.toExpectedSummaryOutputPattern(getTestSuiteName(), getTestCount(), getFailureCount());
-        if (!testSuiteSummaryPattern.matcher(output).find()) {
-            throw new RuntimeException(String.format("Couldn't find summary of test suite '%s'", getTestSuiteName()));
         }
     }
 

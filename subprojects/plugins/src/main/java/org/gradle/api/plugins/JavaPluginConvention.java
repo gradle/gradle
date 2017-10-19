@@ -29,6 +29,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
 
@@ -57,8 +58,8 @@ public class JavaPluginConvention {
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator,
             project.getServices().get(SourceDirectorySetFactory.class));
         docsDirName = "docs";
-        testResultsDirName = "test-results";
-        testReportDirName = "tests";
+        testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
+        testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
     }
 
     /**

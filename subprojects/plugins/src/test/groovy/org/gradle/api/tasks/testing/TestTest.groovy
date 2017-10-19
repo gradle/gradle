@@ -26,13 +26,14 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
-import org.gradle.api.internal.tasks.testing.detection.TestExecuter
+import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
+import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -101,7 +102,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        1 * testExecuterMock.execute(test, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 
     def "generates report"() {
@@ -115,7 +116,7 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
-        1 * testExecuterMock.execute(test, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 
     /* TODO(pepper): WTF?!? This test wasn't ever doing shit. Fuck this! */
@@ -128,7 +129,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        1 * testExecuterMock.execute(test, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 
     def "scans for test classes in the classes dir"() {
@@ -169,7 +170,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        1 * testExecuterMock.execute(test, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
 
         when:
         System.gc() //explicit gc should normally be avoided, but necessary here.

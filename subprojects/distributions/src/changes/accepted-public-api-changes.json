@@ -1,5 +1,165 @@
 {
     "baseVersion": "4.3-rc-2",
     "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Class org.gradle.api.tasks.testing.AbstractTestTask",
+            "acceptation": "Extracted super class out of Test which was already stable",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.addTestListener(org.gradle.api.tasks.testing.TestListener)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.afterSuite(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.afterTest(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.beforeSuite(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.beforeTest(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBuildOperationExecutor()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getIgnoreFailures()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getInstantiator()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getListenerManager()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getProgressLoggerFactory()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getTestLogging()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getTextOutputFactory()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.onOutput(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.removeTestListener(org.gradle.api.tasks.testing.TestListener)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.removeTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setIgnoreFailures(boolean)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.testLogging(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.testLogging(org.gradle.api.Action)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.executeTests()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setTestExecuter(org.gradle.api.internal.tasks.testing.detection.TestExecuter)",
+            "acceptation": "Extracted super class out of Test which was already stable",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getReports()",
+            "acceptation": "Extracted super class out of Test which was already stable",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.reports(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.reports(org.gradle.api.Action)",
+            "acceptation": "Extracted super class out of Test which was already stable",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getInetAddressFactory()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getReports()",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.reports(groovy.lang.Closure)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.reports(org.gradle.api.Action)",
+            "acceptation": "Extracted super class out of Test which was already stable"
+        }
     ]
 }

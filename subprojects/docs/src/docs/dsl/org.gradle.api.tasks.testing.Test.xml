@@ -17,14 +17,6 @@
                 <td><literal>project.sourceSets.test.output.classesDirs</literal></td>
             </tr>
             <tr>
-                <td>binResultsDir</td>
-                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
-            </tr>
-            <tr>
-                <td>reports</td>
-                <td><literal>project.testReportDir</literal></td>
-            </tr>
-            <tr>
                 <td>classpath</td>
                 <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
@@ -115,30 +107,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>addTestListener</td>
-            </tr>
-            <tr>
-                <td>removeTestListener</td>
-            </tr>
-            <tr>
-                <td>addTestOutputListener</td>
-            </tr>
-            <tr>
-                <td>removeTestOutputListener</td>
-            </tr>
-            <tr>
-                <td>beforeSuite</td>
-            </tr>
-            <tr>
-                <td>afterSuite</td>
-            </tr>
-            <tr>
-                <td>beforeTest</td>
-            </tr>
-            <tr>
-                <td>afterTest</td>
-            </tr>
-            <tr>
                 <td>include</td>
             </tr>
             <tr>
@@ -173,15 +141,6 @@
             </tr>
             <tr>
                 <td>copyTo</td>
-            </tr>
-            <tr>
-                <td>onOutput</td>
-            </tr>
-            <tr>
-                <td>testLogging</td>
-            </tr>
-            <tr>
-                <td>reports</td>
             </tr>
             <tr>
                 <td>options</td>
