@@ -160,6 +160,11 @@
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.reports(org.gradle.api.Action)",
             "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Constructor org.gradle.api.tasks.testing.AbstractTestTask()",
+            "acceptation": "Extracted super class out of Test which was already stable"
         }
     ]
 }
