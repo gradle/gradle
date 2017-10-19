@@ -53,21 +53,14 @@ public class DefaultBuildOperationExecHandle implements org.gradle.internal.oper
     }
 
     @Override
-    public void emitChildBuildOperation(RunnableBuildOperation buildOperation) {
-        BuildOperationDescriptor descriptor = createChildDescriptor(buildOperation.description());
+    public void emitChildBuildOperation(BuildOperationDescriptor.Builder description, Object result, Throwable failure) {
+        BuildOperationDescriptor descriptor = createChildDescriptor(description);
         DefaultBuildOperationExecutor.DefaultBuildOperationState childOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(descriptor, clock.getCurrentTime());
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, currentOperation);
         childOperation.setRunning(true);
         listener.started(descriptor, new OperationStartEvent(childOperation.getStartTime()));
-        DefaultBuildOperationExecutor.DefaultBuildOperationContext context = new DefaultBuildOperationExecutor.DefaultBuildOperationContext();
-        try {
-            buildOperation.run(context);
-        } catch (Throwable t) {
-            context.thrown(t);
-        } finally {
-            listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-            childOperation.setRunning(false);
-        }
+        listener.finished(descriptor, new OperationFinishEvent(childOperation.getStartTime(), clock.getCurrentTime(), failure, result));
+        childOperation.setRunning(false);
     }
 
     @Override

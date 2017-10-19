@@ -23,5 +23,5 @@ public interface BuildOperationExecHandle {
 
     BuildOperationExecHandle startChild(BuildOperationDescriptor.Builder description);
 
-    void emitChildBuildOperation(RunnableBuildOperation buildOperation);
+    void emitChildBuildOperation(BuildOperationDescriptor.Builder description, Object result, Throwable failure);
 }

@@ -20,10 +20,8 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecHandle;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
 
@@ -95,18 +93,9 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         System.out.println("testDescriptor output = " + testDescriptor.getName());
         if (testDescriptor.getParent() != null) {
             BuildOperationExecHandle buildOperationExecHandle = runningTests.get(testDescriptor);
-            buildOperationExecHandle.emitChildBuildOperation(new RunnableBuildOperation() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName(testDescriptor.getName() + "--" + event.getDestination()).details(new TestOutputBuildOperationType.Details() {
-                    });
-                }
-
-                @Override
-                public void run(BuildOperationContext context) {
-                    context.setResult(new DefaultTestOutputBuildOperationResult(event));
-                }
+            BuildOperationDescriptor.Builder description = BuildOperationDescriptor.displayName(testDescriptor.getName() + "--" + event.getDestination()).details(new TestOutputBuildOperationType.Details() {
             });
+            buildOperationExecHandle.emitChildBuildOperation(description, new DefaultTestOutputBuildOperationResult(event), null);
 
         }
     }
