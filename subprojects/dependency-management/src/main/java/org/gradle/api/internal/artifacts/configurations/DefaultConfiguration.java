@@ -360,14 +360,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void triggerWhenEmptyActionsIfNecessary() {
+    public void runDependencyActions() {
         if (dependencies.isEmpty()) {
             defaultDependencyActions.execute(dependencies);
         }
         // Discard actions
         defaultDependencyActions = ImmutableActionSet.empty();
         for (Configuration superConfig : extendsFrom) {
-            ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
+            ((ConfigurationInternal) superConfig).runDependencyActions();
         }
     }
 
@@ -454,8 +454,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
+                runDependencyActions();
                 preventFromFurtherMutation();
-                triggerWhenEmptyActionsIfNecessary();
 
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
@@ -1012,7 +1012,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public DependencySet getDependencies() {
-            triggerWhenEmptyActionsIfNecessary();
+            runDependencyActions();
             return getAllDependencies();
         }
 

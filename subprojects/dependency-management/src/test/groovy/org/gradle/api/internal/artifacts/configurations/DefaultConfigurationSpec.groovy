@@ -1306,7 +1306,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.dependencies.add(Mock(Dependency))
 
         when:
-        conf.triggerWhenEmptyActionsIfNecessary()
+        conf.runDependencyActions()
 
         then:
         0 * _
@@ -1320,7 +1320,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.defaultDependencies defaultDependencyAction2
 
         when:
-        conf.triggerWhenEmptyActionsIfNecessary()
+        conf.runDependencyActions()
 
         then:
         1 * defaultDependencyAction1.execute(conf.dependencies) >> {
@@ -1339,7 +1339,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.defaultDependencies defaultDependencyAction
 
         when:
-        conf.triggerWhenEmptyActionsIfNecessary()
+        conf.runDependencyActions()
 
         then:
         1 * defaultDependencyAction.execute(conf.dependencies)
@@ -1357,7 +1357,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.defaultDependencies defaultDependencyAction
 
         when:
-        conf.triggerWhenEmptyActionsIfNecessary()
+        conf.runDependencyActions()
 
         then:
         1 * defaultDependencyAction.execute(conf.dependencies)

@@ -45,7 +45,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
 
     private void addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
-        configuration.triggerWhenEmptyActionsIfNecessary();
+        configuration.runDependencyActions();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
