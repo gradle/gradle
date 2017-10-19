@@ -25,13 +25,7 @@ dependencies {
     compile libraries.junit
     compile libraries.testng
     compile libraries.kryo
-<<<<<<< HEAD
-=======
-    compile ('org.testng:testng:6.3.1') {
-       exclude module:'bsh'
-    }
-    compile 'org.beanshell:bsh:2.0b5'
->>>>>>> Restore testng to 6.3.1
+    compile libraries.bsh
 
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
 

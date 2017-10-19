@@ -110,8 +110,12 @@ libraries += [
         libraries.commons_httpclient,
         libraries.jsch
     ],
-    testng: 'org.testng:testng:6.3.1'
+    bsh: 'org.apache-extras.beanshell:bsh:2.0b6'
 ]
+
+libraries.testng = dependencies.module('org.testng:testng:6.3.1') {
+    exclude module: 'bsh'
+}
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
     dependency "org.apache.maven:maven-settings:${versions.maven}@jar"
