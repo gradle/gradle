@@ -34,6 +34,7 @@ import org.gradle.internal.dependencylock.reader.DependencyLockReader;
 import org.gradle.internal.dependencylock.reader.JsonDependencyLockReader;
 
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DependencyLockPlugin implements Plugin<Project> {
@@ -51,7 +52,7 @@ public class DependencyLockPlugin implements Plugin<Project> {
                 DependencyLockReader dependencyLockReader = new JsonDependencyLockReader(lockFile);
                 DependencyLock dependencyLock = dependencyLockReader.read();
 
-                for (Map.Entry<String, Map<GroupAndName, DependencyVersion>> mapping : dependencyLock.getMapping().entrySet()) {
+                for (Map.Entry<String, LinkedHashMap<GroupAndName, DependencyVersion>> mapping : dependencyLock.getMapping().entrySet()) {
                     final Configuration foundConfiguration = project.getConfigurations().findByName(mapping.getKey());
 
                     if (foundConfiguration != null) {

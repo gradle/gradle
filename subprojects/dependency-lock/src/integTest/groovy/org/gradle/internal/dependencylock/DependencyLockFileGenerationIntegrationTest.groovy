@@ -51,7 +51,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
 
         then:
-        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"+","coordinates":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
+        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"+","coordinates":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
     }
 
     def "can create locks for all configurations"() {
@@ -118,6 +118,6 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(DependencyLockPlugin.GENERATE_LOCK_FILE_TASK_NAME)
 
         then:
-        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"}]}]'
+        file('dependencies.lock').text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"}]}]'
     }
 }

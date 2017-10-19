@@ -18,14 +18,14 @@ package org.gradle.internal.dependencylock.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class DependencyLock {
 
-    private final SortedMap<String, Map<GroupAndName, DependencyVersion>> mapping = new TreeMap<String, Map<GroupAndName, DependencyVersion>>();
+    private final SortedMap<String, LinkedHashMap<GroupAndName, DependencyVersion>> mapping = new TreeMap<String, LinkedHashMap<GroupAndName, DependencyVersion>>();
 
     public void addDependency(String configurationName, ModuleVersionIdentifier moduleVersionIdentifier) {
         if (mapping.containsKey(configurationName)) {
@@ -33,7 +33,7 @@ public class DependencyLock {
             dependencyVersion.setDeclaredVersion(moduleVersionIdentifier.getVersion());
             mapping.get(configurationName).put(new GroupAndName(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName()), dependencyVersion);
         } else {
-            Map<GroupAndName, DependencyVersion> modules = new HashMap<GroupAndName, DependencyVersion>();
+            LinkedHashMap<GroupAndName, DependencyVersion> modules = new LinkedHashMap<GroupAndName, DependencyVersion>();
             DependencyVersion dependencyVersion = new DependencyVersion();
             dependencyVersion.setDeclaredVersion(moduleVersionIdentifier.getVersion());
             modules.put(new GroupAndName(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName()), dependencyVersion);
@@ -41,7 +41,7 @@ public class DependencyLock {
         }
     }
 
-    public Map<String, Map<GroupAndName, DependencyVersion>> getMapping() {
+    public Map<String, LinkedHashMap<GroupAndName, DependencyVersion>> getMapping() {
         return mapping;
     }
 }

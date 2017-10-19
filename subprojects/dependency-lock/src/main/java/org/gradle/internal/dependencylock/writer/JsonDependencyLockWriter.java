@@ -26,6 +26,7 @@ import org.json.simple.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JsonDependencyLockWriter implements DependencyLockWriter {
@@ -45,7 +46,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
     private JSONArray createJson(DependencyLock dependencyLock) {
         JSONArray allLocks = new JSONArray();
 
-        for (Map.Entry<String, Map<GroupAndName, DependencyVersion>> mapping : dependencyLock.getMapping().entrySet()) {
+        for (Map.Entry<String, LinkedHashMap<GroupAndName, DependencyVersion>> mapping : dependencyLock.getMapping().entrySet()) {
             JSONObject configuration = new JSONObject();
             JSONArray dependencies = new JSONArray();
 

@@ -28,8 +28,7 @@ import org.json.simple.parser.ParseException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class JsonDependencyLockReader implements DependencyLockReader {
 
@@ -54,7 +53,7 @@ public class JsonDependencyLockReader implements DependencyLockReader {
                     JSONObject configurationBasedLock = (JSONObject)lock;
                     String configurationName = (String)configurationBasedLock.get("configuration");
                     JSONArray dependencies = (JSONArray)configurationBasedLock.get("dependencies");
-                    Map<GroupAndName, DependencyVersion> dependencyMapping = new HashMap<GroupAndName, DependencyVersion>();
+                    LinkedHashMap<GroupAndName, DependencyVersion> dependencyMapping = new LinkedHashMap<GroupAndName, DependencyVersion>();
                     dependencyLock.getMapping().put(configurationName, dependencyMapping);
 
                     for (Object dependency : dependencies) {
