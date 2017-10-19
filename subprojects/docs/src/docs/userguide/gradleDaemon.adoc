@@ -63,7 +63,7 @@ The Gradle Daemon is enabled by default, and we recommend always enabling it. Th
 to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is your home directory. That’s typically one of the following, depending on your platform:
 
 * `C:\Users\<username>` (Windows Vista & 7+)
-* `/Users/<username>` (Mac OS X)
+* `/Users/<username>` (macOS)
 * `/home/<username>` (Linux)
 
 If that file doesn’t exist, just create it using a text editor. You can find details of other ways to disable (and enable) the Daemon in <<daemon_faq>> further down. That section also contains more detailed information on how the Daemon works.

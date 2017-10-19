@@ -23,13 +23,17 @@ import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
+import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiHasAnnotations
 import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
+import org.gradle.api.Incubating
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
+
+import javax.inject.Inject
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -41,11 +45,19 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     private static boolean isAnnotatedWithIncubating(JApiHasAnnotations member) {
-        member.annotations*.fullyQualifiedName.any { it == 'org.gradle.api.Incubating' }
+        member.annotations*.fullyQualifiedName.any { it == Incubating.name }
     }
 
     private static boolean isAnnotatedWithDeprecated(JApiHasAnnotations member) {
-        member.annotations*.fullyQualifiedName.any { it == 'java.lang.Deprecated'}
+        member.annotations*.fullyQualifiedName.any { it == Deprecated.name }
+    }
+
+    private static boolean isAnnotatedWithInject(JApiHasAnnotations member) {
+        member.annotations*.fullyQualifiedName.any { it == Inject.name }
+    }
+
+    boolean isInject(JApiHasAnnotations member) {
+        return isAnnotatedWithInject(member)
     }
 
     boolean isIncubatingOrDeprecated(JApiHasAnnotations member) {
@@ -55,6 +67,8 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
             return isIncubatingOrDeprecatedOrOverride((JApiMethod) member)
         } else if (member instanceof JApiField) {
             return isIncubatingOrDeprecated((JApiField) member)
+        } else if (member instanceof JApiConstructor) {
+            return isIncubatingOrDeprecated((JApiConstructor) member)
         }
         return isAnnotatedWithIncubating(member)
     }
@@ -67,12 +81,20 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return isAnnotatedWithIncubating(field) || isAnnotatedWithIncubating(field.jApiClass) || isAnnotatedWithDeprecated(field) || isAnnotatedWithDeprecated(field.jApiClass)
     }
 
+    boolean isIncubatingOrDeprecated(JApiConstructor constructor) {
+        return isAnnotatedWithIncubating(constructor) || isAnnotatedWithIncubating(constructor.jApiClass) || isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
+    }
+
     boolean isIncubatingOrDeprecatedOrOverride(JApiMethod method) {
         return isAnnotatedWithIncubating(method) || isAnnotatedWithIncubating(method.jApiClass) || isOverride(method) || isAnnotatedWithDeprecated(method) || isAnnotatedWithDeprecated(method.jApiClass)
     }
 
     boolean isDeprecated(JApiClass clazz) {
         return isAnnotatedWithDeprecated(clazz)
+    }
+
+    boolean isDeprecated(JApiConstructor constructor) {
+        return isAnnotatedWithDeprecated(constructor) || isAnnotatedWithDeprecated(constructor.jApiClass)
     }
 
     boolean isDeprecated(JApiField field) {
@@ -88,7 +110,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def visitor = new GenericVisitorAdapter<Object, Void>() {
             @Override
             Object visit(MethodDeclaration declaration, Void arg) {
-                if (declaration.name == method.name && declaration.annotations.any { it.name.name == "Override" } ) {
+                if (declaration.name == method.name && declaration.annotations.any { it.name.name == Override.simpleName } ) {
                     return new Object()
                 }
                 return null

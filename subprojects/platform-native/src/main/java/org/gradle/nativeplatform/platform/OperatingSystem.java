@@ -37,7 +37,7 @@ import org.gradle.api.tasks.Internal;
  *         <td>"linux"</td>
  *     </tr>
  *     <tr>
- *         <td>Mac OS X</td>
+ *         <td>macOS</td>
  *         <td>"osx", "mac os x", "darwin"</td>
  *     </tr>
  *     <tr>
@@ -71,7 +71,7 @@ public interface OperatingSystem extends Named {
     boolean isWindows();
 
     /**
-     * Is it Mac OS X?
+     * Is it macOS?
      */
     @Internal
     boolean isMacOsX();

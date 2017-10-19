@@ -50,68 +50,68 @@ allprojects { p ->
         })
     }
 
-    def NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
+    NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
         return new NativeInstallationFixture(file(installDir), os)
     }
 
-    def String executableName(Object path) {
+    String executableName(Object path) {
         return path + OperatingSystem.current().getExecutableSuffix()
     }
 
-    def String getExecutableExtension() {
+    String getExecutableExtension() {
         def suffix = OperatingSystem.current().executableSuffix
         return suffix.empty ? "" : suffix.substring(1)
     }
 
-    def ExecutableFixture executable(Object path) {
+    ExecutableFixture executable(Object path) {
         return toolChain.executable(file(path))
     }
 
-    def LinkerOptionsFixture linkerOptionsFor(String taskName, TestFile projectDir = testDirectory) {
+    LinkerOptionsFixture linkerOptionsFor(String taskName, TestFile projectDir = testDirectory) {
         return toolChain.linkerOptionsFor(projectDir.file("build/tmp/$taskName/options.txt"))
     }
 
-    def TestFile objectFile(Object path) {
+    TestFile objectFile(Object path) {
         return toolChain.objectFile(file(path))
     }
 
-    def String withLinkLibrarySuffix(Object path) {
+    String withLinkLibrarySuffix(Object path) {
         return path + OperatingSystem.current().linkLibrarySuffix
     }
 
-    def String linkLibraryName(Object path) {
+    String linkLibraryName(Object path) {
         return OperatingSystem.current().getLinkLibraryName(path.toString())
     }
 
-    def String getLinkLibrarySuffix() {
+    String getLinkLibrarySuffix() {
         return OperatingSystem.current().linkLibrarySuffix.substring(1)
     }
 
-    def String withSharedLibrarySuffix(Object path) {
+    String withSharedLibrarySuffix(Object path) {
         return path + OperatingSystem.current().sharedLibrarySuffix
     }
 
-    def String sharedLibraryName(Object path) {
+    String sharedLibraryName(Object path) {
         return OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
-    def String getSharedLibraryExtension() {
+    String getSharedLibraryExtension() {
         return OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
-    def SharedLibraryFixture sharedLibrary(Object path) {
+    SharedLibraryFixture sharedLibrary(Object path) {
         return toolChain.sharedLibrary(file(path))
     }
 
-    def StaticLibraryFixture staticLibrary(Object path) {
+    StaticLibraryFixture staticLibrary(Object path) {
         return toolChain.staticLibrary(file(path))
     }
 
-    def NativeBinaryFixture resourceOnlyLibrary(Object path) {
+    NativeBinaryFixture resourceOnlyLibrary(Object path) {
         return toolChain.resourceOnlyLibrary(file(path))
     }
 
-    def NativeBinaryFixture machOBundle(Object path) {
+    NativeBinaryFixture machOBundle(Object path) {
         return new NativeBinaryFixture(file(path), toolChain)
     }
 
@@ -137,6 +137,20 @@ allprojects { p ->
         }
 
         return result
+    }
+
+    boolean isNonDeterministicCompilation() {
+        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
+        toolChain.visualCpp || objectiveCWithAslr
+    }
+
+    // compiling Objective-C and Objective-Cpp with clang generates
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
+    boolean isObjectiveCWithAslr() {
+        return (sourceType == "Objc" || sourceType == "Objcpp") &&
+            OperatingSystem.current().isLinux() &&
+            toolChain.displayName == "clang"
     }
 
     protected void maybeWait() {

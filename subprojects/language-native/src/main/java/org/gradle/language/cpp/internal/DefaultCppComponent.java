@@ -49,7 +49,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
-        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++"));
+        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);

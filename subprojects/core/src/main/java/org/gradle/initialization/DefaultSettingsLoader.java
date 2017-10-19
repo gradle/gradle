@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -53,6 +54,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
             return settings;
         }
 
+        deprecateWarningIfNecessary(startParameter, settings);
+
         // Try again with empty settings
         StartParameter noSearchParameter = startParameter.newInstance();
         noSearchParameter.useEmptySettings();
@@ -66,6 +69,24 @@ public class DefaultSettingsLoader implements SettingsLoader {
         setDefaultProject(spec, settings);
 
         return settings;
+    }
+
+    private void deprecateWarningIfNecessary(StartParameter startParameter, SettingsInternal settings) {
+        if (startParameter.getSettingsFile() != null) {
+            return;
+        }
+
+        File projectDir = startParameter.getProjectDir() == null ? startParameter.getCurrentDir() : startParameter.getProjectDir();
+        if (settings.getSettingsDir().equals(projectDir)) {
+            // settings only project, see ProjectLoadingIntegrationTest.settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory
+            return;
+        }
+        for (ProjectDescriptor project : settings.getProjectRegistry().getAllProjects()) {
+            if (project.getProjectDir().equals(projectDir)) {
+                return;
+            }
+        }
+        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + projectDir.getAbsolutePath());
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {

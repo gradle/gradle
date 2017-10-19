@@ -68,7 +68,23 @@ class ProjectFile {
     }
 
     PBXGroup getProducts() {
-        return mainGroup.children.find { it.name == 'Products' }
+        return findGroup('Products')
+    }
+
+    PBXGroup getSources() {
+        return findGroup('Sources')
+    }
+
+    PBXGroup getTests() {
+        return findGroup('Tests')
+    }
+
+    PBXGroup getHeaders() {
+        return findGroup('Headers')
+    }
+
+    private PBXGroup findGroup(String groupName) {
+        return mainGroup.children.find { it.name == groupName }
     }
 
     void assertNoTargets() {

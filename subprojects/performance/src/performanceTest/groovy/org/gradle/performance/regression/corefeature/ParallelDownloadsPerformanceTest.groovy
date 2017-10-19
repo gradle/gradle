@@ -25,7 +25,6 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.webapp.WebAppContext
-import spock.lang.Ignore
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -63,7 +62,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         })
     }
 
-    @Ignore
     def "resolves dependencies from external repository"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
@@ -71,7 +69,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.2-20170817235727+0000"]
+        runner.targetVersions = ["4.4-20171016130954+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/"]
 
         when:
@@ -84,7 +82,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         stopServer()
     }
 
-    @Ignore
     def "resolves dependencies from external repository (parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
@@ -92,7 +89,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.2-20170817235727+0000"]
+        runner.targetVersions = ["4.4-20171016130954+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/", '--parallel']
 
         when:

@@ -25,6 +25,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
 
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {
+            file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
             plugins {
                 id 'java'

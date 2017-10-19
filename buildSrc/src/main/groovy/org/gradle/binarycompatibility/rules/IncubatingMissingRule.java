@@ -18,6 +18,7 @@ package org.gradle.binarycompatibility.rules;
 
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiConstructor;
 import japicmp.model.JApiField;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiMethod;
@@ -33,7 +34,7 @@ public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
-        if (member instanceof JApiMethod || member instanceof JApiField ||member instanceof JApiClass) {
+        if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass || member instanceof JApiConstructor) {
             if (!isIncubatingOrDeprecated((JApiHasAnnotations) member)) {
                 return violationError(member);
             }

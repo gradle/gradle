@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -41,5 +42,30 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         annotation << [ InputFile, InputDirectory, InputFiles ]
+    }
+
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/3193")
+    def "TaskInputs.#method shows deprecation warning when used with complex input"() {
+        buildFile << """
+            task dependencyTask {
+            }
+
+            task test {
+                inputs.$method(dependencyTask)
+                doFirst {
+                    // Need a task action to not skip this task
+                }
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "test"
+
+        output.contains "Using TaskInputs.$method() with something that doesn't resolve to a File object has been deprecated and is scheduled to be removed in Gradle 5.0. Use TaskInputs.files() instead."
+
+        where:
+        method << ["file", "dir"]
     }
 }

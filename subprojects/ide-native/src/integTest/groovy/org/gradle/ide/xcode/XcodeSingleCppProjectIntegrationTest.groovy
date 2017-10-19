@@ -46,7 +46,9 @@ apply plugin: 'cpp-executable'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
+        project.sources.assertHasChildren(app.sources.files*.name)
+        project.headers.assertHasChildren(app.headers.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -77,7 +79,9 @@ apply plugin: 'cpp-library'
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
+        project.sources.assertHasChildren(lib.sources.files*.name)
+        project.headers.assertHasChildren(lib.headers.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -196,8 +200,8 @@ apply plugin: 'cpp-executable'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
         exe("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
@@ -209,8 +213,8 @@ apply plugin: 'cpp-executable'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
         exe("build/exe/main/release/App").exec().out == app.expectedOutput
     }
 
@@ -235,8 +239,8 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
         sharedLib("build/lib/main/debug/App").assertExists()
 
         when:
@@ -248,8 +252,8 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
         sharedLib("build/lib/main/release/App").assertExists()
     }
 
@@ -265,16 +269,16 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources
+            .assertHasChildren(app.sources.files*.name)
 
         when:
         file("src/main/cpp/new.cpp") << "include <iostream>\n"
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle', 'new.cpp'] + app.files*.name)
+        rootXcodeProject.projectFile.sources
+            .assertHasChildren(['new.cpp'] + app.sources.files*.name)
     }
 
     def "removes deleted source files from the project"() {
@@ -290,16 +294,16 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle', 'old.cpp'] + app.files*.name)
+        rootXcodeProject.projectFile.sources
+            .assertHasChildren(['old.cpp'] + app.sources.files*.name)
 
         when:
         file('src/main/cpp/old.cpp').delete()
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources
+            .assertHasChildren(app.sources.files*.name)
     }
 
     def "includes source files in a non-default location in C++ executable project"() {
@@ -322,8 +326,8 @@ executable {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.sources.files*.name)
+        rootXcodeProject.projectFile.headers.assertHasChildren(app.headers.files*.name)
     }
 
     def "includes source files in a non-default location in C++ library project"() {
@@ -349,8 +353,8 @@ library {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.sources.files*.name)
+        rootXcodeProject.projectFile.headers.assertHasChildren(lib.headers.files*.name)
     }
 
     def "honors changes to executable output locations"() {

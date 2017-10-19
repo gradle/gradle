@@ -22,6 +22,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -64,13 +65,15 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     private final ClassLoaderScope settingsClassLoaderScope;
     private final ClassLoaderScope buildRootClassLoaderScope;
+    private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                           ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, File settingsDir,
-                           ScriptSource settingsScript, StartParameter startParameter) {
+                           ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, ScriptHandler settingsScriptHandler,
+                           File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
         this.gradle = gradle;
         this.buildRootClassLoaderScope = buildRootClassLoaderScope;
+        this.scriptHandler = settingsScriptHandler;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
@@ -90,6 +93,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     public Settings getSettings() {
         return this;
+    }
+
+    @Override
+    public ScriptHandler getBuildscript() {
+        return scriptHandler;
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {

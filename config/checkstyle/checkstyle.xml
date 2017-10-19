@@ -73,7 +73,9 @@
         <module name="UnnecessaryParentheses"/>
 
         <!-- Design -->
+        <!--
         <module name="InterfaceIsType"/>
+        -->
 
         <!-- Imports -->
         <module name="RedundantImport"/>

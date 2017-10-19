@@ -142,7 +142,7 @@ class OperatingSystemTest extends Specification {
         os.findInPath("unknown") == null
     }
 
-    def "uses os.name property to determine if Mac OS X"() {
+    def "uses os.name property to determine if macOS"() {
         when:
         System.properties['os.name'] = 'Mac OS X'
 
@@ -162,7 +162,7 @@ class OperatingSystemTest extends Specification {
         OperatingSystem.current() instanceof OperatingSystem.MacOs
     }
 
-    def "Mac OS X identifies itself correctly"() {
+    def "macOS identifies itself correctly"() {
         def os = new OperatingSystem.MacOs()
 
         expect:
@@ -299,14 +299,14 @@ class OperatingSystemTest extends Specification {
         [arch, prefix] << [['i386', 'unknown-i386'], ['x86', 'unknown-i386']]
     }
 
-    def "os x uses same prefix for all architectures"() {
+    def "macOS uses same prefix for all architectures"() {
         def osx = new OperatingSystem.MacOs()
 
         expect:
         osx.nativePrefix == 'darwin'
     }
 
-    def "os x transforms shared library names"() {
+    def "macOS transforms shared library names"() {
         def os = new OperatingSystem.MacOs()
 
         expect:

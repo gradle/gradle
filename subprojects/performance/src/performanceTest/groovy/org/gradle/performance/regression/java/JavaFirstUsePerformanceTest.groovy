@@ -25,8 +25,17 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
+    /* This test has some kind of consistent bias
+     * against the current development version, which makes it fail
+     * even when compared to yesterday's nightly. We need to find the
+     * source of this problem before we can reactivate this test.
+     *
+     * Since '--recompile-scripts' is going to be deprecated, this
+     * test should be changes to use a test listener that completely deletes
+     * all caches between runs.
+     */
     @Ignore
+    @Unroll
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject
@@ -34,7 +43,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.useDaemon = false
-        runner.targetVersions = ["4.4-20171016000004+0000"]
+        runner.targetVersions = ["4.4-20171016130954+0000"]
 
         when:
         def result = runner.run()
@@ -44,14 +53,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                   | _
-        /* the "large monolithic case has some kind of consistent bias
-         * against the current development version, which makes it fail
-         * even when compared to yesterday's nightly. We need to find the
-         * source of this problem before we can reactivate this test.
-         * Interestingly the "large multiproject" sample does not have
-         * this problem.
-          LARGE_MONOLITHIC_JAVA_PROJECT | _
-        */
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
         LARGE_JAVA_MULTI_PROJECT      | _
     }
 

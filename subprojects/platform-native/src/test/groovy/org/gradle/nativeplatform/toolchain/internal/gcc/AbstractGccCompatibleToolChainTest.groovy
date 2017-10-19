@@ -219,7 +219,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
     }
 
-    def "supplies args for supported architecture for non-os x platforms"() {
+    def "supplies args for supported architecture for non-macOS platforms"() {
         def action = Mock(Action)
 
         given:
@@ -248,7 +248,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | "-m64"    | "-m64"
     }
 
-    def "supplies args for supported architecture for os x platforms"() {
+    def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 
         given:

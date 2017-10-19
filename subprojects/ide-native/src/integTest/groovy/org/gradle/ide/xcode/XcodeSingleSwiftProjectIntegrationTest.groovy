@@ -45,7 +45,8 @@ apply plugin: 'swift-executable'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
+        project.sources.assertHasChildren(app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -74,7 +75,8 @@ apply plugin: 'swift-library'
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
+        project.sources.assertHasChildren(lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
@@ -106,7 +108,9 @@ apply plugin: 'xctest'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+        project.sources.assertHasChildren(app.main.files*.name)
+        project.tests.assertHasChildren(app.test.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
         project.targets.size() == 4
@@ -136,7 +140,9 @@ apply plugin: 'xctest'
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+        project.sources.assertHasChildren(lib.main.files*.name)
+        project.tests.assertHasChildren(lib.test.files*.name)
         project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
         project.targets.size() == 4
@@ -412,8 +418,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
 
         when:
         def app = new SwiftApp()
@@ -421,8 +426,7 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
     def "removes deleted source files from the project"() {
@@ -437,8 +441,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
 
         when:
         file('src/main').deleteDir()
@@ -447,8 +450,7 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
     def "includes source files in a non-default location in Swift executable project"() {
@@ -468,8 +470,7 @@ executable {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
     def "includes source files in a non-default location in Swift library project"() {
@@ -489,8 +490,7 @@ library {
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.mainGroup
-            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
     def "honors changes to executable output file locations"() {
