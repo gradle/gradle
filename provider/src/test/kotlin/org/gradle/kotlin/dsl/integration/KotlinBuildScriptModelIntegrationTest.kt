@@ -211,6 +211,19 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             subProjectScript = """ plugins { kotlin("jvm") version "$embeddedKotlinVersion" } """)
     }
 
+    @Test
+    fun `can fetch classpath of settings script`() {
+
+        withBuildSrc()
+
+        val settings = withSettings("")
+
+        val classPath = canonicalClassPathFor(projectRoot, settings)
+
+        assertContainsBuildSrc(classPath)
+        assertContainsGradleKotlinDslJars(classPath)
+    }
+
     private
     fun assertSourcePathIncludesKotlinStdlibSourcesGiven(rootProjectScript: String, subProjectScript: String) {
 
