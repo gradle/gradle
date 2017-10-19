@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.tooling.models
+package org.gradle.kotlin.dsl.support
 
-import java.io.File
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
 
-
-// TODO Implement parameterized model builder
-class KotlinBuildScriptModelArguments(val scriptPath: String?)
-
-
-interface KotlinBuildScriptModel {
-
-    val classPath: List<File>
-    val sourcePath: List<File>
-    val implicitImports: List<String>
-}
+// TODO:pm Settings.services is protected, this may not get the right services
+inline
+fun <reified T : Any> Settings.serviceOf(): T =
+    (gradle as GradleInternal).services[T::class.java]!!

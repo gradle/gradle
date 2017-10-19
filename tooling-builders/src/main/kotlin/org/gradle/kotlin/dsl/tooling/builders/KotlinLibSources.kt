@@ -23,9 +23,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
 import org.gradle.internal.classpath.ClassPath
@@ -44,6 +46,22 @@ import kotlin.coroutines.experimental.buildSequence
 
 
 internal
+fun sourcePathFor(settings: Settings): ClassPath =
+    (settings as SettingsInternal).run {
+        var sourcePath = ClassPath.EMPTY
+        val resolvedDependencies = hashSetOf<ModuleVersionIdentifier>()
+        val classpathDependencies = classpathDependenciesOf(buildscript)
+        if (resolvedDependencies.addAll(classpathDependencies)) {
+            sourcePath += resolveSourcesUsing(buildscript.dependencies, classpathDependencies.map { it.toModuleId() })
+        }
+        if (!containsBuiltinKotlinModules(resolvedDependencies)) {
+            sourcePath += kotlinLibSourcesFor(this)
+        }
+        sourcePath
+    }
+
+
+internal
 fun sourcePathFor(project: Project): ClassPath {
 
     var sourcePath = ClassPath.EMPTY
@@ -52,7 +70,7 @@ fun sourcePathFor(project: Project): ClassPath {
     for (buildscript in reversedBuildscriptHierarchyOf(project)) {
         val classpathDependencies = classpathDependenciesOf(buildscript).filter { it !in resolvedDependencies }
         if (resolvedDependencies.addAll(classpathDependencies)) {
-           sourcePath += resolveSourcesUsing(buildscript.dependencies, classpathDependencies.map { it.toModuleId() })
+            sourcePath += resolveSourcesUsing(buildscript.dependencies, classpathDependencies.map { it.toModuleId() })
         }
     }
 
@@ -89,6 +107,14 @@ fun classpathDependenciesOf(buildscript: ScriptHandler): List<ModuleVersionIdent
 
 private
 fun ModuleVersionIdentifier.toModuleId() = moduleId(group, name, version)
+
+
+internal
+fun kotlinLibSourcesFor(settings: Settings): ClassPath =
+    settings.run {
+        if (buildscript.repositories.isEmpty()) ClassPath.EMPTY
+        else resolveKotlinLibSourcesUsing(buildscript.dependencies)
+    }
 
 
 internal

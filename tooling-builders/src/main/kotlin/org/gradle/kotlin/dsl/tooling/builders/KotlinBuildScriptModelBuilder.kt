@@ -17,6 +17,9 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
@@ -31,6 +34,7 @@ import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModelArguments
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -44,22 +48,73 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
-    override fun buildAll(modelName: String, project: Project): KotlinBuildScriptModel {
+    override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel =
+        scriptModelFor(modelRequestProject, scriptModelArgumentsFor(modelRequestProject))
 
-        val (targetProject, scriptClassPath) =
-            scriptModelRequestFor(project).let {
-                when (it) {
-                    is ScriptModelRequest.ForProjectScript ->
-                        it.enclosingProject to projectScriptClassPathOf(it.enclosingProject)
-                    is ScriptModelRequest.ForScriptPlugin  ->
-                        project to scriptPluginClassPathOf(project)
-                }
+    private
+    fun scriptModelArgumentsFor(modelRequestProject: Project) =
+        KotlinBuildScriptModelArguments(modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as String?)
+
+    private
+    fun scriptModelFor(modelRequestProject: Project, arguments: KotlinBuildScriptModelArguments) =
+        scriptModelRequestFor(modelRequestProject, arguments).let {
+            when (it) {
+                is ScriptModelRequest.ForSettingsScript -> settingsScriptModelFor(it)
+                is ScriptModelRequest.ForScriptPlugin   -> scriptPluginScriptModelFor(it)
+                is ScriptModelRequest.ForProjectScript  -> projectScriptModelFor(it)
             }
+        }
 
-        val gradleSources = gradleSourcesFor(scriptClassPath.bin, targetProject)
-        val classpathSources = sourcePathFor(targetProject)
-        val implicitImports = implicitImportsOf(targetProject)
+    private
+    fun scriptModelRequestFor(modelRequestProject: Project, arguments: KotlinBuildScriptModelArguments): ScriptModelRequest =
+        arguments.scriptFile?.let {
+            if (isSettingsScript(it)) {
+                return ScriptModelRequest.ForSettingsScript(settingsFor(modelRequestProject))
+            }
+            return projectFor(it, modelRequestProject)
+                ?.let { ScriptModelRequest.ForProjectScript(it) }
+                ?: ScriptModelRequest.ForScriptPlugin(modelRequestProject)
+        } ?: ScriptModelRequest.ForProjectScript(modelRequestProject)
 
+    private
+    val KotlinBuildScriptModelArguments.scriptFile
+        get() = scriptPath?.let { canonicalFile(it) }
+
+    private
+    fun isSettingsScript(scriptFile: File) =
+        scriptFile.name == "settings.gradle.kts"
+
+    private
+    fun settingsFor(modelRequestProject: Project) =
+        (modelRequestProject.gradle as GradleInternal).settings
+
+    private
+    fun settingsScriptModelFor(scriptModelRequest: ScriptModelRequest.ForSettingsScript): KotlinBuildScriptModel =
+        scriptModelRequest.run {
+            val scriptClassPath = settingsScriptClassPathOf(settings)
+            val gradleSources = gradleSourcesFor(scriptClassPath.bin, settings)
+            val classpathSources = sourcePathFor(settings)
+            val implicitImports = implicitImportsOf(settings)
+            return StandardKotlinBuildScriptModel(
+                scriptClassPath.bin.asFiles,
+                (scriptClassPath.src + gradleSources + classpathSources).asFiles,
+                implicitImports)
+        }
+
+    private fun scriptPluginScriptModelFor(scriptModelRequest: ScriptModelRequest.ForScriptPlugin): KotlinBuildScriptModel =
+        scriptModelRequest.run {
+            scriptModelFor(modelRequestProject, scriptPluginClassPathOf(modelRequestProject))
+        }
+
+    private fun projectScriptModelFor(scriptModelRequest: ScriptModelRequest.ForProjectScript): KotlinBuildScriptModel =
+        scriptModelRequest.run {
+            scriptModelFor(enclosingProject, projectScriptClassPathOf(enclosingProject))
+        }
+
+    private fun scriptModelFor(project: Project, scriptClassPath: ScriptClassPath): StandardKotlinBuildScriptModel {
+        val gradleSources = gradleSourcesFor(scriptClassPath.bin, project)
+        val classpathSources = sourcePathFor(project)
+        val implicitImports = implicitImportsOf(project)
         return StandardKotlinBuildScriptModel(
             scriptClassPath.bin.asFiles,
             (scriptClassPath.src + gradleSources + classpathSources).asFiles,
@@ -71,22 +126,17 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
         data class ForProjectScript(val enclosingProject: Project) : ScriptModelRequest()
 
-        object ForScriptPlugin : ScriptModelRequest()
+        data class ForSettingsScript(val settings: Settings) : ScriptModelRequest()
+
+        data class ForScriptPlugin(val modelRequestProject: Project) : ScriptModelRequest()
     }
 
     private
-    fun scriptModelRequestFor(project: Project): ScriptModelRequest =
-        targetScriptFileForModelRequestOf(project).let {
-            when (it) {
-                null -> ScriptModelRequest.ForProjectScript(project)
-                else -> projectFor(it, project)
-                    ?.let { ScriptModelRequest.ForProjectScript(it) }
-                    ?: ScriptModelRequest.ForScriptPlugin
-            }
-        }
+    data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)
 
     private
-    data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)
+    fun settingsScriptClassPathOf(settings: Settings): ScriptClassPath =
+        ScriptClassPath(compilationClassPathOf(settings), ClassPath.EMPTY)
 
     private
     fun projectScriptClassPathOf(project: Project): ScriptClassPath {
@@ -104,8 +154,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             ClassPath.EMPTY)
 
     private
+    fun implicitImportsOf(settings: Settings) =
+        settings.serviceOf<ImplicitImports>().list
+
+    private
     fun implicitImportsOf(project: Project) =
         project.serviceOf<ImplicitImports>().list
+
+    private
+    fun gradleSourcesFor(classPath: ClassPath, settings: Settings) =
+        SourcePathProvider.sourcePathFor(classPath, settings.rootProject.projectDir, settings.gradle.gradleHomeDir)
 
     private
     fun gradleSourcesFor(classPath: ClassPath, project: Project) =
@@ -123,6 +181,11 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private
+    fun compilationClassPathOf(settings: Settings): ClassPath =
+        kotlinScriptClassPathProviderOf(settings)
+            .compilationClassPathOf(classLoaderScopeOf(settings))
+
+    private
     fun compilationClassPathOf(project: Project) =
         kotlinScriptClassPathProviderOf(project)
             .compilationClassPathOf(classLoaderScopeOf(project))
@@ -130,6 +193,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun classLoaderScopeOf(project: Project) =
         (project as ProjectInternal).classLoaderScope
+
+    private
+    fun classLoaderScopeOf(settings: Settings) =
+        (settings as SettingsInternal).classLoaderScope
 
     private
     fun buildSrcClassPathOf(project: Project) =
