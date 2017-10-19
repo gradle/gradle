@@ -16,15 +16,15 @@
 
 package org.gradle.api.reporting
 
-import spock.lang.Specification
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
+import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
 class ReportingExtensionTest extends Specification {
-    
+
     Project project = ProjectBuilder.builder().build()
     ReportingExtension extension = new ReportingExtension(project)
-    
+
     def "defaults to reports dir in build dir"() {
         expect:
         extension.baseDir == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
@@ -33,9 +33,9 @@ class ReportingExtensionTest extends Specification {
         project.buildDir = project.file("newBuildDir")
 
         then:
-        extension.baseDir == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
+        extension.baseDir == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
     }
-    
+
     def "reports dir can be changed lazily"() {
         given:
         def dir = "a"
@@ -51,6 +51,35 @@ class ReportingExtensionTest extends Specification {
 
         then:
         extension.baseDir == project.file("b")
+
+    }
+
+    def "defaults to reports directory in build dir"() {
+        expect:
+        extension.baseDirectory.asFile.get() == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
+
+        when:
+        project.buildDir = project.file("newBuildDir")
+
+        then:
+        extension.baseDirectory.asFile.get() == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
+    }
+
+    def "reports directory can be changed lazily"() {
+        given:
+        def dir = "a"
+
+        when:
+        extension.baseDirectory.set(project.layout.projectDirectory.dir(project.provider { dir }))
+
+        then:
+        extension.baseDirectory.asFile.get() == project.file("a")
+
+        when:
+        dir = "b"
+
+        then:
+        extension.baseDirectory.asFile.get() == project.file("b")
 
     }
 }

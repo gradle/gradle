@@ -56,6 +56,14 @@ public interface ProjectLayout {
     DirectoryProperty directoryProperty();
 
     /**
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve paths, if required. The property has the initial provider specified.
+     *
+     * @param initialProvider initial provider for the property
+     * @since 4.4
+     */
+    DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
+
+    /**
      * Creates a new {@link RegularFileVar} that uses the project directory to resolve paths, if required. The var has no initial value.
      *
      * @deprecated Use {@link #fileProperty()} instead.
@@ -69,6 +77,14 @@ public interface ProjectLayout {
      * @since 4.3
      */
     RegularFileProperty fileProperty();
+
+    /**
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve paths, if required. The property has the initial provider specified.
+     *
+     * @param initialProvider initial provider for the property
+     * @since 4.4
+     */
+    RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider);
 
     /**
      * Creates a {@link RegularFile} provider whose location is calculated from the given {@link Provider}.
