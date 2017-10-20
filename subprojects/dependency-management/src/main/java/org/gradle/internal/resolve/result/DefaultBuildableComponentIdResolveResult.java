@@ -24,13 +24,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import javax.annotation.Nullable;
+
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
     private ComponentResolveMetadata metaData;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private ComponentSelectionReason selectionReason;
-    private VersionSelector versionSelector;
+    private VersionSelector preferredVersionSelector;
+    private VersionSelector rejectedVersionSelector;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -94,16 +97,23 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         id = null;
         moduleVersionId = null;
         selectionReason = VersionSelectionReasons.REQUESTED;
-        versionSelector = null;
+        preferredVersionSelector = null;
     }
 
     @Override
-    public VersionSelector getVersionSelector() {
-        return versionSelector;
+    public VersionSelector getPreferredSelector() {
+        return preferredVersionSelector;
+    }
+
+    @Nullable
+    @Override
+    public VersionSelector getRejectionSelector() {
+        return rejectedVersionSelector;
     }
 
     @Override
-    public void setVersionSelector(VersionSelector versionSelector) {
-        this.versionSelector = versionSelector;
+    public void setSelectors(VersionSelector preferredSelector, VersionSelector rejectSelector) {
+        this.preferredVersionSelector = preferredSelector;
+        this.rejectedVersionSelector = rejectSelector;
     }
 }

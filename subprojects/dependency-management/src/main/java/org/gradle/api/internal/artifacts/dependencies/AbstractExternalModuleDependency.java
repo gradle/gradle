@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private String group;
     private String name;
-    private String version;
     private boolean changing;
     private boolean force;
+    private ModuleVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
@@ -34,7 +37,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.group = group;
         this.name = name;
-        this.version = version;
+        versionConstraint = new DefaultModuleVersionConstraint(version);
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {
@@ -63,13 +66,13 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public String getVersion() {
-        return version;
+        return versionConstraint.getVersion();
     }
 
     @Override
     public void setVersion(String version) {
-        validateMutation(this.version, version);
-        this.version = version;
+        validateMutation(this.versionConstraint.getVersion(), version);
+        this.versionConstraint = new DefaultModuleVersionConstraint(version);
     }
 
     public boolean isForce() {
@@ -91,4 +94,25 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         this.changing = changing;
         return this;
     }
+
+    @Override
+    public ModuleVersionConstraint getVersionConstraint() {
+        return versionConstraint;
+    }
+
+    @Override
+    public ExternalDependency strictVersion() {
+        if (StringUtils.isEmpty(versionConstraint.getVersion())) {
+            throw new IllegalStateException("You need to provide an explicit version number using strictVersion('someVersionNumber')");
+        }
+        return strictVersion(versionConstraint.getVersion());
+    }
+
+    @Override
+    public ExternalDependency strictVersion(final String version) {
+        validateMutation(this.versionConstraint.getVersion(), version);
+        this.versionConstraint = new DefaultModuleVersionConstraint(version, true);
+        return this;
+    }
+
 }

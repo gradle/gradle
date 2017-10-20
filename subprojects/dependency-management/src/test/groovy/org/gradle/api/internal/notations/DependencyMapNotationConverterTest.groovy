@@ -160,7 +160,7 @@ public class DependencyMapNotationConverterTest extends Specification {
         then:
         d.group == null
         d.name == 'foo'
-        d.version == null
+        d.version == ''
         d.transitive
 
         !d.force

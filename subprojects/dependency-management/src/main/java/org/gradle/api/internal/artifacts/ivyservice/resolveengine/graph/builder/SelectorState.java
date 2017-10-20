@@ -41,7 +41,8 @@ class SelectorState implements DependencyGraphSelector {
     private ModuleResolveState targetModule;
     private ComponentState selected;
     private BuildableComponentIdResolveResult idResolveResult;
-    private VersionSelector versionSelector;
+    private VersionSelector preferredVersionSelector;
+    private VersionSelector rejectedVersionSelector;
 
     SelectorState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
@@ -106,7 +107,8 @@ class SelectorState implements DependencyGraphSelector {
         selected.setSelectionReason(idResolveResult.getSelectionReason());
         targetModule = selected.getModule();
         targetModule.addSelector(this);
-        versionSelector = idResolveResult.getVersionSelector();
+        preferredVersionSelector = idResolveResult.getPreferredSelector();
+        rejectedVersionSelector = idResolveResult.getRejectionSelector();
 
         return selected;
     }
@@ -130,7 +132,11 @@ class SelectorState implements DependencyGraphSelector {
         return idResolveResult;
     }
 
-    public VersionSelector getVersionSelector() {
-        return versionSelector;
+    public VersionSelector getPreferredVersionSelector() {
+        return preferredVersionSelector;
+    }
+
+    public VersionSelector getRejectedVersionSelector() {
+        return rejectedVersionSelector;
     }
 }

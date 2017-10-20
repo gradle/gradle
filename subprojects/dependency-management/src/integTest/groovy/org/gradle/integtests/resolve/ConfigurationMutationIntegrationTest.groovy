@@ -141,7 +141,7 @@ dependencies {
 }
 configurations.compile.withDependencies { deps ->
     def foo = deps.find { it.name == 'foo' }
-    assert foo.version == null
+    assert foo.version == ''
     foo.version = '1.0'
 
     def bar = deps.find { it.name == 'bar' }
@@ -150,7 +150,7 @@ configurations.compile.withDependencies { deps ->
 }
 configurations.compile.withDependencies { deps ->
     def bar = deps.find { it.name == 'bar' }
-    assert bar.version == null
+    assert bar.version == ''
     bar.version = '1.0'
 }
 """

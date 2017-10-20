@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -40,7 +39,8 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
+        requested.setVersionConstraint(externalModuleDependency.getVersionConstraint());
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
