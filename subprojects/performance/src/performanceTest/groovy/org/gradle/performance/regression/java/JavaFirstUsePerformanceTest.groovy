@@ -34,7 +34,6 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
      * test should be changes to use a test listener that completely deletes
      * all caches between runs.
      */
-    @Ignore
     @Unroll
     def "first use of #testProject"() {
         given:
