@@ -256,6 +256,7 @@ task userguideAsciidoc(type: CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include '*.adoc' }
     outputDir = asciidocOutputDir
+    inputs.file { defaultImports.importsDestFile } withPropertyName 'defaultImports' withPathSensitivity PathSensitivity.NONE
 
     // we pull the default-imports from here:
     resources {
