@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp.plugins
+package org.gradle.nativeplatform.test.googletest.plugins
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 
-class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class GoogleUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
+    def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
+
     @Requires(TestPrecondition.MAC_OS_X)
     def "can run tests with google test"() {
         def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'google-unit-test'
-            
-            repositories {
-                maven { url "https://repo.gradle.org/gradle/repo" }
-            }
 
+            def googleTestHeaders = file("${prebuiltPath}/googleTest/1.7.0/include")
+            def googleTestStaticLib = file("${prebuiltPath}/googleTest/1.7.0/lib/osx64/${googleTestLib}")
             dependencies {
-                unitTestImplementation 'org.gradle:googletest:1.8.0'
+                cppCompileUnitTestExecutable files(googleTestHeaders)
+                nativeLinkUnitTestExecutable files(googleTestStaticLib)
             }
 
             tasks.withType(RunTestExecutable) {
@@ -58,5 +62,9 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
+    }
+
+    private def getGoogleTestLib() {
+        return OperatingSystem.current().getStaticLibraryName("gtest")
     }
 }
