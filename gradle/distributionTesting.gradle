@@ -46,11 +46,12 @@ distributionTestTasks.all { DistributionTest task ->
 
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/repo1' : ''
-    systemProperties['org.gradle.integtest.mirrors.jcenter'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/jcenter' : ''
-    systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases' : ''
-    systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases' : ''
-    systemProperties['org.gradle.integtest.mirrors.google'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/google' : ''
+    def mirrorUrls = collectMirrorUrls()
+    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = mirrorUrls['mavencentral'] ?: ''
+    systemProperties['org.gradle.integtest.mirrors.jcenter'] = mirrorUrls['jcenter'] ?: ''
+    systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = mirrorUrls['typesafemaven'] ?: ''
+    systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = mirrorUrls['typesafeivy'] ?: ''
+    systemProperties['org.gradle.integtest.mirrors.google'] = mirrorUrls['google'] ?: ''
 
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {
@@ -103,6 +104,15 @@ distributionTestTasks.all { DistributionTest task ->
 
     doLast {
         gradle.removeListener(daemonListener)
+    }
+}
+
+def collectMirrorUrls() {
+    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+    def mirrors = System.getenv().get('REPO_MIRROR_URLS')
+    !mirrors ? [:] : mirrors.split(',').collectEntries { nameToUrl ->
+        def index = nameToUrl.indexOf(':')
+        [(nameToUrl.substring(0, index)) : nameToUrl.substring(index + 1)]
     }
 }
 
