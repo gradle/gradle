@@ -25,7 +25,7 @@ versions.commons_io = 'commons-io:commons-io:2.2'
 
 versions.groovy = "2.4.12"
 
-versions.bouncycastle = "1.57"
+versions.bouncycastle = "1.58"
 
 versions.maven = "3.0.4"
 
@@ -78,8 +78,8 @@ libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.26") {
 
 libraries.commons_codec = "commons-codec:commons-codec:1.6@jar"
 libraries.jcifs = "org.samba.jcifs:jcifs:1.3.17@jar"
-libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.4.1') {
-    dependency "org.apache.httpcomponents:httpcore:4.4.4@jar"
+libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.5.3') {
+    dependency "org.apache.httpcomponents:httpcore:4.4.8@jar"
     dependency libraries.jcl_to_slf4j
     dependency libraries.commons_codec
     dependency libraries.jcifs
@@ -98,27 +98,32 @@ libraries += [
     junit: 'junit:junit:4.12@jar',
     xmlunit: 'xmlunit:xmlunit:1.3',
     equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
-    nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
     xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
     nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
     jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
-    xerces: "xerces:xercesImpl:2.9.1",
+    xerces: "xerces:xercesImpl:2.11.0",
     objenesis: 'org.objenesis:objenesis:1.2@jar',
-    jsoup:'org.jsoup:jsoup:1.6.3',
+    jsoup: 'org.jsoup:jsoup:1.6.3',
+    xmlApis: 'xml-apis:xml-apis:1.4.01',
     jgit: [
         'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r@jar', // 4.6+ requires Java 8
         libraries.commons_httpclient,
         libraries.jsch
     ],
-    testng: 'org.testng:testng:6.3.1'
+    testng: 'org.testng:testng:6.3.1',
+    bsh: 'org.apache-extras.beanshell:bsh:2.0b6'
 ]
+
+libraries.nekohtml = dependencies.module("net.sourceforge.nekohtml:nekohtml:1.9.14") {
+    dependency libraries.xerces
+}
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
     dependency "org.apache.maven:maven-settings:${versions.maven}@jar"
     dependency "org.apache.maven:maven-settings-builder:${versions.maven}@jar"
 
     //plexus:
-    dependency "org.codehaus.plexus:plexus-utils:2.0.6@jar"
+    dependency "org.codehaus.plexus:plexus-utils:2.1@jar"
     dependency "org.codehaus.plexus:plexus-interpolation:1.14@jar"
     dependency "org.codehaus.plexus:plexus-component-annotations:1.5.5@jar"
     dependency "org.codehaus.plexus:plexus-container-default:1.5.5@jar"
@@ -192,7 +197,7 @@ libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:
 libraries.joda = 'joda-time:joda-time:2.8.2@jar'
 
 versions.aws = "1.11.6"
-versions.jackson = "2.6.6"
+versions.jackson = "2.8.9"
 libraries.awsS3 = [
         "com.amazonaws:aws-java-sdk-s3:${versions.aws}@jar",
         "com.amazonaws:aws-java-sdk-kms:${versions.aws}@jar",
@@ -230,6 +235,8 @@ allprojects {
                 details.useTarget(libraries.ivy)
             } else if (details.requested.group == 'org.testng') {
                 details.useTarget(libraries.testng)
+            } else if (details.requested.name == 'bsh') {
+                details.useTarget(libraries.bsh)
             }
         }
     }

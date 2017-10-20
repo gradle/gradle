@@ -56,6 +56,7 @@ dependencies {
     implementation libraries.jcip
     implementation libraries.nativePlatform
     implementation libraries.commons_compress
+    implementation libraries.xmlApis
 
     runtimeOnly project(":docs")
 
