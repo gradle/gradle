@@ -103,7 +103,8 @@ libraries += [
     jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
     xerces: "xerces:xercesImpl:2.11.0",
     objenesis: 'org.objenesis:objenesis:1.2@jar',
-    jsoup:'org.jsoup:jsoup:1.6.3',
+    jsoup: 'org.jsoup:jsoup:1.6.3',
+    xmlApis: 'xml-apis:xml-apis:1.4.01',
     jgit: [
         'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r@jar', // 4.6+ requires Java 8
         libraries.commons_httpclient,
