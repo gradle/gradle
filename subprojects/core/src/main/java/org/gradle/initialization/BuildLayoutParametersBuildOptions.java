@@ -50,7 +50,7 @@ public class BuildLayoutParametersBuildOptions {
 
     public static class GradleUserHomeOption extends StringBuildOption<BuildLayoutParameters> {
         public GradleUserHomeOption() {
-            super("gradle.user.home", CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the gradle user home directory."));
+            super(BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY, CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the gradle user home directory."));
         }
 
         @Override
