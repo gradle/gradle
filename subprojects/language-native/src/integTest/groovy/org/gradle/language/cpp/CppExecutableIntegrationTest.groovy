@@ -153,6 +153,28 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         objectFiles(app.main)*.assertExists()
     }
 
+    def "can use installDirectory as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+
+            task install {
+                dependsOn executable.debugExecutable.installDirectory
+            }
+         """
+
+        expect:
+        succeeds "install"
+        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':installDebug', ':install')
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "ignores non-C++ source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()

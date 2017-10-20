@@ -128,6 +128,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     install.lib(binary.getRuntimeLibraries());
 
                     ((DefaultCppExecutable) binary).getExecutableFile().set(link.getBinaryFile());
+                    ((DefaultCppExecutable) binary).getInstallDirectory().set(install.getInstallDirectory());
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
