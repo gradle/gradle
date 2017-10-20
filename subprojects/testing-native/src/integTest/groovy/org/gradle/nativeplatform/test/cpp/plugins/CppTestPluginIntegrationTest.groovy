@@ -28,7 +28,7 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-library'
-            apply plugin: 'cpp-test'
+            apply plugin: 'google-unit-test'
             
             repositories {
                 maven { url "https://repo.gradle.org/gradle/repo" }
@@ -58,29 +58,5 @@ class CppTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
-    }
-
-    def "can run tests with catch"() {
-        def app = new CppHelloWorldApp()
-
-        // Download the single header
-        def url = new URL('https://raw.githubusercontent.com/philsquared/Catch/7818e2666d5cc7bb1d912acb22b68f6669b74520/single_include/catch.hpp')
-        file("src/unitTest/headers/catch.hpp").text = url.text
-
-        buildFile << """
-            apply plugin: 'cpp-library'
-            apply plugin: 'cpp-test'
-
-            tasks.withType(RunTestExecutable) {
-                args "-r", "xml", "-o", "catch.xml"
-            }
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.catchTests.writeSources(file("src/unitTest"))
-
-        expect:
-        succeeds("check")
-        file("build/test-results/unitTest/catch.xml").assertIsFile()
     }
 }

@@ -20,23 +20,19 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
-import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 import javax.inject.Inject;
 
@@ -49,12 +45,12 @@ import javax.inject.Inject;
  * @since 4.4
  */
 @Incubating
-public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
+public class CppUnitTestBasePlugin implements Plugin<ProjectInternal> {
     private final ObjectFactory objectFactory;
     private final FileOperations fileOperations;
 
     @Inject
-    public CppTestConventionPlugin(FileOperations fileOperations, ObjectFactory objectFactory) {
+    public CppUnitTestBasePlugin(FileOperations fileOperations, ObjectFactory objectFactory) {
         this.fileOperations = fileOperations;
         this.objectFactory = objectFactory;
     }
@@ -64,7 +60,6 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final ConfigurationContainer configurations = project.getConfigurations();
-        final TaskContainer tasks = project.getTasks();
 
         final CppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", objectFactory, fileOperations, configurations);
         // Register components created for the test Component and test binaries
@@ -75,6 +70,7 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
+                final TaskContainer tasks = project.getTasks();
                 CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
                 testComponent.getTestedComponent().set(mainComponent);
 
@@ -90,24 +86,5 @@ public class CppTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO: We will get symbol conflicts with executables since they already have a main()
         project.getPlugins().withType(CppExecutablePlugin.class, projectConfiguration);
 
-        // TODO: Replace with new native test task
-        final RunTestExecutable testTask = tasks.create("runUnitTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
-            @Override
-            public void execute(RunTestExecutable testTask) {
-                testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                testTask.setDescription("Executes C++ unit tests.");
-
-                // TODO: It would be nice if the installation was a thing we could get path/dependencies from vs going to the task
-                final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestExecutable");
-                testTask.setExecutable(installTask.getRunScript());
-                testTask.dependsOn(installTask);
-
-                // TODO: This should be lazy to honor changes to the build directory
-                final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-                testTask.setOutputDir(buildDirectory.dir("test-results/unitTest").get().getAsFile());
-            }
-        });
-
-        tasks.getByName("check").dependsOn(testTask);
     }
 }
