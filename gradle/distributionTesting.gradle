@@ -47,11 +47,10 @@ distributionTestTasks.all { DistributionTest task ->
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
     def mirrorUrls = collectMirrorUrls()
-    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = mirrorUrls['mavencentral'] ?: ''
-    systemProperties['org.gradle.integtest.mirrors.jcenter'] = mirrorUrls['jcenter'] ?: ''
-    systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = mirrorUrls['typesafemaven'] ?: ''
-    systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = mirrorUrls['typesafeivy'] ?: ''
-    systemProperties['org.gradle.integtest.mirrors.google'] = mirrorUrls['google'] ?: ''
+    def mirrors = ['mavencentral', 'jcenter', 'typesafemaven', 'typesafeivy', 'google']
+    mirrors.each { mirror ->
+        systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ''
+    }
 
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {
@@ -109,13 +108,11 @@ distributionTestTasks.all { DistributionTest task ->
 
 def collectMirrorUrls() {
     // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-    def mirrors = System.getenv().get('REPO_MIRROR_URLS')
-    !mirrors ? [:] : mirrors.split(',').collectEntries { nameToUrl ->
+    System.getenv('REPO_MIRROR_URLS')?.split(',')?.collectEntries { nameToUrl ->
         def index = nameToUrl.indexOf(':')
         [(nameToUrl.substring(0, index)) : nameToUrl.substring(index + 1)]
-    }
+    } ?: [:]
 }
-
 
 /**
  * Clean up cache files for older versions that aren't multi-process safe.
