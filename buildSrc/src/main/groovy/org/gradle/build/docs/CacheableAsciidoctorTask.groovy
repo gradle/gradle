@@ -16,8 +16,6 @@
 package org.gradle.build.docs
 
 import org.asciidoctor.gradle.AsciidoctorTask
-import org.asciidoctor.gradle.AsciidoctorPlugin
-import org.asciidoctor.gradle.AsciidoctorProxyImpl
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
@@ -54,31 +52,5 @@ class CacheableAsciidoctorTask extends AsciidoctorTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection getResourceFileCollection() {
         super.getResourceFileCollection()
-    }
-
-    @Override
-    void processAsciidocSources() {
-        def originalCL =  Thread.currentThread().contextClassLoader
-        // This is a copy of the initialization code of the super implementation that injects our custom AsciidoctorProxy implementation
-        def classpath = project.configurations.getByName(AsciidoctorPlugin.ASCIIDOCTOR)
-        def urls = classpath.files.collect { it.toURI().toURL() }
-        def cl = new URLClassLoader(urls as URL[], Thread.currentThread().contextClassLoader)
-        Thread.currentThread().contextClassLoader = cl
-        if (!asciidoctorExtensions?.empty) {
-            Class asciidoctorExtensionsDslRegistry = cl.loadClass('org.asciidoctor.groovydsl.AsciidoctorExtensions')
-            asciidoctorExtensions.each { asciidoctorExtensionsDslRegistry.extensions(it) }
-        }
-        this.asciidoctor = new StreamClosingAsciidoctorProxyImpl(delegate: cl.loadClass(ASCIIDOCTOR_FACTORY_CLASSNAME).create(null as String))
-        super.processAsciidocSources()
-        Thread.currentThread().contextClassLoader = originalCL
-    }
-
-    static class StreamClosingAsciidoctorProxyImpl extends AsciidoctorProxyImpl {
-        @Override
-        String renderFile(File filename, Map<String, Object> options) {
-            def content = filename.text
-            options['to_file'] = filename.name.replace(".adoc", ".xml")
-            delegate.render(content, options)
-        }
     }
 }
