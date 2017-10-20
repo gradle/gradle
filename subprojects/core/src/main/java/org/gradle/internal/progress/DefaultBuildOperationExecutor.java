@@ -34,8 +34,19 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.operations.*;
-import org.gradle.internal.operations.BuildOperationExecHandle;
+import org.gradle.internal.operations.BuildOperation;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationQueueFactory;
+import org.gradle.internal.operations.BuildOperationQueueFailure;
+import org.gradle.internal.operations.BuildOperationWorker;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Clock;
@@ -91,22 +102,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             throw new IllegalStateException("No operation is currently running.");
         }
         return current;
-    }
-
-    @Override
-    public BuildOperationExecHandle start(BuildOperationDescriptor.Builder descriptorBuilder) {
-        DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
-        if (parent == null) {
-            parent = currentOperation.get();
-        }
-
-        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
-        DefaultBuildOperationState currentOperation = new DefaultBuildOperationState(descriptor, clock.getCurrentTime());
-        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
-        currentOperation.setRunning(true);
-
-        listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
-        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, listener, clock, descriptor, parent, currentOperation);
     }
 
     @Override

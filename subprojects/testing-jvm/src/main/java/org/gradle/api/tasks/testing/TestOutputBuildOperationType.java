@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * Outputs of a Test.
+ * Output of a Test.
  */
 public class TestOutputBuildOperationType implements BuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
 

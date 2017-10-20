@@ -18,7 +18,6 @@ package org.gradle.internal.operations;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationState;
 
@@ -74,5 +73,4 @@ public interface BuildOperationExecutor {
      */
     BuildOperationState getCurrentOperation();
 
-    BuildOperationExecHandle start(BuildOperationDescriptor.Builder description);
 }

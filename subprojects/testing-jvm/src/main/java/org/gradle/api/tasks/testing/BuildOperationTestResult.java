@@ -18,8 +18,8 @@ package org.gradle.api.tasks.testing;
 
 /**
  * Result describing Test Build Operation Result
- * */
-public class BuildOperationTestResult implements TestBuildOperationType.Result{
+ */
+public class BuildOperationTestResult implements TestBuildOperationType.Result {
     final TestResult result;
 
     public BuildOperationTestResult(TestResult testResult) {
