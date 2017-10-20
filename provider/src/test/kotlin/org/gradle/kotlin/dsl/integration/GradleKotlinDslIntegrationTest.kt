@@ -128,7 +128,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
-        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
+
+        assumeJavaLessThan9()
 
         withBuildScript("""
             buildscript {
@@ -402,6 +403,32 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             allOf(
                 containsString("Groovy DSL Settings"),
                 containsString("Kotlin DSL Build Script")))
+    }
+
+    @Test
+    fun `build script can use jre8 extensions`() {
+
+        assumeJavaLessThan9()
+
+        withBuildScript("""
+
+            // without kotlin-stdlib-jre8 we get:
+            // > Retrieving groups by name is not supported on this platform.
+
+            val regex = Regex("(?<bla>.*)")
+            val groups = regex.matchEntire("abc")?.groups
+            println("*" + groups?.get("bla")?.value + "*")
+
+        """)
+
+       assertThat(
+           build("help").output,
+           containsString("*abc*"))
+    }
+
+    private
+    fun assumeJavaLessThan9() {
+        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
     }
 
     private

@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import java.io.File
 
 import java.net.URI
+import java.util.*
 
 
 private
@@ -56,11 +57,16 @@ val embeddedKotlinModules: List<EmbeddedKotlinModule> by lazy {
 
     // TODO:pm could be generated at build time
     val annotations = EmbeddedKotlinModule("org.jetbrains", "annotations", "13.0")
+    val stdlib = embeddedKotlin("stdlib", listOf(annotations))
+    val stdlibJre7 = embeddedKotlin("stdlib-jre7", listOf(stdlib))
+    val stdlibJre8 = embeddedKotlin("stdlib-jre8", listOf(stdlibJre7))
+    val reflect = embeddedKotlin("reflect", listOf(stdlib))
+    val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
     listOf(
         annotations,
-        embeddedKotlin("stdlib", listOf(annotations)),
-        embeddedKotlin("reflect"),
-        embeddedKotlin("compiler-embeddable"))
+        stdlib, stdlibJre7, stdlibJre8,
+        reflect,
+        compilerEmbeddable)
 }
 
 
@@ -81,19 +87,40 @@ class EmbeddedKotlinProvider constructor(
         configuration: String,
         vararg kotlinModules: String) {
 
-        kotlinModules.map { getEmbeddedKotlinModule(it) }.forEach { embeddedKotlinModule ->
+        embeddedKotlinModulesFor(kotlinModules).forEach { embeddedKotlinModule ->
             dependencies.add(configuration, clientModuleFor(dependencies, embeddedKotlinModule))
         }
     }
 
     fun pinDependenciesOn(configuration: Configuration, vararg kotlinModules: String) {
-        val dependenciesModules = kotlinModules.map { getEmbeddedKotlinModule(it) }
+        val pinnedDependencies = transitiveClosureOf(embeddedKotlinModulesFor(kotlinModules))
         configuration.resolutionStrategy.eachDependency { details ->
-            findEmbeddedModule(details.requested, dependenciesModules)?.let { module ->
-                details.useTarget(module.notation)
+            pinnedDependencies.findWithSameGroupAndNameAs(details.requested)?.let { pinned ->
+                details.useTarget(pinned.notation)
             }
         }
     }
+
+    private
+    fun embeddedKotlinModulesFor(kotlinModules: Array<out String>) =
+        kotlinModules.map { embeddedKotlinModuleFor(it) }
+
+    private
+    fun transitiveClosureOf(modules: Collection<EmbeddedKotlinModule>): Set<EmbeddedKotlinModule> {
+        val closure = identitySetOf<EmbeddedKotlinModule>()
+        val q = ArrayDeque(modules)
+        while (q.isNotEmpty()) {
+            val module = q.removeFirst()
+            if (closure.add(module)) {
+                q.addAll(module.dependencies)
+            }
+        }
+        return closure
+    }
+
+    private
+    fun <T> identitySetOf(): MutableSet<T> =
+        Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
 
     private
     fun embeddedKotlinRepositoryURI(): URI =
@@ -139,10 +166,10 @@ class EmbeddedKotlinProvider constructor(
         }
 
     private
-    fun getEmbeddedKotlinModule(kotlinModule: String) =
-        embeddedKotlinModules.first { it.group == "org.jetbrains.kotlin" && it.name == "kotlin-$kotlinModule" }
+    fun embeddedKotlinModuleFor(kotlinModule: String) =
+        embeddedKotlinModules.first { it.name == "kotlin-$kotlinModule" && it.group == "org.jetbrains.kotlin" }
 
     private
-    fun findEmbeddedModule(requested: ModuleVersionSelector, embeddedModules: List<EmbeddedKotlinModule>) =
-        embeddedModules.find { it.group == requested.group && it.name == requested.name }
+    fun Iterable<EmbeddedKotlinModule>.findWithSameGroupAndNameAs(requested: ModuleVersionSelector) =
+        find { it.name == requested.name && it.group == requested.group }
 }

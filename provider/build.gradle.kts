@@ -14,7 +14,7 @@ dependencies {
     compileOnly(gradleApi())
 
     compile(project(":tooling-models"))
-    compile(futureKotlin("stdlib"))
+    compile(futureKotlin("stdlib-jre8"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("compiler-embeddable"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {

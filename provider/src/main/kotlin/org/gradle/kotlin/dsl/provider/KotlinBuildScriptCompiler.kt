@@ -156,7 +156,7 @@ class KotlinBuildScriptCompiler(
             addRepositoryTo(scriptHandler.repositories)
             pinDependenciesOn(
                 scriptHandler.configurations["classpath"],
-                "stdlib", "reflect")
+                "stdlib-jre8", "reflect")
         }
     }
 
