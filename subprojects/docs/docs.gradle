@@ -336,7 +336,7 @@ task checkSectionIds(type: UserGuideSectionVerifier) {
     )
 }
 
-[configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
+[configureCss, samples, samplesDocbook]*.mustRunAfter(checkSectionIds)
 
 task extractSamples(type: ExtractSamplesTask) {
     // We need default imports since it is included by userguide.xml
