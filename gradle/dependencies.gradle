@@ -110,12 +110,9 @@ libraries += [
         libraries.commons_httpclient,
         libraries.jsch
     ],
+    testng: 'org.testng:testng:6.3.1',
     bsh: 'org.apache-extras.beanshell:bsh:2.0b6'
 ]
-
-libraries.testng = dependencies.module('org.testng:testng:6.3.1') {
-    exclude module: 'bsh'
-}
 
 libraries.nekohtml = dependencies.module("net.sourceforge.nekohtml:nekohtml:1.9.14") {
     dependency libraries.xerces
@@ -238,6 +235,8 @@ allprojects {
                 details.useTarget(libraries.ivy)
             } else if (details.requested.group == 'org.testng') {
                 details.useTarget(libraries.testng)
+            } else if (details.requested.name == 'bsh') {
+                details.useTarget(libraries.bsh)
             }
         }
     }
