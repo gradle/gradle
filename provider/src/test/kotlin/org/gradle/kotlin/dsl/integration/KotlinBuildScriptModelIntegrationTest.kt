@@ -216,12 +216,24 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         withBuildSrc()
 
-        val settings = withSettings("")
+        val settings = withSettings("println(\"In settings.gradle.kts!\")")
+
+        withFile("classes.jar", "")
+
+        withFile("build.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files("classes.jar"))
+                }
+            }
+        """)
 
         val classPath = canonicalClassPathFor(projectRoot, settings)
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
+
+        assertExcludes(classPath, existing("classes.jar"))
     }
 
     private
@@ -283,20 +295,28 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
                 not(hasItems(*excludes.map { it.name }.toTypedArray()))))
 
     private
-    fun assertClassPathContains(vararg files: File) {
-        val fileNameSet = files.map { it.name }.toSet().toTypedArray()
-        assert(fileNameSet.size == files.size)
+    fun assertClassPathContains(vararg files: File) =
         assertThat(
             canonicalClassPath().map { it.name },
-            hasItems(*fileNameSet))
-    }
+            hasItems(*fileNameSetOf(*files)))
 
     private
-    fun assertContainsBuildSrc(classPath: List<File>) {
+    fun assertContainsBuildSrc(classPath: List<File>) =
         assertThat(
             classPath.map { it.name },
             hasItem("buildSrc.jar"))
-    }
+
+    private
+    fun assertExcludes(classPath: List<File>, vararg files: File) =
+        assertThat(
+            classPath.map { it.name },
+            not(hasItems(*fileNameSetOf(*files))))
+
+    private
+    fun fileNameSetOf(vararg files: File) =
+        files.map { it.name }.toSet().toTypedArray().also {
+            assert(it.size == files.size)
+        }
 
     private
     fun canonicalClassPath() =
