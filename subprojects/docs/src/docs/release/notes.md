@@ -53,14 +53,14 @@ For more information see the [documentation](javadoc/org/gradle/tooling/provider
 
 This version includes several upgrade of third-party dependency packages to fix the following security issues:
 
-- CVE-2017-7525 (critical)
+- [CVE-2017-7525](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7525) (critical)
 - SONATYPE-2017-0359 (critical)
 - SONATYPE-2017-0355 (critical)
 - SONATYPE-2017-0398 (critical)
-- CVE-2013-4002 (critical)
-- CVE-2016-2510 (severe)
+- [CVE-2013-4002](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4002) (critical)
+- [CVE-2016-2510](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-2510) (severe)
 - SONATYPE-2016-0397 (severe)
-- CVE-2009-2625 (severe)
+- [CVE-2009-2625](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-2625) (severe)
 - SONATYPE-2017-0348 (severe)
 
 This could avoid potential vulnerabilities.
