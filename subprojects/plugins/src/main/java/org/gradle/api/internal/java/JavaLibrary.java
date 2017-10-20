@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.java;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.model.DefaultObjectFactory;
@@ -29,7 +34,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.util.Collections;
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -44,16 +49,21 @@ public class JavaLibrary implements SoftwareComponentInternal {
     // This must ONLY be used in the deprecated constructor, for backwards compatibility
     private final static ObjectFactory DEPRECATED_OBJECT_FACTORY = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
 
-    private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
     private final ConfigurationContainer configurations;
+    private final ObjectFactory objectFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
-    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, PublishArtifact... artifacts) {
-        Collections.addAll(this.artifacts, artifacts);
+    @Inject
+    public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
+        this.artifacts.add(artifact);
         this.configurations = configurations;
-        this.runtimeUsage = new RuntimeUsageContext(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        this.compileUsage = new CompileUsageContext(objectFactory.named(Usage.class, Usage.JAVA_API));
+        this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
+        this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
+        this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
     }
 
     /**
@@ -63,9 +73,16 @@ public class JavaLibrary implements SoftwareComponentInternal {
     @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
         this.artifacts.add(jarArtifact);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(DEPRECATED_OBJECT_FACTORY.named(Usage.class, Usage.JAVA_RUNTIME), runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(DEPRECATED_OBJECT_FACTORY.named(Usage.class, Usage.JAVA_API), runtimeDependencies);
+        this.objectFactory = DEPRECATED_OBJECT_FACTORY;
+        this.attributesFactory = new DefaultImmutableAttributesFactory(null);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;
+    }
+
+    @VisibleForTesting
+    Set<PublishArtifact> getArtifacts() {
+        return artifacts;
     }
 
     public String getName() {
@@ -76,13 +93,18 @@ public class JavaLibrary implements SoftwareComponentInternal {
         return ImmutableSet.of(runtimeUsage, compileUsage);
     }
 
-    private class RuntimeUsageContext implements UsageContext {
-
+    private abstract class AbstractUsageContext implements UsageContext {
         private final Usage usage;
-        private DependencySet dependencies;
+        private final ImmutableAttributes attributes;
 
-        public RuntimeUsageContext(Usage usage) {
-            this.usage = usage;
+        AbstractUsageContext(String usageName) {
+            this.usage = objectFactory.named(Usage.class, usageName);
+            this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, usage);
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return attributes;
         }
 
         @Override
@@ -92,6 +114,19 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         public Set<PublishArtifact> getArtifacts() {
             return artifacts;
+        }
+    }
+
+    private class RuntimeUsageContext extends AbstractUsageContext {
+        private DependencySet dependencies;
+
+        RuntimeUsageContext(String usageName) {
+            super(usageName);
+        }
+
+        @Override
+        public String getName() {
+            return "runtime";
         }
 
         public Set<ModuleDependency> getDependencies() {
@@ -102,22 +137,16 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
     }
 
-    private class CompileUsageContext implements UsageContext {
-
-        private final Usage usage;
+    private class CompileUsageContext extends AbstractUsageContext {
         private DependencySet dependencies;
 
-        public CompileUsageContext(Usage usage) {
-            this.usage = usage;
+        CompileUsageContext(String usageName) {
+            super(usageName);
         }
 
         @Override
-        public Usage getUsage() {
-            return usage;
-        }
-
-        public Set<PublishArtifact> getArtifacts() {
-            return artifacts;
+        public String getName() {
+            return "api";
         }
 
         public Set<ModuleDependency> getDependencies() {
@@ -128,24 +157,17 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
     }
 
-    private class BackwardsCompatibilityUsageContext implements UsageContext {
-
-        private final Usage usage;
+    private class BackwardsCompatibilityUsageContext extends AbstractUsageContext {
         private final DependencySet runtimeDependencies;
 
-        private BackwardsCompatibilityUsageContext(Usage usage, DependencySet runtimeDependencies) {
-            this.usage = usage;
+        private BackwardsCompatibilityUsageContext(String usageName, DependencySet runtimeDependencies) {
+            super(usageName);
             this.runtimeDependencies = runtimeDependencies;
         }
 
         @Override
-        public Usage getUsage() {
-            return usage;
-        }
-
-        @Override
-        public Set<PublishArtifact> getArtifacts() {
-            return artifacts;
+        public String getName() {
+            return getUsage().getName();
         }
 
         @Override

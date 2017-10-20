@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.internal;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -31,8 +33,9 @@ import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class ModuleMetadataFileGenerator {
     private final BuildInvocationScopeId buildInvocationScopeId;
@@ -52,8 +55,7 @@ public class ModuleMetadataFileGenerator {
 
     private void writeComponentWithVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
-        Set<UsageContext> variants = new LinkedHashSet<UsageContext>();
-        collectVariants(component, variants);
+        Set<? extends UsageContext> variants = collectVariants(component);
         writeFormat(jsonWriter);
         writeCreator(jsonWriter);
         writeVariants(coordinates, jsonWriter, variants);
@@ -78,7 +80,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
     }
 
-    private void writeVariants(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, Set<UsageContext> variants) throws IOException {
+    private void writeVariants(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, Set<? extends UsageContext> variants) throws IOException {
         if (variants.isEmpty()) {
             return;
         }
@@ -93,13 +95,29 @@ public class ModuleMetadataFileGenerator {
     private void writeVariant(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, UsageContext variant) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
-        // TODO - give the variant a name
-        jsonWriter.value(variant.getUsage().getName());
+        jsonWriter.value(variant.getName());
         jsonWriter.name("attributes");
         jsonWriter.beginObject();
-        // TODO - include correct attributes
-        jsonWriter.name(Usage.USAGE_ATTRIBUTE.getName());
-        jsonWriter.value(variant.getUsage().getName());
+        Map<String, Attribute<?>> attributes = new TreeMap<String, Attribute<?>>();
+        for (Attribute<?> attribute : variant.getAttributes().keySet()) {
+            attributes.put(attribute.getName(), attribute);
+        }
+        for (Attribute<?> attribute : attributes.values()) {
+            jsonWriter.name(attribute.getName());
+            Object value = variant.getAttributes().getAttribute(attribute);
+            if (value instanceof Boolean) {
+                Boolean b = (Boolean) value;
+                jsonWriter.value(b);
+            } else if (value instanceof String) {
+                String s = (String) value;
+                jsonWriter.value(s);
+            } else if (value instanceof Named) {
+                Named named = (Named) value;
+                jsonWriter.value(named.getName());
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot write attribute %s with unsupported value %s of type %s.", attribute.getName(), value, value.getClass().getName()));
+            }
+        }
         jsonWriter.endObject();
 
         writeDependencies(jsonWriter, variant);
@@ -167,10 +185,11 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void collectVariants(ComponentWithVariants component, Set<UsageContext> dest) {
+    private Set<? extends UsageContext> collectVariants(ComponentWithVariants component) {
         if (component instanceof SoftwareComponentInternal) {
             SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
-            dest.addAll(softwareComponentInternal.getUsages());
+            return softwareComponentInternal.getUsages();
         }
+        return ImmutableSet.of();
     }
 }

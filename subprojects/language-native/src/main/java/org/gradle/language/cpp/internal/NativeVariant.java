@@ -20,12 +20,14 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Set;
 
-public class NativeVariant implements SoftwareComponentInternal {
+public class NativeVariant implements SoftwareComponentInternal, ComponentWithVariants {
     private final String name;
     private final Usage linkUsage;
     private final Configuration linkElements;
@@ -57,11 +59,16 @@ public class NativeVariant implements SoftwareComponentInternal {
     }
 
     @Override
+    public Set<SoftwareComponent> getVariants() {
+        return ImmutableSet.of();
+    }
+
+    @Override
     public Set<? extends UsageContext> getUsages() {
         if (linkElements == null) {
-            return ImmutableSet.of(new DefaultUsageContext(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(name + "_runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         } else {
-            return ImmutableSet.of(new DefaultUsageContext(linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(name + "_link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(name + "_runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         }
     }
 }

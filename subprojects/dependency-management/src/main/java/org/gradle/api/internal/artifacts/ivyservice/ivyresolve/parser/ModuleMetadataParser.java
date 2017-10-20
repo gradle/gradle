@@ -35,8 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.gson.stream.JsonToken.END_ARRAY;
-import static com.google.gson.stream.JsonToken.END_OBJECT;
+import static com.google.gson.stream.JsonToken.*;
 
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.2";
@@ -182,10 +181,15 @@ public class ModuleMetadataParser {
     private ImmutableAttributes consumeAttributes(JsonReader reader) throws IOException {
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         reader.beginObject();
-        while(reader.peek()!= END_OBJECT) {
+        while (reader.peek() != END_OBJECT) {
             String attrName = reader.nextName();
-            String attrValue = reader.nextString();
-            attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));
+            if (reader.peek() == BOOLEAN) {
+                boolean attrValue = reader.nextBoolean();
+                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Boolean.class), attrValue);
+            } else {
+                String attrValue = reader.nextString();
+                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));
+            }
         }
         reader.endObject();
         return attributes;

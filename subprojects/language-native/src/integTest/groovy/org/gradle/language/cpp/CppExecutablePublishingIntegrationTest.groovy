@@ -76,7 +76,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("native-runtime")
+        def debugRuntime = debugMetadata.variant("debug_runtime")
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == executableName('test')
@@ -91,11 +91,11 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("native-runtime")
+        def releaseRuntime = releaseMetadata.variant("release_runtime")
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
-        releaseMetadata.variant("native-runtime").files[0].name == executableName('test')
-        releaseMetadata.variant("native-runtime").files[0].url == executableName("test_release-1.2")
+        releaseRuntime.files[0].name == executableName('test')
+        releaseRuntime.files[0].url == executableName("test_release-1.2")
     }
 
     def "can publish an executable and library to a Maven repository"() {
@@ -141,7 +141,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("native-runtime")
+        def appDebugRuntime = appDebugMetadata.variant("debug_runtime")
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].group == 'some.group'
         appDebugRuntime.dependencies[0].module == 'greeter'
@@ -152,8 +152,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         appReleaseModule.parsedPom.scopes.size() == 1
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
-        def appDebugRelease = appDebugModule.parsedModuleMetadata
-        def appReleaseRuntime = appDebugRelease.variant("native-runtime")
+        def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
+        def appReleaseRuntime = appReleaseMetadata.variant("release_runtime")
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].group == 'some.group'
         appReleaseRuntime.dependencies[0].module == 'greeter'

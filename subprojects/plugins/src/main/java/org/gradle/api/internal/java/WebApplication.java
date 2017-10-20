@@ -18,10 +18,14 @@ package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
 
@@ -29,29 +33,47 @@ public class WebApplication implements SoftwareComponentInternal {
     private final UsageContext webArchiveUsage = new WebArchiveUsageContext();
     private final PublishArtifact warArtifact;
     private final Usage masterUsage;
+    private final ImmutableAttributes attributes;
 
-    public WebApplication(PublishArtifact warArtifact, Usage masterUsage) {
+    @Inject
+    public WebApplication(PublishArtifact warArtifact, Usage masterUsage, ImmutableAttributesFactory attributesFactory) {
         this.warArtifact = warArtifact;
+        this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, masterUsage);
         this.masterUsage = masterUsage;
     }
 
+    @Override
     public String getName() {
         return "web";
     }
 
+    @Override
     public Set<UsageContext> getUsages() {
         return Collections.singleton(webArchiveUsage);
     }
 
     private class WebArchiveUsageContext implements UsageContext {
+        @Override
         public Usage getUsage() {
             return masterUsage;
         }
 
+        @Override
+        public String getName() {
+            return masterUsage.getName();
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return attributes;
+        }
+
+        @Override
         public Set<PublishArtifact> getArtifacts() {
             return Collections.singleton(warArtifact);
         }
 
+        @Override
         public Set<ModuleDependency> getDependencies() {
             return Collections.emptySet();
         }

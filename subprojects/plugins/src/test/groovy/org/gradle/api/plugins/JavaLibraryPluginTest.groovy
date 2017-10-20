@@ -224,8 +224,8 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
-        javaLibrary.runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
-        javaLibrary.compileUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies
+        javaLibrary.usages[0].dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
+        javaLibrary.usages[1].dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies
     }
 
 }

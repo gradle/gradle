@@ -16,18 +16,20 @@
 
 package org.gradle.api.publish.internal
 
+import org.gradle.api.Named
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.util.GradleVersion
+import org.gradle.util.TestUtil
 import spock.lang.Specification
-
 
 class ModuleMetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
@@ -57,10 +59,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def "writes file for component with variants with files"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
-        def usage1 = Stub(Usage)
-        usage1.name >> "api"
-        def usage2 = Stub(Usage)
-        usage2.name >> "runtime"
 
         def a1 = Stub(PublishArtifact)
         a1.file >> new File("artifact-1")
@@ -72,10 +70,12 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         a2.classifier >> "windows"
 
         def v1 = Stub(UsageContext)
-        v1.usage >> usage1
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
         v1.artifacts >> [a1]
         def v2 = Stub(UsageContext)
-        v2.usage >> usage2
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
         v2.artifacts >> [a2]
 
         component.usages >> [v1, v2]
@@ -94,9 +94,9 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   },
   "variants": [
     {
-      "name": "api",
+      "name": "v1",
       "attributes": {
-        "org.gradle.api.attributes.Usage": "api"
+        "usage": "compile"
       },
       "files": [
         {
@@ -106,9 +106,9 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       ]
     },
     {
-      "name": "runtime",
+      "name": "v2",
       "attributes": {
-        "org.gradle.api.attributes.Usage": "runtime"
+        "usage": "runtime"
       },
       "files": [
         {
@@ -125,10 +125,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def "writes file for component with variants with dependencies"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
-        def usage1 = Stub(Usage)
-        usage1.name >> "api"
-        def usage2 = Stub(Usage)
-        usage2.name >> "runtime"
 
         def d1 = Stub(ModuleDependency)
         d1.group >> "g1"
@@ -141,10 +137,12 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d2.version >> "v2"
 
         def v1 = Stub(UsageContext)
-        v1.usage >> usage1
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> [d1]
         def v2 = Stub(UsageContext)
-        v2.usage >> usage2
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> [d2]
 
         component.usages >> [v1, v2]
@@ -163,9 +161,9 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   },
   "variants": [
     {
-      "name": "api",
+      "name": "v1",
       "attributes": {
-        "org.gradle.api.attributes.Usage": "api"
+        "usage": "compile"
       },
       "dependencies": [
         {
@@ -176,9 +174,9 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       ]
     },
     {
-      "name": "runtime",
+      "name": "v2",
       "attributes": {
-        "org.gradle.api.attributes.Usage": "runtime"
+        "usage": "runtime"
       },
       "dependencies": [
         {
@@ -191,6 +189,61 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   ]
 }
 """
+    }
+
+    def "writes file for component with variants with attributes"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+
+        def platform = TestUtil.objectFactory().named(Named, "windows")
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform)
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.attributes >> attributes()
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(id, component, writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "0.2",
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "debuggable": true,
+        "platform": "windows",
+        "usage": "compile"
+      }
+    },
+    {
+      "name": "v2",
+      "attributes": {}
+    }
+  ]
+}
+"""
+    }
+
+    def attributes(Map<String, ?> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { String key, Object value ->
+                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
+            }
+        }
+        return attrs
     }
 
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {

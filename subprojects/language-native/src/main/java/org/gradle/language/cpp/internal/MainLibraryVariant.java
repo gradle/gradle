@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
@@ -53,11 +54,12 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     @Override
     public Set<? extends UsageContext> getUsages() {
         Set<UsageContext> usages = new LinkedHashSet<UsageContext>();
-        usages.add(new DefaultUsageContext(usage, artifacts, dependencies));
+        usages.add(new DefaultUsageContext(name, usage, artifacts, dependencies));
         for (Child child : visible) {
             for (UsageContext usage : child.component.getUsages()) {
+                String name = ((Named) usage).getName();
                 // TODO - should not need this dependency. Needs better support from the dependency resolution engine
-                usages.add(new DefaultUsageContext(usage.getUsage(), ImmutableSet.<PublishArtifact>of(), ImmutableSet.of(new DefaultExternalModuleDependency(child.group, child.module, child.version))));
+                usages.add(new DefaultUsageContext(name, usage.getUsage(), usage.getAttributes(), ImmutableSet.<PublishArtifact>of(), ImmutableSet.of(new DefaultExternalModuleDependency(child.group, child.module, child.version))));
             }
         }
         return usages;
@@ -75,14 +77,6 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     public void addVariant(String group, String module, String version, SoftwareComponent variant) {
         variants.add(variant);
         visible.add(new Child(group, module, version, (SoftwareComponentInternal) variant));
-    }
-
-    /**
-     * Adds a child variant that is not visible to consumers.
-     * TODO - remove this. Needs better support for declaring the attributes of a variant so they can be included in the published metadata
-     */
-    public void addNonVisibleVariant(SoftwareComponent variant) {
-        variants.add(variant);
     }
 
     private static class Child {

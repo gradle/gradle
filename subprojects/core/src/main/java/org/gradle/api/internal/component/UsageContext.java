@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.component;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.Usage;
 
 import java.util.Set;
 
 
-public interface UsageContext {
+public interface UsageContext extends HasAttributes, Named {
     Usage getUsage();
     Set<? extends PublishArtifact> getArtifacts();
     Set<? extends ModuleDependency> getDependencies();

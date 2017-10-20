@@ -172,6 +172,29 @@ class ModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses content with boolean attributes"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def variant = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
+        "variants": [
+            {
+                "name": "api",
+                "attributes": { "usage": "compile", "debuggable": true, "testable": false }
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
+        0 * _
+    }
+
     def "parses minimal variant"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
@@ -376,11 +399,11 @@ class ModuleMetadataParserTest extends Specification {
         e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.2 only."
     }
 
-    def attributes(Map<String, String> values) {
+    def attributes(Map<String, ?> values) {
         def attrs = ImmutableAttributes.EMPTY
         if (values) {
-            values.each { String key, String value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
+            values.each { String key, Object value ->
+                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
             }
         }
         return attrs

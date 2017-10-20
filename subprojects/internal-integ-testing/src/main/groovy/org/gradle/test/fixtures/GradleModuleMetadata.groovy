@@ -64,6 +64,9 @@ class GradleModuleMetadata {
             case JsonToken.STRING:
                 value = reader.nextString()
                 break
+            case JsonToken.BOOLEAN:
+                value = reader.nextBoolean()
+                break
             case JsonToken.BEGIN_OBJECT:
                 value = readObject(reader)
                 break

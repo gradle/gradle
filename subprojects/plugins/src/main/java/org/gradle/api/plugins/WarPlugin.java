@@ -101,6 +101,6 @@ public class WarPlugin implements Plugin<Project> {
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        project.getComponents().add(new WebApplication(warArtifact, objectFactory.named(Usage.class, "master")));
+        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, objectFactory.named(Usage.class, "master")));
     }
 }

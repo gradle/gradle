@@ -16,34 +16,52 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Set;
 
-class DefaultUsageContext implements UsageContext {
+class DefaultUsageContext implements UsageContext, Named {
+    private final String name;
     private final Usage usage;
+    private final AttributeContainer attributes;
     private final Set<? extends PublishArtifact> artifacts;
     private final Set<? extends ModuleDependency> dependencies;
 
-    DefaultUsageContext(Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+    DefaultUsageContext(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        this.name = name;
         this.usage = usage;
+        this.attributes = configuration.getAttributes();
         this.artifacts = artifacts;
         this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
     }
 
-    DefaultUsageContext(Usage usage, Set<? extends PublishArtifact> artifacts, Set<? extends ModuleDependency> dependencies) {
+    DefaultUsageContext(String name, Usage usage, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Set<? extends ModuleDependency> dependencies) {
+        this.name = name;
         this.usage = usage;
+        this.attributes = attributes;
         this.artifacts = artifacts;
         this.dependencies = dependencies;
     }
 
     @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public Usage getUsage() {
         return usage;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     @Override

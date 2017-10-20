@@ -76,16 +76,20 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         main.parsedPom.scopes.isEmpty()
 
         def mainMetadata = main.parsedModuleMetadata
-        mainMetadata.variants.size() == 3
-        def api = mainMetadata.variant("cplusplus-api")
+        mainMetadata.variants.size() == 5
+        def api = mainMetadata.variant("api")
         api.dependencies.empty
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
-        mainMetadata.variant("native-link").files.size() == 0
-        mainMetadata.variant("native-link").dependencies.size() == 1
-        mainMetadata.variant("native-link").files.size() == 0
-        mainMetadata.variant("native-link").dependencies.size() == 1
+        mainMetadata.variant("debug_link").files.empty
+        mainMetadata.variant("debug_link").dependencies.size() == 1
+        mainMetadata.variant("debug_runtime").files.empty
+        mainMetadata.variant("debug_runtime").dependencies.size() == 1
+        mainMetadata.variant("release_link").files.empty
+        mainMetadata.variant("release_link").dependencies.size() == 1
+        mainMetadata.variant("release_runtime").files.empty
+        mainMetadata.variant("release_runtime").dependencies.size() == 1
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
@@ -97,12 +101,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 2
-        def debugLink = debugMetadata.variant('native-link')
+        def debugLink = debugMetadata.variant('debug_link')
         debugLink.dependencies.empty
         debugLink.files.size() == 1
         debugLink.files[0].name == linkLibraryName('test')
         debugLink.files[0].url == withLinkLibrarySuffix("test_debug-1.2")
-        def debugRuntime = debugMetadata.variant('native-runtime')
+        def debugRuntime = debugMetadata.variant('debug_runtime')
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == sharedLibraryName('test')
@@ -118,12 +122,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 2
-        def releaseLink = releaseMetadata.variant('native-link')
+        def releaseLink = releaseMetadata.variant('release_link')
         releaseLink.dependencies.empty
         releaseLink.files.size() == 1
         releaseLink.files[0].name == linkLibraryName('test')
         releaseLink.files[0].url == withLinkLibrarySuffix("test_release-1.2")
-        def releaseRuntime = releaseMetadata.variant('native-runtime')
+        def releaseRuntime = releaseMetadata.variant('release_runtime')
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == sharedLibraryName('test')
@@ -170,7 +174,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckModule.assertPublished()
 
         def deckMetadata = deckModule.parsedModuleMetadata
-        def deckApi = deckMetadata.variant("cplusplus-api")
+        def deckApi = deckMetadata.variant("api")
         deckApi.dependencies.size() == 1
         deckApi.dependencies[0].group == "some.group"
         deckApi.dependencies[0].module == "card"
@@ -183,7 +187,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("native-link")
+        def deckDebugLink = deckDebugMetadata.variant("debug_link")
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].group == "some.group"
         deckDebugLink.dependencies[0].module == "shuffle"
@@ -191,7 +195,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugLink.dependencies[1].group == "some.group"
         deckDebugLink.dependencies[1].module == "card"
         deckDebugLink.dependencies[1].version == "1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("native-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debug_runtime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].group == "some.group"
         deckDebugRuntime.dependencies[0].module == "shuffle"
@@ -206,7 +210,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("native-link")
+        def deckReleaseLink = deckReleaseMetadata.variant("release_link")
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].group == "some.group"
         deckReleaseLink.dependencies[0].module == "shuffle"
@@ -214,7 +218,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseLink.dependencies[1].group == "some.group"
         deckReleaseLink.dependencies[1].module == "card"
         deckReleaseLink.dependencies[1].version == "1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("native-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("release_runtime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].group == "some.group"
         deckReleaseRuntime.dependencies[0].module == "shuffle"
@@ -321,7 +325,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
 
         def deckMetadata = deckModule.parsedModuleMetadata
-        def deckApi = deckMetadata.variant("cplusplus-api")
+        def deckApi = deckMetadata.variant("api")
         deckApi.dependencies.size() == 1
         deckApi.dependencies[0].group == "some.group"
         deckApi.dependencies[0].module == "card"
@@ -333,7 +337,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("native-link")
+        def deckDebugLink = deckDebugMetadata.variant("debug_link")
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].group == "some.group"
         deckDebugLink.dependencies[0].module == "shuffle"
@@ -341,7 +345,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugLink.dependencies[1].group == "some.group"
         deckDebugLink.dependencies[1].module == "card"
         deckDebugLink.dependencies[1].version == "1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("native-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debug_runtime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].group == "some.group"
         deckDebugRuntime.dependencies[0].module == "shuffle"
@@ -356,7 +360,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("native-link")
+        def deckReleaseLink = deckReleaseMetadata.variant("release_link")
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].group == "some.group"
         deckReleaseLink.dependencies[0].module == "shuffle"
@@ -364,7 +368,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseLink.dependencies[1].group == "some.group"
         deckReleaseLink.dependencies[1].module == "card"
         deckReleaseLink.dependencies[1].version == "1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("native-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("release_runtime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].group == "some.group"
         deckReleaseRuntime.dependencies[0].module == "shuffle"

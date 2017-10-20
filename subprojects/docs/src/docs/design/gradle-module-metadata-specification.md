@@ -52,11 +52,12 @@ This value must contain an array with zero or more elements. Each element must b
 
 ### `attributes` value
 
-This value must contain an object with a value for each attribute. The attribute value must be a string.
+This value must contain an object with a value for each attribute. The attribute value must be a string or boolean.
 
 #### Standard attributes
 
-- `org.gradle.api.attributes.Usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details.
+- `org.gradle.api.attributes.Usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
+- `org.gradle.native.debuggable` indicates native binaries that are debuggable. Value must be a boolean.
 
 ### `dependencies` value
 
