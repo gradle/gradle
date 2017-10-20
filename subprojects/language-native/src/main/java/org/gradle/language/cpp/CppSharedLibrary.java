@@ -29,10 +29,14 @@ import org.gradle.api.provider.Provider;
 public interface CppSharedLibrary extends CppBinary {
     /**
      * Returns the link-time file for this binary.
+     *
+     * @since 4.4
      */
     Provider<RegularFile> getLinkFile();
     /**
      * Returns the run-time file for this binary.
+     *
+     * @since 4.4
      */
     Provider<RegularFile> getRuntimeFile();
 }

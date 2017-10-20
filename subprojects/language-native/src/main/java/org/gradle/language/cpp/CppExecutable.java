@@ -29,6 +29,8 @@ import org.gradle.api.provider.Provider;
 public interface CppExecutable extends CppBinary {
     /**
      * Returns the executable file for this binary.
+     *
+     * @since 4.4
      */
     Provider<RegularFile> getExecutableFile();
 }

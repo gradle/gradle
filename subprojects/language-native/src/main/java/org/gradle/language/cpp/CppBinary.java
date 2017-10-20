@@ -68,6 +68,8 @@ public interface CppBinary extends SoftwareComponent {
      * Returns the object files created for this binary.
      * <p>
      * NOTE: Assumes object files end with <code>.o</code> or <code>.obj</code>.
+     * </p>
+     * @since 4.4
      */
     FileCollection getObjects();
 }
