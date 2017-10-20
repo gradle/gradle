@@ -18,8 +18,8 @@ package org.gradle.nativeplatform.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
@@ -47,7 +47,7 @@ public class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
-    @OutputFile
+    @Internal
     public RegularFileProperty getLinkFile() {
         return linkFile;
     }
