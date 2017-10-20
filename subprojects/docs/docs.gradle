@@ -213,28 +213,9 @@ ext.cssFiles = fileTree(css.destinationDir) {
 }
 
 task samples(type: ExtractSnippetsTask) {
-    source samplesSrcDir
-    exclude 'userguideOutput/**'
-    exclude '**/readme.xml'
-    exclude '**/build/**'
-    exclude '**/.gradle/**'
-
-    // Resources that should not be filtered
-    exclude 'userguide/tutorial/antLoadfileResources/**'
-    exclude 'native-binaries/cunit/libs/**'
-    exclude 'native-binaries/google-test/libs/**'
-
+    samples = samplesSrcDir
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
-    doLast {
-        copy {
-            from samplesSrcDir
-            into samplesDir
-            include 'userguide/tutorial/antLoadfileResources/**'
-            include 'native-binaries/cunit/libs/**'
-            include 'native-binaries/google-test/libs/**'
-        }
-    }
 }
 
 task userguideStyleSheets(type: Copy) {

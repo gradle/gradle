@@ -15,22 +15,27 @@
  */
 package org.gradle.build.docs
 
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.util.PatternFilterable
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+
 /**
  * Produces the snippets files for a set of sample source files.
  */
 @CacheableTask
-class ExtractSnippetsTask extends SourceTask {
+class ExtractSnippetsTask extends DefaultTask {
 
     @OutputDirectory
     File destDir
@@ -38,15 +43,40 @@ class ExtractSnippetsTask extends SourceTask {
     @OutputDirectory
     File snippetsDir
 
-    @Override
+    @Internal
+    File samples
+
+    @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     FileTree getSource() {
-        return super.getSource()
+        def source = project.fileTree(samples)
+        source.with {
+            exclude 'userguideOutput/**'
+            exclude '**/readme.xml'
+            exclude '**/build/**'
+            exclude '**/.gradle/**'
+        }
+        return source
     }
 
     @TaskAction
     def extract() {
-        source.visit { FileVisitDetails details ->
+        // Resources that should not be filtered
+        def specialPatterns = [ 'userguide/tutorial/antLoadfileResources/**',
+                                'native-binaries/cunit/libs/**',
+                                'native-binaries/google-test/libs/**' ]
+        project.copy { copySpec ->
+            copySpec.from samples
+            copySpec.into destDir
+            copySpec.setIncludes(specialPatterns)
+        }
+
+        getSource().matching(new Action<PatternFilterable>() {
+            @Override
+            void execute(PatternFilterable patternFilterable) {
+                patternFilterable.exclude(specialPatterns)
+            }
+        }).visit { FileVisitDetails details ->
             String name = details.relativePath.pathString
             if (details.file.isDirectory()) {
                 File destDir = new File(destDir, name)
