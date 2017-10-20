@@ -234,7 +234,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
-        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform)
+        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.A)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes()
@@ -263,6 +263,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       "name": "v1",
       "attributes": {
         "debuggable": true,
+        "linkage": "A",
         "platform": "windows",
         "usage": "compile"
       }
@@ -413,4 +414,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {
 
     }
+
+    enum SomeEnum { A, B, C }
 }

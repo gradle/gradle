@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
@@ -47,15 +48,17 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         result.assertTasksExecuted(
             compileAndLinkTasks(debug),
             compileAndLinkTasks(release),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            compileAndLinkStaticTasks(debug),
+            compileAndLinkStaticTasks(release),
+            publishTasks(debug),
+            publishTasks(release),
+            publishTasks('', debug, staticLinkage),
+            publishTasks('', release, staticLinkage),
+
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+
             ":publish")
 
         def repo = new MavenFileRepository(file("repo"))
@@ -65,39 +68,16 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         main.assertArtifactsPublished("test-1.2.pom", "test-1.2-module.json")
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
-        mainMetadata.variants.size() == 2
-        mainMetadata.variant("debug-runtime").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("release-runtime").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variants.size() == 4
+        mainMetadata.variant("debugShared-runtime").availableAt.coords == "some.group:test_debugShared:1.2"
+        mainMetadata.variant("releaseShared-runtime").availableAt.coords == "some.group:test_releaseShared:1.2"
+        mainMetadata.variant("debugStatic-runtime").availableAt.coords == "some.group:test_debugStatic:1.2"
+        mainMetadata.variant("releaseStatic-runtime").availableAt.coords == "some.group:test_releaseStatic:1.2"
 
-        def debug = repo.module('some.group', 'test_debug', '1.2')
-        debug.assertPublished()
-        debug.assertArtifactsPublished(executableName("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
-        debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
-
-        debug.parsedPom.scopes.isEmpty()
-
-        def debugMetadata = debug.parsedModuleMetadata
-        debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug-runtime")
-        debugRuntime.dependencies.empty
-        debugRuntime.files.size() == 1
-        debugRuntime.files[0].name == executableName('test')
-        debugRuntime.files[0].url == executableName("test_debug-1.2")
-
-        def release = repo.module('some.group', 'test_release', '1.2')
-        release.assertPublished()
-        release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
-        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
-
-        release.parsedPom.scopes.isEmpty()
-
-        def releaseMetadata = release.parsedModuleMetadata
-        releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release-runtime")
-        releaseRuntime.dependencies.empty
-        releaseRuntime.files.size() == 1
-        releaseRuntime.files[0].name == executableName('test')
-        releaseRuntime.files[0].url == executableName("test_release-1.2")
+        assertTestModulePublished(repo, "debug", "shared")
+        assertTestModulePublished(repo, "release", "shared")
+        assertTestModulePublished(repo, "debug", "static")
+        assertTestModulePublished(repo, "release", "static")
 
         when:
         def consumer = file("consumer").createDir()
@@ -112,6 +92,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 install {
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
                     attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
+                    attributes.attribute(Attribute.of('org.gradle.native.linkage', org.gradle.language.cpp.Linkage), org.gradle.language.cpp.Linkage.SHARED)
                 }
             }
             dependencies {
@@ -130,6 +111,25 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
+
+    private void assertTestModulePublished(MavenFileRepository repo, String buildType, String linkage) {
+        def variant = "$buildType${linkage.capitalize()}"
+        def module = repo.module('some.group', "test_$variant", '1.2')
+        module.assertPublished()
+        module.assertArtifactsPublished(executableName("test_${variant}-1.2"), "test_${variant}-1.2.pom", "test_${variant}-1.2-module.json")
+        module.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/$buildType/$linkage/test").file)
+
+        assert module.parsedPom.scopes.isEmpty()
+
+        def metadata = module.parsedModuleMetadata
+        assert metadata.variants.size() == 1
+        def runtime = metadata.variant("${variant}-runtime")
+        assert runtime.dependencies.empty
+        assert runtime.files.size() == 1
+        assert runtime.files[0].name == executableName('test')
+        assert runtime.files[0].url == executableName("test_${variant}-1.2")
+    }
+
 
     def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
@@ -164,42 +164,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         then:
         def repo = new MavenFileRepository(file("repo"))
-
-        def appModule = repo.module('some.group', 'app', '1.2')
-        appModule.assertPublished()
-
-        def appDebugModule = repo.module('some.group', 'app_debug', '1.2')
-        appDebugModule.assertPublished()
-        appDebugModule.parsedPom.scopes.size() == 1
-        appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
-
-        def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
-        appDebugRuntime.dependencies.size() == 1
-        appDebugRuntime.dependencies[0].group == 'some.group'
-        appDebugRuntime.dependencies[0].module == 'greeter'
-        appDebugRuntime.dependencies[0].version == '1.2'
-
-        def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
-        appReleaseModule.assertPublished()
-        appReleaseModule.parsedPom.scopes.size() == 1
-        appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
-
-        def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
-        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
-        appReleaseRuntime.dependencies.size() == 1
-        appReleaseRuntime.dependencies[0].group == 'some.group'
-        appReleaseRuntime.dependencies[0].module == 'greeter'
-        appReleaseRuntime.dependencies[0].version == '1.2'
-
-        def greeterModule = repo.module('some.group', 'greeter', '1.2')
-        greeterModule.assertPublished()
-
-        def greeterDebugModule = repo.module('some.group', 'greeter_debug', '1.2')
-        greeterDebugModule.assertPublished()
-
-        def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
-        greeterReleaseModule.assertPublished()
+        assertAppModulesArePublished(repo)
+        assertGreeterModulesArePublished(repo)
 
         when:
         def consumer = file("consumer").createDir()
@@ -215,6 +181,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 install {
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
                     attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
+                    attributes.attribute(Attribute.of('org.gradle.native.linkage', org.gradle.language.cpp.Linkage), org.gradle.language.cpp.Linkage.SHARED)
                 }
             }
             dependencies {
@@ -234,4 +201,45 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         executable.exec().out == app.expectedOutput
     }
 
+    private void assertGreeterModulesArePublished(MavenFileRepository repo) {
+        assertModulePublishedWithNoDependencies(repo.module('some.group', 'greeter', '1.2'))
+        assertModulePublishedWithNoDependencies(repo.module('some.group', 'greeter_debugShared', '1.2'))
+        assertModulePublishedWithNoDependencies(repo.module('some.group', 'greeter_releaseShared', '1.2'))
+        assertModulePublishedWithNoDependencies(repo.module('some.group', 'greeter_debugStatic', '1.2'))
+        assertModulePublishedWithNoDependencies(repo.module('some.group', 'greeter_releaseStatic', '1.2'))
+    }
+
+    private void assertModulePublishedWithNoDependencies(MavenFileModule module) {
+        module.assertPublished()
+        assert module.parsedPom.scopes.isEmpty()
+    }
+
+    private void assertAppModulesArePublished(MavenFileRepository repo) {
+        def appModule = repo.module('some.group', 'app', '1.2')
+        appModule.assertPublished()
+
+        assertModulePublishedWithDependencyOnGreeter(
+            repo.module('some.group', 'app_debugShared', '1.2'))
+        assertModulePublishedWithDependencyOnGreeter(
+            repo.module('some.group', 'app_releaseShared', '1.2'))
+        assertModulePublishedWithNoDependencies(
+            repo.module('some.group', 'app_debugStatic', '1.2'))
+        assertModulePublishedWithNoDependencies(
+            repo.module('some.group', 'app_releaseStatic', '1.2'))
+    }
+
+    private void assertModulePublishedWithDependencyOnGreeter(MavenFileModule module) {
+        def variant = module.artifactId.substring(module.artifactId.indexOf('_') + 1)
+
+        module.assertPublished()
+        assert module.parsedPom.scopes.size() == 1
+        module.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
+
+        def metadata = module.parsedModuleMetadata
+        def runtime = metadata.variant("${variant}-runtime")
+        assert runtime.dependencies.size() == 1
+        assert runtime.dependencies[0].group == 'some.group'
+        assert runtime.dependencies[0].module == 'greeter'
+        assert runtime.dependencies[0].version == '1.2'
+    }
 }

@@ -35,6 +35,13 @@ public interface CppBinary extends SoftwareComponent {
     Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
     /**
+     * The dependency resolution attribute use to indicate which linkage to use.
+     *
+     * @since 4.4
+     */
+    Attribute<Linkage> LINKAGE_ATTRIBUTE = Attribute.of("org.gradle.native.linkage", Linkage.class);
+
+    /**
      * Returns the base name of the binary.
      */
     Provider<String> getBaseName();

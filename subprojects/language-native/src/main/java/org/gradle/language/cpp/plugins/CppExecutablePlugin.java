@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.Linkage;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
@@ -39,6 +40,7 @@ import org.gradle.language.cpp.internal.NativeVariant;
 import javax.inject.Inject;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
@@ -76,6 +78,8 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
+        project.getComponents().add(application.getDebugStaticExecutable());
+        project.getComponents().add(application.getReleaseStaticExecutable());
 
         // Configure the component
         application.getBaseName().set(project.getName());
@@ -92,6 +96,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugRuntimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
         debugRuntimeElements.getOutgoing().artifact(application.getDebugExecutable().getExecutableFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
@@ -99,7 +104,24 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseRuntimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
         releaseRuntimeElements.getOutgoing().artifact(application.getReleaseExecutable().getExecutableFile());
+
+        final Configuration debugStaticRuntimeElements = configurations.maybeCreate("debugRuntimeStaticElements");
+        debugStaticRuntimeElements.extendsFrom(application.getImplementationDependencies());
+        debugStaticRuntimeElements.setCanBeResolved(false);
+        debugStaticRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+        debugStaticRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugStaticRuntimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+        debugStaticRuntimeElements.getOutgoing().artifact(application.getDebugStaticExecutable().getExecutableFile());
+
+        final Configuration releaseStaticRuntimeElements = configurations.maybeCreate("releaseRuntimeStaticElements");
+        releaseStaticRuntimeElements.extendsFrom(application.getImplementationDependencies());
+        releaseStaticRuntimeElements.setCanBeResolved(false);
+        releaseStaticRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+        releaseStaticRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseStaticRuntimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+        releaseStaticRuntimeElements.getOutgoing().artifact(application.getReleaseStaticExecutable().getExecutableFile());
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
@@ -118,26 +140,51 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.from(mainVariant);
                             }
                         });
-                        extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
+                        extension.getPublications().create("debugShared", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
                                 // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(application.getBaseName().get() + "_debug");
+                                publication.setArtifactId(application.getBaseName().get() + "_debugShared");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
+                                NativeVariant debugVariant = new NativeVariant("debugShared", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
                                 mainVariant.addVariant(debugVariant);
                                 publication.from(debugVariant);
                             }
                         });
-                        extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
+                        extension.getPublications().create("releaseShared", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
                                 // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(application.getBaseName().get() + "_release");
+                                publication.setArtifactId(application.getBaseName().get() + "_releaseShared");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeVariant releaseVariant = new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
+                                NativeVariant releaseVariant = new NativeVariant("releaseShared", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
+                                mainVariant.addVariant(releaseVariant);
+                                publication.from(releaseVariant);
+                            }
+                        });
+
+                        extension.getPublications().create("debugStatic", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                // TODO - should track changes to these properties
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(application.getBaseName().get() + "_debugStatic");
+                                publication.setVersion(project.getVersion().toString());
+                                NativeVariant debugVariant = new NativeVariant("debugStatic", runtimeUsage, debugStaticRuntimeElements.getAllArtifacts(), debugStaticRuntimeElements);
+                                mainVariant.addVariant(debugVariant);
+                                publication.from(debugVariant);
+                            }
+                        });
+                        extension.getPublications().create("releaseStatic", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                // TODO - should track changes to these properties
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(application.getBaseName().get() + "_releaseStatic");
+                                publication.setVersion(project.getVersion().toString());
+                                NativeVariant releaseVariant = new NativeVariant("releaseStatic", runtimeUsage, releaseStaticRuntimeElements.getAllArtifacts(), releaseStaticRuntimeElements);
                                 mainVariant.addVariant(releaseVariant);
                                 publication.from(releaseVariant);
                             }

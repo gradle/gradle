@@ -33,6 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.Linkage;
 import org.gradle.language.nativeplatform.internal.Names;
 
 import javax.inject.Inject;
@@ -44,16 +45,18 @@ public class DefaultCppBinary implements CppBinary {
     private final String name;
     private final Provider<String> baseName;
     private final boolean debuggable;
+    private final Linkage linkage;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
     private final DirectoryProperty objectsDir;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.debuggable = debuggable;
+        this.linkage = linkage;
         this.sourceFiles = sourceFiles;
         this.objectsDir = projectLayout.directoryProperty();
 
@@ -64,16 +67,19 @@ public class DefaultCppBinary implements CppBinary {
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        includePathConfig.getAttributes().attribute(LINKAGE_ATTRIBUTE, linkage);
 
         Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeLink.getAttributes().attribute(LINKAGE_ATTRIBUTE, linkage);
 
         Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeRuntime.getAttributes().attribute(LINKAGE_ATTRIBUTE, linkage);
 
         includePathConfig.extendsFrom(implementation);
         nativeLink.extendsFrom(implementation);

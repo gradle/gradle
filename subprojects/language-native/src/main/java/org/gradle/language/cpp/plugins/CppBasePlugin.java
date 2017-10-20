@@ -33,14 +33,17 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -50,6 +53,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -163,6 +167,23 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         }
                     })));
                     ((DefaultCppSharedLibrary) binary).getLinkFile().set(linktimeFile);
+                } else if (binary instanceof CppStaticLibrary) {
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+
+                    CreateStaticLibrary createLibrary = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
+                    createLibrary.source(binary.getObjects());
+                    Provider<RegularFile> libraryFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
+                        }
+                    }));
+                    createLibrary.setOutputFile(libraryFile);
+                    createLibrary.setTargetPlatform(currentPlatform);
+                    createLibrary.setToolChain(toolChain);
+                    createLibrary.setStaticLibArgs(Collections.<String>emptyList());
+
+                    ((DefaultCppStaticLibrary) binary).getLinkFile().set(createLibrary.getBinaryFile());
                 }
             }
         });

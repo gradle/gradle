@@ -56,7 +56,7 @@ apply plugin: 'cpp-executable'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
+        project.products.children[0].path == exe("build/exe/main/debug/shared/app").absolutePath
     }
 
     def "can create xcode project for C++ library"() {
@@ -90,7 +90,7 @@ apply plugin: 'cpp-library'
         project.targets[1].buildConfigurationList.buildConfigurations[0].buildSettings.HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/public"), file("src/main/headers"))
 
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
+        project.products.children[0].path == sharedLib("build/lib/main/debug/shared/app").absolutePath
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -193,19 +193,19 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         when:
-        exe("build/exe/main/debug/App").assertDoesNotExist()
+        exe("build/exe/main/debug/shared/App").assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        exe("build/exe/main/debug/App").exec().out == app.expectedOutput
+        resultDebug.assertTasksExecuted(':dependDebugSharedCpp', ':compileDebugSharedCpp', ':linkDebugShared')
+        resultDebug.assertTasksNotSkipped(':dependDebugSharedCpp', ':compileDebugSharedCpp', ':linkDebugShared')
+        exe("build/exe/main/debug/shared/App").exec().out == app.expectedOutput
 
         when:
-        exe("build/exe/main/release/App").assertDoesNotExist()
+        exe("build/exe/main/release/shared/App").assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
@@ -213,9 +213,9 @@ apply plugin: 'cpp-executable'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        exe("build/exe/main/release/App").exec().out == app.expectedOutput
+        resultRelease.assertTasksExecuted(':dependReleaseSharedCpp', ':compileReleaseSharedCpp', ':linkReleaseShared')
+        resultRelease.assertTasksNotSkipped(':dependReleaseSharedCpp', ':compileReleaseSharedCpp', ':linkReleaseShared')
+        exe("build/exe/main/release/shared/App").exec().out == app.expectedOutput
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -232,19 +232,19 @@ apply plugin: 'cpp-library'
         succeeds("xcode")
 
         when:
-        sharedLib("build/lib/main/debug/App").assertDoesNotExist()
+        sharedLib("build/lib/main/debug/shared/App").assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        sharedLib("build/lib/main/debug/App").assertExists()
+        resultDebug.assertTasksExecuted(':dependDebugSharedCpp', ':compileDebugSharedCpp', ':linkDebugShared')
+        resultDebug.assertTasksNotSkipped(':dependDebugSharedCpp', ':compileDebugSharedCpp', ':linkDebugShared')
+        sharedLib("build/lib/main/debug/shared/App").assertExists()
 
         when:
-        sharedLib("build/lib/main/release/App").assertDoesNotExist()
+        sharedLib("build/lib/main/release/shared/App").assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
@@ -252,9 +252,9 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        sharedLib("build/lib/main/release/App").assertExists()
+        resultRelease.assertTasksExecuted(':dependReleaseSharedCpp', ':compileReleaseSharedCpp', ':linkReleaseShared')
+        resultRelease.assertTasksNotSkipped(':dependReleaseSharedCpp', ':compileReleaseSharedCpp', ':linkReleaseShared')
+        sharedLib("build/lib/main/release/shared/App").assertExists()
     }
 
     def "adds new source files in the project"() {
@@ -378,13 +378,13 @@ executable.baseName = 'test_app'
         project.targets.size() == 2
 
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
+        project.targets[0].productReference.path == exe("output/exe/main/debug/shared/test_app").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug/shared").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release/shared").absolutePath
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/test_app").absolutePath
+        project.products.children[0].path == exe("output/exe/main/debug/shared/test_app").absolutePath
     }
 
     def "honors changes to library output locations"() {
@@ -408,12 +408,12 @@ library.baseName = 'test_lib'
         project.targets.size() == 2
 
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
+        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/shared/test_lib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug/shared").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release/shared").absolutePath
 
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("output/lib/main/debug/test_lib").absolutePath
+        project.products.children[0].path == sharedLib("output/lib/main/debug/shared/test_lib").absolutePath
     }
 }
