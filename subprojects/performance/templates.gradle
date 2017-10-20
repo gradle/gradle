@@ -272,6 +272,17 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
+tasks.withType(CppMultiProjectGeneratorTask) { task ->
+    if (!task.name.endsWith('WithMacroIncludes')) {
+        tasks.create(task.name + 'WithMacroIncludes', CppMultiProjectGeneratorTask) {
+            projects = task.projectCount
+            sourceFiles = task.sourceFiles
+            templateArgs = task.templateArgs + [useMacroIncludes: true]
+            subProjectTemplates = task.subProjectTemplates
+        }
+    }
+}
+
 // === Android ===
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'

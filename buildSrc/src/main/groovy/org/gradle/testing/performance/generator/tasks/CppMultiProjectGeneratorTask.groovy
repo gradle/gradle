@@ -29,7 +29,9 @@ class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
                            projectDeps: depInfo.dependencies[projectNumber - 1].collect {
                                "project${it}"
                            },
-                           sourceFiles: testProject.sourceFiles] + args
+                           sourceFiles: testProject.sourceFiles,
+                           useMacroIncludes: false
+        ] + args
         generateWithTemplate(projectDir, 'build.gradle', 'build.gradle', projectArgs)
         if (projectArgs.projectType == 'exe') {
             generateWithTemplate(projectDir,'src/main/cpp/exe.cpp', 'exe.cpp', projectArgs)
