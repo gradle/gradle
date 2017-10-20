@@ -148,8 +148,8 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":compileDebug")
-        objectFiles(lib.greeter)*.assertExists()
+        result.assertTasksExecuted(compileTasks(debug), ":compileDebug")
+        objectFiles(lib.sources)*.assertExists()
     }
 
     def "build logic can change source layout convention"() {
