@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -47,7 +48,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -172,18 +172,20 @@ public class AvailableToolChains {
     static private List<ToolChainCandidate> findGccs() {
         GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
 
-        Set<File> gppCandidates = new LinkedHashSet<File>(OperatingSystem.current().findAllInPath("g++"));
+        Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
-        File firstInPath = gppCandidates.iterator().next();
-        for (File candidate : gppCandidates) {
-            GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
-            if (version.isAvailable()) {
-                InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
-                if (candidate != firstInPath) {
-                    // Not the first g++ in the path, needs the path variable updated
-                    gcc.inPath(candidate.getParentFile());
+        if (!gppCandidates.isEmpty()) {
+            File firstInPath = gppCandidates.iterator().next();
+            for (File candidate : gppCandidates) {
+                GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
+                if (version.isAvailable()) {
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
+                    if (!candidate.equals(firstInPath)) {
+                        // Not the first g++ in the path, needs the path variable updated
+                        gcc.inPath(candidate.getParentFile());
+                    }
+                    toolChains.add(gcc);
                 }
-                toolChains.add(gcc);
             }
         }
         if (toolChains.isEmpty()) {
