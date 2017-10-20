@@ -97,7 +97,7 @@ import java.util.Set;
  *
  * <li>A {@link Buildable} object.</li>
  *
- * <li>A {@link org.gradle.api.provider.Provider} object.</li>
+ * <li>A {@link org.gradle.api.provider.Provider} of {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
  *
  * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
  * iterable/collection/map/array are recursively converted to tasks.</li>
@@ -244,7 +244,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * <li>A {@link Buildable} object.</li>
      *
-     * <li>A {@link org.gradle.api.provider.Provider} object.</li>
+     * <li>A {@link org.gradle.api.provider.Provider} of {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
      *
      * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
      * iterable/collection/map/array are recursively converted to tasks.</li>
