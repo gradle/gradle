@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.initialization.Settings
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -43,10 +42,6 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
         gradleKotlinDsl.asFiles
     }
-
-
-fun kotlinScriptClassPathProviderOf(settings: Settings) =
-    settings.serviceOf<KotlinScriptClassPathProvider>()
 
 
 fun kotlinScriptClassPathProviderOf(project: Project) =

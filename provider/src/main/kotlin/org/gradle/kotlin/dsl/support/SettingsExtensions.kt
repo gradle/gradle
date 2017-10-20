@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 
-// TODO:pm Settings.services is protected, this may not get the right services
 inline
 fun <reified T : Any> Settings.serviceOf(): T =
     (gradle as GradleInternal).services[T::class.java]!!
