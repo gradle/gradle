@@ -20,6 +20,8 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -30,7 +32,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,39 +41,34 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+@NonNullApi
 @CacheableTask
 public class GenerateDefaultImportsTask extends DefaultTask {
-    private File metaDataFile;
-    private File importsDestFile;
-    private File mappingDestFile;
-    private Set<String> excludePatterns = new LinkedHashSet<String>();
+    private RegularFileProperty metaDataFile;
+    private RegularFileProperty importsDestFile;
+    private RegularFileProperty mappingDestFile;
+    private Set<String> excludePatterns = new LinkedHashSet<>();
+
+    public GenerateDefaultImportsTask() {
+        metaDataFile = newInputFile();
+        importsDestFile = newOutputFile();
+        mappingDestFile = newOutputFile();
+    }
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    public File getMetaDataFile() {
+    public RegularFileProperty getMetaDataFile() {
         return metaDataFile;
     }
 
-    public void setMetaDataFile(File metaDataFile) {
-        this.metaDataFile = metaDataFile;
-    }
-
     @OutputFile
-    public File getImportsDestFile() {
+    public RegularFileProperty getImportsDestFile() {
         return importsDestFile;
     }
 
-    public void setImportsDestFile(File importsDestFile) {
-        this.importsDestFile = importsDestFile;
-    }
-
     @OutputFile
-    public File getMappingDestFile() {
+    public RegularFileProperty getMappingDestFile() {
         return mappingDestFile;
-    }
-
-    public void setMappingDestFile(File destFile) {
-        this.mappingDestFile = destFile;
     }
 
     @Input
@@ -93,11 +89,11 @@ public class GenerateDefaultImportsTask extends DefaultTask {
 
     @TaskAction
     public void generate() throws IOException {
-        SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>();
-        repository.load(getMetaDataFile());
+        SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<>();
+        repository.load(getMetaDataFile().getAsFile().get());
 
-        final Set<String> excludedPrefixes = new HashSet<String>();
-        final Set<String> excludedPackages = new HashSet<String>();
+        final Set<String> excludedPrefixes = new HashSet<>();
+        final Set<String> excludedPackages = new HashSet<>();
         for (String excludePattern : excludePatterns) {
             if (excludePattern.endsWith(".**")) {
                 String baseName = excludePattern.substring(0, excludePattern.length() - 3);
@@ -130,8 +126,7 @@ public class GenerateDefaultImportsTask extends DefaultTask {
             }
         });
 
-        final PrintWriter mappingFileWriter = new PrintWriter(new FileWriter(getMappingDestFile()));
-        try {
+        try (PrintWriter mappingFileWriter = new PrintWriter(new FileWriter(getMappingDestFile().getAsFile().get()))) {
             for (Map.Entry<String, Collection<String>> entry : simpleNames.asMap().entrySet()) {
                 if (entry.getValue().size() > 1) {
                     System.out.println(String.format("Multiple DSL types have short name '%s'", entry.getKey()));
@@ -147,19 +142,14 @@ public class GenerateDefaultImportsTask extends DefaultTask {
                 }
                 mappingFileWriter.println();
             }
-        } finally {
-            mappingFileWriter.close();
         }
 
-        final PrintWriter writer = new PrintWriter(new FileWriter(getImportsDestFile()));
-        try {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(getImportsDestFile().getAsFile().get()))) {
             for (String packageName : packages) {
                 writer.print("import ");
                 writer.print(packageName);
                 writer.println(".*");
             }
-        } finally {
-            writer.close();
         }
     }
 }
