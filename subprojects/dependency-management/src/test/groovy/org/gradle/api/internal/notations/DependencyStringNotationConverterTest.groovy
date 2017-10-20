@@ -116,7 +116,7 @@ public class DependencyStringNotationConverterTest extends Specification {
         then:
         d.group == 'hey'
         d.name == 'foo'
-        d.version == null
+        d.version == ''
         d.transitive
 
         !d.force
@@ -130,7 +130,7 @@ public class DependencyStringNotationConverterTest extends Specification {
         then:
         d.group == null
         d.name == 'foo'
-        d.version == null
+        d.version == ''
         d.transitive
 
         !d.force

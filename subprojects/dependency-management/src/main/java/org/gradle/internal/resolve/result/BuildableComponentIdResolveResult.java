@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import javax.annotation.Nullable;
+
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
@@ -32,7 +34,10 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
 
     void failed(ModuleVersionResolveException failure);
 
-    VersionSelector getVersionSelector();
+    VersionSelector getPreferredSelector();
 
-    void setVersionSelector(VersionSelector selector);
+    @Nullable
+    VersionSelector getRejectionSelector();
+
+    void setSelectors(VersionSelector preferredSelector, VersionSelector acceptSelector);
 }

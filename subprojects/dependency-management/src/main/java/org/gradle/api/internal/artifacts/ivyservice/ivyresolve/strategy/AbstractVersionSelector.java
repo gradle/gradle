@@ -25,7 +25,7 @@ abstract class AbstractVersionSelector implements VersionSelector {
         this.selector = selector;
     }
 
-    protected final String getSelector() {
+    public String getSelector() {
         return selector;
     }
 

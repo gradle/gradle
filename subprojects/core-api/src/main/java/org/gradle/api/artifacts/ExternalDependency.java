@@ -45,4 +45,27 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      * {@inheritDoc}
      */
     ExternalDependency copy();
+
+    /**
+     * Sets the version of this dependency as strict. Any other version brought in the dependency graph which
+     * would disagree with this version would trigger an error.
+     * @param version the strict version
+     *
+     * @since 4.4
+     *
+     * @return this dependency
+     */
+    @Incubating
+    ExternalDependency strictVersion(String version);
+
+    /**
+     * Sets the version of this dependency as strict. Any other version brought in the dependency graph which
+     * would disagree with this version would trigger an error.
+     *
+     * @since 4.4
+     *
+     * @return this dependency
+     */
+    @Incubating
+    ExternalDependency strictVersion();
 }
