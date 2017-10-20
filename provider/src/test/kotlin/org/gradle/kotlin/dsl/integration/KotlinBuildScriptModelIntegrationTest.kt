@@ -216,7 +216,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         withBuildSrc()
 
-        val settings = withSettings("println(\"In settings.gradle.kts!\")")
+        val settings = withSettings("")
 
         withFile("classes.jar", "")
 
