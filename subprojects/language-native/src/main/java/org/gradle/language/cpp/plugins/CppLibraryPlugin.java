@@ -221,7 +221,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
                                 NativeVariant debugVariant = new NativeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
-                                mainVariant.addVariant(publication.getGroupId(), publication.getArtifactId(), publication.getVersion(), debugVariant);
+                                mainVariant.addVariant(debugVariant);
                                 publication.from(debugVariant);
                             }
                         });
@@ -233,7 +233,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
                                 NativeVariant releaseVariant = new NativeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
-                                mainVariant.addVariant(publication.getGroupId(), publication.getArtifactId(), publication.getVersion(), releaseVariant);
+                                mainVariant.addVariant(releaseVariant);
                                 publication.from(releaseVariant);
                             }
                         });

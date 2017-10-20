@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -53,6 +55,8 @@ import org.gradle.model.RuleSource;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -108,10 +112,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
             Task publishLifecycleTask = tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
             Task publishLocalLifecycleTask = tasks.get(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
 
-            for (final MavenPublicationInternal publication : publications.withType(MavenPublicationInternal.class)) {
+            NamedDomainObjectSet<MavenPublicationInternal> mavenPublications = publications.withType(MavenPublicationInternal.class);
+            List<Publication> asPublication = new ArrayList<Publication>(publications);
+
+            for (final MavenPublicationInternal publication : mavenPublications) {
                 String publicationName = publication.getName();
 
-                createGenerateMetadataTask(tasks, publication, buildDir);
+                createGenerateMetadataTask(tasks, publication, asPublication, buildDir);
                 createGeneratePomTask(tasks, publication, buildDir);
                 createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
                 createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication);
@@ -167,7 +174,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             publication.setPomFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
         }
 
-        private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final File buildDir) {
+        private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
             if (publication.getComponent() == null || !(publication.getComponent() instanceof ComponentWithVariants)) {
                 return;
             }
@@ -179,6 +186,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                     generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     generateTask.getPublication().set(publication);
+                    generateTask.getPublications().set(publications);
                     // TODO - should deal with build dir changes
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }

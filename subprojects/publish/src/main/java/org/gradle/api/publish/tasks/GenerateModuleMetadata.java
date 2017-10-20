@@ -20,8 +20,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
@@ -30,6 +30,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
 import java.io.BufferedWriter;
@@ -38,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.List;
 
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
@@ -47,10 +49,12 @@ import java.io.Writer;
 @Incubating
 public class GenerateModuleMetadata extends DefaultTask {
     private final Property<Publication> publication;
+    private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
 
     public GenerateModuleMetadata() {
         publication = getProject().getObjects().property(Publication.class);
+        publications = getProject().getObjects().listProperty(Publication.class);
         outputFile = newOutputFile();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
@@ -65,6 +69,15 @@ public class GenerateModuleMetadata extends DefaultTask {
         return publication;
     }
 
+    // TODO - this should be an input
+    /**
+     * Returns the module to generate the metadata file for.
+     */
+    @Internal
+    public ListProperty<Publication> getPublications() {
+        return publications;
+    }
+
     /**
      * Returns the output file location.
      */
@@ -77,11 +90,11 @@ public class GenerateModuleMetadata extends DefaultTask {
     void run() {
         File file = outputFile.get().getAsFile();
         PublicationInternal publication = (PublicationInternal) this.publication.get();
-        ComponentWithVariants component = (ComponentWithVariants) publication.getComponent();
+        List<PublicationInternal> publications = Cast.uncheckedCast(this.publications.get());
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new ModuleMetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication.getCoordinates(), component, writer);
+                new ModuleMetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication, publications, writer);
             } finally {
                 writer.close();
             }

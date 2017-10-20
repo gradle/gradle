@@ -300,8 +300,8 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
                 apply plugin: 'cpp-executable'
                 dependencies {
                     implementation project(':hello')
-                    compileReleaseCpp.macros(WITH_FEATURE: "true")
                 }
+                compileReleaseCpp.macros(WITH_FEATURE: "true")
             }
             project(':hello') {
                 apply plugin: 'cpp-library'

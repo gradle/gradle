@@ -16,14 +16,15 @@
 
 package org.gradle.api.publish.internal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -33,8 +34,9 @@ import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 public class ModuleMetadataFileGenerator {
@@ -44,22 +46,69 @@ public class ModuleMetadataFileGenerator {
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
-    public void generateTo(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Writer writer) throws IOException {
+    public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
+        // Collect a map from component to coordinates. This might be better to move to the component
+        Map<SoftwareComponent, ModuleVersionIdentifier> coordinates = new HashMap<SoftwareComponent, ModuleVersionIdentifier>();
+        collectCoordinates(publications, coordinates);
+
+        // Write the output
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(coordinates, component, jsonWriter);
+        writeComponentWithVariants(publication.getCoordinates(), (ComponentWithVariants) publication.getComponent(), coordinates, jsonWriter);
         jsonWriter.flush();
         writer.append('\n');
     }
 
-    private void writeComponentWithVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, JsonWriter jsonWriter) throws IOException {
+    private void collectCoordinates(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, ModuleVersionIdentifier> coordinates) {
+        for (PublicationInternal publication : publications) {
+            if (publication.getComponent() != null) {
+                coordinates.put(publication.getComponent(), publication.getCoordinates());
+            }
+        }
+    }
+
+    private void writeComponentWithVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
-        Set<? extends UsageContext> variants = collectVariants(component);
         writeFormat(jsonWriter);
         writeCreator(jsonWriter);
-        writeVariants(coordinates, jsonWriter, variants);
+        writeVariants(coordinates, component, componentCoordinates, jsonWriter);
         jsonWriter.endObject();
+    }
+
+    private void writeVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+        boolean started = false;
+        if (component instanceof SoftwareComponentInternal) {
+            SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
+            for (UsageContext usageContext : softwareComponentInternal.getUsages()) {
+                if (!started) {
+                    jsonWriter.name("variants");
+                    jsonWriter.beginArray();
+                    started = true;
+                }
+                writeVariantHostedInThisModule(coordinates, usageContext, jsonWriter);
+            }
+        }
+        for (SoftwareComponent childComponent : component.getVariants()) {
+            ModuleVersionIdentifier childCoordinates = componentCoordinates.get(childComponent);
+            if (childCoordinates == null) {
+                continue;
+            }
+            if (childComponent instanceof SoftwareComponentInternal) {
+                SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) childComponent;
+                for (UsageContext usageContext : softwareComponentInternal.getUsages()) {
+                    if (!started) {
+                        jsonWriter.name("variants");
+                        jsonWriter.beginArray();
+                        started = true;
+                    }
+                    writeVariantHostedInAnotherModule(childCoordinates, usageContext, jsonWriter);
+                }
+            }
+        }
+        if (started) {
+            jsonWriter.endArray();
+        }
     }
 
     private void writeCreator(JsonWriter jsonWriter) throws IOException {
@@ -80,31 +129,53 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
     }
 
-    private void writeVariants(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, Set<? extends UsageContext> variants) throws IOException {
-        if (variants.isEmpty()) {
-            return;
-        }
-        jsonWriter.name("variants");
-        jsonWriter.beginArray();
-        for (UsageContext variant : variants) {
-            writeVariant(coordinates, jsonWriter, variant);
-        }
-        jsonWriter.endArray();
-    }
-
-    private void writeVariant(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, UsageContext variant) throws IOException {
+    private void writeVariantHostedInAnotherModule(ModuleVersionIdentifier targetCoordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
+        writeAttributes(variant.getAttributes(), jsonWriter);
+
+        // Add an implicit dependency to drag in the variant from the other module
+        // TODO - move this implicit dependency to the resolver and replace with a stronger attachment
+        jsonWriter.name("dependencies");
+        jsonWriter.beginArray();
+        jsonWriter.beginObject();
+        jsonWriter.name("group");
+        jsonWriter.value(targetCoordinates.getGroup());
+        jsonWriter.name("module");
+        jsonWriter.value(targetCoordinates.getName());
+        jsonWriter.name("version");
+        jsonWriter.value(targetCoordinates.getVersion());
+        jsonWriter.endObject();
+        jsonWriter.endArray();
+
+        jsonWriter.endObject();
+    }
+
+    private void writeVariantHostedInThisModule(ModuleVersionIdentifier coordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        jsonWriter.value(variant.getName());
+        writeAttributes(variant.getAttributes(), jsonWriter);
+        writeDependencies(variant, jsonWriter);
+        writeArtifacts(coordinates, variant, jsonWriter);
+
+        jsonWriter.endObject();
+    }
+
+    private void writeAttributes(AttributeContainer attributes, JsonWriter jsonWriter) throws IOException {
+        if (attributes.isEmpty()) {
+            return;
+        }
         jsonWriter.name("attributes");
         jsonWriter.beginObject();
-        Map<String, Attribute<?>> attributes = new TreeMap<String, Attribute<?>>();
-        for (Attribute<?> attribute : variant.getAttributes().keySet()) {
-            attributes.put(attribute.getName(), attribute);
+        Map<String, Attribute<?>> sortedAttributes = new TreeMap<String, Attribute<?>>();
+        for (Attribute<?> attribute : attributes.keySet()) {
+            sortedAttributes.put(attribute.getName(), attribute);
         }
-        for (Attribute<?> attribute : attributes.values()) {
+        for (Attribute<?> attribute : sortedAttributes.values()) {
             jsonWriter.name(attribute.getName());
-            Object value = variant.getAttributes().getAttribute(attribute);
+            Object value = attributes.getAttribute(attribute);
             if (value instanceof Boolean) {
                 Boolean b = (Boolean) value;
                 jsonWriter.value(b);
@@ -119,26 +190,21 @@ public class ModuleMetadataFileGenerator {
             }
         }
         jsonWriter.endObject();
-
-        writeDependencies(jsonWriter, variant);
-        writeArtifacts(coordinates, jsonWriter, variant);
-
-        jsonWriter.endObject();
     }
 
-    private void writeArtifacts(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, UsageContext variant) throws IOException {
+    private void writeArtifacts(ModuleVersionIdentifier coordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
         if (variant.getArtifacts().isEmpty()) {
             return;
         }
         jsonWriter.name("files");
         jsonWriter.beginArray();
         for (PublishArtifact artifact : variant.getArtifacts()) {
-            writeArtifact(coordinates, jsonWriter, artifact);
+            writeArtifact(coordinates, artifact, jsonWriter);
         }
         jsonWriter.endArray();
     }
 
-    private void writeArtifact(ModuleVersionIdentifier coordinates, JsonWriter jsonWriter, PublishArtifact artifact) throws IOException {
+    private void writeArtifact(ModuleVersionIdentifier coordinates, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
         jsonWriter.value(artifact.getFile().getName());
@@ -162,19 +228,19 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeDependencies(JsonWriter jsonWriter, UsageContext variant) throws IOException {
+    private void writeDependencies(UsageContext variant, JsonWriter jsonWriter) throws IOException {
         if (variant.getDependencies().isEmpty()) {
             return;
         }
         jsonWriter.name("dependencies");
         jsonWriter.beginArray();
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            writeDependency(jsonWriter, moduleDependency);
+            writeDependency(moduleDependency, jsonWriter);
         }
         jsonWriter.endArray();
     }
 
-    private void writeDependency(JsonWriter jsonWriter, ModuleDependency moduleDependency) throws IOException {
+    private void writeDependency(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("group");
         jsonWriter.value(moduleDependency.getGroup());
@@ -183,13 +249,5 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.name("version");
         jsonWriter.value(moduleDependency.getVersion());
         jsonWriter.endObject();
-    }
-
-    private Set<? extends UsageContext> collectVariants(ComponentWithVariants component) {
-        if (component instanceof SoftwareComponentInternal) {
-            SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
-            return softwareComponentInternal.getUsages();
-        }
-        return ImmutableSet.of();
     }
 }
