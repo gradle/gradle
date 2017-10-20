@@ -49,6 +49,22 @@ Android Studio for instance will use this API to request just the dependencies f
 
 For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParametrizedToolingModelBuilder.html) of the new API.
 
+### Security upgrade of third-party dependencies
+
+This version includes several upgrade of third-party dependency packages to fix the following security issues:
+
+- CVE-2017-7525 (critical)
+- SONATYPE-2017-0359 (critical)
+- SONATYPE-2017-0355 (critical)
+- SONATYPE-2017-0398 (critical)
+- CVE-2013-4002 (critical)
+- CVE-2016-2510 (severe)
+- SONATYPE-2016-0397 (severe)
+- CVE-2009-2625 (severe)
+- SONATYPE-2017-0348 (severe)
+
+This could avoid potential vulnerabilities.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
