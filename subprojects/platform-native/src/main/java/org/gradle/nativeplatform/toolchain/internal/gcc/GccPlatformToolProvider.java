@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
@@ -30,7 +31,6 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToo
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.VersionedNativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -76,7 +76,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         GccVersionResult gccMetadata = gccMetadata(cppCompilerTool);
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
         OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionedNativeCompiler<CppCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
+        return new VersionAwareCompiler<CppCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
     }
 
     @Override
@@ -92,7 +92,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         GccVersionResult gccMetadata = gccMetadata(cCompilerTool);
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
         OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionedNativeCompiler<CCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
+        return new VersionAwareCompiler<CCompileSpec>(outputCleaningCompiler, compilerType(gccMetadata), gccMetadata.getVersion());
     }
 
     private String compilerType(GccVersionResult gccMetadata) {

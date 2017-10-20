@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
@@ -38,7 +39,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.VersionedNativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
@@ -84,7 +84,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
         OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionedNativeCompiler<CppCompileSpec>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
+        return new VersionAwareCompiler<CppCompileSpec>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
     }
 
     @Override
@@ -99,7 +99,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
         OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionedNativeCompiler<CCompileSpec>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
+        return new VersionAwareCompiler<CCompileSpec>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
     }
 
     @Override

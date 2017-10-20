@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.language.base.internal.compile;
 
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.nativeplatform.toolchain.NativeCompilerVersion;
+import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.util.VersionNumber;
 
-public class VersionedNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
+public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> {
 
-    private final NativeCompilerVersion compilerVersion;
+    private final CompilerVersion compilerVersion;
     private final Compiler<T> compiler;
 
-    public VersionedNativeCompiler(Compiler<T> compiler, String type, VersionNumber version) {
+    public VersionAwareCompiler(Compiler<T> compiler, String type, VersionNumber version) {
         this.compiler = compiler;
-        this.compilerVersion = new DefaultNativeCompilerVersion(type, version);
+        this.compilerVersion = new DefaultCompilerVersion(type, version);
     }
 
     @Override
@@ -36,7 +35,7 @@ public class VersionedNativeCompiler<T extends NativeCompileSpec> implements Com
         return compiler.execute(spec);
     }
 
-    public NativeCompilerVersion getVersion() {
+    public CompilerVersion getVersion() {
         return compilerVersion;
     }
 

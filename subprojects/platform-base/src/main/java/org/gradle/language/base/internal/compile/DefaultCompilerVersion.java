@@ -14,37 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain;
+package org.gradle.language.base.internal.compile;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
+import org.gradle.language.base.compile.CompilerVersion;
+import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;
 
-/**
- * Version of a native compiler.
- *
- * @since 4.4
- */
-@Incubating
 @NonNullApi
-public interface NativeCompilerVersion {
+public class DefaultCompilerVersion implements CompilerVersion {
 
-    /**
-     * Returns the version of the compiler.
-     *
-     * Returns <code>null</code> if the version is unknown.
-     */
-    @Input
+    private final String type;
+    private final VersionNumber version;
+
+    public DefaultCompilerVersion(String type, VersionNumber version) {
+        this.type = type;
+        this.version = version;
+    }
+
     @Nullable
-    @Optional
-    String getVersion();
+    @Override
+    public String getVersion() {
+        return version == VersionNumber.UNKNOWN ? null : version.toString();
+    }
 
-    /**
-     * Returns the type of the compiler.
-     */
-    @Input
-    String getType();
+    @Override
+    public String getType() {
+        return type;
+    }
 }
