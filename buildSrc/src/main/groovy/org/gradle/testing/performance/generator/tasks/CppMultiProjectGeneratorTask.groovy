@@ -59,10 +59,63 @@ class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
         return [projectCnt: projectCount]
     }
 
+    @Override
+    def generateRootProject() {
+        super.generateRootProject()
+        new File(destDir, 'performance.scenarios').text = generatePerformanceScenarios()
+    }
+
     void initialize() {
         super.initialize()
         def depGenerator = new DependencyGenerator()
         depGenerator.numberOfProjects = projectCount - 1
         depInfo = depGenerator.createDependencies()
     }
+
+    def generatePerformanceScenarios() {
+        String headerFile
+        String cppFile
+
+        int chosenSourceFileNumber = sourceFiles / 2
+        if (projectCount == 1) {
+            cppFile = "src/main/cpp/lib${chosenSourceFileNumber}.cpp"
+            headerFile = "src/main/headers/lib${chosenSourceFileNumber}.h"
+        } else {
+            int chosenSubprojectNumber = subprojects.size() / 2
+            def subproject = subprojects[chosenSubprojectNumber]
+            def fName = "project${subproject.subprojectNumber}lib${chosenSourceFileNumber}"
+            cppFile = "${subproject.name}/src/main/cpp/${fName}.cpp"
+            headerFile = "${subproject.name}/src/main/public/${fName}.h"
+        }
+
+        """                              
+            defaults {
+                gradle-args = ["--max-workers=12"]
+            }
+
+            headerChange = \${defaults} {
+              tasks = ["assemble"]
+              apply-h-change-to = "${headerFile}"
+            }
+            
+            cppFileChange = \${defaults} {
+              tasks = ["assemble"]
+              apply-cpp-change-to = "${cppFile}"
+            }
+            
+            assemble = \${defaults} {
+              tasks = ["assemble"]
+            }
+            
+            cleanAssemble = \${assemble} {
+              cleanup-tasks = ["clean"]
+            }
+            
+            cleanAssembleCached = \${cleanAssemble} {
+              gradle-args = \${cleanAssemble.gradle-args} ["-Dorg.gradle.caching.native=true", "--build-cache"]
+            }
+            
+        """.stripIndent()
+    }
+
 }
