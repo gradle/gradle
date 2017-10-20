@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -396,6 +397,52 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "correct variant of published library is selected when resolving"() {
+        def app = new CppAppWithLibraryAndOptionalFeature()
+
+        def repoDir = file("repo")
+        def producer = file("greeting")
+        producer.file("build.gradle") << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url '${repoDir.toURI()}' } }
+            }
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            
+        """
+        app.greeterLib.writeToProject(file(producer))
+
+        executer.inDirectory(producer)
+        run('publish')
+
+        def consumer = file("consumer").createDir()
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-executable'
+            repositories { maven { url '${repoDir.toURI()}' } }
+            dependencies { implementation 'some.group:greeting:1.2' }
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
+"""
+        app.main.writeToProject(consumer)
+
+        when:
+        executer.inDirectory(consumer)
+        run("installDebug")
+
+        then:
+        installation(consumer.file("build/install/main/debug")).exec().out == app.withFeatureDisabled().expectedOutput
+
+        when:
+        executer.inDirectory(consumer)
+        run("installRelease")
+
+        then:
+        installation(consumer.file("build/install/main/release")).exec().out == app.withFeatureEnabled().expectedOutput
     }
 
 }
