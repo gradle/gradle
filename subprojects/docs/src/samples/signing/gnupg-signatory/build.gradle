@@ -4,14 +4,6 @@ apply plugin: 'signing'
 group = 'gradle'
 version = '1.0'
 
-// Typically set in ~/.gradle/gradle.properties
-project['signing.gnupg.executable'] = null
-project['signing.gnupg.useLegacyGpg'] = "true"
-project['signing.gnupg.homeDir'] = "gnupg-home"
-project['signing.gnupg.optionsFile'] = null
-project['signing.gnupg.keyName'] = "24875D73"
-project['signing.gnupg.passphrase'] = "gradle"
-
 // START SNIPPET configure-signatory
 import org.gradle.plugins.signing.signatory.gnupg.GnupgSignatoryProvider
 
