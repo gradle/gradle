@@ -17,19 +17,16 @@
 package org.gradle.nativeplatform.test.googletest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.test.googletest.GoogleTestTestResults
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.TextUtil
 
-class GoogleUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
-    def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
+class GoogleTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+    @Override
+    void createPassingFailingTest() {
+        def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
+        def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
 
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "can run tests with google test"() {
         def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-library'
@@ -37,6 +34,7 @@ class GoogleUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainI
 
             def googleTestHeaders = file("${prebuiltPath}/googleTest/1.7.0/include")
             def googleTestStaticLib = file("${prebuiltPath}/googleTest/1.7.0/lib/osx64/${googleTestLib}")
+
             dependencies {
                 cppCompileUnitTestExecutable files(googleTestHeaders)
                 nativeLinkUnitTestExecutable files(googleTestStaticLib)
@@ -44,20 +42,54 @@ class GoogleUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainI
         """
 
         app.library.writeSources(file("src/main"))
-        app.googleTestTests.writeSources(file("src/unitTest"))
+        file("src/unitTest/cpp/main.cpp") << """
+#include "gtest/gtest.h"
 
-        when:
-        succeeds("check")
+using namespace testing;
 
-        then:
-        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp",
-            ":dependUnitTestExecutableCpp", ":compileUnitTestExecutableCpp", ":linkUnitTestExecutable", ":installUnitTestExecutable", ":runUnitTest", ":check")
+int main(int argc, char **argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+"""
+        file("src/unitTest/cpp/passing.cpp") << """
+#include "gtest/gtest.h"
+#include "hello.h"
+#include <iostream>
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/unitTest/test_detail.xml"))
-        testResults.suiteNames == ['HelloTest']
-        testResults.suites['HelloTest'].passingTests == ['test_sum']
-        testResults.suites['HelloTest'].failingTests == []
-        testResults.checkTestCases(1, 1, 0)
+using namespace testing;
+
+TEST(SomeOtherTest, passing) {
+  ASSERT_TRUE(sum(2, 2) == 4);
+}
+"""
+        file("src/unitTest/cpp/failing.cpp") << """
+#include "gtest/gtest.h"
+#include "hello.h"
+#include <iostream>
+
+using namespace testing;
+
+TEST(SomeTest, failing) {
+  std::cout << "some error output" << std::endl;
+  ASSERT_TRUE(sum(2, 2) == 5) << "test failure message";
+}
+"""
+    }
+
+    @Override
+    String getTestTaskName() {
+        return "runUnitTest"
+    }
+
+    @Override
+    String getPassingTestCaseName() {
+        return "passing"
+    }
+
+    @Override
+    String getFailingTestCaseName() {
+        return "failing"
     }
 
     private def getGoogleTestLib() {

@@ -19,34 +19,31 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.plugins.CppUnitTestBasePlugin;
-import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
+import org.gradle.nativeplatform.test.googletest.tasks.GoogleTest;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 public class GoogleUnitTestPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
+        project.getPluginManager().apply(TestingBasePlugin.class);
         project.getPluginManager().apply(CppUnitTestBasePlugin.class);
 
         final TaskContainer tasks = project.getTasks();
         // TODO: Replace with new native test task
-        final RunTestExecutable testTask = tasks.create("runUnitTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+        final GoogleTest testTask = tasks.create("runUnitTest", GoogleTest.class, new Action<GoogleTest>() {
             @Override
-            public void execute(RunTestExecutable testTask) {
+            public void execute(GoogleTest testTask) {
                 testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                 testTask.setDescription("Executes C++ unit tests.");
 
                 // TODO: It would be nice if the installation was a thing we could get path/dependencies from vs going to the task
                 final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestExecutable");
-                testTask.setExecutable(installTask.getRunScript());
+                testTask.getExecutable().set(installTask.getRunScript());
                 testTask.dependsOn(installTask);
-
-                // TODO: This should be lazy to honor changes to the build directory
-                final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-                testTask.setOutputDir(buildDirectory.dir("test-results/unitTest").get().getAsFile());
             }
         });
 

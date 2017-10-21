@@ -146,10 +146,12 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
                     sourceFile("cpp", "test.cpp", """
 #include "gtest/gtest.h"
 #include "hello.h"
+#include <iostream>
 
 using namespace testing;
 
 TEST(HelloTest, test_sum) {
+  std::cout << "Hello, world!" << std::endl;
   ASSERT_TRUE(sum(0, 2) == 2);
 #ifndef ONE_TEST
   ASSERT_TRUE(sum(0, -2) == -2);
@@ -162,26 +164,6 @@ int main(int argc, char **argv) {
   return RUN_ALL_TESTS();
 }
                     """),
-            ]
-            List<SourceFile> headerFiles = [
-            ]
-        }
-    }
-
-
-    TestNativeComponent getCatchTests() {
-        return new TestNativeComponent() {
-            List<SourceFile> sourceFiles = [
-                sourceFile("cpp", "test.cpp", """
-#define CATCH_CONFIG_MAIN  
-#include "catch.hpp"
-#include "hello.h"
-
-TEST_CASE("Testing sum", "[sum]") {
-  REQUIRE(sum(0, 2) == 2);
-  REQUIRE(sum(0, -2) == -2);
-  REQUIRE(sum(2, 2) == 4);
-}"""),
             ]
             List<SourceFile> headerFiles = [
             ]
