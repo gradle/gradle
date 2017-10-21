@@ -70,8 +70,8 @@ class BooleanBuildOptionTest extends Specification {
         assertNoArguments(disabledOption)
         assertNoDeprecationWarning(enabledOption)
         assertNoDeprecationWarning(disabledOption)
-        assertDescription(enabledOption)
-        disabledOption.description == DISABLED_DESCRIPTION
+        assertDescription(enabledOption, DESCRIPTION)
+        assertDescription(disabledOption, DISABLED_DESCRIPTION)
     }
 
     def "can configure incubating command line option"() {
@@ -90,8 +90,8 @@ class BooleanBuildOptionTest extends Specification {
         CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
         assertIncubating(enabledOption, incubating)
         assertIncubating(disabledOption, incubating)
-        assertIncubatingDescription(enabledOption, incubating)
-        disabledOption.description == DISABLED_DESCRIPTION + (incubating ? ' [incubating]' : '')
+        assertIncubatingDescription(enabledOption, incubating, DESCRIPTION)
+        assertIncubatingDescription(disabledOption, incubating, DISABLED_DESCRIPTION)
 
         where:
         incubating << [false, true]
@@ -113,8 +113,8 @@ class BooleanBuildOptionTest extends Specification {
         CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
         assertDeprecationWarning(enabledOption, deprecationWarning)
         assertDeprecationWarning(disabledOption, deprecationWarning)
-        assertDeprecatedDescription(enabledOption, deprecationWarning)
-        disabledOption.description == "$DISABLED_DESCRIPTION [deprecated - $deprecationWarning]"
+        assertDeprecatedDescription(enabledOption, deprecationWarning, DESCRIPTION)
+        assertDeprecatedDescription(disabledOption, deprecationWarning, DISABLED_DESCRIPTION)
     }
 
     def "can apply from command line"() {
