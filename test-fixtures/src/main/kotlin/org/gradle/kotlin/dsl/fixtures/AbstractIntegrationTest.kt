@@ -121,6 +121,11 @@ open class AbstractIntegrationTest {
         gradleRunnerForArguments(*arguments)
             .buildAndFail()
 
+    protected
+    fun build(rootDir: File, vararg arguments: String): BuildResult =
+        gradleRunnerFor(rootDir, *arguments)
+            .build()
+
     private
     fun gradleRunnerForArguments(vararg arguments: String) =
         gradleRunnerFor(projectRoot, *arguments)
