@@ -170,9 +170,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def repo = new MavenFileRepository(repoDir)
 
         def deckModule = repo.module('some.group', 'deck', '1.2')
+        deckModule.assertPublished()
         deckModule.parsedPom.scopes.size() == 1
         deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
-        deckModule.assertPublished()
 
         def deckMetadata = deckModule.parsedModuleMetadata
         def deckApi = deckMetadata.variant("api")

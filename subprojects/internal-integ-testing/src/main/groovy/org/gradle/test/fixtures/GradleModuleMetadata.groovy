@@ -18,8 +18,11 @@ package org.gradle.test.fixtures
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+
+import javax.annotation.Nullable
 
 class GradleModuleMetadata {
     private Map<String, Object> values
@@ -34,6 +37,18 @@ class GradleModuleMetadata {
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
+    }
+
+    @Nullable
+    Coords getComponent() {
+        def comp = values.component
+        return comp == null ? null : new Coords(comp.group, comp.module, comp.version)
+    }
+
+    @Nullable
+    Coords getOwner() {
+        def comp = values.owner
+        return comp == null ? null : new Coords(comp.group, comp.module, comp.version)
     }
 
     List<Variant> getVariants() {
@@ -67,6 +82,9 @@ class GradleModuleMetadata {
             case JsonToken.BOOLEAN:
                 value = reader.nextBoolean()
                 break
+            case JsonToken.NUMBER:
+                value = reader.nextLong()
+                break
             case JsonToken.BEGIN_OBJECT:
                 value = readObject(reader)
                 break
@@ -97,34 +115,61 @@ class GradleModuleMetadata {
             this.values = values
         }
 
+        @Nullable
+        ModuleReference getAvailableAt() {
+            def ref = values['available-at']
+            return ref == null ? null : new ModuleReference(ref.group, ref.module, ref.version, ref.url)
+        }
+
         List<Dependency> getDependencies() {
             return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version) }
         }
 
         List<File> getFiles() {
-            return (values.files ?: []).collect { new File(it.name, it.url) }
+            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5)) }
         }
     }
 
-    static class Dependency {
+    static class Coords {
         final String group
         final String module
         final String version
 
-        Dependency(String group, String module, String version) {
+        Coords(String group, String module, String version) {
             this.group = group
             this.module = module
             this.version = version
         }
     }
 
+    static class ModuleReference extends Coords {
+        final String url
+
+        ModuleReference(String group, String module, String version, String url) {
+            super(group, module, version)
+            this.url = url
+        }
+    }
+
+    static class Dependency extends Coords {
+        Dependency(String group, String module, String version) {
+            super(group, module, version)
+        }
+    }
+
     static class File {
         final String name
         final String url
+        final long size
+        final HashValue sha1
+        final HashValue md5
 
-        File(String name, String url) {
+        File(String name, String url, long size, HashValue sha1, HashValue md5) {
             this.name = name
             this.url = url
+            this.size = size
+            this.sha1 = sha1
+            this.md5 = md5
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
@@ -171,6 +172,35 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         assert parsedPom.groupId == groupId
         assert parsedPom.artifactId == artifactId
         assert parsedPom.version == version
+        if (getModuleMetadata().file.exists()) {
+            def metadata = parsedModuleMetadata
+            if (metadata.component) {
+                assert metadata.component.group == groupId
+                assert metadata.component.module == artifactId
+                assert metadata.component.version == version
+                assert metadata.owner == null
+            } else {
+                assert metadata.owner
+            }
+            metadata.variants.each { variant ->
+                def ref = variant.availableAt
+                if (ref != null) {
+                    def otherMetadataArtifact = getArtifact(ref.url)
+                    assert otherMetadataArtifact.file.file
+                    def otherMetadata = new GradleModuleMetadata(otherMetadataArtifact.file)
+                    assert otherMetadata.owner.group == groupId
+                    assert otherMetadata.owner.module == artifactId
+                    assert otherMetadata.owner.version == version
+                }
+                variant.files.each { file ->
+                    def artifact = getArtifact(file.url)
+                    assert artifact.file.file
+                    assert artifact.file.length() == file.size
+                    assert HashUtil.createHash(artifact.file, "sha1") == file.sha1
+                    assert HashUtil.createHash(artifact.file, "md5") == file.md5
+                }
+            }
+        }
     }
 
     void assertPublishedAsPomModule() {

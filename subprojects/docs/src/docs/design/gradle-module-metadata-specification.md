@@ -25,8 +25,26 @@ The file must be encoded using UTF-8.
 The file must contain a JSON object with the following values:
 
 - `formatVersion`: must be present and the first value of the JSON object. Its value must be `"0.2"`
+- `component`: optional. Describes the identity of the component contained in the module.
+- `owner`: optional. Describes the identity of the component that owns this module.
 - `builtBy`: optional. Describes the producer of this metadata file and the contents of the module.
 - `variants`: optional. Describes the variants of the component packaged in the module, if any.
+
+### `component` value
+
+This value must contain an object with the following values:
+
+- `group`: The group of this component. A string
+- `module`: The module name of this component. A string
+- `version`: The version of this component. A string
+
+### `owner` value
+
+This value must contain an object with the following values:
+
+- `group`: The group of the owner of this module. A string
+- `module`: The module name of the owner of this module. A string
+- `version`: The version of the owner of this module. A string
 
 ### `builtBy` value
 
@@ -47,6 +65,7 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `name`: The name of the variant. A string. The name must be unique across all variants of the component.
 - `attributes`: optional. When missing the variant is assumed to have no attributes.
+- `available-at`: optional. Information about where the metadata and files of this variant are available.
 - `dependencies`: optional. When missing the variant is assumed to have no dependencies.
 - `files`: optional. When missing the variant is assumed to have no files.
 
@@ -58,6 +77,15 @@ This value must contain an object with a value for each attribute. The attribute
 
 - `org.gradle.api.attributes.Usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
 - `org.gradle.native.debuggable` indicates native binaries that are debuggable. Value must be a boolean.
+
+### `available-at` value
+
+This value must contain an object with the following values:
+
+- `url`: The location of the metadata file that describes the variant. A string. In version 0.2, this must be a path relative to the module.
+- `group`: The group of the module. A string
+- `module`: The name of the module. A string
+- `version`: The version of the module. A string
 
 ### `dependencies` value
 
@@ -72,13 +100,21 @@ This value must contain an array with zero or more elements. Each element must b
 This value must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the name of the file in the cache.
-- `url`: The location of the file. A string. In version 0.1, this must be a path relative to the module.
+- `url`: The location of the file. A string. In version 0.2, this must be a path relative to the module.
+- `size`: The size of the file in bytes. A number.
+- `sha1`: The SHA1 hash of the file content. A hex string.
+- `md5`: The MD5 hash of the file content. A hex string.
 
 ## Example
 
 ```
 {
-    "formatVersion": "0.1",
+    "formatVersion": "0.2",
+    "component": {
+        "group": "my.group",
+        "module": "mylib",
+        "version": "1.2"
+    }
     "builtBy": {
         "gradle": {
             "version": "4.3",
@@ -92,7 +128,13 @@ This value must contain an array with zero or more elements. Each element must b
                 "usage": "java-compile"
             },
             "files": [
-                { "name": "mylib-api.jar", "url": "mylib-api-1.2.jar" }
+                { 
+                    "name": "mylib-api.jar", 
+                    "url": "mylib-api-1.2.jar",
+                    "size": "1453",
+                    "sha1": "abc12345",
+                    "md5": "abc12345"
+                }
             ],
             "dependencies": [
                 { "group": "some.group", "module": "other-lib", "version": "3.4" }
@@ -104,7 +146,13 @@ This value must contain an array with zero or more elements. Each element must b
                 "usage": "java-runtime"
             },
             "files": [
-                { "name": "mylib.jar", "url": "mylib-1.2.jar" }
+                { 
+                    "name": "mylib.jar", 
+                    "url": "mylib-1.2.jar",
+                    "size": "4561",
+                    "sha1": "abc12345",
+                    "md5": "abc12345"
+                }
             ],
             "dependencies": [
                 { "group": "some.group", "module": "other-lib", "version": "3.4" }
