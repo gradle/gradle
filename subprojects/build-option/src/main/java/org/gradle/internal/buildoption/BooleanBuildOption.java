@@ -28,13 +28,13 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, BooleanCommandLineOptionConfiguration> {
 
     public BooleanBuildOption(String gradleProperty) {
         super(gradleProperty);
     }
 
-    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public BooleanBuildOption(String gradleProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(gradleProperty, commandLineOptionConfigurations);
     }
 
@@ -49,17 +49,18 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+
+        for (BooleanCommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             configureCommandLineOption(parser, new String[] {config.getLongOption()}, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             String disabledOption = getDisabledCommandLineOption(config);
-            configureCommandLineOption(parser, new String[] {disabledOption}, getDisabledCommandLineDescription(config), config.getDeprecationWarning(), config.isIncubating());
+            configureCommandLineOption(parser, new String[] {disabledOption}, config.getDisabledDescription(), config.getDeprecationWarning(), config.isIncubating());
             parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+        for (BooleanCommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             if (options.hasOption(config.getLongOption())) {
                 applyTo(true, settings, Origin.forCommandLine(config.getLongOption()));
             }
@@ -70,12 +71,8 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         }
     }
 
-    private String getDisabledCommandLineOption(CommandLineOptionConfiguration config) {
+    private String getDisabledCommandLineOption(BooleanCommandLineOptionConfiguration config) {
         return "no-" + config.getLongOption();
-    }
-
-    private String getDisabledCommandLineDescription(CommandLineOptionConfiguration config) {
-        return "Disables option --" + config.getLongOption() + ".";
     }
 
     public abstract void applyTo(boolean value, T settings, Origin origin);

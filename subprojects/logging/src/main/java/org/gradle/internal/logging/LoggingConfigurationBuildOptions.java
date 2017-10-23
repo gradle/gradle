@@ -54,7 +54,7 @@ public class LoggingConfigurationBuildOptions {
     private LoggingConfigurationBuildOptions() {
     }
 
-    public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration> {
+    public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.logging.level";
         public static final String QUIET_LONG_OPTION = "quiet";
         public static final String QUIET_SHORT_OPTION = "q";
@@ -116,7 +116,7 @@ public class LoggingConfigurationBuildOptions {
         }
     }
 
-    public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration> {
+    public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {
         public static final String STACKTRACE_LONG_OPTION = "stacktrace";
         public static final String STACKTRACE_SHORT_OPTION = "s";
         public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";

@@ -28,18 +28,18 @@ import java.util.List;
  *
  * @since 4.3
  */
-public abstract class AbstractBuildOption<T> implements BuildOption<T> {
+public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfiguration> implements BuildOption<T> {
 
     protected final String gradleProperty;
-    protected final List<CommandLineOptionConfiguration> commandLineOptionConfigurations;
+    protected final List<V> commandLineOptionConfigurations;
 
     public AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, new CommandLineOptionConfiguration[] {});
+        this(gradleProperty, null);
     }
 
-    public AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfiguration) {
+    public AbstractBuildOption(String gradleProperty, V... commandLineOptionConfiguration) {
         this.gradleProperty = gradleProperty;
-        this.commandLineOptionConfigurations = commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<CommandLineOptionConfiguration>emptyList();
+        this.commandLineOptionConfigurations = commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList();
 
     }
 

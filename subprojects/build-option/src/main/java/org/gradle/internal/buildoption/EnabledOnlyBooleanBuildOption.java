@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public EnabledOnlyBooleanBuildOption(String gradleProperty) {
         super(gradleProperty, new CommandLineOptionConfiguration[] {});
