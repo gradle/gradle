@@ -20,18 +20,13 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.util.VersionNumber;
 
-import java.io.File;
-import java.util.List;
-
 public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> {
 
     private final CompilerVersion compilerVersion;
     private final Compiler<T> compiler;
-    private final List<File> systemIncludes;
 
-    public VersionAwareCompiler(Compiler<T> compiler, String type, VersionNumber version, List<File> systemIncludes) {
+    public VersionAwareCompiler(Compiler<T> compiler, String type, VersionNumber version) {
         this.compiler = compiler;
-        this.systemIncludes = systemIncludes;
         this.compilerVersion = new DefaultCompilerVersion(type, version);
     }
 
@@ -42,10 +37,6 @@ public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> 
 
     public CompilerVersion getVersion() {
         return compilerVersion;
-    }
-
-    public List<File> getSystemIncludes() {
-        return systemIncludes;
     }
 
 }

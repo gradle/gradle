@@ -47,7 +47,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
@@ -58,6 +57,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwareNativeCompiler;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -147,8 +147,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        if (baseCompiler instanceof VersionAwareCompiler) {
-            spec.include(((VersionAwareCompiler<T>) baseCompiler).getSystemIncludes());
+        if (baseCompiler instanceof SystemIncludesAwareNativeCompiler) {
+            spec.include(((SystemIncludesAwareNativeCompiler<T>) baseCompiler).getSystemIncludes());
         }
         HeaderDependenciesCollector headerDependenciesCollector = getHeaderDependenciesFile().isPresent() ? HeaderDependenciesCollector.NOOP : createDependenciesCollector();
         Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, headerDependenciesCollector);
@@ -268,8 +268,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             }
             PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
             Compiler<? extends NativeCompileSpec> compiler = platformToolProvider.newCompiler(createCompileSpec().getClass());
-            if (compiler instanceof VersionAwareCompiler) {
-                for (File root : ((VersionAwareCompiler<?>) compiler).getSystemIncludes()) {
+            if (compiler instanceof SystemIncludesAwareNativeCompiler) {
+                for (File root : ((SystemIncludesAwareNativeCompiler<?>) compiler).getSystemIncludes()) {
                     builder.add(root.getAbsolutePath());
                 }
             }

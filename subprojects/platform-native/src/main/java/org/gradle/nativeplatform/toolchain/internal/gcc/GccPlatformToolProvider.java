@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
@@ -33,6 +32,7 @@ import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContex
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.VersionAwareNativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
@@ -89,12 +89,12 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return versionAwareCompiler(outputCleaningCompiler);
     }
 
-    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
+    private <T extends NativeCompileSpec> VersionAwareNativeCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
         return versionAwareCompiler(compiler, VersionNumber.UNKNOWN, ImmutableList.<File>of());
     }
 
-    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, VersionNumber version, ImmutableList<File> systemIncludes) {
-        return new VersionAwareCompiler<T>(compiler, metaDataProvider.getCompilerType().getIdentifier(), version, systemIncludes);
+    private <T extends NativeCompileSpec> VersionAwareNativeCompiler<T> versionAwareCompiler(Compiler<T> compiler, VersionNumber version, ImmutableList<File> systemIncludes) {
+        return new VersionAwareNativeCompiler<T>(compiler, metaDataProvider.getCompilerType().getIdentifier(), version, systemIncludes);
     }
 
     @Override

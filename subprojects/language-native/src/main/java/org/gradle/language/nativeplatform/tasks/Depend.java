@@ -39,7 +39,6 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
@@ -57,6 +56,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwareNativeCompiler;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -162,8 +162,8 @@ public class Depend extends DefaultTask {
     private List<File> determineSystemIncludes() {
         PlatformToolProvider platformToolProvider = selectPlatformToolProvider();
         Compiler<?> compiler = platformToolProvider.newCompiler(spec.get().getClass());
-        if (compiler instanceof VersionAwareCompiler) {
-            return ((VersionAwareCompiler<?>) compiler).getSystemIncludes();
+        if (compiler instanceof SystemIncludesAwareNativeCompiler) {
+            return ((SystemIncludesAwareNativeCompiler<?>) compiler).getSystemIncludes();
         }
         return Collections.emptyList();
     }
