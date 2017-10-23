@@ -67,6 +67,8 @@ import java.util.Set;
 public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
+    private static final byte STRING_ATTRIBUTE = 1;
+    private static final byte BOOLEAN_ATTRIBUTE = 2;
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
 
@@ -133,9 +135,15 @@ public class ModuleMetadataSerializer {
         private void writeAttributes(AttributeContainer attributes) throws IOException {
             encoder.writeSmallInt(attributes.keySet().size());
             for (Attribute<?> attribute : attributes.keySet()) {
-                assert attribute.getType().equals(String.class);
                 encoder.writeString(attribute.getName());
-                encoder.writeString((String) attributes.getAttribute(attribute));
+                if (attribute.getType().equals(Boolean.class)) {
+                    encoder.writeByte(BOOLEAN_ATTRIBUTE);
+                    encoder.writeBoolean((Boolean)attributes.getAttribute(attribute));
+                } else {
+                    assert attribute.getType().equals(String.class);
+                    encoder.writeByte(STRING_ATTRIBUTE);
+                    encoder.writeString((String) attributes.getAttribute(attribute));
+                }
             }
         }
 
@@ -369,8 +377,13 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 String name = decoder.readString();
-                String value = decoder.readString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
+                byte type = decoder.readByte();
+                if (type == BOOLEAN_ATTRIBUTE) {
+                    attributes = attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
+                } else {
+                    String value = decoder.readString();
+                    attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
+                }
             }
             return attributes;
         }

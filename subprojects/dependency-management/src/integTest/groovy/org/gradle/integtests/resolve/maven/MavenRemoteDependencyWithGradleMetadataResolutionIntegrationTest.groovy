@@ -641,7 +641,7 @@ task checkRelease {
     }
 
     @Unroll
-    def "consumer can use attribute of type - #type"() {
+    def "consumer can use attribute of type #type"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
         a.artifact(classifier: 'debug')
@@ -653,7 +653,7 @@ task checkRelease {
         {
             "name": "debug",
             "attributes": {
-                "buildType": "debug"
+                "buildType": ${encodedDebugValue}
             },
             "files": [ 
                 { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" }
@@ -662,7 +662,7 @@ task checkRelease {
         {
             "name": "release",
             "attributes": {
-                "buildType": "release"
+                "buildType": ${encodedReleaseValue}
             }
         }
     ]
@@ -715,10 +715,16 @@ task checkRelease {
         and:
         succeeds("checkRelease")
 
+        // Cached
+        succeeds("checkDebug")
+        succeeds("checkRelease")
+
         where:
-        type            | debugValue                          | releaseValue
-        "BuildTypeEnum" | "BuildTypeEnum.debug"               | "BuildTypeEnum.release"
-        "BuildType"     | "objects.named(BuildType, 'debug')" | "objects.named(BuildType, 'release')"
+        encodedDebugValue | encodedReleaseValue | type            | debugValue                          | releaseValue
+        '"debug"'         | '"release"'         | "BuildTypeEnum" | "BuildTypeEnum.debug"               | "BuildTypeEnum.release"
+        '"debug"'         | '"release"'         | "BuildType"     | "objects.named(BuildType, 'debug')" | "objects.named(BuildType, 'release')"
+        '"debug"'         | '"release"'         | "String"        | "'debug'"                           | "'release'"
+        "true"            | "false"             | "Boolean"       | "true"                              | "false"
     }
 
     def "reports and recovers from failure to locate module"() {
