@@ -175,7 +175,7 @@ class KotlinBuildScriptCompiler(
     private
     fun collectPluginRequestsFromPluginsBlock(): PluginRequests {
         val pluginRequestCollector = PluginRequestCollector(scriptSource)
-        executePluginsBlockOn(pluginRequestCollector)
+        if (topLevelScript) executePluginsBlockOn(pluginRequestCollector)
         return pluginRequestCollector.pluginRequests
     }
 
@@ -209,9 +209,13 @@ class KotlinBuildScriptCompiler(
         extractTopLevelSectionFrom(script, "plugins")
 
     private
-    fun applyPluginsTo(target: Project, pluginRequests: PluginRequests) {
+    fun applyPluginsTo(target: Any, pluginRequests: PluginRequests) {
         pluginRequestsHandler.handle(
-            pluginRequests, scriptHandler, target as PluginAwareInternal, targetScope)
+            pluginRequests,
+            target,
+            scriptHandler,
+            target.takeIf { topLevelScript }?.let { it as? PluginAwareInternal }?.pluginManager,
+            targetScope)
     }
 
     private

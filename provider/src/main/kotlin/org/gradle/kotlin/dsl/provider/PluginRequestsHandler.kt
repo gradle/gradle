@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-import org.gradle.api.internal.plugins.PluginAwareInternal
+import org.gradle.api.internal.plugins.PluginManagerInternal
 
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -33,19 +33,24 @@ class PluginRequestsHandler @Inject constructor(
 
     fun handle(
         pluginRequests: PluginRequests,
-        scriptHandler: ScriptHandlerInternal,
-        target: PluginAwareInternal,
+        target: Any,
+        targetScriptHandler: ScriptHandlerInternal,
+        targetPluginManager: PluginManagerInternal?,
         targetScope: ClassLoaderScope) {
 
+        val effectivePluginRequests =
+            if (targetPluginManager == null) pluginRequests
+            else pluginRequests.withAutoAppliedPluginsFor(target)
+
         pluginRequestApplicator.applyPlugins(
-            withAutoAppliedPluginsFor(target, pluginRequests),
-            scriptHandler,
-            target.pluginManager,
+            effectivePluginRequests,
+            targetScriptHandler,
+            targetPluginManager,
             targetScope)
     }
 
     private
-    fun withAutoAppliedPluginsFor(target: Any, pluginRequests: PluginRequests): PluginRequests =
-        autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(pluginRequests, target)
+    fun PluginRequests.withAutoAppliedPluginsFor(target: Any): PluginRequests =
+        autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(this, target)
 
 }
