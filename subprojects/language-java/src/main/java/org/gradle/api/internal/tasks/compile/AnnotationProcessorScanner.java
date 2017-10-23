@@ -42,6 +42,27 @@ class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<M
 
     private static final Pattern CLASSNAME = Pattern.compile("(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\‌​.)+\\p{javaJavaIdentifierPart}\\p{javaJavaIdentifierPart}*");
 
+    // You can have multiple Annotation Processor classes declared in the meta-inf file:
+    //
+    //   my.annotation.processor.Processor1
+    //   my.annotation.processor.Processor2
+    //
+    // As a policy decision (for now), we require all processors in the file to be incremental,
+    // or else we consider none of them to be.  This means we only have to scan for an occurrence
+    // of "INCAP" in the file, e.g.:
+    //
+    //   my.annotation.processor.Processor1
+    //   my.annotation.processor.Processor2
+    //   INCAP=true
+    //
+    // This approach is forward-compatible, should we decide to allow specifying incrementality
+    // on a per-processor basis; the file syntax parsing might be extended to permit, e.g.:
+    //
+    //   my.annotation.processor.Processor1
+    //   INCAP=false
+    //   my.annotation.processor.Processor2
+    //   INCAP=true
+
     private static final String INCAP_DECLARATION = "INCAP";
 
     private final Map<String, String> result = Maps.newHashMap(ImmutableMap.<String, String>builder()

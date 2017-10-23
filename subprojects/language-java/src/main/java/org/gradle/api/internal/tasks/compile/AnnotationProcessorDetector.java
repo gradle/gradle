@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
-import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -29,13 +28,9 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,14 +39,11 @@ import java.util.Set;
 
 public class AnnotationProcessorDetector {
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileContentCache<Boolean> cache;
-    private final FileContentCache<Map<String, String>> infoCache;
+    private final FileContentCache<Map<String, String>> cache;
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        // TODO:  Merge these caches?  The first seems obsolete now.
-        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
-        infoCache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER);
+        cache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER);
     }
 
     /**
@@ -91,9 +83,11 @@ public class AnnotationProcessorDetector {
         }, new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
+                // TODO:  This returns the entire compile classpath if any element of the
+                // compile classpath contains an annotation processor.  Why not just return
+                // the subset of elements that have annotation processors?
                 for (File file : compileClasspath) {
-                    boolean hasServices = cache.get(file);
-                    if (hasServices) {
+                    if ((new AnnotationProcessorInfo(cache.get(file))).isProcessor()) {
                         return compileClasspath.getFiles();
                     }
                 }
@@ -107,15 +101,12 @@ public class AnnotationProcessorDetector {
         });
     }
 
-    // TODO(stevey) -- this needs to be called from either JavaCompile or from IncrementalCompilerDecorator.
-    // TODO:  I have no idea whether this method works or is even approximately correct.
     public Set<AnnotationProcessorInfo> getAnnotationProcessorInfo(final CompileOptions compileOptions, final FileCollection compileClasspath) {
 
         FileCollection effectiveAnnotationProcessorPath = getEffectiveAnnotationProcessorClasspath(compileOptions, compileClasspath);
-
         Set<AnnotationProcessorInfo> result = Sets.newHashSet();
         for (File file : effectiveAnnotationProcessorPath) {
-            Map<String, String> props = infoCache.get(file);
+            Map<String, String> props = cache.get(file);
             if (props != null) {
                 AnnotationProcessorInfo info = new AnnotationProcessorInfo(props);
                 if (info.isProcessor()) {
@@ -137,29 +128,4 @@ public class AnnotationProcessorDetector {
         }
         return hasExplicitProcessor;
     }
-
-    private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
-        @Override
-        public Boolean calculate(File file, FileType fileType) {
-            if (fileType == FileType.Directory) {
-                return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
-            }
-
-            if (fileType == FileType.RegularFile && FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
-                try {
-                    ZipFile zipFile = new ZipFile(file);
-                    try {
-                        return zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null;
-                    } finally {
-                        zipFile.close();
-                    }
-                } catch (IOException e) {
-                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
-                }
-            }
-
-            return false;
-        }
-    }
-
 }

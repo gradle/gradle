@@ -30,7 +30,7 @@ public class AnnotationProcessorInfo {
 
     private Map<String, String> properties;
 
-    AnnotationProcessorInfo(Map<String, String> data) {
+    AnnotationProcessorInfo(@Nullable Map<String, String> data) {
         properties = data;
     }
 
@@ -38,7 +38,7 @@ public class AnnotationProcessorInfo {
      * True if the annotation processor adheres to the INCAP incremental AP spec.
      */
     public boolean isIncrementalEnabled() {
-        String value = properties.get(INCREMENTAL_KEY);
+        String value = properties == null ? null : properties.get(INCREMENTAL_KEY);
         return value == null ? false : Boolean.valueOf(value);
     }
 
@@ -46,14 +46,14 @@ public class AnnotationProcessorInfo {
      * Returns a user-presentable name for the processor.
      */
     public String getName() {
-        return properties.get(NAME_KEY);
+        return properties == null ? null : properties.get(NAME_KEY);
     }
 
     /**
      * Returns true if processor services were found in this file.
      */
     public boolean isProcessor() {
-        String value = properties.get(PROCESSOR_KEY);
+        String value = properties == null ? null : properties.get(PROCESSOR_KEY);
         return value == null ? false : Boolean.valueOf(value);
     }
 }

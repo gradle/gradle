@@ -35,8 +35,4 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     File getIncrementalAnnotationProcessorWorkingDir();
 
     void setIncrementalAnnotationProcessorWorkingDir(File incrementalAnnotationProcessorWorkingDir);
-    /**
-     * True if all of the (possibly empty set of) annotation processors are incremental-enabled.
-     */
-    boolean annotationProcessingCanBeIncremental();
 }
