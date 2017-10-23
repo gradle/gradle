@@ -146,6 +146,10 @@ class GradleModuleMetadata {
             this.module = module
             this.version = version
         }
+
+        String getCoords() {
+            return "$group:$module:$version"
+        }
     }
 
     static class ModuleReference extends Coords {

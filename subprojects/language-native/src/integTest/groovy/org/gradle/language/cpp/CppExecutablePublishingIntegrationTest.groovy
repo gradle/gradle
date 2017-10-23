@@ -66,8 +66,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 2
-        mainMetadata.variant("debug_runtime").files.empty
-        mainMetadata.variant("release_runtime").files.empty
+        mainMetadata.variant("debug_runtime").availableAt.coords == "some.group:test_debug:1.2"
+        mainMetadata.variant("release_runtime").availableAt.coords == "some.group:test_release:1.2"
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()

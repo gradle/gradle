@@ -195,6 +195,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     assert owner.group == groupId
                     assert owner.module == artifactId
                     assert owner.version == version
+                    assert variant.dependencies.empty
+                    assert variant.files.empty
                 }
                 variant.files.each { file ->
                     def artifact = getArtifact(file.url)
