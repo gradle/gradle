@@ -32,6 +32,14 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
 
+    /**
+     * Configures the build script classpath for settings.
+     *
+     * @see [Settings.buildscript]
+     */
+    @Suppress("unused")
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+
     inline
     fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
         settings.apply({ it.configuration() })

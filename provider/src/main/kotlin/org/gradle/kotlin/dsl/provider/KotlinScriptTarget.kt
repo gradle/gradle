@@ -23,6 +23,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
+
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 
@@ -33,7 +37,7 @@ import kotlin.reflect.KClass
 
 
 internal
-fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<*> =
+fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<out Any> =
     when (target) {
         is Project  -> projectScriptTarget(target)
         is Settings -> settingsScriptTarget(target)
@@ -50,20 +54,21 @@ private
 fun settingsScriptTarget(settings: Settings) =
     KotlinScriptTarget(
         settings,
+        rootDir = settings.rootDir,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
-        rootDir = settings.rootDir)
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class)
 
 
 private
-fun projectScriptTarget(project: Project) =
+fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
     KotlinScriptTarget(
         project,
+        rootDir = project.rootDir,
         type = Project::class,
         scriptTemplate = KotlinBuildScript::class,
-        rootDir = project.rootDir,
-        supportsBuildscriptBlock = true,
-        supportsPluginsBlock = true,
+        buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
+        pluginsBlockTemplate = KotlinPluginsBlock::class,
         accessorsClassPath = { accessorsClassPathFor(project, it) },
         prepare = {
             project.run {
@@ -77,13 +82,16 @@ fun projectScriptTarget(project: Project) =
 internal
 data class KotlinScriptTarget<T : Any>(
     val `object`: T,
+    val rootDir: File,
     val type: KClass<T>,
     val scriptTemplate: KClass<*>,
-    val rootDir: File,
-    val supportsBuildscriptBlock: Boolean = false,
-    val supportsPluginsBlock: Boolean = false,
+    val buildscriptBlockTemplate: KClass<*>? = null,
+    val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
+
+    val supportsBuildscriptBlock = buildscriptBlockTemplate != null
+    val supportsPluginsBlock = pluginsBlockTemplate != null
 
     fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)
 }

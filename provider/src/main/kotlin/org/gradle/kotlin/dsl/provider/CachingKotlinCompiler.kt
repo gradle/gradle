@@ -26,8 +26,6 @@ import org.gradle.kotlin.dsl.cache.ScriptCache
 
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
@@ -62,15 +60,16 @@ class CachingKotlinCompiler(
     val cacheProperties = mapOf("version" to "6")
 
     fun compileBuildscriptBlockOf(
+        buildscriptBlockTemplate: KClass<out Any>,
         scriptPath: String,
         buildscript: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFileNameFor(scriptPath)
+        val scriptFileName = scriptFileNameFor(buildscriptBlockTemplate, scriptPath)
         return compileScript(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                KotlinBuildscriptBlock::class,
+                buildscriptBlockTemplate,
                 scriptPath,
                 cacheFileFor(buildscript, cacheDir, scriptFileName),
                 scriptFileName + " buildscript block")
@@ -80,17 +79,18 @@ class CachingKotlinCompiler(
     data class CompiledScript(val location: File, val className: String)
 
     fun compilePluginsBlockOf(
+        pluginsBlockTemplate: KClass<out Any>,
         scriptPath: String,
         lineNumberedPluginsBlock: Pair<Int, String>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledPluginsBlock {
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
-        val scriptFileName = scriptFileNameFor(scriptPath)
+        val scriptFileName = scriptFileNameFor(pluginsBlockTemplate, scriptPath)
         val compiledScript =
             compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
                 ScriptCompilationSpec(
-                    KotlinPluginsBlock::class,
+                    pluginsBlockTemplate,
                     scriptPath,
                     cacheFileFor(plugins, cacheDir, scriptFileName),
                     scriptFileName + " plugins block")
@@ -107,7 +107,7 @@ class CachingKotlinCompiler(
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFileNameFor(scriptPath)
+        val scriptFileName = scriptFileNameFor(scriptTemplate, scriptPath)
         return compileScript(cacheKeyPrefix + scriptFileName + script, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 scriptTemplate,
@@ -118,8 +118,8 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun scriptFileNameFor(scriptPath: String) =
-        scriptPath.substringAfterLast(File.separatorChar)
+    fun scriptFileNameFor(scriptTemplate: KClass<*>, scriptPath: String) =
+        "${scriptTemplate.qualifiedName}_${scriptPath.substringAfterLast(File.separatorChar)}"
 
     private
     fun compileScript(
