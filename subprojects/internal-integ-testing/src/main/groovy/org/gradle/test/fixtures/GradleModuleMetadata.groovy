@@ -42,13 +42,19 @@ class GradleModuleMetadata {
     @Nullable
     Coords getComponent() {
         def comp = values.component
-        return comp == null ? null : new Coords(comp.group, comp.module, comp.version)
+        if (comp == null || comp.url) {
+            return null
+        }
+        return new Coords(comp.group, comp.module, comp.version)
     }
 
     @Nullable
-    Coords getOwner() {
-        def comp = values.owner
-        return comp == null ? null : new Coords(comp.group, comp.module, comp.version)
+    ModuleReference getOwner() {
+        def comp = values.component
+        if (comp == null || !comp.url) {
+            return null
+        }
+        return new ModuleReference(comp.group, comp.module, comp.version, comp.url)
     }
 
     List<Variant> getVariants() {

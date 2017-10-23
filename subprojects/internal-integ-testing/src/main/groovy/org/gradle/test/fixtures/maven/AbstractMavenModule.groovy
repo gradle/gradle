@@ -178,19 +178,23 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 assert metadata.component.group == groupId
                 assert metadata.component.module == artifactId
                 assert metadata.component.version == version
-                assert metadata.owner == null
-            } else {
-                assert metadata.owner
+            }
+            if (metadata.owner) {
+                def otherMetadataArtifact = getArtifact(metadata.owner.url)
+                assert otherMetadataArtifact.file.file
             }
             metadata.variants.each { variant ->
                 def ref = variant.availableAt
                 if (ref != null) {
+                    // Verify the modules are connected together correctly
                     def otherMetadataArtifact = getArtifact(ref.url)
                     assert otherMetadataArtifact.file.file
                     def otherMetadata = new GradleModuleMetadata(otherMetadataArtifact.file)
-                    assert otherMetadata.owner.group == groupId
-                    assert otherMetadata.owner.module == artifactId
-                    assert otherMetadata.owner.version == version
+                    def owner = otherMetadata.owner
+                    assert otherMetadataArtifact.file.parentFile.file(owner.url) == getModuleMetadata().file
+                    assert owner.group == groupId
+                    assert owner.module == artifactId
+                    assert owner.version == version
                 }
                 variant.files.each { file ->
                     def artifact = getArtifact(file.url)

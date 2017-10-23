@@ -327,14 +327,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         "group": "group",
         "module": "other-1",
         "version": "1"
-      },
-      "dependencies": [
-        {
-          "group": "group",
-          "module": "other-1",
-          "version": "1"
-        }
-      ]
+      }
     },
     {
       "name": "v2",
@@ -346,14 +339,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         "group": "group",
         "module": "other-2",
         "version": "2"
-      },
-      "dependencies": [
-        {
-          "group": "group",
-          "module": "other-2",
-          "version": "2"
-        }
-      ]
+      }
     }
   ]
 }
@@ -383,7 +369,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         then:
         writer.toString() == """{
   "formatVersion": "0.2",
-  "owner": {
+  "component": {
+    "url": "../../module/1.2/module-1.2-module.json",
     "group": "group",
     "module": "module",
     "version": "1.2"

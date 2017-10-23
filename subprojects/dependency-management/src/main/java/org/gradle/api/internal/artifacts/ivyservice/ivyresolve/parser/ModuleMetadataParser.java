@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
@@ -112,6 +113,10 @@ public class ModuleMetadataParser {
                 files = consumeFiles(reader);
             } else if (name.equals("dependencies")) {
                 dependencies = consumeDependencies(reader);
+            } else if (name.equals("available-at")) {
+                // For now just collect this as another dependency
+                // TODO - collect this information and merge the metadata from the other module
+                dependencies = consumeVariantLocation(reader);
             } else {
                 consumeAny(reader);
             }
@@ -125,6 +130,27 @@ public class ModuleMetadataParser {
         for (ModuleDependency dependency : dependencies) {
             variant.addDependency(dependency.group, dependency.module, dependency.version);
         }
+    }
+
+    private List<ModuleDependency> consumeVariantLocation(JsonReader reader) throws IOException {
+        String group = null;
+        String module = null;
+        String version = null;
+        reader.beginObject();
+        while (reader.peek() != END_OBJECT) {
+            String name = reader.nextName();
+            if (name.equals("group")) {
+                group = reader.nextString();
+            } else if (name.equals("module")) {
+                module = reader.nextString();
+            } else if (name.equals("version")) {
+                version = reader.nextString();
+            } else {
+                consumeAny(reader);
+            }
+        }
+        reader.endObject();
+        return ImmutableList.of(new ModuleDependency(group, module, version));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {

@@ -106,15 +106,17 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(coordinates.getVersion());
             jsonWriter.endObject();
         } else {
-            coordinates = componentCoordinates.get(owner);
-            jsonWriter.name("owner");
+            ModuleVersionIdentifier ownerCoordinates = componentCoordinates.get(owner);
+            jsonWriter.name("component");
             jsonWriter.beginObject();
+            jsonWriter.name("url");
+            jsonWriter.value(relativeUrlTo(coordinates, ownerCoordinates));
             jsonWriter.name("group");
-            jsonWriter.value(coordinates.getGroup());
+            jsonWriter.value(ownerCoordinates.getGroup());
             jsonWriter.name("module");
-            jsonWriter.value(coordinates.getName());
+            jsonWriter.value(ownerCoordinates.getName());
             jsonWriter.name("version");
-            jsonWriter.value(coordinates.getVersion());
+            jsonWriter.value(ownerCoordinates.getVersion());
             jsonWriter.endObject();
         }
     }
@@ -182,43 +184,32 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.beginObject();
 
         jsonWriter.name("url");
+        jsonWriter.value(relativeUrlTo(coordinates, targetCoordinates));
+
+        jsonWriter.name("group");
+        jsonWriter.value(targetCoordinates.getGroup());
+        jsonWriter.name("module");
+        jsonWriter.value(targetCoordinates.getName());
+        jsonWriter.name("version");
+        jsonWriter.value(targetCoordinates.getVersion());
+        jsonWriter.endObject();
+
+        jsonWriter.endObject();
+    }
+
+    private String relativeUrlTo(ModuleVersionIdentifier from, ModuleVersionIdentifier to) {
         // TODO - do not assume Maven layout
-        // TODO - handle different group
         StringBuilder path = new StringBuilder();
         path.append("../../");
-        path.append(targetCoordinates.getName());
+        path.append(to.getName());
         path.append("/");
-        path.append(targetCoordinates.getVersion());
+        path.append(to.getVersion());
         path.append("/");
-        path.append(targetCoordinates.getName());
+        path.append(to.getName());
         path.append("-");
-        path.append(targetCoordinates.getVersion());
+        path.append(to.getVersion());
         path.append("-module.json");
-        jsonWriter.value(path.toString());
-
-        jsonWriter.name("group");
-        jsonWriter.value(targetCoordinates.getGroup());
-        jsonWriter.name("module");
-        jsonWriter.value(targetCoordinates.getName());
-        jsonWriter.name("version");
-        jsonWriter.value(targetCoordinates.getVersion());
-        jsonWriter.endObject();
-
-        // Add an implicit dependency to drag in the variant from the other module
-        // TODO - move this implicit dependency to the resolver and replace with a stronger attachment
-        jsonWriter.name("dependencies");
-        jsonWriter.beginArray();
-        jsonWriter.beginObject();
-        jsonWriter.name("group");
-        jsonWriter.value(targetCoordinates.getGroup());
-        jsonWriter.name("module");
-        jsonWriter.value(targetCoordinates.getName());
-        jsonWriter.name("version");
-        jsonWriter.value(targetCoordinates.getVersion());
-        jsonWriter.endObject();
-        jsonWriter.endArray();
-
-        jsonWriter.endObject();
+        return path.toString();
     }
 
     private void writeVariantHostedInThisModule(ModuleVersionIdentifier coordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {

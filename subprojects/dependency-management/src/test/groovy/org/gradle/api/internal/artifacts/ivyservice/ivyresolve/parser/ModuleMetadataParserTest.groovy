@@ -39,6 +39,22 @@ class ModuleMetadataParserTest extends Specification {
         0 * metadata._
     }
 
+    def "parses minimal metadata with identity and producer information"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v" },
+        "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
+    }
+'''), metadata)
+
+        then:
+        0 * _
+    }
+
     def "parses content with variant"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
         def variant = Mock(MutableComponentVariant)
@@ -47,7 +63,6 @@ class ModuleMetadataParserTest extends Specification {
         parser.parse(resource('''
     { 
         "formatVersion": "0.2", 
-        "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
         "variants": [
             {
                 "name": "api",
@@ -221,6 +236,48 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes()) >> variant1
         1 * metadata.addVariant("runtime", attributes()) >> variant2
+        0 * _
+    }
+
+    def "parses content with variants in another module"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "variants": [
+            {
+                "name": "api",
+                "attributes": { "usage": "compile" },
+                "available-at": {
+                    "url": "../elsewhere",
+                    "group": "g1",
+                    "module": "m1",
+                    "version": "v1"
+                }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "name": "runtime",
+                "available-at": {
+                    "url": "../elsewhere",
+                    "group": "g2",
+                    "module": "m2",
+                    "version": "v2"
+                }
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addDependency("g1", "m1", "v1")
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addDependency("g2", "m2", "v2")
         0 * _
     }
 

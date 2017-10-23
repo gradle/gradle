@@ -26,7 +26,6 @@ The file must contain a JSON object with the following values:
 
 - `formatVersion`: must be present and the first value of the JSON object. Its value must be `"0.2"`
 - `component`: optional. Describes the identity of the component contained in the module.
-- `owner`: optional. Describes the identity of the component that owns this module.
 - `builtBy`: optional. Describes the producer of this metadata file and the contents of the module.
 - `variants`: optional. Describes the variants of the component packaged in the module, if any.
 
@@ -37,14 +36,7 @@ This value must contain an object with the following values:
 - `group`: The group of this component. A string
 - `module`: The module name of this component. A string
 - `version`: The version of this component. A string
-
-### `owner` value
-
-This value must contain an object with the following values:
-
-- `group`: The group of the owner of this module. A string
-- `module`: The module name of the owner of this module. A string
-- `version`: The version of the owner of this module. A string
+- `url`: optional. When present, indicates where the metadata for the component may be found. When missing, indicates that this metadata file defines the metadata for the whole component. 
 
 ### `builtBy` value
 
@@ -66,8 +58,8 @@ This value must contain an array with zero or more elements. Each element must b
 - `name`: The name of the variant. A string. The name must be unique across all variants of the component.
 - `attributes`: optional. When missing the variant is assumed to have no attributes.
 - `available-at`: optional. Information about where the metadata and files of this variant are available.
-- `dependencies`: optional. When missing the variant is assumed to have no dependencies.
-- `files`: optional. When missing the variant is assumed to have no files.
+- `dependencies`: optional. When missing the variant is assumed to have no dependencies. Must not be present when `available-at` is present.
+- `files`: optional. When missing the variant is assumed to have no files. Must not be present when `available-at` is present.
 
 ### `attributes` value
 

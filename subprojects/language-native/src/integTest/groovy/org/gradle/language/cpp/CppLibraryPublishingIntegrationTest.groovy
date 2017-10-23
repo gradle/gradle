@@ -84,13 +84,13 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
         mainMetadata.variant("debug_link").files.empty
-        mainMetadata.variant("debug_link").dependencies.size() == 1
+        mainMetadata.variant("debug_link").dependencies.empty
         mainMetadata.variant("debug_runtime").files.empty
-        mainMetadata.variant("debug_runtime").dependencies.size() == 1
+        mainMetadata.variant("debug_runtime").dependencies.empty
         mainMetadata.variant("release_link").files.empty
-        mainMetadata.variant("release_link").dependencies.size() == 1
+        mainMetadata.variant("release_link").dependencies.empty
         mainMetadata.variant("release_runtime").files.empty
-        mainMetadata.variant("release_runtime").dependencies.size() == 1
+        mainMetadata.variant("release_runtime").dependencies.empty
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
