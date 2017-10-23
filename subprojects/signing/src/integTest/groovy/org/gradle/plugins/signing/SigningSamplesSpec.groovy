@@ -69,7 +69,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         run "signArchives"
 
         then:
-        file("signing", "gnupg-signatory", "build", "libs", "gnupg-signatory-1.0.jar.asc").text
+        file("signing", "gnupg-signatory", "build", "libs", "gnupg-signatory-1.0.jar.asc").assertExists()
     }
 
     MavenFileRepository getRepo() {
