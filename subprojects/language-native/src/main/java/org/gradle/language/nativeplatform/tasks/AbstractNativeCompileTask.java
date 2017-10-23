@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.tasks;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -64,7 +65,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -350,11 +350,20 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             return null;
         }
 
-        List<String> lines = Files.readLines(inputFile, Charsets.UTF_8);
-        Set<File> files = new HashSet<File>();
-        for (String line : lines) {
-            files.add(new File(line));
-        }
+        Set<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
+            private Set<File> result = new HashSet<File>();
+
+            @Override
+            public boolean processLine(String line) throws IOException {
+                result.add(new File(line));
+                return true;
+            }
+
+            @Override
+            public Set<File> getResult() {
+                return result;
+            }
+        });
         return new SimpleFileCollection(files);
     }
 }
