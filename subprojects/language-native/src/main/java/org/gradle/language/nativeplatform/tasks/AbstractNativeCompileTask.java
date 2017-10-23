@@ -66,7 +66,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Compiles native source files into object files.
@@ -92,12 +91,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         headerDependenciesFile = newInputFile();
-        getInputs().property("outputType", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
-            }
-        });
         getOutputs().doNotCacheIf("Experimental native caching is not enabled", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {

@@ -29,7 +29,10 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +72,11 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             return new BrokenResult(String.format("Could not determine %s version: failed to execute %s %s.", getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
         }
         return transform(output, gccBinary);
+    }
+
+    @Override
+    public boolean isClang() {
+        return clang;
     }
 
     private String getDescription() {
@@ -177,11 +185,6 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         }
 
         @Override
-        public boolean isClang() {
-            return clang;
-        }
-
-        @Override
         public ArchitectureInternal getDefaultArchitecture() {
             return architecture;
         }
@@ -205,11 +208,6 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
 
         @Override
         public VersionNumber getVersion() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isClang() {
             throw new UnsupportedOperationException();
         }
 

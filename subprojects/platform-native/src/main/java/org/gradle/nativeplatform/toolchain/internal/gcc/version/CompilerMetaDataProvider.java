@@ -20,5 +20,12 @@ import java.io.File;
 import java.util.List;
 
 public interface CompilerMetaDataProvider {
+
     GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs);
+
+    /**
+     * Returns true if the implementation is Clang, false if GCC.
+     */
+    boolean isClang();
+
 }

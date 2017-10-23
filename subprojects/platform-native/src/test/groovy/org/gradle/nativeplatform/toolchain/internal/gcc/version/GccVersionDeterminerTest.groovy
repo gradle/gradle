@@ -73,7 +73,6 @@ class GccVersionDeterminerTest extends Specification {
         def result = output(gcc)
         result.available
         result.version == VersionNumber.parse(version)
-        !result.clang
 
         where:
         gcc          | version
@@ -143,7 +142,6 @@ class GccVersionDeterminerTest extends Specification {
         def result = output clang, true
         result.available
         result.version == VersionNumber.parse("5.0.0")
-        result.clang
     }
 
     def "detects clang pretending to be gcc"() {

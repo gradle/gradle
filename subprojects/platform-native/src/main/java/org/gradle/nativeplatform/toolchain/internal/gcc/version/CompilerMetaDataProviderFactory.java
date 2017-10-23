@@ -58,6 +58,11 @@ public class CompilerMetaDataProviderFactory {
             }
             return result;
         }
+
+        @Override
+        public boolean isClang() {
+            return delegate.isClang();
+        }
     }
 
     private static class Key {
