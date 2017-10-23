@@ -66,9 +66,9 @@ public class NativeVariant implements SoftwareComponentInternal, ComponentWithVa
     @Override
     public Set<? extends UsageContext> getUsages() {
         if (linkElements == null) {
-            return ImmutableSet.of(new DefaultUsageContext(name + "_runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(name + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         } else {
-            return ImmutableSet.of(new DefaultUsageContext(name + "_link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(name + "_runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(name + "-link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(name + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         }
     }
 }

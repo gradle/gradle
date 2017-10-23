@@ -66,8 +66,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 2
-        mainMetadata.variant("debug_runtime").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("release_runtime").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variant("debug-runtime").availableAt.coords == "some.group:test_debug:1.2"
+        mainMetadata.variant("release-runtime").availableAt.coords == "some.group:test_release:1.2"
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
@@ -78,7 +78,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 1
-        def debugRuntime = debugMetadata.variant("debug_runtime")
+        def debugRuntime = debugMetadata.variant("debug-runtime")
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == executableName('test')
@@ -93,7 +93,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 1
-        def releaseRuntime = releaseMetadata.variant("release_runtime")
+        def releaseRuntime = releaseMetadata.variant("release-runtime")
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == executableName('test')
@@ -174,7 +174,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
-        def appDebugRuntime = appDebugMetadata.variant("debug_runtime")
+        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
         appDebugRuntime.dependencies.size() == 1
         appDebugRuntime.dependencies[0].group == 'some.group'
         appDebugRuntime.dependencies[0].module == 'greeter'
@@ -186,7 +186,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
 
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
-        def appReleaseRuntime = appReleaseMetadata.variant("release_runtime")
+        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
         appReleaseRuntime.dependencies.size() == 1
         appReleaseRuntime.dependencies[0].group == 'some.group'
         appReleaseRuntime.dependencies[0].module == 'greeter'
