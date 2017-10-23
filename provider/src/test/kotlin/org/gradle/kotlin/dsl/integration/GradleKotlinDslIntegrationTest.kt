@@ -426,6 +426,33 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
            containsString("*abc*"))
     }
 
+    @Test
+    fun `can apply buildSrc plugin to Settings`() {
+
+        withBuildSrc()
+
+        withFile("buildSrc/src/main/groovy/my/SettingsPlugin.groovy", """
+            package my
+
+            import org.gradle.api.*
+            import org.gradle.api.initialization.Settings
+
+            class SettingsPlugin implements Plugin<Settings> {
+                void apply(Settings settings) {
+                    println("Settings plugin applied!")
+                }
+            }
+        """)
+
+        withSettings("""
+            apply { plugin(my.SettingsPlugin::class.java) }
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("Settings plugin applied!"))
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
