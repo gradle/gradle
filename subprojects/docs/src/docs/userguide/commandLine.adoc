@@ -32,9 +32,9 @@ Do not rebuild project dependencies.
 Shows additional detail in the task listing. See <<sec:listing_tasks>>.
 `-b`, `--build-file`::
 Specifies the build file. See <<sec:selecting_build>>.
-`--build-scan (incubating)`::
+`--build-cache (incubating)`::
 Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.
-`--no-build-scan (incubating)`::
+`--no-build-cache (incubating)`::
 Disables the Gradle build cache.
 `-c`, `--settings-file`::
 Specifies the settings file.
