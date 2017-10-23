@@ -1,6 +1,7 @@
 package plugins
 
 import build.kotlinDslDebugPropertyName
+import build.withTestStrictClassLoading
 import build.withTestWorkersMemoryLimits
 
 import org.gradle.api.Plugin
@@ -52,6 +53,7 @@ open class GskModule : Plugin<Project> {
                 }
             }
 
+            withTestStrictClassLoading()
             withTestWorkersMemoryLimits()
         }
     }
