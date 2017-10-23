@@ -46,33 +46,84 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepositoryDefinition() {
-        return 'jcenter()'
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'jcenter-remote'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return 'jcenter()'
+        }
     }
 
     static String mavenCentralRepositoryDefinition() {
-        return 'mavenCentral()'
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'repo1-remote'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return 'mavenCentral()'
+        }
     }
 
     static String typesafeMavenRepositoryDefinition() {
-        return """
-            maven {
-                name 'typesafe-maven-release'
-                url 'https://repo.typesafe.com/typesafe/maven-releases'
-            }
-        """
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafemaven')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'typesafe-maven-release-remote'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return """
+                maven {
+                    name 'typesafe-maven-release'
+                    url 'https://repo.typesafe.com/typesafe/maven-releases'
+                }
+            """
+        }
     }
 
     static String typesafeIvyRepositoryDefinition() {
-        return """
-            ivy {
-                name 'typesafe-ivy-release'
-                url 'https://repo.typesafe.com/typesafe/ivy-releases'
-                layout 'ivy'
-            }
-        """
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
+        if (repoUrl) {
+            return """
+                ivy {
+                    name 'typesafe-ivy-release-remote'
+                    url '${repoUrl}'
+                    layout 'ivy'
+                }
+            """
+        } else {
+            return """
+                ivy {
+                    name 'typesafe-ivy-release'
+                    url 'https://repo.typesafe.com/typesafe/ivy-releases'
+                    layout 'ivy'
+                }
+            """
+        }
     }
 
     static String googleRepositoryDefinition() {
-        return 'google()'
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.google')
+        if (repoUrl) {
+            return """
+                maven {
+                    name 'Google'
+                    url '${repoUrl}'
+                }
+            """
+        } else {
+            return 'google()'
+        }
     }
 }
