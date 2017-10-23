@@ -37,7 +37,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
+        runner.gradleOpts = ["-Xms1500m", "-Xmx2500m"]
         runner.warmUpRuns = 5
         runner.runs = 10
 
