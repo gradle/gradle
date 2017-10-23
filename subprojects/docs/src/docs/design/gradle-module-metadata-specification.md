@@ -67,7 +67,7 @@ This value must contain an object with a value for each attribute. The attribute
 
 #### Standard attributes
 
-- `org.gradle.api.attributes.Usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
+- `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
 - `org.gradle.native.debuggable` indicates native binaries that are debuggable. Value must be a boolean.
 
 ### `available-at` value
