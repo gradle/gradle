@@ -20,7 +20,12 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
-import org.gradle.testing.performance.generator.*
+import org.gradle.testing.performance.generator.DependencyGraph
+import org.gradle.testing.performance.generator.MavenJarCreator
+import org.gradle.testing.performance.generator.MavenRepository
+import org.gradle.testing.performance.generator.RepositoryBuilder
+import org.gradle.testing.performance.generator.TestProject
+
 /**
  * Original tangled mess of a project generator.
  */
@@ -118,7 +123,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
                 .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
                 .withMavenJarCreator(mavenJarCreator)
                 .create()
-        return repo;
+        return repo
     }
 
     protected List<TestProject> getSubprojects() {
@@ -150,7 +155,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? [] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
+        subprojectNames.empty ? ['settings.gradle'] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {
@@ -254,5 +259,5 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     void initialize() {
     }
 
-    abstract void generateProjectSource(File projectDir, TestProject testProject, Map args);
+    abstract void generateProjectSource(File projectDir, TestProject testProject, Map args)
 }
