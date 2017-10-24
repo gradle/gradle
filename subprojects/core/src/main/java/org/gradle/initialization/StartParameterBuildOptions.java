@@ -249,7 +249,7 @@ public class StartParameterBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.configureondemand";
 
         public ConfigureOnDemandOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.", "Disabled the use of configuration on demand.").incubating());
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.", "Disables the use of configuration on demand.").incubating());
         }
 
         @Override

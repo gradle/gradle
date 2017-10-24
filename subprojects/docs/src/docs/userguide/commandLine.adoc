@@ -53,7 +53,7 @@ Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::
 Only relevant projects are configured in this build run. This means faster builds for large multi-projects. See <<sec:configuration_on_demand>>.
 `--no-configure-on-demand (incubating)`::
-Disabled the use of configuration on demand.
+Disables the use of configuration on demand.
 `-D`, `--system-prop`::
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
 `-d`, `--debug`::
