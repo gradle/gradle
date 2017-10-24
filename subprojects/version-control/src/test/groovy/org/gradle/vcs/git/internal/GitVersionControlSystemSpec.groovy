@@ -153,14 +153,14 @@ class GitVersionControlSystemSpec extends Specification {
     def 'error if repo is not a git repo'() {
         given:
         def target = tmpDir.file('versionDir')
-        repoSpec.url = 'https://notarepo.io'
+        repoSpec.url = 'https://notarepo.invalid'
 
         when:
         gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         GradleException e = thrown()
-        e.message.contains('Could not clone from https://notarepo.io into')
+        e.message.contains('Could not clone from https://notarepo.invalid into')
         e.cause != null
         e.cause.message.contains('Exception caught during execution of fetch command')
         e.cause.cause != null
