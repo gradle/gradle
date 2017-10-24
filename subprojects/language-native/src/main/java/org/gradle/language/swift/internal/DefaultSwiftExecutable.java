@@ -18,7 +18,10 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftExecutable;
@@ -26,8 +29,22 @@ import org.gradle.language.swift.SwiftExecutable;
 import javax.inject.Inject;
 
 public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
+    private final RegularFileProperty executableFile;
+    private final DirectoryProperty installDirectory;
     @Inject
-    public DefaultSwiftExecutable(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, module, debuggable, source, configurations, implementation);
+        this.executableFile = projectLayout.fileProperty();
+        this.installDirectory = projectLayout.directoryProperty();
+    }
+
+    @Override
+    public RegularFileProperty getExecutableFile() {
+        return executableFile;
+    }
+
+    @Override
+    public DirectoryProperty getInstallDirectory() {
+        return installDirectory;
     }
 }

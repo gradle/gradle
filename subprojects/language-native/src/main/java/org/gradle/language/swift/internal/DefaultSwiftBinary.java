@@ -19,9 +19,12 @@ package org.gradle.language.swift.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 
@@ -35,12 +38,14 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final FileCollection importPath;
     private final FileCollection linkLibs;
     private final Configuration runtimeLibs;
+    private final DirectoryProperty objectsDir;
 
-    public DefaultSwiftBinary(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
         this.source = source;
+        this.objectsDir = projectLayout.directoryProperty();
 
         Names names = Names.of(name);
 
@@ -101,5 +106,14 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public FileCollection getRuntimeLibraries() {
         return runtimeLibs;
+    }
+
+    public DirectoryProperty getObjectsDir() {
+        return objectsDir;
+    }
+
+    @Override
+    public FileCollection getObjects() {
+        return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
     }
 }

@@ -93,6 +93,48 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/release/Hello").assertExists()
     }
 
+    def "can use link file as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            
+            task assembleRuntimeDebug {
+                dependsOn library.debugSharedLibrary.runtimeFile
+            }
+         """
+
+        expect:
+        succeeds "assembleRuntimeDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleRuntimeDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+    }
+
+    def "can use objects as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            
+            task compileDebug {
+                dependsOn library.debugSharedLibrary.objects
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":compileDebug")
+        objectFiles(lib)*.assertExists()
+    }
+
     def "build logic can change source layout convention"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"

@@ -18,6 +18,7 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.swift.SwiftLibrary;
@@ -31,10 +32,10 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final Configuration api;
 
     @Inject
-    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultSwiftLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", projectLayout, objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);

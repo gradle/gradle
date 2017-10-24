@@ -29,8 +29,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -159,7 +159,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
         compileTest.includes(compileMain.getObjectFileDir());
 
+        SwiftComponent swiftComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        linkTest.source(swiftComponent.getDevelopmentBinary().getObjects());
     }
 }
