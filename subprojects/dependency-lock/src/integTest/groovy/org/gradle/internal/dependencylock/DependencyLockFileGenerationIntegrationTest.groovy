@@ -275,4 +275,103 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         then:
         lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":a","configurations":[{"name":"conf1","dependencies":[{"requestedVersion":"1.5","moduleId":"my:dep","lockedVersion":"1.5"}]}]},{"path":":b","configurations":[{"name":"conf2","dependencies":[{"requestedVersion":"2.3.1","moduleId":"foo:bar","lockedVersion":"2.3.1"}]}]},{"path":":c","configurations":[{"name":"conf3","dependencies":[{"requestedVersion":"5.2","moduleId":"other:company","lockedVersion":"5.2"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
+
+    def "subsequent builds do not recreate lock file for unchanged dependencies"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
+
+    def "recreates lock file for newly declared and resolved dependencies"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+        mavenRepo.module('org', 'gradle', '7.5').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+
+        when:
+        buildFile << """
+            dependencies {
+                myConf 'org:gradle:7.5'
+            }
+        """
+
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
+
+    def "recreates lock file for removed, resolved dependencies"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+        mavenRepo.module('org', 'gradle', '7.5').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+                myConf 'org:gradle:7.5'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+
+        when:
+        buildFile.text = appliedPluginAndRepository(mavenRepo) + customConfigurations(MYCONF_CUSTOM_CONFIGURATION) + """
+            dependencies {
+                myConf 'foo:bar:1.5'
+            }
+        """ + copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
 }

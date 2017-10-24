@@ -86,7 +86,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
     }
 
     private void writeFile(File lockFile, JSONObject allLocks) {
-        GFileUtils.parentMkdirs(lockFile);
+        createParentDirectory(lockFile.getParentFile());
         FileWriter fileWriter = null;
 
         try {
@@ -103,6 +103,12 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
             } catch (IOException e) {
                 // ignore
             }
+        }
+    }
+
+    private void createParentDirectory(File parentDir) {
+        if (!parentDir.isDirectory()) {
+            GFileUtils.mkdirs(parentDir);
         }
     }
 }

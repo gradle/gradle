@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 final class DependencyLockFixture {
 
     public static final String COPY_LIBS_TASK_NAME = 'copyLibs'
+    public static final String COPY_LIBS_TASK_PATH = ":$COPY_LIBS_TASK_NAME"
 
     private DependencyLockFixture() {
     }
