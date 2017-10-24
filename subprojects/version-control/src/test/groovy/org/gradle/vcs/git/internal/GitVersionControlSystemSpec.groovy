@@ -150,6 +150,23 @@ class GitVersionControlSystemSpec extends Specification {
         thrown GradleException
     }
 
+    def 'error if repo is not a git repo'() {
+        given:
+        def target = tmpDir.file('versionDir')
+        repoSpec.url = 'https://notarepo.io'
+
+        when:
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        then:
+        GradleException e = thrown()
+        e.message.contains('Could not clone from https://notarepo.io into')
+        e.cause != null
+        e.cause.message.contains('Exception caught during execution of fetch command')
+        e.cause.cause != null
+        e.cause.cause.message.contains('URI not supported: https://notarepo.io')
+    }
+
     def 'can get versions'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)

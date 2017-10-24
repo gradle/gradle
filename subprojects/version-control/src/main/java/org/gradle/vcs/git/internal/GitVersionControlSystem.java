@@ -144,6 +144,6 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
-        return new GradleException(String.format("Could not %s: %s from %s", commandName, repoUrl, workingDir), e);
+        return new GradleException(String.format("Could not %s from %s into %s", commandName, repoUrl, workingDir), e);
     }
 }
