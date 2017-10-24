@@ -29,7 +29,9 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 
+import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -173,16 +175,19 @@ class KotlinBuildScriptCompiler(
     private
     fun prepareTargetClassLoaderScopeOf(target: KotlinScriptTarget<*>) {
         targetScope.export(classPathProvider.gradleApiExtensions)
-        if (target.supportsPluginsBlock) {
-            executePluginsBlockOn(target)
-        }
+        executePluginsBlockOn(target)
     }
 
     private
     fun executePluginsBlockOn(target: KotlinScriptTarget<*>) {
-        val pluginRequests = collectPluginRequestsFromPluginsBlock()
+        val pluginRequests = pluginRequestsFor(target)
         applyPluginsTo(target, pluginRequests)
     }
+
+    private
+    fun pluginRequestsFor(target: KotlinScriptTarget<*>): PluginRequests =
+        if (target.supportsPluginsBlock) collectPluginRequestsFromPluginsBlock()
+        else DefaultPluginRequests.EMPTY
 
     private
     fun collectPluginRequestsFromPluginsBlock(): PluginRequests {
