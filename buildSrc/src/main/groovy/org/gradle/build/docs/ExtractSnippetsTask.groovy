@@ -15,7 +15,6 @@
  */
 package org.gradle.build.docs
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
@@ -31,28 +30,41 @@ import org.gradle.api.tasks.util.PatternFilterable
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-
 /**
  * Produces the snippets files for a set of sample source files.
  */
 @CacheableTask
 class ExtractSnippetsTask extends DefaultTask {
 
+    /**
+     * Output directory for samples
+     */
     @OutputDirectory
     File destDir
 
+    /**
+     * Output directory for extracted snippets
+     */
     @OutputDirectory
     File snippetsDir
 
-    @Input
-    List<String> excludes
-
-    // Resources that should not be filtered
+    /**
+     * Patterns for resources that should not be filtered
+     */
     @Input
     List<String> nonFiltered
 
+    /**
+     * Source directory of the samples
+     */
     @Internal
     File samples
+
+    /**
+     * Files to exclude from the samples
+     */
+    @Internal
+    List<String> excludes
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -70,73 +82,78 @@ class ExtractSnippetsTask extends DefaultTask {
             copySpec.setIncludes(nonFiltered)
         }
 
-        getSource().matching(new Action<PatternFilterable>() {
-            @Override
-            void execute(PatternFilterable patternFilterable) {
-                patternFilterable.exclude(nonFiltered)
+        getSource().matching(canBeFiltered()).visit {
+            filterSample(it)
+        }
+    }
+
+    private Closure canBeFiltered() {
+        return { PatternFilterable patternFilterable ->
+            patternFilterable.exclude(nonFiltered)
+        }
+    }
+
+    void filterSample(FileVisitDetails details) {
+        String name = details.relativePath.pathString
+        if (details.file.isDirectory()) {
+            File destDir = new File(destDir, name)
+            destDir.mkdirs()
+            destDir = new File(snippetsDir, name)
+            destDir.mkdirs()
+        } else {
+            File srcFile = details.file
+            File destFile = new File(destDir, name)
+
+            destFile.parentFile.mkdirs()
+
+            if (['.war', '.jar', '.zip', '.gpg'].find{ name.endsWith(it) }) {
+                destFile.withOutputStream { it.write(srcFile.readBytes()) }
+                return
             }
-        }).visit { FileVisitDetails details ->
-            String name = details.relativePath.pathString
-            if (details.file.isDirectory()) {
-                File destDir = new File(destDir, name)
-                destDir.mkdirs()
-                destDir = new File(snippetsDir, name)
-                destDir.mkdirs()
+
+            Map writers = [
+                0: new SnippetWriter(name, destFile).start(),
+                1: new SnippetWriter(name, new File(snippetsDir, name)).start()
+            ]
+            Pattern startSnippetPattern
+            Pattern endSnippetPattern
+            if (name.endsWith('.xml')) {
+                startSnippetPattern = Pattern.compile('\\s*<!--\\s*START\\s+SNIPPET\\s+(\\S+)\\s*-->')
+                endSnippetPattern = Pattern.compile('\\s*<!--\\s*END\\s+SNIPPET\\s+(\\S+)\\s*-->')
             } else {
-                File srcFile = details.file
-                File destFile = new File(destDir, name)
+                startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
+                endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
+            }
 
-                destFile.parentFile.mkdirs()
-
-                if (['.war', '.jar', '.zip', '.gpg'].find{ name.endsWith(it) }) {
-                    destFile.withOutputStream { it.write(srcFile.readBytes()) }
-                    return
-                }
-
-                Map writers = [
-                        0: new SnippetWriter(name, destFile).start(),
-                        1: new SnippetWriter(name, new File(snippetsDir, name)).start()
-                ]
-                Pattern startSnippetPattern
-                Pattern endSnippetPattern
-                if (name.endsWith('.xml')) {
-                    startSnippetPattern = Pattern.compile('\\s*<!--\\s*START\\s+SNIPPET\\s+(\\S+)\\s*-->')
-                    endSnippetPattern = Pattern.compile('\\s*<!--\\s*END\\s+SNIPPET\\s+(\\S+)\\s*-->')
-                } else {
-                    startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
-                    endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
-                }
-
-                try {
-                    // Can't use eachLine {} because it throws away blank lines
-                    srcFile.withReader {Reader r ->
-                        BufferedReader reader = new BufferedReader(r)
-                        reader.readLines().each {String line ->
-                            Matcher m = startSnippetPattern.matcher(line)
-                            if (m.matches()) {
-                                String snippetName = m.group(1)
-                                if (!writers[snippetName]) {
-                                    File snippetFile = new File(snippetsDir, "$name-$snippetName")
-                                    writers.put(snippetName, new SnippetWriter("Snippet $snippetName in $name", snippetFile))
-                                }
-                                writers[snippetName].start()
-                                return
+            try {
+                // Can't use eachLine {} because it throws away blank lines
+                srcFile.withReader {Reader r ->
+                    BufferedReader reader = new BufferedReader(r)
+                    reader.readLines().each {String line ->
+                        Matcher m = startSnippetPattern.matcher(line)
+                        if (m.matches()) {
+                            String snippetName = m.group(1)
+                            if (!writers[snippetName]) {
+                                File snippetFile = new File(snippetsDir, "$name-$snippetName")
+                                writers.put(snippetName, new SnippetWriter("Snippet $snippetName in $name", snippetFile))
                             }
-                            m = endSnippetPattern.matcher(line)
-                            if (m.matches()) {
-                                String snippetName = m.group(1)
-                                writers[snippetName].end()
-                                return
-                            }
-                            writers.values().each {SnippetWriter w ->
-                                w.println(line)
-                            }
+                            writers[snippetName].start()
+                            return
+                        }
+                        m = endSnippetPattern.matcher(line)
+                        if (m.matches()) {
+                            String snippetName = m.group(1)
+                            writers[snippetName].end()
+                            return
+                        }
+                        writers.values().each {SnippetWriter w ->
+                            w.println(line)
                         }
                     }
-                } finally {
-                    writers.values().each {SnippetWriter w ->
-                        w.close()
-                    }
+                }
+            } finally {
+                writers.values().each {SnippetWriter w ->
+                    w.close()
                 }
             }
         }
