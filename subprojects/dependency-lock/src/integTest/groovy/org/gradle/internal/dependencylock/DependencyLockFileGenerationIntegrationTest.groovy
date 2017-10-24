@@ -44,6 +44,24 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         !lockFile.exists()
     }
 
+    def "does not write lock file if all dependencies failed to be resolved"() {
+        given:
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        fails(COPY_LIBS_TASK_NAME)
+
+        then:
+        !lockFile.exists()
+    }
+
     def "can create locks for dependencies with concrete version"() {
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
@@ -59,6 +77,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
+
+    def "can write locks if at least one dependency is resolvable"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+                myConf 'does.not:exist:1.2.3'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        fails(COPY_LIBS_TASK_NAME)
 
         then:
         lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
