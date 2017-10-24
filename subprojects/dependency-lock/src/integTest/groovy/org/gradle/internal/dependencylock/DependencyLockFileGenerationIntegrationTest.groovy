@@ -235,6 +235,30 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         sha1File.text == '1f8f0335a029277514668ad9a789815f25588663'
     }
 
+    def "only creates locks for resolvable configurations"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+        mavenRepo.module('org', 'gradle', '7.5').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                api 'foo:bar:1.5'
+                implementation 'org:gradle:7.5'
+            }
+        """
+        buildFile << copyLibsTask('compileClasspath')
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"compileClasspath","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+        sha1File.text == '91871c1a3ddd08f004bf92ed68a2ff91fa70049f'
+    }
+
     def "can create locks for multi-project builds"() {
         given:
         mavenRepo.module('my', 'dep', '1.5').publish()
