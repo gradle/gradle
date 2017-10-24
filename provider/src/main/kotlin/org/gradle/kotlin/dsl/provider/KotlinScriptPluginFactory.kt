@@ -25,7 +25,6 @@ import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.ScriptSource
 
-import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 
 import javax.inject.Inject
@@ -44,15 +43,29 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
         KotlinScriptPlugin(
             scriptSource,
-            compile(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript))
+            createScriptAction(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript))
 
     private
-    fun compile(
+    fun createScriptAction(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
-        topLevelScript: Boolean): (Any) -> Unit =
+        topLevelScript: Boolean): (Any) -> Unit = { target ->
 
-        compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
+        val scriptTarget = kotlinScriptTargetFor(target)
+        val script = compile(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)
+        script(scriptTarget.`object`)
+    }
+
+    private fun compile(
+        scriptTarget: KotlinScriptTarget<out Any>,
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope,
+        topLevelScript: Boolean): KotlinScript =
+
+        compilerFor(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
+
             if (topLevelScript && inClassPathMode())
                 compileForClassPath()
             else
@@ -61,12 +74,14 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun compilerFor(
+        scriptTarget: KotlinScriptTarget<out Any>,
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
         topLevelScript: Boolean) =
 
         KotlinBuildScriptCompiler(
             kotlinCompiler,
+            scriptTarget,
             scriptSource, topLevelScript,
             scriptHandler as ScriptHandlerInternal,
             pluginRequestsHandler,

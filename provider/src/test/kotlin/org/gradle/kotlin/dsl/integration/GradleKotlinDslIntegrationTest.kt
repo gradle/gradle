@@ -421,9 +421,58 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         """)
 
-       assertThat(
-           build("help").output,
-           containsString("*abc*"))
+        assertThat(
+            build("help").output,
+            containsString("*abc*"))
+    }
+
+    @Test
+    fun `settings script can use buildscript dependencies`() {
+
+        withSettings("""
+            buildscript {
+                repositories { jcenter() }
+                dependencies {
+                    classpath("org.apache.commons:commons-lang3:3.6")
+                }
+            }
+
+            println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("eldarG"))
+    }
+
+    @Test
+    fun `script plugin can by applied to either Project or Settings`() {
+
+        withFile("common.gradle.kts", """
+            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
+            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+        """)
+
+        withSettings("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? true"),
+                containsString("Target is Project? false")))
+
+        withSettings("")
+        withBuildScript("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? false"),
+                containsString("Target is Project? true")))
     }
 
     @Test
