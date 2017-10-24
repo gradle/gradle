@@ -232,7 +232,6 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
-
         assertExcludes(classPath, existing("classes.jar"))
     }
 
