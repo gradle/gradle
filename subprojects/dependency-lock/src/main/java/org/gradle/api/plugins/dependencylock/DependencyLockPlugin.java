@@ -18,6 +18,7 @@ package org.gradle.api.plugins.dependencylock;
 
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.dependencylock.DefaultDependencyLockCreator;
@@ -32,7 +33,10 @@ import java.io.File;
  * <p>A {@link Plugin} which creates locked versions for resolved dependencies and uses them in subsequent builds.</p>
  *
  * <p>The plugin is meant to be applied to the root project of a build only.</p>
+ *
+ * @since 4.4
  */
+@Incubating
 public class DependencyLockPlugin implements Plugin<Project> {
 
     @Override
