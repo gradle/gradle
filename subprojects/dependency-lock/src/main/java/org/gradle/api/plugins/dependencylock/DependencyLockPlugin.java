@@ -28,6 +28,11 @@ import org.gradle.internal.dependencylock.model.DependencyLock;
 
 import java.io.File;
 
+/**
+ * <p>A {@link Plugin} which creates locked versions for resolved dependencies and uses them in subsequent builds.</p>
+ *
+ * <p>The plugin is meant to be applied to the root project of a build only.</p>
+ */
 public class DependencyLockPlugin implements Plugin<Project> {
 
     @Override
