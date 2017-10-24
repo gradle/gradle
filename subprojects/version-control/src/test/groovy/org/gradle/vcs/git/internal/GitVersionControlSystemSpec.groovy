@@ -160,11 +160,11 @@ class GitVersionControlSystemSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message.contains('Could not clone from https://notarepo.invalid into')
+        e.message.contains('Could not clone from https://notarepo.invalid in')
         e.cause != null
         e.cause.message.contains('Exception caught during execution of fetch command')
         e.cause.cause != null
-        e.cause.cause.message.contains('URI not supported: https://notarepo.io')
+        e.cause.cause.message.contains('URI not supported: https://notarepo.invalid')
     }
 
     def 'can get versions'() {
