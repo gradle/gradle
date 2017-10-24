@@ -17,28 +17,14 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.GradleDependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     public static final String POM_PACKAGING = "pom";
@@ -103,7 +89,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         }
         List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(variants.size());
         for (ComponentVariant variant : variants) {
-            configurations.add(new VariantAwareConfigurationMetadata(getComponentId(), variant));
+            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant));
         }
         return configurations;
     }
@@ -113,88 +99,4 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return variants;
     }
 
-    private static class VariantAwareConfigurationMetadata implements ConfigurationMetadata {
-        private final ModuleComponentIdentifier componentId;
-        private final ComponentVariant variant;
-
-        VariantAwareConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
-            this.componentId = componentId;
-            this.variant = variant;
-        }
-
-        @Override
-        public String getName() {
-            return variant.getName();
-        }
-
-        @Override
-        public Collection<String> getHierarchy() {
-            return ImmutableList.of(variant.getName());
-        }
-
-        @Override
-        public String toString() {
-            return asDescribable().getDisplayName();
-        }
-
-        @Override
-        public DisplayName asDescribable() {
-            return Describables.of(componentId, "variant", variant.getName());
-        }
-
-        @Override
-        public ImmutableAttributes getAttributes() {
-            return variant.getAttributes().asImmutable();
-        }
-
-        @Override
-        public Set<? extends VariantMetadata> getVariants() {
-            return ImmutableSet.of(variant);
-        }
-
-        @Override
-        public boolean isCanBeConsumed() {
-            return true;
-        }
-
-        @Override
-        public boolean isCanBeResolved() {
-            return false;
-        }
-
-        @Override
-        public boolean isTransitive() {
-            return true;
-        }
-
-        @Override
-        public boolean isVisible() {
-            return true;
-        }
-
-        @Override
-        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-            return ModuleExclusions.excludeNone();
-        }
-
-        @Override
-        public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-            return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
-        }
-
-        @Override
-        public Set<? extends ComponentArtifactMetadata> getArtifacts() {
-            return ImmutableSet.of();
-        }
-
-        @Override
-        public List<? extends DependencyMetadata> getDependencies() {
-            // TODO - Should calculate this value once
-            List<DependencyMetadata> dependencies = new ArrayList<DependencyMetadata>(variant.getDependencies().size());
-            for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-                dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion())));
-            }
-            return dependencies;
-        }
-    }
 }
