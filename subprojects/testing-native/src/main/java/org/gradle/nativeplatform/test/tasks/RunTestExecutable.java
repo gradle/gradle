@@ -26,7 +26,6 @@ import java.io.File;
  * Runs a compiled and installed test executable.
  */
 @Incubating
-@SuppressWarnings("unchecked")
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     /**
      * The directory where the results should be generated.
@@ -45,6 +44,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
     @Override
     protected void exec() {
         // Make convention mapping work
+        getOutputDir().mkdirs();
         setExecutable(getExecutable());
         setWorkingDir(getOutputDir());
 
@@ -69,7 +69,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
 
     }
 
-    @OutputDirectory
+    @Internal
     public File getOutputDir() {
         return outputDir;
     }
