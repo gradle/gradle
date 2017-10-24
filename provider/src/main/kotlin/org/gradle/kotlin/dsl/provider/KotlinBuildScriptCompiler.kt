@@ -186,8 +186,8 @@ class KotlinBuildScriptCompiler(
 
     private
     fun pluginRequestsFor(target: KotlinScriptTarget<*>): PluginRequests =
-        if (!target.supportsPluginsBlock) DefaultPluginRequests.EMPTY
-        else collectPluginRequestsFromPluginsBlock()
+        if (target.supportsPluginsBlock) collectPluginRequestsFromPluginsBlock()
+        else DefaultPluginRequests.EMPTY
 
     private
     fun collectPluginRequestsFromPluginsBlock(): PluginRequests {
