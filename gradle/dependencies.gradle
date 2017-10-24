@@ -219,6 +219,8 @@ libraries.gcs = [
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
 
+libraries.json_simple = 'com.googlecode.json-simple:json-simple:1.1.1'
+
 // for XCode IDE integration support
 libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
 

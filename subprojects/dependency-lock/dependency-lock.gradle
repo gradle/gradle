@@ -1,0 +1,11 @@
+apply plugin: 'groovy'
+
+sourceCompatibility = 1.6
+
+dependencies {
+    implementation project(':dependencyManagement')
+    implementation libraries.json_simple
+}
+
+useClassycle()
+useTestFixtures()
