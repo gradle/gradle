@@ -108,6 +108,73 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
+    def "can use executable file as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+
+            task buildDebug {
+                dependsOn executable.debugExecutable.executableFile
+            }
+         """
+
+        expect:
+        succeeds "buildDebug"
+        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':buildDebug')
+        executable("build/exe/main/debug/app").assertExists()
+    }
+
+    def "can use objects as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+
+            task compileDebug {
+                dependsOn executable.debugExecutable.objects
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(compileTasksDebug(), ':compileDebug')
+        executable("build/exe/main/debug/app").assertDoesNotExist()
+        objectFiles(app.main)*.assertExists()
+    }
+
+    def "can use installDirectory as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+
+            task install {
+                dependsOn executable.debugExecutable.installDirectory
+            }
+         """
+
+        expect:
+        succeeds "install"
+        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), ':installDebug', ':install')
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "ignores non-C++ source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()

@@ -28,7 +28,6 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -64,7 +63,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", project.getObjects(), fileOperations, configurations);
+        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
@@ -78,7 +77,6 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         compile.getCompilerArgs().add("-enable-testing");
 
         // Wire in this install task
-        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDebugExecutable().getInstallDirectory());
     }
 }

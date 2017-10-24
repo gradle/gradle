@@ -35,8 +35,6 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 
 import javax.inject.Inject;
 
@@ -74,7 +72,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         ObjectFactory objectFactory = project.getObjects();
 
         // Add the application extension
-        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", objectFactory, fileOperations, configurations);
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
@@ -83,13 +81,9 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         application.getBaseName().set(project.getName());
 
         // Install the debug variant by default
-        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
 
         // TODO - add lifecycle tasks to assemble each variant
-
-        LinkExecutable linkDebug = (LinkExecutable) tasks.getByName("linkDebug");
-        LinkExecutable linkRelease = (LinkExecutable) tasks.getByName("linkRelease");
 
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
@@ -98,14 +92,14 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+        debugRuntimeElements.getOutgoing().artifact(application.getDebugExecutable().getExecutableFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(application.getImplementationDependencies());
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
+        releaseRuntimeElements.getOutgoing().artifact(application.getReleaseExecutable().getExecutableFile());
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override

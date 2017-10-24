@@ -17,6 +17,9 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 
 /**
  * An executable built from C++ source.
@@ -25,4 +28,17 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface CppExecutable extends CppBinary {
+    /**
+     * Returns the executable file for this binary.
+     *
+     * @since 4.4
+     */
+    Provider<RegularFile> getExecutableFile();
+
+    /**
+     * Returns the installation directory for this binary.
+     *
+     * @since 4.4
+     */
+    Provider<Directory> getInstallDirectory();
 }
