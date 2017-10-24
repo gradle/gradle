@@ -64,7 +64,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel =
-        scriptModelBuilderFor(modelRequestProject, requestParameterOf(modelRequestProject)).buildModel()
+        scriptModelBuilderFor(modelRequestProject, requestParameterOf(modelRequestProject))
+            .buildModel()
 
     private
     fun requestParameterOf(modelRequestProject: Project) =
@@ -128,7 +129,7 @@ fun defaultScriptModelBuilder(project: Project) =
 
 
 private
-data class KotlinScriptTargetModelBuilder<T : Any>(
+data class KotlinScriptTargetModelBuilder<out T : Any>(
     val `object`: T,
     private val type: KClass<T>,
     val rootDir: File,
@@ -159,7 +160,7 @@ val KotlinBuildScriptModelParameter.noScript
 
 private
 val KotlinBuildScriptModelParameter.settingsScript
-    get() = !noScript && scriptFile!!.name == "settings.gradle.kts"
+    get() = scriptFile?.name == "settings.gradle.kts"
 
 private
 val KotlinBuildScriptModelParameter.scriptFile
@@ -168,7 +169,11 @@ val KotlinBuildScriptModelParameter.scriptFile
 
 private
 val Settings.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf((this as SettingsInternal).classLoaderScope)
+    get() = serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
+
+private
+val Settings.classLoaderScope
+    get() = (this as SettingsInternal).classLoaderScope
 
 private
 val Settings.scriptImplicitImports
