@@ -21,7 +21,6 @@ import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator.ArchitectureDescriptorBuilder
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadataBuilder
@@ -33,6 +32,8 @@ import org.junit.Rule
 
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*
 
 class DefaultVisualStudioLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -343,21 +344,21 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
-        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | LEGACY_AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | LEGACY_AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | LEGACY_AMD64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | LEGACY_X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | LEGACY_X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | LEGACY_X86_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "ia64"         | false          | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | true           | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | false          | ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "ia64"         | false          | LEGACY_IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | true           | LEGACY_IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | false          | LEGACY_IA64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | LEGACY_ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | LEGACY_ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | LEGACY_ARM_ON_X86
     }
 
     @Unroll
@@ -379,17 +380,17 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
-        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | VS15_AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | VS15_AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | VS15_AMD64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.VS15_X86_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.VS15_X86_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | VS15_X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | VS15_X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | VS15_X86_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | VS15_ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | VS15_ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | VS15_ARM_ON_X86
     }
 
     def vs2017Dir(String name) {
@@ -412,18 +413,18 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir = vsDir(name)
         def vcDir = new File(dir, "VC")
         createCompilers(vcDir, is64BitInstall) { it in [
-            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64,
-            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64,
-            ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86,
-            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64,
-            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86
+            LEGACY_AMD64_ON_X86,
+            LEGACY_AMD64_ON_AMD64,
+            LEGACY_AMD64_ON_X86,
+            LEGACY_X86_ON_X86,
+            LEGACY_X86_ON_AMD64,
+            LEGACY_X86_ON_X86,
+            LEGACY_IA64_ON_X86,
+            LEGACY_IA64_ON_X86,
+            LEGACY_IA64_ON_X86,
+            LEGACY_ARM_ON_X86,
+            LEGACY_ARM_ON_AMD64,
+            LEGACY_ARM_ON_X86
         ]}
         return dir
     }
@@ -432,21 +433,21 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir = vs2017Dir(name)
         def vcDir = new File(dir, "VC/Tools/MSVC/1.2.3.4")
         createCompilers(vcDir, is64BitInstall) { it in [
-            ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86,
-            ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_AMD64_ON_X86,
-            ArchitectureDescriptorBuilder.VS15_X86_ON_X86,
-            ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_X86_ON_X86,
-            ArchitectureDescriptorBuilder.VS15_ARM_ON_X86,
-            ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_ARM_ON_X86
+            VS15_AMD64_ON_X86,
+            VS15_AMD64_ON_AMD64,
+            VS15_AMD64_ON_X86,
+            VS15_X86_ON_X86,
+            VS15_X86_ON_AMD64,
+            VS15_X86_ON_X86,
+            VS15_ARM_ON_X86,
+            VS15_ARM_ON_AMD64,
+            VS15_ARM_ON_X86
         ]}
         return dir
     }
 
     def createCompilers(File vcDir, boolean is64BitInstall, Closure condition) {
-        for (ArchitectureDescriptorBuilder builder : ArchitectureDescriptorBuilder.values().findAll(condition)) {
+        for (ArchitectureDescriptorBuilder builder : values().findAll(condition)) {
             if (requires64BitInstall(builder) && !is64BitInstall) {
                 continue;
             }
@@ -459,12 +460,12 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
     boolean requires64BitInstall(ArchitectureDescriptorBuilder builders) {
         return builders in [
-            ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64,
-            ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64,
-            ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_AMD64_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_X86_ON_AMD64,
-            ArchitectureDescriptorBuilder.VS15_ARM_ON_AMD64
+            LEGACY_AMD64_ON_AMD64,
+            LEGACY_X86_ON_AMD64,
+            LEGACY_ARM_ON_AMD64,
+            VS15_AMD64_ON_AMD64,
+            VS15_X86_ON_AMD64,
+            VS15_ARM_ON_AMD64
         ]
     }
 
