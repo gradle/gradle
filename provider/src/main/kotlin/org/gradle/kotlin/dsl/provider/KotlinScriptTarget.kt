@@ -90,8 +90,5 @@ data class KotlinScriptTarget<T : Any>(
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
 
-    val supportsBuildscriptBlock = buildscriptBlockTemplate != null
-    val supportsPluginsBlock = pluginsBlockTemplate != null
-
     fun accessorsClassPathFor(classPath: ClassPath) = accessorsClassPath(classPath)
 }

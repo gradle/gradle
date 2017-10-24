@@ -135,16 +135,16 @@ class KotlinBuildScriptCompiler(
     private
     fun executeBuildscriptBlock() {
         setupEmbeddedKotlinForBuildscript()
-        if (scriptTarget.supportsBuildscriptBlock) {
+        scriptTarget.buildscriptBlockTemplate?.let { template ->
             extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
-                executeBuildscriptBlockFrom(buildscriptRange)
+                executeBuildscriptBlockFrom(buildscriptRange, template)
             }
         }
     }
 
     private
-    fun executeBuildscriptBlockFrom(buildscriptRange: IntRange) {
-        val compiledScript = compileBuildscriptBlock(buildscriptRange)
+    fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) {
+        val compiledScript = compileBuildscriptBlock(buildscriptRange, scriptTemplate)
         executeCompiledScript(compiledScript, buildscriptBlockClassLoaderScope())
     }
 
@@ -181,20 +181,21 @@ class KotlinBuildScriptCompiler(
 
     private
     fun pluginRequests(): PluginRequests =
-        if (scriptTarget.supportsPluginsBlock) collectPluginRequestsFromPluginsBlock()
-        else DefaultPluginRequests.EMPTY
+        scriptTarget.pluginsBlockTemplate?.let { template ->
+            collectPluginRequestsFromPluginsBlock(template)
+        } ?: DefaultPluginRequests.EMPTY
 
     private
-    fun collectPluginRequestsFromPluginsBlock(): PluginRequests {
+    fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): PluginRequests {
         val pluginRequestCollector = PluginRequestCollector(scriptSource)
-        executePluginsBlockOn(pluginRequestCollector)
+        executePluginsBlockOn(pluginRequestCollector, scriptTemplate)
         return pluginRequestCollector.pluginRequests
     }
 
     private
-    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector) {
+    fun executePluginsBlockOn(pluginRequestCollector: PluginRequestCollector, scriptTemplate: KClass<*>) {
         extractPluginsBlockFrom(script)?.let { pluginsRange ->
-            val compiledPluginsBlock = compilePluginsBlock(pluginsRange)
+            val compiledPluginsBlock = compilePluginsBlock(pluginsRange, scriptTemplate)
             executeCompiledPluginsBlockOn(pluginRequestCollector, compiledPluginsBlock)
         }
     }
@@ -227,18 +228,18 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun compileBuildscriptBlock(buildscriptRange: IntRange) =
+    fun compileBuildscriptBlock(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
         kotlinCompiler.compileBuildscriptBlockOf(
-            scriptTarget.buildscriptBlockTemplate!!,
+            scriptTemplate,
             scriptPath,
             script.linePreservingSubstring(buildscriptRange),
             buildscriptBlockCompilationClassPath,
             baseScope.exportClassLoader)
 
     private
-    fun compilePluginsBlock(pluginsRange: IntRange) =
+    fun compilePluginsBlock(pluginsRange: IntRange, scriptTemplate: KClass<*>) =
         kotlinCompiler.compilePluginsBlockOf(
-            scriptTarget.pluginsBlockTemplate!!,
+            scriptTemplate,
             scriptPath,
             script.linePreservingSubstring_(pluginsRange),
             pluginsBlockCompilationClassPath,
