@@ -220,7 +220,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val settings = withSettings("""
             buildscript {
                 repositories {
-                    maven { setUrl(File("dependencies").toURI()) }
+                    maven { setUrl(File(rootDir, "dependencies").toURI()) }
                 }
                 dependencies {
                     classpath("settings:settings-dep:1.0")
