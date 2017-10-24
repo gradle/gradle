@@ -66,8 +66,9 @@ class CachingKotlinCompiler(
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFileNameFor(buildscriptBlockTemplate, scriptPath)
-        return compileScript(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
+        val scriptFileName = scriptFileNameFor(scriptPath)
+        val cacheKeySpec = cacheKeyPrefix + buildscriptBlockTemplate.qualifiedName + scriptFileName + buildscript
+        return compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 buildscriptBlockTemplate,
                 scriptPath,
@@ -86,15 +87,15 @@ class CachingKotlinCompiler(
         parentClassLoader: ClassLoader): CompiledPluginsBlock {
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
-        val scriptFileName = scriptFileNameFor(pluginsBlockTemplate, scriptPath)
-        val compiledScript =
-            compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
-                ScriptCompilationSpec(
-                    pluginsBlockTemplate,
-                    scriptPath,
-                    cacheFileFor(plugins, cacheDir, scriptFileName),
-                    scriptFileName + " plugins block")
-            }
+        val scriptFileName = scriptFileNameFor(scriptPath)
+        val cacheKeySpec = cacheKeyPrefix + pluginsBlockTemplate.qualifiedName + scriptFileName + plugins
+        val compiledScript = compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
+            ScriptCompilationSpec(
+                pluginsBlockTemplate,
+                scriptPath,
+                cacheFileFor(plugins, cacheDir, scriptFileName),
+                scriptFileName + " plugins block")
+        }
         return CompiledPluginsBlock(lineNumber, compiledScript)
     }
 
@@ -107,8 +108,9 @@ class CachingKotlinCompiler(
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFileNameFor(scriptTemplate, scriptPath)
-        return compileScript(cacheKeyPrefix + scriptFileName + script, classPath, parentClassLoader) { cacheDir ->
+        val scriptFileName = scriptFileNameFor(scriptPath)
+        val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + script
+        return compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 scriptTemplate,
                 scriptPath,
@@ -118,8 +120,8 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun scriptFileNameFor(scriptTemplate: KClass<*>, scriptPath: String) =
-        "${scriptTemplate.qualifiedName}_${scriptPath.substringAfterLast(File.separatorChar)}"
+    fun scriptFileNameFor(scriptPath: String) =
+        scriptPath.substringAfterLast(File.separatorChar)
 
     private
     fun compileScript(
