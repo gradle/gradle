@@ -6,9 +6,15 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
+import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
+
 import java.io.File
 
 
@@ -94,7 +100,6 @@ open class AbstractIntegrationTest {
     fun parentFileOf(fileName: String): File =
         File(projectRoot, fileName).parentFile
 
-    protected
     fun build(vararg arguments: String): BuildResult =
         gradleRunnerForArguments(*arguments)
             .build()
@@ -115,6 +120,15 @@ open class AbstractIntegrationTest {
     private
     fun gradleRunnerForArguments(vararg arguments: String) =
         gradleRunnerFor(projectRoot, *arguments)
+}
+
+
+fun AbstractIntegrationTest.canPublishBuildScan() {
+    assertThat(
+        build("tasks", "--scan").output,
+        allOf(
+            containsString("Publishing build scan..."),
+            not(containsString("The build scan plugin was applied after other plugins."))))
 }
 
 
