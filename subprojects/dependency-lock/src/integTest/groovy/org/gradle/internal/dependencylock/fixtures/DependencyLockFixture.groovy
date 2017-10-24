@@ -16,9 +16,12 @@
 
 package org.gradle.internal.dependencylock.fixtures
 
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 final class DependencyLockFixture {
+
+    public static final String COPY_LIBS_TASK_NAME = 'copyLibs'
 
     private DependencyLock() {
     }
@@ -33,18 +36,18 @@ final class DependencyLockFixture {
         """
     }
 
-    static String customConfiguration(String configurationName) {
+    static String customConfigurations(String... configurationNames) {
         """
             configurations {
-                $configurationName
+                ${configurationNames.join(SystemProperties.instance.lineSeparator)}
             }
         """
     }
 
-    static String copyLibsTask(String configurationName) {
+    static String copyLibsTask(String... configurationNames) {
         """
-            task copyLibs(type: Copy) {
-                from configurations.${configurationName}
+            task $COPY_LIBS_TASK_NAME(type: Copy) {
+                ${configurationNames.collect { "from configurations.${it}" }.join(SystemProperties.instance.lineSeparator)}
                 into "\$buildDir/libs"
             }
         """

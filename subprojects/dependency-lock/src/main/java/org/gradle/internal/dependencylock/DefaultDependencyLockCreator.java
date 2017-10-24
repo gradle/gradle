@@ -51,10 +51,7 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
 
                                         if (requested instanceof ModuleComponentSelector) {
                                             ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-                                            ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(requestedModule.getGroup(), requestedModule.getModule());
-                                            String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
-                                            DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
-                                            dependencyLock.addDependency(configuration.getName(), moduleIdentifier, dependencyVersion);
+                                            addDependency(configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
                                         }
                                     }
                                 }
@@ -66,5 +63,12 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
         });
 
         return dependencyLock;
+    }
+
+    private void addDependency(String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(requestedModule.getGroup(), requestedModule.getModule());
+        String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
+        DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
+        dependencyLock.addDependency(configurationName, moduleIdentifier, dependencyVersion);
     }
 }

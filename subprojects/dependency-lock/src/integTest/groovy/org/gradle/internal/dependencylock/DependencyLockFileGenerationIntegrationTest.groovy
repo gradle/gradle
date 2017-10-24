@@ -23,6 +23,8 @@ import static org.gradle.internal.dependencylock.fixtures.DependencyLockFixture.
 
 class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String MYCONF_CUSTOM_CONFIGURATION = 'myConf'
+
     TestFile lockFile
 
     def setup() {
@@ -32,11 +34,11 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
     def "does not write lock file if no dependencies were resolved"() {
         given:
-        buildFile << customConfiguration('myConf')
-        buildFile << copyLibsTask('myConf')
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         !lockFile.exists()
@@ -46,16 +48,16 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
-        buildFile << customConfiguration('myConf')
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask('myConf')
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         lockFile.text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:bar","lockedVersion":"1.5"}]}]'
@@ -68,7 +70,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         mavenRepo.module('my', 'prod', '3.2.1').publish()
         mavenRepo.module('dep', 'range', '1.7.1').publish()
 
-        buildFile << customConfiguration('myConf')
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.+'
@@ -77,10 +79,10 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
                 myConf 'dep:range:[1.0,2.0]'
             }
         """
-        buildFile << copyLibsTask('myConf')
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         lockFile.text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"+","coordinates":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]'
@@ -91,20 +93,42 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         mavenRepo.module('foo', 'bar', '1.3').publish()
         mavenRepo.module('org', 'gradle', '7.5').publish()
 
-        buildFile << customConfiguration('myConf')
-        buildFile << customConfiguration('unresolved')
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION, 'unresolved')
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.+'
                 unresolved 'org:gradle:+'
             }
         """
-        buildFile << copyLibsTask('myConf')
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         lockFile.text == '[{"configuration":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]'
+    }
+
+    def "can create locks for all multiple resolved configurations"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.3').publish()
+        mavenRepo.module('org', 'gradle', '7.5').publish()
+        mavenRepo.module('my', 'prod', '3.2.1').publish()
+
+        buildFile << customConfigurations('a', 'b', 'c')
+        buildFile << """
+            dependencies {
+                a 'foo:bar:1.+'
+                b 'org:gradle:7.5'
+                c 'my:prod:latest.release'
+            }
+        """
+        buildFile << copyLibsTask('a', 'b', 'c')
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        lockFile.text == '[{"configuration":"a","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"configuration":"b","dependencies":[{"requestedVersion":"7.5","coordinates":"org:gradle","lockedVersion":"7.5"}]},{"configuration":"c","dependencies":[{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"}]}]'
     }
 }
