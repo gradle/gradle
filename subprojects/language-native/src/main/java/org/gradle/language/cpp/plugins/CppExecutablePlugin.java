@@ -35,7 +35,6 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 
 import javax.inject.Inject;
 
@@ -82,8 +81,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         application.getBaseName().set(project.getName());
 
         // Install the debug variant by default
-        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
 
         // TODO - add lifecycle tasks to assemble each variant
 
