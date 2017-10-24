@@ -23,7 +23,7 @@ final class DependencyLockFixture {
 
     public static final String COPY_LIBS_TASK_NAME = 'copyLibs'
 
-    private DependencyLock() {
+    private DependencyLockFixture() {
     }
 
     static String appliedPlugin() {
