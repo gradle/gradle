@@ -39,7 +39,6 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         getBaseName().set(name);
     }
 
-    @Override
     public Property<CppComponent> getTestedComponent() {
         return testedComponent;
     }

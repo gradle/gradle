@@ -72,11 +72,9 @@ public class CppUnitTestBasePlugin implements Plugin<ProjectInternal> {
             public void execute(Plugin<ProjectInternal> plugin) {
                 final TaskContainer tasks = project.getTasks();
                 CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
-                testComponent.getTestedComponent().set(mainComponent);
+                ((DefaultCppTestSuite)testComponent).getTestedComponent().set(mainComponent);
 
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestExecutable");
-                //linkTest.source(mainComponent.getDevelopmentBinary());
-
                 CppCompile compileMain = tasks.withType(CppCompile.class).getByName("compileDebugCpp");
                 linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
             }

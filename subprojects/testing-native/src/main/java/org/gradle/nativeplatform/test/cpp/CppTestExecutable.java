@@ -16,7 +16,14 @@
 
 package org.gradle.nativeplatform.test.cpp;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.cpp.CppExecutable;
 
+/**
+ * A C++ test executable.
+ *
+ * @since 4.4
+ */
+@Incubating
 public interface CppTestExecutable extends CppExecutable {
 }

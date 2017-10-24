@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 
@@ -39,7 +40,7 @@ public class DefaultCppTestExecutable extends DefaultCppExecutable implements Cp
 
     @Override
     public FileCollection getCompileIncludePath() {
-        // TODO: This should be modelled different, perhaps as a dependency on the implementation configuration
+        // TODO: This should be modeled differently, perhaps as a dependency on the implementation configuration
         return super.getCompileIncludePath().plus(getFileOperations().files(new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
@@ -47,7 +48,7 @@ public class DefaultCppTestExecutable extends DefaultCppExecutable implements Cp
                 if (tested == null) {
                     return getFileOperations().files();
                 }
-                return tested.getAllHeaderDirs();
+                return ((DefaultCppComponent)tested).getAllHeaderDirs();
             }
         }));
     }

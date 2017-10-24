@@ -116,7 +116,6 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         return getAllHeaderDirs().getAsFileTree().matching(new PatternSet().include("**/*.h"));
     }
 
-    @Override
     public FileCollection getAllHeaderDirs() {
         return privateHeadersWithConvention;
     }
