@@ -20,11 +20,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.GradleDependencyMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -108,12 +113,33 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return variants;
     }
 
-    private static class VariantAwareConfigurationMetadata extends DefaultConfigurationMetadata {
+    private static class VariantAwareConfigurationMetadata implements ConfigurationMetadata {
+        private final ModuleComponentIdentifier componentId;
         private final ComponentVariant variant;
 
-        VariantAwareConfigurationMetadata(ModuleComponentIdentifier componentIdentifier, ComponentVariant variant) {
-            super(componentIdentifier, variant.getName(), true, true, ImmutableList.<DefaultConfigurationMetadata>of(), ImmutableList.<Exclude>of());
+        VariantAwareConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
+            this.componentId = componentId;
             this.variant = variant;
+        }
+
+        @Override
+        public String getName() {
+            return variant.getName();
+        }
+
+        @Override
+        public Collection<String> getHierarchy() {
+            return ImmutableList.of(variant.getName());
+        }
+
+        @Override
+        public String toString() {
+            return asDescribable().getDisplayName();
+        }
+
+        @Override
+        public DisplayName asDescribable() {
+            return Describables.of(componentId, "variant", variant.getName());
         }
 
         @Override
@@ -124,6 +150,41 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         @Override
         public Set<? extends VariantMetadata> getVariants() {
             return ImmutableSet.of(variant);
+        }
+
+        @Override
+        public boolean isCanBeConsumed() {
+            return true;
+        }
+
+        @Override
+        public boolean isCanBeResolved() {
+            return false;
+        }
+
+        @Override
+        public boolean isTransitive() {
+            return true;
+        }
+
+        @Override
+        public boolean isVisible() {
+            return true;
+        }
+
+        @Override
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            return ModuleExclusions.excludeNone();
+        }
+
+        @Override
+        public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
+            return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+        }
+
+        @Override
+        public Set<? extends ComponentArtifactMetadata> getArtifacts() {
+            return ImmutableSet.of();
         }
 
         @Override

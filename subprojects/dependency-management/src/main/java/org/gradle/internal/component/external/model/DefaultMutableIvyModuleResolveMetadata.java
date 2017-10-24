@@ -84,7 +84,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, List<IvyConfigurationMetadata> parents) {
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents) {
         return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
     }
 

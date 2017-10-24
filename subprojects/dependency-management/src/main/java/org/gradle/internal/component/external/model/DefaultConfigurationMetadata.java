@@ -79,6 +79,10 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
         return name;
     }
 
+    public List<? extends DefaultConfigurationMetadata> getParents() {
+        return parents;
+    }
+
     public List<Exclude> getExcludes() {
         return excludes;
     }
@@ -89,7 +93,8 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     }
 
     private List<String> calculateHierarchy() {
-        if (parents == null) {
+        List<? extends DefaultConfigurationMetadata> parents = getParents();
+        if (parents.isEmpty()) {
             return Collections.singletonList(name);
         }
         Set<String> hierarchy = new LinkedHashSet<String>(1 + parents.size());
@@ -99,10 +104,8 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     private void populateHierarchy(Set<String> accumulator) {
             accumulator.add(name);
-        if (parents != null) {
-            for (DefaultConfigurationMetadata parent : parents) {
-                parent.populateHierarchy(accumulator);
-            }
+        for (DefaultConfigurationMetadata parent : getParents()) {
+            parent.populateHierarchy(accumulator);
         }
     }
 
@@ -207,11 +210,7 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
         if (!visited.add(this)) {
             return;
         }
-        if (parents == null) {
-            return;
-        }
-
-        for (DefaultConfigurationMetadata parent : parents) {
+        for (DefaultConfigurationMetadata parent : getParents()) {
             parent.collectInheritedArtifacts(visited);
             artifacts.addAll(parent.artifacts);
         }

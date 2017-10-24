@@ -76,7 +76,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, List<MavenConfigurationMetadata> parents) {
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
         return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
     }
 

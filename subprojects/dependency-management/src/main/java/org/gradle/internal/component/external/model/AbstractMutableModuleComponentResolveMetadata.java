@@ -176,7 +176,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations, excludes));
         }
-        populated = createConfiguration(componentId, name, excludes, transitive, visible, hierarchy);
+        populated = createConfiguration(componentId, name, excludes, transitive, visible, ImmutableList.copyOf(hierarchy));
 
         configurations.put(name, populated);
         return populated;
@@ -185,7 +185,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     /**
      * Creates a {@link ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, List<T> parents);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, ImmutableList<T> parents);
 
     @Override
     public void setStatus(String status) {

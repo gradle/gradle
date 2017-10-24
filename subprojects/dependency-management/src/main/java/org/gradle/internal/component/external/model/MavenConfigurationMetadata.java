@@ -16,13 +16,14 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.Exclude;
 
 import java.util.List;
 
 class MavenConfigurationMetadata extends DefaultConfigurationMetadata {
-    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<MavenConfigurationMetadata> parents, List<Exclude> excludes) {
+    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, List<Exclude> excludes) {
         super(componentId, name, transitive, visible, parents, excludes);
     }
 }
