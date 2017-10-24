@@ -25,19 +25,34 @@ import java.util.TreeMap;
 
 public class DependencyLock {
 
-    private final SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> mapping = new TreeMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>();
+    private final SortedMap<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> projectsMapping = new TreeMap<String,  SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>>();
 
-    public void addDependency(String configurationName, ModuleIdentifier moduleIdentifier, DependencyVersion dependencyVersion) {
-        if (mapping.containsKey(configurationName)) {
-            mapping.get(configurationName).put(moduleIdentifier, dependencyVersion);
+    public void addDependency(String projectPath, String configurationName, ModuleIdentifier moduleIdentifier, DependencyVersion dependencyVersion) {
+        if (projectsMapping.containsKey(projectPath)) {
+            SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> project = projectsMapping.get(projectPath);
+
+            if (!project.containsKey(configurationName)) {
+                project.put(configurationName, new LinkedHashMap<ModuleIdentifier, DependencyVersion>());
+            }
+
+            project.get(configurationName).put(moduleIdentifier, dependencyVersion);
         } else {
+            SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationMapping = createNewConfigurationMapping(configurationName);
             LinkedHashMap<ModuleIdentifier, DependencyVersion> modules = new LinkedHashMap<ModuleIdentifier, DependencyVersion>();
             modules.put(moduleIdentifier, dependencyVersion);
-            mapping.put(configurationName, modules);
+            configurationMapping.put(configurationName, modules);
+            projectsMapping.put(projectPath, configurationMapping);
         }
     }
 
-    public Map<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> getMapping() {
-        return mapping;
+    private SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> createNewConfigurationMapping(String configurationName) {
+        SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationMapping = new TreeMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>();
+        LinkedHashMap<ModuleIdentifier, DependencyVersion> modules = new LinkedHashMap<ModuleIdentifier, DependencyVersion>();
+        configurationMapping.put(configurationName, modules);
+        return configurationMapping;
+    }
+
+    public Map<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> getProjectsMapping() {
+        return projectsMapping;
     }
 }

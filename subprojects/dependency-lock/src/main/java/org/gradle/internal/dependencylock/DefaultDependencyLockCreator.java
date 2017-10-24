@@ -32,7 +32,7 @@ import org.gradle.internal.dependencylock.model.DependencyVersion;
 public class DefaultDependencyLockCreator implements DependencyLockCreator {
 
     @Override
-    public DependencyLock create(Project project) {
+    public DependencyLock create(final Project project) {
         final DependencyLock dependencyLock = new DependencyLock();
 
         project.getConfigurations().all(new Action<Configuration>() {
@@ -51,7 +51,7 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
 
                                         if (requested instanceof ModuleComponentSelector) {
                                             ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-                                            addDependency(configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
+                                            addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
                                         }
                                     }
                                 }
@@ -65,10 +65,10 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
         return dependencyLock;
     }
 
-    private void addDependency(String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
+    private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(requestedModule.getGroup(), requestedModule.getModule());
         String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
         DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
-        dependencyLock.addDependency(configurationName, moduleIdentifier, dependencyVersion);
+        dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, dependencyVersion);
     }
 }

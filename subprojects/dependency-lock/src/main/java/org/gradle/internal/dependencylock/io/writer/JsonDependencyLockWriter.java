@@ -29,9 +29,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.SortedMap;
 
 public class JsonDependencyLockWriter implements DependencyLockWriter {
 
+    private static final String LOCK_FILE_VERSION = "1.0";
     private final File lockFile;
 
     public JsonDependencyLockWriter(File lockFile) {
@@ -40,36 +42,48 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
 
     @Override
     public void write(DependencyLock dependencyLock) {
-        if (!dependencyLock.getMapping().isEmpty()) {
-            JSONArray allLocks = createJson(dependencyLock);
+        if (!dependencyLock.getProjectsMapping().isEmpty()) {
+            JSONObject allLocks = createJson(dependencyLock);
             writeFile(lockFile, allLocks);
         }
     }
 
-    private JSONArray createJson(DependencyLock dependencyLock) {
-        JSONArray allLocks = new JSONArray();
+    private JSONObject createJson(DependencyLock dependencyLock) {
+        JSONObject allLocks = new JSONObject();
+        allLocks.put("lockFileVersion", LOCK_FILE_VERSION);
+        JSONArray projects = new JSONArray();
 
-        for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> mapping : dependencyLock.getMapping().entrySet()) {
-            JSONObject configuration = new JSONObject();
-            JSONArray dependencies = new JSONArray();
+        for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
+            JSONObject project = new JSONObject();
+            project.put("path", projectsMapping.getKey());
+            projects.add(project);
+            JSONArray configurations = new JSONArray();
+            project.put("configurations", configurations);
 
-            for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : mapping.getValue().entrySet()) {
-                JSONObject dependency = new JSONObject();
-                dependency.put("coordinates", lockedDependency.getKey().toString());
-                dependency.put("requestedVersion", lockedDependency.getValue().getRequestedVersion());
-                dependency.put("lockedVersion", lockedDependency.getValue().getSelectedVersion());
-                dependencies.add(dependency);
+            for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationsMapping : projectsMapping.getValue().entrySet()) {
+                JSONObject configuration = new JSONObject();
+                JSONArray dependencies = new JSONArray();
+
+                for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : configurationsMapping.getValue().entrySet()) {
+                    JSONObject dependency = new JSONObject();
+                    dependency.put("coordinates", lockedDependency.getKey().toString());
+                    dependency.put("requestedVersion", lockedDependency.getValue().getRequestedVersion());
+                    dependency.put("lockedVersion", lockedDependency.getValue().getSelectedVersion());
+                    dependencies.add(dependency);
+                }
+
+                configuration.put("name", configurationsMapping.getKey());
+                configuration.put("dependencies", dependencies);
+                configurations.add(configuration);
             }
 
-            configuration.put("configuration", mapping.getKey());
-            configuration.put("dependencies", dependencies);
-            allLocks.add(configuration);
+            allLocks.put("projects", projects);
         }
 
         return allLocks;
     }
 
-    private void writeFile(File lockFile, JSONArray allLocks) {
+    private void writeFile(File lockFile, JSONObject allLocks) {
         GFileUtils.parentMkdirs(lockFile);
         FileWriter fileWriter = null;
 
