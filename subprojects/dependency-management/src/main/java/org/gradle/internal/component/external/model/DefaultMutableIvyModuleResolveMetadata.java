@@ -35,7 +35,7 @@ import java.util.Map;
 
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
-public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
+public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<IvyConfigurationMetadata> implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifacts;
     private final ImmutableMap<String, Configuration> configurations;
     private ImmutableList<Exclude> excludes;
@@ -81,6 +81,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
             builder.put(configuration.getName(), configuration);
         }
         return builder.build();
+    }
+
+    @Override
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, List<IvyConfigurationMetadata> parents) {
+        return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
     }
 
     @Override

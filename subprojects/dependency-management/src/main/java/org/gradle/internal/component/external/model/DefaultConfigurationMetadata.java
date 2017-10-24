@@ -42,10 +42,10 @@ import java.util.Set;
 /**
  * This should be made immutable. It is currently effectively immutable. Should also be specialized for Maven, Ivy and Gradle metadata as much of this state is required only for Ivy.
  */
-class DefaultConfigurationMetadata implements ConfigurationMetadata {
+abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
-    private final List<DefaultConfigurationMetadata> parents;
+    private final List<? extends DefaultConfigurationMetadata> parents;
     private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
     private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
     private final boolean transitive;
@@ -54,7 +54,7 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final List<Exclude> excludes;
     private ModuleExclusion exclusions;
 
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents, List<Exclude> excludes) {
+    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<? extends DefaultConfigurationMetadata> parents, List<Exclude> excludes) {
         this.componentId = componentId;
         this.name = name;
         this.parents = parents;
@@ -62,10 +62,6 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
         this.visible = visible;
         this.hierarchy = calculateHierarchy();
         this.excludes = excludes;
-    }
-
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<Exclude> excludes) {
-        this(componentId, name, transitive, visible, null, excludes);
     }
 
     @Override
@@ -81,6 +77,10 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public String getName() {
         return name;
+    }
+
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     @Override

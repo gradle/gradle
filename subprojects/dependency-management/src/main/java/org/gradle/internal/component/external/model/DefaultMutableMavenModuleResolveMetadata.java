@@ -43,7 +43,7 @@ import java.util.Set;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
-public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
+public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<MavenConfigurationMetadata> implements MutableMavenModuleResolveMetadata {
     private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
@@ -73,6 +73,11 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
+    }
+
+    @Override
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, List<MavenConfigurationMetadata> parents) {
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
     }
 
     @Override
