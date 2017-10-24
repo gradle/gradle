@@ -81,14 +81,9 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public String getDynamicConstraintVersion() {
-        return getRequested().getVersion();
-    }
-
-    @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         if (!targetComponent.getConsumableConfigurationsHavingAttributes().isEmpty()) {
-            // This condition shouldn't be here, and attribute matching should always applied when the target has variants
+            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
             // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
             // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
             // - or the target is a component from a Maven repo as we can assume this is well behaved

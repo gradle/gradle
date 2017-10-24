@@ -160,11 +160,6 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     }
 
     @Override
-    public String getDynamicConstraintVersion() {
-        return requested.getVersion();
-    }
-
-    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (artifactNames.isEmpty()) {
             return Collections.emptySet();

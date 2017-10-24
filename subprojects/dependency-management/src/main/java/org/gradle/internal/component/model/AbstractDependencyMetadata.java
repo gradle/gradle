@@ -25,6 +25,11 @@ import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import java.util.List;
 
 public abstract class AbstractDependencyMetadata implements DependencyMetadata {
+    @Override
+    public String getDynamicConstraintVersion() {
+        return getRequested().getVersion();
+    }
+
     /**
      * Should be extracted out as a service.
      */

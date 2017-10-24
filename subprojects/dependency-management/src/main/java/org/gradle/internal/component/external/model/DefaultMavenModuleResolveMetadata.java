@@ -21,11 +21,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -129,11 +128,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
         @Override
         public List<? extends DependencyMetadata> getDependencies() {
-            // TODO - Should calculate this value
+            // TODO - Should calculate this value once
             List<DependencyMetadata> dependencies = new ArrayList<DependencyMetadata>(variant.getDependencies().size());
             for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-                // TODO - should not use a maven dependency implementation here
-                dependencies.add(new MavenDependencyMetadata(MavenScope.Runtime, false, DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion()), ImmutableList.<Artifact>of(), ImmutableList.<Exclude>of()));
+                dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion())));
             }
             return dependencies;
         }
