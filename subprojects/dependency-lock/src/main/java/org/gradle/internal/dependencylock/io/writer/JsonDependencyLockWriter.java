@@ -33,6 +33,7 @@ import java.util.SortedMap;
 
 public class JsonDependencyLockWriter implements DependencyLockWriter {
 
+    private static final String USER_NOTICE = "This is an auto-generated file and is not meant to be edited manually!";
     private static final String LOCK_FILE_VERSION = "1.0";
     private final File lockFile;
 
@@ -50,6 +51,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
 
     private JSONObject createJson(DependencyLock dependencyLock) {
         JSONObject allLocks = new JSONObject();
+        allLocks.put("_comment", USER_NOTICE);
         allLocks.put("lockFileVersion", LOCK_FILE_VERSION);
         JSONArray projects = new JSONArray();
 

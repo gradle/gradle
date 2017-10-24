@@ -60,7 +60,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:bar","lockedVersion":"1.5"}]}]}]}'
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 
     def "can create locks for all supported formats of dynamic dependencies"() {
@@ -85,7 +85,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"+","coordinates":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]}]}'
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"+","coordinates":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","coordinates":"dep:range","lockedVersion":"1.7.1"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 
     def "only creates locks for resolved dependencies"() {
@@ -106,7 +106,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]}]}'
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 
     def "can create locks for all multiple resolved configurations"() {
@@ -129,7 +129,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"a","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"name":"b","dependencies":[{"requestedVersion":"7.5","coordinates":"org:gradle","lockedVersion":"7.5"}]},{"name":"c","dependencies":[{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"}]}]}]}'
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"a","dependencies":[{"requestedVersion":"1.+","coordinates":"foo:bar","lockedVersion":"1.3"}]},{"name":"b","dependencies":[{"requestedVersion":"7.5","coordinates":"org:gradle","lockedVersion":"7.5"}]},{"name":"c","dependencies":[{"requestedVersion":"latest.release","coordinates":"my:prod","lockedVersion":"3.2.1"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 
     def "can create locks for first-level and transitive resolved dependencies"() {
@@ -154,6 +154,6 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"}]}]}]}'
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 }
