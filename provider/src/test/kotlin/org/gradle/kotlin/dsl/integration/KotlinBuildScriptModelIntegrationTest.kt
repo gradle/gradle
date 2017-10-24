@@ -216,14 +216,23 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         withBuildSrc()
 
-        val settings = withSettings("")
+        val settingsDependency = withFile("dependencies/settings/settings-dep/1.0/settings-dep-1.0.jar", "")
+        val settings = withSettings("""
+            buildscript {
+                repositories {
+                    maven { setUrl(File("dependencies").toURI()) }
+                }
+                dependencies {
+                    classpath("settings:settings-dep:1.0")
+                }
+            }
+        """)
 
-        withFile("classes.jar", "")
-
-        withFile("build.gradle", """
+        val projectDependency = withFile("project-dependency.jar", "")
+        withFile("dependencies/build.gradle", """
             buildscript {
                 dependencies {
-                    classpath(files("classes.jar"))
+                    classpath(files("$projectDependency"))
                 }
             }
         """)
@@ -232,7 +241,9 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
-        assertExcludes(classPath, existing("classes.jar"))
+
+        assertIncludes(classPath, settingsDependency)
+        assertExcludes(classPath, projectDependency)
     }
 
     private
@@ -304,6 +315,12 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             classPath.map { it.name },
             hasItem("buildSrc.jar"))
+
+    private
+    fun assertIncludes(classPath: List<File>, vararg files: File) =
+        assertThat(
+            classPath.map { it.name },
+            hasItems(*fileNameSetOf(*files)))
 
     private
     fun assertExcludes(classPath: List<File>, vararg files: File) =
