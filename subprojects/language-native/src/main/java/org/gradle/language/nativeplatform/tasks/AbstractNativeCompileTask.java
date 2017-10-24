@@ -85,6 +85,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ListProperty<String> compilerArgs;
     private ImmutableList<String> includePaths;
     private final RegularFileProperty headerDependenciesFile;
+    private FileCollection evaluatedHeaderDependencies;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -345,25 +346,31 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     protected FileCollection getHeaderDependencies() throws IOException {
-        File inputFile = headerDependenciesFile.getAsFile().getOrNull();
-        if (inputFile == null || !inputFile.isFile()) {
-            return null;
+        // TODO wolfs: This may not be enough given that the getter is evaluated at configuration time while the headerDependenciesFile could/should change at runtime
+        // Still, no test is failing, so maybe it works or we do not have enough test coverage
+        if (evaluatedHeaderDependencies == null) {
+            File inputFile = headerDependenciesFile.getAsFile().getOrNull();
+            if (inputFile == null || !inputFile.isFile()) {
+                return null;
+            }
+
+            Set<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
+                private Set<File> result = new HashSet<File>();
+
+                @Override
+                public boolean processLine(String line) throws IOException {
+                    result.add(new File(line));
+                    return true;
+                }
+
+                @Override
+                public Set<File> getResult() {
+                    return result;
+                }
+            });
+            evaluatedHeaderDependencies = new SimpleFileCollection(files);
         }
+        return evaluatedHeaderDependencies;
 
-        Set<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
-            private Set<File> result = new HashSet<File>();
-
-            @Override
-            public boolean processLine(String line) throws IOException {
-                result.add(new File(line));
-                return true;
-            }
-
-            @Override
-            public Set<File> getResult() {
-                return result;
-            }
-        });
-        return new SimpleFileCollection(files);
     }
 }
