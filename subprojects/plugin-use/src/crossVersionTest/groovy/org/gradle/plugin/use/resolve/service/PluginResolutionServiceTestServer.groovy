@@ -18,8 +18,6 @@ package org.gradle.plugin.use.resolve.service
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.plugin.use.resolve.service.internal.ClientStatus
-import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -35,6 +33,8 @@ import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 class PluginResolutionServiceTestServer extends ExternalResource {
 
     public final static String API_PATH = "api"
+
+    private static final String CLIENT_STATUS_CHECKSUM_HEADER = "X-Gradle-Client-Status-Checksum";
 
     final HttpServer http
 
@@ -215,7 +215,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     private void addDeprecationHeader(HttpServletResponse response) {
         if (deprecationMessage != null) {
-            response.addHeader(HttpPluginResolutionServiceClient.CLIENT_STATUS_CHECKSUM_HEADER, statusChecksum)
+            response.addHeader(CLIENT_STATUS_CHECKSUM_HEADER, statusChecksum)
         }
     }
 

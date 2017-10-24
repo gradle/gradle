@@ -17,8 +17,8 @@
 dependencies {
     compile project(":core")
     compile project(":dependencyManagement")
-    compile project(":resourcesHttp")
-    compile libraries.gson
+
+    runtime project(":resourcesHttp")
 
     integTestRuntime project(':plugins')
     integTestRuntime project(':pluginDevelopment')

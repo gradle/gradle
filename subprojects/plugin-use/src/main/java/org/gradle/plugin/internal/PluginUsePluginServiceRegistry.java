@@ -28,16 +28,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -58,15 +54,7 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
-import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.service.internal.OfflinePluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
@@ -109,21 +97,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     }
 
     private static class BuildScopeServices {
-        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter, SslContextFactory sslContextFactory) {
-            PluginResolutionServiceClient httpClient = startParameter.isOffline()
-                ? new OfflinePluginResolutionServiceClient()
-                : new HttpPluginResolutionServiceClient(sslContextFactory);
-
-            PersistentCache cache = cacheRepository
-                .cache(CACHE_NAME)
-                .withDisplayName("Plugin Resolution Cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None))
-                .open();
-
-            PluginResolutionServiceClient persistentCachingClient = new PersistentCachingPluginResolutionServiceClient(httpClient, cache);
-            PluginResolutionServiceClient inMemoryCachingClient = new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
-            return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
-        }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry,
                                                           DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
