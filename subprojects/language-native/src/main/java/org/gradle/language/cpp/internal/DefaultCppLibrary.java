@@ -78,7 +78,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    protected FileCollection getAllHeaderDirs() {
+    public FileCollection getAllHeaderDirs() {
         return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
     }
 
