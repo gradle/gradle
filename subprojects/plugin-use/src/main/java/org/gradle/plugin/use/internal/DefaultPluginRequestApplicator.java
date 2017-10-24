@@ -80,13 +80,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
-        if (requests.isEmpty()) {
+        if (target == null || requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
             return;
-        }
-
-        if (target == null) {
-            throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
         }
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);

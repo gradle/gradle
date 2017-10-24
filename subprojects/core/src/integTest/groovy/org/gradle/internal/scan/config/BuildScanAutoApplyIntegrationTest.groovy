@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.VersionNumber
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
@@ -182,6 +183,23 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         buildScanPluginNotApplied()
+    }
+
+    @Issue("gradle/gradle#3250")
+    def "automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block"() {
+        given:
+        buildFile << """
+            buildscript {
+              rootProject.apply { from(rootProject.file("gradle/dependencies.gradle")) }
+            }
+        """.stripIndent()
+        file("gradle/dependencies.gradle") << ""
+
+        when:
+        runBuildWithScanRequest()
+
+        then:
+        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {
