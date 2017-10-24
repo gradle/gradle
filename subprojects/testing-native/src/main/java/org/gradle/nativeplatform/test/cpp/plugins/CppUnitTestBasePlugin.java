@@ -24,12 +24,10 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
-import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
@@ -70,13 +68,13 @@ public class CppUnitTestBasePlugin implements Plugin<ProjectInternal> {
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
+                // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
                 final TaskContainer tasks = project.getTasks();
                 CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
                 ((DefaultCppTestSuite)testComponent).getTestedComponent().set(mainComponent);
 
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestExecutable");
-                CppCompile compileMain = tasks.withType(CppCompile.class).getByName("compileDebugCpp");
-                linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
             }
         };
 
