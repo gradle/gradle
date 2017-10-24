@@ -121,8 +121,12 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
     public PluginResolver internalAsResolver() {
         if (resolver == null) {
             createArtifactRepositories(dependencyResolutionServices.getResolveRepositoryHandler());
-            resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionSelectorScheme);
+            resolver = new ArtifactRepositoryPluginResolver(pluginResolverName(), dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;
+    }
+
+    protected String pluginResolverName() {
+        return name + '(' + url + ')';
     }
 }

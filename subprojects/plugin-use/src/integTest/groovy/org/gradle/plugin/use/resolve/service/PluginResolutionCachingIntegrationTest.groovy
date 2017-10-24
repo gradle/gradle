@@ -17,11 +17,12 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
+import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
 @LeaksFileHandles
@@ -35,13 +36,13 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
-    PluginResolutionServiceTestServer service = new PluginResolutionServiceTestServer(executer, mavenRepo)
-    private MavenHttpModule module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+
+    PluginBuilder.PluginHttpPublicationResults publication
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        publishPlugin()
-        service.start()
+        publication = publishPlugin()
         buildScript """
             plugins { id '$PLUGIN_ID' version '$VERSION' }
             task pluginApplied {
@@ -54,8 +55,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def "successful plugin resolution is cached"() {
         expect:
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -64,14 +64,12 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def "--refresh-dependencies invalidates cache"() {
         expect:
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
         args "--refresh-dependencies"
-        pluginQuery()
-        moduleResolutionWithRevalidate()
+        cachedPluginResolution()
         build()
 
         reset()
@@ -82,8 +80,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
     def "can use --refresh-dependencies on first run"() {
         expect:
         args "--refresh-dependencies"
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -96,8 +93,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         failPluginNotFound()
 
         reset()
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -110,8 +106,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         failError()
 
         reset()
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -124,8 +119,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         failError()
 
         reset()
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -134,8 +128,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def "--offline can be used if response is cached"() {
         expect:
-        pluginQuery()
-        moduleResolution()
+        pluginResolution()
         build()
 
         reset()
@@ -144,7 +137,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void reset() {
-        service.http.resetExpectations()
+        pluginRepo.server.resetExpectations()
     }
 
     void build() {
@@ -158,39 +151,33 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     void failError() {
         fails "tasks"
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
+        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found"))
+        failure.assertThatDescription(containsString("Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.my.myplugin:org.my.myplugin.gradle.plugin:1.0')"))
     }
 
-    void publishPlugin() {
+    PluginBuilder.PluginHttpPublicationResults publishPlugin() {
         pluginBuilder.addPlugin("project.ext.pluginApplied = true", PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        return pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer)
     }
 
-    void moduleResolution() {
-        module.allowAll()
+    void pluginResolution() {
+        pluginRepo.expectPluginResolution(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
     }
 
-    void moduleResolutionWithRevalidate() {
-        module.revalidate()
-    }
-
-    void pluginQuery() {
-        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
+    void cachedPluginResolution() {
+        pluginRepo.expectCachedPluginResolution(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
     }
 
     void pluginQueryNotFound() {
-        service.expectNotFound(PLUGIN_ID, VERSION)
+        pluginRepo.expectPluginMarkerMissing(PLUGIN_ID, VERSION)
     }
 
     void pluginQueryError() {
-        service.expectQueryAndReturnError(PLUGIN_ID, VERSION, 500) {
-            errorCode = "INTERNAL_SERVER_ERROR"
-            message = "Something went wrong"
-        }
+        pluginRepo.expectPluginMarkerBroken(PLUGIN_ID, VERSION)
     }
 
     void pluginQueryUnexpectedResponse() {
-        service.expectPluginQuery(PLUGIN_ID, VERSION) {
+        pluginRepo.expectPluginMarkerQuery(PLUGIN_ID, VERSION) {
             writer.withWriter {
                 it << "foo"
             }

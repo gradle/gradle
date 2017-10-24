@@ -17,42 +17,51 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
+import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
 @LeaksFileHandles
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
+
+    public static final String PLUGIN_ID = "org.my.myplugin"
+    public static final String VERSION = "1.0"
+    public static final String GROUP = "my"
+    public static final String ARTIFACT = "plugin"
+
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
-    PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        portal.start()
     }
 
     def "error finding plugin by id"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("otherid", "my", "plugin", "1.0")
+        pluginBuilder.addPlugin("project.ext.pluginApplied = true", "otherid")
+        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer)
 
-        buildScript applyPlugin("org.my.myplugin", "1.0")
+        buildScript applyPlugin()
+
+        pluginRepo.expectPluginMarkerMissing(PLUGIN_ID, VERSION)
 
         expect:
-        fails("verify")
-        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.my.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.my.myplugin'"))
+        fails "verify"
+        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources"))
+        failure.assertThatDescription(containsString("Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.my.myplugin:org.my.myplugin.gradle.plugin:1.0')"))
         failure.assertHasLineNumber(3)
     }
 
     def "error loading plugin"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishUnloadablePlugin("org.my.myplugin", "my", "plugin", "1.0")
+        pluginBuilder.addUnloadablePlugin(PLUGIN_ID)
+        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin("org.my.myplugin", "1.0")
+        buildScript applyPlugin()
 
         expect:
         fails("verify")
@@ -62,10 +71,10 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error creating plugin"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishNonConstructablePlugin("org.my.myplugin", "my", "plugin", "1.0")
+        pluginBuilder.addNonConstructablePlugin(PLUGIN_ID)
+        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin("org.my.myplugin", "1.0")
+        buildScript applyPlugin()
 
         expect:
         fails("verify")
@@ -76,10 +85,10 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error applying plugin"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishFailingPlugin("org.my.myplugin", "my", "plugin", "1.0")
+        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
+        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin("org.my.myplugin", "1.0")
+        buildScript applyPlugin()
 
         expect:
         fails("verify")
@@ -88,38 +97,10 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         failure.assertHasCause("throwing plugin")
     }
 
-    private void publishPlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
-        module.allowAll()
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true", pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private void publishUnloadablePlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version)
-        module.allowAll()
-        pluginBuilder.addUnloadablePlugin(pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private void publishNonConstructablePlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version)
-        module.allowAll()
-        pluginBuilder.addNonConstructablePlugin(pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private void publishFailingPlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version)
-        module.allowAll()
-        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private static String applyPlugin(String id, String version) {
+    private static String applyPlugin() {
         """
             plugins {
-                id "$id" version "$version"
+                id "$PLUGIN_ID" version "$VERSION"
             }
 
             task verify // no-op, but gives us a task to execute

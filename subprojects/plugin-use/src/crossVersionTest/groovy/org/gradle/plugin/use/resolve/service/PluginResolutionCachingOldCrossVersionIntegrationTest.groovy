@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,18 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.util.GradleVersion
 
-@TargetVersions("4.4+")
+@TargetVersions("2.1+")
+@IgnoreVersions({ it.version.baseVersion >= GradleVersion.version("4.4") })
 @LeaksFileHandles
-class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+class PluginResolutionCachingOldCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     public static final String PLUGIN_ID = "org.my.myplugin"
     public static final String VERSION = "1.0"
@@ -39,22 +42,35 @@ class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionInt
         gradleUserHome = file("gradle-home")
     }
 
-    def "cached resolution by previous version is used by this version"() {
+    def "cached resolution by previous version using the portal proprietary protocol is not used by this version"() {
         given:
-        def currentExecuter = version(current).withGradleUserHomeDir(gradleUserHome)
         def previousExecuter = version(previous).withGradleUserHomeDir(gradleUserHome)
+        def currentExecuter = version(current).withGradleUserHomeDir(gradleUserHome)
 
         and:
+        PluginResolutionServiceTestServer portalApi = new PluginResolutionServiceTestServer(previousExecuter, mavenRepo)
         MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(currentExecuter, mavenRepo)
 
         and:
+        portalApi.start()
         pluginRepo.start()
 
         and:
         new PluginBuilder(file(ARTIFACT)).with {
             addPlugin("project.ext.pluginApplied = true", PLUGIN_ID)
-            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, currentExecuter).allowAll()
+            publishAs(GROUP, ARTIFACT, VERSION, portalApi.m2repo, currentExecuter)
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, currentExecuter)
         }
+
+        and:
+        portalApi.forVersion(previousExecuter.distribution.version) {
+            expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
+            m2repo.module(GROUP, ARTIFACT, VERSION).with {
+                pom.expectGet()
+                artifact.expectGet()
+            }
+        }
+        pluginRepo.expectPluginResolution(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
 
         and:
         file("build.gradle") << """
@@ -67,19 +83,12 @@ class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionInt
         """.stripIndent()
 
         expect:
-        pluginRepo.expectPluginResolution(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-
-        and:
         previousExecuter.withTasks("pluginApplied").run()
-
-        and:
-        pluginRepo.expectCachedPluginResolution(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-
-        and:
         currentExecuter.withTasks("pluginApplied").run()
 
         cleanup:
         pluginRepo.stop()
+        portalApi.stop()
         currentExecuter.stop()
         previousExecuter.stop()
     }

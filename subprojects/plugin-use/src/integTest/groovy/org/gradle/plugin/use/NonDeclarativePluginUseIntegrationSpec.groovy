@@ -17,12 +17,13 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
+import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
 @LeaksFileHandles
@@ -35,13 +36,12 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     public static final String USE = "plugins { id '$PLUGIN_ID' version '$VERSION' }"
 
     @Rule
-    PluginResolutionServiceTestServer service = new PluginResolutionServiceTestServer(executer, mavenRepo)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        service.start()
     }
 
     def "non declarative plugin implementation can access core plugins and not core impl"() {
@@ -76,24 +76,22 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "plugin implementation and dependencies are visible to plugin and build script"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
-        pluginBuilder2.addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
+        pluginBuilder2.with {
+            addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
+            publishAs(GROUP, ARTIFACT + "2", VERSION, pluginRepo, executer).allowAll()
+        }
 
-        def module2 = service.m2repo.module(GROUP, ARTIFACT + "2", VERSION)
-        pluginBuilder2.publishTo(executer, module2.artifactFile)
-        module2.allowAll()
+        publishPlugin """
+                // can load plugin dependended on
+                project.apply plugin: 'test-plugin-2'
+    
+                // Can see dependency classes
+                getClass().classLoader.loadClass('${pluginBuilder2.packageName}.TestPlugin2')
+    
+                project.task('pluginTask')
+            """
 
-        def module = publishPlugin """
-            // can load plugin dependended on
-            project.apply plugin: 'test-plugin-2'
-
-            // Can see dependency classes
-            getClass().classLoader.loadClass('${pluginBuilder2.packageName}.TestPlugin2')
-
-            project.task('pluginTask')
-        """
-
-        module.dependsOn(GROUP, ARTIFACT + "2", VERSION)
-        module.publishPom()
+        pluginRepo.module(GROUP, ARTIFACT, VERSION).dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
         buildScript """
@@ -136,15 +134,12 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "classes from builscript and plugin block are visible in same build"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
-        pluginBuilder2.addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
+        pluginBuilder2.with {
+            addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
+            publishAs(GROUP, ARTIFACT + "2", VERSION, pluginRepo, executer).allowAll()
+        }
 
-        def module2 = service.m2repo.module(GROUP, ARTIFACT + "2", VERSION)
-        pluginBuilder2.publishTo(executer, module2.artifactFile)
-        module2.allowAll()
-
-        def module = publishPlugin ""
-        module.dependsOn(GROUP, ARTIFACT + "2", VERSION)
-        module.publishPom()
+        publishPlugin("").dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
         buildScript """
@@ -153,7 +148,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
                 classpath "$GROUP:${ARTIFACT + 2}:$VERSION"
               }
               repositories {
-                maven { url "$service.m2repo.uri" }
+                maven { url "$pluginRepo.uri" }
               }
             }
             $USE
@@ -170,7 +165,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
-            def m = service.m2repo.module("test", "test", n as String)
+            def m = pluginRepo.module("test", "test", n as String)
             m.publish().allowAll()
 
             file("j$n").with {
@@ -194,7 +189,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             buildscript {
                 repositories {
-                    maven { url "$service.m2repo.uri" }
+                    maven { url "$pluginRepo.uri" }
                 }
                 dependencies {
                     classpath "test:test:1"
@@ -227,11 +222,10 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "failure due to no plugin with id in implementation"() {
         when:
-        expectPluginQuery()
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addPlugin(PLUGIN_ID, "other")
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        pluginBuilder.with {
+            addPlugin(PLUGIN_ID, "other")
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
+        }
 
         and:
         buildScript """
@@ -242,17 +236,17 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
+        failure.assertThatDescription(startsWith("Plugin [id: 'org.myplugin', version: '1.0'] was not found in any of the following sources"))
+        failure.assertThatDescription(containsString("Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.myplugin:org.myplugin.gradle.plugin:1.0')"))
         failure.assertHasLineNumber(2)
     }
 
     def "failure due to plugin class is unloadable"() {
         when:
-        expectPluginQuery()
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addUnloadablePlugin("org.myplugin", "OtherPlugin")
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        pluginBuilder.with {
+            addUnloadablePlugin(PLUGIN_ID, "OtherPlugin")
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
+        }
 
         and:
         buildScript """
@@ -270,11 +264,10 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "failure due to plugin instantiation throwing"() {
         when:
-        expectPluginQuery()
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addNonConstructablePlugin("org.myplugin", "OtherPlugin")
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        pluginBuilder.with {
+            addNonConstructablePlugin(PLUGIN_ID, "OtherPlugin")
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
+        }
 
         and:
         buildScript """
@@ -293,11 +286,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "failure due to plugin apply throwing"() {
         when:
-        expectPluginQuery()
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-        pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        publishPlugin "throw new Exception('throwing plugin')"
 
         and:
         buildScript """
@@ -313,20 +302,10 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
-    def expectPluginQuery() {
-        service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-    }
-
     MavenHttpModule publishPlugin(String impl) {
-        expectPluginQuery()
-
-        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-
-        pluginBuilder.addPlugin(impl, PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-
-        module
+        pluginBuilder.with {
+            addPlugin(impl, PLUGIN_ID)
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll().pluginModule as MavenHttpModule
+        }
     }
-
 }

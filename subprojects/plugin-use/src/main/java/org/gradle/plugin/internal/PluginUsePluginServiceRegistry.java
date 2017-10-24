@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
@@ -66,7 +65,6 @@ import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginRes
 import org.gradle.plugin.use.resolve.service.internal.OfflinePluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -127,13 +125,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
-        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, VersionSelectorScheme versionSelectorScheme, StartParameter startParameter) {
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter);
-        }
-
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver, FileLookup fileLookup) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry,
+                                                          DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
@@ -144,24 +138,22 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
-        DefaultPluginRepositoryRegistry createPuginRepositoryRegistry(ListenerManager listenerManager) {
-            return new DefaultPluginRepositoryRegistry(listenerManager);
+        DefaultPluginRepositoryRegistry createPluginRepositoryRegistry(ListenerManager listenerManager, PluginRepositoryFactory pluginRepositoryFactory, FileResolver fileResolver) {
+            return new DefaultPluginRepositoryRegistry(listenerManager, pluginRepositoryFactory, fileResolver);
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
-        DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
-                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
-                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
-                                                                     final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        DefaultPluginRepositoryFactory createPluginRepositoryFactory(VersionSelectorScheme versionSelectorScheme,
+                                                                     DependencyManagementServices dependencyManagementServices, FileResolver fileResolver,
+                                                                     DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
+                                                                     AuthenticationSchemeRegistry authenticationSchemeRegistry) {
 
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
                 dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new DefaultPluginRepositoryFactory(pluginResolutionServiceResolver,
-                dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
-                authenticationSchemeRegistry);
+            return new DefaultPluginRepositoryFactory(dependencyResolutionServicesFactory, versionSelectorScheme, instantiator, authenticationSchemeRegistry);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

@@ -23,11 +23,8 @@ dependencies {
     integTestRuntime project(':plugins')
     integTestRuntime project(':pluginDevelopment')
     integTestRuntime project(':testKit')
-
-    testFixturesCompile project(":internalIntegTesting")
 }
 
-useTestFixtures()
 useClassycle()
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

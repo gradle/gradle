@@ -19,20 +19,26 @@ package org.gradle.plugin.repository.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.BuildAdapter;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.repository.PluginRepository;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
-    private final List<PluginRepositoryInternal> repositories = Lists.newArrayList();;
+    private final PluginRepositoryFactory pluginRepositoryFactory;
+    private final FileResolver fileResolver;
+    private final List<PluginRepositoryInternal> repositories = Lists.newArrayList();
     private boolean locked;
 
-    public DefaultPluginRepositoryRegistry(ListenerManager listenerManager) {
-        listenerManager.addListener(new BuildAdapter(){
+    public DefaultPluginRepositoryRegistry(ListenerManager listenerManager, PluginRepositoryFactory pluginRepositoryFactory, FileResolver fileResolver) {
+        this.pluginRepositoryFactory = pluginRepositoryFactory;
+        this.fileResolver = fileResolver;
+        listenerManager.addListener(new BuildAdapter() {
             @Override
-            public void projectsLoaded(Gradle gradle) {
+            public void projectsLoaded(@Nonnull Gradle gradle) {
                 lock();
             }
         });
@@ -56,7 +62,9 @@ public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry
 
     @Override
     public ImmutableList<PluginRepositoryInternal> getPluginRepositories() {
+        if (repositories.isEmpty()) {
+            return ImmutableList.of((PluginRepositoryInternal) pluginRepositoryFactory.gradlePluginPortal(fileResolver));
+        }
         return ImmutableList.copyOf(repositories);
     }
-
 }

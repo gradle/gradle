@@ -28,7 +28,6 @@ import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,20 +36,17 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
-    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
-        PluginResolutionServiceResolver pluginResolutionServiceResolver,
         PluginRepositoryRegistry pluginRepositoryRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
-        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
@@ -77,7 +73,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
-     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
+     *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
      * </ol>
      * <p>
      * This order is optimized for both performance and to allow resolvers earlier in the order
@@ -91,12 +87,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        ImmutableList<? extends PluginRepository> pluginRepositories = getPluginRepositories();
-        if (pluginRepositories.isEmpty()) {
-            resolvers.add(pluginResolutionServiceResolver);
-        } else {
-            addPluginRepositoryResolvers(resolvers, pluginRepositories);
-        }
+        addPluginRepositoryResolvers(resolvers, getPluginRepositories());
     }
 
     private ImmutableList<? extends PluginRepository> getPluginRepositories() {

@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.use.resolve.service.internal.ClientStatus
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -66,7 +65,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     void injectUrlOverride(GradleExecuter e) {
-        e.withArgument("-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$apiAddress")
+        e.withArgument("-Dorg.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver.repo.override=$apiAddress")
     }
 
     public <T> T forVersion(GradleVersion gradleVersion, @DelegatesTo(PluginResolutionServiceTestServer) Closure<T> closure) {

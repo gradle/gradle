@@ -43,8 +43,9 @@ public interface PluginRepositoryFactory {
 
     /**
      * Adds the Gradle Plugin Portal (plugins.gradle.org) as a plugin repository.
+     * @param fileResolver The {@link FileResolver} in the context of the Script.
      * @return The added repository.
      * @throws IllegalArgumentException if called more than once.
      */
-    GradlePluginPortal gradlePluginPortal();
+    GradlePluginPortal gradlePluginPortal(FileResolver fileResolver);
 }

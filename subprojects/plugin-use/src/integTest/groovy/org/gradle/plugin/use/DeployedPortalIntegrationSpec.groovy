@@ -104,7 +104,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
-        failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
+        failureDescriptionContains("- Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')")
     }
 
     def "can resolve and plugin from portal with buildscript notation"() {

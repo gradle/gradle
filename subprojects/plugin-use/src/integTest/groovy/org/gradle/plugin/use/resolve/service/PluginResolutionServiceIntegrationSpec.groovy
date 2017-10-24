@@ -19,44 +19,50 @@ package org.gradle.plugin.use.resolve.service
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.hamcrest.Matchers
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
 
 class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
 
-    def pluginBuilder = new PluginBuilder(file("plugin"))
+    public static final String PLUGIN_ID = "org.my.myplugin"
+    public static final String VERSION = "1.0"
+    public static final String GROUP = "my"
+    public static final String ARTIFACT = "plugin"
+
+    def pluginBuilder = new PluginBuilder(file(ARTIFACT))
 
     @Rule
-    PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        portal.start()
     }
 
     @LeaksFileHandles
     def "plugin declared in plugins {} block gets resolved and applied"() {
-        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("org.my.myplugin", "my", "plugin", "1.0")
+        publishPlugin()
 
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        buildScript applyAndVerify(PLUGIN_ID, VERSION)
 
         expect:
         succeeds("verify")
     }
 
     def "resolution fails if Gradle is in offline mode"() {
-        buildScript applyAndVerify("org.my.myplugin", "1.0")
+        publishPlugin()
+        buildScript applyAndVerify(PLUGIN_ID, VERSION)
         args("--offline")
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'org.my.myplugin', version: '1.0']")
-        failure.assertHasCause("Plugin cannot be resolved from $portal.apiAddress because Gradle is running in offline mode")
+        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found"))
     }
 
     def "cannot resolve plugin with snapshot version"() {
-        buildScript applyAndVerify("org.my.myplugin", "1.0-SNAPSHOT")
+        buildScript applyAndVerify(PLUGIN_ID, "1.0-SNAPSHOT")
 
         expect:
         fails("verify")
@@ -65,7 +71,7 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "cannot resolve plugin with dynamic version"() {
-        buildScript applyAndVerify("org.my.myplugin", pluginVersion)
+        buildScript applyAndVerify(PLUGIN_ID, pluginVersion)
 
         expect:
         fails("verify")
@@ -76,11 +82,11 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
         pluginVersion << ["[1.0,2.0)", "1.+", "latest.release"]
     }
 
-    private void publishPlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
-        module.allowAll()
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true", pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
+    private void publishPlugin() {
+        pluginBuilder.with {
+            addPlugin("project.ext.pluginApplied = true", PLUGIN_ID)
+            publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
+        }
     }
 
     private String applyAndVerify(String id, String version) {
@@ -98,10 +104,10 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void pluginNotFound(String version = "1.0") {
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'org.my.myplugin', version: '$version'] was not found in any of the following sources:"))
+        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '$version'] was not found in any of the following sources:"))
     }
 
     void resolutionServiceDetail(String detail) {
-        failure.assertThatDescription(Matchers.containsString("Gradle Central Plugin Repository ($detail)"))
+        failure.assertThatDescription(containsString("Gradle Central Plugin Repository ($detail)"))
     }
 }

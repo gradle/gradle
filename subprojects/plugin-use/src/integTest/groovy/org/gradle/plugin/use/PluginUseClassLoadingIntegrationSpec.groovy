@@ -19,9 +19,9 @@ package org.gradle.plugin.use
 import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -37,12 +37,11 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file(ARTIFACT))
 
     @Rule
-    PluginResolutionServiceTestServer resolutionService = new PluginResolutionServiceTestServer(executer, mavenRepo)
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
         executer.requireGradleDistribution() // need accurate classloading
         executer.requireOwnGradleUserHomeDir()
-        resolutionService.start()
     }
 
     def "plugin is available via plugins container"() {
@@ -174,12 +173,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void publishPlugin(String impl) {
-        resolutionService.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-        def module = resolutionService.m2repo.module(GROUP, ARTIFACT, VERSION)
-        module.allowAll()
-
         pluginBuilder.addPlugin(impl, PLUGIN_ID)
-        pluginBuilder.publishTo(executer, module.artifactFile)
+        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
     }
-
 }

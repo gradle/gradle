@@ -31,7 +31,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.Map;
 
@@ -39,15 +38,12 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final VersionSelectorScheme versionSelectorScheme;
-    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final Instantiator instantiator;
 
     public DefaultPluginRepositoryFactory(
-        PluginResolutionServiceResolver pluginResolutionServiceResolver,
         Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
         VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
@@ -75,8 +71,10 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     }
 
     @Override
-    public GradlePluginPortal gradlePluginPortal() {
-        return new DefaultGradlePluginPortal(pluginResolutionServiceResolver);
+    public GradlePluginPortal gradlePluginPortal(FileResolver fileResolver) {
+        AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
+        AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
+        return instantiator.newInstance(GradlePluginPortalPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
     }
 
     private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {

@@ -53,7 +53,7 @@ public class DefaultPluginRepositoriesSpec implements PluginRepositoriesSpec {
 
     @Override
     public GradlePluginPortal gradlePluginPortal() {
-        GradlePluginPortal portal = pluginRepositoryFactory.gradlePluginPortal();
+        GradlePluginPortal portal = pluginRepositoryFactory.gradlePluginPortal(fileResolver);
         pluginRepositoryRegistry.add(portal);
         return portal;
     }
