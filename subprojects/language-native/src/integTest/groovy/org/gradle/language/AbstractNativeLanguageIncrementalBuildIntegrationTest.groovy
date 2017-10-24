@@ -287,7 +287,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         // causing downstream link tasks to re-execute any time they are built.
         // With Visual Studio 2017 (version 15) the .lib is identical when the exported
         // symbols do not change, so downstream consumers do not need to relink.
-        return !(toolChain.visualCpp && toolChain.versionNumber.major >= 15)
+        return !(toolChain.meets(ToolChainRequirement.VISUALCPP_2017_OR_NEWER))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

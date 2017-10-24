@@ -182,7 +182,7 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findGccs() {
         GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
-        
+
         Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
         if (!gppCandidates.isEmpty()) {
@@ -244,7 +244,6 @@ public class AvailableToolChains {
         private final String displayName;
         protected final String pathVarName;
         private final String objectFileNameSuffix;
-        private VersionNumber versionNumber = VersionNumber.UNKNOWN;
 
         private String originalPath;
 
@@ -252,11 +251,6 @@ public class AvailableToolChains {
             this.displayName = displayName;
             this.pathVarName = OperatingSystem.current().getPathVar();
             this.objectFileNameSuffix = OperatingSystem.current().isWindows() ? ".obj" : ".o";
-        }
-
-        public InstalledToolChain(String displayName, VersionNumber versionNumber) {
-            this(displayName);
-            this.versionNumber = versionNumber;
         }
 
         InstalledToolChain inPath(File... pathEntries) {
@@ -360,20 +354,12 @@ public class AvailableToolChains {
             return displayName.replaceAll("\\W", "");
         }
 
-        public VersionNumber getVersionNumber() {
-            return versionNumber;
-        }
-
         public abstract String getUnitTestPlatform();
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
         protected GccCompatibleToolChain(String displayName) {
             super(displayName);
-        }
-
-        protected GccCompatibleToolChain(String displayName, VersionNumber versionNumber) {
-            super(displayName, versionNumber);
         }
 
         protected String find(String tool) {
@@ -408,10 +394,6 @@ public class AvailableToolChains {
     public static class InstalledGcc extends GccCompatibleToolChain {
         public InstalledGcc(String name) {
             super(name);
-        }
-
-        public InstalledGcc(String name, VersionNumber versionNumber) {
-            super(name, versionNumber);
         }
 
         @Override
@@ -535,7 +517,7 @@ public class AvailableToolChains {
         private File installDir;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
-            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")", version.getVersion());
+            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
         }
 
         @Override
@@ -567,6 +549,10 @@ public class AvailableToolChains {
                     return version.equals(VISUALSTUDIO_2015.getVersion());
                 case VISUALCPP_2015_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2015.getVersion()) >= 0;
+                case VISUALCPP_2017:
+                    return version.equals(VISUALSTUDIO_2017.getVersion());
+                case VISUALCPP_2017_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2017.getVersion()) >= 0;
                 default:
                     return false;
             }
