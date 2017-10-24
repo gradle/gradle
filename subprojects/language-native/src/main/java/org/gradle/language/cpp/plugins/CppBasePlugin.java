@@ -22,7 +22,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.ComponentAwareRepository;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
@@ -59,7 +61,7 @@ import java.util.concurrent.Callable;
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
         project.getPluginManager().apply(DependPlugin.class);
@@ -149,15 +151,18 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
-                    Provider<RegularFile> linktimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+
+                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+
+                    // TODO: Wire this in properly with LinkSharedLibrary
+                    RegularFileProperty linktimeFile = project.getServices().get(TaskFileVarFactory.class).newOutputFile(link);
+                    linktimeFile.set(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
                             return toolProvider.getSharedLibraryLinkFileName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
-                    }));
-                    link.getLinkFile().set(linktimeFile);
-                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(link.getLinkFile());
-                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+                    })));
+                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linktimeFile);
                 }
             }
         });

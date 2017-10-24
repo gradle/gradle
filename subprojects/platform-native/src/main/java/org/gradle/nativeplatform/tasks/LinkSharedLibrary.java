@@ -16,9 +16,7 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -30,7 +28,6 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 @Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
-    private RegularFileProperty linkFile = newOutputFile();
 
     @Input
     @Optional
@@ -40,16 +37,6 @@ public class LinkSharedLibrary extends AbstractLinkTask {
 
     public void setInstallName(String installName) {
         this.installName = installName;
-    }
-
-    /**
-     * The file where the linked binary will be located.
-     *
-     * @since 4.4
-     */
-    @Internal
-    public RegularFileProperty getLinkFile() {
-        return linkFile;
     }
 
     @Override

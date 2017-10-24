@@ -17,7 +17,7 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
@@ -40,5 +40,5 @@ public interface CppExecutable extends CppBinary {
      *
      * @since 4.4
      */
-    DirectoryProperty getInstallDirectory();
+    Provider<Directory> getInstallDirectory();
 }
