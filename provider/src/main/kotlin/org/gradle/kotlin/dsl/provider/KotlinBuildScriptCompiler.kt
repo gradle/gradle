@@ -176,8 +176,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executePluginsBlock() {
-        val pluginRequests = pluginRequests()
-        applyPlugins(pluginRequests)
+        applyPlugins(pluginRequests())
     }
 
     private

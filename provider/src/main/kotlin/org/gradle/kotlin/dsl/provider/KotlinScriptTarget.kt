@@ -54,21 +54,21 @@ private
 fun settingsScriptTarget(settings: Settings) =
     KotlinScriptTarget(
         settings,
-        rootDir = settings.rootDir,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class)
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class,
+        rootDir = settings.rootDir)
 
 
 private
 fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
     KotlinScriptTarget(
         project,
-        rootDir = project.rootDir,
         type = Project::class,
         scriptTemplate = KotlinBuildScript::class,
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
         pluginsBlockTemplate = KotlinPluginsBlock::class,
+        rootDir = project.rootDir,
         accessorsClassPath = { accessorsClassPathFor(project, it) },
         prepare = {
             project.run {
@@ -82,11 +82,11 @@ fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
 internal
 data class KotlinScriptTarget<T : Any>(
     val `object`: T,
-    val rootDir: File,
     val type: KClass<T>,
     val scriptTemplate: KClass<*>,
     val buildscriptBlockTemplate: KClass<*>? = null,
     val pluginsBlockTemplate: KClass<*>? = null,
+    val rootDir: File,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
 
