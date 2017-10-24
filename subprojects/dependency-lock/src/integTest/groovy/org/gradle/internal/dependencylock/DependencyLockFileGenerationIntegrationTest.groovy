@@ -201,6 +201,29 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","moduleId":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","moduleId":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.+","moduleId":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","moduleId":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","moduleId":"bar:third","lockedVersion":"2.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 
+    def "can create lock for conflict-resolved dependency"() {
+        given:
+        def fooSecondModule = mavenRepo.module('foo', 'second', '1.6.7').publish()
+        mavenRepo.module('foo', 'first', '1.5').dependsOn(fooSecondModule).publish()
+        mavenRepo.module('foo', 'second', '1.9').publish()
+
+        buildFile << appliedPluginAndRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'foo:first:1.5'
+                myConf 'foo:second:1.9'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.9","moduleId":"foo:second","lockedVersion":"1.9"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
+
     def "can create locks for multi-project builds"() {
         given:
         mavenRepo.module('my', 'dep', '1.5').publish()
