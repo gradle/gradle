@@ -134,9 +134,7 @@ data class KotlinScriptTargetModelBuilder<T : Any>(
     val rootDir: File,
     val gradleUserHome: File?,
     val scriptClassPath: ClassPath,
-    val accessorsClassPath: (ClassPath) -> AccessorsClassPath = {
-        AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
-    },
+    val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
     val sourceLookupScriptHandlers: List<ScriptHandler>,
     val implicitImports: List<String>) {
 
