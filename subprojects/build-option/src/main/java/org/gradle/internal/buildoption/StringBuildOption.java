@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @since 4.3
  */
-public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class StringBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public StringBuildOption(String gradleProperty) {
         super(gradleProperty);
