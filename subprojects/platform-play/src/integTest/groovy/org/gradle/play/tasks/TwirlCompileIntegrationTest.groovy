@@ -19,7 +19,6 @@ package org.gradle.play.tasks
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.VersionNumber
-import org.junit.Assume
 import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
@@ -57,7 +56,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         def generatedFile = destinationDir.file("${format}/test.template.scala")
         generatedFile.assertIsFile()
-        generatedFile.assertContents(containsString("import views.${format}._;"))
+        generatedFile.assertContents(containsString("import views.${format}._"))
         generatedFile.assertContents(containsString(templateFormat))
 
         where:
@@ -83,7 +82,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         def generatedFile = destinationDir.file("csv/test.template.scala")
         generatedFile.assertIsFile()
-        generatedFile.assertContents(containsString("import views.formats.csv._;"))
+        generatedFile.assertContents(containsString("import views.formats.csv._"))
         generatedFile.assertContents(containsString("CsvFormat"))
 
         // Modifying user templates causes TwirlCompile to be out-of-date
@@ -134,7 +133,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         then:
         def generatedFile = destinationDir.file("html/index.template.scala")
         generatedFile.assertIsFile()
-        generatedFile.assertContents(containsString("import my.pkg._;"))
+        generatedFile.assertContents(containsString("import my.pkg._"))
 
         // Changing the imports causes TwirlCompile to be out-of-date
         when:
@@ -155,8 +154,8 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         succeeds("compilePlayBinaryScala")
         then:
         result.assertTasksNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
-        generatedFile.assertContents(containsString("import my.pkg._;"))
-        generatedFile.assertContents(containsString("import my.pkg.MyClass;"))
+        generatedFile.assertContents(containsString("import my.pkg._"))
+        generatedFile.assertContents(containsString("import my.pkg.MyClass"))
     }
 
     def "runs compiler incrementally"() {
@@ -238,7 +237,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     }
 
     def "can build twirl source set with default Java imports" () {
-        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.6.2"))
         withTwirlJavaSourceSets()
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
         validateThatPlayJavaDependencyIsAdded()
@@ -255,7 +253,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     }
 
     def "can build twirl source sets both with and without default Java imports" () {
-        Assume.assumeTrue(versionNumber < VersionNumber.parse("2.6.2"))
         withTwirlJavaSourceSets()
         withTemplateSource(file("app", "views", "index.scala.html"))
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))

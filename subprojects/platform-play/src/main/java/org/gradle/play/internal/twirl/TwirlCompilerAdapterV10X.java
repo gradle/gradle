@@ -45,7 +45,6 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
         "play.api.i18n._",
         "play.core.j.PlayMagicForJava._",
         "play.mvc._",
-        "play.data._",
         "play.api.data.Field",
         "play.mvc.Http.Context.Implicit._");
 
@@ -57,8 +56,8 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
         "play.api.mvc._",
         "play.api.data._");
 
-    private final String scalaVersion;
-    private final String twirlVersion;
+    protected final String scalaVersion;
+    protected final String twirlVersion;
 
     public TwirlCompilerAdapterV10X(String twirlVersion, String scalaVersion) {
         this.scalaVersion = scalaVersion;
@@ -84,22 +83,32 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
 
     @Override
     public Object[] createCompileParameters(ClassLoader cl, final File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        final Collection<String> defaultTwirlImports;
-        if (defaultImports == TwirlImports.JAVA) {
-            defaultTwirlImports = DEFAULT_JAVA_IMPORTS;
-        } else {
-            defaultTwirlImports = DEFAULT_SCALA_IMPORTS;
-        }
         return new Object[] {
                 file,
                 sourceDirectory,
                 destinationDirectory,
                 templateFormat.getFormatType(),
-                getImportsFor(templateFormat, defaultTwirlImports, additionalImports),
+                getImportsFor(templateFormat, getDefaultImports(defaultImports), additionalImports),
                 ScalaCodecMapper.create(cl, "UTF-8"),
                 isInclusiveDots(),
                 isUseOldParser()
         };
+    }
+
+    protected Collection<String> getDefaultImports(TwirlImports twirlImports) {
+        if (twirlImports == TwirlImports.JAVA) {
+            return getDefaultJavaImports();
+        } else {
+            return getDefaultScalaImports();
+        }
+    }
+
+    protected Collection<String> getDefaultScalaImports() {
+        return DEFAULT_SCALA_IMPORTS;
+    }
+
+    protected Collection<String> getDefaultJavaImports() {
+        return DEFAULT_JAVA_IMPORTS;
     }
 
     private boolean isInclusiveDots() {
@@ -116,8 +125,8 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
     }
 
     @Override
-    public String getDependencyNotation() {
-        return "com.typesafe.play:twirl-compiler_" + scalaVersion + ":" + twirlVersion;
+    public List<String> getDependencyNotation() {
+        return Collections.singletonList("com.typesafe.play:twirl-compiler_" + scalaVersion + ":" + twirlVersion);
     }
 
     @Override

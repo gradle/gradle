@@ -15,6 +15,7 @@
  */
 package org.gradle.play.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -25,10 +26,18 @@ import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolver;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
+
+import java.util.Map;
 
 // TODO Resolve the JavaPlatform and ScalaPlatform from their PlatformResolvers, rather than instantiating directly
 public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
+    public static final Map<String, String> LATEST_SCALA_VERSIONS =
+        ImmutableMap.of("2.10", "2.10.6",
+            "2.11", "2.11.8",
+            "2.12", "2.12.4");
+
     @Override
     public Class<PlayPlatform> getType() {
         return PlayPlatform.class;
@@ -74,16 +83,11 @@ public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
     }
 
     private ScalaPlatform createScalaPlatform(String compatibilityVersion) {
-        if ("2.10".equals(compatibilityVersion)) {
-            return new DefaultScalaPlatform("2.10.6");
+        String latestVersion = LATEST_SCALA_VERSIONS.get(compatibilityVersion);
+        if (latestVersion != null) {
+            return new DefaultScalaPlatform(latestVersion);
         }
-        if ("2.11".equals(compatibilityVersion)) {
-            return new DefaultScalaPlatform("2.11.8");
-        }
-        if ("2.12".equals(compatibilityVersion)) {
-            return new DefaultScalaPlatform("2.12.3");
-        }
-        throw new InvalidUserDataException(String.format("Not a supported Scala platform identifier %s. Supported values are: ['2.10', '2.11', '2.12'].", compatibilityVersion));
+        throw new InvalidUserDataException(String.format("Not a supported Scala platform identifier %s. Supported values are: [%s].", compatibilityVersion, CollectionUtils.join(", ", LATEST_SCALA_VERSIONS.keySet())));
     }
 
 }
