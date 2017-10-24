@@ -111,7 +111,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assembleRuntimeDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleRuntimeDebug")
-        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
     def "can use objects as task dependency"() {
