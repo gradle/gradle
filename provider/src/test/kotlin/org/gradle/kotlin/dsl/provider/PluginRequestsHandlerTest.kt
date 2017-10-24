@@ -36,7 +36,7 @@ class PluginRequestsHandlerTest {
 
         // when:
         val subject = PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
-        subject.handle(initialRequests, scriptHandler, target, targetScope)
+        subject.handle(initialRequests, target, scriptHandler, target.pluginManager, targetScope)
 
         // then:
         verify(pluginRequestApplicator).applyPlugins(newRequests, scriptHandler, pluginManager, targetScope)

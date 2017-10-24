@@ -4,6 +4,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
@@ -386,6 +387,22 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             allOf(
                 containsString("Optional extra property value: null"),
                 not(containsString("myTask.foo"))))
+    }
+
+    //@Issue("gradle/gradle#3250")
+    @Test
+    fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
+        withBuildScript("""
+            buildscript {
+              rootProject.apply { from(rootProject.file("gradle/dependencies.gradle.kts")) }
+            }
+            buildScan {
+                setLicenseAgreementUrl("https://gradle.com/terms-of-service")
+                setLicenseAgree("yes")
+            }
+        """)
+        withFile("gradle/dependencies.gradle.kts")
+        canPublishBuildScan()
     }
 
     private
