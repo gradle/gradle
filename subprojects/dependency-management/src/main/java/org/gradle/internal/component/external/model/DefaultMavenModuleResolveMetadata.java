@@ -21,10 +21,8 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     public static final String POM_PACKAGING = "pom";
@@ -33,6 +31,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final boolean relocated;
     private final String snapshotTimestamp;
     private final ImmutableList<? extends ComponentVariant> variants;
+    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
         super(metadata);
@@ -40,14 +39,16 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
+        graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        packaging = metadata.getPackaging();
-        relocated = metadata.isRelocated();
-        snapshotTimestamp = metadata.getSnapshotTimestamp();
-        variants = metadata.getVariants();
+        packaging = metadata.packaging;
+        relocated = metadata.relocated;
+        snapshotTimestamp = metadata.snapshotTimestamp;
+        variants = metadata.variants;
+        graphVariants = metadata.graphVariants;
     }
 
     @Override
@@ -82,16 +83,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        // TODO - Should cache this value
-        if (variants.isEmpty()) {
-            return ImmutableList.of();
-        }
-        List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(variants.size());
-        for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant));
-        }
-        return configurations;
+    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        return graphVariants;
     }
 
     @Override

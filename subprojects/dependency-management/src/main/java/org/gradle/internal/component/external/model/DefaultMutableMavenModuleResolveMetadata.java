@@ -27,6 +27,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -49,6 +50,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String snapshotTimestamp;
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
+    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     /**
      * Creates default metadata for a Maven module with no POM.
@@ -73,6 +75,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
+        graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     @Override
@@ -148,7 +151,25 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
             newVariants = new ArrayList<MutableVariantImpl>();
         }
         newVariants.add(variant);
+        graphVariants = null;
         return variant;
+    }
+
+    @Override
+    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        if (graphVariants == null) {
+            ImmutableList<? extends ComponentVariant> variants = getVariants();
+            if (variants.isEmpty()) {
+                graphVariants = ImmutableList.of();
+            } else {
+                List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
+                for (ComponentVariant variant : variants) {
+                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant));
+                }
+                graphVariants = ImmutableList.copyOf(configurations);
+            }
+        }
+        return graphVariants;
     }
 
     @Override

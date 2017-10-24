@@ -37,13 +37,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
+ */
 class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
+    private final ImmutableList<GradleDependencyMetadata> dependencies;
 
     VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
         this.componentId = componentId;
         this.variant = variant;
+        List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
+        for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
+            dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion())));
+        }
+        this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
     @Override
@@ -113,11 +122,6 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
-        // TODO - Should calculate this value once
-        List<DependencyMetadata> dependencies = new ArrayList<DependencyMetadata>(variant.getDependencies().size());
-        for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion())));
-        }
         return dependencies;
     }
 }

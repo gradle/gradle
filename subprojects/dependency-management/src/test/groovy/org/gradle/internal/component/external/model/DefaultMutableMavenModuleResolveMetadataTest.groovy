@@ -180,26 +180,38 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
         v2.addFile("f1", "dir/f1")
 
-        def immutable = metadata.asImmutable()
-
         expect:
+        metadata.variants.size() == 2
+        metadata.variants[0].name == "api"
+        metadata.variants[0].asDescribable().displayName == "group:module:version variant api"
+        metadata.variants[0].attributes == attributes(usage: "compile")
+        metadata.variants[0].files.size() == 2
+        metadata.variants[0].files[0].name == "f1"
+        metadata.variants[0].files[0].uri == "dir/f1"
+        metadata.variants[0].files[1].name == "f2.jar"
+        metadata.variants[0].files[1].uri == "f2-1.2.jar"
+        metadata.variants[1].name == "runtime"
+        metadata.variants[1].asDescribable().displayName == "group:module:version variant runtime"
+        metadata.variants[1].attributes == attributes(usage: "runtime")
+        metadata.variants[1].files.size() == 1
+        metadata.variants[1].files[0].name == "f1"
+        metadata.variants[1].files[0].uri == "dir/f1"
+
+        def immutable = metadata.asImmutable()
         immutable.variants.size() == 2
         immutable.variants[0].name == "api"
-        immutable.variants[0].asDescribable().displayName == "group:module:version variant api"
-        immutable.variants[0].attributes == attributes(usage: "compile")
         immutable.variants[0].files.size() == 2
-        immutable.variants[0].files[0].name == "f1"
-        immutable.variants[0].files[0].uri == "dir/f1"
-        immutable.variants[0].files[1].name == "f2.jar"
-        immutable.variants[0].files[1].uri == "f2-1.2.jar"
         immutable.variants[1].name == "runtime"
-        immutable.variants[1].asDescribable().displayName == "group:module:version variant runtime"
-        immutable.variants[1].attributes == attributes(usage: "runtime")
         immutable.variants[1].files.size() == 1
-        immutable.variants[1].files[0].name == "f1"
-        immutable.variants[1].files[0].uri == "dir/f1"
 
-        def immutable2 = immutable.asMutable().asImmutable()
+        def metadata2 = immutable.asMutable()
+        metadata2.variants.size() == 2
+        metadata2.variants[0].name == "api"
+        metadata2.variants[0].files.size() == 2
+        metadata2.variants[1].name == "runtime"
+        metadata2.variants[1].files.size() == 1
+
+        def immutable2 = metadata2.asImmutable()
         immutable2.variants.size() == 2
         immutable2.variants[0].name == "api"
         immutable2.variants[0].files.size() == 2
@@ -208,6 +220,14 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         def copy = immutable.asMutable()
         copy.addVariant("link", attributes())
+
+        copy.variants.size() == 3
+        copy.variants[0].name == "api"
+        copy.variants[0].files.size() == 2
+        copy.variants[1].name == "runtime"
+        copy.variants[1].files.size() == 1
+        copy.variants[2].name == "link"
+        copy.variants[2].files.empty
 
         def immutable3 = copy.asImmutable()
         immutable3.variants.size() == 3
@@ -230,28 +250,33 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
         v2.addDependency("g1", "m1", "v1")
 
-        def immutable = metadata.asImmutable()
-
         expect:
+        metadata.variants.size() == 2
+        metadata.variants[0].dependencies.size() == 2
+        metadata.variants[0].dependencies[0].group == "g1"
+        metadata.variants[0].dependencies[0].module == "m1"
+        metadata.variants[0].dependencies[0].version == "v1"
+        metadata.variants[0].dependencies[1].group == "g2"
+        metadata.variants[0].dependencies[1].module == "m2"
+        metadata.variants[0].dependencies[1].version == "v2"
+        metadata.variants[1].dependencies.size() == 1
+        metadata.variants[1].dependencies[0].group == "g1"
+        metadata.variants[1].dependencies[0].module == "m1"
+        metadata.variants[1].dependencies[0].version == "v1"
+
+        def immutable = metadata.asImmutable()
         immutable.variants.size() == 2
         immutable.variants[0].dependencies.size() == 2
-        immutable.variants[0].dependencies[0].group == "g1"
-        immutable.variants[0].dependencies[0].module == "m1"
-        immutable.variants[0].dependencies[0].version == "v1"
-        immutable.variants[0].dependencies[1].group == "g2"
-        immutable.variants[0].dependencies[1].module == "m2"
-        immutable.variants[0].dependencies[1].version == "v2"
         immutable.variants[1].dependencies.size() == 1
-        immutable.variants[1].dependencies[0].group == "g1"
-        immutable.variants[1].dependencies[0].module == "m1"
-        immutable.variants[1].dependencies[0].version == "v1"
 
         def immutable2 = immutable.asMutable().asImmutable()
         immutable2.variants[0].dependencies.size() == 2
         immutable2.variants[1].dependencies.size() == 1
 
         def copy = immutable.asMutable()
+        copy.variants.size() == 2
         copy.addVariant("link", attributes())
+        copy.variants.size() == 3
 
         def immutable3 = copy.asImmutable()
         immutable3.variants.size() == 3
@@ -277,11 +302,18 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         v2.addDependency("g3", "m3", "v3")
 
         expect:
+        metadata.variantsForGraphTraversal.size() == 2
+        metadata.variantsForGraphTraversal[0].name == 'api'
+        metadata.variantsForGraphTraversal[0].dependencies.size() == 1
+        metadata.variantsForGraphTraversal[1].name == 'runtime'
+        metadata.variantsForGraphTraversal[1].dependencies.size() == 2
+
         def immutable = metadata.asImmutable()
         immutable.variantsForGraphTraversal.size() == 2
 
         def api = immutable.variantsForGraphTraversal[0]
         api.name == 'api'
+        api.asDescribable().displayName == 'group:module:version variant api'
         api.attributes == attributes1
 
         api.dependencies.size() == 1
@@ -301,6 +333,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         def runtime = immutable.variantsForGraphTraversal[1]
         runtime.name == 'runtime'
+        runtime.asDescribable().displayName == 'group:module:version variant runtime'
         runtime.attributes == attributes2
         runtime.variants.size() == 1
 
@@ -314,6 +347,14 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null
         artifacts2[0].name.extension == 'zip'
+
+        def copy = immutable.asMutable()
+        copy.variantsForGraphTraversal.size() == 2
+        copy.addVariant("link", attributes())
+        copy.variantsForGraphTraversal.size() == 3
+
+        def immutable2 = copy.asImmutable()
+        immutable2.variantsForGraphTraversal.size() == 3
     }
 
     def "making changes to copy does not affect original"() {
