@@ -65,7 +65,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         try {
             refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
         } catch (URISyntaxException e) {
-            throw wrapGitCommandException("update", gitSpec.getUrl(), null, e);
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
@@ -144,6 +144,9 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
-        return new GradleException(String.format("Could not %s from %s into %s", commandName, repoUrl, workingDir), e);
+        if (workingDir == null) {
+            return new GradleException(String.format("Could not run %s for %s", commandName, repoUrl), e);
+        }
+        return new GradleException(String.format("Could not %s from %s in %s", commandName, repoUrl, workingDir), e);
     }
 }
