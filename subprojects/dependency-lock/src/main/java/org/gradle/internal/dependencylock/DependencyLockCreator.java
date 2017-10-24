@@ -19,7 +19,9 @@ package org.gradle.internal.dependencylock;
 import org.gradle.api.Project;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 
+import java.util.Set;
+
 public interface DependencyLockCreator {
 
-    DependencyLock create(Project project);
+    DependencyLock create(Set<Project> projects);
 }

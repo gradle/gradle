@@ -29,38 +29,42 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
 
+import java.util.Set;
+
 public class DefaultDependencyLockCreator implements DependencyLockCreator {
 
     @Override
-    public DependencyLock create(final Project project) {
+    public DependencyLock create(Set<Project> projects) {
         final DependencyLock dependencyLock = new DependencyLock();
 
-        project.getConfigurations().all(new Action<Configuration>() {
-            @Override
-            public void execute(final Configuration configuration) {
-                if (configuration.isCanBeResolved()) {
-                    configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
-                        @Override
-                        public void execute(ResolvableDependencies resolvableDependencies) {
-                            resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                                @Override
-                                public void execute(DependencyResult dependencyResult) {
-                                    if (dependencyResult instanceof ResolvedDependencyResult) {
-                                        ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult)dependencyResult;
-                                        ComponentSelector requested = dependencyResult.getRequested();
+        for (final Project project : projects) {
+            project.getConfigurations().all(new Action<Configuration>() {
+                @Override
+                public void execute(final Configuration configuration) {
+                    if (configuration.isCanBeResolved()) {
+                        configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
+                            @Override
+                            public void execute(ResolvableDependencies resolvableDependencies) {
+                                resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
+                                    @Override
+                                    public void execute(DependencyResult dependencyResult) {
+                                        if (dependencyResult instanceof ResolvedDependencyResult) {
+                                            ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
+                                            ComponentSelector requested = dependencyResult.getRequested();
 
-                                        if (requested instanceof ModuleComponentSelector) {
-                                            ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-                                            addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
+                                            if (requested instanceof ModuleComponentSelector) {
+                                                ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
+                                                addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
+                                            }
                                         }
                                     }
-                                }
-                            });
-                        }
-                    });
+                                });
+                            }
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
 
         return dependencyLock;
     }

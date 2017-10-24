@@ -28,12 +28,12 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
     TestFile lockFile
 
     def setup() {
-        buildFile << basicBuildScriptSetup(mavenRepo)
         lockFile = file('gradle/dependencies.lock')
     }
 
     def "does not write lock file if no dependencies were resolved"() {
         given:
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
 
@@ -48,6 +48,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
@@ -70,6 +71,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         mavenRepo.module('my', 'prod', '3.2.1').publish()
         mavenRepo.module('dep', 'range', '1.7.1').publish()
 
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
@@ -93,6 +95,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         mavenRepo.module('foo', 'bar', '1.3').publish()
         mavenRepo.module('org', 'gradle', '7.5').publish()
 
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION, 'unresolved')
         buildFile << """
             dependencies {
@@ -115,6 +118,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         mavenRepo.module('org', 'gradle', '7.5').publish()
         mavenRepo.module('my', 'prod', '3.2.1').publish()
 
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations('a', 'b', 'c')
         buildFile << """
             dependencies {
@@ -141,6 +145,7 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         def barSecondModule = mavenRepo.module('bar', 'second', '2.6.7').dependsOn(barThirdModule).publish()
         mavenRepo.module('bar', 'first', '2.5').dependsOn(barSecondModule).publish()
 
+        buildFile << appliedPluginAndRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
@@ -155,5 +160,57 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","coordinates":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","coordinates":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","coordinates":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.+","coordinates":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","coordinates":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","coordinates":"bar:third","lockedVersion":"2.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
+    }
+
+    def "can create locks for multi-project builds"() {
+        given:
+        mavenRepo.module('my', 'dep', '1.5').publish()
+        mavenRepo.module('foo', 'bar', '2.3.1').publish()
+        mavenRepo.module('other', 'company', '5.2').publish()
+
+        buildFile << """
+            ${appliedPlugin()}
+
+            subprojects {
+                ${mavenRepository(mavenRepo)}
+            }
+
+            project(':a') {
+                ${customConfigurations('conf1')}
+    
+                dependencies {
+                    conf1 'my:dep:1.5'
+                }
+
+                ${copyLibsTask('conf1')}
+            }
+
+            project(':b') {
+                ${customConfigurations('conf2')}
+
+                dependencies {
+                    conf2 'foo:bar:2.3.1'
+                }
+
+                ${copyLibsTask('conf2')}
+            }
+
+            project(':c') {
+                ${customConfigurations('conf3')}
+
+                dependencies {
+                    conf3 'other:company:5.2'
+                }
+
+                ${copyLibsTask('conf3')}
+            }
+        """
+        settingsFile << "include 'a', 'b', 'c'"
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":a","configurations":[{"name":"conf1","dependencies":[{"requestedVersion":"1.5","coordinates":"my:dep","lockedVersion":"1.5"}]}]},{"path":":b","configurations":[{"name":"conf2","dependencies":[{"requestedVersion":"2.3.1","coordinates":"foo:bar","lockedVersion":"2.3.1"}]}]},{"path":":c","configurations":[{"name":"conf3","dependencies":[{"requestedVersion":"5.2","coordinates":"other:company","lockedVersion":"5.2"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
     }
 }

@@ -32,18 +32,28 @@ public class DependencyLockPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        if (isRootProject(project)) {
+            final File lockFile = getLockFile(project);
+
+            DependencyLockCreator dependencyLockCreator = new DefaultDependencyLockCreator();
+            final DependencyLock dependencyLock = dependencyLockCreator.create(project.getAllprojects());
+
+            project.getGradle().buildFinished(new Action<BuildResult>() {
+                @Override
+                public void execute(BuildResult buildResult) {
+                    DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
+                    dependencyLockWriter.write(dependencyLock);
+                }
+            });
+        }
+    }
+
+    private boolean isRootProject(Project project) {
+        return project.getParent() == null;
+    }
+
+    private File getLockFile(Project project) {
         File lockDir = project.file("gradle");
-        final File lockFile = new File(lockDir, "dependencies.lock");
-
-        DependencyLockCreator dependencyLockCreator = new DefaultDependencyLockCreator();
-        final DependencyLock dependencyLock = dependencyLockCreator.create(project);
-
-        project.getGradle().buildFinished(new Action<BuildResult>() {
-            @Override
-            public void execute(BuildResult buildResult) {
-                DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
-                dependencyLockWriter.write(dependencyLock);
-            }
-        });
+        return new File(lockDir, "dependencies.lock");
     }
 }
