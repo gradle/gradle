@@ -113,7 +113,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
-        toComponent.consumableConfigurationsHavingAttributes >> [toMaster]
+        toComponent.variantsForGraphTraversal >> [toMaster]
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
         def attrs = TestUtil.attributesFactory().of(Attribute.of(String), "value").asImmutable()
         def matcher = Stub(AttributeMatcher)

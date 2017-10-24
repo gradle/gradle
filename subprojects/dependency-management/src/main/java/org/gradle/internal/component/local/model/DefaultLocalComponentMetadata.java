@@ -231,7 +231,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public synchronized List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+    public synchronized List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             consumableConfigurations = Lists.newArrayListWithExpectedSize(allConfigurations.size());
             for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {

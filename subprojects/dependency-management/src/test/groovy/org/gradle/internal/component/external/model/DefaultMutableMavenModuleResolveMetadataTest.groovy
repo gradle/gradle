@@ -278,9 +278,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         expect:
         def immutable = metadata.asImmutable()
-        immutable.consumableConfigurationsHavingAttributes.size() == 2
+        immutable.variantsForGraphTraversal.size() == 2
 
-        def api = immutable.consumableConfigurationsHavingAttributes[0]
+        def api = immutable.variantsForGraphTraversal[0]
         api.name == 'api'
         api.attributes == attributes1
 
@@ -299,7 +299,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         artifacts1[0].name.classifier == null
         artifacts1[0].name.extension == 'jar'
 
-        def runtime = immutable.consumableConfigurationsHavingAttributes[1]
+        def runtime = immutable.variantsForGraphTraversal[1]
         runtime.name == 'runtime'
         runtime.attributes == attributes2
         runtime.variants.size() == 1

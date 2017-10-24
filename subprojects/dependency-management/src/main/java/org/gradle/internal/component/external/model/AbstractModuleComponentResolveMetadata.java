@@ -132,7 +132,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return Collections.emptyList();
     }
 

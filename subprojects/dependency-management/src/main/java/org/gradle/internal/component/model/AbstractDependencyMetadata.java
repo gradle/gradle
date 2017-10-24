@@ -34,7 +34,7 @@ public abstract class AbstractDependencyMetadata implements DependencyMetadata {
      * Should be extracted out as a service.
      */
     protected ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
         ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);

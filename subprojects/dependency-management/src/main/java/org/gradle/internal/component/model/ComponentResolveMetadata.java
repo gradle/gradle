@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -63,17 +64,22 @@ public interface ComponentResolveMetadata {
     List<? extends DependencyMetadata> getDependencies();
 
     /**
-     * Returns the names of all of the configurations for this component.
+     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
      */
     Set<String> getConfigurationNames();
-
-    List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes();
 
     /**
      * Locates the configuration with the given name, if any.
      */
     @Nullable
     ConfigurationMetadata getConfiguration(String name);
+
+    /**
+     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
+     *
+     * <p>Note: currently, {@link ConfigurationMetadata} is used to represent these variants. This is to help with migration. The set of objects returned by this method may or may not be the same as those returned by {@link #getConfigurationNames()}.</p>
+     */
+    List<? extends ConfigurationMetadata> getVariantsForGraphTraversal();
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

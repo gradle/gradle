@@ -37,7 +37,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
 
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
         Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
-        for (ConfigurationMetadata configurationMetadata : targetComponent.getConsumableConfigurationsHavingAttributes()) {
+        for (ConfigurationMetadata configurationMetadata : targetComponent.getVariantsForGraphTraversal()) {
             configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();

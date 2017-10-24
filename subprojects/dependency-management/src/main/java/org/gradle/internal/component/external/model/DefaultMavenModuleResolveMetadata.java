@@ -91,8 +91,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
-        // TODO - Should calculate this value
+    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        // TODO - Should cache this value
         if (variants.isEmpty()) {
             return ImmutableList.of();
         }
