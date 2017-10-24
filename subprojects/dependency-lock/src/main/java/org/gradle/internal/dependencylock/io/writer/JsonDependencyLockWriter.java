@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.util.GFileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -45,7 +46,8 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
     public void write(DependencyLock dependencyLock) {
         if (!dependencyLock.getProjectsMapping().isEmpty()) {
             JSONObject allLocks = createJson(dependencyLock);
-            writeFile(lockFile, allLocks);
+            writeLockFile(lockFile, allLocks);
+            writeSha1HashFile(lockFile, allLocks);
         }
     }
 
@@ -85,7 +87,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
         return allLocks;
     }
 
-    private void writeFile(File lockFile, JSONObject allLocks) {
+    private void writeLockFile(File lockFile, JSONObject allLocks) {
         createParentDirectory(lockFile.getParentFile());
         FileWriter fileWriter = null;
 
@@ -104,6 +106,11 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
                 // ignore
             }
         }
+    }
+
+    private void writeSha1HashFile(File lockFile, JSONObject allLocks) {
+        String sha1 = HashUtil.sha1(allLocks.toJSONString().getBytes()).asHexString();
+        GFileUtils.writeStringToFile(new File(lockFile.getParentFile(), lockFile.getName() + ".sha1"), sha1);
     }
 
     private void createParentDirectory(File parentDir) {
