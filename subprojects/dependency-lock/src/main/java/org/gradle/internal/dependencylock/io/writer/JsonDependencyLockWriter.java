@@ -68,7 +68,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
 
                 for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : configurationsMapping.getValue().entrySet()) {
                     JSONObject dependency = new JSONObject();
-                    dependency.put("coordinates", lockedDependency.getKey().toString());
+                    dependency.put("moduleId", lockedDependency.getKey().toString());
                     dependency.put("requestedVersion", lockedDependency.getValue().getRequestedVersion());
                     dependency.put("lockedVersion", lockedDependency.getValue().getSelectedVersion());
                     dependencies.add(dependency);
