@@ -129,7 +129,7 @@ public class GenerateModuleMetadata extends DefaultTask {
                 writer.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not generate metadata file " + outputFile.getAsFile(), e);
+            throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
     }
 

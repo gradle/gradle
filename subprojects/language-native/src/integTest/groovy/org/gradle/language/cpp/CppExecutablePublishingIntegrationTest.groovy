@@ -62,7 +62,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
-        main.assertArtifactsPublished("test-1.2.pom", "test-1.2-module.json")
+        main.assertArtifactsPublished("test-1.2.pom", "test-1.2.module")
         main.parsedPom.scopes.isEmpty()
         def mainMetadata = main.parsedModuleMetadata
         mainMetadata.variants.size() == 2
@@ -71,7 +71,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
-        debug.assertArtifactsPublished(executableName("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
+        debug.assertArtifactsPublished(executableName("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2.module")
         debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
 
         debug.parsedPom.scopes.isEmpty()
@@ -86,7 +86,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
-        release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
+        release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2.module")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
 
         release.parsedPom.scopes.isEmpty()

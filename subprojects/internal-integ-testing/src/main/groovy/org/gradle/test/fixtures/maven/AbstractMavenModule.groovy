@@ -265,7 +265,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     GradleModuleMetadata getParsedModuleMetadata() {
-        return new GradleModuleMetadata(artifactFile(classifier: 'module', type: 'json'))
+        return new GradleModuleMetadata(artifactFile(type: 'module'))
     }
 
     @Override
@@ -285,7 +285,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     ModuleArtifact getModuleMetadata() {
-        return getArtifact(classifier: 'module', type: 'json')
+        return getArtifact(type: 'module')
     }
 
     @Override
@@ -371,7 +371,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private void publishModuleMetadata() {
         moduleDir.createDir()
-        def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
+        def file = moduleDir.file("$artifactId-${publishArtifactVersion}.module")
         def artifact = getArtifact([:])
         def value = new StringBuilder()
         value << """

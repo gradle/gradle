@@ -323,7 +323,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         "usage": "compile"
       },
       "available-at": {
-        "url": "../../other-1/1/other-1-1-module.json",
+        "url": "../../other-1/1/other-1-1.module",
         "group": "group",
         "module": "other-1",
         "version": "1"
@@ -335,7 +335,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         "usage": "runtime"
       },
       "available-at": {
-        "url": "../../other-2/2/other-2-2-module.json",
+        "url": "../../other-2/2/other-2-2.module",
         "group": "group",
         "module": "other-2",
         "version": "2"
@@ -370,7 +370,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         writer.toString() == """{
   "formatVersion": "0.2",
   "component": {
-    "url": "../../module/1.2/module-1.2-module.json",
+    "url": "../../module/1.2/module-1.2.module",
     "group": "group",
     "module": "module",
     "version": "1.2"

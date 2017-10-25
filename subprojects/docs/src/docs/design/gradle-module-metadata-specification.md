@@ -14,7 +14,7 @@ In version 0.2, the module metadata file can describe only those modules that co
 
 ## Usage in a Maven repository
 
-When present in a Maven module, the file must have classifier `module` and extension `json`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2-module.json`.
+When present in a Maven module, the file must have extension `module`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2.module`.
 
 Gradle ignores the contents of the Maven POM when the module metadata file is present.
 

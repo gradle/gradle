@@ -208,7 +208,7 @@ public class ModuleMetadataFileGenerator {
         path.append(to.getName());
         path.append("-");
         path.append(to.getVersion());
-        path.append("-module.json");
+        path.append(".module");
         return path.toString();
     }
 

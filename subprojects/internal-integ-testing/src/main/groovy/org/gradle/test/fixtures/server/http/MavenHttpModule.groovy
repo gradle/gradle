@@ -71,7 +71,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
 
     @Override
     HttpArtifact getModuleMetadata() {
-        return getArtifact(classifier: 'module', type: 'json')
+        return getArtifact(type: 'module')
     }
 
     MetaDataArtifact getRootMetaData() {
