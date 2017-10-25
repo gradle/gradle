@@ -7,7 +7,7 @@
   <param name="authMethod" value="PASSWORD" />
   <param name="branch" value="master" />
   <param name="ignoreKnownHosts" value="true" />
-  <param name="secure:password" value="zxx77674507cb198493a342e0f5cca009200224a6785c2e8d117b650b9b1a53b2ddd84f8b3304969566775d03cbe80d301b" />
+  <param name="secure:password" value="credentialsJSON:69f980df-e4d1-4622-9f0f-5be59df88a04" />
   <param name="submoduleCheckout" value="CHECKOUT" />
   <param name="url" value="https://github.com/gradleware/gradle-promote.git" />
   <param name="username" value="gradlewaregitbot" />
