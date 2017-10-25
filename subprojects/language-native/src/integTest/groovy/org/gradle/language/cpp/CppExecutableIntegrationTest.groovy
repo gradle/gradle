@@ -385,7 +385,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         executable("app/build/exe/main/debug/static/app").assertExists()
         staticLibrary("hello/build/lib/main/debug/static/hello").assertExists()
         installation("app/build/install/main/debug/static").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/static/lib").assertHasDescendants(executable('app').file.name)
+        installation("app/build/install/main/debug/static").assertIncludesLibraries()
     }
 
     def "can compile and link against a library with debug and release variants"() {
@@ -466,8 +466,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("shuffle/build/lib/main/debug/shared/shuffle").assertExists()
         executable("app/build/exe/main/debug/shared/app").assertExists()
         installation("app/build/install/main/debug/shared").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/shared/lib").assertHasDescendants([
-            executable("app"), sharedLibrary("deck"), sharedLibrary("card"), sharedLibrary("shuffle")]*.file*.name)
+        installation("app/build/install/main/debug/shared").assertIncludesLibraries("deck", "card", "shuffle")
     }
 
     def "can compile and statically link against library with api and implementation dependencies"() {
@@ -510,7 +509,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         staticLibrary("shuffle/build/lib/main/debug/static/shuffle").assertExists()
         executable("app/build/exe/main/debug/static/app").assertExists()
         installation("app/build/install/main/debug/static").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/static/lib").assertHasDescendants(executable('app').file.name)
+        installation("app/build/install/main/debug/static").assertIncludesLibraries()
     }
 
     def "honors changes to library buildDir"() {
@@ -550,8 +549,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("lib2/out/lib/main/debug/shared/lib2").assertExists()
         executable("app/build/exe/main/debug/shared/app").assertExists()
         installation("app/build/install/main/debug/shared").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/shared/lib").assertHasDescendants([
-            executable('app'), sharedLibrary('lib1'), sharedLibrary('lib2')]*.file*.name)
+        installation("app/build/install/main/debug/shared").assertIncludesLibraries('lib1', 'lib2')
     }
 
     @Ignore("https://github.com/gradle/gradle-native/issues/230")
@@ -624,7 +622,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         staticLibrary("lib2/build/lib/main/debug/static/lib2").assertExists()
         executable("app/build/exe/main/debug/static/app").assertExists()
         installation("app/build/install/main/debug/static").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/static/lib").assertHasDescendants(executable('app').file.name)
+        installation("app/build/install/main/debug/static").assertIncludesLibraries()
     }
 
     def "honors changes to library public header location"() {
@@ -671,8 +669,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("lib2/build/lib/main/debug/shared/lib2").assertExists()
         executable("app/build/exe/main/debug/shared/app").assertExists()
         installation("app/build/install/main/debug/shared").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/shared/lib").assertHasDescendants([
-            executable("app"), sharedLibrary("lib1"), sharedLibrary("lib2")]*.file*.name)
+        installation("app/build/install/main/debug/shared").assertIncludesLibraries("lib1", "lib2")
     }
 
     def "multiple components can share the same source directory"() {
@@ -720,8 +717,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("logger/build/lib/main/debug/shared/logger").assertExists()
         executable("app/build/exe/main/debug/shared/app").assertExists()
         installation("app/build/install/main/debug/shared").exec().out == app.expectedOutput
-        file("app/build/install/main/debug/shared/lib").assertHasDescendants([
-            executable("app"), sharedLibrary("greeter"), sharedLibrary("logger")]*.file*.name)
+        installation("app/build/install/main/debug/shared").assertIncludesLibraries("greeter", "logger")
     }
 
     def "can compile and link against libraries in included builds"() {
@@ -765,8 +761,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("lib2/build/lib/main/debug/shared/lib2").assertExists()
         executable("build/exe/main/debug/shared/app").assertExists()
         installation("build/install/main/debug/shared").exec().out == app.expectedOutput
-        file("build/install/main/debug/shared/lib").assertHasDescendants([
-            executable("app"), sharedLibrary("lib1"), sharedLibrary("lib2")]*.file*.name)
+        installation("build/install/main/debug/shared").assertIncludesLibraries("lib1", "lib2")
     }
 
 }

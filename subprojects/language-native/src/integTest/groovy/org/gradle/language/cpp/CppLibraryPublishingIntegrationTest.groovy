@@ -198,11 +198,10 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         then:
         noExceptionThrown()
-        consumer.file("build/install/main/debug/shared/lib").assertHasDescendants([
-            executable("consumer"), sharedLibrary("deck"), sharedLibrary("card"), sharedLibrary("shuffle")]*.file*.name)
+        installation(consumer.file("build/install/main/debug/shared")).assertIncludesLibraries("deck", "card", "shuffle")
         installation(consumer.file("build/install/main/debug/shared")).exec().out == app.expectedOutput
 
-        consumer.file("build/install/main/debug/static/lib").assertHasDescendants(executable("consumer").file.name)
+        installation(consumer.file("build/install/main/debug/static")).assertIncludesLibraries()
         installation(consumer.file("build/install/main/debug/static")).exec().out == app.expectedOutput
     }
 
@@ -355,8 +354,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         then:
         noExceptionThrown()
-        consumer.file("build/install/main/debug/shared/lib").assertHasDescendants([executable("consumer"),
-               sharedLibrary("deck"), sharedLibrary("card"), sharedLibrary("shuffle")]*.file*.name)
+        installation(consumer.file("build/install/main/debug/shared")).assertIncludesLibraries("deck", "card", "shuffle")
         installation(consumer.file("build/install/main/debug/shared")).exec().out == app.expectedOutput
     }
 
@@ -412,7 +410,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         run("installDebugStatic")
 
         then:
-        consumer.file("build/install/main/debug/static/lib").assertHasDescendants(executable('consumer').file.name)
+        installation(consumer.file("build/install/main/debug/static")).assertIncludesLibraries()
         installation(consumer.file("build/install/main/debug/static")).exec().out == app.withFeatureDisabled().expectedOutput
 
         when:
@@ -420,7 +418,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         run("installReleaseStatic")
 
         then:
-        consumer.file("build/install/main/release/static/lib").assertHasDescendants(executable('consumer').file.name)
+        installation(consumer.file("build/install/main/release/static")).assertIncludesLibraries()
         installation(consumer.file("build/install/main/release/static")).exec().out == app.withFeatureEnabled().expectedOutput
     }
 
