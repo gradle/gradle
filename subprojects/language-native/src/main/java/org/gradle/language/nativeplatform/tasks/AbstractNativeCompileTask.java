@@ -27,6 +27,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -44,6 +46,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Cast;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -86,6 +89,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ImmutableList<String> includePaths;
     private final RegularFileProperty headerDependenciesFile;
     private FileCollection evaluatedHeaderDependencies;
+    private FileSnapshot lastHeaderDependenciesSnapshot;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -115,6 +119,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     protected BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileSystemSnapshotter getFileSystemSnapshotter() {
         throw new UnsupportedOperationException();
     }
 
@@ -346,14 +355,15 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     protected FileCollection getHeaderDependencies() throws IOException {
-        // TODO wolfs: This may not be enough given that the getter is evaluated at configuration time while the headerDependenciesFile could/should change at runtime
-        // Still, no test is failing, so maybe it works or we do not have enough test coverage
-        if (evaluatedHeaderDependencies == null) {
-            File inputFile = headerDependenciesFile.getAsFile().getOrNull();
-            if (inputFile == null || !inputFile.isFile()) {
-                return null;
-            }
-
+        File inputFile = headerDependenciesFile.getAsFile().getOrNull();
+        if (inputFile == null) {
+            return null;
+        }
+        FileSnapshot fileSnapshot = getFileSystemSnapshotter().snapshotSelf(inputFile);
+        if (fileSnapshot.getType() == FileType.Missing) {
+            return null;
+        }
+        if (evaluatedHeaderDependencies == null || (!lastHeaderDependenciesSnapshot.getContent().isContentUpToDate(fileSnapshot.getContent()))) {
             Set<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
                 private Set<File> result = new HashSet<File>();
 
@@ -368,9 +378,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                     return result;
                 }
             });
+            lastHeaderDependenciesSnapshot = getFileSystemSnapshotter().snapshotSelf(inputFile);
             evaluatedHeaderDependencies = new SimpleFileCollection(files);
         }
         return evaluatedHeaderDependencies;
-
     }
 }
