@@ -135,7 +135,12 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
                     continue;
                 }
                 if (systemIncludesStarted) {
+                    // Exclude frameworks for CLang - they need to be handled differently
                     if (compilerType == CompilerType.CLANG && FRAMEWORK_INCLUDE.matcher(line).matches()) {
+                        continue;
+                    }
+                    // Exclude framework directories for GCC - they are added as system search paths but they are actually not
+                    if (compilerType == CompilerType.GCC && line.endsWith("/Library/Frameworks")) {
                         continue;
                     }
                     builder.add(new File(line.trim()));

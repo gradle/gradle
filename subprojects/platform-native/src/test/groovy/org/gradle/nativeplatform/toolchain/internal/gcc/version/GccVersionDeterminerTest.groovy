@@ -20,6 +20,8 @@ import org.gradle.api.Transformer
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
@@ -85,7 +87,7 @@ ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
 ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../../x86_64-linux-gnu/include"
 #include "..." search starts here:
 #include <...> search starts here:
-${includes.collect { " ${it}" }.join('\n') } 
+${includes.collect { " ${it}" }.join('\n') }
 End of search list.
 """
     }
@@ -213,22 +215,39 @@ End of search list.
     }
 
     def "parses gcc system includes"() {
-        def includes = ['/usr/local', '/usr/some/dir'].collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator))}
+        def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
         def result = output gcc4, gccVerboseOutput(includes), GCC
         result.systemIncludes*.path == includes
     }
 
     def "parses clang system includes"() {
+        def includes = correctPathSeparators([
+            '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
+            '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include',
+            '/usr/include'
+        ])
+        def frameworks = correctPathSeparators(['/System/Library/Frameworks', '/Library/Frameworks'])
+        expect:
+        def result = output clang, clangVerboseOutput(includes, frameworks), CLANG
+        result.systemIncludes*.path == includes
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "ignores Framework directories for GCC"() {
         def includes = [
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include',
             '/usr/include'
-        ].collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator))}
-        def frameworks = ['/System/Library/Frameworks', '/Library/Frameworks'].collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator))}
+        ]
+        def frameworkDirs = ['/System/Library/Frameworks', '/Library/Frameworks']
         expect:
-        def result = output clang, clangVerboseOutput(includes, frameworks), CLANG
+        def result = output gcc4, gccVerboseOutput(includes + frameworkDirs), GCC
         result.systemIncludes*.path == includes
+    }
+
+    def correctPathSeparators(Collection<String> paths) {
+        paths.collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator)) }
     }
 
     GccVersionResult output(String outputStr, CompilerMetaDataProvider.CompilerType compilerType = GCC) {
