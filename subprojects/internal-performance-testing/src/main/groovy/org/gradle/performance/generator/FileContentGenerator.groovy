@@ -40,6 +40,8 @@ class FileContentGenerator {
             return ""
         }
         """
+        buildDir = "gradle-out"
+
         import org.gradle.util.GradleVersion
 
         def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
@@ -89,7 +91,7 @@ class FileContentGenerator {
             if (!isRoot) {
                 return ""
             }
-            return (0..config.subProjects-1).collect {
+            return (0..config.subProjects - 1).collect {
                 if (config.compositeBuild.usePredefinedPublications()) {
                     """
                     includeBuild('project$it') {
@@ -126,6 +128,27 @@ class FileContentGenerator {
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
+        """
+    }
+
+    def generateBazelBuild(DependencyTree dependencyTree) {
+        // TODO(ew): targets for each subproject
+        return """
+java_library(
+    name = "assemble_all",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = []
+)
+
+${config.externalApiDependencies.collect { declareBazelJavaLibrary(it) }.join()}
+${config.externalImplementationDependencies.collect { declareBazelJavaLibrary(it) }.join()}
+"""
+    }
+
+    def generateBazelWorkspace() {
+        return """
+${config.externalApiDependencies.collect { convertToBazelExternalDependency(it) }.join()}
+${config.externalImplementationDependencies.collect { convertToBazelExternalDependency(it) }.join()}
         """
     }
 
@@ -226,8 +249,11 @@ class FileContentGenerator {
                 
                 cleanAssemble {
                   tasks = ["clean", "assemble"]
-                   maven {
+                  maven {
                     targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
+                  }
+                  bazel {
+                    targets = ["//:assemble_all"]
                   }
                 }
                 
@@ -439,5 +465,74 @@ class FileContentGenerator {
                     <version>$version</version>
                     <scope>$scope</scope>
                 </dependency>"""
+    }
+
+    private String convertToBazelExternalDependency(String dependency) {
+        def parts = dependency.split(':')
+        def groupId = parts[0]
+        def artifactId = parts[1]
+        def version = parts[2]
+
+        String sha1
+        try {
+            sha1 = new URL(getMavenCentralJarShaUrlFor(groupId, artifactId, version)).text
+        } catch (Exception e) {
+            throw new RuntimeException("Could not get Bazel dependency SHA1 for coordinates ${dependency}", e)
+        }
+
+        return """
+maven_jar(
+    name = "${toBazelTargetName(groupId, artifactId)}",
+    artifact = "${groupId}:${artifactId}:${version}",
+    sha1 = "${sha1}",
+)
+"""
+    }
+
+    private String toBazelTargetName(String groupId, String artifactId) {
+        return "${groupId.replaceAll("[^a-zA-Z]", "_")}_${artifactId.replaceAll("[^a-zA-Z]", "_")}"
+    }
+
+    private String declareBazelJavaLibrary(String dependency) {
+        def parts = dependency.split(':')
+        def name = "${toBazelTargetName(parts[0], parts[1])}"
+        return """
+java_library(
+    name = "${name}",
+    visibility = ["//visibility:public"],
+    exports = ["@${name}//jar"],
+    runtime_deps = [${extractBazelLibraryRuntimeDependencies(dependency).join(",")}],
+)
+"""
+    }
+
+    private List<String> extractBazelLibraryRuntimeDependencies(String dependency) {
+        def parts = dependency.split(':')
+        def groupId = parts[0]
+        def artifactId = parts[1]
+        def version = parts[2]
+
+        def runtimeDeps = []
+        def project
+        try {
+            project = new XmlSlurper().parseText(new URL(getMavenCentralPomUrlFor(groupId, artifactId, version)).text)
+        } catch (Exception e) {
+            throw new RuntimeException("Could not parse POM for ${dependency} for Bazel runtime_deps[] declaration", e)
+        }
+        project.dependencies.dependency.each {
+            if (!it.scope.toString().startsWith("test")) {
+                runtimeDeps << "\":${toBazelTargetName(it.groupId.toString(), it.artifactId.toString())}\""
+            }
+        }
+
+        return runtimeDeps
+    }
+
+    private String getMavenCentralPomUrlFor(String groupId, String artifactId, String version) {
+        return "http://repo1.maven.org/maven2/${groupId.replaceAll("\\.", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom"
+    }
+
+    private String getMavenCentralJarShaUrlFor(String groupId, String artifactId, String version) {
+        return "http://repo1.maven.org/maven2/${groupId.replaceAll("\\.", "/")}/${artifactId}/${version}/${artifactId}-${version}.jar.sha1"
     }
 }

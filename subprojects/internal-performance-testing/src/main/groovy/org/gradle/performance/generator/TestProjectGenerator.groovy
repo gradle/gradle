@@ -51,6 +51,10 @@ class TestProjectGenerator {
         def rootProjectDir = new File(outputBaseDir, config.projectName)
         rootProjectDir.mkdirs()
         generateProject(rootProjectDir, dependencyTree, null)
+        if (config.subProjects == 0) {
+            file rootProjectDir, "BUILD", fileContentGenerator.generateBazelBuild(dependencyTree)
+            file rootProjectDir, "WORKSPACE", fileContentGenerator.generateBazelWorkspace()
+        }
         for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
             def subProjectDir = new File(rootProjectDir, "project$subProjectNumber")
             generateProject(subProjectDir, dependencyTree, subProjectNumber)
@@ -96,6 +100,11 @@ class TestProjectGenerator {
             throw new IllegalArgumentException("Project not defined: $projectName")
         }
         def projectDir = new File(outputDir, projectName)
+
+        if (project.config.subProjects > 0) {
+            println "Multi-project Bazel builds are not supported, so Bazel will not be generated"
+        }
+
         new TestProjectGenerator(project.config).generate(outputDir)
 
         println "Generated: $projectDir"
