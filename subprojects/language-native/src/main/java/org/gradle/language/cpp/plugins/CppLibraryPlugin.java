@@ -23,6 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.Linkage;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
@@ -46,6 +48,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -84,6 +87,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());
+        project.getComponents().add(library.getDebugStaticLibrary());
+        project.getComponents().add(library.getReleaseStaticLibrary());
 
         // Configure the component
         library.getBaseName().set(project.getName());
@@ -118,33 +123,31 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-        final Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
-        debugLinkElements.extendsFrom(implementation);
-        debugLinkElements.setCanBeResolved(false);
-        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        debugLinkElements.getOutgoing().artifact(library.getDebugSharedLibrary().getLinkFile());
+        final Configuration debugLinkElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "debugLinkElements", implementation, linkUsage, true, Linkage.SHARED,
+            library.getDebugSharedLibrary().getLinkFile());
+        final Configuration debugRuntimeElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "debugRuntimeElements", implementation, runtimeUsage, true, Linkage.SHARED,
+            library.getDebugSharedLibrary().getRuntimeFile());
 
-        final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-        debugRuntimeElements.extendsFrom(implementation);
-        debugRuntimeElements.setCanBeResolved(false);
-        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        debugRuntimeElements.getOutgoing().artifact(library.getDebugSharedLibrary().getRuntimeFile());
+        final Configuration releaseLinkElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "releaseLinkElements", implementation, linkUsage, false, Linkage.SHARED,
+            library.getReleaseSharedLibrary().getLinkFile());
+        final Configuration releaseRuntimeElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "releaseRuntimeElements", implementation, runtimeUsage, false, Linkage.SHARED,
+            library.getReleaseSharedLibrary().getRuntimeFile());
 
-        final Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
-        releaseLinkElements.extendsFrom(implementation);
-        releaseLinkElements.setCanBeResolved(false);
-        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        releaseLinkElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getLinkFile());
+        final Configuration debugStaticLinkElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "debugStaticLinkElements", implementation, linkUsage, true, Linkage.STATIC,
+            library.getDebugStaticLibrary().getLinkFile());
+        final Configuration debugStaticRuntimeElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "debugStaticRuntimeElements", implementation, runtimeUsage, true, Linkage.STATIC);
 
-        final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-        releaseRuntimeElements.extendsFrom(implementation);
-        releaseRuntimeElements.setCanBeResolved(false);
-        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        releaseRuntimeElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getRuntimeFile());
+        final Configuration releaseStaticLinkElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "releaseStaticLinkElements", implementation, linkUsage, false, Linkage.STATIC,
+            library.getReleaseStaticLibrary().getLinkFile());
+        final Configuration releaseStaticRuntimeElements = maybeCreateAndConfigureDependencyElement(
+            configurations, "releaseStaticRuntimeElements", implementation, runtimeUsage, false, Linkage.STATIC);
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
@@ -172,26 +175,51 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.from(mainVariant);
                             }
                         });
-                        extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
+                        extension.getPublications().create("debugShared", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
                                 // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(library.getBaseName().get() + "_debug");
+                                publication.setArtifactId(library.getBaseName().get() + "_debugShared");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeVariant debugVariant = new NativeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
+                                NativeVariant debugVariant = new NativeVariant("debugShared", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
                                 mainVariant.addVariant(debugVariant);
                                 publication.from(debugVariant);
                             }
                         });
-                        extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
+                        extension.getPublications().create("releaseShared", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
                                 // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(library.getBaseName().get() + "_release");
+                                publication.setArtifactId(library.getBaseName().get() + "_releaseShared");
                                 publication.setVersion(project.getVersion().toString());
-                                NativeVariant releaseVariant = new NativeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
+                                NativeVariant releaseVariant = new NativeVariant("releaseShared", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
+                                mainVariant.addVariant(releaseVariant);
+                                publication.from(releaseVariant);
+                            }
+                        });
+
+                        extension.getPublications().create("debugStatic", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                // TODO - should track changes to these properties
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(library.getBaseName().get() + "_debugStatic");
+                                publication.setVersion(project.getVersion().toString());
+                                NativeVariant debugVariant = new NativeVariant("debugStatic", linkUsage, debugStaticLinkElements, runtimeUsage, debugStaticRuntimeElements);
+                                mainVariant.addVariant(debugVariant);
+                                publication.from(debugVariant);
+                            }
+                        });
+                        extension.getPublications().create("releaseStatic", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                // TODO - should track changes to these properties
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(library.getBaseName().get() + "_releaseStatic");
+                                publication.setVersion(project.getVersion().toString());
+                                NativeVariant releaseVariant = new NativeVariant("releaseStatic", linkUsage, releaseStaticLinkElements, runtimeUsage, releaseStaticRuntimeElements);
                                 mainVariant.addVariant(releaseVariant);
                                 publication.from(releaseVariant);
                             }
@@ -202,4 +230,21 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         });
     }
 
+    private Configuration maybeCreateAndConfigureDependencyElement(ConfigurationContainer configurations, String name, Configuration implementation, Usage usage, boolean debuggable, Linkage linkage, Provider<RegularFile> artifact) {
+        Configuration elements = maybeCreateAndConfigureDependencyElement(configurations, name, implementation, usage, debuggable, linkage);
+        elements.getOutgoing().artifact(artifact);
+
+        return elements;
+    }
+
+    private Configuration maybeCreateAndConfigureDependencyElement(ConfigurationContainer configurations, String name, Configuration implementation, Usage usage, boolean debuggable, Linkage linkage) {
+        Configuration elements = configurations.maybeCreate(name);
+        elements.extendsFrom(implementation);
+        elements.setCanBeResolved(false);
+        elements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, usage);
+        elements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        elements.getAttributes().attribute(LINKAGE_ATTRIBUTE, linkage);
+
+        return elements;
+    }
 }

@@ -117,6 +117,8 @@ public abstract class OperatingSystem {
 
     public abstract String getStaticLibraryName(String libraryName);
 
+    public abstract String getStaticLibrarySuffix();
+
     public abstract String getLinkLibrarySuffix();
 
     public abstract String getLinkLibraryName(String libraryPath);
@@ -211,6 +213,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibrarySuffix() {
             return ".dll";
+        }
+
+        @Override
+        public String getStaticLibrarySuffix() {
+            return ".lib";
         }
 
         @Override
@@ -317,6 +324,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibrarySuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getStaticLibrarySuffix() {
+            return ".a";
         }
 
         @Override

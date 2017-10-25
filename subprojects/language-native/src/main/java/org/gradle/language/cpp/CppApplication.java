@@ -34,12 +34,26 @@ public interface CppApplication extends CppComponent {
     CppExecutable getDevelopmentBinary();
 
     /**
-     * Returns the debug executable for this application.
+     * Returns the dynamically linked debug executable for this application.
      */
     CppExecutable getDebugExecutable();
 
     /**
-     * Returns the release executable for this application.
+     * Returns the dynamically linked release executable for this application.
      */
     CppExecutable getReleaseExecutable();
+
+    /**
+     * Returns the statically linked debug executable for this application.
+     *
+     * @since 4.4
+     */
+    CppExecutable getDebugStaticExecutable();
+
+    /**
+     * Returns the statically linked release executable for this application.
+     *
+     * @since 4.4
+     */
+    CppExecutable getReleaseStaticExecutable();
 }

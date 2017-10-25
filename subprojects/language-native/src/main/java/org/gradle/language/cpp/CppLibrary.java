@@ -76,4 +76,18 @@ public interface CppLibrary extends CppComponent {
      * Returns the release shared library for this library.
      */
     CppSharedLibrary getReleaseSharedLibrary();
+
+    /**
+     * Returns the debug static library for this library.
+     *
+     * @since 4.4
+     */
+    CppStaticLibrary getDebugStaticLibrary();
+
+    /**
+     * Returns the release static library for this library.
+     *
+     * @since 4.4
+     */
+    CppStaticLibrary getReleaseStaticLibrary();
 }

@@ -65,7 +65,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         then:
         compileIsCached(buildType)
-        installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
+        installation("build/install/main/${buildType.toLowerCase()}/shared").exec().out == app.expectedOutput
 
         where:
         buildType << [debug, release]
@@ -103,7 +103,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         then:
         compileIsCached(buildType, newLocation)
         assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
-        installation(newLocation.file("build/install/main/${buildType.toLowerCase()}")).exec().out == app.expectedOutput
+        installation(newLocation.file("build/install/main/${buildType.toLowerCase()}/shared")).exec().out == app.expectedOutput
 
         where:
         buildType << [debug, release]
@@ -153,7 +153,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         skipped compileTask(buildType)
         // checking the object file only works in `temporaryFolder.testDirectory` since the base class has a hard coded reference to it
         if (projectDir == temporaryFolder.testDirectory) {
-            objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
+            objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}/shared").assertExists()
         }
     }
 

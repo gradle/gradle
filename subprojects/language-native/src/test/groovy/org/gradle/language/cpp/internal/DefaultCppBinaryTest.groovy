@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Provider
+import org.gradle.language.cpp.Linkage
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("nativeRuntimeDebug") >> runtime
         _ * componentHeaders.plus(_) >> headerDirs
 
-        binary = new DefaultCppBinary("mainDebug", projectLayout, TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection), componentHeaders, configurations, implementation)
+        binary = new DefaultCppBinary("mainDebug", projectLayout, TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection), componentHeaders, configurations, implementation, Linkage.SHARED)
     }
 
     def "creates configurations for the binary"() {

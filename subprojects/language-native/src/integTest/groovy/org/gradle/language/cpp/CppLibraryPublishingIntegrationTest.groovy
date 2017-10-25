@@ -50,17 +50,20 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         then:
         result.assertTasksExecuted(
             compileAndLinkTasks(debug),
+            compileAndCreateTasks(debug),
             compileAndLinkTasks(release),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            compileAndCreateTasks(release),
+            publishTasks(debug),
+            publishTasks(release),
+            publishTasks('', debug, staticLinkage),
+            publishTasks('', release, staticLinkage),
+
             ":cppHeaders",
+
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+
             ":publish"
         )
 
@@ -77,58 +80,70 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         main.parsedPom.scopes.isEmpty()
 
         def mainMetadata = main.parsedModuleMetadata
-        mainMetadata.variants.size() == 5
+        mainMetadata.variants.size() == 9
         def api = mainMetadata.variant("api")
         api.dependencies.empty
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
-        mainMetadata.variant("debug-link").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("debug-runtime").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("release-link").availableAt.coords == "some.group:test_release:1.2"
-        mainMetadata.variant("release-runtime").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variant("debugShared-link").availableAt.coords == "some.group:test_debugShared:1.2"
+        mainMetadata.variant("debugShared-runtime").availableAt.coords == "some.group:test_debugShared:1.2"
+        mainMetadata.variant("releaseShared-link").availableAt.coords == "some.group:test_releaseShared:1.2"
+        mainMetadata.variant("releaseShared-runtime").availableAt.coords == "some.group:test_releaseShared:1.2"
 
-        def debug = repo.module('some.group', 'test_debug', '1.2')
-        debug.assertPublished()
-        debug.assertArtifactsPublished(withSharedLibrarySuffix("test_debug-1.2"), withLinkLibrarySuffix("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
-        debug.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").file)
-        debug.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").linkFile)
+        assertSharedLibraryPublished(repo, 'debug')
+        assertSharedLibraryPublished(repo, 'release')
+        assertStaticLibraryPublished(repo, 'debug')
+        assertStaticLibraryPublished(repo, 'release')
+    }
 
-        debug.parsedPom.scopes.isEmpty()
+    private void assertSharedLibraryPublished(MavenFileRepository repo, String buildType) {
+        def variant = "${buildType}Shared"
+        def module = repo.module('some.group', "test_$variant", '1.2')
+        module.assertPublished()
+        module.assertArtifactsPublished(withSharedLibrarySuffix("test_$variant-1.2"), withLinkLibrarySuffix("test_$variant-1.2"), "test_$variant-1.2.pom", "test_$variant-1.2-module.json")
+        module.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/$buildType/shared/test").file)
+        module.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/$buildType/shared/test").linkFile)
 
-        def debugMetadata = debug.parsedModuleMetadata
-        debugMetadata.variants.size() == 2
-        def debugLink = debugMetadata.variant('debug-link')
-        debugLink.dependencies.empty
-        debugLink.files.size() == 1
-        debugLink.files[0].name == linkLibraryName('test')
-        debugLink.files[0].url == withLinkLibrarySuffix("test_debug-1.2")
-        def debugRuntime = debugMetadata.variant('debug-runtime')
-        debugRuntime.dependencies.empty
-        debugRuntime.files.size() == 1
-        debugRuntime.files[0].name == sharedLibraryName('test')
-        debugRuntime.files[0].url == withSharedLibrarySuffix("test_debug-1.2")
+        assert module.parsedPom.scopes.isEmpty()
 
-        def release = repo.module('some.group', 'test_release', '1.2')
-        release.assertPublished()
-        release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), withLinkLibrarySuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
-        release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
-        release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").linkFile)
+        def metadata = module.parsedModuleMetadata
+        assert metadata.variants.size() == 2
 
-        release.parsedPom.scopes.isEmpty()
+        def link = metadata.variant("${variant}-link")
+        assert link.dependencies.empty
+        assert link.files.size() == 1
+        assert link.files[0].name == linkLibraryName('test')
+        assert link.files[0].url == withLinkLibrarySuffix("test_$variant-1.2")
 
-        def releaseMetadata = release.parsedModuleMetadata
-        releaseMetadata.variants.size() == 2
-        def releaseLink = releaseMetadata.variant('release-link')
-        releaseLink.dependencies.empty
-        releaseLink.files.size() == 1
-        releaseLink.files[0].name == linkLibraryName('test')
-        releaseLink.files[0].url == withLinkLibrarySuffix("test_release-1.2")
-        def releaseRuntime = releaseMetadata.variant('release-runtime')
-        releaseRuntime.dependencies.empty
-        releaseRuntime.files.size() == 1
-        releaseRuntime.files[0].name == sharedLibraryName('test')
-        releaseRuntime.files[0].url == withSharedLibrarySuffix("test_release-1.2")
+        def runtime = metadata.variant("${variant}-runtime")
+        assert runtime.dependencies.empty
+        assert runtime.files.size() == 1
+        assert runtime.files[0].name == sharedLibraryName('test')
+        assert runtime.files[0].url == withSharedLibrarySuffix("test_$variant-1.2")
+    }
+
+    private void assertStaticLibraryPublished(MavenFileRepository repo, String buildType) {
+        def variant = "${buildType}Static"
+        def module = repo.module('some.group', "test_$variant", '1.2')
+        module.assertPublished()
+        module.assertArtifactsPublished(withStaticLibrarySuffix("test_$variant-1.2"), "test_$variant-1.2.pom", "test_$variant-1.2-module.json")
+        module.artifactFile(type: staticLibraryExtension).assertIsCopyOf(staticLibrary("build/lib/main/$buildType/static/test").file)
+
+        assert module.parsedPom.scopes.isEmpty()
+
+        def metadata = module.parsedModuleMetadata
+        assert metadata.variants.size() == 2
+
+        def link = metadata.variant("${variant}-link")
+        assert link.dependencies.empty
+        assert link.files.size() == 1
+        assert link.files[0].name == staticLibraryName('test')
+        assert link.files[0].url == withStaticLibrarySuffix("test_$variant-1.2")
+
+        def runtime = metadata.variant("${variant}-runtime")
+        assert runtime.dependencies.empty
+        assert runtime.files.empty
     }
 
     def "can publish a library and its dependencies to a Maven repository"() {
@@ -164,86 +179,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         then:
         def repo = new MavenFileRepository(repoDir)
-
-        def deckModule = repo.module('some.group', 'deck', '1.2')
-        deckModule.assertPublished()
-        deckModule.parsedPom.scopes.size() == 1
-        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
-
-        def deckMetadata = deckModule.parsedModuleMetadata
-        def deckApi = deckMetadata.variant("api")
-        deckApi.dependencies.size() == 1
-        deckApi.dependencies[0].group == "some.group"
-        deckApi.dependencies[0].module == "card"
-        deckApi.dependencies[0].version == "1.2"
-
-        def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
-        deckDebugModule.assertPublished()
-
-        deckDebugModule.parsedPom.scopes.size() == 1
-        deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
-
-        def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("debug-link")
-        deckDebugLink.dependencies.size() == 2
-        deckDebugLink.dependencies[0].group == "some.group"
-        deckDebugLink.dependencies[0].module == "shuffle"
-        deckDebugLink.dependencies[0].version == "1.2"
-        deckDebugLink.dependencies[1].group == "some.group"
-        deckDebugLink.dependencies[1].module == "card"
-        deckDebugLink.dependencies[1].version == "1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
-        deckDebugRuntime.dependencies.size() == 2
-        deckDebugRuntime.dependencies[0].group == "some.group"
-        deckDebugRuntime.dependencies[0].module == "shuffle"
-        deckDebugRuntime.dependencies[0].version == "1.2"
-        deckDebugRuntime.dependencies[1].group == "some.group"
-        deckDebugRuntime.dependencies[1].module == "card"
-        deckDebugRuntime.dependencies[1].version == "1.2"
-
-        def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
-        deckReleaseModule.assertPublished()
-        deckReleaseModule.parsedPom.scopes.size() == 1
-        deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
-
-        def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
-        deckReleaseLink.dependencies.size() == 2
-        deckReleaseLink.dependencies[0].group == "some.group"
-        deckReleaseLink.dependencies[0].module == "shuffle"
-        deckReleaseLink.dependencies[0].version == "1.2"
-        deckReleaseLink.dependencies[1].group == "some.group"
-        deckReleaseLink.dependencies[1].module == "card"
-        deckReleaseLink.dependencies[1].version == "1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
-        deckReleaseRuntime.dependencies.size() == 2
-        deckReleaseRuntime.dependencies[0].group == "some.group"
-        deckReleaseRuntime.dependencies[0].module == "shuffle"
-        deckReleaseRuntime.dependencies[0].version == "1.2"
-        deckReleaseRuntime.dependencies[1].group == "some.group"
-        deckReleaseRuntime.dependencies[1].module == "card"
-        deckReleaseRuntime.dependencies[1].version == "1.2"
-
-        def cardModule = repo.module('some.group', 'card', '1.2')
-        cardModule.assertPublished()
-        cardModule.parsedPom.scopes.isEmpty()
-
-        def cardDebugModule = repo.module('some.group', 'card_debug', '1.2')
-        cardDebugModule.assertPublished()
-        cardDebugModule.parsedPom.scopes.isEmpty()
-
-        def cardReleaseModule = repo.module('some.group', 'card_release', '1.2')
-        cardReleaseModule.assertPublished()
-        cardReleaseModule.parsedPom.scopes.isEmpty()
-
-        def shuffleModule = repo.module('some.group', 'shuffle', '1.2')
-        shuffleModule.assertPublished()
-
-        def shuffleDebugModule = repo.module('some.group', 'shuffle_debug', '1.2')
-        shuffleDebugModule.assertPublished()
-
-        def shuffleReleaseModule = repo.module('some.group', 'shuffle_release', '1.2')
-        shuffleReleaseModule.assertPublished()
+        assertDeckModuleVariantPublished(repo)
+        assertModulesArePublishedWithNoDependencies(repo, 'card')
+        assertModulesArePublishedWithNoDependencies(repo, 'shuffle')
 
         when:
         def consumer = file("consumer").createDir()
@@ -256,14 +194,83 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         app.main.writeToProject(consumer)
 
         executer.inDirectory(consumer)
-        run("assemble")
+        run("dependencies", "assemble", "installDebugStatic")
 
         then:
         noExceptionThrown()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
-        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+        consumer.file("build/install/main/debug/shared/lib").assertHasDescendants([
+            executable("consumer"), sharedLibrary("deck"), sharedLibrary("card"), sharedLibrary("shuffle")]*.file*.name)
+        installation(consumer.file("build/install/main/debug/shared")).exec().out == app.expectedOutput
+
+        consumer.file("build/install/main/debug/static/lib").assertHasDescendants(executable("consumer").file.name)
+        installation(consumer.file("build/install/main/debug/static")).exec().out == app.expectedOutput
+    }
+
+    private void assertDeckModuleVariantPublished(MavenFileRepository repo) {
+        def deckModule = repo.module('some.group', 'deck', '1.2')
+        deckModule.assertPublished()
+        assert deckModule.parsedPom.scopes.size() == 1
+        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
+
+        def deckMetadata = deckModule.parsedModuleMetadata
+        def deckApi = deckMetadata.variant("api")
+        assert deckApi.dependencies.size() == 1
+        assert deckApi.dependencies[0].group == "some.group"
+        assert deckApi.dependencies[0].module == "card"
+        assert deckApi.dependencies[0].version == "1.2"
+
+        assertDeckModuleVariantPublished(repo, 'debugShared')
+        assertDeckModuleVariantPublished(repo, 'releaseShared')
+        assertDeckModuleVariantPublished(repo, 'debugStatic')
+        assertDeckModuleVariantPublished(repo, 'releaseStatic')
+    }
+
+    private void assertModulesArePublishedWithNoDependencies(MavenFileRepository repo, String artifactId) {
+        def module = repo.module('some.group', artifactId, '1.2')
+        module.assertPublished()
+        assert module.parsedPom.scopes.isEmpty()
+
+        def debugSharedModule = repo.module('some.group', "${artifactId}_debugShared", '1.2')
+        debugSharedModule.assertPublished()
+        assert debugSharedModule.parsedPom.scopes.isEmpty()
+
+        def releaseSharedModule = repo.module('some.group', "${artifactId}_releaseShared", '1.2')
+        releaseSharedModule.assertPublished()
+        assert releaseSharedModule.parsedPom.scopes.isEmpty()
+
+        def debugStaticModule = repo.module('some.group', "${artifactId}_debugStatic", '1.2')
+        debugStaticModule.assertPublished()
+        assert debugStaticModule.parsedPom.scopes.isEmpty()
+
+        def releaseStaticModule = repo.module('some.group', "${artifactId}_releaseStatic", '1.2')
+        releaseStaticModule.assertPublished()
+        assert releaseStaticModule.parsedPom.scopes.isEmpty()
+    }
+
+    private void assertDeckModuleVariantPublished(MavenFileRepository repo, String variant) {
+        def module = repo.module('some.group', "deck_${variant}", '1.2')
+        module.assertPublished()
+        assert module.parsedPom.scopes.size() == 1
+        module.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
+
+        def metadata = module.parsedModuleMetadata
+        def link = metadata.variant("${variant}-link")
+        assert link.dependencies.size() == 2
+        assert link.dependencies[0].group == "some.group"
+        assert link.dependencies[0].module == "shuffle"
+        assert link.dependencies[0].version == "1.2"
+        assert link.dependencies[1].group == "some.group"
+        assert link.dependencies[1].module == "card"
+        assert link.dependencies[1].version == "1.2"
+
+        def runtime = metadata.variant("${variant}-runtime")
+        assert runtime.dependencies.size() == 2
+        assert runtime.dependencies[0].group == "some.group"
+        assert runtime.dependencies[0].module == "shuffle"
+        assert runtime.dependencies[0].version == "1.2"
+        assert runtime.dependencies[1].group == "some.group"
+        assert runtime.dependencies[1].module == "card"
+        assert runtime.dependencies[1].version == "1.2"
     }
 
     def "can publish a library with external dependencies to a Maven repository"() {
@@ -328,51 +335,10 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckApi.dependencies[0].module == "card"
         deckApi.dependencies[0].version == "1.2"
 
-        def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
-        deckDebugModule.assertPublished()
-        deckDebugModule.parsedPom.scopes.size() == 1
-        deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
-
-        def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("debug-link")
-        deckDebugLink.dependencies.size() == 2
-        deckDebugLink.dependencies[0].group == "some.group"
-        deckDebugLink.dependencies[0].module == "shuffle"
-        deckDebugLink.dependencies[0].version == "1.2"
-        deckDebugLink.dependencies[1].group == "some.group"
-        deckDebugLink.dependencies[1].module == "card"
-        deckDebugLink.dependencies[1].version == "1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
-        deckDebugRuntime.dependencies.size() == 2
-        deckDebugRuntime.dependencies[0].group == "some.group"
-        deckDebugRuntime.dependencies[0].module == "shuffle"
-        deckDebugRuntime.dependencies[0].version == "1.2"
-        deckDebugRuntime.dependencies[1].group == "some.group"
-        deckDebugRuntime.dependencies[1].module == "card"
-        deckDebugRuntime.dependencies[1].version == "1.2"
-
-        def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
-        deckReleaseModule.assertPublished()
-        deckReleaseModule.parsedPom.scopes.size() == 1
-        deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
-
-        def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
-        deckReleaseLink.dependencies.size() == 2
-        deckReleaseLink.dependencies[0].group == "some.group"
-        deckReleaseLink.dependencies[0].module == "shuffle"
-        deckReleaseLink.dependencies[0].version == "1.2"
-        deckReleaseLink.dependencies[1].group == "some.group"
-        deckReleaseLink.dependencies[1].module == "card"
-        deckReleaseLink.dependencies[1].version == "1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
-        deckReleaseRuntime.dependencies.size() == 2
-        deckReleaseRuntime.dependencies[0].group == "some.group"
-        deckReleaseRuntime.dependencies[0].module == "shuffle"
-        deckReleaseRuntime.dependencies[0].version == "1.2"
-        deckReleaseRuntime.dependencies[1].group == "some.group"
-        deckReleaseRuntime.dependencies[1].module == "card"
-        deckReleaseRuntime.dependencies[1].version == "1.2"
+        assertDeckModuleVariantPublished(repo, 'debugShared')
+        assertDeckModuleVariantPublished(repo, 'releaseShared')
+        assertDeckModuleVariantPublished(repo, 'debugStatic')
+        assertDeckModuleVariantPublished(repo, 'releaseStatic')
 
         when:
         def consumer = file("consumer").createDir()
@@ -389,10 +355,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         then:
         noExceptionThrown()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
-        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
-        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+        consumer.file("build/install/main/debug/shared/lib").assertHasDescendants([executable("consumer"),
+               sharedLibrary("deck"), sharedLibrary("card"), sharedLibrary("shuffle")]*.file*.name)
+        installation(consumer.file("build/install/main/debug/shared")).exec().out == app.expectedOutput
     }
 
     def "correct variant of published library is selected when resolving"() {
@@ -409,7 +374,8 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            compileReleaseSharedCpp.macros(WITH_FEATURE: "true")
+            compileReleaseStaticCpp.macros(WITH_FEATURE: "true")
             
         """
         app.greeterLib.writeToProject(file(producer))
@@ -422,23 +388,40 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
             apply plugin: 'cpp-executable'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            compileReleaseSharedCpp.macros(WITH_FEATURE: "true")
+            compileReleaseStaticCpp.macros(WITH_FEATURE: "true")
 """
         app.main.writeToProject(consumer)
 
         when:
         executer.inDirectory(consumer)
-        run("installDebug")
+        run("installDebugShared")
 
         then:
-        installation(consumer.file("build/install/main/debug")).exec().out == app.withFeatureDisabled().expectedOutput
+        installation(consumer.file("build/install/main/debug/shared")).exec().out == app.withFeatureDisabled().expectedOutput
 
         when:
         executer.inDirectory(consumer)
-        run("installRelease")
+        run("installReleaseShared")
 
         then:
-        installation(consumer.file("build/install/main/release")).exec().out == app.withFeatureEnabled().expectedOutput
+        installation(consumer.file("build/install/main/release/shared")).exec().out == app.withFeatureEnabled().expectedOutput
+
+        when:
+        executer.inDirectory(consumer)
+        run("installDebugStatic")
+
+        then:
+        consumer.file("build/install/main/debug/static/lib").assertHasDescendants(executable('consumer').file.name)
+        installation(consumer.file("build/install/main/debug/static")).exec().out == app.withFeatureDisabled().expectedOutput
+
+        when:
+        executer.inDirectory(consumer)
+        run("installReleaseStatic")
+
+        then:
+        consumer.file("build/install/main/release/static/lib").assertHasDescendants(executable('consumer').file.name)
+        installation(consumer.file("build/install/main/release/static")).exec().out == app.withFeatureEnabled().expectedOutput
     }
 
 }

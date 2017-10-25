@@ -24,6 +24,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.Linkage;
 
 import javax.inject.Inject;
 
@@ -33,7 +34,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
 
     @Inject
     public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
+        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation, Linkage.SHARED);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
     }

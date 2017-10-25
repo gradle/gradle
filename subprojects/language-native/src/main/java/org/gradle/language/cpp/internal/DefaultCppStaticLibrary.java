@@ -18,35 +18,27 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.Linkage;
 
 import javax.inject.Inject;
 
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
-    private final RegularFileProperty executableFile;
-    private final DirectoryProperty installationDirectory;
+public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary {
+    private final RegularFileProperty linkFile;
 
     @Inject
-    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Linkage linkage) {
-        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation, linkage);
-        this.executableFile = projectLayout.fileProperty();
-        this.installationDirectory = projectLayout.directoryProperty();
+    public DefaultCppStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation, Linkage.STATIC);
+        this.linkFile = projectLayout.fileProperty();
     }
 
     @Override
-    public RegularFileProperty getExecutableFile() {
-        return executableFile;
-    }
-
-    @Override
-    public DirectoryProperty getInstallDirectory() {
-        return installationDirectory;
+    public RegularFileProperty getLinkFile() {
+        return linkFile;
     }
 }

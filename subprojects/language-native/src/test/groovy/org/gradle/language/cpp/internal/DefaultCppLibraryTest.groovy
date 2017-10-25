@@ -48,9 +48,9 @@ class DefaultCppLibraryTest extends Specification {
 
     def "has debug and release shared libraries"() {
         expect:
-        library.debugSharedLibrary.name == "mainDebug"
+        library.debugSharedLibrary.name == "mainDebugShared"
         library.debugSharedLibrary.debuggable
-        library.releaseSharedLibrary.name == "mainRelease"
+        library.releaseSharedLibrary.name == "mainReleaseShared"
         !library.releaseSharedLibrary.debuggable
         library.developmentBinary == library.debugSharedLibrary
     }

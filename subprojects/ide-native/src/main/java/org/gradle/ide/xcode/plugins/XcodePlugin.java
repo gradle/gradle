@@ -276,8 +276,8 @@ public class XcodePlugin extends IdePlugin {
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
-        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
-        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
+        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebugShared");
+        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkReleaseShared");
         // TODO - should reflect changes to module name
         // $(CONFIGURATION) is replaced with the build configuration name, either Debug or Release
         // TODO - this is too coincidental. Instead, perhaps add Xcode entry point tasks
@@ -316,12 +316,12 @@ public class XcodePlugin extends IdePlugin {
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
         // TODO - should use the _install_ task for an executable
         // TODO - should use the basename of the component to calculate the target names
-        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
-        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
+        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebugShared");
+        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkReleaseShared");
         String targetName = StringUtils.capitalize(project.getName());
         // $(CONFIGURATION) is replaced with the build configuration name, either Debug or Release
         // TODO - this is too coincidental. Instead, perhaps add Xcode entry point tasks
-        String taskName = project.getPath() + ":link$(CONFIGURATION)";
+        String taskName = project.getPath() + ":link$(CONFIGURATION)Shared";
         XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), taskName, linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
         xcode.getProject().addTarget(target);

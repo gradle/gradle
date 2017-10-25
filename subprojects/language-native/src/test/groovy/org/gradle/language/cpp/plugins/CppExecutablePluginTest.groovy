@@ -52,8 +52,10 @@ class CppExecutablePluginTest extends Specification {
 
         then:
         project.components.main == project.executable
-        project.components.mainDebug == project.executable.debugExecutable
-        project.components.mainRelease == project.executable.releaseExecutable
+        project.components.mainDebugShared == project.executable.debugExecutable
+        project.components.mainReleaseShared == project.executable.releaseExecutable
+        project.components.mainDebugStatic == project.executable.debugStaticExecutable
+        project.components.mainReleaseStatic == project.executable.releaseStaticExecutable
     }
 
     def "adds compile, link and install tasks"() {
@@ -64,40 +66,40 @@ class CppExecutablePluginTest extends Specification {
         project.pluginManager.apply(CppExecutablePlugin)
 
         then:
-        def compileDebugCpp = project.tasks.compileDebugCpp
+        def compileDebugCpp = project.tasks.compileDebugSharedCpp
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files == [project.file("src/main/headers")] as Set
         compileDebugCpp.source.files == [src] as Set
-        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/shared")
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
-        def linkDebug = project.tasks.linkDebug
+        def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkExecutable
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/shared/" + OperatingSystem.current().getExecutableName("testApp"))
         linkDebug.debuggable
 
-        def installDebug = project.tasks.installDebug
+        def installDebug = project.tasks.installDebugShared
         installDebug instanceof InstallExecutable
-        installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug/shared")
         installDebug.runScript.name == OperatingSystem.current().getScriptName("testApp")
 
-        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        def compileReleaseCpp = project.tasks.compileReleaseSharedCpp
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files == [project.file("src/main/headers")] as Set
         compileReleaseCpp.source.files == [src] as Set
-        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/shared")
         !compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
-        def linkRelease = project.tasks.linkRelease
+        def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkExecutable
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/shared/" + OperatingSystem.current().getExecutableName("testApp"))
         !linkRelease.debuggable
 
-        def installRelease = project.tasks.installRelease
+        def installRelease = project.tasks.installReleaseShared
         installRelease instanceof InstallExecutable
-        installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
+        installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release/shared")
         installRelease.runScript.name == OperatingSystem.current().getScriptName("testApp")
     }
 
@@ -107,11 +109,11 @@ class CppExecutablePluginTest extends Specification {
         project.executable.baseName = "test_app"
 
         then:
-        def link = project.tasks.linkDebug
-        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("test_app"))
+        def link = project.tasks.linkDebugShared
+        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/shared/" + OperatingSystem.current().getExecutableName("test_app"))
 
-        def install = project.tasks.installDebug
-        install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        def install = project.tasks.installDebugShared
+        install.installDirectory.get().asFile == projectDir.file("build/install/main/debug/shared")
         install.runScript.name == OperatingSystem.current().getScriptName("test_app")
     }
 
@@ -123,14 +125,14 @@ class CppExecutablePluginTest extends Specification {
         project.buildDir = "output"
 
         then:
-        def compileCpp = project.tasks.compileDebugCpp
-        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
+        def compileCpp = project.tasks.compileDebugSharedCpp
+        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug/shared")
 
-        def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        def link = project.tasks.linkDebugShared
+        link.outputFile == projectDir.file("output/exe/main/debug/shared/" + OperatingSystem.current().getExecutableName("testApp"))
 
-        def install = project.tasks.installDebug
-        install.destinationDir == project.file("output/install/main/debug")
+        def install = project.tasks.installDebugShared
+        install.destinationDir == project.file("output/install/main/debug/shared")
         install.executable == link.outputFile
 
         link.setOutputFile(project.file("exe"))
@@ -147,7 +149,7 @@ class CppExecutablePluginTest extends Specification {
 
         then:
         def publishing = project.publishing
-        publishing.publications.size() == 3
+        publishing.publications.size() == 5
 
         def main = publishing.publications.main
         main.groupId == 'my.group'
@@ -155,16 +157,28 @@ class CppExecutablePluginTest extends Specification {
         main.version == '1.2'
         main.artifacts.empty
 
-        def debug = publishing.publications.debug
-        debug.groupId == 'my.group'
-        debug.artifactId == 'test_app_debug'
-        debug.version == '1.2'
-        debug.artifacts.size() == 1
+        def debugShared = publishing.publications.debugShared
+        debugShared.groupId == 'my.group'
+        debugShared.artifactId == 'test_app_debugShared'
+        debugShared.version == '1.2'
+        debugShared.artifacts.size() == 1
 
-        def release = publishing.publications.release
-        release.groupId == 'my.group'
-        release.artifactId == 'test_app_release'
-        release.version == '1.2'
-        release.artifacts.size() == 1
+        def releaseShared = publishing.publications.releaseShared
+        releaseShared.groupId == 'my.group'
+        releaseShared.artifactId == 'test_app_releaseShared'
+        releaseShared.version == '1.2'
+        releaseShared.artifacts.size() == 1
+
+        def debugStatic = publishing.publications.debugStatic
+        debugStatic.groupId == 'my.group'
+        debugStatic.artifactId == 'test_app_debugStatic'
+        debugStatic.version == '1.2'
+        debugStatic.artifacts.size() == 1
+
+        def releaseStatic = publishing.publications.releaseStatic
+        releaseStatic.groupId == 'my.group'
+        releaseStatic.artifactId == 'test_app_releaseStatic'
+        releaseStatic.version == '1.2'
+        releaseStatic.artifacts.size() == 1
     }
 }

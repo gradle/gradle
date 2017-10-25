@@ -28,14 +28,17 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppStaticLibrary;
 
 import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final DefaultCppSharedLibrary debug;
-    private final DefaultCppSharedLibrary release;
+    private final DefaultCppSharedLibrary debugShared;
+    private final DefaultCppSharedLibrary releaseShared;
+    private final DefaultCppStaticLibrary debugStatic;
+    private final DefaultCppStaticLibrary releaseStatic;
     private final Configuration api;
 
     @Inject
@@ -43,8 +46,10 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, objectFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        debugShared = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "DebugShared", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        releaseShared = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "ReleaseShared", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        debugStatic = objectFactory.newInstance(DefaultCppStaticLibrary.class, name + "DebugStatic", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        releaseStatic = objectFactory.newInstance(DefaultCppStaticLibrary.class, name + "ReleaseStatic", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -84,16 +89,26 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
     @Override
     public CppSharedLibrary getDevelopmentBinary() {
-        return debug;
+        return debugShared;
     }
 
     @Override
     public CppSharedLibrary getDebugSharedLibrary() {
-        return debug;
+        return debugShared;
     }
 
     @Override
     public CppSharedLibrary getReleaseSharedLibrary() {
-        return release;
+        return releaseShared;
+    }
+
+    @Override
+    public CppStaticLibrary getDebugStaticLibrary() {
+        return debugStatic;
+    }
+
+    @Override
+    public CppStaticLibrary getReleaseStaticLibrary() {
+        return releaseStatic;
     }
 }

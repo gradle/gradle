@@ -245,6 +245,9 @@ public class ModuleMetadataFileGenerator {
             } else if (value instanceof Named) {
                 Named named = (Named) value;
                 jsonWriter.value(named.getName());
+            } else if (value instanceof Enum) {
+                Enum<?> e = (Enum) value;
+                jsonWriter.value(e.name());
             } else {
                 throw new IllegalArgumentException(String.format("Cannot write attribute %s with unsupported value %s of type %s.", attribute.getName(), value, value.getClass().getName()));
             }

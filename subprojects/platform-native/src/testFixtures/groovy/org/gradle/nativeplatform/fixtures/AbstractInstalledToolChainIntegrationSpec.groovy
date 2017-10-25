@@ -91,12 +91,24 @@ allprojects { p ->
         return path + OperatingSystem.current().sharedLibrarySuffix
     }
 
+    String withStaticLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().staticLibrarySuffix
+    }
+
     String sharedLibraryName(Object path) {
         return OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
+    String staticLibraryName(Object path) {
+        return OperatingSystem.current().getStaticLibraryName(path.toString())
+    }
+
     String getSharedLibraryExtension() {
         return OperatingSystem.current().sharedLibrarySuffix.substring(1)
+    }
+
+    String getStaticLibraryExtension() {
+        return OperatingSystem.current().staticLibrarySuffix.substring(1)
     }
 
     SharedLibraryFixture sharedLibrary(Object path) {
@@ -127,7 +139,7 @@ allprojects { p ->
         return file(getTestDirectory().toURI().relativize(intermediateFile.toURI()))
     }
 
-    List<NativeBinaryFixture> objectFiles(def sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug") {
+    List<NativeBinaryFixture> objectFiles(def sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug/shared") {
         List<NativeBinaryFixture> result = new ArrayList<NativeBinaryFixture>()
 
         String sourceSetName = sourceElement.getSourceSetName()

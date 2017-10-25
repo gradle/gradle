@@ -35,13 +35,13 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
         writeLogLibrary()
 
         when:
-        succeeds ":app:installDebug"
+        succeeds ":app:installDebugShared"
         then:
         assertTasksExecutedFor("Debug")
         assertAppHasOutputFor("debug")
 
         when:
-        succeeds ":app:installRelease"
+        succeeds ":app:installReleaseShared"
         then:
         assertTasksExecutedFor("Release")
         assertAppHasOutputFor("release")
@@ -74,24 +74,24 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
         writeLogLibrary()
 
         when:
-        succeeds ":app:installDebug"
+        succeeds ":app:installDebugShared"
         then:
         assertTasksExecutedFor("Debug")
         assertAppHasOutputFor("debug")
 
         when:
-        succeeds ":app:installRelease"
+        succeeds ":app:installReleaseShared"
         then:
         assertTasksExecutedFor("Release")
         assertAppHasOutputFor("release")
     }
 
-    private void assertTasksExecutedFor(String buildType) {
-        assert result.assertTasksExecuted(":app:depend${buildType}Cpp", ":hello:depend${buildType}Cpp", ":log:depend${buildType}Cpp", ":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}")
+    private void assertTasksExecutedFor(String buildType, String linkage = 'Shared') {
+        assert result.assertTasksExecuted(":app:depend${buildType}${linkage}Cpp", ":hello:depend${buildType}${linkage}Cpp", ":log:depend${buildType}${linkage}Cpp", ":hello:compile${buildType}${linkage}Cpp", ":hello:link${buildType}${linkage}", ":log:compile${buildType}${linkage}Cpp", ":log:link${buildType}${linkage}", ":app:compile${buildType}${linkage}Cpp", ":app:link${buildType}${linkage}", ":app:install${buildType}${linkage}")
     }
 
-    private void assertAppHasOutputFor(String buildType) {
-        assert installation("app/build/install/main/${buildType}").exec().out == app.expectedOutput
+    private void assertAppHasOutputFor(String buildType, String linkage = 'shared') {
+        assert installation("app/build/install/main/${buildType}/${linkage}").exec().out == app.expectedOutput
     }
 
     private writeApp() {

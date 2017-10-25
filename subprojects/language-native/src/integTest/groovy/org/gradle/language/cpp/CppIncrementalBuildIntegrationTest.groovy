@@ -32,7 +32,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     List<TestFile> librarySourceFiles = []
     String sourceType = 'Cpp'
     String variant = 'Debug'
-    String installApp = ":app:install${variant}"
+    String installApp = ":app:install${variant}Shared"
 
     def setup() {
         app = new CppHelloWorldApp()
@@ -78,7 +78,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         given:
         run installApp
 
-        def install = installation("app/build/install/main/${variant.toLowerCase()}")
+        def install = installation("app/build/install/main/${variant.toLowerCase()}/shared")
 
         when:
         sourceFile.text = app.alternateMainSource.content
@@ -102,7 +102,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         given:
         run installApp
         maybeWait()
-        def install = installation("app/build/install/main/debug")
+        def install = installation("app/build/install/main/debug/shared")
 
         when:
         for (int i = 0; i < librarySourceFiles.size(); i++) {
@@ -201,7 +201,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         then:
         succeeds installApp
-        executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
+        executable("app/build/exe/main/debug/shared/app").exec().out == "HELLO\n"
 
         when:
         headerFile.text = """

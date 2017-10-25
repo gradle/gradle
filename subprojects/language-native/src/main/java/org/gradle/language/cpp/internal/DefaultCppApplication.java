@@ -22,32 +22,47 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.Linkage;
 
 import javax.inject.Inject;
 
 public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
-    private final DefaultCppExecutable debug;
-    private final DefaultCppExecutable release;
+    private final DefaultCppExecutable debugShared;
+    private final DefaultCppExecutable releaseShared;
+    private final DefaultCppExecutable debugStatic;
+    private final DefaultCppExecutable releaseStatic;
 
     @Inject
     public DefaultCppApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
+        debugShared = objectFactory.newInstance(DefaultCppExecutable.class, name + "DebugShared", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), Linkage.SHARED);
+        releaseShared = objectFactory.newInstance(DefaultCppExecutable.class, name + "ReleaseShared", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), Linkage.SHARED);
+        debugStatic = objectFactory.newInstance(DefaultCppExecutable.class, name + "DebugStatic", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), Linkage.STATIC);
+        releaseStatic = objectFactory.newInstance(DefaultCppExecutable.class, name + "ReleaseStatic", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), Linkage.STATIC);
     }
 
     @Override
     public CppExecutable getDevelopmentBinary() {
-        return debug;
+        return debugShared;
     }
 
     @Override
     public CppExecutable getDebugExecutable() {
-        return debug;
+        return debugShared;
     }
 
     @Override
     public CppExecutable getReleaseExecutable() {
-        return release;
+        return releaseShared;
+    }
+
+    @Override
+    public CppExecutable getDebugStaticExecutable() {
+        return debugStatic;
+    }
+
+    @Override
+    public CppExecutable getReleaseStaticExecutable() {
+        return releaseStatic;
     }
 }

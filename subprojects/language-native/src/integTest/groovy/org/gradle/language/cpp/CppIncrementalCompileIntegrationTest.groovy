@@ -49,9 +49,9 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
-        executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/main/debug").exec().out == app.expectedOutput
+        file("build/obj/main/debug/shared/").assertHasDescendants(expectIntermediateDescendants(app.alternate))
+        executable("build/exe/main/debug/shared/app").assertExists()
+        installation("build/install/main/debug/shared").exec().out == app.expectedOutput
     }
 
     def "removes stale object files for library"() {
@@ -75,8 +75,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
-        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        file("build/obj/main/debug/shared/").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
+        sharedLibrary("build/lib/main/debug/shared/hello").assertExists()
     }
 
     def "skips compile and link tasks for executable when source doesn't change"() {
@@ -99,8 +99,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
         result.assertTasksSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
-        executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/main/debug").exec().out == app.expectedOutput
+        executable("build/exe/main/debug/shared/app").assertExists()
+        installation("build/install/main/debug/shared").exec().out == app.expectedOutput
     }
 
     def "skips compile and link tasks for library when source doesn't change"() {
@@ -123,7 +123,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         result.assertTasksSkipped(compileAndLinkTasks(debug), ":assemble")
 
-        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        sharedLibrary("build/lib/main/debug/shared/hello").assertExists()
     }
 
     def "removes stale installed executable and library file when all source files for executable are removed"() {
@@ -149,12 +149,12 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         succeeds "assemble"
 
         then:
-        executable("app/build/exe/main/debug/app").assertExists()
-        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.executable.original))
-        installation("app/build/install/main/debug").assertInstalled()
+        executable("app/build/exe/main/debug/shared/app").assertExists()
+        file("app/build/obj/main/debug/shared").assertHasDescendants(expectIntermediateDescendants(app.executable.original))
+        installation("app/build/install/main/debug/shared").assertInstalled()
 
-        sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.original))
+        sharedLibrary("greeter/build/lib/main/debug/shared/greeter").assertExists()
+        file("greeter/build/obj/main/debug/shared").assertHasDescendants(expectIntermediateDescendants(app.library.original))
 
         when:
         app.library.applyChangesToProject(file('greeter'))
@@ -168,13 +168,13 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksNotSkipped(notSkippedTasks)
         result.assertTasksSkipped(skippedTasks)
 
-        executable("app/build/exe/main/debug/app").assertDoesNotExist()
-        file("app/build/exe/main/debug").assertHasDescendants()
-        file("app/build/obj/main/debug").assertHasDescendants()
-        installation("app/build/install/main/debug").assertNotInstalled()
+        executable("app/build/exe/main/debug/shared/app").assertDoesNotExist()
+        file("app/build/exe/main/debug/shared").assertHasDescendants()
+        file("app/build/obj/main/debug/shared").assertHasDescendants()
+        installation("app/build/install/main/debug/shared").assertNotInstalled()
 
-        sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.alternate))
+        sharedLibrary("greeter/build/lib/main/debug/shared/greeter").assertExists()
+        file("greeter/build/obj/main/debug/shared").assertHasDescendants(expectIntermediateDescendants(app.library.alternate))
     }
 
     def "removes stale executable file when all source files are removed"() {
@@ -193,9 +193,9 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         succeeds "assemble"
 
         then:
-        executable("build/exe/main/debug/app").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.original))
-        installation("build/install/main/debug").assertInstalled()
+        executable("build/exe/main/debug/shared/app").assertExists()
+        file("build/obj/main/debug/shared").assertHasDescendants(expectIntermediateDescendants(app.original))
+        installation("build/install/main/debug/shared").assertInstalled()
 
         when:
         app.applyChangesToProject(testDirectory)
@@ -205,10 +205,10 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
-        executable("build/exe/main/debug/app").assertDoesNotExist()
-        file("build/exe/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertHasDescendants()
-        installation("build/install/main/debug").assertNotInstalled()
+        executable("build/exe/main/debug/shared/app").assertDoesNotExist()
+        file("build/exe/main/debug/shared").assertHasDescendants()
+        file("build/obj/main/debug/shared").assertHasDescendants()
+        installation("build/install/main/debug/shared").assertNotInstalled()
     }
 
     def "removes stale library file when all source files are removed"() {
@@ -227,8 +227,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         succeeds "assemble"
 
         then:
-        sharedLibrary("build/lib/main/debug/hello").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.original))
+        sharedLibrary("build/lib/main/debug/shared/hello").assertExists()
+        file("build/obj/main/debug/shared").assertHasDescendants(expectIntermediateDescendants(lib.original))
 
         when:
         lib.applyChangesToProject(testDirectory)
@@ -238,16 +238,16 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
-        sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
-        file("build/lib/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertHasDescendants()
+        sharedLibrary("build/lib/main/debug/shared/hello").assertDoesNotExist()
+        file("build/lib/main/debug/shared").assertHasDescendants()
+        file("build/obj/main/debug/shared").assertHasDescendants()
     }
 
     private List<String> expectIntermediateDescendants(SourceElement sourceElement) {
         List<String> result = new ArrayList<String>()
 
         String sourceSetName = sourceElement.getSourceSetName()
-        String intermediateFilesDirPath = "build/obj/main/debug"
+        String intermediateFilesDirPath = "build/obj/main/debug/shared"
         File intermediateFilesDir = file(intermediateFilesDirPath)
         for (SourceFile sourceFile : sourceElement.getFiles()) {
             if (!sourceFile.getName().endsWith(".h")) {
@@ -261,7 +261,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         return result
     }
 
-    def debugFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+    def debugFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug/shared") {
         return intermediateFileFor(sourceFile, intermediateFilesDir, ".obj.pdb")
     }
 

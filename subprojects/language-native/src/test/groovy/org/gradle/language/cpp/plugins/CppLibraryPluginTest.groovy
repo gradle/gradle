@@ -54,8 +54,10 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
-        project.components.mainDebug == project.library.debugSharedLibrary
-        project.components.mainRelease == project.library.releaseSharedLibrary
+        project.components.mainDebugShared == project.library.debugSharedLibrary
+        project.components.mainReleaseShared == project.library.releaseSharedLibrary
+        project.components.mainDebugStatic == project.library.debugStaticLibrary
+        project.components.mainReleaseStatic == project.library.releaseStaticLibrary
     }
 
     def "adds compile and link tasks"() {
@@ -68,30 +70,30 @@ class CppLibraryPluginTest extends Specification {
         project.pluginManager.apply(CppLibraryPlugin)
 
         then:
-        def compileDebugCpp = project.tasks.compileDebugCpp
+        def compileDebugCpp = project.tasks.compileDebugSharedCpp
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
-        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/shared")
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
-        def linkDebug = project.tasks.linkDebug
+        def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
-        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        def compileReleaseCpp = project.tasks.compileReleaseSharedCpp
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
-        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/shared")
         !compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
-        def linkRelease = project.tasks.linkRelease
+        def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
         !linkRelease.debuggable
     }
 
@@ -101,8 +103,8 @@ class CppLibraryPluginTest extends Specification {
         project.library.baseName = "test_lib"
 
         then:
-        def link = project.tasks.linkDebug
-        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        def link = project.tasks.linkDebugShared
+        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -113,11 +115,11 @@ class CppLibraryPluginTest extends Specification {
         project.buildDir = "output"
 
         then:
-        def compileCpp = project.tasks.compileDebugCpp
-        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
+        def compileCpp = project.tasks.compileDebugSharedCpp
+        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug/shared")
 
-        def link = project.tasks.linkDebug
-        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        def link = project.tasks.linkDebugShared
+        link.outputFile == projectDir.file("output/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
     def "adds header zip task when maven-publish plugin is applied"() {
@@ -140,7 +142,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         def publishing = project.publishing
-        publishing.publications.size() == 3
+        publishing.publications.size() == 5
 
         def main = publishing.publications.main
         main.groupId == 'my.group'
@@ -148,17 +150,29 @@ class CppLibraryPluginTest extends Specification {
         main.version == '1.2'
         main.artifacts.size() == 1
 
-        def debug = publishing.publications.debug
-        debug.groupId == 'my.group'
-        debug.artifactId == 'mylib_debug'
-        debug.version == '1.2'
-        debug.artifacts.size() == expectedSharedLibFiles()
+        def debugShared = publishing.publications.debugShared
+        debugShared.groupId == 'my.group'
+        debugShared.artifactId == 'mylib_debugShared'
+        debugShared.version == '1.2'
+        debugShared.artifacts.size() == expectedSharedLibFiles()
 
-        def release = publishing.publications.release
-        release.groupId == 'my.group'
-        release.artifactId == 'mylib_release'
-        release.version == '1.2'
-        release.artifacts.size() == expectedSharedLibFiles()
+        def releaseShared = publishing.publications.releaseShared
+        releaseShared.groupId == 'my.group'
+        releaseShared.artifactId == 'mylib_releaseShared'
+        releaseShared.version == '1.2'
+        releaseShared.artifacts.size() == expectedSharedLibFiles()
+
+        def debugStatic = publishing.publications.debugStatic
+        debugStatic.groupId == 'my.group'
+        debugStatic.artifactId == 'mylib_debugStatic'
+        debugStatic.version == '1.2'
+        debugStatic.artifacts.size() == 1
+
+        def releaseStatic = publishing.publications.releaseStatic
+        releaseStatic.groupId == 'my.group'
+        releaseStatic.artifactId == 'mylib_releaseStatic'
+        releaseStatic.version == '1.2'
+        releaseStatic.artifacts.size() == 1
     }
 
     private int expectedSharedLibFiles() {
