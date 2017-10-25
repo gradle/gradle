@@ -61,6 +61,8 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
             }
         }
 
+        startParameter.checkDeprecation();
+
         return delegate.execute(action, requestContext, actionParameters, contextServices);
     }
 }

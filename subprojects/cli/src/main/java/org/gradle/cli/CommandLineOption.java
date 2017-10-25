@@ -61,8 +61,10 @@ public class CommandLineOption {
             if (result.length() > 0) {
                 result.append(' ');
             }
-            result.append("[deprecated - ");
-            result.append(deprecationWarning);
+            result.append("[deprecated");
+            if (!deprecationWarning.isEmpty()) {
+                result.append(" - ").append(deprecationWarning);
+            }
             result.append("]");
         }
         if (incubating) {

@@ -34,7 +34,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     protected final List<V> commandLineOptionConfigurations;
 
     public AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, null);
+        this(gradleProperty, (V[]) null);
     }
 
     public AbstractBuildOption(String gradleProperty, V... commandLineOptionConfiguration) {

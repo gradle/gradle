@@ -57,6 +57,10 @@ public class CommandLineOptionConfiguration {
         return this;
     }
 
+    public CommandLineOptionConfiguration deprecated() {
+        return deprecated("");
+    }
+
     public CommandLineOptionConfiguration deprecated(String deprecationWarning) {
         this.deprecationWarning = deprecationWarning;
         return this;

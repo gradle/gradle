@@ -273,9 +273,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
-        if (!GradleContextualExecuter.isEmbedded()) {
-            executer.expectDeprecationWarning()
-        }
+        executer.expectDeprecationWarning()
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:

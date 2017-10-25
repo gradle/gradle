@@ -17,13 +17,14 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import spock.lang.Unroll
 
 class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "deprecation warning appears when using #deprecatedArgs"() {
         when:
-        executer.expectDeprecationWarning().requireGradleDistribution()
+        executer.expectDeprecationWarning()
         args(deprecatedArgs)
 
         then:
@@ -32,8 +33,29 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         issue                                          | deprecatedArgs        | message
-        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | StartParameterBuildOptions.RecompileScriptsOption.DEPRECATION_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | StartParameterBuildOptions.NoProjectDependenciesRebuildOption.DEPRECATION_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | StartParameterBuildOptions.NoProjectDependenciesRebuildOption.DEPRECATION_MESSAGE
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
     }
+
+    @Unroll
+    def "deprecation warning appears when using #deprecatedArgs in Tooling API"() {
+        given:
+        ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+        toolingApi.requireIsolatedDaemons()
+
+        when:
+        def stdOut = new ByteArrayOutputStream()
+        toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs).forTasks('help').setStandardOutput(stdOut).run() }
+
+        then:
+        stdOut.toString().contains(message)
+
+        where:
+        issue                                          | deprecatedArgs        | message
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+    }
+
 }

@@ -91,14 +91,14 @@ public class StartParameterBuildOptions {
     }
 
     public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
-        public static final String DEPRECATION_MESSAGE = "Support for --recompile-scripts was deprecated and is scheduled to be removed in Gradle 5.0.";
         public RecompileScriptsOption() {
-            super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling.").deprecated(DEPRECATION_MESSAGE));
+            super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling.").deprecated());
         }
 
         @Override
         public void applyTo(StartParameter settings, Origin origin) {
             settings.setRecompileScripts(true);
+            settings.addDeprecation("--recompile-scripts");
         }
     }
 
@@ -169,14 +169,14 @@ public class StartParameterBuildOptions {
     }
 
     public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
-        public static final String DEPRECATION_MESSAGE = "Support for --no-rebuild and -a was deprecated and is scheduled to be removed in Gradle 5.0.";
         public NoProjectDependenciesRebuildOption() {
-            super(null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies.").deprecated(DEPRECATION_MESSAGE));
+            super(null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies.").deprecated());
         }
 
         @Override
         public void applyTo(StartParameter settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
+            settings.addDeprecation("--no-rebuild/-a");
         }
     }
 

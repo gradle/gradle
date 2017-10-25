@@ -59,6 +59,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ import java.io.IOException;
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, InternalParameterAcceptingConnection, StoppableConnection, InternalTestExecutionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private static final String UNSUPPORT_MESAGE = "Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
+    private static final String UNSUPPORTED_MESSAGE = "Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
     private static final String DEPRECATION_MESSAGE = "Support for clients using a tooling API version older than 3.0 was deprecated and will be removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.\n";
 
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
@@ -246,11 +247,12 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
         checkDeprecatedTapiVersion(parameters);
 
+        DeprecationLogger.reset();
         return parameters;
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format(UNSUPPORT_MESAGE, createCurrentVersionMessage()));
+        return new UnsupportedVersionException(String.format(UNSUPPORTED_MESSAGE, createCurrentVersionMessage()));
     }
 
     private String createCurrentVersionMessage() {

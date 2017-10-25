@@ -15,7 +15,6 @@
  */
 package org.gradle.cli;
 
-import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -57,15 +56,6 @@ public class CommandLineParser {
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
-    private final PrintWriter deprecationPrinter;
-
-    public CommandLineParser() {
-        this(new OutputStreamWriter(System.out));
-    }
-
-    public CommandLineParser(Writer deprecationPrinter) {
-        this.deprecationPrinter = new PrintWriter(deprecationPrinter, true);
-    }
 
     /**
      * Parses the given command-line.
@@ -454,16 +444,13 @@ public class CommandLineParser {
             if (getHasArgument() && values.isEmpty()) {
                 throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", optionString));
             }
-            
+
             ParsedCommandLineOption parsedOption = commandLine.addOption(optionString.option, option);
             if (values.size() + parsedOption.getValues().size() > 1 && !option.getAllowsMultipleArguments()) {
                 throw new CommandLineArgumentException(String.format("Multiple arguments were provided for command-line option '%s'.", optionString));
             }
             for (String value : values) {
                 parsedOption.addArgument(value);
-            }
-            if (option.getDeprecationWarning() != null) {
-                deprecationPrinter.println("The " + optionString + " option is deprecated - " + option.getDeprecationWarning());
             }
 
             for (CommandLineOption otherOption : option.getGroupWith()) {
