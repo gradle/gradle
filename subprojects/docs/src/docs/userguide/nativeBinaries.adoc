@@ -83,7 +83,7 @@ The following tool chains are supported:
 
 | Windows
 | http://www.microsoft.com/visualstudio/en-us[Visual C++]
-| Windows XP and later, Visual C++ 2010/2012/2013/2015.
+| Windows XP and later, Visual C++ 2010/2012/2013/2015/2017.
 
 | Windows
 | http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32]
@@ -445,7 +445,7 @@ While the `cpp` plugin defines these default locations for each api:org.gradle.l
             </sample>
 ++++
 
-For a library named 'main', header files in `src/main/headers` are considered the “public” or “exported” headers. Header files that should not be exported should be placed inside the `src/main/cpp` directory (though be aware that such header files should always be referenced in a manner relative to the file including them).
+For a library named 'main', header files in `src/main/headers` are considered the "public" or "exported" headers. Header files that should not be exported should be placed inside the `src/main/cpp` directory (though be aware that such header files should always be referenced in a manner relative to the file including them).
 
 [[sec:c_sources]]
 ==== C sources
@@ -468,7 +468,7 @@ While the `c` plugin defines these default locations for each api:org.gradle.lan
             </sample>
 ++++
 
-For a library named 'main', header files in `src/main/headers` are considered the “public” or “exported” headers. Header files that should not be exported should be placed inside the `src/main/c` directory (though be aware that such header files should always be referenced in a manner relative to the file including them).
+For a library named 'main', header files in `src/main/headers` are considered the "public" or "exported" headers. Header files that should not be exported should be placed inside the `src/main/c` directory (though be aware that such header files should always be referenced in a manner relative to the file including them).
 
 [[sec:assembler_sources]]
 ==== Assembler sources
