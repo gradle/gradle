@@ -38,7 +38,7 @@ repositories {
 
 ext {
     acceptedViolations = AcceptedApiChanges.parse(project.file("src/changes/accepted-public-api-changes.json").text)
-    compatibilityBaselineVersion = acceptedViolations.baseVersion.version
+    compatibilityBaselineVersion = releasedVersions.mostRecentRelease
     foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
 }
 
