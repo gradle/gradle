@@ -137,28 +137,28 @@ public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocato
     }
 
     private VisualStudioMetadata readInstall(JsonReader reader) throws IOException {
-        String installPath = null;
-        String version = null;
+        String visualStudioInstallPath = null;
+        String visualStudioVersion = null;
 
         reader.beginObject();
         while (reader.hasNext()) {
             String key = reader.nextName();
             if (key.equals(INSTALLATION_PATH_KEY)) {
-                installPath = reader.nextString();
+                visualStudioInstallPath = reader.nextString();
             } else if (key.equals(INSTALLATION_VERSION_KEY)) {
-                version = reader.nextString();
+                visualStudioVersion = reader.nextString();
             } else {
                 reader.skipValue();
             }
         }
         reader.endObject();
 
-        File installDir = new File(installPath);
-        VisualCppMetadata visualCppMetadata = findVisualCppMetadata(installDir, version);
+        File visualStudioInstallDir = new File(visualStudioInstallPath);
+        VisualCppMetadata visualCppMetadata = findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
         return new VisualStudioMetadataBuilder()
-            .installDir(installDir)
+            .installDir(visualStudioInstallDir)
             .visualCppDir(visualCppMetadata.getVisualCppDir())
-            .version(VersionNumber.parse(version))
+            .version(VersionNumber.parse(visualStudioVersion))
             .visualCppVersion(visualCppMetadata.getVersion())
             .build();
     }
