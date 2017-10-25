@@ -133,11 +133,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
         Iterable<String> versions
-        boolean addMostRecentFinalRelease = true
+        boolean addMostRecentRelease = true
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
         if (overrideBaselinesProperty) {
             versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
-            addMostRecentFinalRelease = false
+            addMostRecentRelease = false
         } else {
             versions = targetVersions
         }
@@ -145,7 +145,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = new LinkedHashSet<String>()
 
         def mostRecentRelease = releases.mostRecentRelease.version.version
-        def mostRecentSnapshot = releases.mostRecentReleaseSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
 
         for (String version : versions) {
@@ -154,13 +153,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 continue
             }
             if (version == 'last') {
-                addMostRecentFinalRelease = false
+                addMostRecentRelease = false
                 baselineVersions.add(mostRecentRelease)
                 continue
             }
             if (version == 'nightly') {
-                addMostRecentFinalRelease = false
-                baselineVersions.add(mostRecentSnapshot)
+                addMostRecentRelease = false
+                baselineVersions.add(LatestNightlyBuildDeterminer.latestNightlyVersion)
                 continue
             }
             if (version == 'none') {
@@ -181,14 +180,14 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
                 // blindly add it to the list and trust the test author
                 // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
-                addMostRecentFinalRelease = false
+                addMostRecentRelease = false
                 baselineVersions.add(version)
             } else {
                 throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
             }
         }
 
-        if (baselineVersions.empty || addMostRecentFinalRelease) {
+        if (baselineVersions.empty || addMostRecentRelease) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
             baselineVersions.add(mostRecentRelease)
         }
