@@ -40,13 +40,11 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-//        buildOperation.
         eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-
         eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(result)));
     }
 

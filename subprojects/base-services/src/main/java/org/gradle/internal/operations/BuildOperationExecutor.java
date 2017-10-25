@@ -72,5 +72,4 @@ public interface BuildOperationExecutor {
      * @throws IllegalStateException When the current thread is not executing an operation.
      */
     BuildOperationState getCurrentOperation();
-
 }

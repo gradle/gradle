@@ -298,7 +298,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         fixedSizePool.stop();
     }
 
-    static class DefaultBuildOperationContext implements BuildOperationContext {
+    private static class DefaultBuildOperationContext implements BuildOperationContext {
         Throwable failure;
         Object result;
         private String status;
@@ -379,12 +379,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    static class DefaultBuildOperationState implements BuildOperationState {
+    private static class DefaultBuildOperationState implements BuildOperationState {
         private final BuildOperationDescriptor description;
         private final AtomicBoolean running = new AtomicBoolean();
         private final long startTime;
 
-        DefaultBuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
+        private DefaultBuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
             this.startTime = startTime;
             this.description = descriptor;
         }

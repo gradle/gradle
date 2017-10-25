@@ -58,26 +58,6 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
     }
 
-    def emitsTestsViaBuildOperationTree() {
-        given:
-        resources.maybeCopy("JUnitIntegrationTest/executesTestsInCorrectEnvironment")
-        resources.maybeCopy("JUnitIntegrationTest/junit4Tests")
-//        buildFile << """
-//        test {
-//            systemProperties.isJava9 = ${JavaVersion.current().isJava9Compatible()}
-//        }
-//        """.stripIndent()
-
-        when:
-        executer.withTasks('build').run()
-
-        then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
-        result.testClass('org.gradle.OkTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
-    }
-
     def suitesOutputIsVisible() {
         when:
         executer.withTasks('test').run()
