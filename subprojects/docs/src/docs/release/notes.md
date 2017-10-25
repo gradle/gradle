@@ -246,6 +246,13 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 ### Example new and noteworthy
 -->
 
+### Support for Windows 10 SDK
+
+Gradle now supports Windows 10 SDK when building native projects.  If a Windows 10 SDK is installed, Gradle will automatically
+discover and use it when a Visual Studio toolchain is selected.  Alternatively, a Windows 10 SDK installation directory [can be
+specified](dsl/org.gradle.nativeplatform.toolchain.VisualCpp.html#org.gradle.nativeplatform.toolchain.VisualCpp:windowsSdkDir) 
+when configuring a Visual Studio toolchain.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
