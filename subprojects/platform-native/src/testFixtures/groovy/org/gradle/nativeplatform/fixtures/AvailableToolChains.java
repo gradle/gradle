@@ -19,12 +19,12 @@ package org.gradle.nativeplatform.fixtures;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
@@ -32,16 +32,8 @@ import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
@@ -58,7 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.*;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -135,12 +127,7 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        VisualCppMetadataProvider visualCppMetadataProvider = new DefaultVisualCppMetadataProvider(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
-        VisualStudioVersionLocator commandLineLocator = new CommandLineToolVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
-        VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
-        VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), commandLineLocator, windowsRegistryLocator, versionDeterminer, NativeServicesTestFixture.getInstance().get(SystemInfo.class));
-        final List<VisualStudioLocator.SearchResult> searchResults = vsLocator.locateAllVisualStudioVersions();
+        final List<VisualStudioLocator.SearchResult> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllVisualStudioVersions();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
