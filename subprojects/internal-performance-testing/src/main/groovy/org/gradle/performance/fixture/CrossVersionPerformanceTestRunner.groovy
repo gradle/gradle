@@ -144,8 +144,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         def baselineVersions = new LinkedHashSet<String>()
 
-        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
-        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
+        def mostRecentRelease = releases.mostRecentRelease.version.version
+        def mostRecentSnapshot = releases.mostRecentReleaseSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
 
         for (String version : versions) {
@@ -155,7 +155,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             if (version == 'last') {
                 addMostRecentFinalRelease = false
-                baselineVersions.add(mostRecentFinalRelease)
+                baselineVersions.add(mostRecentRelease)
                 continue
             }
             if (version == 'nightly') {
@@ -190,7 +190,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         if (baselineVersions.empty || addMostRecentFinalRelease) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
-            baselineVersions.add(mostRecentFinalRelease)
+            baselineVersions.add(mostRecentRelease)
         }
 
         baselineVersions

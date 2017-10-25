@@ -34,7 +34,7 @@ import spock.lang.Issue
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
+    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
     final Clock clock = Time.clock()
 
     TestFile projectDir

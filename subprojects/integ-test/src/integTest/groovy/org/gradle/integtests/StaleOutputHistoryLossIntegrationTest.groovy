@@ -33,10 +33,10 @@ import static org.gradle.util.GFileUtils.forceDelete
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.mostRecentFinalRelease.executer(temporaryFolder, buildContext)
+    private final GradleExecuter mostRecentReleaseExecuter = releasedVersionDistributions.mostRecentRelease.executer(temporaryFolder, buildContext)
 
     def cleanup() {
-        mostRecentFinalReleaseExecuter.cleanup()
+        mostRecentReleaseExecuter.cleanup()
     }
 
     def setup() {
@@ -265,7 +265,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Build everything first
-        mostRecentFinalReleaseExecuter.withArguments(arguments)
+        mostRecentReleaseExecuter.withArguments(arguments)
         result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
         then:
@@ -624,7 +624,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
-        mostRecentFinalReleaseExecuter.withTasks(tasks).run()
+        mostRecentReleaseExecuter.withTasks(tasks).run()
     }
 
     static String createProjectName(int projectNo) {

@@ -63,7 +63,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             buildContext.distribution("2.12"),
             buildContext.distribution("2.13"),
             buildContext.distribution(MOST_RECENT_RELEASE)]
-        releases.mostRecentFinalRelease >> buildContext.distribution(MOST_RECENT_RELEASE)
+        releases.mostRecentRelease >> buildContext.distribution(MOST_RECENT_RELEASE)
     }
 
     def "runs tests against version under test plus requested baseline versions and most recent released version and builds results"() {
@@ -187,7 +187,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
     def "can use 'nightly' baseline version to refer to most recently snapshot version and exclude most recent release"() {
         given:
-        releases.mostRecentSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
+        releases.mostRecentReleaseSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
 
         and:
         def runner = runner()
@@ -243,7 +243,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         given:
         def runner = runner()
         runner.targetVersions = versions
-        releases.mostRecentSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
+        releases.mostRecentReleaseSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
 
         when:
         System.setProperty('org.gradle.performance.baselines', override.join(','))
