@@ -28,8 +28,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvider {
-    private static final String VS15_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt";
-    private static final String VS15_COMPILER_PATH_PREFIX = "VC/Tools/MSVC";
+    private static final String VS2017_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt";
+    private static final String VS2017_COMPILER_PATH_PREFIX = "VC/Tools/MSVC";
 
     private static final String[] REGISTRY_BASEPATHS = {
         "SOFTWARE\\",
@@ -60,14 +60,14 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
 
     @Override
     public VisualCppMetadata getVisualCppFromMetadataFile(File installDir) {
-        File msvcVersionFile = new File(installDir, VS15_METADATA_FILE_PATH);
+        File msvcVersionFile = new File(installDir, VS2017_METADATA_FILE_PATH);
         if (!msvcVersionFile.exists() || !msvcVersionFile.isFile()) {
             LOGGER.debug("The MSVC version file at {} either does not exist or is not a file.  Cannot determine the MSVC version for this installation.", msvcVersionFile.getAbsolutePath());
             return null;
         }
         try {
             String versionString = FileUtils.readFileToString(msvcVersionFile).trim();
-            File visualCppDir = new File(installDir, VS15_COMPILER_PATH_PREFIX + "/" + versionString);
+            File visualCppDir = new File(installDir, VS2017_COMPILER_PATH_PREFIX + "/" + versionString);
             return new DefaultVisualCppMetadata(visualCppDir, VersionNumber.parse(versionString));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

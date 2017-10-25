@@ -43,7 +43,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String PATH_COMMON = "Common7/";
     private static final String PATH_BIN = "bin/";
     private static final String LEGACY_COMPILER_FILENAME = "cl.exe";
-    private static final String VS15_COMPILER_FILENAME = "HostX86/x86/cl.exe";
+    private static final String VS2017_COMPILER_FILENAME = "HostX86/x86/cl.exe";
 
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final OperatingSystem os;
@@ -193,8 +193,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         switch(compatibility) {
             case LEGACY:
                 return buildLegacyVisualCppInstall(name, vsPath, basePath, version);
-            case VS15_OR_LATER:
-                return buildVS15VisualCppInstall(name, vsPath, basePath, version);
+            case VS2017_OR_LATER:
+                return buildVisualCppInstall(name, vsPath, basePath, version);
             default:
                 throw new IllegalArgumentException("Cannot build VisualCpp install for unknown compatibility level: " + compatibility);
         }
@@ -229,20 +229,20 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new VisualCppInstall(name, version, descriptors);
     }
 
-    private VisualCppInstall buildVS15VisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
+    private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
 
         List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
 
-        architectureDescriptorBuilders.add(VS15_X86_ON_X86);
-        architectureDescriptorBuilders.add(VS15_AMD64_ON_X86);
-        architectureDescriptorBuilders.add(VS15_ARM_ON_X86);
+        architectureDescriptorBuilders.add(X86_ON_X86);
+        architectureDescriptorBuilders.add(AMD64_ON_X86);
+        architectureDescriptorBuilders.add(ARM_ON_X86);
 
         boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
         if (isNativeAmd64) {
             // Prefer 64-bit tools when building on a 64-bit OS
-            architectureDescriptorBuilders.add(VS15_AMD64_ON_AMD64);
-            architectureDescriptorBuilders.add(VS15_X86_ON_AMD64);
-            architectureDescriptorBuilders.add(VS15_ARM_ON_AMD64);
+            architectureDescriptorBuilders.add(AMD64_ON_AMD64);
+            architectureDescriptorBuilders.add(X86_ON_AMD64);
+            architectureDescriptorBuilders.add(ARM_ON_AMD64);
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
@@ -276,9 +276,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             case LEGACY:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
                     && isLegacyVisualCpp(install.getVisualCppDir());
-            case VS15_OR_LATER:
+            case VS2017_OR_LATER:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
-                    && isVS15VisualCpp(install.getVisualCppDir());
+                    && isVS2017VisualCpp(install.getVisualCppDir());
             default:
                 throw new IllegalArgumentException("Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
         }
@@ -288,8 +288,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new File(candidate, PATH_BIN + LEGACY_COMPILER_FILENAME).isFile();
     }
 
-    private static boolean isVS15VisualCpp(File candidate) {
-        return new File(candidate, PATH_BIN + VS15_COMPILER_FILENAME).isFile();
+    private static boolean isVS2017VisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
     }
 
     private static class InstallFound implements SearchResult {

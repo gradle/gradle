@@ -51,7 +51,7 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
                     .installDir(installDir)
                     .visualCppDir(visualCppMetadata.getVisualCppDir())
                     .visualCppVersion(visualCppMetadata.getVersion())
-                    .compatibility(VisualStudioMetadata.Compatibility.VS15_OR_LATER)
+                    .compatibility(VisualStudioMetadata.Compatibility.VS2017_OR_LATER)
                     .build();
             } else {
                 File visualCppDir = new File(installDir, "VC");
@@ -97,7 +97,7 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
                     .installDir(installDir)
                     .visualCppDir(visualCppDir)
                     .visualCppVersion(visualCppMetadata.getVersion())
-                    .compatibility(VisualStudioMetadata.Compatibility.VS15_OR_LATER)
+                    .compatibility(VisualStudioMetadata.Compatibility.VS2017_OR_LATER)
                     .build();
             } else {
                 File visualCppDir = getNthParent(compilerFile, 2);

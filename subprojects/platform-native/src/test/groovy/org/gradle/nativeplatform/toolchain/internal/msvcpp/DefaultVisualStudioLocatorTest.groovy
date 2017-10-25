@@ -362,7 +362,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     @Unroll
-    def "finds correct VS15 paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
+    def "finds correct VS2017 paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
         def vsDir = fullVs2017Dir("vs", is64BitInstall)
         def vcDir = new File(vsDir, "VC/Tools/MSVC/1.2.3.4")
 
@@ -380,17 +380,17 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         where:
         os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
-        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | VS15_AMD64_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | VS15_AMD64_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | VS15_AMD64_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | AMD64_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | VS15_X86_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | VS15_X86_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | VS15_X86_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | X86_ON_X86
 
-        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | VS15_ARM_ON_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | VS15_ARM_ON_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | VS15_ARM_ON_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ARM_ON_X86
     }
 
     def vs2017Dir(String name) {
@@ -433,15 +433,15 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir = vs2017Dir(name)
         def vcDir = new File(dir, "VC/Tools/MSVC/1.2.3.4")
         createCompilers(vcDir, is64BitInstall) { it in [
-            VS15_AMD64_ON_X86,
-            VS15_AMD64_ON_AMD64,
-            VS15_AMD64_ON_X86,
-            VS15_X86_ON_X86,
-            VS15_X86_ON_AMD64,
-            VS15_X86_ON_X86,
-            VS15_ARM_ON_X86,
-            VS15_ARM_ON_AMD64,
-            VS15_ARM_ON_X86
+            AMD64_ON_X86,
+            AMD64_ON_AMD64,
+            AMD64_ON_X86,
+            X86_ON_X86,
+            X86_ON_AMD64,
+            X86_ON_X86,
+            ARM_ON_X86,
+            ARM_ON_AMD64,
+            ARM_ON_X86
         ]}
         return dir
     }
@@ -463,9 +463,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
             LEGACY_AMD64_ON_AMD64,
             LEGACY_X86_ON_AMD64,
             LEGACY_ARM_ON_AMD64,
-            VS15_AMD64_ON_AMD64,
-            VS15_X86_ON_AMD64,
-            VS15_ARM_ON_AMD64
+            AMD64_ON_AMD64,
+            X86_ON_AMD64,
+            ARM_ON_AMD64
         ]
     }
 
@@ -492,7 +492,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
             .visualCppDir(new File(installDir, "VC/Tools/MSVC/1.2.3.4"))
             .visualCppVersion(VersionNumber.parse("1.2.3.4"))
             .version(VersionNumber.parse(version))
-            .compatibility(VisualStudioMetadata.Compatibility.VS15_OR_LATER)
+            .compatibility(VisualStudioMetadata.Compatibility.VS2017_OR_LATER)
             .build()
     }
 }

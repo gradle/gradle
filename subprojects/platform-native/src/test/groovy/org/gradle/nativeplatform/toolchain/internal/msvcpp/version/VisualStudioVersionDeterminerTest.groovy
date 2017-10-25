@@ -34,7 +34,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
     List<VisualStudioMetadata> vswhereInstalls = []
     List<VisualStudioMetadata> windowsRegistryInstalls = []
 
-    def "can determine a VS15 version of an install from command line"() {
+    def "can determine a VS2017 version of an install from command line"() {
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
         def dir3 = tmpDir.createDir("dir3")
@@ -56,7 +56,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.installDir == dir1
         metadata.visualCppDir == new File(dir1, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
     }
 
     def "can determine a legacy version of an install from command line"() {
@@ -132,7 +132,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.version == VersionNumber.UNKNOWN
     }
 
-    def "can determine VS15 metadata from installation directory when not found in command line results"() {
+    def "can determine VS2017 metadata from installation directory when not found in command line results"() {
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
         def dir3 = tmpDir.createDir("dir3")
@@ -151,7 +151,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
 
         and:
         metadata.installDir == dir2
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
         metadata.visualCppDir == new File(dir2, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
         metadata.version == VersionNumber.UNKNOWN
@@ -180,7 +180,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.version == VersionNumber.UNKNOWN
     }
 
-    def "can determine VS15 metadata from installation directory when command line has no results and not found in registry"() {
+    def "can determine VS2017 metadata from installation directory when command line has no results and not found in registry"() {
         def dir1 = tmpDir.createDir("dir2")
         def dir2 = tmpDir.createDir("dir3")
 
@@ -197,7 +197,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
 
         and:
         metadata.installDir == dir2
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
         metadata.visualCppDir == new File(dir2, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
         metadata.version == VersionNumber.UNKNOWN
@@ -228,7 +228,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.compatibility == LEGACY
     }
 
-    def "can determine VS15 metadata from compiler path and command line"() {
+    def "can determine VS2017 metadata from compiler path and command line"() {
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
         def dir3 = tmpDir.createDir("dir3")
@@ -250,7 +250,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.installDir == dir1
         metadata.visualCppDir == new File(dir1, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
     }
 
     @Unroll
@@ -307,7 +307,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.version == VersionNumber.UNKNOWN
     }
 
-    def "can determine VS15 metadata from compiler path when not found in command line results"() {
+    def "can determine VS2017 metadata from compiler path when not found in command line results"() {
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
         def dir3 = tmpDir.createDir("dir3")
@@ -326,7 +326,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
 
         and:
         metadata.installDir == dir2
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
         metadata.visualCppDir == new File(dir2, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
         metadata.version == VersionNumber.UNKNOWN
@@ -361,7 +361,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         "VC/bin/x86_amd64/cl.exe" | "x64"
     }
 
-    def "can determine VS15 metadata from compiler path when command line has no results and not found in registry"() {
+    def "can determine VS2017 metadata from compiler path when command line has no results and not found in registry"() {
         def dir1 = tmpDir.createDir("dir2")
         def dir2 = tmpDir.createDir("dir3")
 
@@ -378,7 +378,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
 
         and:
         metadata.installDir == dir2
-        metadata.compatibility == VS15_OR_LATER
+        metadata.compatibility == VS2017_OR_LATER
         metadata.visualCppDir == new File(dir2, "VC/Tools/MSVC/1.2.3.4")
         metadata.visualCppVersion == VersionNumber.parse("1.2.3.4")
         metadata.version == VersionNumber.UNKNOWN

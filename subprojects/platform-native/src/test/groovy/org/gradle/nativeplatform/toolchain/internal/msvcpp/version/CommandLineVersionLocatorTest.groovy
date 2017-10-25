@@ -149,7 +149,7 @@ class CommandLineVersionLocatorTest extends Specification {
         versionMetadata[0].installDir == new File("${TextUtil.escapeString(localRoot.absolutePath)}/Program Files/Microsoft Visual Studio/2017/Community")
         versionMetadata[0].visualCppDir == new File(versionMetadata[0].installDir, "VC/Tools/MSVC/1.2.3.4")
         versionMetadata[0].visualCppVersion == VersionNumber.parse("1.2.3.4")
-        versionMetadata[0].compatibility == VS15_OR_LATER
+        versionMetadata[0].compatibility == VS2017_OR_LATER
 
         versionMetadata[1].version == VersionNumber.parse("14.0")
         versionMetadata[1].installDir == new File("${TextUtil.escapeString(localRoot.absolutePath)}/Program Files/Microsoft Visual Studio 14.0/")

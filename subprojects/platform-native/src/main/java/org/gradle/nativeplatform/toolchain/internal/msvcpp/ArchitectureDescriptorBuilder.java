@@ -26,10 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 public enum ArchitectureDescriptorBuilder {
+    // See https://blogs.msdn.microsoft.com/vcblog/2016/10/07/compiler-tools-layout-in-visual-studio-15/
+
     // Host: x64
     // Target: x64
     LEGACY_AMD64_ON_AMD64("amd64", "bin/amd64", "lib/amd64", "ml64.exe"),
-    VS15_AMD64_ON_AMD64("amd64", "bin/HostX64/x64", "lib/x64", "ml64.exe"),
+    AMD64_ON_AMD64("amd64", "bin/HostX64/x64", "lib/x64", "ml64.exe"),
 
     // Host: x64
     // Target: x86
@@ -39,10 +41,10 @@ public enum ArchitectureDescriptorBuilder {
             return LEGACY_X86_ON_X86.getBinPath(basePath);
         }
     },
-    VS15_AMD64_ON_X86("amd64", "bin/HostX86/x64", "lib/x64", "ml64.exe") {
+    AMD64_ON_X86("amd64", "bin/HostX86/x64", "lib/x64", "ml64.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
-            return VS15_X86_ON_X86.getBinPath(basePath);
+            return X86_ON_X86.getBinPath(basePath);
         }
     },
 
@@ -54,17 +56,17 @@ public enum ArchitectureDescriptorBuilder {
             return LEGACY_AMD64_ON_AMD64.getBinPath(basePath);
         }
     },
-    VS15_X86_ON_AMD64("x86", "bin/HostX64/x86", "lib/x86", "ml.exe") {
+    X86_ON_AMD64("x86", "bin/HostX64/x86", "lib/x86", "ml.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
-            return VS15_AMD64_ON_AMD64.getBinPath(basePath);
+            return AMD64_ON_AMD64.getBinPath(basePath);
         }
     },
 
     // Host: x86
     // Target: x86
     LEGACY_X86_ON_X86("x86", "bin", "lib", "ml.exe"),
-    VS15_X86_ON_X86("x86", "bin/HostX86/x86", "lib/x86", "ml.exe"),
+    X86_ON_X86("x86", "bin/HostX86/x86", "lib/x86", "ml.exe"),
 
     // Host: x64
     // Target: arm
@@ -81,10 +83,10 @@ public enum ArchitectureDescriptorBuilder {
             return definitions;
         }
     },
-    VS15_ARM_ON_AMD64("arm", "bin/Hostx64/arm", "lib/arm", "armasm.exe") {
+    ARM_ON_AMD64("arm", "bin/Hostx64/arm", "lib/arm", "armasm.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
-            return VS15_AMD64_ON_AMD64.getBinPath(basePath);
+            return AMD64_ON_AMD64.getBinPath(basePath);
         }
 
         @Override
@@ -110,10 +112,10 @@ public enum ArchitectureDescriptorBuilder {
             return definitions;
         }
     },
-    VS15_ARM_ON_X86("arm", "bin/HostX86/arm", "lib/arm", "armasm.exe") {
+    ARM_ON_X86("arm", "bin/HostX86/arm", "lib/arm", "armasm.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
-            return VS15_X86_ON_X86.getBinPath(basePath);
+            return X86_ON_X86.getBinPath(basePath);
         }
 
         @Override

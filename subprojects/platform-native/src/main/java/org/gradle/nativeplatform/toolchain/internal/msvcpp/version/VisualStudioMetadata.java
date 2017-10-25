@@ -21,7 +21,7 @@ import org.gradle.util.VersionNumber;
 import java.io.File;
 
 public interface VisualStudioMetadata {
-    enum Compatibility { LEGACY, VS15_OR_LATER}
+    enum Compatibility { LEGACY, VS2017_OR_LATER }
 
     VersionNumber getVersion();
 

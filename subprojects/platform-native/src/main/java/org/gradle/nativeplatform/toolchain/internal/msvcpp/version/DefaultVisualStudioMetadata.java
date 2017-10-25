@@ -28,7 +28,7 @@ public class DefaultVisualStudioMetadata implements VisualStudioMetadata {
     private final VersionNumber visualCppVersion;
     private final Compatibility compatibility;
 
-    public DefaultVisualStudioMetadata(File installDir, @Nullable File visualCppDir, VersionNumber version, @Nullable VersionNumber visualCppVersion, Compatibility compatibility) {
+    DefaultVisualStudioMetadata(File installDir, @Nullable File visualCppDir, VersionNumber version, @Nullable VersionNumber visualCppVersion, Compatibility compatibility) {
         this.installDir = installDir;
         this.visualCppDir = visualCppDir;
         this.version = version;
@@ -62,7 +62,7 @@ public class DefaultVisualStudioMetadata implements VisualStudioMetadata {
             return compatibility;
         } else {
             if (version.getMajor() >= 15) {
-                return Compatibility.VS15_OR_LATER;
+                return Compatibility.VS2017_OR_LATER;
             } else {
                 return Compatibility.LEGACY;
             }
