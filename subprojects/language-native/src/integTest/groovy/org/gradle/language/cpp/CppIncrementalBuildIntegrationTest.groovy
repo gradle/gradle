@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -118,24 +117,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(LIBRARY)
         executedAndNotSkipped linkTaskDebug(LIBRARY)
         skipped compileTasksDebug(APP)
-        if (linkTimeFileShouldChange()) {
-            executedAndNotSkipped linkTaskDebug(APP)
-        } else {
-            executed linkTaskDebug(APP)
-        }
         executedAndNotSkipped installApp
 
         and:
         install.assertInstalled()
         install.exec().out == app.alternateLibraryOutput
-    }
-
-    boolean linkTimeFileShouldChange() {
-        // With VisualCpp versions < 15, timestamps are embedded in the .lib files
-        // causing downstream link tasks to re-execute any time they are built.
-        // With Visual Studio 2017 (version 15) the .lib is identical when the exported
-        // symbols do not change, so downstream consumers do not need to relink.
-        return !(toolChain.meets(ToolChainRequirement.VISUALCPP_2017_OR_NEWER))
     }
 
     def "recompiles binary when header file changes"() {
