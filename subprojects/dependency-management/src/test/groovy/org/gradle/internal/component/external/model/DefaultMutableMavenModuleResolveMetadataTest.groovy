@@ -97,6 +97,10 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.snapshotTimestamp == null
         immutable.packaging == "jar"
         !immutable.relocated
+        immutable.getConfiguration("compile").artifacts.size() == 1
+        immutable.getConfiguration("runtime").artifacts.size() == 1
+        immutable.getConfiguration("default").artifacts.size() == 1
+        immutable.getConfiguration("master").artifacts.empty
 
         and:
         def copy = immutable.asMutable()
@@ -108,6 +112,13 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.snapshotTimestamp == null
         copy.packaging == "jar"
         !copy.relocated
+
+        and:
+        def immutable2 = copy.asImmutable()
+        immutable2.getConfiguration("compile").artifacts.size() == 1
+        immutable2.getConfiguration("runtime").artifacts.size() == 1
+        immutable2.getConfiguration("default").artifacts.size() == 1
+        immutable2.getConfiguration("master").artifacts.empty
     }
 
     def "can override values from descriptor"() {

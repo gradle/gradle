@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -87,7 +88,7 @@ public interface MutableModuleComponentResolveMetadata {
      * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.
      */
     @Nullable
-    List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
+    ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
 
     /**
      * Replaces the artifacts of this module version. The artifacts are attached to all configurations.

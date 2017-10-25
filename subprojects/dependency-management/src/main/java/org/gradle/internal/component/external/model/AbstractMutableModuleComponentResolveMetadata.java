@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -34,7 +33,6 @@ import org.gradle.internal.hash.HashValue;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +51,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private List<? extends DependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
-    private List<? extends ModuleComponentArtifactMetadata> artifactOverrides;
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private ImmutableMap<String, T> configurations;
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DependencyMetadata> dependencies) {
@@ -98,17 +96,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
 
     protected abstract Map<String, Configuration> getConfigurationDefinitions();
 
-    protected abstract List<Artifact> getArtifacts();
-
     @Override
     public ImmutableMap<String, T> getConfigurations() {
         if (configurations == null) {
             configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions());
-            if (artifactOverrides != null) {
-                populateArtifactsFromOverrides(artifactOverrides);
-            } else {
-                populateArtifacts(getArtifacts());
-            }
         }
         return configurations;
     }
@@ -118,25 +109,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
      */
     protected void resetConfigurations() {
         configurations = null;
-    }
-
-    private void populateArtifactsFromOverrides(List<? extends ModuleComponentArtifactMetadata> artifacts) {
-        for (DefaultConfigurationMetadata configuration : configurations.values()) {
-            configuration.addArtifacts(artifacts);
-        }
-    }
-
-    private void populateArtifacts(Iterable<Artifact> artifacts) {
-        for (Artifact artifact : artifacts) {
-            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
-            for (String configuration : artifact.getConfigurations()) {
-                configurations.get(configuration).addArtifact(artifactMetadata);
-            }
-        }
-        Set<ConfigurationMetadata> visited = new HashSet<ConfigurationMetadata>();
-        for (DefaultConfigurationMetadata configuration : configurations.values()) {
-            configuration.collectInheritedArtifacts(visited);
-        }
     }
 
     private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
@@ -161,11 +133,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of());
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of(), artifactOverrides);
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)), artifactOverrides);
             configurations.put(name, populated);
             return populated;
         }
@@ -173,7 +145,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
-        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy));
+        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy), artifactOverrides);
 
         configurations.put(name, populated);
         return populated;
@@ -182,7 +154,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     /**
      * Creates a {@link ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides);
 
     @Override
     public void setStatus(String status) {
@@ -247,7 +219,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
 
     @Nullable
     @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
         return artifactOverrides;
     }
 

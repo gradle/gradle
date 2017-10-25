@@ -40,19 +40,17 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
     }
 
-    List<Artifact> artifacts = []
-
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         configuration("runtime", [])
         configuration("default", ["runtime"])
-        artifact("runtime.jar", "runtime")
-        artifact("api.jar", "default")
+        def a1 = artifact("runtime.jar", "runtime")
+        def a2 = artifact("api.jar", "default")
 
         def vid = Mock(ModuleVersionIdentifier)
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], artifacts)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], [a1, a2])
         metadata.componentId == id
         metadata.id == vid
         metadata.branch == null
@@ -74,13 +72,13 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.excludes.empty
         immutable.configurationNames == ["runtime", "default"] as Set
         def runtime = immutable.getConfiguration("runtime")
-        runtime.artifacts.size() == 1
+        runtime.artifacts.name.name == ["runtime.jar"]
         runtime.excludes.empty
         def defaultConfig = immutable.getConfiguration("default")
         defaultConfig.hierarchy == ["default", "runtime"]
         defaultConfig.transitive
         defaultConfig.visible
-        defaultConfig.artifacts.size() == 2
+        defaultConfig.artifacts.name.name == ["api.jar", "runtime.jar"]
         defaultConfig.excludes.empty
 
         and:
@@ -93,6 +91,25 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.branch == null
         copy.artifactDefinitions.size() == 2
         copy.excludes.empty
+    }
+
+    def "artifacts include union of those inherited from other configurations"() {
+        given:
+        configuration("compile")
+        configuration("runtime", ["compile"])
+        def a1 = artifact("one", "runtime")
+        def a2 = artifact("two", "runtime", "compile")
+        def a3 = artifact("three", "compile")
+
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, configurations, [], [a1, a2, a3])
+
+        expect:
+        metadata.configurations["compile"].artifacts.name.name == ["two", "three"]
+        metadata.configurations["runtime"].artifacts.name.name == ["one", "two", "three"]
+
+        def immutable = metadata.asImmutable()
+        immutable.configurations["compile"].artifacts.name.name == ["two", "three"]
+        immutable.configurations["runtime"].artifacts.name.name == ["one", "two", "three"]
     }
 
     def "can override values from descriptor"() {
@@ -249,6 +266,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     }
 
     def artifact(String name, String... confs) {
-        artifacts.add(new Artifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>))
+        def artifact = new Artifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+        return artifact
     }
 }

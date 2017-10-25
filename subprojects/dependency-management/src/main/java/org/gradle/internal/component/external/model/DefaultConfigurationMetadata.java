@@ -42,14 +42,14 @@ import java.util.Set;
 abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
-    private final List<? extends DefaultConfigurationMetadata> parents;
+    private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
     private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
     private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
 
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<? extends DefaultConfigurationMetadata> parents) {
+    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents) {
         this.componentId = componentId;
         this.name = name;
         this.parents = parents;
@@ -73,7 +73,7 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
         return name;
     }
 
-    public List<? extends DefaultConfigurationMetadata> getParents() {
+    public ImmutableList<? extends DefaultConfigurationMetadata> getParents() {
         return parents;
     }
 

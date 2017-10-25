@@ -17,14 +17,12 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -35,6 +33,7 @@ import org.gradle.internal.component.model.VariantMetadata;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,18 +77,22 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
-        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents);
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
+        MavenConfigurationMetadata configuration = new MavenConfigurationMetadata(componentId, name, transitive, visible, parents);
+        if (artifactOverrides != null) {
+            configuration.addArtifacts(artifactOverrides);
+        } else {
+            if (name.equals("compile")) {
+                configuration.addArtifact(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+            }
+            configuration.collectInheritedArtifacts(new HashSet<ConfigurationMetadata>());
+        }
+        return configuration;
     }
 
     @Override
     public MavenModuleResolveMetadata asImmutable() {
         return new DefaultMavenModuleResolveMetadata(this);
-    }
-
-    @Override
-    protected List<Artifact> getArtifacts() {
-        return ImmutableList.of(new Artifact(new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar"), ImmutableSet.of("compile")));
     }
 
     @Override
