@@ -83,7 +83,7 @@ class MavenResolverTest extends Specification {
         then:
         1 * result.resolved(_) >> { args ->
             assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts == [artifact] as Set
+            assert args[0].artifacts == [artifact]
         }
     }
 }

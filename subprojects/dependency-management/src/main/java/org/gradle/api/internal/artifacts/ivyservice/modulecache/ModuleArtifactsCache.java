@@ -20,10 +20,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Set;
 
 public interface ModuleArtifactsCache {
-    CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Set<? extends ComponentArtifactMetadata> artifacts);
+    CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts);
 
     CachedArtifacts getCachedArtifacts(ModuleComponentRepository delegate, ComponentIdentifier componentId, String context);
 

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -31,6 +32,7 @@ import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -55,9 +57,9 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         return cacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Set<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(artifacts, timeProvider.getCurrentTime(), descriptorHash);
+        ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
         getCache().put(key, entry);
         return createCacheArtifacts(entry);
     }

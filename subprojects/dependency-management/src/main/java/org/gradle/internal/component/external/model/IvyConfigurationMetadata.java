@@ -29,8 +29,8 @@ class IvyConfigurationMetadata extends DefaultConfigurationMetadata {
     private final ImmutableList<Exclude> excludes;
     private ModuleExclusion exclusions;
 
-    IvyConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, List<Exclude> excludes) {
-        super(componentId, name, transitive, visible, parents);
+    IvyConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, List<Exclude> excludes, ImmutableList<ModuleComponentArtifactMetadata> artifacts) {
+        super(componentId, name, transitive, visible, parents, artifacts);
         Collection<String> hierarchy = getHierarchy();
         ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {

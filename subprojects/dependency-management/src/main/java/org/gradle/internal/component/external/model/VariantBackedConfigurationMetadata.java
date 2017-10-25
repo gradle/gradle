@@ -116,8 +116,8 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public Set<? extends ComponentArtifactMetadata> getArtifacts() {
-        return ImmutableSet.of();
+    public List<? extends ComponentArtifactMetadata> getArtifacts() {
+        return ImmutableList.of();
     }
 
     @Override

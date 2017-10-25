@@ -240,8 +240,8 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         then:
         def immutable = metadata.asImmutable()
         immutable.artifactOverrides == [a1, a2]
-        immutable.getConfiguration("compile").artifacts == [a1, a2] as Set
-        immutable.getConfiguration("runtime").artifacts == [a1, a2] as Set
+        immutable.getConfiguration("compile").artifacts == [a1, a2]
+        immutable.getConfiguration("runtime").artifacts == [a1, a2]
 
         def copy = immutable.asMutable()
         copy.artifactOverrides == [a1, a2]
@@ -252,8 +252,8 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         then:
         def immutable2 = metadata.asImmutable()
         immutable2.artifactOverrides == [a2]
-        immutable2.getConfiguration("compile").artifacts == [a2] as Set
-        immutable2.getConfiguration("runtime").artifacts == [a2] as Set
+        immutable2.getConfiguration("compile").artifacts == [a2]
+        immutable2.getConfiguration("runtime").artifacts == [a2]
     }
 
     def dependency(String org, String module, String version, List<String> confs = []) {

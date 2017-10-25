@@ -24,17 +24,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,21 +88,23 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
 
     @Override
     protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
-        IvyConfigurationMetadata configuration = new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
-        configuration.addArtifacts(artifactsFor(name, artifactOverrides));
-        Set<ConfigurationMetadata> visited = new HashSet<ConfigurationMetadata>();
-        configuration.collectInheritedArtifacts(visited);
-        return configuration;
+        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
+        collectArtifactsFor(name, artifactOverrides, artifacts);
+        for (IvyConfigurationMetadata parent : parents) {
+            artifacts.addAll(parent.getArtifacts());
+        }
+
+        return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes, ImmutableList.copyOf(artifacts));
     }
 
-    private List<? extends ModuleComponentArtifactMetadata> artifactsFor(String name, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
+    private void collectArtifactsFor(String name, Collection<? extends ModuleComponentArtifactMetadata> artifactOverrides, Collection<ModuleComponentArtifactMetadata> dest) {
         if (artifactOverrides != null) {
-            return artifactOverrides;
+            dest.addAll(artifactOverrides);
+            return;
         }
         if (artifacts == null) {
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }
-        List<ModuleComponentArtifactMetadata> filtered = new ArrayList<ModuleComponentArtifactMetadata>();
         for (Artifact artifact : artifactDefinitions) {
             if (artifact.getConfigurations().contains(name)) {
                 ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
@@ -113,10 +112,9 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
                     artifactMetadata = new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact.getArtifactName());
                     artifacts.put(artifact, artifactMetadata);
                 }
-                filtered.add(artifactMetadata);
+                dest.add(artifactMetadata);
             }
         }
-        return filtered;
     }
 
     @Override

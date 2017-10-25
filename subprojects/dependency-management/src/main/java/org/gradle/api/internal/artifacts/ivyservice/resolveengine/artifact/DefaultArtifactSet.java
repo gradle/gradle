@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -40,7 +41,9 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,14 +73,14 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         return new MultipleVariantAttributeSet(componentIdentifier, schema, result.build());
     }
 
-    public static ArtifactSet singleVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, DisplayName displayName, Set<? extends ComponentArtifactMetadata> artifacts, ModuleSource moduleSource, ModuleExclusion exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
-        VariantMetadata variantMetadata = new DefaultVariantMetadata(displayName, ImmutableAttributes.EMPTY, artifacts);
+    public static ArtifactSet singleVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, DisplayName displayName, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSource moduleSource, ModuleExclusion exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
+        VariantMetadata variantMetadata = new DefaultVariantMetadata(displayName, ImmutableAttributes.EMPTY, ImmutableList.copyOf(artifacts));
         ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
         return new SingleVariantAttributeSet(componentIdentifier, schema, resolvedVariant);
     }
 
     private static ResolvedVariant toResolvedVariant(VariantMetadata variant, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
-        Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
+        List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
         Set<ResolvableArtifact> resolvedArtifacts = new LinkedHashSet<ResolvableArtifact>(artifacts.size());
 
         // Apply any artifact type mappings to the attributes of the variant

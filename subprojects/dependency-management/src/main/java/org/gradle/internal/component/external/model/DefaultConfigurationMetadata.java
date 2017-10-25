@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -44,17 +43,18 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final String name;
     private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
     private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
-    private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
+    private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
 
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents) {
+    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.componentId = componentId;
         this.name = name;
         this.parents = parents;
         this.transitive = transitive;
         this.visible = visible;
+        this.artifacts = artifacts;
         this.hierarchy = calculateHierarchy();
     }
 
@@ -160,7 +160,7 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts() {
+    public List<? extends ModuleComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 
@@ -172,23 +172,5 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
         return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
-    }
-
-    void collectInheritedArtifacts(Set<ConfigurationMetadata> visited) {
-        if (!visited.add(this)) {
-            return;
-        }
-        for (DefaultConfigurationMetadata parent : getParents()) {
-            parent.collectInheritedArtifacts(visited);
-            artifacts.addAll(parent.artifacts);
-        }
-    }
-
-    void addArtifacts(List<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.artifacts.addAll(artifacts);
-    }
-
-    void addArtifact(ModuleComponentArtifactMetadata artifact) {
-        this.artifacts.add(artifact);
     }
 }

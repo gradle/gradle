@@ -33,11 +33,8 @@ import org.gradle.internal.component.model.VariantMetadata;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -78,16 +75,17 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
     @Override
     protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
-        MavenConfigurationMetadata configuration = new MavenConfigurationMetadata(componentId, name, transitive, visible, parents);
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (artifactOverrides != null) {
-            configuration.addArtifacts(artifactOverrides);
+            artifacts = artifactOverrides;
         } else {
-            if (name.equals("compile")) {
-                configuration.addArtifact(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+            if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
+                artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+            } else {
+                artifacts = ImmutableList.of();
             }
-            configuration.collectInheritedArtifacts(new HashSet<ConfigurationMetadata>());
         }
-        return configuration;
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
     }
 
     @Override
@@ -297,8 +295,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
 
         @Override
-        public Set<? extends ComponentArtifactMetadata> getArtifacts() {
-            Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>(files.size());
+        public List<? extends ComponentArtifactMetadata> getArtifacts() {
+            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
             for (ComponentVariant.File file : files) {
                 artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }

@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface ArtifactSelector {
     /**
@@ -34,7 +34,7 @@ public interface ArtifactSelector {
     /**
      * Creates a set that will resolve the given artifacts of the given component.
      */
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends ComponentArtifactMetadata> artifacts);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts);
 
     /**
      * Creates a set that will resolve the artifacts of the file dependency.
