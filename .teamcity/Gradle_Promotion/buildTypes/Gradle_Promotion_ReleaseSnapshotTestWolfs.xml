@@ -25,6 +25,7 @@
     </build-runners>
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Promotion__master_" />
+      <vcs-entry-ref root-id="Gradle_Promotion_GradlePromotionBranches" />
     </vcs-settings>
     <requirements />
     <build-triggers />
