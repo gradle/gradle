@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineVersionLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
@@ -56,7 +56,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
     static @Nullable VisualStudioInstall findVisualStudio() {
         VisualCppMetadataProvider visualCppMetadataProvider = new DefaultVisualCppMetadataProvider(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
-        VisualStudioVersionLocator commandLineLocator = new CommandLineVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
+        VisualStudioVersionLocator commandLineLocator = new CommandLineToolVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
         VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
         VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
         def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), commandLineLocator, windowsRegistryLocator, versionDeterminer, NativeServices.instance.get(SystemInfo))

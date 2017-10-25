@@ -36,7 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLo
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineVersionLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
@@ -85,15 +85,15 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
             return new WindowsRegistryVersionLocator(windowsRegistry);
         }
 
-        CommandLineVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
-            return new CommandLineVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider);
+        CommandLineToolVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
+            return new CommandLineToolVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider);
         }
 
-        VisualStudioMetaDataProvider createVisualStudioMetadataProvider(CommandLineVersionLocator commandLineVersionLocator, WindowsRegistryVersionLocator windowsRegistryVersionLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
-            return new VisualStudioVersionDeterminer(commandLineVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
+        VisualStudioMetaDataProvider createVisualStudioMetadataProvider(CommandLineToolVersionLocator commandLineToolVersionLocator, WindowsRegistryVersionLocator windowsRegistryVersionLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
+            return new VisualStudioVersionDeterminer(commandLineToolVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
         }
 
-        VisualStudioLocator createVisualStudioLocator(OperatingSystem os, CommandLineVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
+        VisualStudioLocator createVisualStudioLocator(OperatingSystem os, CommandLineToolVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
             return new DefaultVisualStudioLocator(os, commandLineLocator, windowsRegistryLocator, versionDeterminer, systemInfo);
         }
     }

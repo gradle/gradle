@@ -32,7 +32,7 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.*
 
 
-class CommandLineVersionLocatorTest extends Specification {
+class CommandLineToolVersionLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     File vswhere
     def localRoot = tmpDir.createDir("root")
@@ -43,7 +43,7 @@ class CommandLineVersionLocatorTest extends Specification {
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
     def execActionFactory = Mock(ExecActionFactory)
     def execAction = Mock(ExecAction)
-    def locator = new CommandLineVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider)
+    def locator = new CommandLineToolVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider)
 
     def setup() {
         _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }

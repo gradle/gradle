@@ -36,8 +36,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
-public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
-    private static final Logger LOGGER = Logging.getLogger(CommandLineVersionLocator.class);
+public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
+    private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
 
     private final ExecActionFactory execActionFactory;
     private final WindowsRegistry windowsRegistry;
@@ -55,7 +55,7 @@ public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocato
     private static final String INSTALLATION_PATH_KEY = "installationPath";
     private static final String INSTALLATION_VERSION_KEY = "installationVersion";
 
-    public CommandLineVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
+    public CommandLineToolVersionLocator(ExecActionFactory execActionFactory, WindowsRegistry windowsRegistry, OperatingSystem os, VisualCppMetadataProvider visualCppMetadataProvider) {
         this.execActionFactory = execActionFactory;
         this.windowsRegistry = windowsRegistry;
         this.os = os;
