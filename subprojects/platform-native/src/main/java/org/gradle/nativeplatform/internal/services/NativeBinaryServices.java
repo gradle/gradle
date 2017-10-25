@@ -56,11 +56,14 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeServices());
-        registration.addProvider(new NativeDependencyResolverServices());
-
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeServices());
         registration.add(DefaultUcrtLocator.class);
+    }
+
+    @Override
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new NativeDependencyResolverServices());
         registration.add(CompilerMetaDataProviderFactory.class);
     }
 
@@ -69,7 +72,7 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new ProjectCompilerServices());
     }
 
-    private static final class BuildScopeServices {
+    private static final class BuildSessionScopeServices {
         WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
             return new DefaultWindowsSdkLocator(os, windowsRegistry);
         }
