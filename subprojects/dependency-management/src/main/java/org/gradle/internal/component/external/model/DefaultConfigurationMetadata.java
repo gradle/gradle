@@ -19,8 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -28,7 +26,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -51,17 +48,14 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
-    private final List<Exclude> excludes;
-    private ModuleExclusion exclusions;
 
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<? extends DefaultConfigurationMetadata> parents, List<Exclude> excludes) {
+    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<? extends DefaultConfigurationMetadata> parents) {
         this.componentId = componentId;
         this.name = name;
         this.parents = parents;
         this.transitive = transitive;
         this.visible = visible;
         this.hierarchy = calculateHierarchy();
-        this.excludes = excludes;
     }
 
     @Override
@@ -81,10 +75,6 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     public List<? extends DefaultConfigurationMetadata> getParents() {
         return parents;
-    }
-
-    public List<Exclude> getExcludes() {
-        return excludes;
     }
 
     @Override
@@ -167,28 +157,6 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
             }
         }
         return false;
-    }
-
-    @Override
-    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-        if (exclusions == null) {
-            exclusions = filterExcludes(moduleExclusions, excludes);
-        }
-        return exclusions;
-    }
-
-    private ModuleExclusion filterExcludes(ModuleExclusions exclusions, Iterable<Exclude> excludes) {
-        Collection<String> hierarchy = getHierarchy();
-        ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
-        for (Exclude exclude : excludes) {
-            for (String config : exclude.getConfigurations()) {
-                if (hierarchy.contains(config)) {
-                    filtered.add(exclude);
-                    break;
-                }
-            }
-        }
-        return exclusions.excludeAny(filtered.build());
     }
 
     @Override

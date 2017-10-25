@@ -26,7 +26,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
@@ -99,14 +98,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
 
     protected abstract Map<String, Configuration> getConfigurationDefinitions();
 
-    protected abstract List<Exclude> getExcludes();
-
     protected abstract List<Artifact> getArtifacts();
 
     @Override
     public ImmutableMap<String, T> getConfigurations() {
         if (configurations == null) {
-            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions(), getExcludes());
+            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions());
             if (artifactOverrides != null) {
                 populateArtifactsFromOverrides(artifactOverrides);
             } else {
@@ -142,17 +139,17 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
     }
 
-    private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions, List<Exclude> excludes) {
+    private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
         Set<String> configurationsNames = configurationDefinitions.keySet();
         Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
         for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations, excludes);
+            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
             configuration.populateDependencies(dependencies);
         }
         return ImmutableMap.copyOf(configurations);
     }
 
-    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations, List<Exclude> excludes) {
+    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
         T populated = configurations.get(name);
         if (populated != null) {
             return populated;
@@ -164,19 +161,19 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = createConfiguration(componentId, name, excludes, transitive, visible, ImmutableList.<T>of());
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of());
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentId, name, excludes, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations, excludes)));
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
             configurations.put(name, populated);
             return populated;
         }
         List<T> hierarchy = new ArrayList<T>(extendsFrom.size());
         for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations, excludes));
+            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
-        populated = createConfiguration(componentId, name, excludes, transitive, visible, ImmutableList.copyOf(hierarchy));
+        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy));
 
         configurations.put(name, populated);
         return populated;
@@ -185,7 +182,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     /**
      * Creates a {@link ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, ImmutableList<T> parents);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
 
     @Override
     public void setStatus(String status) {

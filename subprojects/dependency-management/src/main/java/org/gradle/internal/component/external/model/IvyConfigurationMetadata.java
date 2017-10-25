@@ -18,12 +18,41 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.model.Exclude;
 
+import java.util.Collection;
 import java.util.List;
 
 class IvyConfigurationMetadata extends DefaultConfigurationMetadata {
+    private final ImmutableList<Exclude> excludes;
+    private ModuleExclusion exclusions;
+
     IvyConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, List<Exclude> excludes) {
-        super(componentId, name, transitive, visible, parents, excludes);
+        super(componentId, name, transitive, visible, parents);
+        Collection<String> hierarchy = getHierarchy();
+        ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
+        for (Exclude exclude : excludes) {
+            for (String config : exclude.getConfigurations()) {
+                if (hierarchy.contains(config)) {
+                    filtered.add(exclude);
+                    break;
+                }
+            }
+        }
+        this.excludes = filtered.build();
+    }
+
+    public List<Exclude> getExcludes() {
+        return excludes;
+    }
+
+    @Override
+    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+        if (exclusions == null) {
+            exclusions = moduleExclusions.excludeAny(excludes);
+        }
+        return exclusions;
     }
 }

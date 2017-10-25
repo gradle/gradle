@@ -30,7 +30,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
@@ -79,8 +78,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, List<Exclude> excludes, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
-        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, excludes);
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents);
     }
 
     @Override
@@ -96,11 +95,6 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     protected Map<String, Configuration> getConfigurationDefinitions() {
         return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
-    }
-
-    @Override
-    protected List<Exclude> getExcludes() {
-        return ImmutableList.of();
     }
 
     @Nullable
