@@ -44,7 +44,6 @@ class CommandLineVersionLocatorTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     def execAction = Mock(ExecAction)
     def locator = new CommandLineVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider)
-    def visualCppVersions = [:]
 
     def setup() {
         _ * visualCppMetadataProvider.getVisualCppFromMetadataFile(_) >> { args -> visualCppMetadata(new File(args[0], "VC/Tools/MSVC/1.2.3.4"), "1.2.3.4") }

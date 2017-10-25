@@ -109,7 +109,7 @@ public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocato
 
         int exitValue = result.getExitValue();
         if (exitValue == 0) {
-            return buffer.readAsString();
+            return buffer.readAsString("UTF-8");
         } else {
             LOGGER.debug("vswhere.exe returned a non-zero exit value ({}) - ignoring", result.getExitValue());
             return null;
@@ -120,11 +120,15 @@ public class CommandLineVersionLocator extends AbstractVisualStudioVersionLocato
         List<VisualStudioMetadata> installs = Lists.newArrayList();
         JsonReader reader = new JsonReader(new StringReader(json));
         try {
-            reader.beginArray();
-            while (reader.hasNext()) {
-                installs.add(readInstall(reader));
+            try {
+                reader.beginArray();
+                while (reader.hasNext()) {
+                    installs.add(readInstall(reader));
+                }
+                reader.endArray();
+            } finally {
+                reader.close();
             }
-            reader.endArray();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
