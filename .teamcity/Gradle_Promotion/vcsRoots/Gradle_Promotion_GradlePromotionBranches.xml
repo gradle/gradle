@@ -9,7 +9,7 @@
   <param name="ignoreKnownHosts" value="true" />
   <param name="secure:password" value="credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04" />
   <param name="submoduleCheckout" value="CHECKOUT" />
-  <param name="teamcity:branchSpec" value="refs/heads/*" />
+  <param name="teamcity:branchSpec" value="+:refs/heads/*" />
   <param name="url" value="https://github.com/gradleware/gradle-promote.git" />
   <param name="username" value="gradlewaregitbot" />
   <param name="usernameStyle" value="USERID" />
