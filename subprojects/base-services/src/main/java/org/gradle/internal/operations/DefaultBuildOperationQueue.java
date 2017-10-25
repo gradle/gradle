@@ -108,8 +108,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.unlock();
         }
 
-        // Use this thread to process any work - this should only actually process work if none of the
-        // submitted workers make it onto the executor thread pool.
+        // Use this thread to process any work - this allows work to be executed using the
+        // worker lease acquired by this thread even if the executor thread pool is full of
+        // workers from other threads.  In other words, it ensures that all worker leases
+        // are being utilized, regardless of the bounds of the thread pool.
         try {
             new WorkerRunnable().run();
         } catch (Throwable t) {
