@@ -61,7 +61,16 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             }
         }
         if (matches.isEmpty()) {
-            details.fail(new GradleException("Bad luck"));
+            StringBuilder sb = new StringBuilder("Unable to choose between the following component versions: ");
+            boolean first = true;
+            for (T candidate : candidates) {
+                if (!first) {
+                    sb.append(", ");
+                }
+                sb.append(candidate);
+                first = false;
+            }
+            details.fail(new GradleException(sb.toString()));
             return;
         }
 
