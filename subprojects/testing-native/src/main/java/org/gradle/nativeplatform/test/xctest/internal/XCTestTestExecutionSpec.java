@@ -16,17 +16,16 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
-import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 
 import java.io.File;
 
-public class XCTestTestExecutionSpec extends JvmTestExecutionSpec {
+public class XCTestTestExecutionSpec implements TestExecutionSpec {
     private final File workingDir;
     private final File testBundleDir;
     private final String path;
 
     public XCTestTestExecutionSpec(File workingDir, File testBundleDir, String path) {
-        super(null, null, null, false, null, null, null, 0, null, 0);
         this.workingDir = workingDir;
         this.testBundleDir = testBundleDir;
         this.path = path;

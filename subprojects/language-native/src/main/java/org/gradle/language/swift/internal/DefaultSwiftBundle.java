@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -29,16 +30,22 @@ import javax.inject.Inject;
 
 public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundle {
     private final Provider<RegularFile> informationPropertyList;
+    private final DirectoryProperty bundleDir;
 
     @Inject
-    public DefaultSwiftBundle(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
-        super(name, objectFactory, module, debuggable, source, configurations, implementation);
-
-        informationPropertyList = resourceDirectory.file("Info.plist");
+    public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
+        super(name, projectLayout, objectFactory, module, debuggable, source, configurations, implementation);
+        this.bundleDir = projectLayout.directoryProperty();
+        this.informationPropertyList = resourceDirectory.file("Info.plist");
     }
 
     @Override
     public Provider<RegularFile> getInformationPropertyList() {
         return informationPropertyList;
+    }
+
+    @Override
+    public DirectoryProperty getBundleDirectory() {
+        return bundleDir;
     }
 }

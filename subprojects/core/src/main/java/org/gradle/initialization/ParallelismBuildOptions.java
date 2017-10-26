@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BooleanBuildOption;
+import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
@@ -49,7 +50,7 @@ public class ParallelismBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.parallel";
 
         public ParallelOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating());
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", "Disables parallel execution to build projects.").incubating());
         }
 
         @Override

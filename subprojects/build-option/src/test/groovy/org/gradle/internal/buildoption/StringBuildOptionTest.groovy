@@ -69,6 +69,8 @@ class StringBuildOptionTest extends Specification {
         assertSingleArgument(shortOption)
         assertNoDeprecationWarning(longOption)
         assertNoDeprecationWarning(shortOption)
+        assertDescription(longOption)
+        assertDescription(shortOption)
     }
 
     def "can configure incubating command line option"() {
@@ -83,8 +85,12 @@ class StringBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[SHORT_OPTION], incubating)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertIncubating(longOption, incubating)
+        assertIncubating(shortOption, incubating)
+        assertIncubatingDescription(longOption, incubating)
+        assertIncubatingDescription(shortOption, incubating)
 
         where:
         incubating << [false, true]
@@ -102,8 +108,12 @@ class StringBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
-        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertDeprecationWarning(longOption, deprecationWarning)
+        assertDeprecationWarning(shortOption, deprecationWarning)
+        assertDeprecatedDescription(longOption, deprecationWarning)
+        assertDeprecatedDescription(shortOption, deprecationWarning)
     }
 
     def "can apply from command line"() {

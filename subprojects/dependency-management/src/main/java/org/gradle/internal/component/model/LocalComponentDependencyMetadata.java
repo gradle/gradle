@@ -96,7 +96,7 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
             return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
@@ -157,11 +157,6 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     @Override
     public boolean isOptional() {
         return false;
-    }
-
-    @Override
-    public String getDynamicConstraintVersion() {
-        return requested.getVersion();
     }
 
     @Override

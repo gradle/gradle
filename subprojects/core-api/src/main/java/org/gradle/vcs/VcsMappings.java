@@ -19,6 +19,7 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * In settings.gradle:
@@ -42,6 +43,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
+@UsedByScanPlugin
 public interface VcsMappings {
     VcsMappings addRule(String message, Action<VcsMapping> rule);
     VcsMappings withModule(String groupName, Action<VcsMapping> rule);

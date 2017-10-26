@@ -214,8 +214,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
-        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1]
+        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2]
     }
 
     def "variants are attached to configuration but not its children"() {

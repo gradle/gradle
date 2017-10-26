@@ -32,9 +32,9 @@ Do not rebuild project dependencies.
 Shows additional detail in the task listing. See <<sec:listing_tasks>>.
 `-b`, `--build-file`::
 Specifies the build file. See <<sec:selecting_build>>.
-`--build-scan (incubating)`::
+`--build-cache (incubating)`::
 Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.
-`--no-build-scan (incubating)`::
+`--no-build-cache (incubating)`::
 Disables the Gradle build cache.
 `-c`, `--settings-file`::
 Specifies the settings file.
@@ -53,7 +53,7 @@ Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::
 Only relevant projects are configured in this build run. This means faster builds for large multi-projects. See <<sec:configuration_on_demand>>.
 `--no-configure-on-demand (incubating)`::
-Disables configuration on demand.
+Disables the use of configuration on demand.
 `-D`, `--system-prop`::
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
 `-d`, `--debug`::

@@ -25,18 +25,18 @@ import java.util.List;
  *
  * @since 4.3
  */
-public final class CommandLineOptionConfiguration {
+public class CommandLineOptionConfiguration {
     private final String longOption;
     private final String shortOption;
     private final String description;
     private boolean incubating;
     private String deprecationWarning;
 
-    private CommandLineOptionConfiguration(String longOption, String description) {
+    CommandLineOptionConfiguration(String longOption, String description) {
         this(longOption, null, description);
     }
 
-    private CommandLineOptionConfiguration(String longOption, @Nullable String shortOption, String description) {
+    CommandLineOptionConfiguration(String longOption, @Nullable String shortOption, String description) {
         assert longOption != null : "longOption cannot be null";
         assert description != null : "description cannot be null";
         this.longOption = longOption;

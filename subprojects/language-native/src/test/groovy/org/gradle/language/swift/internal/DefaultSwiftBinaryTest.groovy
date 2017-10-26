@@ -19,6 +19,7 @@ package org.gradle.language.swift.internal
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Provider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -36,7 +37,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.maybeCreate("nativeLinkDebug") >> link
         _ * configurations.maybeCreate("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  configurations, implementation)
+        binary = new DefaultSwiftBinary("mainDebug", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  configurations, implementation)
     }
 
     def "creates configurations for the binary"() {

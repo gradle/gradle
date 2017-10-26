@@ -20,12 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,10 +39,6 @@ import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -83,12 +76,11 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         final TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
         ProviderFactory providers = project.getProviders();
 
         // Add the library extension
-        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getObjects(), fileOperations, project.getConfigurations());
+        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());
@@ -98,28 +90,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // Define the outgoing artifacts
         // TODO - move this to the base plugin
-
-        final LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
-        // TODO - make this lazy, make a query method on the link task
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) linkDebug.getToolChain()).select((NativePlatformInternal) linkDebug.getTargetPlatform());
-        // TODO - should reflect changes to the task configuration
-        Provider<RegularFile> debugLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryLinkFileName("lib/main/debug/" + library.getBaseName().get());
-            }
-        }));
-
-        final LinkSharedLibrary linkRelease = (LinkSharedLibrary) tasks.getByName("linkRelease");
-        // TODO - should reflect changes to the task configuration
-        Provider<RegularFile> releaseLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryLinkFileName("lib/main/release/" + library.getBaseName().get());
-            }
-        }));
-
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(linkDebug);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getLinkFile());
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
@@ -152,40 +123,28 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
         debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        // TODO - should reflect changes to task output file
-        debugLinkElements.getOutgoing().artifact(debugLinkFile, new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(linkDebug);
-            }
-        });
+        debugLinkElements.getOutgoing().artifact(library.getDebugSharedLibrary().getLinkFile());
 
         final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(implementation);
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+        debugRuntimeElements.getOutgoing().artifact(library.getDebugSharedLibrary().getRuntimeFile());
 
         final Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
         releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        // TODO - should reflect changes to task output file
-        releaseLinkElements.getOutgoing().artifact(releaseLinkFile, new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(linkRelease);
-            }
-        });
+        releaseLinkElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getLinkFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
+        releaseRuntimeElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getRuntimeFile());
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override

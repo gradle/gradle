@@ -22,6 +22,7 @@ import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
@@ -84,6 +85,8 @@ import java.util.Map;
  *     <li>Support for report linking in the console output</li>
  * </ul>
  *
+ * <p><b>Note:</b> This abstract class is not intended for implementation by build script or plugin authors.
+ *
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
@@ -92,8 +95,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
+    private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
-    private File binResultsDir;
     private boolean ignoreFailures;
 
     public AbstractTestTask() {
@@ -103,6 +106,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
+        binaryResultsDirectory = newOutputDirectory();
 
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
@@ -192,7 +196,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @OutputDirectory
     @Incubating
     public File getBinResultsDir() {
-        return binResultsDir;
+        return binaryResultsDirectory.getAsFile().getOrNull();
     }
 
     /**
@@ -202,7 +206,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Incubating
     public void setBinResultsDir(File binResultsDir) {
-        this.binResultsDir = binResultsDir;
+        this.binaryResultsDirectory.set(binResultsDir);
+    }
+
+    /**
+     * Returns the root directory property for the test results in internal binary format.
+     *
+     * @since 4.4
+     */
+    @Internal
+    @Incubating
+    public DirectoryProperty getBinaryResultsDirectory() {
+        return binaryResultsDirectory;
     }
 
     /**

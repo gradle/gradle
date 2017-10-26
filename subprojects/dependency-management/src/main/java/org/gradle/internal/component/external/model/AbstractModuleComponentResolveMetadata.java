@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -45,7 +46,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableMap<String, ? extends ConfigurationMetadata> configurations;
     // This should live in a decorator rather than here
     @Nullable
-    private final List<? extends ModuleComponentArtifactMetadata> artifactOverrides;
+    private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private final List<? extends DependencyMetadata> dependencies;
     private final HashValue contentHash;
 
@@ -132,7 +133,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return Collections.emptyList();
     }
 
@@ -149,7 +150,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Nullable
     @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
         return artifactOverrides;
     }
 

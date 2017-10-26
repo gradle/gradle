@@ -18,6 +18,7 @@ package org.gradle.vcs;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Configuration related to source dependencies.
@@ -25,6 +26,7 @@ import org.gradle.api.Incubating;
  * @since 4.4
  */
 @Incubating
+@UsedByScanPlugin
 public interface SourceControl {
     /**
      * Configures VCS mappings.

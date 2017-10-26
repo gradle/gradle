@@ -53,4 +53,28 @@ final class BuildOptionFixture {
     static void assertDeprecationWarning(CommandLineOption option, String deprecationWarning) {
         assert option.deprecationWarning == deprecationWarning
     }
+
+    static void assertDescription(CommandLineOption option) {
+        assertDescription(option, DESCRIPTION)
+    }
+
+    static void assertDescription(CommandLineOption option, String desc) {
+        assert option.description == desc
+    }
+
+    static void assertIncubatingDescription(CommandLineOption option, boolean incubating) {
+        assertIncubatingDescription(option, incubating, DESCRIPTION)
+    }
+
+    static void assertIncubatingDescription(CommandLineOption option, boolean incubating, String desc) {
+        assert option.description == desc + (incubating ? ' [incubating]' : '')
+    }
+
+    static void assertDeprecatedDescription(CommandLineOption option, String deprecationWarning) {
+        assertDeprecatedDescription(option, deprecationWarning, DESCRIPTION)
+    }
+
+    static void assertDeprecatedDescription(CommandLineOption option, String deprecationWarning, String desc) {
+        assert option.description == "$desc [deprecated - $deprecationWarning]"
+    }
 }

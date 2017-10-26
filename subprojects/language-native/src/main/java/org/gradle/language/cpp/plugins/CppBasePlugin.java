@@ -22,16 +22,20 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.ComponentAwareRepository;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -57,7 +61,7 @@ import java.util.concurrent.Callable;
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
         project.getPluginManager().apply(DependPlugin.class);
@@ -98,10 +102,12 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
+                ((DefaultCppBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
+
                 if (binary instanceof CppExecutable) {
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
@@ -122,6 +128,9 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
                     install.setExecutable(link.getBinaryFile());
                     install.lib(binary.getRuntimeLibraries());
+
+                    ((DefaultCppExecutable) binary).getExecutableFile().set(link.getBinaryFile());
+                    ((DefaultCppExecutable) binary).getInstallDirectory().set(install.getInstallDirectory());
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
@@ -129,7 +138,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                     // Add a link task
                     LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -138,10 +147,22 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                             return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
-                    link.setOutputFile(runtimeFile);
+                    link.getBinaryFile().set(runtimeFile);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
+
+                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+
+                    // TODO: Wire this in properly with LinkSharedLibrary
+                    RegularFileProperty linktimeFile = project.getServices().get(TaskFileVarFactory.class).newOutputFile(link);
+                    linktimeFile.set(buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return toolProvider.getSharedLibraryLinkFileName("lib/" + names.getDirName() + binary.getBaseName().get());
+                        }
+                    })));
+                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linktimeFile);
                 }
             }
         });

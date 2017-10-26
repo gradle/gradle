@@ -21,12 +21,10 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
@@ -34,16 +32,14 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
+abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
@@ -55,8 +51,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private List<? extends DependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
-    private List<? extends ModuleComponentArtifactMetadata> artifactOverrides;
-    private ImmutableMap<String, DefaultConfigurationMetadata> configurations;
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
+    private ImmutableMap<String, T> configurations;
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DependencyMetadata> dependencies) {
         this.componentId = componentIdentifier;
@@ -100,19 +96,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     protected abstract Map<String, Configuration> getConfigurationDefinitions();
 
-    protected abstract List<Exclude> getExcludes();
-
-    protected abstract List<Artifact> getArtifacts();
-
     @Override
-    public ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations() {
+    public ImmutableMap<String, T> getConfigurations() {
         if (configurations == null) {
-            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions(), getExcludes());
-            if (artifactOverrides != null) {
-                populateArtifactsFromOverrides(artifactOverrides);
-            } else {
-                populateArtifacts(getArtifacts());
-            }
+            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions());
         }
         return configurations;
     }
@@ -124,37 +111,18 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         configurations = null;
     }
 
-    private void populateArtifactsFromOverrides(List<? extends ModuleComponentArtifactMetadata> artifacts) {
-        for (DefaultConfigurationMetadata configuration : configurations.values()) {
-            configuration.addArtifacts(artifacts);
-        }
-    }
-
-    private void populateArtifacts(Iterable<Artifact> artifacts) {
-        for (Artifact artifact : artifacts) {
-            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
-            for (String configuration : artifact.getConfigurations()) {
-                configurations.get(configuration).addArtifact(artifactMetadata);
-            }
-        }
-        Set<ConfigurationMetadata> visited = new HashSet<ConfigurationMetadata>();
-        for (DefaultConfigurationMetadata configuration : configurations.values()) {
-            configuration.collectInheritedArtifacts(visited);
-        }
-    }
-
-    private ImmutableMap<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions, List<Exclude> excludes) {
+    private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
         Set<String> configurationsNames = configurationDefinitions.keySet();
-        Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
+        Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
         for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations, excludes);
+            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
             configuration.populateDependencies(dependencies);
         }
         return ImmutableMap.copyOf(configurations);
     }
 
-    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, DefaultConfigurationMetadata> configurations, List<Exclude> excludes) {
-        DefaultConfigurationMetadata populated = configurations.get(name);
+    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
+        T populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
@@ -165,37 +133,28 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = new DefaultConfigurationMetadata(componentId, name, transitive, visible, excludes);
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of(), artifactOverrides);
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = new DefaultConfigurationMetadata(
-                componentId,
-                name,
-                transitive,
-                visible,
-                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations, excludes)),
-                excludes
-            );
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)), artifactOverrides);
             configurations.put(name, populated);
             return populated;
         }
-        List<DefaultConfigurationMetadata> hierarchy = new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
+        List<T> hierarchy = new ArrayList<T>(extendsFrom.size());
         for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations, excludes));
+            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
-        populated = new DefaultConfigurationMetadata(
-            componentId,
-            name,
-            transitive,
-            visible,
-            hierarchy,
-            excludes
-        );
+        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy), artifactOverrides);
 
         configurations.put(name, populated);
         return populated;
     }
+
+    /**
+     * Creates a {@link ConfigurationMetadata} implementation for this component.
+     */
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides);
 
     @Override
     public void setStatus(String status) {
@@ -260,7 +219,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Nullable
     @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
         return artifactOverrides;
     }
 

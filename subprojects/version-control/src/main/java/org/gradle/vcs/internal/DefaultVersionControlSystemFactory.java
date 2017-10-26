@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -61,7 +62,11 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
 
         @Override
         public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-            return delegate.getAvailableVersions(spec);
+            try {
+                return delegate.getAvailableVersions(spec);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not list available versions for '%s'.", spec.getDisplayName()), e);
+            }
         }
 
         @Override
@@ -78,6 +83,8 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
                         return delegate.populate(versionDir, ref, spec);
                     }
                 });
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not populate %s from '%s'.", versionDir, spec.getDisplayName()), e);
             } finally {
                 cache.close();
             }

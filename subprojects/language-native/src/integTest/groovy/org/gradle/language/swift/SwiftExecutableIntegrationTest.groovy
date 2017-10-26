@@ -107,6 +107,73 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
+    def "can use executable file as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+
+            task buildDebug {
+                dependsOn executable.debugExecutable.executableFile
+            }
+         """
+
+        expect:
+        succeeds "buildDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ':buildDebug')
+        executable("build/exe/main/debug/App").assertExists()
+    }
+
+    def "can use objects as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+
+            task compileDebug {
+                dependsOn executable.debugExecutable.objects
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ':compileDebug')
+        executable("build/exe/main/debug/App").assertDoesNotExist()
+        objectFiles(app.main)*.assertExists()
+    }
+
+    def "can use installDirectory as task dependency"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+
+            task install {
+                dependsOn executable.debugExecutable.installDirectory
+            }
+         """
+
+        expect:
+        succeeds "install"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ':installDebug', ':install')
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "ignores non-Swift source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()

@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.server.http.HttpResource
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.Unroll
-import spock.lang.Ignore
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -127,7 +126,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    @Ignore
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
@@ -150,7 +148,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
     }
 
-    @Ignore
     def "skipped repositories are only recorded for the time of a single build execution"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')

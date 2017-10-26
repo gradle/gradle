@@ -103,6 +103,55 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         !output.contains('compiling with feature enabled')
     }
 
+    def "can use link file as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            task assembleDebug {
+                dependsOn library.debugSharedLibrary.linkFile
+            }
+            task assembleRuntimeDebug {
+                dependsOn library.debugSharedLibrary.runtimeFile
+            }
+         """
+
+        expect:
+        succeeds "assembleDebug"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+
+        succeeds "assembleRuntimeDebug"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleRuntimeDebug")
+
+    }
+
+    def "can use objects as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            task compileDebug {
+                dependsOn library.debugSharedLibrary.objects
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(compileTasks(debug), ":compileDebug")
+        objectFiles(lib.sources)*.assertExists()
+    }
+
     def "build logic can change source layout convention"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"

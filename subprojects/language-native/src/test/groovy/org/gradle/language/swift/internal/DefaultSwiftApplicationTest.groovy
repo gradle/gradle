@@ -17,6 +17,7 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -24,7 +25,7 @@ import spock.lang.Specification
 class DefaultSwiftApplicationTest extends Specification {
     def "has debug and release variants"() {
         expect:
-        def app = new DefaultSwiftApplication("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
+        def app = new DefaultSwiftApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
         app.debugExecutable.name == "mainDebug"
         app.debugExecutable.debuggable
         app.releaseExecutable.name == "mainRelease"

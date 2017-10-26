@@ -58,6 +58,45 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoNotCheckedOut("dep")
     }
 
+    def 'emits sensible error when bad code is in vcsMappings block'() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    addRule('rule') { details ->
+                        foo()
+                    }
+                }
+            }
+        """
+        expect:
+        fails('assemble')
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasFileName("Settings file '$settingsFile.path'")
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
+        failure.assertHasCause("Could not find method foo()")
+    }
+
+    def 'emits sensible error when bad vcs url in vcsMappings block'() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = 'https://bad.invalid'
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails('assemble')
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
+        failure.assertHasCause("Could not list available versions for 'Git Repository at https://bad.invalid'.")
+    }
+
     def "can define and use source repositories with all {}"() {
         settingsFile << """
             sourceControl {

@@ -17,24 +17,12 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     public static final String POM_PACKAGING = "pom";
@@ -43,6 +31,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final boolean relocated;
     private final String snapshotTimestamp;
     private final ImmutableList<? extends ComponentVariant> variants;
+    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
         super(metadata);
@@ -50,14 +39,16 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
+        graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        packaging = metadata.getPackaging();
-        relocated = metadata.isRelocated();
-        snapshotTimestamp = metadata.getSnapshotTimestamp();
-        variants = metadata.getVariants();
+        packaging = metadata.packaging;
+        relocated = metadata.relocated;
+        snapshotTimestamp = metadata.snapshotTimestamp;
+        variants = metadata.variants;
+        graphVariants = metadata.graphVariants;
     }
 
     @Override
@@ -92,16 +83,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
-        // TODO - Should calculate this value
-        if (variants.isEmpty()) {
-            return ImmutableList.of();
-        }
-        List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(variants.size());
-        for (ComponentVariant variant : variants) {
-            configurations.add(new VariantAwareConfigurationMetadata(getComponentId(), variant));
-        }
-        return configurations;
+    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        return graphVariants;
     }
 
     @Override
@@ -109,33 +92,4 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return variants;
     }
 
-    private static class VariantAwareConfigurationMetadata extends DefaultConfigurationMetadata {
-        private final ComponentVariant variant;
-
-        VariantAwareConfigurationMetadata(ModuleComponentIdentifier componentIdentifier, ComponentVariant variant) {
-            super(componentIdentifier, variant.getName(), true, true, ImmutableList.<DefaultConfigurationMetadata>of(), ImmutableList.<Exclude>of());
-            this.variant = variant;
-        }
-
-        @Override
-        public ImmutableAttributes getAttributes() {
-            return variant.getAttributes().asImmutable();
-        }
-
-        @Override
-        public Set<? extends VariantMetadata> getVariants() {
-            return ImmutableSet.of(variant);
-        }
-
-        @Override
-        public List<? extends DependencyMetadata> getDependencies() {
-            // TODO - Should calculate this value
-            List<DependencyMetadata> dependencies = new ArrayList<DependencyMetadata>(variant.getDependencies().size());
-            for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-                // TODO - should not use a maven dependency implementation here
-                dependencies.add(new MavenDependencyMetadata(MavenScope.Runtime, false, DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion()), ImmutableList.<Artifact>of(), ImmutableList.<Exclude>of()));
-            }
-            return dependencies;
-        }
-    }
 }

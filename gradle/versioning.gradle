@@ -9,8 +9,8 @@ ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestone
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
 if ((milestoneNumber != null && rcNumber != null) ||
-        (rcNumber != null && finalRelease) ||
-        (milestoneNumber != null && finalRelease)) {
+    (rcNumber != null && finalRelease) ||
+    (milestoneNumber != null && finalRelease)) {
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
@@ -28,7 +28,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
+        if (isCiServer || ['install', 'installAll'].collectMany { [':' + it, it]}.any { gradle.startParameter.taskNames.contains(it) }) {
             buildTime = new Date()
         } else {
             def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");

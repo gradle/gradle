@@ -14,25 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.build.docs.AssembleSamplesDocTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
+import org.gradle.build.docs.Docbook2Xhtml
+import org.gradle.build.docs.ExtractSamplesTask
+import org.gradle.build.docs.ExtractSnippetsTask
+import org.gradle.build.docs.UserGuideSectionVerifier
+import org.gradle.build.docs.UserGuideTransformTask
+import org.gradle.build.docs.Xhtml2Pdf
+import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
+import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
+import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
+import org.gradle.build.docs.releasenotes.*
+import org.gradle.build.docs.releasenotes.checks.*
+import org.gradle.plugins.pegdown.PegDown
+
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
-
-import org.gradle.build.docs.CacheableAsciidoctorTask
-import org.gradle.build.docs.UserGuideSectionVerifier
-import org.gradle.build.docs.UserGuideTransformTask
-import org.gradle.build.docs.ExtractSnippetsTask
-import org.gradle.build.docs.ExtractSamplesTask
-import org.gradle.build.docs.AssembleSamplesDocTask
-import org.gradle.build.docs.Docbook2Xhtml
-import org.gradle.build.docs.Xhtml2Pdf
-import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
-import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
-import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
-import org.gradle.build.docs.releasenotes.*
-import org.gradle.build.docs.releasenotes.checks.*
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.plugins.pegdown.PegDown
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -213,28 +213,16 @@ ext.cssFiles = fileTree(css.destinationDir) {
 }
 
 task samples(type: ExtractSnippetsTask) {
-    source samplesSrcDir
-    exclude 'userguideOutput/**'
-    exclude '**/readme.xml'
-    exclude '**/build/**'
-    exclude '**/.gradle/**'
-
-    // Resources that should not be filtered
-    exclude 'userguide/tutorial/antLoadfileResources/**'
-    exclude 'native-binaries/cunit/libs/**'
-    exclude 'native-binaries/google-test/libs/**'
-
+    samples = samplesSrcDir
     destDir = samplesDir
+    excludes = ['userguideOutput/**',
+                '**/readme.xml',
+                '**/build/**',
+                '**/.gradle/**']
+    nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',
+                    'native-binaries/cunit/libs/**',
+                    'native-binaries/google-test/libs/**' ]
     snippetsDir = new File(buildDir, 'snippets')
-    doLast {
-        copy {
-            from samplesSrcDir
-            into samplesDir
-            include 'userguide/tutorial/antLoadfileResources/**'
-            include 'native-binaries/cunit/libs/**'
-            include 'native-binaries/google-test/libs/**'
-        }
-    }
 }
 
 task userguideStyleSheets(type: Copy) {

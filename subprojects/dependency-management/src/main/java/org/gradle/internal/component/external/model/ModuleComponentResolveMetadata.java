@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -23,7 +24,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * The meta-data for a component that is resolved from a module in a binary repository.
@@ -59,7 +59,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
     @Nullable
-    List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
+    ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
 
     /**
      * Returns the hash of the resource(s) from which this metadata was created.
