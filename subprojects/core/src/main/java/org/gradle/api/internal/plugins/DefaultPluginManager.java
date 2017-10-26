@@ -29,6 +29,7 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -36,7 +37,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -222,6 +222,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     public boolean hasPlugin(String id) {
         return findPlugin(id) != null;
+    }
+
+    @Override
+    public boolean hasImperativePlugin(String fullyQualifiedClassname) {
+        for (Class<?> pluginClass : plugins.keySet()) {
+            return pluginClass.getName().equals(fullyQualifiedClassname);
+        }
+
+        return false;
     }
 
     public void withPlugin(final String id, final Action<? super AppliedPlugin> action) {

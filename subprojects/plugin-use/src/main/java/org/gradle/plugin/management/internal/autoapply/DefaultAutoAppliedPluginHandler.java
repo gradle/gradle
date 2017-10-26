@@ -21,7 +21,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.PluginImplementationAware;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -40,6 +42,7 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         if (!(pluginTarget instanceof Project)) {
             return initialRequests;
         }
+
         Project project = (Project) pluginTarget;
 
         List<PluginRequestInternal> merged = Lists.newArrayList(initialRequests);
@@ -56,7 +59,16 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     }
 
     private static boolean isAlreadyApplied(PluginRequestInternal autoAppliedPlugin, Project project) {
-        return project.getPlugins().hasPlugin(autoAppliedPlugin.getId().getId());
+        if (project.getPlugins().hasPlugin(autoAppliedPlugin.getId().getId())) {
+            return true;
+        }
+
+        if (autoAppliedPlugin instanceof PluginImplementationAware) {
+            String pluginClass = ((PluginImplementationAware) autoAppliedPlugin).getPluginClass();
+            return ((PluginManagerInternal)project.getPluginManager()).hasImperativePlugin(pluginClass);
+        }
+
+        return false;
     }
 
     private static boolean isAlreadyRequestedInPluginsBlock(PluginRequestInternal autoAppliedPlugin, PluginRequests requests) {

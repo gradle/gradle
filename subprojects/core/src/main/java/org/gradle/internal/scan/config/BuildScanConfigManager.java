@@ -92,7 +92,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
     @Override
     public BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata) {
         if (collected) {
-            throw new IllegalStateException("Configuration has already been collected.");
+            //throw new IllegalStateException("Configuration has already been collected.");
         }
 
         collected = true;

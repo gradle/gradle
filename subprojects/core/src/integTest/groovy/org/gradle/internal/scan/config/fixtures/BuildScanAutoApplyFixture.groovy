@@ -49,7 +49,12 @@ class BuildScanAutoApplyFixture {
     }
 
     void publishDummyBuildScanPlugin(String version, GradleExecuter executer) {
+        publishDummyBuildScanPlugin(version, PluginBuilder.packageName, DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS, executer)
+    }
+
+    void publishDummyBuildScanPlugin(String version, String packageName, String pluginClassname, GradleExecuter executer) {
         def builder = new PluginBuilder(projectDir.file('plugin-' + version))
+        builder.packageName = packageName
         builder.addPlugin("""
             def gradle = project.gradle
             
@@ -59,7 +64,7 @@ class BuildScanAutoApplyFixture {
             gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}'
             }
-""", BUILD_SCAN_PLUGIN_ID, DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS)
+""", BUILD_SCAN_PLUGIN_ID, pluginClassname)
         builder.publishAs("com.gradle:build-scan-plugin:${version}", mavenRepo, executer)
     }
 }

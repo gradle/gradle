@@ -34,6 +34,8 @@ public interface PluginManagerInternal extends PluginManager {
 
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 
+    boolean hasImperativePlugin(String fullyQualifiedClassname);
+
     class PluginWithId {
         final PluginId id;
         final Class<?> clazz;

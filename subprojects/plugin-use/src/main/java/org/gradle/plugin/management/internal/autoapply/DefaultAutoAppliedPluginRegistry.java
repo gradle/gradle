@@ -20,8 +20,8 @@ import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.ImplementationClassAwarePluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginId;
@@ -40,6 +40,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.9.1";
     private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
     private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
+    private static final String BUILD_SCAN_PLUGIN_IMPL_CLASS = "com.gradle.scan.plugin.BuildScanPlugin";
     private final StartParameter startParameter;
 
     public DefaultAutoAppliedPluginRegistry(StartParameter startParameter) {
@@ -59,9 +60,9 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
     }
 
-    private DefaultPluginRequest createScanPluginRequest() {
+    private PluginRequestInternal createScanPluginRequest() {
         DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(BUILD_SCAN_PLUGIN_GROUP, BUILD_SCAN_PLUGIN_NAME, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION);
-        return new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, null, getScriptDisplayName(), artifact);
+        return new ImplementationClassAwarePluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, null, getScriptDisplayName(), artifact, BUILD_SCAN_PLUGIN_IMPL_CLASS);
     }
 
     private static String getScriptDisplayName() {
