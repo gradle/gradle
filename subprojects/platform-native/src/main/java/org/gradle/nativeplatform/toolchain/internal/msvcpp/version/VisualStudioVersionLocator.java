@@ -22,4 +22,6 @@ import java.util.List;
 public interface VisualStudioVersionLocator {
     @Nonnull
     List<VisualStudioMetadata> getVisualStudioInstalls();
+
+    String getSource();
 }

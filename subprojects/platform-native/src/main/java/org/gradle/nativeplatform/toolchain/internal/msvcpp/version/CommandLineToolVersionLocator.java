@@ -76,6 +76,11 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         return installs;
     }
 
+    @Override
+    public String getSource() {
+        return "command line tool";
+    }
+
     private File findVswhereBinary() {
         for (String programFilesKey : PROGRAM_FILES_KEYS) {
             File programFilesDir;

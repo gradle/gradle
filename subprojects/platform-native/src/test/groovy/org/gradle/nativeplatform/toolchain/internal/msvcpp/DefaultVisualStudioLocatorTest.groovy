@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import net.rubygrapefruit.platform.SystemInfo
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider
@@ -39,22 +38,19 @@ class DefaultVisualStudioLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final VisualStudioVersionLocator commandLineLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator windowsRegistryLocator = Mock(VisualStudioVersionLocator)
+    final VisualStudioVersionLocator systemPathLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioMetaDataProvider versionDeterminer = Mock(VisualStudioMetaDataProvider)
     final SystemInfo systemInfo =  Stub(SystemInfo)
-    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
-        isWindows() >> true
-        getExecutableName(_ as String) >> { String exeName -> exeName }
-    }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, commandLineLocator, windowsRegistryLocator, versionDeterminer, systemInfo)
+    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo)
 
     def "use highest visual studio version found in the registry"() {
         def dir1 = vsDir("vs1")
         def dir2 = vsDir("vs2")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
+        0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
@@ -74,9 +70,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir3 = vs2017Dir("vs3")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir3, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0")] }
         0 * windowsRegistryLocator.getVisualStudioInstalls()
+        0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
@@ -96,9 +92,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir3 = vsDir("vs3")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0"), legacyVsInstall(dir3, "13.0")] }
+        0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
         def allResults = visualStudioLocator.locateAllVisualStudioVersions()
@@ -116,9 +112,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def dir4 = vs2017Dir("vs4")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(dir4, "15.0"), legacyVsInstall(dir1, "11.0"), legacyVsInstall(dir2, "12.0"), legacyVsInstall(dir3, "13.0")] }
         0 * windowsRegistryLocator.getVisualStudioInstalls()
+        0 * systemPathLocator.getVisualStudioInstalls()
 
         when:
         def allResults = visualStudioLocator.locateAllVisualStudioVersions()
@@ -135,7 +131,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        operatingSystem.findInPath(_) >> null
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
@@ -157,7 +153,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        operatingSystem.findInPath(_) >> null
+        1 * systemPathLocator.getVisualStudioInstalls() >> []
 
         when:
         def allResults = visualStudioLocator.locateAllVisualStudioVersions()
@@ -180,8 +176,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        1 * versionDeterminer.getVisualStudioMetadataFromCompiler(_) >> legacyVsInstall(vsDir, null)
-        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
+        1 * systemPathLocator.getVisualStudioInstalls() >> [legacyVsInstall(vsDir, null)]
+        1 * systemPathLocator.getSource() >> "system path"
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
@@ -201,8 +197,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         given:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        1 * versionDeterminer.getVisualStudioMetadataFromCompiler(_) >> vs2017Install(vsDir, null)
-        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe")
+        1 * systemPathLocator.getVisualStudioInstalls() >> [vs2017Install(vsDir, null)]
+        1 * systemPathLocator.getSource() >> "system path"
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall()
@@ -222,9 +218,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def ignored = vsDir("vs-3")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
+        0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> legacyVsInstall(vsDir1, null)
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> legacyVsInstall(vsDir2, null)
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
@@ -254,9 +250,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def ignored = vs2017Dir("vs-3")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
         0 * windowsRegistryLocator.getVisualStudioInstalls()
+        0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, null)
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> vs2017Install(vsDir2, null)
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
@@ -286,9 +282,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def ignored = vsDir("vs-2")
 
         given:
-        operatingSystem.findInPath(_) >> null
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
+        0 * systemPathLocator.getVisualStudioInstalls()
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
@@ -309,9 +305,6 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def vsDir = vsDir("vs")
 
         given:
-        operatingSystem.findInPath(_) >> null
-
-        and:
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(vsDir, "12.0")
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)

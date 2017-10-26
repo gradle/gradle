@@ -47,6 +47,11 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
         return installs;
     }
 
+    @Override
+    public String getSource() {
+        return "windows registry";
+    }
+
     private void locateInstallsInRegistry(List<VisualStudioMetadata> installs, String baseKey) {
         List<String> visualCppVersions;
         try {

@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLo
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.SystemPathVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
@@ -37,6 +38,7 @@ public class VisualStudioLocatorTestFixture {
         VisualStudioVersionLocator commandLineLocator = new CommandLineToolVersionLocator(TestFiles.execActionFactory(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystem.current(), visualCppMetadataProvider);
         VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
         VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
-        return new DefaultVisualStudioLocator(OperatingSystem.current(), commandLineLocator, windowsRegistryLocator, versionDeterminer, NativeServicesTestFixture.getInstance().get(SystemInfo.class));
+        VisualStudioVersionLocator systemPathLocator = new SystemPathVersionLocator(OperatingSystem.current(), versionDeterminer);
+        return new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, NativeServicesTestFixture.getInstance().get(SystemInfo.class));
     }
 }

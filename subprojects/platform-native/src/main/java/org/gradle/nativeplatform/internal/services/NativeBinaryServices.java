@@ -38,6 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.DefaultVisualCppMetadataProvider;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.SystemPathVersionLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
@@ -89,12 +90,16 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
             return new CommandLineToolVersionLocator(execActionFactory, windowsRegistry, os, visualCppMetadataProvider);
         }
 
+        SystemPathVersionLocator createSystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
+            return new SystemPathVersionLocator(os, versionDeterminer);
+        }
+
         VisualStudioMetaDataProvider createVisualStudioMetadataProvider(CommandLineToolVersionLocator commandLineToolVersionLocator, WindowsRegistryVersionLocator windowsRegistryVersionLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
             return new VisualStudioVersionDeterminer(commandLineToolVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
         }
 
-        VisualStudioLocator createVisualStudioLocator(OperatingSystem os, CommandLineToolVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
-            return new DefaultVisualStudioLocator(os, commandLineLocator, windowsRegistryLocator, versionDeterminer, systemInfo);
+        VisualStudioLocator createVisualStudioLocator(CommandLineToolVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, SystemPathVersionLocator systemPathLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
+            return new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo);
         }
     }
 
