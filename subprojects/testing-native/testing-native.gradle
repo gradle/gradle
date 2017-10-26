@@ -19,7 +19,6 @@ dependencies {
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingBase')
-    compile project(':testingJvm')
 
     integTestRuntime project(':ideNative')
 }

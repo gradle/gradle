@@ -20,13 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Base plugin for testing.
@@ -39,6 +41,12 @@ import java.util.concurrent.Callable;
 public class TestingBasePlugin implements Plugin<Project> {
     public static final String TEST_RESULTS_DIR_NAME = "test-results";
     public static final String TESTS_DIR_NAME = "tests";
+    private static final Transformer<File, Directory> TO_FILE_TRANSFORMER = new Transformer<File, Directory>() {
+        @Override
+        public File transform(Directory directory) {
+            return directory.getAsFile();
+        }
+    };
 
     @Override
     public void apply(final Project project) {
@@ -46,37 +54,24 @@ public class TestingBasePlugin implements Plugin<Project> {
         project.getTasks().withType(AbstractTestTask.class, new Action<AbstractTestTask>() {
             @Override
             public void execute(final AbstractTestTask test) {
-                DslObject htmlReport = new DslObject(test.getReports().getHtml());
-                DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
-
-                xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return getTestResultsDir(project, test);
+                test.getReports().getHtml().setDestination(getTestReportsDir(project, test).map(TO_FILE_TRANSFORMER));
+                test.getReports().getJunitXml().setDestination(getTestResultsDir(project, test).map(TO_FILE_TRANSFORMER));
+                test.getBinaryResultsDirectory().set(getTestResultsDir(project, test).map(new Transformer<Directory, Directory>() {
+                    @Override
+                    public Directory transform(Directory directory) {
+                        return directory.dir("binary");
                     }
-                });
-                htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return getTestReportsDir(project, test);
-                    }
-                });
-                test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return new File(getTestResultsDir(project, test), "binary");
-                    }
-                });
+                }));
             }
         });
     }
 
-    private File getTestResultsDir(Project project, AbstractTestTask test) {
-        return project.getLayout().getBuildDirectory().dir(TEST_RESULTS_DIR_NAME + "/" + test.getName()).get().getAsFile();
+    private Provider<Directory> getTestResultsDir(Project project, AbstractTestTask test) {
+        return project.getLayout().getBuildDirectory().dir(TEST_RESULTS_DIR_NAME + "/" + test.getName());
     }
 
-    private File getTestReportsDir(Project project, AbstractTestTask test) {
-        return new File(getReportsDir(project), TESTS_DIR_NAME + "/" + test.getName());
-    }
-
-    private File getReportsDir(Project project) {
-        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
+    private Provider<Directory> getTestReportsDir(Project project, final AbstractTestTask test) {
+        DirectoryProperty baseDirectory = project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory();
+        return baseDirectory.dir(TESTS_DIR_NAME + "/" + test.getName());
     }
 }

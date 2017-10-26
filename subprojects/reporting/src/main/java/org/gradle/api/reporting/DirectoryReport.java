@@ -36,7 +36,7 @@ public interface DirectoryReport extends ConfigurableReport {
      * {@link org.gradle.api.reporting.DirectoryReport#getDestination()}
      * if no entry point defined
      *
-      */
+     */
     @Internal
     File getEntryPoint();
 

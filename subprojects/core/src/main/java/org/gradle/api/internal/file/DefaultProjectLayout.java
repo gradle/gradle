@@ -73,6 +73,13 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
+    public DirectoryVar directoryProperty(Provider<? extends Directory> initialProvider) {
+        DirectoryVar result = directoryProperty();
+        result.set(initialProvider);
+        return result;
+    }
+
+    @Override
     public RegularFileVar newFileVar() {
         DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newFileVar()", "ProjectLayout.fileProperty()");
         return fileProperty();
@@ -81,6 +88,13 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public RegularFileVar fileProperty() {
         return new DefaultRegularFileVar(projectDir.fileResolver);
+    }
+
+    @Override
+    public RegularFileVar fileProperty(Provider<? extends RegularFile> initialProvider) {
+        RegularFileVar result = fileProperty();
+        result.set(initialProvider);
+        return result;
     }
 
     @Override

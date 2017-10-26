@@ -162,6 +162,21 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.getOrNull() == null
     }
 
+    def "can create directory property with initial provided value"() {
+        def initialProvider = layout.directoryProperty()
+        initialProvider.set(layout.projectDirectory.dir("../other-dir"))
+        def otherDir = tmpDir.file("other-dir")
+
+        expect:
+        def dirVar = layout.directoryProperty(initialProvider)
+        def fileProvider = dirVar.asFile
+
+        dirVar.present
+        dirVar.get().getAsFile() == otherDir
+        fileProvider.present
+        fileProvider.get() == otherDir
+    }
+
     def "can create regular file var"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.get() >> { "../some-file" }
@@ -199,6 +214,21 @@ class DefaultProjectLayoutTest extends Specification {
         fileVar.getOrNull() == null
         !fileProvider.present
         fileProvider.getOrNull() == null
+    }
+
+    def "can create regular file property with initial provided value"() {
+        def initialProvider = layout.fileProperty()
+        initialProvider.set(layout.projectDirectory.file("../some-file"))
+        def otherFile = tmpDir.file("some-file")
+
+        expect:
+        def fileVar = layout.fileProperty(initialProvider)
+        def fileProvider = fileVar.asFile
+
+        fileVar.present
+        fileVar.get().getAsFile() == otherFile
+        fileProvider.present
+        fileProvider.get() == otherFile
     }
 
     def "can set directory var using a relative File"() {
