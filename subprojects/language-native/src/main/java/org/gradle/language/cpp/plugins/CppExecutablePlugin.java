@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -101,10 +102,15 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
         releaseRuntimeElements.getOutgoing().artifact(application.getReleaseExecutable().getExecutableFile());
 
+        final MainExecutableVariant mainVariant = new MainExecutableVariant();
+        NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
+        mainVariant.addVariant(debugVariant);
+        NativeVariant releaseVariant = new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
+        mainVariant.addVariant(releaseVariant);
+
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
-                final MainExecutableVariant mainVariant = new MainExecutableVariant();
                 project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
                     @Override
                     public void execute(PublishingExtension extension) {
@@ -118,30 +124,18 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.from(mainVariant);
                             }
                         });
-                        extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
-                            @Override
-                            public void execute(MavenPublication publication) {
-                                // TODO - should track changes to these properties
-                                publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(application.getBaseName().get() + "_debug");
-                                publication.setVersion(project.getVersion().toString());
-                                NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
-                                mainVariant.addVariant(debugVariant);
-                                publication.from(debugVariant);
-                            }
-                        });
-                        extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
-                            @Override
-                            public void execute(MavenPublication publication) {
-                                // TODO - should track changes to these properties
-                                publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(application.getBaseName().get() + "_release");
-                                publication.setVersion(project.getVersion().toString());
-                                NativeVariant releaseVariant = new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
-                                mainVariant.addVariant(releaseVariant);
-                                publication.from(releaseVariant);
-                            }
-                        });
+                        for (final SoftwareComponent child : mainVariant.getVariants()) {
+                            extension.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                @Override
+                                public void execute(MavenPublication publication) {
+                                    // TODO - should track changes to these properties
+                                    publication.setGroupId(project.getGroup().toString());
+                                    publication.setArtifactId(application.getBaseName().get() + "_" + child.getName());
+                                    publication.setVersion(project.getVersion().toString());
+                                    publication.from(child);
+                                }
+                            });
+                        }
                     }
                 });
             }
