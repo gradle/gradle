@@ -95,6 +95,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean dependencyLockEnabled;
 
     /**
      * {@inheritDoc}
@@ -236,6 +237,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.interactive = interactive;
+        p.dependencyLockEnabled = dependencyLockEnabled;
         return p;
     }
 
@@ -751,6 +753,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", interactive=" + interactive
+            + ", dependencyLock=" + dependencyLockEnabled
             + '}';
     }
 
@@ -849,5 +852,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Returns true if dependency locking should be used.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    public boolean isDependencyLockEnabled() {
+        return dependencyLockEnabled;
+    }
+
+    /**
+     * Specifies whether a dependency locking should be used.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    public void setDependencyLockEnabled(boolean dependencyLockEnabled) {
+        this.dependencyLockEnabled = dependencyLockEnabled;
     }
 }
