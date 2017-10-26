@@ -111,7 +111,7 @@ public class GnupgSignatory extends SignatorySupport {
     }
 
     @Override
-    public Object getInputProperty() {
+    public String getKeyId() {
         return keyName;
     }
 
