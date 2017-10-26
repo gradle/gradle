@@ -39,7 +39,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
-    def generator = new ModuleMetadataFileGenerator(new BuildInvocationScopeId(buildId))
+    def generator = new ModuleMetadataFileGenerator(new BuildInvocationScopeId(buildId), new ProjectDependencyPublicationResolver())
 
     def "writes file for component with no variants"() {
         def writer = new StringWriter()

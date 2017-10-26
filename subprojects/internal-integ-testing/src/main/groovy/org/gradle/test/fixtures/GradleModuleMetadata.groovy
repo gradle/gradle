@@ -82,6 +82,9 @@ class GradleModuleMetadata {
     private Object readAny(JsonReader reader) {
         Object value = null
         switch (reader.peek()) {
+            case JsonToken.NULL:
+                reader.nextNull()
+                break
             case JsonToken.STRING:
                 value = reader.nextString()
                 break

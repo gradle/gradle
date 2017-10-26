@@ -34,6 +34,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
@@ -74,21 +75,21 @@ public class GenerateModuleMetadata extends DefaultTask {
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
     }
 
-    // TODO - this should be an input
     /**
      * Returns the publication to generate the metadata file for.
      */
+    // TODO - this should be an input
     @Internal
     public Property<Publication> getPublication() {
         return publication;
     }
 
-    // TODO - this should be an input
     /**
      * Returns the publications of the current project, used in generation to connect the modules of a component together.
      *
      * @since 4.4
      */
+    // TODO - this should be an input
     @Internal
     public ListProperty<Publication> getPublications() {
         return publications;
@@ -101,10 +102,21 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     /**
      * Returns the {@link FileCollectionFactory} to use for generation.
+     *
      * @since 4.4
      */
     @Inject
     protected FileCollectionFactory getFileCollectionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildInvocationScopeId getBuildInvocationScopeId() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver() {
         throw new UnsupportedOperationException();
     }
 
@@ -124,7 +136,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new ModuleMetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication, publications, writer);
+                new ModuleMetadataFileGenerator(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver()).generateTo(publication, publications, writer);
             } finally {
                 writer.close();
             }

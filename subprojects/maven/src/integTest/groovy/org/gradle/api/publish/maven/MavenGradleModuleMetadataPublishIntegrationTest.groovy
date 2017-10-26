@@ -27,6 +27,23 @@ class TestComponent implements org.gradle.api.internal.component.SoftwareCompone
     Set usages = []
     Set variants = []
 }
+
+class TestUsage implements org.gradle.api.internal.component.UsageContext {
+    String name
+    Usage usage
+    Set dependencies = []
+    Set artifacts = []
+    AttributeContainer attributes
+}
+
+class TestVariant implements org.gradle.api.internal.component.SoftwareComponentInternal {
+    String name
+    Set usages = []
+}
+
+    allprojects {
+        configurations { implementation }
+    }
 """
     }
 
@@ -60,6 +77,81 @@ class TestComponent implements org.gradle.api.internal.component.SoftwareCompone
         def module = mavenRepo.module('group', 'root', '1.0')
         module.assertPublished()
         module.parsedModuleMetadata.variants.empty
+    }
+
+    def "maps project dependencies"() {
+        given:
+        settingsFile << """rootProject.name = 'root'
+            include 'a', 'b'
+"""
+        buildFile << """
+            allprojects {
+                apply plugin: 'maven-publish'
+    
+                group = 'group'
+                version = '1.0'
+
+                publishing {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+            project(':a') {
+                publishing {
+                    publications {
+                        maven(MavenPublication) {
+                            groupId = 'group.a' 
+                            artifactId = 'lib_a'
+                            version = '4.5'
+                        }
+                    }
+                }
+            }
+            project(':b') {
+                publishing {
+                    publications {
+                        maven(MavenPublication) {
+                            groupId = 'group.b' 
+                            artifactId = 'utils'
+                            version = '0.01'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 1
+        def api = module.parsedModuleMetadata.variant('api')
+        api.dependencies[0].coords == 'group.a:lib_a:4.5'
+        api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
 }

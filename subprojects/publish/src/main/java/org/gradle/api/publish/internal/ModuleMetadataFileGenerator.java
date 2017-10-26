@@ -20,6 +20,7 @@ import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -42,9 +43,11 @@ import java.util.TreeMap;
 
 public class ModuleMetadataFileGenerator {
     private final BuildInvocationScopeId buildInvocationScopeId;
+    private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
-    public ModuleMetadataFileGenerator(BuildInvocationScopeId buildInvocationScopeId) {
+    public ModuleMetadataFileGenerator(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver) {
         this.buildInvocationScopeId = buildInvocationScopeId;
+        this.projectDependencyResolver = projectDependencyResolver;
     }
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
@@ -309,12 +312,23 @@ public class ModuleMetadataFileGenerator {
 
     private void writeDependency(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
-        jsonWriter.name("group");
-        jsonWriter.value(moduleDependency.getGroup());
-        jsonWriter.name("module");
-        jsonWriter.value(moduleDependency.getName());
-        jsonWriter.name("version");
-        jsonWriter.value(moduleDependency.getVersion());
+        if (moduleDependency instanceof ProjectDependency) {
+            ProjectDependency dependency = (ProjectDependency) moduleDependency;
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
+            jsonWriter.name("group");
+            jsonWriter.value(identifier.getGroup());
+            jsonWriter.name("module");
+            jsonWriter.value(identifier.getName());
+            jsonWriter.name("version");
+            jsonWriter.value(identifier.getVersion());
+        } else {
+            jsonWriter.name("group");
+            jsonWriter.value(moduleDependency.getGroup());
+            jsonWriter.name("module");
+            jsonWriter.value(moduleDependency.getName());
+            jsonWriter.name("version");
+            jsonWriter.value(moduleDependency.getVersion());
+        }
         jsonWriter.endObject();
     }
 }
