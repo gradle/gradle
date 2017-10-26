@@ -15,27 +15,28 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile, "conf")
 
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
         resolve.prepare()
+        server.start()
     }
 
 
     void "can declare a strict dependency onto an external component"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
+        def m = mavenHttpRepo.module("org", "foo", '1.0').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -48,6 +49,8 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        m.pom.expectGet()
+        m.artifact.expectGet()
         run 'checkDeps'
 
         then:
@@ -61,11 +64,11 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can make a version strict"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
+        def m = mavenHttpRepo.module("org", "foo", '1.0').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -78,6 +81,8 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        m.pom.expectGet()
+        m.artifact.expectGet()
         run 'checkDeps'
 
         then:
@@ -91,11 +96,11 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "cannot make an empty version strict"() {
         given:
-        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenHttpRepo.module("org", "foo", '1.0').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -117,15 +122,15 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "should fail if transitive dependency version doesn't match the strict dependency version"() {
         given:
-        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.0')
+        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
+        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
             .dependsOn(foo11)
             .publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -139,6 +144,8 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        bar10.pom.expectGet()
+        foo10.pom.expectGet()
         fails 'checkDeps'
 
         then:
@@ -148,14 +155,14 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
-        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module('org', 'bar', '1.0')
+        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
             .dependsOn(foo10)
             .publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -169,6 +176,10 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        bar10.pom.expectGet()
+        foo10.pom.expectGet()
+        bar10.artifact.expectGet()
+        foo10.artifact.expectGet()
         run 'checkDeps'
 
         then:
@@ -184,15 +195,15 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can upgrade a non-strict dependency"() {
         given:
-        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.0')
+        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
+        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
             .dependsOn(foo10)
             .publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -206,6 +217,10 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        foo11.pom.expectGet()
+        bar10.pom.expectGet()
+        bar10.artifact.expectGet()
+        foo11.artifact.expectGet()
         run 'checkDeps'
 
         then:
@@ -222,17 +237,17 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     void "should pass if transitive dependency version matches a strict dependency version range"() {
         given:
-        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
-        def foo12 = mavenRepo.module("org", "foo", '1.2').publish()
-        def foo13 = mavenRepo.module("org", "foo", '1.3').publish()
-        mavenRepo.module('org', 'bar', '1.0')
-            .dependsOn(mavenRepo.module("org", "foo", secondSeenInGraph))
+        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
+        def foo12 = mavenHttpRepo.module("org", "foo", '1.2').publish()
+        def foo13 = mavenHttpRepo.module("org", "foo", '1.3').publish()
+        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
+            .dependsOn(mavenHttpRepo.module("org", "foo", secondSeenInGraph))
             .publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -253,6 +268,12 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        foo10.rootMetaData.expectGet()
+        foo13.pom.expectGet()
+        bar10.pom.expectGet()
+        foo12.pom.expectGet()
+        bar10.artifact.expectGet()
+        foo12.artifact.expectGet()
         run 'checkDeps'
 
         then:
@@ -265,12 +286,12 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
         given:
-        mavenRepo.module("org", "foo", '15').publish()
-        mavenRepo.module("org", "foo", '17').publish()
+        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
+        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -282,7 +303,7 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
         file("other/build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -296,6 +317,7 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "\ninclude 'other'"
 
         when:
+        foo17.pom.expectGet()
         fails 'checkDeps'
 
         then:
@@ -305,12 +327,12 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def "should fail if 2 strict versions disagree"() {
         given:
-        mavenRepo.module("org", "foo", '15').publish()
-        mavenRepo.module("org", "foo", '17').publish()
+        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
+        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -324,7 +346,7 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
         file("other/build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -338,6 +360,7 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "\ninclude 'other'"
 
         when:
+        foo17.pom.expectGet()
         fails 'checkDeps'
 
         then:
@@ -347,14 +370,14 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void "should pass if strict version ranges overlap"() {
         given:
-        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
-        def foo12 = mavenRepo.module("org", "foo", '1.2').publish()
-        def foo13 = mavenRepo.module("org", "foo", '1.3').publish()
+        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
+        def foo12 = mavenHttpRepo.module("org", "foo", '1.2').publish()
+        def foo13 = mavenHttpRepo.module("org", "foo", '1.3').publish()
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -375,7 +398,7 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
         file("other/build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenHttpRepo.uri}" }
             }
             configurations {
                 conf
@@ -389,7 +412,11 @@ class StrictDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "\ninclude 'other'"
 
         when:
-        run 'checkDeps'
+        foo10.rootMetaData.expectGet()
+        foo12.pom.expectGet()
+        foo13.pom.expectGet()
+        foo12.artifact.expectGet()
+        run ':checkDeps'
 
         then:
         noExceptionThrown()
