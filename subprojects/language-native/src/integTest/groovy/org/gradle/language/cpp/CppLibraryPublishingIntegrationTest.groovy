@@ -186,20 +186,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
         def deckDebugLink = deckDebugMetadata.variant("debug-link")
         deckDebugLink.dependencies.size() == 2
-        deckDebugLink.dependencies[0].group == "some.group"
-        deckDebugLink.dependencies[0].module == "shuffle"
-        deckDebugLink.dependencies[0].version == "1.2"
-        deckDebugLink.dependencies[1].group == "some.group"
-        deckDebugLink.dependencies[1].module == "card"
-        deckDebugLink.dependencies[1].version == "1.2"
+        deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
         def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
         deckDebugRuntime.dependencies.size() == 2
-        deckDebugRuntime.dependencies[0].group == "some.group"
-        deckDebugRuntime.dependencies[0].module == "shuffle"
-        deckDebugRuntime.dependencies[0].version == "1.2"
-        deckDebugRuntime.dependencies[1].group == "some.group"
-        deckDebugRuntime.dependencies[1].module == "card"
-        deckDebugRuntime.dependencies[1].version == "1.2"
+        deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
 
         def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
         deckReleaseModule.assertPublished()
@@ -209,20 +201,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
         def deckReleaseLink = deckReleaseMetadata.variant("release-link")
         deckReleaseLink.dependencies.size() == 2
-        deckReleaseLink.dependencies[0].group == "some.group"
-        deckReleaseLink.dependencies[0].module == "shuffle"
-        deckReleaseLink.dependencies[0].version == "1.2"
-        deckReleaseLink.dependencies[1].group == "some.group"
-        deckReleaseLink.dependencies[1].module == "card"
-        deckReleaseLink.dependencies[1].version == "1.2"
+        deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
         def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
         deckReleaseRuntime.dependencies.size() == 2
-        deckReleaseRuntime.dependencies[0].group == "some.group"
-        deckReleaseRuntime.dependencies[0].module == "shuffle"
-        deckReleaseRuntime.dependencies[0].version == "1.2"
-        deckReleaseRuntime.dependencies[1].group == "some.group"
-        deckReleaseRuntime.dependencies[1].module == "card"
-        deckReleaseRuntime.dependencies[1].version == "1.2"
+        deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
 
         def cardModule = repo.module('some.group', 'card', '1.2')
         cardModule.assertPublished()
@@ -336,20 +320,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
         def deckDebugLink = deckDebugMetadata.variant("debug-link")
         deckDebugLink.dependencies.size() == 2
-        deckDebugLink.dependencies[0].group == "some.group"
-        deckDebugLink.dependencies[0].module == "shuffle"
-        deckDebugLink.dependencies[0].version == "1.2"
-        deckDebugLink.dependencies[1].group == "some.group"
-        deckDebugLink.dependencies[1].module == "card"
-        deckDebugLink.dependencies[1].version == "1.2"
+        deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
         def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
         deckDebugRuntime.dependencies.size() == 2
-        deckDebugRuntime.dependencies[0].group == "some.group"
-        deckDebugRuntime.dependencies[0].module == "shuffle"
-        deckDebugRuntime.dependencies[0].version == "1.2"
-        deckDebugRuntime.dependencies[1].group == "some.group"
-        deckDebugRuntime.dependencies[1].module == "card"
-        deckDebugRuntime.dependencies[1].version == "1.2"
+        deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
 
         def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
         deckReleaseModule.assertPublished()
@@ -359,20 +335,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
         def deckReleaseLink = deckReleaseMetadata.variant("release-link")
         deckReleaseLink.dependencies.size() == 2
-        deckReleaseLink.dependencies[0].group == "some.group"
-        deckReleaseLink.dependencies[0].module == "shuffle"
-        deckReleaseLink.dependencies[0].version == "1.2"
-        deckReleaseLink.dependencies[1].group == "some.group"
-        deckReleaseLink.dependencies[1].module == "card"
-        deckReleaseLink.dependencies[1].version == "1.2"
+        deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
         def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
         deckReleaseRuntime.dependencies.size() == 2
-        deckReleaseRuntime.dependencies[0].group == "some.group"
-        deckReleaseRuntime.dependencies[0].module == "shuffle"
-        deckReleaseRuntime.dependencies[0].version == "1.2"
-        deckReleaseRuntime.dependencies[1].group == "some.group"
-        deckReleaseRuntime.dependencies[1].module == "card"
-        deckReleaseRuntime.dependencies[1].version == "1.2"
+        deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
+        deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
 
         when:
         def consumer = file("consumer").createDir()
@@ -392,6 +360,118 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "uses base name of library to calculate coordinates"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        def repoDir = file("repo")
+        settingsFile << "include 'deck', 'card', 'shuffle'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+
+                publishing {
+                    repositories { maven { url '${repoDir.toURI()}' } }
+                }
+            }
+            project(':deck') { 
+                library.baseName = 'card_deck'
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+            project(':shuffle') {
+                library.baseName = 'card_shuffle'
+            }
+"""
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(repoDir)
+
+        def deckModule = repo.module('some.group', 'card_deck', '1.2')
+        deckModule.assertPublished()
+
+        def deckMetadata = deckModule.parsedModuleMetadata
+        def deckApi = deckMetadata.variant("api")
+        deckApi.dependencies.size() == 1
+        deckApi.dependencies[0].coords == "some.group:card:1.2"
+
+        def deckDebugModule = repo.module('some.group', 'card_deck_debug', '1.2')
+        deckDebugModule.assertPublished()
+
+        def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
+        def deckDebugLink = deckDebugMetadata.variant("debug-link")
+        deckDebugLink.dependencies.size() == 2
+        deckDebugLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
+        deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
+        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        deckDebugRuntime.dependencies.size() == 2
+        deckDebugRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
+        deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
+
+        def deckReleaseModule = repo.module('some.group', 'card_deck_release', '1.2')
+        deckReleaseModule.assertPublished()
+
+        def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
+        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
+        deckReleaseLink.dependencies.size() == 2
+        deckReleaseLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
+        deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
+        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        deckReleaseRuntime.dependencies.size() == 2
+        deckReleaseRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
+        deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
+
+        def cardModule = repo.module('some.group', 'card', '1.2')
+        cardModule.assertPublished()
+
+        def cardDebugModule = repo.module('some.group', 'card_debug', '1.2')
+        cardDebugModule.assertPublished()
+
+        def cardReleaseModule = repo.module('some.group', 'card_release', '1.2')
+        cardReleaseModule.assertPublished()
+
+        def shuffleModule = repo.module('some.group', 'card_shuffle', '1.2')
+        shuffleModule.assertPublished()
+
+        def shuffleDebugModule = repo.module('some.group', 'card_shuffle_debug', '1.2')
+        shuffleDebugModule.assertPublished()
+
+        def shuffleReleaseModule = repo.module('some.group', 'card_shuffle_release', '1.2')
+        shuffleReleaseModule.assertPublished()
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file('settings.gradle') << ''
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-executable'
+            repositories { maven { url '${repoDir.toURI()}' } }
+            dependencies { implementation 'some.group:card_deck:1.2' }
+"""
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        run("assemble")
+
+        then:
+        noExceptionThrown()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card_deck")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card_shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 

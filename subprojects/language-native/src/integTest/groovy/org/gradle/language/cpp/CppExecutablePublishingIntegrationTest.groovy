@@ -21,6 +21,32 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+    def repo = new MavenFileRepository(file("repo"))
+    def consumer = file("consumer").createDir()
+
+    def setup() {
+        when:
+        consumer.file("settings.gradle") << '// empty'
+        consumer.file("build.gradle") << """
+            repositories {
+                maven { 
+                    url '${repo.uri}' 
+                    useGradleMetadata()
+                }
+            }
+            configurations {
+                install {
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
+                    attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
+                }
+            }
+            task install(type: Sync) {
+                from configurations.install
+                into 'install'
+            }
+"""
+    }
+
     def "can publish the binaries of an application to a Maven repository"() {
         def app = new CppApp()
 
@@ -35,7 +61,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 baseName = 'test'
             }
             publishing {
-                repositories { maven { url 'repo' } }
+                repositories { maven { url '$repo.uri' } }
             }
 """
         app.writeToProject(testDirectory)
@@ -57,8 +83,6 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
             ":generateMetadataFileForReleasePublication",
             ":publishReleasePublicationToMavenRepository",
             ":publish")
-
-        def repo = new MavenFileRepository(file("repo"))
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
@@ -100,26 +124,9 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         releaseRuntime.files[0].url == executableName("test_release-1.2")
 
         when:
-        def consumer = file("consumer").createDir()
         consumer.file("build.gradle") << """
-            repositories {
-                maven { 
-                    url '${repo.uri}' 
-                    useGradleMetadata()
-                }
-            }
-            configurations {
-                install {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
-                    attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
-                }
-            }
             dependencies {
                 install 'some.group:test:1.2'
-            }
-            task install(type: Sync) {
-                from configurations.install
-                into 'install'
             }
 """
         executer.inDirectory(consumer)
@@ -143,7 +150,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '../repo' } }
+                    repositories { maven { url '${repo.uri}' } }
                 }
             }
             project(':app') { 
@@ -163,8 +170,6 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         run('publish')
 
         then:
-        def repo = new MavenFileRepository(file("repo"))
-
         def appModule = repo.module('some.group', 'app', '1.2')
         appModule.assertPublished()
 
@@ -176,9 +181,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
         def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
         appDebugRuntime.dependencies.size() == 1
-        appDebugRuntime.dependencies[0].group == 'some.group'
-        appDebugRuntime.dependencies[0].module == 'greeter'
-        appDebugRuntime.dependencies[0].version == '1.2'
+        appDebugRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
         def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
         appReleaseModule.assertPublished()
@@ -188,9 +191,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
         def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
         appReleaseRuntime.dependencies.size() == 1
-        appReleaseRuntime.dependencies[0].group == 'some.group'
-        appReleaseRuntime.dependencies[0].module == 'greeter'
-        appReleaseRuntime.dependencies[0].version == '1.2'
+        appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
 
         def greeterModule = repo.module('some.group', 'greeter', '1.2')
         greeterModule.assertPublished()
@@ -205,24 +206,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
         def consumer = file("consumer").createDir()
         consumer.file("settings.gradle") << ''
         consumer.file("build.gradle") << """
-            repositories {
-                maven { 
-                    url '${repo.uri}' 
-                    useGradleMetadata()
-                }
-            }
-            configurations {
-                install {
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
-                    attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
-                }
-            }
             dependencies {
                 install 'some.group:app:1.2'
-            }
-            task install(type: Sync) {
-                from configurations.install
-                into 'install'
             }
 """
         executer.inDirectory(consumer)
@@ -230,6 +215,85 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         then:
         def executable = executable("consumer/install/app")
+        executable.file.setExecutable(true)
+        executable.exec().out == app.expectedOutput
+    }
+
+    def "uses the basename to calculate the coords"() {
+        def app = new CppAppWithLibrary()
+
+        given:
+        settingsFile << "include 'greeter', 'app'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${repo.uri}' } }
+                }
+            }
+            project(':app') { 
+                apply plugin: 'cpp-executable'
+                executable.baseName = 'testApp'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') { 
+                apply plugin: 'cpp-library'
+                library.baseName = 'appGreeter'
+            }
+"""
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
+
+        when:
+        run('publish')
+
+        then:
+        def appModule = repo.module('some.group', 'testApp', '1.2')
+        appModule.assertPublished()
+
+        def appDebugModule = repo.module('some.group', 'testApp_debug', '1.2')
+        appDebugModule.assertPublished()
+
+        def appDebugMetadata = appDebugModule.parsedModuleMetadata
+        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
+        appDebugRuntime.dependencies.size() == 1
+        appDebugRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
+
+        def appReleaseModule = repo.module('some.group', 'testApp_release', '1.2')
+        appReleaseModule.assertPublished()
+
+        def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
+        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
+        appReleaseRuntime.dependencies.size() == 1
+        appReleaseRuntime.dependencies[0].coords == 'some.group:appGreeter:1.2'
+
+        def greeterModule = repo.module('some.group', 'appGreeter', '1.2')
+        greeterModule.assertPublished()
+
+        def greeterDebugModule = repo.module('some.group', 'appGreeter_debug', '1.2')
+        greeterDebugModule.assertPublished()
+
+        def greeterReleaseModule = repo.module('some.group', 'appGreeter_release', '1.2')
+        greeterReleaseModule.assertPublished()
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file("settings.gradle") << ''
+        consumer.file("build.gradle") << """
+            dependencies {
+                install 'some.group:testApp:1.2'
+            }
+"""
+        executer.inDirectory(consumer)
+        run("install")
+
+        then:
+        def executable = executable("consumer/install/testApp")
         executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
