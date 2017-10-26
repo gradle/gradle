@@ -68,7 +68,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
         File vswhereBinary = findVswhereBinary();
         if (vswhereBinary != null) {
-            List<String> args = Lists.newArrayList("-legacy", "-format", "json");
+            List<String> args = Lists.newArrayList("-all", "-legacy", "-format", "json");
             String json = getVswhereOutput(vswhereBinary, args);
             installs.addAll(parseJson(json));
         }
