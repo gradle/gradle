@@ -32,6 +32,7 @@
 /bin
 /subprojects/*/bin
 atlassian-ide-plugin.xml
+.metadata/
 
 # NetBeans
 # --------
