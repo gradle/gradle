@@ -62,9 +62,10 @@ import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwareNativeCom
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -350,8 +351,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             return null;
         }
 
-        Set<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
-            private Set<File> result = new HashSet<File>();
+        List<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<List<File>>() {
+            private List<File> result = new ArrayList<File>();
 
             @Override
             public boolean processLine(String line) throws IOException {
@@ -360,7 +361,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             }
 
             @Override
-            public Set<File> getResult() {
+            public List<File> getResult() {
                 return result;
             }
         });
