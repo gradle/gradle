@@ -97,7 +97,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             @Override
             public Object call() throws Exception {
                 Signatory signatory = getSignatory();
-                return signatory == null ? null : signatory.getInputProperty();
+                return signatory == null ? null : signatory.getKeyId();
             }
         }).optional(true);
     }

@@ -55,10 +55,6 @@ public class PgpSignatory extends SignatorySupport {
         this.privateKey = createPrivateKey(secretKey, password);
     }
 
-    public PgpKeyId getKeyId() {
-        return new PgpKeyId(secretKey.getKeyID());
-    }
-
     @Override
     public final String getName() {
         return name;
@@ -85,8 +81,8 @@ public class PgpSignatory extends SignatorySupport {
     }
 
     @Override
-    public Object getInputProperty() {
-        PgpKeyId id = getKeyId();
+    public String getKeyId() {
+        PgpKeyId id = new PgpKeyId(secretKey.getKeyID());
         return id == null ? null : id.getAsHex();
     }
 
