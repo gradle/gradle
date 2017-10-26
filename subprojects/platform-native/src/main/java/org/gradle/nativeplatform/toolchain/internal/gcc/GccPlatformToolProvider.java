@@ -89,12 +89,12 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return versionAwareCompiler(outputCleaningCompiler);
     }
 
-    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
-        return versionAwareCompiler(outputCleaningCompiler, VersionNumber.UNKNOWN);
+    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
+        return versionAwareCompiler(compiler, VersionNumber.UNKNOWN);
     }
 
-    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler, VersionNumber version) {
-        return new VersionAwareCompiler<T>(outputCleaningCompiler, metaDataProvider.isClang() ? ClangToolChain.DEFAULT_NAME : GccToolChain.DEFAULT_NAME, version);
+    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, VersionNumber version) {
+        return new VersionAwareCompiler<T>(compiler, metaDataProvider.isClang() ? ClangToolChain.DEFAULT_NAME : GccToolChain.DEFAULT_NAME, version);
     }
 
     @Override
@@ -186,7 +186,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return baseInvocation;
     }
 
-    public String getPCHFileExtension() {
+    private String getPCHFileExtension() {
         return ".h.gch";
     }
 }
