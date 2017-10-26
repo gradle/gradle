@@ -3,6 +3,7 @@ import XCTest
 
 class GreeterTest: XCTestCase {
     func testEqualsExpectedMessage() {
-        XCTAssertEqual("Hello, World!", getMessage())
+        let g = Greeter()
+        XCTAssertEqual("Hello, World!", g.getMessage())
     }
 }

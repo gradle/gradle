@@ -1,9 +1,0 @@
-plugins {
-    id 'swift-library'
-    id 'xcode'
-    id 'xctest'
-}
-
-configurations {
-    testImplementation.extendsFrom implementation
-}

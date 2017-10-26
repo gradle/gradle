@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -35,6 +36,9 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     @Inject
     public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
         super(name, fileOperations, objectFactory, configurations);
+
+        Configuration testImplementation = configurations.maybeCreate("testImplementation");
+        testImplementation.extendsFrom(configurations.maybeCreate("implementation"));
 
         resourceDirectory = projectLayout.directoryProperty();
         resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));

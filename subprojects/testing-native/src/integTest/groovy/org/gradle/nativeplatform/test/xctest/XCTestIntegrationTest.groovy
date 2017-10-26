@@ -94,18 +94,14 @@ apply plugin: 'xctest'
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can build xctest bundle which depends on swift module"() {
-        given:
-        settingsFile.text = """
-        rootProject.name = 'greeting'
-        """
-
+    def "can build xctest bundle which depends multiple swift modules"() {
         when:
-        println testDirectory
         succeeds "test"
 
         then:
-        result.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
+            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test',
+            ':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
     }
 
     @Unroll
