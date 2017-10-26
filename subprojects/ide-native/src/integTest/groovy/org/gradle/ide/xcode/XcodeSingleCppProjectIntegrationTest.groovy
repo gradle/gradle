@@ -200,8 +200,8 @@ apply plugin: 'cpp-executable'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         exe("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
@@ -213,8 +213,8 @@ apply plugin: 'cpp-executable'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
         exe("build/exe/main/release/App").exec().out == app.expectedOutput
     }
 
@@ -239,8 +239,8 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
+        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         sharedLib("build/lib/main/debug/App").assertExists()
 
         when:
@@ -252,8 +252,8 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
+        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
         sharedLib("build/lib/main/release/App").assertExists()
     }
 

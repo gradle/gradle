@@ -20,8 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
 import javax.inject.Inject;
@@ -38,21 +37,21 @@ public class XcodeTarget implements Named {
     private String taskName;
     private String gradleCommand;
 
-    private final Property<FileSystemLocation> debugOutputFile;
-    private final Property<FileSystemLocation> releaseOutputFile;
+    private final Provider<FileSystemLocation> debugOutputFile;
+    private final Provider<FileSystemLocation> releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, Provider<FileSystemLocation> debugOutputFile, Provider<FileSystemLocation> releaseOutputFile) {
         this.name = name;
         this.id = id;
-        this.debugOutputFile = objectFactory.property(FileSystemLocation.class);
-        this.releaseOutputFile = objectFactory.property(FileSystemLocation.class);
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.importPaths = fileOperations.files();
+        this.debugOutputFile = debugOutputFile;
+        this.releaseOutputFile = releaseOutputFile;
     }
 
     public String getId() {
@@ -64,11 +63,11 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public Property<FileSystemLocation> getDebugOutputFile() {
+    public Provider<FileSystemLocation> getDebugOutputFile() {
         return debugOutputFile;
     }
 
-    public Property<FileSystemLocation> getReleaseOutputFile() {
+    public Provider<FileSystemLocation> getReleaseOutputFile() {
         return releaseOutputFile;
     }
 

@@ -74,7 +74,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebugApp.assertTasksExecuted(':greeter:dependDebugCpp', ':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug')
+            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseApp = xcodebuild
@@ -85,7 +85,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultReleaseApp.assertTasksExecuted(':greeter:dependReleaseCpp', ':greeter:compileReleaseCpp', ':greeter:linkRelease',
-            ':app:dependReleaseCpp', ':app:compileReleaseCpp', ':app:linkRelease')
+            ':app:dependReleaseCpp', ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
     def "can create xcode project for C++ executable with transitive dependencies"() {
@@ -150,7 +150,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugApp.assertTasksExecuted(':shuffle:dependDebugCpp', ':shuffle:compileDebugCpp', ':shuffle:linkDebug',
             ':card:dependDebugCpp', ':card:compileDebugCpp', ':card:linkDebug',
             ':deck:dependDebugCpp', ':deck:compileDebugCpp', ':deck:linkDebug',
-            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug')
+            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseHello = xcodebuild
@@ -162,7 +162,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         then:
         resultReleaseHello.assertTasksExecuted(':shuffle:dependReleaseCpp', ':shuffle:compileReleaseCpp', ':shuffle:linkRelease',
             ':card:dependReleaseCpp', ':card:compileReleaseCpp', ':card:linkRelease',
-            ':deck:dependReleaseCpp', ':deck:compileReleaseCpp', ':deck:linkRelease')
+            ':deck:dependReleaseCpp', ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:_xcode___Deck_Release')
     }
 
     def "can create xcode project for C++ executable inside composite build"() {
@@ -213,7 +213,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebugApp.assertTasksExecuted(':greeter:dependDebugCpp', ':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':dependDebugCpp', ':compileDebugCpp', ':linkDebug')
+            ':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
 
         when:
         def resultReleaseGreeter = xcodebuild
@@ -223,6 +223,6 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease')
+        resultReleaseGreeter.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___Greeter_Release')
     }
 }
