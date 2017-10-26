@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
+import org.gradle.internal.dependencylock.model.ModuleKey;
 
 import java.util.Set;
 
@@ -70,7 +70,7 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
     }
 
     private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(requestedModule.getGroup(), requestedModule.getModule());
+        ModuleIdentifier moduleIdentifier = new ModuleKey(requestedModule.getGroup(), requestedModule.getModule());
         String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
         DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
         dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, dependencyVersion);

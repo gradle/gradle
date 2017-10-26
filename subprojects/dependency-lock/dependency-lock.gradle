@@ -3,7 +3,7 @@ apply plugin: 'groovy'
 sourceCompatibility = 1.6
 
 dependencies {
-    implementation project(':dependencyManagement')
+    implementation project(':core')
     implementation libraries.json_simple
 }
 
