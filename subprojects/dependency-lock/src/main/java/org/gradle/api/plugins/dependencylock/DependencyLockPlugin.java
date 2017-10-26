@@ -16,18 +16,11 @@
 
 package org.gradle.api.plugins.dependencylock;
 
-import org.gradle.BuildResult;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.dependencylock.DefaultDependencyLockCreator;
-import org.gradle.internal.dependencylock.DependencyLockCreator;
-import org.gradle.internal.dependencylock.io.writer.DependencyLockWriter;
-import org.gradle.internal.dependencylock.io.writer.JsonDependencyLockWriter;
-import org.gradle.internal.dependencylock.model.DependencyLock;
-
-import java.io.File;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.dependencylock.DependencyLockManager;
 
 /**
  * <p>A {@link Plugin} which creates locked versions for resolved dependencies and uses them in subsequent builds.</p>
@@ -37,23 +30,12 @@ import java.io.File;
  * @since 4.4
  */
 @Incubating
-public class DependencyLockPlugin implements Plugin<Project> {
+public class DependencyLockPlugin implements Plugin<ProjectInternal> {
 
     @Override
-    public void apply(Project project) {
+    public void apply(ProjectInternal project) {
         if (isRootProject(project)) {
-            final File lockFile = getLockFile(project);
-
-            DependencyLockCreator dependencyLockCreator = new DefaultDependencyLockCreator();
-            final DependencyLock dependencyLock = dependencyLockCreator.create(project.getAllprojects());
-
-            project.getGradle().buildFinished(new Action<BuildResult>() {
-                @Override
-                public void execute(BuildResult buildResult) {
-                    DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
-                    dependencyLockWriter.write(dependencyLock);
-                }
-            });
+            getDependencyLockManager(project).initiate(project);
         }
     }
 
@@ -61,8 +43,7 @@ public class DependencyLockPlugin implements Plugin<Project> {
         return project.getParent() == null;
     }
 
-    private File getLockFile(Project project) {
-        File lockDir = project.file("gradle");
-        return new File(lockDir, "dependencies.lock");
+    private DependencyLockManager getDependencyLockManager(ProjectInternal project) {
+        return project.getServices().get(DependencyLockManager.class);
     }
 }
