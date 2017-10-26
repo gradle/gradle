@@ -43,4 +43,28 @@ public interface BuildScanConfig {
      */
     boolean isDisabled();
 
+    /**
+     * Indicates whether the build scan plugin should not apply itself because its known to be incompatible.
+     *
+     * @since 4.4
+     */
+    String getUnsupportedMessage();
+
+    /**
+     * Attributes about the build environment that the build scan plugin needs to know about.
+     *
+     * This is effectively an insulation layer between the plugin and internal API.
+     *
+     * @return the attributes
+     * @since 4.4
+     */
+    Attributes getAttributes();
+
+    interface Attributes {
+
+        boolean isRootProjectHasVcsMappings();
+
+    }
+
+
 }

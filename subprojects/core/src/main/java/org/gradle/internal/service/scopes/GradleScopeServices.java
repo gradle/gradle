@@ -64,6 +64,8 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scan.BuildScanServices;
+import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scan.scopeids.DefaultBuildScanScopeIds;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -87,7 +89,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     private final CompositeStoppable registries = new CompositeStoppable();
 
-    public GradleScopeServices(final ServiceRegistry parent, GradleInternal gradle) {
+    public GradleScopeServices(final ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
         addProvider(new TaskExecutionServices());
@@ -99,6 +101,16 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             }
         });
 
+        if (gradle.getParent() == null) {
+            addProvider(new BuildScanServices());
+        } else {
+            // Task execution services at all levels needs this
+            addProvider(new Object() {
+                BuildScanPluginApplied createBuildScanPluginApplied() {
+                    return gradle.getRoot().getServices().get(BuildScanPluginApplied.class);
+                }
+            });
+        }
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {

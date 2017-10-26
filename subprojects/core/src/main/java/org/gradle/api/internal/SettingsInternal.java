@@ -24,9 +24,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
 public interface SettingsInternal extends Settings, PluginAwareInternal {
     /**
      * Returns the scope containing classes that should be visible to all settings scripts and build scripts invoked by this build.
