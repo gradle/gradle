@@ -75,21 +75,21 @@ public class GenerateModuleMetadata extends DefaultTask {
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
     }
 
+    // TODO - this should be an input
     /**
      * Returns the publication to generate the metadata file for.
      */
-    // TODO - this should be an input
     @Internal
     public Property<Publication> getPublication() {
         return publication;
     }
 
+    // TODO - this should be an input
     /**
      * Returns the publications of the current project, used in generation to connect the modules of a component together.
      *
      * @since 4.4
      */
-    // TODO - this should be an input
     @Internal
     public ListProperty<Publication> getPublications() {
         return publications;
@@ -110,11 +110,21 @@ public class GenerateModuleMetadata extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns the {@link BuildInvocationScopeId} to use for generation.
+     *
+     * @since 4.4
+     */
     @Inject
     protected BuildInvocationScopeId getBuildInvocationScopeId() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns the {@link ProjectDependencyPublicationResolver} to use for generation.
+     *
+     * @since 4.4
+     */
     @Inject
     protected ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver() {
         throw new UnsupportedOperationException();
