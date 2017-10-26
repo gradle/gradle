@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest.worksWithCppPlugin
 
-class CppToolchainChangesIntegrationTest extends AbstractIntegrationSpec {
+class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         def app = new CppHelloWorldApp()
