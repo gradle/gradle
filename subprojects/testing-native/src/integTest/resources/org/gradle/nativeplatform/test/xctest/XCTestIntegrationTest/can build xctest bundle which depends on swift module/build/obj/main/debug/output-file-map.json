@@ -1,0 +1,12 @@
+{
+  "": {
+    "swiftmodule": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/CanBuildXctestBundleWhichDependsOnSwiftModule.swiftmodule"
+  },
+  "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/src/main/swift/Greeter.swift": {
+    "dependencies": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/9zayunczel3t96y2rfyvg126f/Greeter.d",
+    "object": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/9zayunczel3t96y2rfyvg126f/Greeter.o",
+    "swiftmodule": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/9zayunczel3t96y2rfyvg126f/Greeter~partial.swiftmodule",
+    "swift-dependencies": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/9zayunczel3t96y2rfyvg126f/Greeter.swiftdeps",
+    "diagnostics": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/main/debug/9zayunczel3t96y2rfyvg126f/Greeter.dia"
+  }
+}

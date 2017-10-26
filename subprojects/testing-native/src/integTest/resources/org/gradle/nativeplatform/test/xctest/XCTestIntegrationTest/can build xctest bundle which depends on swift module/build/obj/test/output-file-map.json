@@ -1,0 +1,12 @@
+{
+  "": {
+    "swiftmodule": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/CanBuildXctestBundleWhichDependsOnSwiftModuleTest.swiftmodule"
+  },
+  "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/src/test/swift/GreeterTest.swift": {
+    "dependencies": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/44lkaswtkqmd1g0gby2hs9zqc/GreeterTest.d",
+    "object": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/44lkaswtkqmd1g0gby2hs9zqc/GreeterTest.o",
+    "swiftmodule": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/44lkaswtkqmd1g0gby2hs9zqc/GreeterTest~partial.swiftmodule",
+    "swift-dependencies": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/44lkaswtkqmd1g0gby2hs9zqc/GreeterTest.swiftdeps",
+    "diagnostics": "/Users/pepper/dev/github.com/gradle/gradle/subprojects/testing-native/src/integTest/resources/org/gradle/nativeplatform/test/xctest/XCTestIntegrationTest/can build xctest bundle which depends on swift module/build/obj/test/44lkaswtkqmd1g0gby2hs9zqc/GreeterTest.dia"
+  }
+}
