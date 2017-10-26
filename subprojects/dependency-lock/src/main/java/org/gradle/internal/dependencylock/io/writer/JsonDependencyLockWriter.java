@@ -16,7 +16,6 @@
 
 package org.gradle.internal.dependencylock.io.writer;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
@@ -26,8 +25,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
@@ -89,23 +86,7 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
 
     private void writeLockFile(File lockFile, JSONObject allLocks) {
         createParentDirectory(lockFile.getParentFile());
-        FileWriter fileWriter = null;
-
-        try {
-            fileWriter = new FileWriter(lockFile);
-            fileWriter.write(allLocks.toJSONString());
-            fileWriter.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            try {
-                if (fileWriter != null) {
-                    fileWriter.close();
-                }
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+        GFileUtils.writeStringToFile(lockFile, allLocks.toJSONString());
     }
 
     private void writeSha1HashFile(File lockFile, JSONObject allLocks) {
