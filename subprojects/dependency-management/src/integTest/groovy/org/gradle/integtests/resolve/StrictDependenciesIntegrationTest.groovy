@@ -149,7 +149,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Bad luck')
+        failure.assertHasCause('Unable to choose between the following component versions: org:foo:1.0, org:foo:1.1')
 
     }
 
@@ -321,7 +321,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Bad luck')
+        failure.assertHasCause('Unable to choose between the following component versions: org:foo:17, org:foo:15')
 
     }
 
@@ -364,7 +364,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Bad luck')
+        failure.assertHasCause('Unable to choose between the following component versions: org:foo:17, org:foo:15')
 
     }
 
