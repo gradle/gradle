@@ -55,8 +55,6 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -77,27 +75,50 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs. The sample below shows various configuration options.
+ * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * The sample below shows various configuration options.
  *
- * <pre class='autoTested'> apply plugin: 'java' // adds 'test' task
+ * <pre class='autoTested'>
+ * apply plugin: 'java' // adds 'test' task
  *
- * test { // enable TestNG support (default is JUnit) useTestNG()
+ * test {
+ *   // enable TestNG support (default is JUnit)
+ *   useTestNG()
  *
- * // set a system property for the test JVM(s) systemProperty 'some.prop', 'value'
+ *   // set a system property for the test JVM(s)
+ *   systemProperty 'some.prop', 'value'
  *
- * // explicitly include or exclude tests include 'org/foo/**' exclude 'org/boo/**'
+ *   // explicitly include or exclude tests
+ *   include 'org/foo/**'
+ *   exclude 'org/boo/**'
  *
- * // show standard out and standard error of the test JVM(s) on the console testLogging.showStandardStreams = true
+ *   // show standard out and standard error of the test JVM(s) on the console
+ *   testLogging.showStandardStreams = true
  *
- * // set heap size for the test JVM(s) minHeapSize = "128m" maxHeapSize = "512m"
+ *   // set heap size for the test JVM(s)
+ *   minHeapSize = "128m"
+ *   maxHeapSize = "512m"
  *
- * // set JVM arguments for the test JVM(s) jvmArgs '-XX:MaxPermSize=256m'
+ *   // set JVM arguments for the test JVM(s)
+ *   jvmArgs '-XX:MaxPermSize=256m'
  *
- * // listen to events in the test execution lifecycle beforeTest { descriptor -&gt; logger.lifecycle("Running test: " + descriptor) }
+ *   // listen to events in the test execution lifecycle
+ *   beforeTest { descriptor -&gt;
+ *      logger.lifecycle("Running test: " + descriptor)
+ *   }
  *
- * // listen to standard out and standard error of the test JVM(s) onOutput { descriptor, event -&gt; logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message ) } }
- * </pre> <p> The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build. <pre> gradle someTestTask
- * --debug-jvm </pre>
+ *   // listen to standard out and standard error of the test JVM(s)
+ *   onOutput { descriptor, event -&gt;
+ *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+ *   }
+ * }
+ * </pre>
+ * <p>
+ * The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
+ * <pre>
+ * gradle someTestTask --debug-jvm
+ * </pre>
+
  */
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
@@ -150,47 +171,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-<<<<<<< HEAD
-=======
-     * ATM. for testing only
-     */
-    void setTestReporter(TestReporter testReporter) {
-        this.testReporter = testReporter;
-    }
-
-    /**
-     * ATM. for testing only
-     */
-    void setTestListenerBuildOperationAdapter(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-        this.testListenerBuildOperationAdapter = testListenerBuildOperationAdapter;
-    }
-
-    /**
-     * Sets the testExecuter property.
-     *
-     * @since 4.2
-     */
-    protected void setTestExecuter(TestExecuter testExecuter) {
-        this.testExecuter = testExecuter;
-    }
-
-    @Internal
-    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerBroadcaster;
-    }
-
-    @Internal
-    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
-        return testListenerInternalBroadcaster;
-    }
-
-    @Internal
-    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
-        return testOutputListenerBroadcaster;
-    }
-
-    /**
->>>>>>> Simplify test emmitting build operations to only emmit to BuildOperationListener without touching BuildOperationExecutor
      * {@inheritDoc}
      */
     @Override
@@ -538,60 +518,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @TaskAction
     public void executeTests() {
-<<<<<<< HEAD
-=======
-        LogLevel currentLevel = determineCurrentLogLevel();
-        TestLogging levelLogging = testLogging.get(currentLevel);
-        TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
-        addTestListener(eventLogger);
-        addTestOutputListener(eventLogger);
-        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
-            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
-        }
 
-        File binaryResultsDir = getBinResultsDir();
-        getProject().delete(binaryResultsDir);
-        getProject().mkdir(binaryResultsDir);
-
-        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
-
-        TestOutputStore.Writer outputWriter = testOutputStore.writer();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
-
-        addTestListener(testReportDataCollector);
-        addTestOutputListener(testReportDataCollector);
-
-        TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
-        addTestListener(testCountLogger);
-
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
-        if (testListenerBuildOperationAdapter == null) {
-            // could this be a service?
-            testListenerBuildOperationAdapter = new TestListenerBuildOperationAdapter(getBuildOperationExecutor().getCurrentOperation(),
-                getListenerManager().getBroadcaster(BuildOperationListener.class), getBuildOperationIdFactory(),
-                getClock());
-        }
-        testListenerInternalBroadcaster.add(testListenerBuildOperationAdapter);
-
-        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
-        parentProgressLogger.setDescription("Test Execution");
-        parentProgressLogger.started();
-        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
-        testListenerInternalBroadcaster.add(testWorkerProgressListener);
-
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
-
-        if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
-                getBuildOperationExecutor(),
-                getServices().get(StartParameter.class).getMaxWorkerCount(),
-                getServices().get(Clock.class));
-        }
-
->>>>>>> Simplify test emmitting build operations to only emmit to BuildOperationListener without touching BuildOperationExecutor
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
@@ -603,32 +530,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         }
 
         try {
-<<<<<<< HEAD
             super.executeTests();
-=======
-            if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
-            }
-
-            JUnitXmlReport junitXml = reports.getJunitXml();
-            if (junitXml.isEnabled()) {
-                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-                    ? TestOutputAssociation.WITH_TESTCASE
-                    : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
-                binary2JUnitXmlReportGenerator.generate();
-            }
-
-            DirectoryReport html = reports.getHtml();
-            if (!html.isEnabled()) {
-                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-            } else {
-                testReporter.generateReport(testResultsProvider, html.getDestination());
-            }
->>>>>>> Simplify test emmitting build operations to only emmit to BuildOperationListener without touching BuildOperationExecutor
         } finally {
             testFramework = null;
-            testListenerBuildOperationAdapter = null;
         }
     }
 
@@ -663,106 +567,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-<<<<<<< HEAD
-=======
-     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
-     * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
-     * get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
-     *
-     * @param listener The listener to add.
-     */
-    public void addTestListener(TestListener listener) {
-        testListenerBroadcaster.add(listener);
-    }
-
-    /**
-     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
-     *
-     * @param listener The listener to add.
-     */
-    public void addTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.add(listener);
-    }
-
-    /**
-     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(org.gradle.api.tasks.testing.TestListener)} on this task.
-     * If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
-     *
-     * @param listener The listener to remove.
-     */
-    public void removeTestListener(TestListener listener) {
-        testListenerBroadcaster.remove(listener);
-    }
-
-    /**
-     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)}
-     * on this task.  If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
-     *
-     * @param listener The listener to remove.
-     */
-    public void removeTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.remove(listener);
-    }
-
-    /**
-     * <p>Adds a closure to be notified before a test suite is executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} instance is passed to the closure as a parameter.</p>
-     *
-     * <p>This method is also called before any test suites are executed. The provided descriptor will have a null parent suite.</p>
-     *
-     * @param closure The closure to call.
-     */
-    public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
-    }
-
-    /**
-     * <p>Adds a closure to be notified after a test suite has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link TestResult} instance are passed to the closure as a
-     * parameter.</p>
-     *
-     * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent suite.</p>
-     *
-     * @param closure The closure to call.
-     */
-    public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
-    }
-
-    /**
-     * Adds a closure to be notified before a test is executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} instance is passed to the closure as a parameter.
-     *
-     * @param closure The closure to call.
-     */
-    public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
-    }
-
-    /**
-     * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link TestResult} instance are passed to the closure as a parameter.
-     *
-     * @param closure The closure to call.
-     */
-    public void afterTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
-    }
-
-    /**
-     * Adds a closure to be notified when output from the test received. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are
-     * passed to the closure as a parameter.
-     *
-     * <pre class='autoTested'> apply plugin: 'java'
-     *
-     * test { onOutput { descriptor, event -&gt; if (event.destination == TestOutputEvent.Destination.StdErr) { logger.error("Test: " + descriptor + ", error: " + event.message) } } } </pre>
-     *
-     * @param closure The closure to call.
-     */
-    public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
-    }
-
-    /**
->>>>>>> Simplify test emmitting build operations to only emmit to BuildOperationListener without touching BuildOperationExecutor
      * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setIncludes(Iterable)
@@ -843,7 +647,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Sets the test name patterns to be included in execution. Classes or method names are supported, wildcard '*' is supported. For more information see the user guide chapter on testing.
+     * Sets the test name patterns to be included in execution.
+     * Classes or method names are supported, wildcard '*' is supported.
+     * For more information see the user guide chapter on testing.
      *
      * For more information on supported patterns see {@link TestFilter}
      */
@@ -864,7 +670,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal
     public File getTestClassesDir() {
         SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
-        if (testClassesDirs == null || testClassesDirs.isEmpty()) {
+        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
             return null;
         }
         return getProject().file(CollectionUtils.first(testClassesDirs));
@@ -896,12 +702,23 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     /**
      * Sets the directories to scan for compiled test sources.
      *
-     * Typically, this would be configured to use the output of a source set: <pre class='autoTested'> apply plugin: 'java'
+     * Typically, this would be configured to use the output of a source set:
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * sourceSets { integrationTest { compileClasspath += main.output runtimeClasspath += main.output } }
+     * sourceSets {
+     *    integrationTest {
+     *       compileClasspath += main.output
+     *       runtimeClasspath += main.output
+     *    }
+     * }
      *
-     * task integrationTest(type: Test) { // Runs tests from src/integrationTest testClassesDirs = sourceSets.integrationTest.output.classesDirs classpath = sourceSets.integrationTest.runtimeClasspath
-     * } </pre>
+     * task integrationTest(type: Test) {
+     *     // Runs tests from src/integrationTest
+     *     testClassesDirs = sourceSets.integrationTest.output.classesDirs
+     *     classpath = sourceSets.integrationTest.runtimeClasspath
+     * }
+     * </pre>
      *
      * @param testClassesDirs All test class directories to be used.
      * @since 4.0
@@ -1123,8 +940,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution). It cannot exceed the value of {@literal max-workers} for the
-     * current build.
+     * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution).
+     * It cannot exceed the value of {@literal max-workers} for the current build.
      *
      * @return The maximum number of forked test processes.
      */
@@ -1157,87 +974,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-<<<<<<< HEAD
-=======
-     * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
-     *
-     * <pre class='autoTested'> apply plugin: 'java'
-     *
-     * test.testLogging { exceptionFormat "full" } </pre>
-     *
-     * For further information see {@link TestLoggingContainer}.
-     *
-     * @return this
-     */
-    @Internal
-    // TODO:LPTR Should be @Nested with @Console inside
-    public TestLoggingContainer getTestLogging() {
-        return testLogging;
-    }
-
-    /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     *
-     * <pre class='autoTested'> apply plugin: 'java'
-     *
-     * // makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
-     *
-     * @param closure configure closure
-     */
-    public void testLogging(Closure closure) {
-        ConfigureUtil.configure(closure, testLogging);
-    }
-
-    /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     *
-     * <pre class='autoTested'> apply plugin: 'java'
-     *
-     * // makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
-     *
-     * @param action configure action
-     * @since 3.5
-     */
-    public void testLogging(Action<? super TestLoggingContainer> action) {
-        action.execute(testLogging);
-    }
-
-    /**
-     * The reports that this task potentially produces.
-     *
-     * @return The reports that this task potentially produces
-     */
-    @Nested
-    @Override
-    public TestTaskReports getReports() {
-        return reports;
-    }
-
-    /**
-     * Configures the reports that this task potentially produces.
-     *
-     * @param closure The configuration
-     * @return The reports that this task potentially produces
-     */
-    @Override
-    public TestTaskReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<TestTaskReports>(closure));
-    }
-
-    /**
-     * Configures the reports that this task potentially produces.
-     *
-     * @param configureAction The configuration
-     * @return The reports that this task potentially produces
-     */
-    @Override
-    public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
-        configureAction.execute(reports);
-        return reports;
-    }
-
-    /**
->>>>>>> Simplify test emmitting build operations to only emmit to BuildOperationListener without touching BuildOperationExecutor
      * Allows filtering tests for execution.
      *
      * @return filter object
@@ -1267,15 +1003,5 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
-    }
-
-    @Inject
-    protected BuildOperationIdFactory getBuildOperationIdFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Clock getClock() {
-        throw new UnsupportedOperationException();
     }
 }
