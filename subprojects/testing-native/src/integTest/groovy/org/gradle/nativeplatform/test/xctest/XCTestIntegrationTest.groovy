@@ -94,14 +94,25 @@ apply plugin: 'xctest'
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can build xctest bundle which depends multiple swift modules"() {
+    def 'can build xctest bundle which depends multiple swift modules'() {
         when:
-        succeeds "test"
+        succeeds 'test'
 
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test',
-            ':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
+            ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+    }
+
+    def 'can run xctest in swift package manager layout'() {
+        when:
+        succeeds 'test'
+
+        then:
+        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
+            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':app:compileDebugSwift',
+            ':app:compileTestSwift', ':app:linkTest', ':app:bundleSwiftTest', ':app:xcTest', ':app:test', ':compileTestSwift',
+            ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
     }
 
     @Unroll
