@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContex
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
@@ -94,7 +93,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, VersionNumber version) {
-        return new VersionAwareCompiler<T>(compiler, metaDataProvider.isClang() ? ClangToolChain.DEFAULT_NAME : GccToolChain.DEFAULT_NAME, version);
+        return new VersionAwareCompiler<T>(compiler, metaDataProvider.getCompilerType().getIdentifier(), version);
     }
 
     @Override

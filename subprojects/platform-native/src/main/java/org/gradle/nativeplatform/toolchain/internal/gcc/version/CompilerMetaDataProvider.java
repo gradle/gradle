@@ -21,11 +21,29 @@ import java.util.List;
 
 public interface CompilerMetaDataProvider {
 
+    enum CompilerType {
+        GCC("gcc", "GCC"),
+        CLANG("clang", "Clang");
+
+        private final String identifier;
+        private final String description;
+
+        CompilerType(String identifier, String description) {
+            this.identifier = identifier;
+            this.description = description;
+        }
+
+        public String getIdentifier() {
+            return identifier;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
     GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs);
 
-    /**
-     * Returns true if the implementation is Clang, false if GCC.
-     */
-    boolean isClang();
+    CompilerType getCompilerType();
 
 }

@@ -26,6 +26,8 @@ import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider.CompilerType.CLANG
+
 @UsesNativeServices
 class GccVersionDeterminerTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
@@ -139,7 +141,7 @@ class GccVersionDeterminerTest extends Specification {
 
     def "can scrape ok output for clang"() {
         expect:
-        def result = output clang, true
+        def result = output clang, CLANG
         result.available
         result.version == VersionNumber.parse("5.0.0")
     }
@@ -162,7 +164,7 @@ class GccVersionDeterminerTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         expect:
-        def result = output gcc4, true
+        def result = output gcc4, CLANG
         !result.available
 
         when:
@@ -172,13 +174,13 @@ class GccVersionDeterminerTest extends Specification {
         1 * visitor.node("g++ appears to be GCC rather than Clang. Treating it as GCC.")
     }
 
-    GccVersionResult output(String output, boolean clang = false) {
+    GccVersionResult output(String output, CompilerMetaDataProvider.CompilerType compilerType = CompilerMetaDataProvider.CompilerType.GCC) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
-        new GccVersionDeterminer(execActionFactory, clang).getGccMetaData(new File("g++"), [])
+        new GccVersionDeterminer(execActionFactory, compilerType).getGccMetaData(new File("g++"), [])
     }
 
     Transformer transformer(constant) {

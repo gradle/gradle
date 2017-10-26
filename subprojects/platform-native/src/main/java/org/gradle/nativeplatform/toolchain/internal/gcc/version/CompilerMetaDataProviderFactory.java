@@ -60,8 +60,8 @@ public class CompilerMetaDataProviderFactory {
         }
 
         @Override
-        public boolean isClang() {
-            return delegate.isClang();
+        public CompilerType getCompilerType() {
+            return delegate.getCompilerType();
         }
     }
 
