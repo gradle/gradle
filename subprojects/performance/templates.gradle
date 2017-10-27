@@ -236,6 +236,17 @@ task mediumCppApp(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
+task mediumCppAppWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    templateArgs = [
+        functionCount: 20,
+        useMacroIncludes: true
+
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
 task bigCppApp(type: CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 500
@@ -259,6 +270,16 @@ task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
     sourceFiles = 4
     templateArgs = [
         functionCount: 2
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+task mediumCppMultiWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 101
+    sourceFiles = 4
+    templateArgs = [
+        functionCount: 2,
+        useMacroIncludes: true
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }

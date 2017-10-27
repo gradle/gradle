@@ -10,6 +10,11 @@
   }
 } %>
 
+<% if (useMacroIncludes) { %>
+#define STDIO <stdio.h>
+#include STDIO
+<% }%>
+
 int main () {
   long sum = 1;
   <% sourceFiles.times {
