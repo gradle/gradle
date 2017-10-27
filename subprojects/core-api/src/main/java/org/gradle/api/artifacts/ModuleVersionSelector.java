@@ -47,6 +47,8 @@ public interface ModuleVersionSelector {
     /**
      * Returns the version constraint to be used during selection.
      * @return the version constraint
+     *
+     * @since 4.4
      */
     @Incubating
     ModuleVersionConstraint getVersionConstraint();

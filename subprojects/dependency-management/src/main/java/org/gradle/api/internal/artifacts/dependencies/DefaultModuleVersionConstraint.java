@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultModuleVersionConstraint implements ModuleVersionConstraintInternal {
-    private final String version;
-    private final boolean strict;
+    private String version;
+    private boolean strict;
 
     public DefaultModuleVersionConstraint(String version, boolean strict) {
         this.version = nullToEmpty(version);
@@ -45,8 +45,20 @@ public class DefaultModuleVersionConstraint implements ModuleVersionConstraintIn
     }
 
     @Override
-    public String getVersion() {
+    public String getPreferredVersion() {
         return version;
+    }
+
+    @Override
+    public void prefer(String version) {
+        this.version = nullToEmpty(version);
+        strict = false;
+    }
+
+    @Override
+    public void strictly(String version) {
+        this.version = nullToEmpty(version);
+        strict = true;
     }
 
     @Override

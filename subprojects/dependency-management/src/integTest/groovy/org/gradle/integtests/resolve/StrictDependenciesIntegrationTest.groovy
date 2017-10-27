@@ -43,7 +43,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo:1.0') {
-                    strictVersion '1.0'
+                   version {
+                      strictly '1.0'
+                   }
                 }
             }           
         """
@@ -59,64 +61,6 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                 module("org:foo:1.0")
             }
         }
-
-    }
-
-    void "can make a version strict"() {
-        given:
-        def m = mavenHttpRepo.module("org", "foo", '1.0').publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo:1.0') {
-                    strictVersion()
-                }
-            }           
-        """
-
-        when:
-        m.pom.expectGet()
-        m.artifact.expectGet()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:foo:1.0")
-            }
-        }
-
-    }
-
-    void "cannot make an empty version strict"() {
-        given:
-        mavenHttpRepo.module("org", "foo", '1.0').publish()
-
-        buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:foo') {
-                    strictVersion()
-                }
-            }           
-        """
-
-        when:
-        fails 'checkDeps'
-
-        then:
-        failure.assertHasCause("You need to provide an explicit version number using strictVersion('someVersionNumber')")
 
     }
 
@@ -137,7 +81,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '1.0'
+                    version {
+                       strictly '1.0'
+                    }
                 }
                 conf('org:bar:1.0')
             }           
@@ -169,7 +115,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '1.0'
+                    version {
+                        strictly '1.0'
+                    }
                 }
                 conf('org:bar:1.0')
             }           
@@ -210,7 +158,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '1.1'
+                    version {
+                       strictly '1.1'
+                    }
                 }
                 conf('org:bar:1.0')
             }           
@@ -254,7 +204,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '$firstSeenInGraph'
+                    version {
+                       strictly '$firstSeenInGraph'
+                    }
                 }
                 conf('org:bar:1.0')
             }
@@ -310,7 +262,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '15'
+                    version {
+                        strictly '15'
+                    }
                 }
             }       
         """
@@ -339,7 +293,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '17'
+                    version {
+                        strictly '17'
+                    }
                 }
                 conf project(path: 'other', configuration: 'conf')
             }                       
@@ -353,7 +309,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo:15') {
-                    strictVersion '15'
+                    version {
+                        strictly '15'
+                    }
                 }
             }       
         """
@@ -384,7 +342,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo') {
-                    strictVersion '[1.0,1.2]'
+                    version {
+                        strictly '[1.0,1.2]'
+                    }
                 }
                 conf project(path:'other', configuration: 'conf')
             }
@@ -405,7 +365,9 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
             dependencies {
                 conf('org:foo:[1.1,1.3]') {
-                    strictVersion '[1.1,1.3]'
+                    version {
+                        strictly '[1.1,1.3]'
+                    }
                 }
             }       
         """

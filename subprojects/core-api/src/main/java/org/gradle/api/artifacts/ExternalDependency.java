@@ -15,18 +15,13 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
  * <p>An {@code ExternalDependency} is a {@link Dependency} on a source outside the current project hierarchy.</p>
  */
 public interface ExternalDependency extends ModuleDependency, ModuleVersionSelector {
-    /**
-     * Sets the version of this dependency.
-     * @since 4.4
-     */
-    @Incubating
-    void setVersion(String version);
 
     /**
      * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
@@ -47,25 +42,10 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
     ExternalDependency copy();
 
     /**
-     * Sets the version of this dependency as strict. Any other version brought in the dependency graph which
-     * would disagree with this version would trigger an error.
-     * @param version the strict version
-     *
+     * Configures the version constraint for this dependency.
+     * @param configureAction the configuration action for the module version
      * @since 4.4
-     *
-     * @return this dependency
      */
     @Incubating
-    ExternalDependency strictVersion(String version);
-
-    /**
-     * Sets the version of this dependency as strict. Any other version brought in the dependency graph which
-     * would disagree with this version would trigger an error.
-     *
-     * @since 4.4
-     *
-     * @return this dependency
-     */
-    @Incubating
-    ExternalDependency strictVersion();
+    void version(Action<? super ModuleVersionConstraint> configureAction);
 }
