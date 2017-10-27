@@ -1,11 +1,12 @@
-apply plugin: 'groovy'
+apply plugin: 'java-library'
 
-sourceCompatibility = 1.6
+sourceCompatibility = 1.7
 
 dependencies {
-    implementation project(':coreApi')
+    api project(':coreApi')
     implementation libraries.json_simple
 }
 
-useClassycle()
 useTestFixtures()
+useClassycle()
+strictCompile()

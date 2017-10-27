@@ -31,6 +31,7 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
     private static final String USER_NOTICE = "This is an auto-generated file and is not meant to be edited manually!";
     private static final String LOCK_FILE_VERSION = "1.0";
 
+    @SuppressWarnings("unchecked")
     @Override
     public String convert(DependencyLock dependencyLock) {
         JSONObject allLocks = new JSONObject();
