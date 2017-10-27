@@ -236,6 +236,17 @@ task mediumCppApp(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
+task mediumCppAppWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    templateArgs = [
+        functionCount: 20,
+        useMacroIncludes: true
+
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
 task bigCppApp(type: CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 500
@@ -263,6 +274,16 @@ task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
+task mediumCppMultiWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+    projects = 101
+    sourceFiles = 4
+    templateArgs = [
+        functionCount: 2,
+        useMacroIncludes: true
+    ]
+    subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
 task bigCppMulti(type: CppMultiProjectGeneratorTask) {
     projects = 201
     sourceFiles = 8
@@ -270,17 +291,6 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
         functionCount: 3
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
-}
-
-tasks.withType(CppMultiProjectGeneratorTask) { task ->
-    if (!task.name.endsWith('WithMacroIncludes')) {
-        tasks.create(task.name + 'WithMacroIncludes', CppMultiProjectGeneratorTask) {
-            projects = task.projectCount
-            sourceFiles = task.sourceFiles
-            templateArgs = task.templateArgs + [useMacroIncludes: true]
-            subProjectTemplates = task.subProjectTemplates
-        }
-    }
 }
 
 // === Android ===
