@@ -32,7 +32,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "1.8",
         "1.9",
         "1.9.1",
-        "1.10"
+        "1.10",
+        "1.10.1"
     ]
 
     @Unroll
