@@ -55,9 +55,7 @@ val KClass<*>.apiMembers: ScriptApiMembers
 private
 fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallable<*>> =
     candidateMembersOf(scriptTemplate).let { scriptTemplateMembers ->
-        filter { apiMember ->
-            !scriptTemplateMembers.containsMemberCompatibleWith(apiMember)
-        }
+        filterNot(scriptTemplateMembers::containsMemberCompatibleWith)
     }
 
 
