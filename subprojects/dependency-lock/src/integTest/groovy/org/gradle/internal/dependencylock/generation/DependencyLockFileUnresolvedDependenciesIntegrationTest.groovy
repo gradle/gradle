@@ -30,8 +30,7 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        !lockFile.exists()
-        !sha1File.exists()
+        assertLockFileAndHashFileDoNotExist()
     }
 
     def "does not write lock file if all dependencies failed to be resolved"() {
@@ -49,7 +48,6 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        !lockFile.exists()
-        !sha1File.exists()
+        assertLockFileAndHashFileDoNotExist()
     }
 }
