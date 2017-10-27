@@ -449,7 +449,7 @@ public class XcodePlugin extends IdePlugin {
 
                     }
                 } else {
-                    throw new GradleException("Unrecognized bridge action from xcode '" + action + "'");
+                    throw new GradleException("Unrecognized bridge action from Xcode '" + action + "'");
                 }
             }
         }
@@ -463,7 +463,7 @@ public class XcodePlugin extends IdePlugin {
                 }
             });
             if (target == null) {
-                throw new GradleException("Unknown Xcode target " + productName);
+                throw new GradleException("Unknown Xcode target '" + productName + "', do you need to re-generate Xcode configuration?");
             }
             return target;
         }

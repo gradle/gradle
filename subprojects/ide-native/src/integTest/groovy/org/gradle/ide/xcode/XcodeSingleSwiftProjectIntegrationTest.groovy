@@ -370,6 +370,29 @@ apply plugin: 'swift-executable'
     }
 
     @Requires(TestPrecondition.XCODE)
+    def "produces reasonable message when xcode uses outdated xcode configuration"() {
+        useXcodebuildTool()
+        def app = new SwiftApp()
+
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+"""
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+        settingsFile.text = "rootProject.name = 'NotApp'"
+
+        when:
+        def result = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .fails()
+        then:
+        result.assertOutputContains("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
+    }
+
+    @Requires(TestPrecondition.XCODE)
     def "can clean from xcode"() {
         useXcodebuildTool()
         def app = new SwiftApp()

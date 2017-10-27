@@ -158,7 +158,6 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
     }
 
-
     def "can clean xcode project with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
