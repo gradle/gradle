@@ -502,6 +502,37 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             containsString("Settings plugin applied!"))
     }
 
+    @Test
+    fun `scripts can use the gradle script api`() {
+
+        fun usageFor(target: String) = """
+
+            logger.error("Error logging from $target")
+            require(logging is LoggingManager, { "logging" })
+            require(resources is ResourceHandler, { "resources" })
+
+            require(relativePath("src/../settings.gradle.kts") == "settings.gradle.kts", { "relativePath(path)" })
+            require(uri("settings.gradle.kts").toString().endsWith("settings.gradle.kts"), { "uri(path)" })
+            require(file("settings.gradle.kts").isFile, { "file(path)" })
+            require(files("settings.gradle.kts").files.isNotEmpty(), { "files(paths)" })
+            require(fileTree(".").contains(file("settings.gradle.kts")), { "fileTree(path)" })
+            require(copySpec {} != null, { "copySpec {}" })
+            require(mkdir("some").isDirectory, { "mkdir(path)" })
+            require(delete("some"), { "delete(path)" })
+            require(delete {} != null, { "delete {}" })
+
+        """
+
+        withSettings(usageFor("Settings"))
+        withBuildScript(usageFor("Project"))
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Error logging from Settings"),
+                containsString("Error logging from Project")))
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)

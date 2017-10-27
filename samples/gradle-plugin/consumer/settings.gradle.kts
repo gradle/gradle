@@ -1,5 +1,5 @@
 pluginManagement {
     repositories {
-        maven { setUrl("../plugin/build/repository") }
+        maven { url = uri("../plugin/build/repository") }
     }
 }
