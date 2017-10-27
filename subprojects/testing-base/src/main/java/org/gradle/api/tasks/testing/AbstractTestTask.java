@@ -81,7 +81,11 @@ import java.util.Map;
 /**
  * Abstract class for all test task.
  *
- * <ul> <li>Support for test listeners</li> <li>Support for reporting</li> <li>Support for report linking in the console output</li> </ul>
+ * <ul>
+ *     <li>Support for test listeners</li>
+ *     <li>Support for reporting</li>
+ *     <li>Support for report linking in the console output</li>
+ * </ul>
  *
  * @since 4.4
  */
@@ -177,9 +181,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return testListenerInternalBroadcaster;
     }
 
-    /**
-     * ATM. for testing only
-     */
+    @Internal
+    @VisibleForTesting
     void setTestListenerBuildOperationAdapter(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
         this.testListenerBuildOperationAdapter = testListenerBuildOperationAdapter;
     }
@@ -242,8 +245,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task. If the listener was
-     * registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task.
+     * If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
      * org.gradle.api.invocation.Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
@@ -253,8 +256,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)} on this task.  If the
-     * listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)}
+     * on this task.  If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
      * org.gradle.api.invocation.Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
@@ -290,11 +293,20 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Adds a closure to be notified when output from the test received. A {@link TestDescriptor} and {@link TestOutputEvent} instance are passed to the closure as a parameter.
+     * Adds a closure to be notified when output from the test received. A {@link TestDescriptor} and {@link TestOutputEvent} instance are
+     * passed to the closure as a parameter.
      *
-     * <pre class='autoTested'> apply plugin: 'java'
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * test { onOutput { descriptor, event -&gt; if (event.destination == TestOutputEvent.Destination.StdErr) { logger.error("Test: " + descriptor + ", error: " + event.message) } } } </pre>
+     * test {
+     *    onOutput { descriptor, event -&gt;
+     *        if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *            logger.error("Test: " + descriptor + ", error: " + event.message)
+     *        }
+     *    }
+     * }
+     * </pre>
      *
      * @param closure The closure to call.
      */
@@ -314,7 +326,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * <p>Adds a closure to be notified after a test suite has executed. A {@link TestDescriptor} and {@link TestResult} instance are passed to the closure as a parameter.</p>
+     * <p>Adds a closure to be notified after a test suite has executed. A {@link TestDescriptor} and {@link TestResult} instance are passed to the closure as a
+     * parameter.</p>
      *
      * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent suite.</p>
      *
@@ -345,9 +358,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
-     * <pre class='autoTested'> apply plugin: 'java'
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * test.testLogging { exceptionFormat "full" } </pre>
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
+     * </pre>
      *
      * For further information see {@link TestLoggingContainer}.
      *
@@ -362,9 +379,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * <pre class='autoTested'> apply plugin: 'java'
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * // makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
      *
      * @param closure configure closure
      */
@@ -375,9 +397,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * <pre class='autoTested'> apply plugin: 'java'
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * // makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
      *
      * @param action configure action
      * @since 3.5
