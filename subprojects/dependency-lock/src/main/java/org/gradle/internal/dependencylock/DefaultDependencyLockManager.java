@@ -16,9 +16,8 @@
 
 package org.gradle.internal.dependencylock;
 
-import org.gradle.BuildResult;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.dependencylock.io.writer.DependencyLockWriter;
 import org.gradle.internal.dependencylock.io.writer.JsonDependencyLockWriter;
 import org.gradle.internal.dependencylock.model.DependencyLock;
@@ -27,28 +26,21 @@ import java.io.File;
 
 public class DefaultDependencyLockManager implements DependencyLockManager {
 
-    private final DependencyLockCreator dependencyLockCreator;
+    private final DependencyLockState dependencyLockState;
 
-    public DefaultDependencyLockManager(DependencyLockCreator dependencyLockCreator) {
-        this.dependencyLockCreator = dependencyLockCreator;
+    public DefaultDependencyLockManager(DependencyLockState dependencyLockState) {
+        this.dependencyLockState = dependencyLockState;
     }
 
     @Override
-    public void initiate(Project rootProject) {
-        final File lockFile = getLockFile(rootProject);
-        final DependencyLock dependencyLock = dependencyLockCreator.create(rootProject.getAllprojects());
-
-        rootProject.getGradle().buildFinished(new Action<BuildResult>() {
-            @Override
-            public void execute(BuildResult buildResult) {
-                DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
-                dependencyLockWriter.write(dependencyLock);
-            }
-        });
+    public void lockResolvedDependencies(Project project, Configuration configuration) {
+        dependencyLockState.resolveAndPersist(project, configuration);
     }
 
-    private File getLockFile(Project project) {
-        File lockDir = project.file("gradle");
-        return new File(lockDir, "dependencies.lock");
+    @Override
+    public void writeLock(File lockFile) {
+        DependencyLock dependencyLock = dependencyLockState.getDependencyLock();
+        DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
+        dependencyLockWriter.write(dependencyLock);
     }
 }

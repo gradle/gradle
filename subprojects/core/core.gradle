@@ -42,6 +42,7 @@ dependencies {
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
+    api project(":dependencyLock")
     api libraries.groovy
     api libraries.ant
     api libraries.guava

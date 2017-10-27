@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -52,6 +53,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
@@ -59,6 +61,7 @@ import org.gradle.cache.internal.Store;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.dependencylock.DependencyLockManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
@@ -82,6 +85,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ProjectFinder projectFinder;
+    private final boolean dependencyLockEnabled;
+    private final DependencyLockManager dependencyLockManager;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
@@ -91,7 +97,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         ArtifactTransforms artifactTransforms,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         BuildOperationExecutor buildOperationExecutor,
-                                        ArtifactTypeRegistry artifactTypeRegistry) {
+                                        ArtifactTypeRegistry artifactTypeRegistry,
+                                        ProjectFinder projectFinder,
+                                        boolean dependencyLockEnabled,
+                                        DependencyLockManager dependencyLockManager) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
@@ -102,6 +111,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.projectFinder = projectFinder;
+        this.dependencyLockEnabled = dependencyLockEnabled;
+        this.dependencyLockManager = dependencyLockManager;
     }
 
     @Override
@@ -114,6 +126,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
+        lockConfiguration(configuration);
+
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         StoreSet stores = storeFactory.createStoreSet();
 
@@ -145,6 +159,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms));
 
         results.retainState(new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder));
+    }
+
+    private void lockConfiguration(ConfigurationInternal configuration) {
+        if (dependencyLockEnabled) {
+            ProjectInternal project = projectFinder.getProject(configuration.getModule().getProjectPath());
+            dependencyLockManager.lockResolvedDependencies(project, configuration);
+        }
     }
 
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {

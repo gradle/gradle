@@ -27,24 +27,11 @@ final class DependencyLockFixture {
     private DependencyLockFixture() {
     }
 
-    static String appliedPlugin() {
-        """
-            apply plugin: 'dependency-lock'
-        """
-    }
-
     static String mavenRepository(MavenFileRepository mavenRepo) {
         """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
-        """
-    }
-
-    static String appliedPluginAndRepository(MavenFileRepository mavenRepo) {
-        """
-            ${appliedPlugin()}
-            ${mavenRepository(mavenRepo)}
         """
     }
 

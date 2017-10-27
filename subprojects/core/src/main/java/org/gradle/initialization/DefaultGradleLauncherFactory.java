@@ -36,6 +36,7 @@ import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.dependencylock.DependencyLockFileGenerationListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
@@ -156,6 +157,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener(serviceRegistry.get(StyledTextOutputFactory.class)));
+        }
+
+        if (startParameter.isDependencyLockEnabled()) {
+            listenerManager.addListener(serviceRegistry.get(DependencyLockFileGenerationListener.class));
         }
 
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();

@@ -17,8 +17,12 @@
 package org.gradle.internal.dependencylock;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+
+import java.io.File;
 
 public interface DependencyLockManager {
 
-    void initiate(Project rootProject);
+    void lockResolvedDependencies(Project project, Configuration configuration);
+    void writeLock(File lockFile);
 }

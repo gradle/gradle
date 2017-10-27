@@ -16,18 +16,23 @@
 
 package org.gradle.internal.dependencylock.service;
 
-import org.gradle.internal.dependencylock.DefaultDependencyLockCreator;
 import org.gradle.internal.dependencylock.DefaultDependencyLockManager;
-import org.gradle.internal.dependencylock.DependencyLockCreator;
+import org.gradle.internal.dependencylock.DefaultDependencyLockState;
+import org.gradle.internal.dependencylock.DependencyLockFileGenerationListener;
 import org.gradle.internal.dependencylock.DependencyLockManager;
+import org.gradle.internal.dependencylock.DependencyLockState;
 
 public class DependencyLockBuildSessionServices {
 
-    DependencyLockCreator createDependencyLockCreator() {
-        return new DefaultDependencyLockCreator();
+    DependencyLockState createDependencyLockState() {
+        return new DefaultDependencyLockState();
     }
 
-    DependencyLockManager createDependencyLockManager(DependencyLockCreator dependencyLockCreator) {
-        return new DefaultDependencyLockManager(dependencyLockCreator);
+    DependencyLockManager createDependencyLockManager(DependencyLockState dependencyLockState) {
+        return new DefaultDependencyLockManager(dependencyLockState);
+    }
+
+    DependencyLockFileGenerationListener createDependencyLockListener(DependencyLockManager dependencyLockManager) {
+        return new DependencyLockFileGenerationListener(dependencyLockManager);
     }
 }

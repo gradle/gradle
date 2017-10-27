@@ -80,6 +80,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.dependencylock.DependencyLockManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -236,7 +237,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        BuildOperationExecutor buildOperationExecutor,
-                                                       ArtifactTypeRegistry artifactTypeRegistry) {
+                                                       ArtifactTypeRegistry artifactTypeRegistry,
+                                                       ProjectFinder projectFinder,
+                                                       DependencyLockManager dependencyLockManager) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -254,7 +257,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 attributesSchema),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
-                            artifactTypeRegistry),
+                            artifactTypeRegistry,
+                            projectFinder,
+                            startParameter.isDependencyLockEnabled(),
+                            dependencyLockManager),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }

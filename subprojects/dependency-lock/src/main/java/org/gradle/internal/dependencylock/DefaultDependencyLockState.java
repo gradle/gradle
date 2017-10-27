@@ -29,44 +29,33 @@ import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
 import org.gradle.internal.dependencylock.model.ModuleKey;
 
-import java.util.Set;
+public class DefaultDependencyLockState implements DependencyLockState {
 
-public class DefaultDependencyLockCreator implements DependencyLockCreator {
+    private final DependencyLock dependencyLock = new DependencyLock();
 
     @Override
-    public DependencyLock create(Set<Project> projects) {
-        final DependencyLock dependencyLock = new DependencyLock();
-
-        for (final Project project : projects) {
-            project.getConfigurations().all(new Action<Configuration>() {
+    public void resolveAndPersist(final Project project, final Configuration configuration) {
+        if (configuration.isCanBeResolved()) {
+            configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
                 @Override
-                public void execute(final Configuration configuration) {
-                    if (configuration.isCanBeResolved()) {
-                        configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
-                            @Override
-                            public void execute(ResolvableDependencies resolvableDependencies) {
-                                resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                                    @Override
-                                    public void execute(DependencyResult dependencyResult) {
-                                        if (dependencyResult instanceof ResolvedDependencyResult) {
-                                            ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
-                                            ComponentSelector requested = dependencyResult.getRequested();
+                public void execute(ResolvableDependencies resolvableDependencies) {
+                    resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
+                        @Override
+                        public void execute(DependencyResult dependencyResult) {
+                            if (dependencyResult instanceof ResolvedDependencyResult) {
+                                ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
+                                ComponentSelector requested = dependencyResult.getRequested();
 
-                                            if (requested instanceof ModuleComponentSelector) {
-                                                ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
-                                                addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
-                                            }
-                                        }
-                                    }
-                                });
+                                if (requested instanceof ModuleComponentSelector) {
+                                    ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
+                                    addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
+                                }
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             });
         }
-
-        return dependencyLock;
     }
 
     private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
@@ -74,5 +63,10 @@ public class DefaultDependencyLockCreator implements DependencyLockCreator {
         String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
         DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
         dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, dependencyVersion);
+    }
+
+    @Override
+    public DependencyLock getDependencyLock() {
+        return dependencyLock;
     }
 }

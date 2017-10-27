@@ -17,10 +17,13 @@
 package org.gradle.internal.dependencylock;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.internal.dependencylock.model.DependencyLock;
 
-public class NoOpDependencyLockManager implements DependencyLockManager {
+import java.util.Set;
 
-    @Override
-    public void initiate(Project rootProject) {
-    }
+public interface DependencyLockState {
+
+    void resolveAndPersist(Project project, Configuration configuration);
+    DependencyLock getDependencyLock();
 }
