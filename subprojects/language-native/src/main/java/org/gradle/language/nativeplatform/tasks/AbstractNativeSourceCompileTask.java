@@ -21,11 +21,18 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.language.base.compile.CompilerVersion;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -41,6 +48,13 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return getPreCompiledHeader() != null;
+            }
+        });
+        getOutputs().doNotCacheIf("Could not determine compiler version", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                CompilerVersion compilerVersion = getCompilerVersion();
+                return compilerVersion == null || compilerVersion.getVersion() == null;
             }
         });
     }
@@ -67,5 +81,24 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
+    }
+
+    /**
+     * The compiler used, including the type and the version.
+     *
+     * @since 4.4
+     */
+    @Nested
+    @Optional
+    @Nullable
+    protected CompilerVersion getCompilerVersion() {
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        Compiler<? extends NativeCompileSpec> compiler = toolProvider.newCompiler(createCompileSpec().getClass());
+        if (!(compiler instanceof VersionAwareCompiler)) {
+            return null;
+        }
+        return ((VersionAwareCompiler) compiler).getVersion();
     }
 }

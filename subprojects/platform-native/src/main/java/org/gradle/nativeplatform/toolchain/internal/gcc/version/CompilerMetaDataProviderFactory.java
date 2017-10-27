@@ -58,6 +58,11 @@ public class CompilerMetaDataProviderFactory {
             }
             return result;
         }
+
+        @Override
+        public CompilerType getCompilerType() {
+            return delegate.getCompilerType();
+        }
     }
 
     private static class Key {

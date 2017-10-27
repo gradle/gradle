@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.io.StreamByteBuffer;
@@ -29,7 +30,10 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,19 +47,19 @@ import java.util.regex.Pattern;
 public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
     private final ExecActionFactory execActionFactory;
-    private final boolean clang;
+    private final CompilerType compilerType;
 
     public static GccVersionDeterminer forGcc(ExecActionFactory execActionFactory) {
-        return new GccVersionDeterminer(execActionFactory, false);
+        return new GccVersionDeterminer(execActionFactory, CompilerType.GCC);
     }
 
     public static GccVersionDeterminer forClang(ExecActionFactory execActionFactory) {
-        return new GccVersionDeterminer(execActionFactory, true);
+        return new GccVersionDeterminer(execActionFactory, CompilerType.CLANG);
     }
 
-    GccVersionDeterminer(ExecActionFactory execActionFactory, boolean expectClang) {
+    GccVersionDeterminer(ExecActionFactory execActionFactory, CompilerType compilerType) {
         this.execActionFactory = execActionFactory;
-        this.clang = expectClang;
+        this.compilerType = compilerType;
     }
 
     @Override
@@ -66,13 +70,14 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         allArgs.add("-");
         String output = transform(gccBinary, allArgs);
         if (output == null) {
-            return new BrokenResult(String.format("Could not determine %s version: failed to execute %s %s.", getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
+            return new BrokenResult(String.format("Could not determine %s version: failed to execute %s %s.", compilerType.getDescription(), gccBinary.getName(), Joiner.on(' ').join(allArgs)));
         }
         return transform(output, gccBinary);
     }
 
-    private String getDescription() {
-        return clang ? "Clang" : "GCC";
+    @Override
+    public CompilerType getCompilerType() {
+        return compilerType;
     }
 
     private String transform(File gccBinary, List<String> args) {
@@ -102,7 +107,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             while ((line = reader.readLine()) != null) {
                 Matcher matcher = DEFINE_PATTERN.matcher(line);
                 if (!matcher.matches()) {
-                    return new BrokenResult(String.format("Could not determine %s version: %s produced unexpected output.", getDescription(), gccBinary.getName()));
+                    return new BrokenResult(String.format("Could not determine %s version: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
                 }
                 defines.put(matcher.group(1), matcher.group(2));
             }
@@ -111,28 +116,33 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             throw new UncheckedIOException(e);
         }
         if (!defines.containsKey("__GNUC__")) {
-            return new BrokenResult(String.format("Could not determine %s version: %s produced unexpected output.", getDescription(), gccBinary.getName()));
+            return new BrokenResult(String.format("Could not determine %s version: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
         }
         int major;
         int minor;
         int patch;
-        if (clang) {
-            if (!defines.containsKey("__clang__")) {
-                return new BrokenResult(String.format("%s appears to be GCC rather than Clang. Treating it as GCC.", gccBinary.getName()));
-            }
-            major = toInt(defines.get("__clang_major__"));
-            minor = toInt(defines.get("__clang_minor__"));
-            patch = toInt(defines.get("__clang_patchlevel__"));
-        } else {
-            if (defines.containsKey("__clang__")) {
-                return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
-            }
-            major = toInt(defines.get("__GNUC__"));
-            minor = toInt(defines.get("__GNUC_MINOR__"));
-            patch = toInt(defines.get("__GNUC_PATCHLEVEL__"));
+        switch (compilerType) {
+            case CLANG:
+                if (!defines.containsKey("__clang__")) {
+                    return new BrokenResult(String.format("%s appears to be GCC rather than Clang. Treating it as GCC.", gccBinary.getName()));
+                }
+                major = toInt(defines.get("__clang_major__"));
+                minor = toInt(defines.get("__clang_minor__"));
+                patch = toInt(defines.get("__clang_patchlevel__"));
+                break;
+            case GCC:
+                if (defines.containsKey("__clang__")) {
+                    return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
+                }
+                major = toInt(defines.get("__GNUC__"));
+                minor = toInt(defines.get("__GNUC_MINOR__"));
+                patch = toInt(defines.get("__GNUC_PATCHLEVEL__"));
+                break;
+            default:
+                throw new GradleException("Unknown compiler type " + compilerType);
         }
         final ArchitectureInternal architecture = determineArchitecture(defines);
-        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture, clang);
+        return new DefaultGccVersionResult(new VersionNumber(major, minor, patch, null), architecture);
     }
 
     private ArchitectureInternal determineArchitecture(Map<String, String> defines) {
@@ -163,22 +173,15 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private static class DefaultGccVersionResult implements GccVersionResult {
         private final VersionNumber scrapedVersion;
         private final ArchitectureInternal architecture;
-        private final boolean clang;
 
-        public DefaultGccVersionResult(VersionNumber scrapedVersion, ArchitectureInternal architecture, boolean clang) {
+        public DefaultGccVersionResult(VersionNumber scrapedVersion, ArchitectureInternal architecture) {
             this.scrapedVersion = scrapedVersion;
             this.architecture = architecture;
-            this.clang = clang;
         }
 
         @Override
         public VersionNumber getVersion() {
             return scrapedVersion;
-        }
-
-        @Override
-        public boolean isClang() {
-            return clang;
         }
 
         @Override
@@ -205,11 +208,6 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
 
         @Override
         public VersionNumber getVersion() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isClang() {
             throw new UnsupportedOperationException();
         }
 

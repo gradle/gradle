@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
 
@@ -94,7 +96,7 @@ public class AvailableToolChains {
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
             } else {
-                compilers.add(findGcc());
+                compilers.addAll(findGccs());
                 compilers.add(findClang());
                 compilers.add(findSwiftc());
             }
@@ -167,24 +169,30 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private ToolChainCandidate findGcc() {
+    static private List<ToolChainCandidate> findGccs() {
         GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
 
-        List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
-        for (int i = 0; i < gppCandidates.size(); i++) {
-            File candidate = gppCandidates.get(i);
-            GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
-            if (version.isAvailable()) {
-                InstalledGcc gcc = new InstalledGcc("gcc");
-                if (i > 0) {
-                    // Not the first g++ in the path, needs the path variable updated
-                    gcc.inPath(candidate.getParentFile());
+        Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
+        List<ToolChainCandidate> toolChains = Lists.newArrayList();
+        if (!gppCandidates.isEmpty()) {
+            File firstInPath = gppCandidates.iterator().next();
+            for (File candidate : gppCandidates) {
+                GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
+                if (version.isAvailable()) {
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
+                    if (!candidate.equals(firstInPath)) {
+                        // Not the first g++ in the path, needs the path variable updated
+                        gcc.inPath(candidate.getParentFile());
+                    }
+                    toolChains.add(gcc);
                 }
-                return gcc;
             }
         }
+        if (toolChains.isEmpty()) {
+            toolChains.add(new UnavailableToolChain("gcc"));
+        }
 
-        return new UnavailableToolChain("gcc");
+        return toolChains;
     }
 
     static ToolChainCandidate findSwiftc() {
@@ -408,6 +416,11 @@ public class AvailableToolChains {
         public String getPluginClass() {
             return GccCompilerPlugin.class.getSimpleName();
         }
+
+        @Override
+        public String getId() {
+            return "gcc";
+        }
     }
 
     public static class InstalledWindowsGcc extends InstalledGcc {
@@ -432,6 +445,11 @@ public class AvailableToolChains {
                 return "cygwin";
             }
             return "UNKNOWN";
+        }
+
+        @Override
+        public String getId() {
+            return getDisplayName().replaceAll("\\W", "");
         }
     }
 
