@@ -16,9 +16,10 @@
 
 package org.gradle.internal.dependencylock.generation
 
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.initialization.StartParameterBuildOptions.DependencyLockOption
 
 abstract class AbstractDependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,16 +34,36 @@ abstract class AbstractDependencyLockFileGenerationIntegrationTest extends Abstr
     }
 
     protected void succeedsWithEnabledDependencyLocking(String... tasks) {
-        withEnabledDependencyLocking()
+        withEnabledDependencyLockingCommandLineOption()
         succeeds(tasks)
     }
 
     protected void failsWithEnabledDependencyLocking(String... tasks) {
-        withEnabledDependencyLocking()
+        withEnabledDependencyLockingCommandLineOption()
         fails(tasks)
     }
 
-    private void withEnabledDependencyLocking() {
-        args("--$StartParameterBuildOptions.DependencyLockOption.LONG_OPTION")
+    protected void withEnabledDependencyLockingCommandLineOption() {
+        args("--$DependencyLockOption.LONG_OPTION")
+    }
+
+    protected void withDisabledDependencyLockingCommandLineOption() {
+        args("--no-$DependencyLockOption.LONG_OPTION")
+    }
+
+    protected String dependencyLockGradleProperty(boolean enabled) {
+        """
+            $DependencyLockOption.GRADLE_PROPERTY=$enabled
+        """
+    }
+
+    protected void assertLockFileAndHashFileExist() {
+        assert lockFile.exists()
+        assert sha1File.exists()
+    }
+
+    protected void assertLockFileAndHashFileDoNotExist() {
+        assert !lockFile.exists()
+        assert !sha1File.exists()
     }
 }
