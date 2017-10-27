@@ -511,7 +511,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             require(logging is LoggingManager, { "logging" })
             require(resources is ResourceHandler, { "resources" })
 
-            require(relativePath("settings.gradle.kts") == "settings.gradle.kts", { "relativePath(path)" })
+            require(relativePath(File("settings.gradle.kts").absolutePath) == "settings.gradle.kts", { "relativePath(path)" })
             require(uri("settings.gradle.kts").toString().endsWith("settings.gradle.kts"), { "uri(path)" })
             require(file("settings.gradle.kts").isFile, { "file(path)" })
             require(files("settings.gradle.kts").files.isNotEmpty(), { "files(paths)" })
