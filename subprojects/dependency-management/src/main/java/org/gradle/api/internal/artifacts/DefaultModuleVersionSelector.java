@@ -52,7 +52,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     public String getVersion() {
-        return moduleVersionConstraint.getVersion();
+        return moduleVersionConstraint.getPreferredVersion();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, moduleVersionConstraint.getVersion());
+        return String.format("%s:%s:%s", group, name, moduleVersionConstraint.getPreferredVersion());
     }
 
     @Override

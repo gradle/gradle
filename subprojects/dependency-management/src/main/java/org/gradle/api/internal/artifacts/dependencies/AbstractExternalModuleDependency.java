@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -28,7 +27,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private String name;
     private boolean changing;
     private boolean force;
-    private ModuleVersionConstraint versionConstraint;
+    private final ModuleVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
@@ -66,13 +65,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public String getVersion() {
-        return versionConstraint.getVersion();
-    }
-
-    @Override
-    public void setVersion(String version) {
-        validateMutation(this.versionConstraint.getVersion(), version);
-        this.versionConstraint = new DefaultModuleVersionConstraint(version);
+        return versionConstraint.getPreferredVersion();
     }
 
     public boolean isForce() {
@@ -101,18 +94,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
-    public ExternalDependency strictVersion() {
-        if (StringUtils.isEmpty(versionConstraint.getVersion())) {
-            throw new IllegalStateException("You need to provide an explicit version number using strictVersion('someVersionNumber')");
-        }
-        return strictVersion(versionConstraint.getVersion());
+    public void version(Action<? super ModuleVersionConstraint> configureAction) {
+        validateMutation();
+        configureAction.execute(versionConstraint);
     }
-
-    @Override
-    public ExternalDependency strictVersion(final String version) {
-        validateMutation(this.versionConstraint.getVersion(), version);
-        this.versionConstraint = new DefaultModuleVersionConstraint(version, true);
-        return this;
-    }
-
 }

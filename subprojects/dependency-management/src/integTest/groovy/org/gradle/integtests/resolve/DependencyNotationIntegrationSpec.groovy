@@ -38,7 +38,9 @@ dependencies {
     conf "org.mockito:mockito-core:1.8"
     conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
     conf('org.test:configured') {
-        version = '1.1'
+        version {
+           prefer '1.1'
+        }
         transitive = false
         force = true
     }
@@ -127,7 +129,7 @@ dependencies {
         dependency 'org.foo:bar:1.0'
         dependencies ('org.foo:one:1', 'org.foo:two:1')
         dependency ('high:five:5') { transitive = false }
-        dependency('org.test:lateversion') { version = '1.1' }
+        dependency('org.test:lateversion') { version { prefer '1.1' } }
     }
 }
 

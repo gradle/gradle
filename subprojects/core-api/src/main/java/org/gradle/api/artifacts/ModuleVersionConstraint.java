@@ -28,8 +28,25 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 public interface ModuleVersionConstraint {
     /**
-     * The baseline version.
+     * The preferred version of a module. The preferred version of a module can typically be upgraded during dependency resolution,
+     * unless further constraints are added.
+     *
      * @return the baseline version, often referred to as the preferred version.
      */
-    String getVersion();
+    String getPreferredVersion();
+
+
+    /**
+     * Sets the preferred version of this module. Any other rejection/strict constraint will be overriden.
+     * @param version the preferred version of this module
+     */
+    void prefer(String version);
+
+    /**
+     * Sets the version as strict, meaning that if any other dependency version for this module disagrees with
+     * this version, resolution will fail.
+     *
+     * @param version the strict version to be used for this module
+     */
+    void strictly(String version);
 }
