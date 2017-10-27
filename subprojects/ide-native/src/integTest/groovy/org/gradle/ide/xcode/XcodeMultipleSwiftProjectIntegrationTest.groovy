@@ -312,5 +312,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':greeter:bundleSwiftTest', ':greeter:syncBundleToXcodeBuiltProductDir', ':greeter:_xcode__build_GreeterTest___GradleTestRunner_Debug')
 
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
+        resultTestRunner.output.contains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.output.contains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
     }
 }

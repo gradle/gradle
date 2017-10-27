@@ -270,6 +270,8 @@ apply plugin: 'swift-library'
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
         resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
+        resultDebugWithXCTest.output.contains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultDebugWithXCTest.output.contains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -297,6 +299,8 @@ apply plugin: 'xctest'
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
+        resultTestRunner.output.contains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.output.contains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -326,6 +330,8 @@ apply plugin: 'xctest'
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
+        resultTestRunner.output.contains("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.output.contains("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
     }
 
     @Requires(TestPrecondition.XCODE)
