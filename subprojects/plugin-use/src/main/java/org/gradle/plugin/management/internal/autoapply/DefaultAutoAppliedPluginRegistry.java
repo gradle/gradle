@@ -37,7 +37,7 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
 public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
     private static final PluginId BUILD_SCAN_PLUGIN_ID = new DefaultPluginId("com.gradle.build-scan");
-    private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.9.1";
+    private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10.1";
     private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
     private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
     private final StartParameter startParameter;
