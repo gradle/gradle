@@ -117,7 +117,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(LIBRARY)
         executedAndNotSkipped linkTaskDebug(LIBRARY)
         skipped compileTasksDebug(APP)
-        executedAndNotSkipped linkTaskDebug(APP)
         executedAndNotSkipped installApp
 
         and:

@@ -19,12 +19,12 @@ package org.gradle.nativeplatform.fixtures;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
+import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
@@ -51,7 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.*;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -121,15 +120,14 @@ public class AvailableToolChains {
         return CollectionUtils.findFirst(VisualStudioVersion.values(), new Spec<VisualStudioVersion>() {
             @Override
             public boolean isSatisfiedBy(VisualStudioVersion candidate) {
-                return candidate.getVisualCppVersion().equals(version);
+                return candidate.getVersion().getMajor() == version.getMajor();
             }
         });
     }
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class));
-        final List<VisualStudioLocator.SearchResult> searchResults = vsLocator.locateAllVisualStudioVersions();
+        final List<VisualStudioLocator.SearchResult> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllVisualStudioVersions();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
@@ -506,7 +504,7 @@ public class AvailableToolChains {
         private File installDir;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
-            super("visual c++ " + version.getVersion() + " (" + version.getVisualCppVersion().toString() + ")");
+            super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
         }
 
         @Override
@@ -529,15 +527,19 @@ public class AvailableToolChains {
                 case VISUALCPP:
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2012.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2012.getVersion()) >= 0;
                 case VISUALCPP_2013:
-                    return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2013.getVersion());
                 case VISUALCPP_2013_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2013.getVersion()) >= 0;
                 case VISUALCPP_2015:
-                    return version.equals(VISUALSTUDIO_2015.getVisualCppVersion());
+                    return version.equals(VISUALSTUDIO_2015.getVersion());
                 case VISUALCPP_2015_OR_NEWER:
-                    return version.compareTo(VISUALSTUDIO_2015.getVisualCppVersion()) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2015.getVersion()) >= 0;
+                case VISUALCPP_2017:
+                    return version.equals(VISUALSTUDIO_2017.getVersion());
+                case VISUALCPP_2017_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2017.getVersion()) >= 0;
                 default:
                     return false;
             }

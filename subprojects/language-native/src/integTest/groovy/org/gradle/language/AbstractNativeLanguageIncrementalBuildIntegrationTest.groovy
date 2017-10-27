@@ -174,10 +174,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
@@ -261,10 +258,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped ":linkHelloSharedLibrary"
-        executedAndNotSkipped ":helloSharedLibrary"
         skipped mainCompileTask
-        executedAndNotSkipped ":linkMainExecutable"
-        executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
         and:
