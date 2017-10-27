@@ -58,6 +58,10 @@ Disables the use of configuration on demand.
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
 `-d`, `--debug`::
 Log in debug mode (includes normal stacktrace). See <<logging>>.
+`--dependency-lock (incubating)`::
+Turns on dependency locking. Gradle will store locks for resolved dependencies and reuse them in subsequent builds.
+`--no-dependency-lock (incubating)`::
+Disables storing and using locks for dependencies.
 `-g`, `--gradle-user-home`::
 Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
 `--include-build`::
