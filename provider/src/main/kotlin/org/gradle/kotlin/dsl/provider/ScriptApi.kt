@@ -45,6 +45,7 @@ import java.net.URI
  * Members here must not use default parameters values.
  * Documentation should go to the actual implementations so that it shows up in IDEs properly.
  */
+@Suppress("unused")
 internal
 interface ScriptApi {
 
