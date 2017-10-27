@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp.plugins;
 
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -37,19 +39,24 @@ import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.tasks.Depend;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.toolchain.Clang;
+import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -64,7 +71,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
-        project.getPluginManager().apply(DependPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
@@ -85,24 +91,31 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final CppBinary binary) {
                 final Names names = Names.of(binary.getName());
 
-                CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
-                compile.includes(binary.getCompileIncludePath());
-                compile.source(binary.getCppSource());
-                if (binary.isDebuggable()) {
-                    compile.setDebuggable(true);
-                } else {
-                    compile.setOptimized(true);
-                }
+                String language = "cpp";
+                final DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                // TODO - make this lazy
+                final NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+
+                Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                    @Override
+                    public List<File> call() throws Exception {
+                        PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                        if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
+                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes();
+                        }
+                        return ImmutableList.of();
+                    }
+                };
+
+                CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
+                configureCompile(compile, binary, currentPlatform, toolChain, systemIncludes);
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
-                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-                compile.setTargetPlatform(currentPlatform);
-
-                // TODO - make this lazy
-                NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-                compile.setToolChain(toolChain);
-
                 ((DefaultCppBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
+
+                Depend depend = tasks.create(names.getTaskName("depend") + StringUtils.capitalize(language), Depend.class);
+                configureDepend(depend, binary, toolChain, systemIncludes);
+                compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
 
                 if (binary instanceof CppExecutable) {
                     // Add a link task
@@ -164,6 +177,27 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     })));
                     ((DefaultCppSharedLibrary) binary).getLinkFile().set(linktimeFile);
                 }
+            }
+
+            private void configureCompile(CppCompile compile, CppBinary binary, DefaultNativePlatform currentPlatform, NativeToolChain toolChain, Callable<List<File>> systemIncludes) {
+                compile.includes(binary.getCompileIncludePath());
+                compile.includes(systemIncludes);
+                compile.source(binary.getCppSource());
+                if (binary.isDebuggable()) {
+                    compile.setDebuggable(true);
+                } else {
+                    compile.setOptimized(true);
+                }
+                compile.setTargetPlatform(currentPlatform);
+                compile.setToolChain(toolChain);
+            }
+
+            private void configureDepend(Depend depend, CppBinary binary, NativeToolChain toolChain, Callable<List<File>> systemIncludesProvider) {
+                depend.includes(binary.getCompileIncludePath());
+                depend.includes(systemIncludesProvider);
+                depend.source(binary.getCppSource());
+                depend.getHeaderDependenciesFile().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
+                depend.getImportsAreIncludes().set(Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass()));
             }
         });
     }

@@ -31,14 +31,12 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
@@ -50,13 +48,6 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwareNativeCompiler;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -65,7 +56,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -88,9 +78,6 @@ public class Depend extends DefaultTask {
     private CSourceParser sourceParser;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
-    private Property<NativeToolChain> toolChain;
-    private Property<NativePlatform> targetPlatform;
-    private Property<NativeCompileSpec> spec;
 
     @Inject
     public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
@@ -102,9 +89,6 @@ public class Depend extends DefaultTask {
         this.headerDependenciesFile = newOutputFile();
         ObjectFactory objectFactory = getProject().getObjects();
         this.importsAreIncludes = objectFactory.property(Boolean.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.spec = objectFactory.property(NativeCompileSpec.class);
         this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }
@@ -112,7 +96,7 @@ public class Depend extends DefaultTask {
     @TaskAction
     public void detectHeaders(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        List<File> includeRoots = ImmutableList.<File>builder().addAll(includes).addAll(determineSystemIncludes()).build();
+        List<File> includeRoots = ImmutableList.copyOf(includes);
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
@@ -151,25 +135,9 @@ public class Depend extends DefaultTask {
             for (File root : roots) {
                 builder.add(root.getAbsolutePath());
             }
-            for (File root : determineSystemIncludes()) {
-                builder.add(root.getAbsolutePath());
-            }
             includePaths = builder.build();
         }
         return includePaths;
-    }
-
-    private List<File> determineSystemIncludes() {
-        PlatformToolProvider platformToolProvider = selectPlatformToolProvider();
-        Compiler<?> compiler = platformToolProvider.newCompiler(spec.get().getClass());
-        if (compiler instanceof SystemIncludesAwareNativeCompiler) {
-            return ((SystemIncludesAwareNativeCompiler<?>) compiler).getSystemIncludes();
-        }
-        return Collections.emptyList();
-    }
-
-    private PlatformToolProvider selectPlatformToolProvider() {
-        return ((NativeToolChainInternal) toolChain.get()).select((NativePlatformInternal) targetPlatform.get());
     }
 
     /**
@@ -203,35 +171,5 @@ public class Depend extends DefaultTask {
     @Input
     public Property<Boolean> getImportsAreIncludes() {
         return importsAreIncludes;
-    }
-
-    /**
-     * The toolchain which will be used for compilation.
-     *
-     * @since 4.4
-     */
-    @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
-
-    /**
-     * The target platform for compilation.
-     *
-     * @since 4.4
-     */
-    @Internal
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
-
-    /**
-     * The spec which will be compiled.
-     *
-     * @since 4.4
-     */
-    @Internal
-    public Property<NativeCompileSpec> getSpec() {
-        return spec;
     }
 }

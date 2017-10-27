@@ -57,7 +57,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwareNativeCompiler;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -148,9 +147,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        if (baseCompiler instanceof SystemIncludesAwareNativeCompiler) {
-            spec.include(((SystemIncludesAwareNativeCompiler<T>) baseCompiler).getSystemIncludes());
-        }
         HeaderDependenciesCollector headerDependenciesCollector = getHeaderDependenciesFile().isPresent() ? HeaderDependenciesCollector.NOOP : createDependenciesCollector();
         Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, headerDependenciesCollector);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
@@ -266,13 +262,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             Set<File> roots = includes.getFiles();
             for (File root : roots) {
                 builder.add(root.getAbsolutePath());
-            }
-            PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-            Compiler<? extends NativeCompileSpec> compiler = platformToolProvider.newCompiler(createCompileSpec().getClass());
-            if (compiler instanceof SystemIncludesAwareNativeCompiler) {
-                for (File root : ((SystemIncludesAwareNativeCompiler<?>) compiler).getSystemIncludes()) {
-                    builder.add(root.getAbsolutePath());
-                }
             }
             includePaths = builder.build();
         }

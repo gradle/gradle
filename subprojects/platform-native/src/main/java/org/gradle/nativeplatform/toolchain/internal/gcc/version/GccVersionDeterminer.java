@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.GradleException;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Pair;
 import org.gradle.internal.io.StreamByteBuffer;
@@ -269,10 +269,10 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         }
     }
 
-    private static class BrokenResult implements GccVersionResult {
+    public static class BrokenResult implements GccVersionResult {
         private final String message;
 
-        private BrokenResult(String message) {
+        public BrokenResult(String message) {
             this.message = message;
         }
 

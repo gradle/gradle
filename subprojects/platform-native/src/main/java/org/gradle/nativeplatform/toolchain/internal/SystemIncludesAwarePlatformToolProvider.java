@@ -16,11 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.language.base.internal.compile.Compiler;
-
 import java.io.File;
 import java.util.List;
 
-public interface SystemIncludesAwareNativeCompiler<T extends NativeCompileSpec> extends Compiler<T> {
+public interface SystemIncludesAwarePlatformToolProvider extends PlatformToolProvider {
     List<File> getSystemIncludes();
 }

@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
@@ -38,8 +39,8 @@ import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContex
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.VersionAwareNativeCompiler;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
@@ -53,7 +54,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
+class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final VisualCppInstall visualCpp;
     private final WindowsSdk sdk;
@@ -112,8 +113,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         return versionAwareCompiler(outputCleaningCompiler);
     }
 
-    private <T extends NativeCompileSpec> VersionAwareNativeCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
-        return new VersionAwareNativeCompiler<T>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion(), getSystemIncludes());
+    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
+        return new VersionAwareCompiler<T>(outputCleaningCompiler, VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion());
     }
 
     @Override
@@ -198,7 +199,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         };
     }
 
-    private List<File> getSystemIncludes() {
+    @Override
+    public List<File> getSystemIncludes() {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         builder.add(visualCpp.getIncludePath(targetPlatform));
         builder.add(sdk.getIncludeDirs());
