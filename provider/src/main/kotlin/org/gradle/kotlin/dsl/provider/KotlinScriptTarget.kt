@@ -23,6 +23,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
+
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 
@@ -33,7 +37,7 @@ import kotlin.reflect.KClass
 
 
 internal
-fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<*> =
+fun kotlinScriptTargetFor(target: Any): KotlinScriptTarget<out Any> =
     when (target) {
         is Project  -> projectScriptTarget(target)
         is Settings -> settingsScriptTarget(target)
@@ -52,18 +56,19 @@ fun settingsScriptTarget(settings: Settings) =
         settings,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class,
         rootDir = settings.rootDir)
 
 
 private
-fun projectScriptTarget(project: Project) =
+fun projectScriptTarget(project: Project): KotlinScriptTarget<Project> =
     KotlinScriptTarget(
         project,
         type = Project::class,
         scriptTemplate = KotlinBuildScript::class,
+        buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
+        pluginsBlockTemplate = KotlinPluginsBlock::class,
         rootDir = project.rootDir,
-        supportsBuildscriptBlock = true,
-        supportsPluginsBlock = true,
         accessorsClassPath = { accessorsClassPathFor(project, it) },
         prepare = {
             project.run {
@@ -79,9 +84,9 @@ data class KotlinScriptTarget<T : Any>(
     val `object`: T,
     val type: KClass<T>,
     val scriptTemplate: KClass<*>,
+    val buildscriptBlockTemplate: KClass<*>? = null,
+    val pluginsBlockTemplate: KClass<*>? = null,
     val rootDir: File,
-    val supportsBuildscriptBlock: Boolean = false,
-    val supportsPluginsBlock: Boolean = false,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath? = { null },
     val prepare: () -> Unit = {}) {
 

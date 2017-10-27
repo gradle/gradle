@@ -421,9 +421,58 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         """)
 
-       assertThat(
-           build("help").output,
-           containsString("*abc*"))
+        assertThat(
+            build("help").output,
+            containsString("*abc*"))
+    }
+
+    @Test
+    fun `settings script can use buildscript dependencies`() {
+
+        withSettings("""
+            buildscript {
+                repositories { jcenter() }
+                dependencies {
+                    classpath("org.apache.commons:commons-lang3:3.6")
+                }
+            }
+
+            println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("eldarG"))
+    }
+
+    @Test
+    fun `script plugin can by applied to either Project or Settings`() {
+
+        withFile("common.gradle.kts", """
+            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
+            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+        """)
+
+        withSettings("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? true"),
+                containsString("Target is Project? false")))
+
+        withSettings("")
+        withBuildScript("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? false"),
+                containsString("Target is Project? true")))
     }
 
     @Test
@@ -451,6 +500,37 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("help").output,
             containsString("Settings plugin applied!"))
+    }
+
+    @Test
+    fun `scripts can use the gradle script api`() {
+
+        fun usageFor(target: String) = """
+
+            logger.error("Error logging from $target")
+            require(logging is LoggingManager, { "logging" })
+            require(resources is ResourceHandler, { "resources" })
+
+            require(relativePath("src/../settings.gradle.kts") == "settings.gradle.kts", { "relativePath(path)" })
+            require(uri("settings.gradle.kts").toString().endsWith("settings.gradle.kts"), { "uri(path)" })
+            require(file("settings.gradle.kts").isFile, { "file(path)" })
+            require(files("settings.gradle.kts").files.isNotEmpty(), { "files(paths)" })
+            require(fileTree(".").contains(file("settings.gradle.kts")), { "fileTree(path)" })
+            require(copySpec {} != null, { "copySpec {}" })
+            require(mkdir("some").isDirectory, { "mkdir(path)" })
+            require(delete("some"), { "delete(path)" })
+            require(delete {} != null, { "delete {}" })
+
+        """
+
+        withSettings(usageFor("Settings"))
+        withBuildScript(usageFor("Project"))
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Error logging from Settings"),
+                containsString("Error logging from Project")))
     }
 
     private

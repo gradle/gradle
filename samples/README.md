@@ -6,6 +6,7 @@ _See instructions below in order to [set up your dev environment](#set-up-dev-en
 The Gradle projects in this directory demonstrate typical use cases with and features available in the Gradle Kotlin DSL. They include:
 
  - [`ant`](./ant): demonstrates how to use Ant from Gradle via the Ant Groovy Builder
+ - [`build-cache`](./build-cache): demonstrates how to configure the Gradle build cache
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
  - [`code-quality`](./code-quality): demonstrates how to configure Gradle code quality plugins
  - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
