@@ -118,7 +118,7 @@ public class XcodePlugin extends IdePlugin {
         lifecycleTask.dependsOn(projectTask);
         projectTask.dependsOn(project.getTasks().withType(GenerateSchemeFileTask.class));
 
-        project.getTasks().addRule("Xcode bridge tasks being with _xcode. Do not call these directly.", new XcodeBridge(xcode.getProject(), project));
+        project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcode.getProject(), project));
 
         configureForSwiftPlugin(project);
         configureForCppPlugin(project);
