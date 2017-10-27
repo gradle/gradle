@@ -14,41 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.dependencylock.io.writer;
+package org.gradle.internal.dependencylock.converter;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.util.GFileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
-public class JsonDependencyLockWriter implements DependencyLockWriter {
+public class JsonDependencyLockConverter implements DependencyLockConverter {
 
     private static final String USER_NOTICE = "This is an auto-generated file and is not meant to be edited manually!";
     private static final String LOCK_FILE_VERSION = "1.0";
-    private final File lockFile;
-
-    public JsonDependencyLockWriter(File lockFile) {
-        this.lockFile = lockFile;
-    }
 
     @Override
-    public void write(DependencyLock dependencyLock) {
-        if (!dependencyLock.getProjectsMapping().isEmpty()) {
-            JSONObject allLocks = createJson(dependencyLock);
-            writeLockFile(lockFile, allLocks);
-            writeSha1HashFile(lockFile, allLocks);
-        }
-    }
-
-    private JSONObject createJson(DependencyLock dependencyLock) {
+    public String convert(DependencyLock dependencyLock) {
         JSONObject allLocks = new JSONObject();
         allLocks.put("_comment", USER_NOTICE);
         allLocks.put("lockFileVersion", LOCK_FILE_VERSION);
@@ -81,22 +65,6 @@ public class JsonDependencyLockWriter implements DependencyLockWriter {
             allLocks.put("projects", projects);
         }
 
-        return allLocks;
-    }
-
-    private void writeLockFile(File lockFile, JSONObject allLocks) {
-        createParentDirectory(lockFile.getParentFile());
-        GFileUtils.writeStringToFile(lockFile, allLocks.toJSONString());
-    }
-
-    private void writeSha1HashFile(File lockFile, JSONObject allLocks) {
-        String sha1 = HashUtil.sha1(allLocks.toJSONString().getBytes()).asHexString();
-        GFileUtils.writeStringToFile(new File(lockFile.getParentFile(), lockFile.getName() + ".sha1"), sha1);
-    }
-
-    private void createParentDirectory(File parentDir) {
-        if (!parentDir.isDirectory()) {
-            GFileUtils.mkdirs(parentDir);
-        }
+        return allLocks.toJSONString();
     }
 }

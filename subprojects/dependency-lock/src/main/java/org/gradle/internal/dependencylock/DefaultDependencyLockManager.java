@@ -18,18 +18,21 @@ package org.gradle.internal.dependencylock;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.internal.dependencylock.io.writer.DependencyLockWriter;
-import org.gradle.internal.dependencylock.io.writer.JsonDependencyLockWriter;
+import org.gradle.internal.dependencylock.converter.DependencyLockConverter;
 import org.gradle.internal.dependencylock.model.DependencyLock;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
 public class DefaultDependencyLockManager implements DependencyLockManager {
 
     private final DependencyLockState dependencyLockState;
+    private final DependencyLockConverter dependencyLockConverter;
 
-    public DefaultDependencyLockManager(DependencyLockState dependencyLockState) {
+    public DefaultDependencyLockManager(DependencyLockState dependencyLockState, DependencyLockConverter dependencyLockConverter) {
         this.dependencyLockState = dependencyLockState;
+        this.dependencyLockConverter = dependencyLockConverter;
     }
 
     @Override
@@ -40,7 +43,17 @@ public class DefaultDependencyLockManager implements DependencyLockManager {
     @Override
     public void writeLock(File lockFile) {
         DependencyLock dependencyLock = dependencyLockState.getDependencyLock();
-        DependencyLockWriter dependencyLockWriter = new JsonDependencyLockWriter(lockFile);
-        dependencyLockWriter.write(dependencyLock);
+
+        if (!dependencyLock.getProjectsMapping().isEmpty()) {
+            String content = dependencyLockConverter.convert(dependencyLock);
+            GFileUtils.mkdirs(lockFile.getParentFile());
+            GFileUtils.writeStringToFile(lockFile, content);
+            String sha1 = HashUtil.sha1(content.getBytes()).asHexString();
+            GFileUtils.writeStringToFile(getHashFile(lockFile), sha1);
+        }
+    }
+
+    private File getHashFile(File lockFile) {
+        return new File(lockFile.getParentFile(), lockFile.getName() + ".sha1");
     }
 }

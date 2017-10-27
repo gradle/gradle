@@ -21,6 +21,8 @@ import org.gradle.internal.dependencylock.DefaultDependencyLockState;
 import org.gradle.internal.dependencylock.DependencyLockFileGenerationListener;
 import org.gradle.internal.dependencylock.DependencyLockManager;
 import org.gradle.internal.dependencylock.DependencyLockState;
+import org.gradle.internal.dependencylock.converter.DependencyLockConverter;
+import org.gradle.internal.dependencylock.converter.JsonDependencyLockConverter;
 
 public class DependencyLockBuildSessionServices {
 
@@ -28,8 +30,12 @@ public class DependencyLockBuildSessionServices {
         return new DefaultDependencyLockState();
     }
 
-    DependencyLockManager createDependencyLockManager(DependencyLockState dependencyLockState) {
-        return new DefaultDependencyLockManager(dependencyLockState);
+    DependencyLockConverter createDependencyLockConverter() {
+        return new JsonDependencyLockConverter();
+    }
+
+    DependencyLockManager createDependencyLockManager(DependencyLockState dependencyLockState, DependencyLockConverter dependencyLockConverter) {
+        return new DefaultDependencyLockManager(dependencyLockState, dependencyLockConverter);
     }
 
     DependencyLockFileGenerationListener createDependencyLockListener(DependencyLockManager dependencyLockManager) {

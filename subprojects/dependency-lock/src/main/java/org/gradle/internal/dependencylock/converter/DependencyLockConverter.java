@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.dependencylock.io.writer;
+package org.gradle.internal.dependencylock.converter;
 
 import org.gradle.internal.dependencylock.model.DependencyLock;
 
-public interface DependencyLockWriter {
+public interface DependencyLockConverter {
 
-    void write(DependencyLock dependencyLock);
+    String convert(DependencyLock dependencyLock);
 }
