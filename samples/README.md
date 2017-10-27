@@ -32,6 +32,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
  - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
+ - [`source-control`](./source-control): demonstrates how to use external [source dependencies](https://github.com/gradle/gradle-native/issues/42)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
 
 Set up dev environment
