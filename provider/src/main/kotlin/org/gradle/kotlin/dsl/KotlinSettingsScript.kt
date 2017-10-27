@@ -40,6 +40,11 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
 
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
+     */
     inline
     fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
         settings.apply({ it.configuration() })
