@@ -1,7 +1,8 @@
 source-control
 ==============
 
-A project that depend on external sources:
+A project that depends on external sources using the incubating support for
+[source dependencies](https://github.com/gradle/gradle-native/issues/42):
 
  1. [external/](./external) implements the main algorithm to compute the answer to the ultimate question of Life, the Universe and Everything
  2. [sample/](./sample) implements the command line interface
