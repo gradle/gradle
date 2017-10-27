@@ -40,6 +40,8 @@ public interface SwiftBinary extends SoftwareComponent {
 
     /**
      * Returns true if this binary has testing enabled.
+     *
+     * @since 4.4
      */
     boolean isTestable();
 
