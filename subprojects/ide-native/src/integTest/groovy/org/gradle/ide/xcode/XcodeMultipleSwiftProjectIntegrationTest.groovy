@@ -158,6 +158,71 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
     }
 
+
+    def "can clean xcode project with transitive dependencies"() {
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'log', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+            }
+        """
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.executable.writeToProject(file("app"))
+        succeeds("xcode")
+
+        when:
+        xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        exe("app/build/exe/main/debug/App").assertExists()
+        sharedLib("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLib("log/build/lib/main/debug/Log").assertExists()
+
+        when:
+        xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App Executable')
+            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+
+        then:
+        exe("app/build/exe/main/debug/App").assertDoesNotExist()
+        sharedLib("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLib("log/build/lib/main/debug/Log").assertExists()
+
+        when:
+        xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Hello SharedLibrary')
+            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+
+        then:
+        exe("app/build/exe/main/debug/App").assertDoesNotExist()
+        sharedLib("hello/build/lib/main/debug/Hello").assertDoesNotExist()
+        sharedLib("log/build/lib/main/debug/Log").assertExists()
+    }
+
     def "can create xcode project for Swift executable inside composite build"() {
         given:
         settingsFile.text = """
@@ -245,7 +310,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         then:
         resultTestRunner.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',
-            ':greeter:bundleSwiftTest', ':greeter:syncTestBundleToXcodeBuiltProductDir', ':greeter:_xcode__build_GreeterTest___GradleTestRunner_Debug')
+            ':greeter:bundleSwiftTest', ':greeter:syncBundleToXcodeBuiltProductDir', ':greeter:_xcode__build_GreeterTest___GradleTestRunner_Debug')
 
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }

@@ -27,10 +27,8 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -71,7 +69,6 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
@@ -90,14 +87,12 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
-    private final ProjectLayout projectLayout;
     private DefaultXcodeExtension xcode;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, ProjectLayout projectLayout) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
-        this.projectLayout = projectLayout;
     }
 
     @Override
@@ -123,34 +118,7 @@ public class XcodePlugin extends IdePlugin {
         lifecycleTask.dependsOn(projectTask);
         projectTask.dependsOn(project.getTasks().withType(GenerateSchemeFileTask.class));
 
-        project.getTasks().addRule("Xcode bridge tasks being with _xcode. Do not call these directly.", new Action<String>() {
-            @Override
-            public void execute(String taskName) {
-                if (taskName.startsWith("_xcode")) {
-                    Task bridgeTask = project.getTasks().create(taskName);
-                    String action = System.getenv("ACTION");
-                    if (action.equals("clean")) {
-                        bridgeTask.dependsOn("clean");
-                    } else if ("".equals(action) || "build".equals(action)) {
-                        final String configuration = System.getenv("CONFIGURATION");
-                        final String productName = System.getenv("PRODUCT_NAME");
-                        XcodeTarget target = CollectionUtils.findFirst(xcode.getProject().getTargets(), new Spec<XcodeTarget>() {
-                            @Override
-                            public boolean isSatisfiedBy(XcodeTarget target) {
-                                return target.getProductName().equals(productName);
-                            }
-                        });
-                        if (configuration.equals("Debug")) {
-                            bridgeTask.dependsOn(target.getDebugOutputFile());
-                        } else {
-                            bridgeTask.dependsOn(target.getReleaseOutputFile());
-                        }
-                    } else {
-                        throw new GradleException("Unrecognized bridge action from xcode " + action);
-                    }
-                }
-            }
-        });
+        project.getTasks().addRule("Xcode bridge tasks being with _xcode. Do not call these directly.", new XcodeBridge(xcode.getProject(), project));
 
         configureForSwiftPlugin(project);
         configureForCppPlugin(project);
@@ -244,52 +212,9 @@ public class XcodePlugin extends IdePlugin {
         final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
         xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
 
-        // Sync the binary to the BUILT_PRODUCTS_DIR
-        final Sync syncTask = project.getTasks().create("sync" + GUtil.toCamelCase(component.getName()) + "BundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
-            @Override
-            public void execute(Sync task) {
-                final DirectoryProperty builtProductsDir = getBuiltProductsDir();
-                task.onlyIf(new Spec<Task>() {
-                    @Override
-                    public boolean isSatisfiedBy(Task element) {
-                        return builtProductsDir.isPresent();
-                    }
-                });
-                task.from(bundleDebug);
-                task.into(builtProductsDir.dir(project.provider(new Callable<CharSequence>() {
-                    @Override
-                    public CharSequence call() throws Exception {
-                        return bundleDebug.getOutputDir().getAsFile().get().getName();
-                    }
-                })));
-            }
-        });
-
-        // When executing something from Xcode, sync the output into BUILT_PRODUCTS_DIR
-        project.getTasks().matching(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                return task.getName().startsWith("_xcode");
-            }
-        }).all(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(syncTask);
-            }
-        });
-
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().addTarget(target);
-    }
-
-    private DirectoryProperty getBuiltProductsDir() {
-        DirectoryProperty result = projectLayout.directoryProperty();
-        String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
-        if (builtProductsPath != null) {
-            result.set(new File(builtProductsPath));
-        }
-        return result;
     }
 
     private void configureXcodeForSwift(final Project project, PBXTarget.ProductType productType) {
@@ -496,6 +421,81 @@ public class XcodePlugin extends IdePlugin {
         @Override
         public File getFile() {
             return xcodeProject.getLocationDir();
+        }
+    }
+
+    private static class XcodeBridge implements Action<String> {
+        private final DefaultXcodeProject xcodeProject;
+        private final Project project;
+
+        public XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
+            this.xcodeProject = xcodeProject;
+            this.project = project;
+        }
+
+        @Override
+        public void execute(String taskName) {
+            if (taskName.startsWith("_xcode")) {
+                Task bridgeTask = project.getTasks().create(taskName);
+                String action = System.getenv("ACTION");
+                if (action.equals("clean")) {
+                    bridgeTask.dependsOn("clean");
+                } else if ("".equals(action) || "build".equals(action)) {
+                    final XcodeTarget target = findXcodeTarget();
+                    if (target.isUnitTest()) {
+                        bridgeTestExecution(bridgeTask, target);
+                    } else {
+                        bridgeProductBuild(bridgeTask, target);
+
+                    }
+                } else {
+                    throw new GradleException("Unrecognized bridge action from xcode '" + action + "'");
+                }
+            }
+        }
+
+        private XcodeTarget findXcodeTarget() {
+            final String productName = System.getenv("PRODUCT_NAME");
+            final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), new Spec<XcodeTarget>() {
+                @Override
+                public boolean isSatisfiedBy(XcodeTarget target) {
+                    return target.getProductName().equals(productName);
+                }
+            });
+            if (target == null) {
+                throw new GradleException("Unknown Xcode target " + productName);
+            }
+            return target;
+        }
+
+        private void bridgeProductBuild(Task bridgeTask, XcodeTarget target) {
+            // Library or executable
+            final String configuration = System.getenv("CONFIGURATION");
+            if (configuration.equals(DefaultXcodeProject.BUILD_DEBUG)) {
+                bridgeTask.dependsOn(target.getDebugOutputFile());
+            } else {
+                bridgeTask.dependsOn(target.getReleaseOutputFile());
+            }
+        }
+
+        private void bridgeTestExecution(Task bridgeTask, final XcodeTarget target) {
+            // XcTest executable
+            // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
+            final String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
+            final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
+                @Override
+                public void execute(Sync task) {
+                    task.from(target.getDebugOutputFile());
+                    // TODO: Path?
+                    task.into(project.provider(new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return new File(builtProductsPath, target.getDebugOutputFile().get().getAsFile().getName());
+                        }
+                    }));
+                }
+            });
+            bridgeTask.dependsOn(syncTask);
         }
     }
 }

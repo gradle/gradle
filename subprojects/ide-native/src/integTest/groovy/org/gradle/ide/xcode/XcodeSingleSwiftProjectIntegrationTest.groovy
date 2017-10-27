@@ -297,7 +297,7 @@ apply plugin: 'xctest'
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 
@@ -326,7 +326,7 @@ apply plugin: 'xctest'
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 

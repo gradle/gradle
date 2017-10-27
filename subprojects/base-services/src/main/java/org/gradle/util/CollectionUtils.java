@@ -81,6 +81,7 @@ public abstract class CollectionUtils {
         return Cast.uncheckedCast(input);
     }
 
+    @Nullable
     public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
@@ -91,6 +92,7 @@ public abstract class CollectionUtils {
         return null;
     }
 
+    @Nullable
     public static <T> T findFirst(T[] source, Spec<? super T> filter) {
         for (T thing : source) {
             if (filter.isSatisfiedBy(thing)) {
