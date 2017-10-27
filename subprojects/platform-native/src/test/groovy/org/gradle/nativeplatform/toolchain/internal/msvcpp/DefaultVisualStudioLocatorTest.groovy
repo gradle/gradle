@@ -144,7 +144,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
+        1 * visitor.node("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.")
     }
 
     def "visual studio not available when locating all versions and nothing in registry or command line and executable not found in path"() {
@@ -168,27 +168,6 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
-    }
-
-    def "locates legacy visual studio installation based on executables in path"() {
-        def vsDir = vsDir("vs")
-
-        given:
-        1 * commandLineLocator.getVisualStudioInstalls() >> []
-        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
-        1 * systemPathLocator.getVisualStudioInstalls() >> [legacyVsInstall(vsDir, null)]
-        1 * systemPathLocator.getSource() >> "system path"
-
-        when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
-
-        then:
-        result.available
-        result.visualStudio.name == "Visual Studio from system path"
-        result.visualStudio.version == VersionNumber.UNKNOWN
-        result.visualStudio.baseDir == vsDir
-        result.visualStudio.visualCpp.name == "Visual C++ from system path"
-        result.visualStudio.visualCpp.version == VersionNumber.UNKNOWN
     }
 
     def "locates visual studio 2017 installation based on executables in path"() {
@@ -221,8 +200,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
         0 * systemPathLocator.getVisualStudioInstalls()
-        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> legacyVsInstall(vsDir1, null)
-        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> legacyVsInstall(vsDir2, null)
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> legacyVsInstall(vsDir1, "11.0")
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> legacyVsInstall(vsDir2, "14.0")
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
@@ -230,8 +209,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual Studio from user provided path"
-        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.name == "Visual Studio 11.0.0"
+        result.visualStudio.version == VersionNumber.parse("11.0")
         result.visualStudio.baseDir == vsDir1
 
         when:
@@ -239,12 +218,46 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual Studio from user provided path"
-        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.name == "Visual Studio 14.0.0"
+        result.visualStudio.version == VersionNumber.parse("14.0")
         result.visualStudio.baseDir == vsDir2
     }
 
     def "uses visual studio 2017 using specified install dir"() {
+        def vsDir1 = vs2017Dir("vs")
+        def vsDir2 = vs2017Dir("vs-2")
+        def ignored = vs2017Dir("vs-3")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
+        0 * windowsRegistryLocator.getVisualStudioInstalls()
+        0 * systemPathLocator.getVisualStudioInstalls()
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, "15.1")
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir2) >> vs2017Install(vsDir2, "15.2")
+        assert visualStudioLocator.locateDefaultVisualStudioInstall().available
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir1)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio 15.1.0"
+        result.visualStudio.version == VersionNumber.parse("15.1")
+        result.visualStudio.baseDir == vsDir1
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
+
+        when:
+        result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir2)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual Studio 15.2.0"
+        result.visualStudio.version == VersionNumber.parse("15.2")
+        result.visualStudio.baseDir == vsDir2
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
+    }
+
+    def "uses version of visual studio 2017 using specified install dir when visual cpp version can be determined"() {
         def vsDir1 = vs2017Dir("vs")
         def vsDir2 = vs2017Dir("vs-2")
         def ignored = vs2017Dir("vs-3")
@@ -265,6 +278,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.name == "Visual Studio from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir1
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
 
         when:
         result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir2)
@@ -274,6 +288,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.name == "Visual Studio from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir2
+        result.visualStudio.visualCpp.version == VersionNumber.parse("1.2.3.4")
     }
 
     def "visual studio not found when specified directory does not look like an install"() {
@@ -285,6 +300,55 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * commandLineLocator.getVisualStudioInstalls() >> []
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
         0 * systemPathLocator.getVisualStudioInstalls()
+        assert visualStudioLocator.locateDefaultVisualStudioInstall().available
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall(providedDir)
+
+        then:
+        !result.available
+        result.visualStudio == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("The specified installation directory '$providedDir' does not appear to contain a Visual Studio installation.")
+    }
+
+    def "visual studio not found when visual cpp version is unknown"() {
+        def visitor = Mock(TreeVisitor)
+        def ignored = vsDir("vs-2")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
+        1 * systemPathLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, null)] }
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
+
+        then:
+        !result.available
+        result.visualStudio == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.")
+    }
+
+    def "visual studio not found when version cannot be determined for specified directory"() {
+        def visitor = Mock(TreeVisitor)
+        def providedDir = vsDir("vs")
+        def ignored = vsDir("vs-2")
+
+        given:
+        1 * commandLineLocator.getVisualStudioInstalls() >> []
+        1 * windowsRegistryLocator.getVisualStudioInstalls() >> { [legacyVsInstall(ignored, "12.0")] }
+        0 * systemPathLocator.getVisualStudioInstalls()
+        1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(_) >> legacyVsInstall(providedDir, null)
         assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:

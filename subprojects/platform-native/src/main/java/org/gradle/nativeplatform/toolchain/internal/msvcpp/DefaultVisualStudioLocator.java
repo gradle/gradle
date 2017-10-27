@@ -121,38 +121,35 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    private void addInstallIfValid(VisualStudioMetadata install, String source) {
+    private boolean addInstallIfValid(VisualStudioMetadata install, String source) {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();
 
-        if (isValidInstall(install) && !foundInstalls.containsKey(visualStudioDir)) {
-            LOGGER.debug("Found Visual C++ {} at {}", install.getVersion(), visualCppDir);
-            VersionNumber version = install.getVersion();
-            String displayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from " + source : install.getVersion().toString();
-            String displayCppVersion = install.getVisualCppVersion() == VersionNumber.UNKNOWN ? "from " + source : install.getVisualCppVersion().toString();
-            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + displayCppVersion, visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
-            VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + displayVersion, visualStudioDir, version, visualCpp);
+        if (foundInstalls.containsKey(visualStudioDir)) {
+            return true;
+        }
+
+        if (isValidInstall(install) && install.getVisualCppVersion() != VersionNumber.UNKNOWN) {
+            LOGGER.debug("Found Visual C++ {} at {}", install.getVisualCppVersion(), visualCppDir);
+            VersionNumber visualStudioVersion = install.getVersion();
+            String visualStudioDisplayVersion = install.getVersion() == VersionNumber.UNKNOWN ? "from " + source : install.getVersion().toString();
+            VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + install.getVisualCppVersion(), visualStudioDir, visualCppDir, install.getVisualCppVersion(), install.getCompatibility());
+            VisualStudioInstall visualStudio = new VisualStudioInstall("Visual Studio " + visualStudioDisplayVersion, visualStudioDir, visualStudioVersion, visualCpp);
             foundInstalls.put(visualStudioDir, visualStudio);
+            return true;
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
+            return false;
         }
     }
 
     private SearchResult locateUserSpecifiedInstall(File candidate) {
         VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
-        if (install != null) {
-            File visualStudioDir = install.getInstallDir();
-            File visualCppDir = install.getVisualCppDir();
-            if (!isValidInstall(install)) {
-                LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-                return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
-            }
-
-            addInstallIfValid(install, "user provided path");
-
-            return new InstallFound(foundInstalls.get(visualStudioDir));
+        if (install != null && addInstallIfValid(install, "user provided path")) {
+            return new InstallFound(foundInstalls.get(install.getInstallDir()));
         } else {
+            LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
             return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
     }
@@ -236,7 +233,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         }
 
-        return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path.") : new InstallFound(candidate);
+        return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.") : new InstallFound(candidate);
     }
 
     private static boolean isValidInstall(VisualStudioMetadata install) {
