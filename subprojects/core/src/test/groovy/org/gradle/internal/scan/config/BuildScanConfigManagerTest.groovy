@@ -19,6 +19,7 @@ package org.gradle.internal.scan.config
 import org.gradle.StartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.testing.internal.util.Specification
+import spock.lang.Unroll
 import spock.util.environment.RestoreSystemProperties
 
 class BuildScanConfigManagerTest extends Specification {
@@ -94,21 +95,19 @@ class BuildScanConfigManagerTest extends Specification {
         thrown UnsupportedBuildScanPluginVersionException
     }
 
-    def "does not throw if has vcs mappings and plugin version 1.10 or newer"() {
+    @Unroll
+    def "does not throw if has vcs mappings and plugin version #version"() {
         given:
         attributes.isRootProjectHasVcsMappings() >> true
 
         when:
-        config("1.11")
+        config(version)
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
 
-        when:
-        config("1.12")
-
-        then:
-        notThrown UnsupportedBuildScanPluginVersionException
+        where:
+        version << ["1.11", "1.12"]
     }
 
     @RestoreSystemProperties
