@@ -205,8 +205,10 @@ For more information on how to apply the build scan plugin, please visit https:/
 
         then:
         output.contains("buildScan plugin applied: ${applied}")
-        with(attributes()) {
-            !isRootProjectHasVcsMappings()
+        if (applied) {
+            with(attributes()) {
+                !isRootProjectHasVcsMappings()
+            }
         }
 
         where:
@@ -224,7 +226,6 @@ For more information on how to apply the build scan plugin, please visit https:/
 
         then:
         failureCauseContains(BuildScanPluginCompatibility.UNSUPPORTED_VCS_MAPPINGS_MESSAGE)
-        attributes().rootProjectHasVcsMappings
     }
 
     def "conveys when VCS mappings are being used and plugin is not too old"() {
