@@ -3,7 +3,7 @@ pluginManagement {
         // Use the Gradle Plugin Portal as a regular maven repository
         // allowing the plugin resolution strategy below to route the
         // plugin request to artifact coordinates.
-        maven { setUrl("https://plugins.gradle.org/m2") }
+        maven { url = uri("https://plugins.gradle.org/m2") }
     }
     resolutionStrategy {
         eachPlugin {
