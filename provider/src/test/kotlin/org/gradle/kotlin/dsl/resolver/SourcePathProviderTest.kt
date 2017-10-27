@@ -34,7 +34,7 @@ class SourcePathProviderTest : FolderBasedTest() {
             sourcePathFor(
                 classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
-                gradleHome = folder("gradle")).asFiles,
+                gradleHomeDir = folder("gradle")).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),

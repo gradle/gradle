@@ -97,7 +97,7 @@ fun settingsScriptModelBuilder(settings: Settings) =
         settings,
         type = Settings::class,
         rootDir = settings.rootDir,
-        gradleUserHome = settings.gradle.gradleUserHomeDir,
+        gradleHomeDir = settings.gradle.gradleHomeDir,
         scriptClassPath = settings.scriptCompilationClassPath,
         sourceLookupScriptHandlers = listOf(settings.buildscript),
         implicitImports = settings.scriptImplicitImports)
@@ -109,7 +109,7 @@ fun projectScriptModelBuilder(project: Project) =
         project,
         type = Project::class,
         rootDir = project.rootProject.rootDir,
-        gradleUserHome = project.gradle.gradleUserHomeDir,
+        gradleHomeDir = project.gradle.gradleHomeDir,
         scriptClassPath = project.scriptCompilationClassPath,
         accessorsClassPath = { classPath: ClassPath -> accessorsClassPathFor(project, classPath) },
         sourceLookupScriptHandlers = project.hierarchy.map { it.buildscript }.toList(),
@@ -122,7 +122,7 @@ fun defaultScriptModelBuilder(project: Project) =
         project,
         type = Project::class,
         rootDir = project.rootDir,
-        gradleUserHome = project.gradle.gradleUserHomeDir,
+        gradleHomeDir = project.gradle.gradleHomeDir,
         scriptClassPath = project.defaultScriptCompilationClassPath,
         sourceLookupScriptHandlers = listOf(project.buildscript),
         implicitImports = project.scriptImplicitImports)
@@ -133,7 +133,7 @@ data class KotlinScriptTargetModelBuilder<out T : Any>(
     val `object`: T,
     private val type: KClass<T>,
     val rootDir: File,
-    val gradleUserHome: File?,
+    val gradleHomeDir: File?,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
     val sourceLookupScriptHandlers: List<ScriptHandler>,
@@ -150,7 +150,7 @@ data class KotlinScriptTargetModelBuilder<out T : Any>(
 
     private
     fun gradleSource() =
-        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleUserHome)
+        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir)
 }
 
 

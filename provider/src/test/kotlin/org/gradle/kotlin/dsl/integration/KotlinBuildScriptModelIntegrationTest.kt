@@ -162,6 +162,14 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `sourcePath includes Gradle sources`() {
+
+        assertSourcePathIncludesGradleSourcesGiven(
+            rootProjectScript = "",
+            subProjectScript = "")
+    }
+
+    @Test
     fun `sourcePath includes kotlin-stdlib sources resolved against project`() {
 
         assertSourcePathIncludesKotlinStdlibSourcesGiven(
@@ -244,6 +252,15 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
+    }
+
+    private
+    fun assertSourcePathIncludesGradleSourcesGiven(rootProjectScript: String, subProjectScript: String) {
+
+        assertSourcePathGiven(
+            rootProjectScript,
+            subProjectScript,
+            hasItems("core-api"))
     }
 
     private
