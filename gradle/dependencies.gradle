@@ -219,12 +219,6 @@ libraries.gcs = [
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
 
-libraries.json_simple = [
-    dependencies.create('com.googlecode.json-simple:json-simple:1.1.1') {
-        exclude group: 'junit', module: 'junit'
-    }
-]
-
 // for XCode IDE integration support
 libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
 

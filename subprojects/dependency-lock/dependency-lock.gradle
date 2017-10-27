@@ -4,7 +4,7 @@ sourceCompatibility = 1.7
 
 dependencies {
     api project(':coreApi')
-    implementation libraries.json_simple
+    implementation libraries.gson
 }
 
 useTestFixtures()

@@ -17,6 +17,7 @@
 package org.gradle.internal.dependencylock.fixtures
 
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.dependencylock.converter.JsonDependencyLockConverter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 final class DependencyLockFixture {
@@ -50,5 +51,10 @@ final class DependencyLockFixture {
                 into "\$buildDir/libs"
             }
         """
+    }
+
+    static String commentAndLockFileVersionJson() {
+        """  "_comment": "$JsonDependencyLockConverter.USER_NOTICE",
+  "lockFileVersion": "$JsonDependencyLockConverter.LOCK_FILE_VERSION","""
     }
 }

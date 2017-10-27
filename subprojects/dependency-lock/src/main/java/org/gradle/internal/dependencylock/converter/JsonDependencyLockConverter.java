@@ -16,56 +16,78 @@
 
 package org.gradle.internal.dependencylock.converter;
 
+import com.google.gson.stream.JsonWriter;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
 public class JsonDependencyLockConverter implements DependencyLockConverter {
 
-    private static final String USER_NOTICE = "This is an auto-generated file and is not meant to be edited manually!";
-    private static final String LOCK_FILE_VERSION = "1.0";
+    private static final String INDENT = "  ";
+    public static final String USER_NOTICE = "This is an auto-generated file and is not meant to be edited manually!";
+    public static final String LOCK_FILE_VERSION = "1.0";
 
-    @SuppressWarnings("unchecked")
     @Override
     public String convert(DependencyLock dependencyLock) {
-        JSONObject allLocks = new JSONObject();
-        allLocks.put("_comment", USER_NOTICE);
-        allLocks.put("lockFileVersion", LOCK_FILE_VERSION);
-        JSONArray projects = new JSONArray();
+        Writer stringWriter = new StringWriter();
+        JsonWriter writer = new JsonWriter(stringWriter);
+        writer.setIndent(INDENT);
 
-        for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
-            JSONObject project = new JSONObject();
-            project.put("path", projectsMapping.getKey());
-            projects.add(project);
-            JSONArray configurations = new JSONArray();
-            project.put("configurations", configurations);
+        try {
+            writer.beginObject();
+            writer.name("_comment").value(USER_NOTICE);
+            writer.name("lockFileVersion").value(LOCK_FILE_VERSION);
+            writer.name("projects");
+            writer.beginArray();
 
-            for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationsMapping : projectsMapping.getValue().entrySet()) {
-                JSONObject configuration = new JSONObject();
-                JSONArray dependencies = new JSONArray();
+            for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
+                writer.beginObject();
+                writer.name("path").value(projectsMapping.getKey());
+                writer.name("configurations");
+                writer.beginArray();
 
-                for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : configurationsMapping.getValue().entrySet()) {
-                    JSONObject dependency = new JSONObject();
-                    dependency.put("moduleId", lockedDependency.getKey().toString());
-                    dependency.put("requestedVersion", lockedDependency.getValue().getRequestedVersion());
-                    dependency.put("lockedVersion", lockedDependency.getValue().getSelectedVersion());
-                    dependencies.add(dependency);
+                for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationsMapping : projectsMapping.getValue().entrySet()) {
+                    writer.beginObject();
+                    writer.name("name").value(configurationsMapping.getKey());
+                    writer.name("dependencies");
+                    writer.beginArray();
+
+                    for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : configurationsMapping.getValue().entrySet()) {
+                        writer.beginObject();
+                        writer.name("moduleId").value(lockedDependency.getKey().toString());
+                        writer.name("requestedVersion").value(lockedDependency.getValue().getRequestedVersion());
+                        writer.name("lockedVersion").value(lockedDependency.getValue().getSelectedVersion());
+                        writer.endObject();
+                    }
+
+                    writer.endArray();
+                    writer.endObject();
                 }
 
-                configuration.put("name", configurationsMapping.getKey());
-                configuration.put("dependencies", dependencies);
-                configurations.add(configuration);
+                writer.endArray();
+                writer.endObject();
             }
 
-            allLocks.put("projects", projects);
+            writer.endArray();
+            writer.endObject();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
 
-        return allLocks.toJSONString();
+        return stringWriter.toString();
     }
 }

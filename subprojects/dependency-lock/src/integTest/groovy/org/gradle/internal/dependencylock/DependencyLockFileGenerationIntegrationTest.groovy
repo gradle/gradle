@@ -84,8 +84,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "can write locks if at least one dependency is resolvable"() {
@@ -106,8 +125,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "can create locks for all supported formats of dynamic dependencies"() {
@@ -133,8 +171,42 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","moduleId":"foo:bar","lockedVersion":"1.3"},{"requestedVersion":"+","moduleId":"org:gradle","lockedVersion":"7.5"},{"requestedVersion":"latest.release","moduleId":"my:prod","lockedVersion":"3.2.1"},{"requestedVersion":"[1.0,2.0]","moduleId":"dep:range","lockedVersion":"1.7.1"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'b4be110823c3d0cff395069a0b3dac006338b43b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.+",
+              "lockedVersion": "1.3"
+            },
+            {
+              "moduleId": "org:gradle",
+              "requestedVersion": "+",
+              "lockedVersion": "7.5"
+            },
+            {
+              "moduleId": "my:prod",
+              "requestedVersion": "latest.release",
+              "lockedVersion": "3.2.1"
+            },
+            {
+              "moduleId": "dep:range",
+              "requestedVersion": "[1.0,2.0]",
+              "lockedVersion": "1.7.1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == 'e1694e2aaafe588b76b0acb82b258a06b853a494'
     }
 
     def "only creates locks for resolved dependencies"() {
@@ -156,8 +228,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.+","moduleId":"foo:bar","lockedVersion":"1.3"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'b78a4552f1f47012247209aee86bd566f85b4f6'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.+",
+              "lockedVersion": "1.3"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == 'a9996480fc8669d8dbb61c8352a2525cc5c554e9'
     }
 
     def "can create locks for all multiple resolved configurations"() {
@@ -181,8 +272,47 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"a","dependencies":[{"requestedVersion":"1.+","moduleId":"foo:bar","lockedVersion":"1.3"}]},{"name":"b","dependencies":[{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]},{"name":"c","dependencies":[{"requestedVersion":"latest.release","moduleId":"my:prod","lockedVersion":"3.2.1"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'e58f71cf01bba1c6293bd167c03569458234caad'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "a",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.+",
+              "lockedVersion": "1.3"
+            }
+          ]
+        },
+        {
+          "name": "b",
+          "dependencies": [
+            {
+              "moduleId": "org:gradle",
+              "requestedVersion": "7.5",
+              "lockedVersion": "7.5"
+            }
+          ]
+        },
+        {
+          "name": "c",
+          "dependencies": [
+            {
+              "moduleId": "my:prod",
+              "requestedVersion": "latest.release",
+              "lockedVersion": "3.2.1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '59578372a1c61109e5af9ad4d915c8ec8c62a330'
     }
 
     def "can create locks for first-level and transitive resolved dependencies"() {
@@ -208,8 +338,52 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.6.7","moduleId":"foo:second","lockedVersion":"1.6.7"},{"requestedVersion":"1.5","moduleId":"foo:third","lockedVersion":"1.5"},{"requestedVersion":"2.+","moduleId":"bar:first","lockedVersion":"2.5"},{"requestedVersion":"2.6.7","moduleId":"bar:second","lockedVersion":"2.6.7"},{"requestedVersion":"2.5","moduleId":"bar:third","lockedVersion":"2.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == '7d9d3f8005d4e644ea45b173fcf17f5410eda6a0'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:first",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "foo:second",
+              "requestedVersion": "1.6.7",
+              "lockedVersion": "1.6.7"
+            },
+            {
+              "moduleId": "foo:third",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "bar:first",
+              "requestedVersion": "2.+",
+              "lockedVersion": "2.5"
+            },
+            {
+              "moduleId": "bar:second",
+              "requestedVersion": "2.6.7",
+              "lockedVersion": "2.6.7"
+            },
+            {
+              "moduleId": "bar:third",
+              "requestedVersion": "2.5",
+              "lockedVersion": "2.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == 'c9dede601fb738575952da5dae120b2a35a9ff0d'
     }
 
     def "can create lock for conflict-resolved dependency"() {
@@ -232,8 +406,32 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:first","lockedVersion":"1.5"},{"requestedVersion":"1.9","moduleId":"foo:second","lockedVersion":"1.9"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == '1f8f0335a029277514668ad9a789815f25588663'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:first",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "foo:second",
+              "requestedVersion": "1.9",
+              "lockedVersion": "1.9"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == 'bfb3d6afb5b5b08b1dac96586ab76d014b3ba517'
     }
 
     def "only creates locks for resolvable configurations"() {
@@ -256,8 +454,32 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"compileClasspath","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == '91871c1a3ddd08f004bf92ed68a2ff91fa70049f'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "compileClasspath",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "org:gradle",
+              "requestedVersion": "7.5",
+              "lockedVersion": "7.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '60509fcde47220bc2bbd808a5ecb8a5839fe323c'
     }
 
     def "can create locks for multi-project builds"() {
@@ -307,8 +529,57 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":a","configurations":[{"name":"conf1","dependencies":[{"requestedVersion":"1.5","moduleId":"my:dep","lockedVersion":"1.5"}]}]},{"path":":b","configurations":[{"name":"conf2","dependencies":[{"requestedVersion":"2.3.1","moduleId":"foo:bar","lockedVersion":"2.3.1"}]}]},{"path":":c","configurations":[{"name":"conf3","dependencies":[{"requestedVersion":"5.2","moduleId":"other:company","lockedVersion":"5.2"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'a446b9b74284f03d9dc606973ce5caf12f98e244'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":a",
+      "configurations": [
+        {
+          "name": "conf1",
+          "dependencies": [
+            {
+              "moduleId": "my:dep",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ":b",
+      "configurations": [
+        {
+          "name": "conf2",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "2.3.1",
+              "lockedVersion": "2.3.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ":c",
+      "configurations": [
+        {
+          "name": "conf3",
+          "dependencies": [
+            {
+              "moduleId": "other:company",
+              "requestedVersion": "5.2",
+              "lockedVersion": "5.2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == 'ba328f04e6f66725791db639c04f9b09fe0b69da'
     }
 
     def "subsequent builds do not recreate lock file for unchanged dependencies"() {
@@ -329,16 +600,54 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "recreates lock file for newly declared and resolved dependencies"() {
@@ -360,8 +669,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << """
@@ -374,8 +702,32 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == '56d3c6ea5f8d353566d0f5c9c92b447b4c01217e'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "org:gradle",
+              "requestedVersion": "7.5",
+              "lockedVersion": "7.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '972a625f8f26cb15c53a9962cdbc9230ae551aec'
     }
 
     def "recreates lock file for removed, resolved dependencies"() {
@@ -398,8 +750,32 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"},{"requestedVersion":"7.5","moduleId":"org:gradle","lockedVersion":"7.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == '56d3c6ea5f8d353566d0f5c9c92b447b4c01217e'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            },
+            {
+              "moduleId": "org:gradle",
+              "requestedVersion": "7.5",
+              "lockedVersion": "7.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '972a625f8f26cb15c53a9962cdbc9230ae551aec'
 
         when:
         buildFile.text = mavenRepository(mavenRepo) + customConfigurations(MYCONF_CUSTOM_CONFIGURATION) + """
@@ -412,8 +788,27 @@ class DependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
-        lockFile.text == '{"lockFileVersion":"1.0","projects":[{"path":":","configurations":[{"name":"myConf","dependencies":[{"requestedVersion":"1.5","moduleId":"foo:bar","lockedVersion":"1.5"}]}]}],"_comment":"This is an auto-generated file and is not meant to be edited manually!"}'
-        sha1File.text == 'c6fb6b274c5398f8de0f2fde16ea2302ec8b9c4b'
+        lockFile.text == """{
+${commentAndLockFileVersionJson()}
+  "projects": [
+    {
+      "path": ":",
+      "configurations": [
+        {
+          "name": "myConf",
+          "dependencies": [
+            {
+              "moduleId": "foo:bar",
+              "requestedVersion": "1.5",
+              "lockedVersion": "1.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"""
+        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     private void succeedsWithEnabledDependencyLocking(String... tasks) {
