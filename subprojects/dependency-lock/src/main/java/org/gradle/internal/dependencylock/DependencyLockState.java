@@ -20,8 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 
-import java.util.Set;
-
 public interface DependencyLockState {
 
     void resolveAndPersist(Project project, Configuration configuration);
