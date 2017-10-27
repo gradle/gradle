@@ -19,7 +19,6 @@ package org.gradle.language.swift.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -65,21 +64,8 @@ public class SwiftCompile extends AbstractNativeCompileTask {
 
     @Optional
     @Input
-    public String getModuleName() {
-        return moduleName.getOrNull();
-    }
-
-    public void setModuleName(String moduleName) {
-        this.moduleName.set(moduleName);
-    }
-
-    /**
-     * Sets the moduleName property through a {@link Provider}.
-     *
-     * @since 4.2
-     */
-    public void setModuleName(Provider<String> moduleName) {
-        this.moduleName.set(moduleName);
+    public Property<String> getModuleName() {
+        return moduleName;
     }
 
     @Override

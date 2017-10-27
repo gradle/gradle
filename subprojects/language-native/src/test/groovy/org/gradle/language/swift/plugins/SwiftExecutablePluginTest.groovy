@@ -105,7 +105,7 @@ class SwiftExecutablePluginTest extends Specification {
 
         then:
         def compileSwift = project.tasks.compileDebugSwift
-        compileSwift.moduleName == "App"
+        compileSwift.moduleName.get() == "App"
 
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))

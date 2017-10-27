@@ -94,7 +94,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         def compileSwift = project.tasks.compileDebugSwift
-        compileSwift.moduleName == "Lib"
+        compileSwift.moduleName.get() == "Lib"
 
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("Lib"))

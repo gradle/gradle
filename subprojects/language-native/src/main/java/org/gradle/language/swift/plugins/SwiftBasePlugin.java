@@ -88,7 +88,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 if (binary.isTestable()) {
                     compile.getCompilerArgs().add("-enable-testing");
                 }
-                compile.setModuleName(binary.getModule());
+                compile.getModuleName().set(binary.getModule());
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
