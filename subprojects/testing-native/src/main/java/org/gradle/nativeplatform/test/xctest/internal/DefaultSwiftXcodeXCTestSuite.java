@@ -36,7 +36,7 @@ public class DefaultSwiftXcodeXCTestSuite extends AbstractSwiftXCTestSuite {
 
         resourceDirectory = projectLayout.directoryProperty();
         resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));
-        bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
+        bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", projectLayout, objectFactory, getModule(), true, false, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
     public DirectoryProperty getResourceDir() {

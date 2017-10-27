@@ -33,8 +33,8 @@ public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundl
     private final DirectoryProperty bundleDir;
 
     @Inject
-    public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
-        super(name, projectLayout, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
+        super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
         this.bundleDir = projectLayout.directoryProperty();
         this.informationPropertyList = resourceDirectory.file("Info.plist");
     }

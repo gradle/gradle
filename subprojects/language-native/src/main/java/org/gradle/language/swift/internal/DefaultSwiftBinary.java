@@ -34,16 +34,18 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final String name;
     private final Provider<String> module;
     private final boolean debuggable;
+    private final boolean testable;
     private final FileCollection source;
     private final FileCollection importPath;
     private final FileCollection linkLibs;
     private final Configuration runtimeLibs;
     private final DirectoryProperty objectsDir;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
+        this.testable = testable;
         this.source = source;
         this.objectsDir = projectLayout.directoryProperty();
 
@@ -86,6 +88,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public boolean isDebuggable() {
         return debuggable;
+    }
+
+    @Override
+    public boolean isTestable() {
+        return testable;
     }
 
     @Override

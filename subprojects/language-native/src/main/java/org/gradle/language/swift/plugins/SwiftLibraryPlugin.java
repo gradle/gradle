@@ -76,10 +76,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Configure compile task
         SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compileDebug.getCompilerArgs().add("-enable-testing");
         SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations

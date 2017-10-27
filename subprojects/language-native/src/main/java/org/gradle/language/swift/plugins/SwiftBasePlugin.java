@@ -85,6 +85,9 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 } else {
                     compile.setOptimized(true);
                 }
+                if (binary.isTestable()) {
+                    compile.getCompilerArgs().add("-enable-testing");
+                }
                 compile.setModuleName(binary.getModule());
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 

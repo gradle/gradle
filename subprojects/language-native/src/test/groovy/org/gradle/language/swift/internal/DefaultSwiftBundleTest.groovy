@@ -41,7 +41,7 @@ class DefaultSwiftBundleTest extends Specification {
         resourceDirectory = projectLayout.directoryProperty()
         resourceDirectory.set(tmpDir.file("resources"))
 
-        binary = new DefaultSwiftBundle("mainDebug", projectLayout, TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  Stub(ConfigurationContainer), Stub(Configuration), resourceDirectory)
+        binary = new DefaultSwiftBundle("mainDebug", projectLayout, TestUtil.objectFactory(), Stub(Provider), true, false, Stub(FileCollection),  Stub(ConfigurationContainer), Stub(Configuration), resourceDirectory)
     }
 
     def "honor changes to resource directory for the location of Info.plist"() {

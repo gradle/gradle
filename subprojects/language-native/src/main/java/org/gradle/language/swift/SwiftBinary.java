@@ -29,7 +29,7 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface SwiftBinary extends SoftwareComponent {
     /**
-     * Returns the Swift module that this binary defines.
+     * Returns the name of the Swift module that this binary defines.
      */
     Provider<String> getModule();
 
@@ -37,6 +37,11 @@ public interface SwiftBinary extends SoftwareComponent {
      * Returns true if this binary has debugging enabled.
      */
     boolean isDebuggable();
+
+    /**
+     * Returns true if this binary has testing enabled.
+     */
+    boolean isTestable();
 
     /**
      * Returns the Swift source files of this binary.
