@@ -66,6 +66,7 @@ class SwiftLibraryPluginTest extends Specification {
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
         compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/TestLib.swiftmodule")
         compileDebug.debuggable
         !compileDebug.optimized
 
@@ -78,6 +79,7 @@ class SwiftLibraryPluginTest extends Specification {
         compileRelease instanceof SwiftCompile
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        compileRelease.moduleFile.get().asFile == projectDir.file("build/modules/main/release/TestLib.swiftmodule")
         !compileRelease.debuggable
         compileRelease.optimized
 
@@ -95,6 +97,7 @@ class SwiftLibraryPluginTest extends Specification {
         then:
         def compileSwift = project.tasks.compileDebugSwift
         compileSwift.moduleName.get() == "Lib"
+        compileSwift.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/Lib.swiftmodule")
 
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("Lib"))

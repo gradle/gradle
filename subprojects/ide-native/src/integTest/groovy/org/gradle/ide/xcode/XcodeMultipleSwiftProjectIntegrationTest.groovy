@@ -66,7 +66,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
-        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/modules/main/debug"))
 
         when:
         def resultDebugApp = xcodebuild
@@ -131,9 +131,9 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'log/log.xcodeproj', 'hello/hello.xcodeproj')
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
-        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/obj/main/debug"), file("log/build/obj/main/debug"))
+        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("log/build/modules/main/debug"))
         def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
-        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/obj/main/debug"))
+        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/modules/main/debug"))
 
         when:
         def resultDebugApp = xcodebuild
@@ -260,7 +260,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .assertHasProjects("${rootProjectName}.xcodeproj", 'greeter/greeter.xcodeproj')
 
         def project = rootXcodeProject.projectFile
-        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/modules/main/debug"))
 
         when:
         def resultDebugApp = xcodebuild

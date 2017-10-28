@@ -72,6 +72,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        file("build/modules/main/debug/Hello.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
@@ -90,6 +91,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "linkRelease"
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
+        file("build/modules/main/release/Hello.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/release/Hello").assertExists()
     }
 
@@ -203,6 +205,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
+        file("output/modules/main/debug/Hello.swiftmodule").assertIsFile()
         sharedLibrary("output/lib/main/debug/Hello").assertExists()
     }
 
@@ -216,6 +219,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildFile << """
             apply plugin: 'swift-library'
             compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
+            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
             linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 
@@ -224,6 +228,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
 
         file("build/object-files").assertIsDir()
+        file("build/some-lib.swiftmodule").assertIsFile()
         file("build/some-lib/main.bin").assertIsFile()
     }
 
@@ -242,7 +247,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
-        file("build/obj/main/debug/Hello.swiftmodule").assertExists()
+        file("build/modules/main/debug/Hello.swiftmodule").assertExists()
     }
 
     def "can compile and link against another library"() {

@@ -17,10 +17,12 @@
 package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
@@ -40,15 +42,18 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
 @Incubating
 public class SwiftCompile extends AbstractNativeCompileTask {
     private final Property<String> moduleName;
+    private final RegularFileProperty moduleFile;
 
     public SwiftCompile() {
         moduleName = getProject().getObjects().property(String.class);
+        moduleFile = newOutputFile();
     }
 
     @Override
     protected NativeCompileSpec createCompileSpec() {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName.getOrNull());
+        spec.setModuleFile(moduleFile.get().getAsFile());
         return spec;
     }
 
@@ -62,6 +67,17 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         };
     }
 
+    /**
+     * The location to write the Swift module file to.
+     */
+    @OutputFile
+    public RegularFileProperty getModuleFile() {
+        return moduleFile;
+    }
+
+    /**
+     * The name of the module to produce.
+     */
     @Optional
     @Input
     public Property<String> getModuleName() {

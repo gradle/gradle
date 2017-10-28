@@ -93,11 +93,10 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
-                    genericArgs.add("-emit-module");
                     genericArgs.add("-module-name");
                     genericArgs.add(spec.getModuleName());
-                    outputFileMap.newEntry("")
-                        .swiftModuleFile(new File(spec.getObjectFileDir(), spec.getModuleName() + ".swiftmodule"));
+                    genericArgs.add("-emit-module-path");
+                    genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
                 genericArgs.add("-v");
                 genericArgs.add("-emit-object");

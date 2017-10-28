@@ -75,6 +75,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         executable("build/exe/main/debug/App").assertExists()
+        file("build/modules/main/debug/App.swiftmodule").assertIsFile()
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -102,6 +103,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         succeeds "installDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug")
 
+        file("build/modules/main/release/App.swiftmodule").assertIsFile()
         executable("build/exe/main/debug/App").assertExists()
         executable("build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
@@ -275,6 +277,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
         executable("output/exe/main/debug/App").assertExists()
+        file("output/modules/main/debug/App.swiftmodule").assertIsFile()
         installation("output/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -311,6 +314,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         buildFile << """
             apply plugin: 'swift-executable'
             compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
+            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
             installDebug.installDirectory = layout.buildDirectory.dir("some-app")
          """
@@ -321,6 +325,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
+        file("build/some-app.swiftmodule").assertIsFile()
         installation("build/some-app").exec().out == app.expectedOutput
     }
 

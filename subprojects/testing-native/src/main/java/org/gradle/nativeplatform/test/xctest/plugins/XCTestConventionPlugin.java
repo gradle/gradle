@@ -23,6 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
@@ -221,7 +222,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Configure test suite compile task from tested component compile task
                 SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
                 SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-                compileTest.includes(compileMain.getObjectFileDir());
+                compileTest.includes(compileMain.getModuleFile().map(new Transformer<File, RegularFile>() {
+            @Override
+            public File transform(RegularFile file) {
+                return file.getAsFile().getParentFile();
+            }
+        }));
+        // TODO - infer this
+        compileTest.dependsOn(compileMain);
 
                 // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
