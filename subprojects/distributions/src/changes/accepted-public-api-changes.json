@@ -165,6 +165,11 @@
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Constructor org.gradle.api.tasks.testing.AbstractTestTask()",
             "acceptation": "Extracted super class out of Test which was already stable"
+        },
+        {
+            "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
+            "member": "Constructor org.gradle.ide.xcode.plugins.XcodePlugin(org.gradle.ide.xcode.internal.xcodeproj.GidGenerator,org.gradle.api.model.ObjectFactory)",
+            "acceptation": "Change to constructor of incubating type/plugin"
         }
     ]
 }

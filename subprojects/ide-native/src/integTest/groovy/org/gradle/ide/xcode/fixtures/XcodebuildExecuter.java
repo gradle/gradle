@@ -39,6 +39,7 @@ import static org.testng.Assert.assertTrue;
 public class XcodebuildExecuter {
     public enum XcodeAction {
         BUILD,
+        CLEAN,
         TEST;
 
         @Override

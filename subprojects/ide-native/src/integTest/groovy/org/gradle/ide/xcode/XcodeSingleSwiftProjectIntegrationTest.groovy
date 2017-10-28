@@ -22,8 +22,8 @@ import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -269,7 +269,7 @@ apply plugin: 'swift-library'
 
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
-        lib.assertTestCasesRan(resultDebugWithXCTest.output)
+        resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -295,8 +295,8 @@ apply plugin: 'xctest'
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':buildXcodeTestProduct')
-        lib.assertTestCasesRan(resultTestRunner.output)
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
+        resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -324,8 +324,8 @@ apply plugin: 'xctest'
 
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
-            ':syncTestBundleToXcodeBuiltProductDir', ':buildXcodeTestProduct')
-        app.assertTestCasesRan(resultTestRunner.output)
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
+        resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -349,8 +349,8 @@ apply plugin: 'swift-executable'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug')
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         exe("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
@@ -362,9 +362,63 @@ apply plugin: 'swift-executable'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         exe("build/exe/main/release/App").exec().out == app.expectedOutput
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "produces reasonable message when xcode uses outdated xcode configuration"() {
+        useXcodebuildTool()
+        def app = new SwiftApp()
+
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+"""
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+        settingsFile.text = "rootProject.name = 'NotApp'"
+
+        when:
+        def result = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .fails()
+        then:
+        result.assertOutputContains("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
+    }
+
+    @Requires(TestPrecondition.XCODE)
+    def "can clean from xcode"() {
+        useXcodebuildTool()
+        def app = new SwiftApp()
+
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+"""
+
+        app.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        exe("build/exe/main/debug/App").assertDoesNotExist()
+        xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .succeeds()
+        then:
+        exe("build/exe/main/debug/App").exec().out == app.expectedOutput
+
+        when:
+        xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+        then:
+        file("build").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -388,8 +442,8 @@ apply plugin: 'swift-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug')
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         sharedLib("build/lib/main/debug/App").assertExists()
 
         when:
@@ -401,8 +455,8 @@ apply plugin: 'swift-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         sharedLib("build/lib/main/release/App").assertExists()
     }
 

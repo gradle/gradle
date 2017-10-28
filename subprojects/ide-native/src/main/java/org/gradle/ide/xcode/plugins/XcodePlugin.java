@@ -20,16 +20,15 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -70,7 +69,6 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
@@ -89,16 +87,12 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
-    private final ProjectLayout projectLayout;
     private DefaultXcodeExtension xcode;
-    private GenerateXcodeWorkspaceFileTask workspaceTask;
-    private GenerateXcodeProjectFileTask projectTask;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, ProjectLayout projectLayout) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
-        this.projectLayout = projectLayout;
     }
 
     @Override
@@ -108,38 +102,33 @@ public class XcodePlugin extends IdePlugin {
 
     @Override
     protected void onApply(final Project project) {
-        getLifecycleTask().setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
-        getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
+        Task lifecycleTask = getLifecycleTask();
+        lifecycleTask.setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
 
         xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
         xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
-        projectTask = createProjectTask(project);
-        workspaceTask = createWorkspaceTask(project);
-
-        if (getWorkspaceTask() != null) {
-            getLifecycleTask().dependsOn(getWorkspaceTask());
+        if (isRoot(project)) {
+            GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
+            addIncludedBuildToWorkspace(project, workspaceTask);
+            lifecycleTask.dependsOn(workspaceTask);
         }
-        getLifecycleTask().dependsOn(getProjectTask());
+
+        GenerateXcodeProjectFileTask projectTask = createProjectTask(project);
+        lifecycleTask.dependsOn(projectTask);
+        projectTask.dependsOn(project.getTasks().withType(GenerateSchemeFileTask.class));
+
+        project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcode.getProject(), project));
 
         configureForSwiftPlugin(project);
         configureForCppPlugin(project);
 
-        includeBuildFileInProject(project);
+        includeBuildFilesInProject(project);
         configureXcodeCleanTask(project);
-        registerXcodeProjectArtifact(project);
-        addIncludedBuildToWorkspace(project);
+        registerXcodeProjectArtifact(project, projectTask);
     }
 
-    private GenerateXcodeProjectFileTask getProjectTask() {
-        return projectTask;
-    }
-
-    private GenerateXcodeWorkspaceFileTask getWorkspaceTask() {
-        return workspaceTask;
-    }
-
-    private void includeBuildFileInProject(Project project) {
+    private void includeBuildFilesInProject(Project project) {
         // TODO: Add other build like files `build.gradle.kts`, `settings.gradle(.kts)`, other `.gradle`, `gradle.properties`
         if (project.getBuildFile().exists()) {
             xcode.getProject().getGroups().getRoot().from(project.getBuildFile());
@@ -147,6 +136,7 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeCleanTask(Project project) {
+        getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
         Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
         cleanTask.delete(xcode.getProject().getLocationDir());
         if (isRoot(project)) {
@@ -170,24 +160,24 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private GenerateXcodeWorkspaceFileTask createWorkspaceTask(Project project) {
-        if (isRoot(project)) {
-            File xcodeWorkspacePackageDir = toXcodeWorkspacePackageDir(project);
+        File xcodeWorkspacePackageDir = toXcodeWorkspacePackageDir(project);
 
-            GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeWorkspaceWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
-            workspaceSettingsFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "xcshareddata/WorkspaceSettings.xcsettings"));
+        GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeWorkspaceWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
+        workspaceSettingsFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "xcshareddata/WorkspaceSettings.xcsettings"));
 
-            GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
-            workspaceFileTask.dependsOn(workspaceSettingsFileTask);
-            workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
+        GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
+        workspaceFileTask.dependsOn(workspaceSettingsFileTask);
+        workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
 
-            return workspaceFileTask;
-        }
-
-        return null;
+        return workspaceFileTask;
     }
 
-    private static XcodeExtension xcodeModelFor(Project project) {
-        return project.getExtensions().getByType(XcodeExtension.class);
+    private String getBridgeTaskPath(Project project) {
+        String projectPath = "";
+        if (!isRoot(project)) {
+            projectPath = project.getPath();
+        }
+        return projectPath + ":_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}";
     }
 
     private void configureForSwiftPlugin(final Project project) {
@@ -222,54 +212,12 @@ public class XcodePlugin extends IdePlugin {
         final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
         xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
 
-        // Sync the binary to the BUILT_PRODUCTS_DIR
-        final Sync syncTask = project.getTasks().create("sync" + GUtil.toCamelCase(component.getName()) + "BundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
-            @Override
-            public void execute(Sync task) {
-                final DirectoryProperty builtProductsDir = getBuiltProductsDir();
-                task.onlyIf(new Spec<Task>() {
-                    @Override
-                    public boolean isSatisfiedBy(Task element) {
-                        return builtProductsDir.isPresent();
-                    }
-                });
-                task.from(bundleDebug);
-                task.into(builtProductsDir.dir(project.provider(new Callable<CharSequence>() {
-                    @Override
-                    public CharSequence call() throws Exception {
-                        return bundleDebug.getOutputDir().getAsFile().get().getName();
-                    }
-                })));
-            }
-        });
-
-        // Xcode lifecycle task for testing
-        project.getTasks().create("buildXcode" + GUtil.toCamelCase(component.getName()) + "Product", new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(syncTask);
-            }
-        });
-
-        // TODO - should reflect changes to module name
-        // $(CONFIGURATION) is replaced with the build configuration name, either Debug or Release
-        // TODO - this is too coincidental. Instead, perhaps add Xcode entry point tasks
-        String taskName = project.getPath() + ":${ACTION}Xcode" + GUtil.toCamelCase(component.getName());
-        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), taskName, bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
+        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().addTarget(target);
     }
 
-    private DirectoryProperty getBuiltProductsDir() {
-        DirectoryProperty result = projectLayout.directoryProperty();
-        String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
-        if (builtProductsPath != null) {
-            result.set(new File(builtProductsPath));
-        }
-        return result;
-    }
-
-    private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
+    private void configureXcodeForSwift(final Project project, PBXTarget.ProductType productType) {
         SwiftComponent component = project.getExtensions().getByType(SwiftComponent.class);
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getGroups().getSources().from(sources);
@@ -278,15 +226,12 @@ public class XcodePlugin extends IdePlugin {
         // TODO - should use the _install_ task for an executable
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
-        // TODO - should reflect changes to module name
-        // $(CONFIGURATION) is replaced with the build configuration name, either Debug or Release
-        // TODO - this is too coincidental. Instead, perhaps add Xcode entry point tasks
-        String taskName = project.getPath() + ":link$(CONFIGURATION)";
-        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), taskName, linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
+
+        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().addTarget(target);
 
-        getProjectTask().dependsOn(createSchemeTask(project.getTasks(), component.getModule().get() + " " + toString(productType), xcode.getProject()));
+        createSchemeTask(project.getTasks(), component.getModule().get() + " " + toString(productType), xcode.getProject());
     }
 
     private void configureForCppPlugin(final Project project) {
@@ -319,14 +264,11 @@ public class XcodePlugin extends IdePlugin {
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
         String targetName = StringUtils.capitalize(project.getName());
-        // $(CONFIGURATION) is replaced with the build configuration name, either Debug or Release
-        // TODO - this is too coincidental. Instead, perhaps add Xcode entry point tasks
-        String taskName = project.getPath() + ":link$(CONFIGURATION)";
-        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), taskName, linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
+        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
         xcode.getProject().addTarget(target);
 
-        getProjectTask().dependsOn(createSchemeTask(project.getTasks(), targetName + " " + toString(productType), xcode.getProject()));
+        createSchemeTask(project.getTasks(), targetName + " " + toString(productType), xcode.getProject());
     }
 
     private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
@@ -336,7 +278,6 @@ public class XcodePlugin extends IdePlugin {
         GenerateSchemeFileTask schemeFileTask = tasks.maybeCreate(name, GenerateSchemeFileTask.class);
         schemeFileTask.setXcodeProject(xcodeProject);
         schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + schemeName + ".xcscheme"));
-
         return schemeFileTask;
     }
 
@@ -359,9 +300,7 @@ public class XcodePlugin extends IdePlugin {
 
     private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, Provider<? extends FileSystemLocation> debugBinaryFile, Provider<? extends FileSystemLocation> releaseBinaryFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
-        XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
-        target.getDebugOutputFile().set(debugBinaryFile);
-        target.getReleaseOutputFile().set(releaseBinaryFile);
+        XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id, debugBinaryFile, releaseBinaryFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
         target.setOutputFileType(toFileType(productType));
@@ -402,10 +341,14 @@ public class XcodePlugin extends IdePlugin {
         return project.getParent() == null;
     }
 
-    private void registerXcodeProjectArtifact(Project project) {
+    private static XcodeExtension xcodeModelFor(Project project) {
+        return project.getExtensions().getByType(XcodeExtension.class);
+    }
+
+    private void registerXcodeProjectArtifact(Project project, GenerateXcodeProjectFileTask projectTask) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
         ProjectComponentIdentifier projectId = newProjectId(project);
-        projectComponentProvider.registerAdditionalArtifact(projectId, createXcodeProjectArtifact(projectId, xcodeModelFor(project), getProjectTask()));
+        projectComponentProvider.registerAdditionalArtifact(projectId, createXcodeProjectArtifact(projectId, xcodeModelFor(project), projectTask));
     }
 
     private static LocalComponentArtifactMetadata createXcodeProjectArtifact(ProjectComponentIdentifier projectId, XcodeExtension xcode, Task projectTask) {
@@ -414,37 +357,35 @@ public class XcodePlugin extends IdePlugin {
         return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
-    private void addIncludedBuildToWorkspace(final Project project) {
-        if (isRoot(project)) {
-            final ServiceRegistry serviceRegistry = ((ProjectInternal) project).getServices();
-            getWorkspaceTask().dependsOn(new Callable<List<TaskDependency>>() {
-                @Override
-                public List<TaskDependency> call() throws Exception {
-                    return CollectionUtils.collect(
-                        allXcodeprojArtifactsInComposite(serviceRegistry),
-                        new Transformer<TaskDependency, LocalComponentArtifactMetadata>() {
-                            @Override
-                            public TaskDependency transform(LocalComponentArtifactMetadata metadata) {
-                                return metadata.getBuildDependencies();
-                            }
-                        });
-                }
-            });
+    private void addIncludedBuildToWorkspace(final Project project, GenerateXcodeWorkspaceFileTask workspaceTask) {
+        final ServiceRegistry serviceRegistry = ((ProjectInternal) project).getServices();
+        workspaceTask.dependsOn(new Callable<List<TaskDependency>>() {
+            @Override
+            public List<TaskDependency> call() throws Exception {
+                return CollectionUtils.collect(
+                    allXcodeprojArtifactsInComposite(serviceRegistry),
+                    new Transformer<TaskDependency, LocalComponentArtifactMetadata>() {
+                        @Override
+                        public TaskDependency transform(LocalComponentArtifactMetadata metadata) {
+                            return metadata.getBuildDependencies();
+                        }
+                    });
+            }
+        });
 
-            getWorkspaceTask().setXcodeProjectLocations(project.files(new Callable<Iterable<File>>() {
-                @Override
-                public Iterable<File> call() throws Exception {
-                    return CollectionUtils.collect(
-                        allXcodeprojArtifactsInComposite(serviceRegistry),
-                        new Transformer<File, LocalComponentArtifactMetadata>() {
-                            @Override
-                            public File transform(LocalComponentArtifactMetadata metadata) {
-                                return metadata.getFile();
-                            }
-                        });
-                }
-            }));
-        }
+        workspaceTask.setXcodeProjectLocations(project.files(new Callable<Iterable<File>>() {
+            @Override
+            public Iterable<File> call() throws Exception {
+                return CollectionUtils.collect(
+                    allXcodeprojArtifactsInComposite(serviceRegistry),
+                    new Transformer<File, LocalComponentArtifactMetadata>() {
+                        @Override
+                        public File transform(LocalComponentArtifactMetadata metadata) {
+                            return metadata.getFile();
+                        }
+                    });
+            }
+        }));
     }
 
     private static List<LocalComponentArtifactMetadata> allXcodeprojArtifactsInComposite(ServiceRegistry serviceRegistry) {
@@ -480,6 +421,81 @@ public class XcodePlugin extends IdePlugin {
         @Override
         public File getFile() {
             return xcodeProject.getLocationDir();
+        }
+    }
+
+    private static class XcodeBridge implements Action<String> {
+        private final DefaultXcodeProject xcodeProject;
+        private final Project project;
+
+        public XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
+            this.xcodeProject = xcodeProject;
+            this.project = project;
+        }
+
+        @Override
+        public void execute(String taskName) {
+            if (taskName.startsWith("_xcode")) {
+                Task bridgeTask = project.getTasks().create(taskName);
+                String action = System.getenv("ACTION");
+                if (action.equals("clean")) {
+                    bridgeTask.dependsOn("clean");
+                } else if ("".equals(action) || "build".equals(action)) {
+                    final XcodeTarget target = findXcodeTarget();
+                    if (target.isUnitTest()) {
+                        bridgeTestExecution(bridgeTask, target);
+                    } else {
+                        bridgeProductBuild(bridgeTask, target);
+
+                    }
+                } else {
+                    throw new GradleException("Unrecognized bridge action from Xcode '" + action + "'");
+                }
+            }
+        }
+
+        private XcodeTarget findXcodeTarget() {
+            final String productName = System.getenv("PRODUCT_NAME");
+            final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), new Spec<XcodeTarget>() {
+                @Override
+                public boolean isSatisfiedBy(XcodeTarget target) {
+                    return target.getProductName().equals(productName);
+                }
+            });
+            if (target == null) {
+                throw new GradleException("Unknown Xcode target '" + productName + "', do you need to re-generate Xcode configuration?");
+            }
+            return target;
+        }
+
+        private void bridgeProductBuild(Task bridgeTask, XcodeTarget target) {
+            // Library or executable
+            final String configuration = System.getenv("CONFIGURATION");
+            if (configuration.equals(DefaultXcodeProject.BUILD_DEBUG)) {
+                bridgeTask.dependsOn(target.getDebugOutputFile());
+            } else {
+                bridgeTask.dependsOn(target.getReleaseOutputFile());
+            }
+        }
+
+        private void bridgeTestExecution(Task bridgeTask, final XcodeTarget target) {
+            // XcTest executable
+            // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
+            final String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
+            final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
+                @Override
+                public void execute(Sync task) {
+                    task.from(target.getDebugOutputFile());
+                    // TODO: Path?
+                    task.into(project.provider(new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return new File(builtProductsPath, target.getDebugOutputFile().get().getAsFile().getName());
+                        }
+                    }));
+                }
+            });
+            bridgeTask.dependsOn(syncTask);
         }
     }
 }
