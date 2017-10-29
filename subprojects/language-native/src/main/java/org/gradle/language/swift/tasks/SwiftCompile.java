@@ -69,6 +69,8 @@ public class SwiftCompile extends AbstractNativeCompileTask {
 
     /**
      * The location to write the Swift module file to.
+     *
+     * @since 4.4
      */
     @OutputFile
     public RegularFileProperty getModuleFile() {
