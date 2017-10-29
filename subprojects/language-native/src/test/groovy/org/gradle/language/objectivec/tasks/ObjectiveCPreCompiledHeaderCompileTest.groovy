@@ -56,8 +56,8 @@ class ObjectiveCPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec 
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
-        2 * toolChain.select(platform) >> platformToolChain
-        2 * platformToolChain.newCompiler({ObjectiveCPCHCompileSpec.class.isAssignableFrom(it)}) >> objCPCHCompiler
+        1 * toolChain.select(platform) >> platformToolChain
+        1 * platformToolChain.newCompiler({ObjectiveCPCHCompileSpec.class.isAssignableFrom(it)}) >> objCPCHCompiler
         1 * objCPCHCompiler.execute({ ObjectiveCPCHCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']
