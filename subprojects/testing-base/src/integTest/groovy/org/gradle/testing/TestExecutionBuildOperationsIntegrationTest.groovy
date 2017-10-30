@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.junit.Rule
 
-class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrationSpec {
+class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -34,13 +34,19 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
         when:
         runAndFail "test"
 
-        then:"test build operations are emitted in expected hierarchy"
+        then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)
-        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Executor ")
+        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
         rootTestOp.details.testDescriptor.className == null
         rootTestOp.details.testDescriptor.composite == true
 
-        def firstLevelTestOps = directChildren(rootTestOp, ExecuteTestBuildOperationType)
+        def executorTestOps = directChildren(rootTestOp, ExecuteTestBuildOperationType)
+        executorTestOps.size() == 1
+        executorTestOps[0].details.testDescriptor.name.startsWith("Gradle Test Executor ")
+        executorTestOps[0].details.testDescriptor.className == null
+        executorTestOps[0].details.testDescriptor.composite == true
+
+        def firstLevelTestOps = directChildren(executorTestOps[0], ExecuteTestBuildOperationType)
         firstLevelTestOps.size() == 2
         firstLevelTestOps*.details.testDescriptor.name == ["org.gradle.Test", "org.gradle.TestSuite"]
         firstLevelTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.TestSuite"]
@@ -58,15 +64,15 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
         testTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.Test"]
         testTestOps*.details.testDescriptor.composite == [false, false]
 
-        and:"outputs are emitted in test build operation hierarchy"
+        and: "outputs are emitted in test build operation hierarchy"
         def testSuiteOutput = directChildren(firstLevelTestOps[1], TestOutputBuildOperationType)
         testSuiteOutput.size() == 4
-        testSuiteOutput*.result.output.message == ["before suite class out\n" , "before suite class err\n" , "after suite class out\n", "after suite class err\n"]
+        testSuiteOutput*.result.output.message == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
         testSuiteOutput*.result.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
 
         def testOutput = directChildren(testTestOps[0], TestOutputBuildOperationType)
         testOutput.size() == 2
-        testOutput*.result.output.message == ["sys out ok\n" , "sys err ok\n"]
+        testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
 
@@ -74,13 +80,19 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
         when:
         runAndFail "test"
 
-        then:"test build operations are emitted in expected hierarchy"
+        then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)
-        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Executor ")
+        rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
         rootTestOp.details.testDescriptor.className == null
         rootTestOp.details.testDescriptor.composite == true
 
-        def firstLevelTestOps = directChildren(rootTestOp, ExecuteTestBuildOperationType)
+        def executorTestOps = directChildren(rootTestOp, ExecuteTestBuildOperationType)
+        executorTestOps.size() == 1
+        executorTestOps[0].details.testDescriptor.name.startsWith("Gradle Test Executor ")
+        executorTestOps[0].details.testDescriptor.className == null
+        executorTestOps[0].details.testDescriptor.composite == true
+
+        def firstLevelTestOps = directChildren(executorTestOps[0], ExecuteTestBuildOperationType)
         firstLevelTestOps.size() == 1
         firstLevelTestOps.details.testDescriptor.name == ["SimpleSuite"]
         firstLevelTestOps.details.testDescriptor.className == [null]
@@ -98,10 +110,10 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
         suiteTestTestOps*.details.testDescriptor.className == ["org.gradle.FooTest", "org.gradle.FooTest", "org.gradle.BarTest"]
         suiteTestTestOps*.details.testDescriptor.composite == [false, false, false]
 
-        and:"outputs are emitted in test build operation hierarchy"
+        and: "outputs are emitted in test build operation hierarchy"
         def testOutput = directChildren(suiteTestTestOps[1], TestOutputBuildOperationType)
         testOutput.size() == 2
-        testOutput*.result.output.message == ["sys out ok\n" , "sys err ok\n"]
+        testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
 

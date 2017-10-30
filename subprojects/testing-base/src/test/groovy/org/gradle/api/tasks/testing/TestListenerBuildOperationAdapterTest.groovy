@@ -111,22 +111,4 @@ class TestListenerBuildOperationAdapterTest extends Specification {
             assert it[1].result.output == testOutputEvent
         }
     }
-
-    def "root test suite is not exposed"() {
-        when:
-        adapter.started(parentTestDescriptorInternal, testStartEvent)
-        then:
-        0 * listener._
-        0 * buildOperationIdFactory._
-        0 * clock._
-        0 * rootOperation._
-
-        when:
-        adapter.completed(parentTestDescriptorInternal, testResult, testCompleteEvent)
-        then:
-        0 * listener._
-        0 * buildOperationIdFactory._
-        0 * clock._
-        0 * rootOperation._
-    }
 }

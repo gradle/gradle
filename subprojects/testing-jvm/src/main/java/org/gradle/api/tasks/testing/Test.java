@@ -134,7 +134,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private TestListenerBuildOperationAdapter testListenerBuildOperationAdapter;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
