@@ -16,36 +16,14 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
- *
- * Output of a Test.
+ * Build Operations related to test execution.
+ * @param <D> the type of details object for the test related operation
+ * @param <R> the type of result object for the test related operation
  *
  * @since 4.4
  */
-@UsedByScanPlugin
-public final class TestOutputBuildOperationType extends AbstractTestBuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
-
-    /**
-     * Details of a test output.
-     *
-     * @since 4.4
-     */
-    @UsedByScanPlugin
-    public interface Details {
-    }
-
-    /**
-     * The output of a test.
-     *
-     * @since 4.4
-     */
-    @UsedByScanPlugin
-    public interface Result {
-        TestOutputEvent getOutput();
-    }
-
-    private TestOutputBuildOperationType(){
-    }
+public class AbstractTestBuildOperationType<D, R> implements BuildOperationType<D, R> {
 }

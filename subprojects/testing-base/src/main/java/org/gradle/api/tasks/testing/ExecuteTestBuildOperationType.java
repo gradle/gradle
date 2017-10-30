@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -25,7 +24,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.4
  * */
 @UsedByScanPlugin
-public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
+public final class ExecuteTestBuildOperationType extends AbstractTestBuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
     /**
      * Details of a running Test
