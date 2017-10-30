@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 
@@ -27,7 +27,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private String name;
     private boolean changing;
     private boolean force;
-    private final ModuleVersionConstraint versionConstraint;
+    private final VersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
@@ -36,7 +36,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.group = group;
         this.name = name;
-        versionConstraint = new DefaultModuleVersionConstraint(version);
+        versionConstraint = new DefaultVersionConstraint(version);
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {
@@ -89,12 +89,12 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
-    public ModuleVersionConstraint getVersionConstraint() {
+    public VersionConstraint getVersionConstraint() {
         return versionConstraint;
     }
 
     @Override
-    public void version(Action<? super ModuleVersionConstraint> configureAction) {
+    public void version(Action<? super VersionConstraint> configureAction) {
         validateMutation();
         configureAction.execute(versionConstraint);
     }

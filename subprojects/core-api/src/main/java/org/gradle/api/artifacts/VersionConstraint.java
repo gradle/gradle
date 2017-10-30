@@ -26,7 +26,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 @Incubating
-public interface ModuleVersionConstraint {
+public interface VersionConstraint {
     /**
      * The preferred version of a module. The preferred version of a module can typically be upgraded during dependency resolution,
      * unless further constraints are added.

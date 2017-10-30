@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.ModuleVersionConstraint
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
@@ -117,7 +117,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependency.setForce(true)
-        1 * dependency.version(_ as Action<ModuleVersionConstraint>)
+        1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
     void "can use dynamic method to add dependency"() {

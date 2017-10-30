@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     private String group;
     private String name;
-    private ModuleVersionConstraint moduleVersionConstraint;
+    private VersionConstraint moduleVersionConstraint;
 
     public DefaultModuleVersionSelector(String group, String name, String version) {
         this.group = group;
@@ -56,7 +56,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     @Override
-    public ModuleVersionConstraint getVersionConstraint() {
+    public VersionConstraint getVersionConstraint() {
         return moduleVersionConstraint;
     }
 
@@ -65,7 +65,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     public DefaultModuleVersionSelector setVersion(String version) {
-        this.moduleVersionConstraint = new DefaultModuleVersionConstraint(version);
+        this.moduleVersionConstraint = new DefaultVersionConstraint(version);
         return this;
     }
 
@@ -106,7 +106,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return result;
     }
 
-    public void setVersionConstraint(ModuleVersionConstraint prefersVersion) {
+    public void setVersionConstraint(VersionConstraint prefersVersion) {
         this.moduleVersionConstraint = prefersVersion;
     }
 
