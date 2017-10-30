@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import org.apache.tools.zip.ZipFile;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,25 +28,22 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileContentCache<Boolean> cache;
+    private final FileContentCache<Map<String, String>> cache;
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
+        cache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER);
     }
 
     /**
@@ -78,18 +75,25 @@ public class AnnotationProcessorDetector {
         if (checkExplicitProcessorOption(compileOptions)) {
             return compileClasspath;
         }
+        return makeCachingFileCollectionForPath(compileClasspath);
+    }
+
+    private FileCollection makeCachingFileCollectionForPath(final FileCollection inputPath) {
         return fileCollectionFactory.create(new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(compileClasspath);
+                context.add(inputPath);
             }
         }, new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
-                for (File file : compileClasspath) {
-                    boolean hasServices = cache.get(file);
-                    if (hasServices) {
-                        return compileClasspath.getFiles();
+                // TODO:  This currently only scans until it finds one AP.
+                // Might want to get rid of this code entirely, and just return the compile classpath
+                // from getEffectiveAnnotationProcessorClasspath.  In IncrementalCompilerDecorator we
+                // look in the cache, which should trigger the calculator.
+                for (File file : inputPath) {
+                    if ((new AnnotationProcessorInfo(cache.get(file))).isProcessor()) {
+                        return inputPath.getFiles();
                     }
                 }
                 return Collections.emptySet();
@@ -102,7 +106,22 @@ public class AnnotationProcessorDetector {
         });
     }
 
-    private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
+    public Set<AnnotationProcessorInfo> getAnnotationProcessorInfo(final CompileOptions compileOptions, final FileCollection compileClasspath) {
+        FileCollection effectiveAnnotationProcessorPath = getEffectiveAnnotationProcessorClasspath(compileOptions, compileClasspath);
+        Set<AnnotationProcessorInfo> result = Sets.newHashSet();
+        for (File file : effectiveAnnotationProcessorPath) {
+            Map<String, String> props = cache.get(file);
+            if (props != null) {
+                AnnotationProcessorInfo info = new AnnotationProcessorInfo(props);
+                if (info.isProcessor()) {
+                    result.add(info);
+                }
+            }
+        }
+        return result;
+    }
+
+    public boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
         boolean hasExplicitProcessor = false;
         int pos = compileOptions.getCompilerArgs().indexOf("-processor");
         if (pos >= 0) {
@@ -112,29 +131,5 @@ public class AnnotationProcessorDetector {
             hasExplicitProcessor = true;
         }
         return hasExplicitProcessor;
-    }
-
-    private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
-        @Override
-        public Boolean calculate(File file, FileType fileType) {
-            if (fileType == FileType.Directory) {
-                return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
-            }
-
-            if (fileType == FileType.RegularFile && FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
-                try {
-                    ZipFile zipFile = new ZipFile(file);
-                    try {
-                        return zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null;
-                    } finally {
-                        zipFile.close();
-                    }
-                } catch (IOException e) {
-                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
-                }
-            }
-
-            return false;
-        }
     }
 }

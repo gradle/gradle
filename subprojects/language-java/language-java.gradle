@@ -7,6 +7,8 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJvm")
 
+    compile 'org.gradle.incap:incap-build-client:0.0.2'
+
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
 }

@@ -44,6 +44,9 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
+        // Create the incap working dir if necessary.  Incap will throw if the dir doesn't exist.
+        spec.getIncrementalAnnotationProcessorWorkingDir().mkdirs();
+
         JavaCompiler.CompilationTask task = createCompileTask(spec);
         boolean success = task.call();
         if (!success) {

@@ -19,6 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
@@ -29,10 +33,13 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Stash;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.time.Time;
+import org.gradle.incap.IncapBuildClientFactory;
+import org.gradle.incap.impl.data.GeneratedClassFile;
+import org.gradle.incap.impl.data.GeneratedFile;
+import org.gradle.incap.impl.data.GeneratedSourceFile;
+import org.gradle.incap.impl.data.InputType;
 import org.gradle.internal.time.Timer;
 
-import java.io.File;
-import java.util.Set;
 
 public class ClassSetAnalysisUpdater {
 
@@ -65,8 +72,50 @@ public class ClassSetAnalysisUpdater {
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }
+        recordGeneratedTypeDependencies(analyzer, spec);
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
     }
+
+    private void recordGeneratedTypeDependencies(ClassFilesAnalyzer analyzer, JavaCompileSpec spec) {
+        try {
+            File workingDir = spec.getIncrementalAnnotationProcessorWorkingDir();
+            // Create the incap working dir if necessary.  Incap will throw if the dir doesn't exist.
+            if (!workingDir.exists()) {
+                workingDir.mkdirs();
+            }
+            if (!workingDir.exists()) {
+                throw new IllegalStateException("Error creating: " + workingDir);
+            }
+            Map<InputType, Set<GeneratedFile>> mappings
+                = IncapBuildClientFactory.getBuildClient(workingDir).readMappingFile().getMapInputTypeToGeneratedFiles();
+            for (Map.Entry<InputType, Set<GeneratedFile>> entry : mappings.entrySet()) {
+                String generatingType = entry.getKey().getName();
+                String generatedType = null;
+                for (GeneratedFile output : entry.getValue()) {
+                    switch (output.getType()) {
+                        case CLASS:
+                            // TODO:  This needs to be tested.
+                            generatedType = ((GeneratedClassFile)output).getName().toString();
+                            break;
+                        case SOURCE:
+                            generatedType = ((GeneratedSourceFile)output).getName().toString();
+                            break;
+                        case RESOURCE:
+                            // For now, don't allow these.
+                            // TODO:  Incap should somehow report which AP it was, for logging.
+                            // Might need to build metadata into the mappings file.
+                            throw new IllegalStateException("Incremental annotation processor found that generates a resource.");
+                    }
+                    analyzer.addGeneratorMapping(generatingType, generatedType);
+                }
+            }
+        } catch (IOException iox) {
+            // TODO:  We couldn't read the mapping file.  What should we do?
+        }
+    }
 }
+
+
+
