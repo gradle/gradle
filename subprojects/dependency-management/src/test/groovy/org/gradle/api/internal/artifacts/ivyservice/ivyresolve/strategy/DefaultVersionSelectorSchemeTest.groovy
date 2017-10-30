@@ -17,14 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultVersionSelectorSchemeTest extends Specification {
     def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
 
-    def "creates version range selector" () {
+    def "creates version range selector"() {
         expect:
         matcher.parseSelector(selector) instanceof VersionRangeSelector
-        
+
         where:
         selector << [
             "[1.0,2.0]",
@@ -39,8 +40,8 @@ class DefaultVersionSelectorSchemeTest extends Specification {
             "[1.0]",
         ]
     }
-    
-    def "creates sub version selector" () {
+
+    def "creates sub version selector"() {
         expect:
         matcher.parseSelector(selector) instanceof SubVersionSelector
 
@@ -51,7 +52,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         ]
     }
 
-    def "creates latest version selector" () {
+    def "creates latest version selector"() {
         expect:
         matcher.parseSelector(selector) instanceof LatestVersionSelector
 
@@ -63,7 +64,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         ]
     }
 
-    def "creates exact version selector as default" () {
+    def "creates exact version selector as default"() {
         expect:
         matcher.parseSelector(selector) instanceof ExactVersionSelector
 
@@ -77,5 +78,47 @@ class DefaultVersionSelectorSchemeTest extends Specification {
             "[]",
             "[1,2,3]",
         ]
+    }
+
+    @Unroll
+    def "can compute rejection selector for strict dependency versions"() {
+        given:
+        def normal = matcher.parseSelector(selector)
+
+        when:
+        def reject = matcher.complementForRejection(normal)
+
+        then:
+        reject.selector == complement
+
+        where:
+        selector | complement
+        '20'     | ']20,)'
+        '[3,10]' | ']10,)'
+        '[3,10[' | '[10,)'
+        ']3,10]' | ']10,)'
+        ']3,10[' | '[10,)'
+        '(,10]'  | ']10,)'
+        '(,10['  | '[10,)'
+
+    }
+
+    @Unroll
+    def "cannot compute rejection selector for strict dependency versions"() {
+        given:
+        def normal = matcher.parseSelector(selector)
+
+        when:
+        matcher.complementForRejection(normal)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == error
+
+        where:
+        selector         | error
+        'latest.release' | 'Version \'latest.release\' cannot be converted to a strict version constraint.'
+        '1+'             | 'Version \'1+\' cannot be converted to a strict version constraint.'
+        '[3,)'           | 'Version \'[3,)\' cannot be converted to a strict version constraint.'
     }
 }
