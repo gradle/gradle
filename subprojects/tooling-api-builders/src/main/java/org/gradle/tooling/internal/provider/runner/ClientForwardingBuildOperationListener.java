@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.tasks.testing.AbstractTestBuildOperationType;
+import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType;
+import org.gradle.api.tasks.testing.TestOutputBuildOperationType;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -53,7 +54,8 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     private boolean isTestRelatedBuildOperationEvent(Object details) {
-        return details != null && !AbstractTestBuildOperationType.class.isAssignableFrom(details.getClass());
+        return details != null && (TestOutputBuildOperationType.class.isAssignableFrom(details.getClass())
+            || ExecuteTestBuildOperationType.class.isAssignableFrom(details.getClass()));
     }
 
     @Override
