@@ -25,38 +25,62 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
+
     private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io", "scala.util.parsing.input", "scala.collection");
 
-    //https://github.com/playframework/playframework/blob/2.6.0/framework/src/build-link/src/main/java/play/TemplateImports.java
-    private static final Collection<String> DEFAULT_JAVA_IMPORTS = Arrays.asList(
-        "models._",
-        "controllers._",
-        "play.api.i18n._",
-        "play.api.templates.PlayMagic._",
-        "java.lang._",
-        "java.util._",
-        "scala.collection.JavaConverters._",
-        "play.core.j.PlayMagicForJava._",
-        "play.mvc._",
-        "play.api.data.Field",
-        "play.mvc.Http.Context.Implicit._",
-        "play.twirl.api._"
-    );
+    // Default imports are based on:
+    // https://github.com/playframework/playframework/blob/2.6.0/framework/src/build-link/src/main/java/play/TemplateImports.java
+    private static List<String> minimalJavaTemplateImports;
+    private static List<String> defaultJavaTemplateImports;
+    private static List<String> defaultScalaTemplateImports;
 
-    private static final Collection<String> DEFAULT_SCALA_IMPORTS = Arrays.asList(
-        "models._",
-        "controllers._",
-        "play.api.i18n._",
-        "play.api.templates.PlayMagic._",
-        "play.api.mvc._",
-        "play.api.data._",
-        "play.twirl.api._");
+    private static List<String> defaultTemplateImports = Collections.unmodifiableList(
+        Arrays.asList(
+            "models._",
+            "controllers._",
+            "play.api.i18n._",
+            "play.api.templates.PlayMagic._",
+            // Based on https://github.com/playframework/twirl/blob/1.3.13/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L156
+            "_root_.play.twirl.api.TwirlFeatureImports._",
+            "_root_.play.twirl.api.TwirlHelperImports._",
+            "_root_.play.twirl.api.Html",
+            "_root_.play.twirl.api.JavaScript",
+            "_root_.play.twirl.api.Txt",
+            "_root_.play.twirl.api.Xml"
+        ));
+
+    static {
+        List<String> minimalJavaImports = new ArrayList<String>();
+        minimalJavaImports.addAll(defaultTemplateImports);
+        minimalJavaImports.add("java.lang._");
+        minimalJavaImports.add("java.util._");
+        minimalJavaImports.add("scala.collection.JavaConverters._");
+        minimalJavaImports.add("play.core.j.PlayMagicForJava._");
+        minimalJavaImports.add("play.mvc._");
+        minimalJavaImports.add("play.libs.F");
+        minimalJavaImports.add("play.api.data.Field");
+        minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
+        minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
+
+        List<String> defaultJavaImports = new ArrayList<String>();
+        defaultJavaImports.addAll(minimalJavaTemplateImports);
+        defaultJavaImports.add("play.data._");
+        defaultJavaImports.add("play.core.j.PlayFormsMagicForJava._");
+        defaultJavaTemplateImports = Collections.unmodifiableList(defaultJavaImports);
+
+        List<String> scalaImports = new ArrayList<String>();
+        scalaImports.addAll(defaultTemplateImports);
+        scalaImports.add("play.api.mvc._");
+        scalaImports.add("play.api.data._");
+        defaultScalaTemplateImports = Collections.unmodifiableList(scalaImports);
+    }
 
     public TwirlCompilerAdapterV13X(String twirlVersion, String scalaVersion) {
         super(twirlVersion, scalaVersion);
@@ -92,6 +116,15 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
             ScalaCodecMapper.create(cl, "UTF-8"),
             isInclusiveDots(),
         };
+    }
+
+    @Override
+    protected Collection<String> getDefaultImports(TwirlImports twirlImports) {
+        if (twirlImports == TwirlImports.JAVA) {
+            return defaultJavaTemplateImports;
+        } else {
+            return defaultScalaTemplateImports;
+        }
     }
 
     private Object toScalaSeq(Collection<?> list, ClassLoader classLoader) {
