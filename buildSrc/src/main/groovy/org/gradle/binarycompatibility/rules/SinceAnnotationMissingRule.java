@@ -179,14 +179,14 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), classDeclaration)) {
                         return new Object();
                     }
-                    return null;
+                    return super.visit(classDeclaration, arg);
                 }
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), annotationDeclaration)) {
                         return new Object();
                     }
-                    return null;
+                    return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
@@ -219,6 +219,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
     }
 
     private boolean matchesNameAndContainsAnnotation(String name1, String name2, BodyDeclaration declaration) {
+        name2 = name2.replaceAll(".*\\$", ""); //strip outer class names
         return name1.equals(name2) && declaration.getComment() != null && declaration.getComment().getContent().contains("@since " + getCurrentVersion());
     }
 

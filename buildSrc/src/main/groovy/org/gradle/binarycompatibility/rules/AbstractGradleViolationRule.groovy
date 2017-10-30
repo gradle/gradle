@@ -122,7 +122,8 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     File sourceFileFor(String className) {
         List<String> sourceFolders = context.userData.get("apiSourceFolders") as List<String>
         for (String sourceFolder : sourceFolders) {
-            def sourceFile = new File("$sourceFolder/${className.replace('.', '/')}.java")
+            def sourceFilePath = className.replace('.', '/').replaceAll('\\$.*', '')
+            def sourceFile = new File("$sourceFolder/${sourceFilePath}.java")
             if (sourceFile.exists()) {
                 return sourceFile
             }
