@@ -60,7 +60,7 @@ ${commentAndLockFileVersionJson()}
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
-    def "can write locks if at least one dependency is resolvable"() {
+    def "can write locks for resolvable dependencies even if at least one dependency is unresolvable"() {
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
@@ -68,8 +68,8 @@ ${commentAndLockFileVersionJson()}
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
         buildFile << """
             dependencies {
-                myConf 'foo:bar:1.5'
                 myConf 'does.not:exist:1.2.3'
+                myConf 'foo:bar:1.5'
             }
         """
         buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
