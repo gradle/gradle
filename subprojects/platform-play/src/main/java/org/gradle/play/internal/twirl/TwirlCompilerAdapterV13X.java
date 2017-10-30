@@ -37,11 +37,10 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     // Default imports are based on:
     // https://github.com/playframework/playframework/blob/2.6.0/framework/src/build-link/src/main/java/play/TemplateImports.java
-    private static List<String> minimalJavaTemplateImports;
-    private static List<String> defaultJavaTemplateImports;
-    private static List<String> defaultScalaTemplateImports;
+    private static List<String> DEFAULT_JAVA_TEMPLATE_IMPORTS;
+    private static List<String> DEFAULT_SCALA_TEMPLATE_IMPORTS;
 
-    private static List<String> defaultTemplateImports = Collections.unmodifiableList(
+    private static List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
         Arrays.asList(
             "models._",
             "controllers._",
@@ -57,29 +56,25 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
         ));
 
     static {
-        List<String> minimalJavaImports = new ArrayList<String>();
-        minimalJavaImports.addAll(defaultTemplateImports);
-        minimalJavaImports.add("java.lang._");
-        minimalJavaImports.add("java.util._");
-        minimalJavaImports.add("scala.collection.JavaConverters._");
-        minimalJavaImports.add("play.core.j.PlayMagicForJava._");
-        minimalJavaImports.add("play.mvc._");
-        minimalJavaImports.add("play.libs.F");
-        minimalJavaImports.add("play.api.data.Field");
-        minimalJavaImports.add("play.mvc.Http.Context.Implicit._");
-        minimalJavaTemplateImports = Collections.unmodifiableList(minimalJavaImports);
-
         List<String> defaultJavaImports = new ArrayList<String>();
-        defaultJavaImports.addAll(minimalJavaTemplateImports);
+        defaultJavaImports.addAll(DEFAULT_TEMPLATE_IMPORTS);
+        defaultJavaImports.add("java.lang._");
+        defaultJavaImports.add("java.util._");
+        defaultJavaImports.add("scala.collection.JavaConverters._");
+        defaultJavaImports.add("play.core.j.PlayMagicForJava._");
+        defaultJavaImports.add("play.mvc._");
+        defaultJavaImports.add("play.libs.F");
+        defaultJavaImports.add("play.api.data.Field");
+        defaultJavaImports.add("play.mvc.Http.Context.Implicit._");
         defaultJavaImports.add("play.data._");
         defaultJavaImports.add("play.core.j.PlayFormsMagicForJava._");
-        defaultJavaTemplateImports = Collections.unmodifiableList(defaultJavaImports);
+        DEFAULT_JAVA_TEMPLATE_IMPORTS = Collections.unmodifiableList(defaultJavaImports);
 
         List<String> scalaImports = new ArrayList<String>();
-        scalaImports.addAll(defaultTemplateImports);
+        scalaImports.addAll(DEFAULT_TEMPLATE_IMPORTS);
         scalaImports.add("play.api.mvc._");
         scalaImports.add("play.api.data._");
-        defaultScalaTemplateImports = Collections.unmodifiableList(scalaImports);
+        DEFAULT_SCALA_TEMPLATE_IMPORTS = Collections.unmodifiableList(scalaImports);
     }
 
     public TwirlCompilerAdapterV13X(String twirlVersion, String scalaVersion) {
@@ -118,15 +113,6 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
         };
     }
 
-    @Override
-    protected Collection<String> getDefaultImports(TwirlImports twirlImports) {
-        if (twirlImports == TwirlImports.JAVA) {
-            return defaultJavaTemplateImports;
-        } else {
-            return defaultScalaTemplateImports;
-        }
-    }
-
     private Object toScalaSeq(Collection<?> list, ClassLoader classLoader) {
         ScalaMethod method = ScalaReflectionUtil.scalaMethod(classLoader, "scala.collection.JavaConversions", "asScalaBuffer", List.class);
         return method.invoke(list);
@@ -154,11 +140,11 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     @Override
     protected Collection<String> getDefaultScalaImports() {
-        return DEFAULT_SCALA_IMPORTS;
+        return DEFAULT_SCALA_TEMPLATE_IMPORTS;
     }
 
     @Override
     protected Collection<String> getDefaultJavaImports() {
-        return DEFAULT_JAVA_IMPORTS;
+        return DEFAULT_JAVA_TEMPLATE_IMPORTS;
     }
 }
