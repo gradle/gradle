@@ -80,7 +80,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url "https://plugins.gradle.org/m2" }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:${version}"

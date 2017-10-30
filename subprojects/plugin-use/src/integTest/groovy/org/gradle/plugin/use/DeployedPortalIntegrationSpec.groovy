@@ -116,9 +116,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             buildscript {
                 repositories {
-                    maven {
-                        url "https://plugins.gradle.org/m2/"
-                    }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "$helloWorldGroup:$helloWorldName:$HELLO_WORLD_PLUGIN_VERSION"

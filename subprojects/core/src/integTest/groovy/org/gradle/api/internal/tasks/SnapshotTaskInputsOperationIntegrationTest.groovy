@@ -54,7 +54,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url "https://plugins.gradle.org/m2" }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:1.9"
