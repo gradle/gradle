@@ -143,11 +143,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         throw new UnsupportedOperationException();
     }
 
+    @Incubating
     @Inject
     protected BuildOperationIdFactory getBuildOperationIdFactory() {
         throw new UnsupportedOperationException();
     }
 
+    @Incubating
     @Inject
     protected Clock getClock() {
         throw new UnsupportedOperationException();

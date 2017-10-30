@@ -25,20 +25,28 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.4
  */
-public class TestOutputBuildOperationType implements BuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
+@UsedByScanPlugin
+public final class TestOutputBuildOperationType implements BuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
 
     /**
-     * Details of a test output
+     * Details of a test output.
+     *
+     * @since 4.4
      */
     @UsedByScanPlugin
     public interface Details {
     }
 
     /**
-     * The output of a test
+     * The output of a test.
+     *
+     * @since 4.4
      */
     @UsedByScanPlugin
     public interface Result {
         TestOutputEvent getOutput();
+    }
+
+    private TestOutputBuildOperationType(){
     }
 }

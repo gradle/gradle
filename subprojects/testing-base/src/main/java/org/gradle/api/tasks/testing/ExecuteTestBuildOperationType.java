@@ -25,7 +25,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.4
  * */
 @UsedByScanPlugin
-public class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
+public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
     /**
      * Details of a running Test
