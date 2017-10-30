@@ -67,56 +67,16 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":a",
-      "configurations": [
-        {
-          "name": "conf1",
-          "dependencies": [
-            {
-              "moduleId": "my:dep",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "path": ":b",
-      "configurations": [
-        {
-          "name": "conf2",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "2.3.1",
-              "lockedVersion": "2.3.1"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "path": ":c",
-      "configurations": [
-        {
-          "name": "conf3",
-          "dependencies": [
-            {
-              "moduleId": "other:company",
-              "requestedVersion": "5.2",
-              "lockedVersion": "5.2"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def conf1Locks = parsedLockFile.getLocks(':a', 'conf1')
+        conf1Locks.size() == 1
+        conf1Locks[0].toString() == 'my:dep:1.5 -> 1.5'
+        def conf2Locks = parsedLockFile.getLocks(':b', 'conf2')
+        conf2Locks.size() == 1
+        conf2Locks[0].toString() == 'foo:bar:2.3.1 -> 2.3.1'
+        def conf3Locks = parsedLockFile.getLocks(':c', 'conf3')
+        conf3Locks.size() == 1
+        conf3Locks[0].toString() == 'other:company:5.2 -> 5.2'
         sha1File.text == 'ba328f04e6f66725791db639c04f9b09fe0b69da'
     }
 }

@@ -16,13 +16,16 @@
 
 package org.gradle.internal.dependencylock.generation
 
+import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.dependencylock.fixtures.LockFile
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.initialization.StartParameterBuildOptions.DependencyLockOption
 
 abstract class AbstractDependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final String ROOT_PROJECT_PATH = ':'
     public static final String MYCONF_CUSTOM_CONFIGURATION = 'myConf'
 
     TestFile lockFile
@@ -65,5 +68,9 @@ abstract class AbstractDependencyLockFileGenerationIntegrationTest extends Abstr
     protected void assertLockFileAndHashFileDoNotExist() {
         assert !lockFile.exists()
         assert !sha1File.exists()
+    }
+
+    protected LockFile parseLockFile() {
+        new LockFile(new JsonSlurper().parse(lockFile))
     }
 }

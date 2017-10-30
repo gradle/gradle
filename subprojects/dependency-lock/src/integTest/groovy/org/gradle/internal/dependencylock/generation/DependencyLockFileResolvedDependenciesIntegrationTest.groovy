@@ -37,26 +37,10 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 1
+        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
@@ -78,26 +62,10 @@ ${commentAndLockFileVersionJson()}
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 1
+        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
@@ -124,41 +92,13 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.+",
-              "lockedVersion": "1.3"
-            },
-            {
-              "moduleId": "org:gradle",
-              "requestedVersion": "+",
-              "lockedVersion": "7.5"
-            },
-            {
-              "moduleId": "my:prod",
-              "requestedVersion": "latest.release",
-              "lockedVersion": "3.2.1"
-            },
-            {
-              "moduleId": "dep:range",
-              "requestedVersion": "[1.0,2.0]",
-              "lockedVersion": "1.7.1"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 4
+        locks[0].toString() == 'foo:bar:1.+ -> 1.3'
+        locks[1].toString() == 'org:gradle:+ -> 7.5'
+        locks[2].toString() == 'my:prod:latest.release -> 3.2.1'
+        locks[3].toString() == 'dep:range:[1.0,2.0] -> 1.7.1'
         sha1File.text == 'e1694e2aaafe588b76b0acb82b258a06b853a494'
     }
 
@@ -181,26 +121,10 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.+",
-              "lockedVersion": "1.3"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 1
+        locks[0].toString() == 'foo:bar:1.+ -> 1.3'
         sha1File.text == 'a9996480fc8669d8dbb61c8352a2525cc5c554e9'
     }
 
@@ -225,46 +149,16 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "a",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.+",
-              "lockedVersion": "1.3"
-            }
-          ]
-        },
-        {
-          "name": "b",
-          "dependencies": [
-            {
-              "moduleId": "org:gradle",
-              "requestedVersion": "7.5",
-              "lockedVersion": "7.5"
-            }
-          ]
-        },
-        {
-          "name": "c",
-          "dependencies": [
-            {
-              "moduleId": "my:prod",
-              "requestedVersion": "latest.release",
-              "lockedVersion": "3.2.1"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def aLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'a')
+        aLocks.size() == 1
+        aLocks[0].toString() == 'foo:bar:1.+ -> 1.3'
+        def bLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'b')
+        bLocks.size() == 1
+        bLocks[0].toString() == 'org:gradle:7.5 -> 7.5'
+        def cLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'c')
+        cLocks.size() == 1
+        cLocks[0].toString() == 'my:prod:latest.release -> 3.2.1'
         sha1File.text == '59578372a1c61109e5af9ad4d915c8ec8c62a330'
     }
 
@@ -291,51 +185,15 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:first",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            },
-            {
-              "moduleId": "foo:second",
-              "requestedVersion": "1.6.7",
-              "lockedVersion": "1.6.7"
-            },
-            {
-              "moduleId": "foo:third",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            },
-            {
-              "moduleId": "bar:first",
-              "requestedVersion": "2.+",
-              "lockedVersion": "2.5"
-            },
-            {
-              "moduleId": "bar:second",
-              "requestedVersion": "2.6.7",
-              "lockedVersion": "2.6.7"
-            },
-            {
-              "moduleId": "bar:third",
-              "requestedVersion": "2.5",
-              "lockedVersion": "2.5"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 6
+        locks[0].toString() == 'foo:first:1.5 -> 1.5'
+        locks[1].toString() == 'foo:second:1.6.7 -> 1.6.7'
+        locks[2].toString() == 'foo:third:1.5 -> 1.5'
+        locks[3].toString() == 'bar:first:2.+ -> 2.5'
+        locks[4].toString() == 'bar:second:2.6.7 -> 2.6.7'
+        locks[5].toString() == 'bar:third:2.5 -> 2.5'
         sha1File.text == 'c9dede601fb738575952da5dae120b2a35a9ff0d'
     }
 
@@ -359,31 +217,11 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "myConf",
-          "dependencies": [
-            {
-              "moduleId": "foo:first",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            },
-            {
-              "moduleId": "foo:second",
-              "requestedVersion": "1.9",
-              "lockedVersion": "1.9"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        locks.size() == 2
+        locks[0].toString() == 'foo:first:1.5 -> 1.5'
+        locks[1].toString() == 'foo:second:1.9 -> 1.9'
         sha1File.text == 'bfb3d6afb5b5b08b1dac96586ab76d014b3ba517'
     }
 
@@ -407,31 +245,11 @@ ${commentAndLockFileVersionJson()}
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        lockFile.text == """{
-${commentAndLockFileVersionJson()}
-  "projects": [
-    {
-      "path": ":",
-      "configurations": [
-        {
-          "name": "compileClasspath",
-          "dependencies": [
-            {
-              "moduleId": "foo:bar",
-              "requestedVersion": "1.5",
-              "lockedVersion": "1.5"
-            },
-            {
-              "moduleId": "org:gradle",
-              "requestedVersion": "7.5",
-              "lockedVersion": "7.5"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+        def parsedLockFile = parseLockFile()
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'compileClasspath')
+        locks.size() == 2
+        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[1].toString() == 'org:gradle:7.5 -> 7.5'
         sha1File.text == '60509fcde47220bc2bbd808a5ecb8a5839fe323c'
     }
 }
