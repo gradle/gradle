@@ -510,7 +510,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      * @since 4.4
      */
-    @Incubating
+    @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), this, getMaxParallelForks());
     }
