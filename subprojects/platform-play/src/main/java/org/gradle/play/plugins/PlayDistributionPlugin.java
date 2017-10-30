@@ -55,6 +55,8 @@ import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.play.internal.platform.PlayMajorVersion;
+import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -144,7 +146,7 @@ public class PlayDistributionPlugin extends RuleSource {
                 public void execute(CreateStartScripts createStartScripts) {
                     createStartScripts.setDescription("Creates OS specific scripts to run the " + binary + ".");
                     createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
-                    createStartScripts.setMainClassName("play.core.server.NettyServer");
+                    createStartScripts.setMainClassName(getMainClass(distribution));
                     createStartScripts.setApplicationName(distribution.getName());
                     createStartScripts.setOutputDir(scriptsDir);
                 }
@@ -165,6 +167,22 @@ public class PlayDistributionPlugin extends RuleSource {
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");
+        }
+    }
+
+    private String getMainClass(PlayDistribution distribution) {
+        PlayPlatform playPlatform = distribution.getBinary().getTargetPlatform();
+        String playVersion = playPlatform.getPlayVersion();
+        switch (PlayMajorVersion.forPlatform(playPlatform)) {
+            case PLAY_2_2_X:
+            case PLAY_2_3_X:
+            case PLAY_2_4_X:
+            case PLAY_2_5_X:
+                return "play.core.server.NettyServer";
+            case PLAY_2_6_X:
+                return "play.core.server.ProdServerStart";
+            default:
+                throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
         }
     }
 
