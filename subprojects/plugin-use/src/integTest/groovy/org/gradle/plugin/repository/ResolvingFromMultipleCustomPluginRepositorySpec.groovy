@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -258,5 +259,75 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         then:
         succeeds("helloWorld")
+    }
+
+    def "can name custom plugin repositories"() {
+        given:
+        def mavenRepoName = "Custom Maven Repo Name"
+        def ivyRepoName = "Custom Ivy Repo Name"
+
+        and:
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        name = "$mavenRepoName"
+                        url = ""
+                    }
+                    ivy {
+                        name = "$ivyRepoName"
+                        url = ""
+                    }
+                }
+            }
+        """
+
+        and:
+        buildFile << """
+            plugins {
+                id("com.example.absent") version "1.0"
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failure.assertThatDescription(containsNormalizedString("""
+- $mavenRepoName (Could not resolve plugin artifact 'com.example.absent:com.example.absent.gradle.plugin:1.0')
+- $ivyRepoName (Could not resolve plugin artifact 'com.example.absent:com.example.absent.gradle.plugin:1.0')"""))
+    }
+
+    @Issue("gradle/gradle#3210")
+    def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
+        given:
+        requireOwnGradleUserHomeDir()
+
+        and:
+        repoA = mavenRepo("maven-repo")
+        repoB = ivyRepo("ivy-repo")
+
+        and:
+        def abModule = publishPlugin(pluginAB, repoB).pluginModule
+        (publishPlugin(pluginA, repoA).pluginModule as MavenModule)
+            .dependsOn(abModule.group, abModule.module, abModule.version)
+            .publishPom()
+
+        and:
+        use(repoB, repoA)
+
+        and:
+        buildFile << """
+            plugins {
+                id "$pluginA" version "1.0"
+            }
+        """
+
+        when:
+        succeeds "buildEnvironment"
+
+        then:
+        output.contains("org.example:pluginA:1.0")
+        output.contains("org.example:pluginAB:1.0")
     }
 }
