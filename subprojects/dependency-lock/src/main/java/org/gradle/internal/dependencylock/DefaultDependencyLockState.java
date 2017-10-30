@@ -35,27 +35,25 @@ public class DefaultDependencyLockState implements DependencyLockState {
 
     @Override
     public void resolveAndPersist(final Project project, final Configuration configuration) {
-        if (configuration.isCanBeResolved()) {
-            configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
-                @Override
-                public void execute(ResolvableDependencies resolvableDependencies) {
-                    resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                        @Override
-                        public void execute(DependencyResult dependencyResult) {
-                            if (dependencyResult instanceof ResolvedDependencyResult) {
-                                ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
-                                ComponentSelector requested = dependencyResult.getRequested();
+        configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
+            @Override
+            public void execute(ResolvableDependencies resolvableDependencies) {
+                resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
+                    @Override
+                    public void execute(DependencyResult dependencyResult) {
+                        if (dependencyResult instanceof ResolvedDependencyResult) {
+                            ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
+                            ComponentSelector requested = dependencyResult.getRequested();
 
-                                if (requested instanceof ModuleComponentSelector) {
-                                    ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
-                                    addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
-                                }
+                            if (requested instanceof ModuleComponentSelector) {
+                                ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
+                                addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
                             }
                         }
-                    });
-                }
-            });
-        }
+                    }
+                });
+            }
+        });
     }
 
     private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
