@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
@@ -32,11 +33,12 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     public static final int TEST_START_TIMESTAMP = 200
 
+    BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     BuildOperationState rootOperation = Mock()
     BuildOperationListener listener = Mock()
     Clock clock = Mock()
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(rootOperation, listener, buildOperationIdFactory, clock)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(buildOperationExecutor, listener, buildOperationIdFactory, clock)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()
@@ -46,6 +48,7 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     def setup() {
         _ * testDescriptorInternal.getParent() >> parentTestDescriptorInternal
+        _ * buildOperationExecutor.currentOperation >> rootOperation
     }
 
     def "tests are exposed"() {

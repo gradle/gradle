@@ -21,11 +21,11 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Clock;
@@ -36,17 +36,17 @@ import java.util.Map;
 /**
  * Emitting build operations for tests
  */
-class TestListenerBuildOperationAdapter implements TestListenerInternal {
+public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
     };
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
-    private final BuildOperationState testRootBuildOperation;
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final Clock clock;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public TestListenerBuildOperationAdapter(BuildOperationState testRootBuildOperation, BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
-        this.testRootBuildOperation = testRootBuildOperation;
+    public TestListenerBuildOperationAdapter(BuildOperationExecutor buildOperationExecutor, BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.listener = listener;
         this.buildOperationIdFactory = buildOperationIdFactory;
         this.clock = clock;
@@ -81,7 +81,7 @@ class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
         DefaultTestBuildOperationDetails details = new DefaultTestBuildOperationDetails(testDescriptor, testStartEvent.getStartTime());
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
-        Object parentId = parentOperation == null ? testRootBuildOperation.getId() : parentOperation.descriptor.getId();
+        Object parentId = parentOperation == null ? buildOperationExecutor.getCurrentOperation().getId() : parentOperation.descriptor.getId();
         return BuildOperationDescriptor.displayName(testDescriptor.getName())
             .operationType(BuildOperationCategory.TASK)
             .details(details)
