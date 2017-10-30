@@ -41,7 +41,7 @@ public class DefaultModuleVersionConstraint implements ModuleVersionConstraintIn
 
     @Override
     public VersionSelector getRejectionSelector(VersionSelectorScheme versionSelectorScheme) {
-        return strict ? new NotVersionSelector(getPreferredSelector(versionSelectorScheme)) : null;
+        return strict ? versionSelectorScheme.complementForRejection(getPreferredSelector(versionSelectorScheme)) : null;
     }
 
     @Override
