@@ -210,6 +210,16 @@
             "type": "org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result",
             "member": "Method org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result.getOutput()",
             "acceptation": "Build Operation typs are not annotated with incubating"
+       },
+       {
+            "type": "org.gradle.api.tasks.testing.AbstractTestBuildOperationType",
+            "member": "Class org.gradle.api.tasks.testing.AbstractTestBuildOperationType",
+            "acceptation": "Build Operation typs are not annotated with incubating"
+       },
+       {
+            "type": "org.gradle.api.tasks.testing.AbstractTestBuildOperationType",
+            "member": "Constructor org.gradle.api.tasks.testing.AbstractTestBuildOperationType()",
+            "acceptation": "Build Operation typs are not annotated with incubating"
        }
     ]
 }

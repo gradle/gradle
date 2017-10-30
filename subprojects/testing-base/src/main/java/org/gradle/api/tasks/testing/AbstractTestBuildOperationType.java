@@ -25,5 +25,5 @@ import org.gradle.internal.operations.BuildOperationType;
  *
  * @since 4.4
  */
-public class AbstractTestBuildOperationType<D, R> implements BuildOperationType<D, R> {
+abstract public class AbstractTestBuildOperationType<D, R> implements BuildOperationType<D, R> {
 }
