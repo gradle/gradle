@@ -118,6 +118,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     protected boolean isPreferGradleMetadata() {
+        if (System.getProperty("org.gradle.internal.preferGradleMetadata") != null) {
+            return true;
+        }
         return preferGradleMetadata;
     }
 
@@ -145,7 +148,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, preferGradleMetadata);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, isPreferGradleMetadata());
     }
 
     protected MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {

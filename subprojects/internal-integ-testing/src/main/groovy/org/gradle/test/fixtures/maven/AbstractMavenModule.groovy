@@ -225,7 +225,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     void assertPublishedAsJavaModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom")
+        def expectedArtifacts = ["${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom"]
+        if (moduleMetadata) {
+            expectedArtifacts << "${artifactId}-${publishArtifactVersion}.module"
+        }
+        assertArtifactsPublished(expectedArtifacts as String[])
         assert parsedPom.packaging == null
     }
 

@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.maven.MavenFileModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
         doResolveArtifacts("""
@@ -49,7 +49,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             def type = it.type == null ? 'jar' : it.type
             dependencies += """
             artifact {
-                name = '${sq(module.artifactId)}' // TODO:DAZ Get NPE if name isn't set
+                name = '${sq(module.artifactId)}'
                 classifier = '${it.classifier}'
                 type = '${type}'
             }
@@ -67,7 +67,11 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
             configurations {
-                resolve
+                resolve {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+                    }
+                }
             }
             repositories {
                 maven { url "${mavenRepo.uri}" }

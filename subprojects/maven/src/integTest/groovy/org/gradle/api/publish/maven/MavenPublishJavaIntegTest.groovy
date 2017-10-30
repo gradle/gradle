@@ -45,6 +45,37 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
     }
 
+    def "can publish java-library with no dependencies using Gradle metadata"() {
+        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+        mavenModule.withModuleMetadata()
+
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.isEmpty()
+
+        and:
+        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
+
+        when:
+        executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
+
+        then:
+        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
+    }
+
     def "can publish java-library with dependencies"() {
         given:
         createBuildScripts("""
