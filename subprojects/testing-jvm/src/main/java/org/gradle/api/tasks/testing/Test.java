@@ -523,7 +523,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
 
-
         if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
             addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
