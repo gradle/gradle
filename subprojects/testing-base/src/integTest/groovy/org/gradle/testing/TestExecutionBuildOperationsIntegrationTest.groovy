@@ -24,6 +24,8 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.junit.Rule
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
@@ -67,11 +69,12 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         and: "outputs are emitted in test build operation hierarchy"
         def testSuiteOutput = directChildren(firstLevelTestOps[1], TestOutputBuildOperationType)
         testSuiteOutput.size() == 4
-        testSuiteOutput*.result.output.message == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
+        testSuiteOutput*.result.output.message.collect { normaliseLineSeparators(it) }  == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
         testSuiteOutput*.result.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
 
         def testOutput = directChildren(testTestOps[0], TestOutputBuildOperationType)
         testOutput.size() == 2
+
         testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
@@ -113,10 +116,9 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         and: "outputs are emitted in test build operation hierarchy"
         def testOutput = directChildren(suiteTestTestOps[1], TestOutputBuildOperationType)
         testOutput.size() == 2
-        testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
+        testOutput*.result.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
-
 
     def directChildren(BuildOperationRecord parent, Class<ExecuteTestBuildOperationType> operationType) {
         return operations.search(parent, operationType) { it.parentId == parent.id }
