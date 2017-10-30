@@ -335,6 +335,30 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiConstructor) == null
     }
 
+    def "the @since annotation on inner classes is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationMissingRule([:]))
+        def jApiInnerClass = Stub(JApiClass)
+        jApiInnerClass.fullyQualifiedName >> "$TEST_INTERFACE_NAME\$Inner"
+
+        when:
+        sourceFile.text = """
+            /**
+             * @since 11.38
+             */
+            public interface $TEST_INTERFACE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public interface Inner {
+                }
+            } 
+        """
+
+        then:
+        rule.maybeViolation(jApiInnerClass) == null
+    }
+
     AbstractContextAwareViolationRule withContext(AbstractContextAwareViolationRule rule) {
         rule.context = new ViolationCheckContext() {
             String getClassName() { TEST_INTERFACE_NAME }
