@@ -221,4 +221,120 @@ configurations.compile.withDependencies {
         }
     }
 
+    def "can use withDependencies to alter configuration resolved in a multi-project build"() {
+        mavenRepo.module("org", "explicit-dependency", "3.4").publish()
+        mavenRepo.module("org", "added-dependency", "3.4").publish()
+        buildFile.text = """
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+}
+
+project(":producer") {
+    configurations {
+        compile {
+            withDependencies { deps ->
+                deps.each {
+                    it.version = '3.4'
+                }
+                deps.add(project.dependencies.create("org:added-dependency:3.4"))
+            }
+        }
+    }
+    dependencies {
+        compile "org:explicit-dependency"
+    }
+}
+
+project(":consumer") {
+    dependencies {
+        compile project(":producer")
+    }
+}
+
+subprojects {
+    task resolve {
+        dependsOn configurations.compile
+
+        doLast {
+            def resolvedJars = configurations.compile.files.collect { it.name }
+            assert "explicit-dependency-3.4.jar" in resolvedJars
+            assert "added-dependency-3.4.jar" in resolvedJars
+        }
+    }
+}
+"""
+        settingsFile << """
+include 'consumer', 'producer'
+"""
+        expect:
+        // relying on default dependency
+        succeeds("resolve")
+
+    }
+    def "can use defaultDependencies in a composite build"() {
+        buildTestFixture.withBuildInSubDir()
+        mavenRepo.module("org", "explicit-dependency", "3.4").publish()
+        mavenRepo.module("org", "added-dependency", "3.4").publish()
+
+        def producer = singleProjectBuild("producer") {
+            buildFile << """
+    apply plugin: 'java'
+
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    configurations {
+        compile {
+            withDependencies { deps ->
+                deps.each {
+                    it.version = '3.4'
+                }
+                deps.add(project.dependencies.create("org:added-dependency:3.4"))
+            }
+        }
+    }
+    dependencies {
+        compile "org:explicit-dependency"
+    }
+"""
+        }
+
+        def consumer = singleProjectBuild("consumer") {
+            settingsFile << """
+    includeBuild '${producer.toURI()}'
+"""
+            buildFile << """
+    apply plugin: 'java'
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
+    dependencies {
+        compile 'org.test:producer:1.0'
+    }
+    task resolve {
+        dependsOn configurations.compile
+
+        doLast {
+            def resolvedJars = configurations.compile.files.collect { it.name }
+            assert "explicit-dependency-3.4.jar" in resolvedJars
+            assert "added-dependency-3.4.jar" in resolvedJars
+        }
+    }
+"""
+        }
+
+        expect:
+        executer.inDirectory(consumer)
+        succeeds ":resolve"
+    }
+
+
 }
