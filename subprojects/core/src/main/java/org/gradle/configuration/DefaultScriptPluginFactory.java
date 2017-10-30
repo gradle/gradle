@@ -55,8 +55,6 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -73,8 +71,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
-    private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
     private final StreamHasher streamHasher;
@@ -91,8 +87,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
-                                      PluginRepositoryRegistry pluginRepositoryRegistry,
-                                      PluginRepositoryFactory pluginRepositoryFactory,
                                       ProviderFactory providerFactory,
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
@@ -108,8 +102,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
-        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
-        this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
         this.scriptPluginFactory = this;
@@ -160,8 +152,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
-            services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
-            services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
             services.add(TextResourceLoader.class, textResourceLoader);
             services.add(StreamHasher.class, streamHasher);

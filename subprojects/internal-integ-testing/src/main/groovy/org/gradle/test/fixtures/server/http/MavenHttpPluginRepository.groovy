@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.ConfigureUtil
@@ -44,8 +45,7 @@ class MavenHttpPluginRepository extends MavenHttpRepository implements HttpPlugi
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (server.running) {
-                    // TODO:pm use a static reference instead of harcoding the property here
-                    e.withArgument("-Dorg.gradle.internal.plugins.repo.override=${uri.toString()}")
+                    e.withArgument("-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${uri.toString()}")
                 }
             }
         })

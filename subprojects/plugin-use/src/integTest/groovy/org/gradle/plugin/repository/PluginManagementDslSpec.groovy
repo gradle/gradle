@@ -238,8 +238,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                     ivy {
                         url "http://repo.internal.net/ivy"
                         layout("pattern") {
-                            ivy = '[organisation]/[module]/[revision]/[module]-[revision].ivy'
-                            artifact = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                            ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                            artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
                             m2compatible true
                         }
                     }

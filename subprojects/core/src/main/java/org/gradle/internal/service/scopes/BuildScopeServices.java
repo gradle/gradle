@@ -156,8 +156,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
@@ -304,8 +302,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class),
-            get(PluginRepositoryRegistry.class),
-            get(PluginRepositoryFactory.class),
             get(ProviderFactory.class),
             get(TextResourceLoader.class),
             get(StreamHasher.class),

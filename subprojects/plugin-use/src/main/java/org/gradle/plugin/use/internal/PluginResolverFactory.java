@@ -16,13 +16,12 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.repository.PluginRepository;
-import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
@@ -36,19 +35,21 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
+    private final DependencyResolutionServices dependencyResolutionServices;
+    private final VersionSelectorScheme versionSelectorScheme;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
-        PluginRepositoryRegistry pluginRepositoryRegistry,
-        InjectedClasspathPluginResolver injectedClasspathPluginResolver
-    ) {
+        InjectedClasspathPluginResolver injectedClasspathPluginResolver,
+        DependencyResolutionServices dependencyResolutionServices,
+        VersionSelectorScheme versionSelectorScheme) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
-        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
+        this.dependencyResolutionServices = dependencyResolutionServices;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -73,7 +74,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
-     *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
+     *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
      * </ol>
      * <p>
      * This order is optimized for both performance and to allow resolvers earlier in the order
@@ -87,20 +88,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        addPluginRepositoryResolvers(resolvers, getPluginRepositories());
-    }
-
-    private ImmutableList<? extends PluginRepository> getPluginRepositories() {
-        return pluginRepositoryRegistry.getPluginRepositories();
-    }
-
-    private void addPluginRepositoryResolvers(List<PluginResolver> resolvers, ImmutableList<? extends PluginRepository> pluginRepositories) {
-        for (PluginRepository pluginRepository : pluginRepositories) {
-            resolvers.add(asResolver(pluginRepository));
-        }
-    }
-
-    private PluginResolver asResolver(PluginRepository pluginRepository) {
-        return ((PluginRepositoryInternal) pluginRepository).asResolver();
+        resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
     }
 }

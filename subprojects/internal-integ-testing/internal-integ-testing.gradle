@@ -34,6 +34,9 @@ dependencies {
     compile libraries.jcifs
     compile libraries.jansi
     compile libraries.commons_collections
+
+    implementation project(':dependencyManagement')
+
     runtime project(':logging')
 }
 

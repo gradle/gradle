@@ -178,9 +178,6 @@
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.repository.GradlePluginPortal</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
@@ -202,9 +199,6 @@
                 <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.repository.IvyPluginRepository</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.publish.maven.MavenPublication</td>
             </tr>
             <tr>
@@ -217,9 +211,6 @@
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.repository.MavenPluginRepository</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
             <tr>
@@ -227,12 +218,6 @@
             </tr>
             <tr>
                 <td>org.gradle.plugin.management.PluginManagementSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugin.repository.PluginRepositoriesSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.plugin.repository.PluginRepository</td>
             </tr>
             <tr>
                 <td>org.gradle.api.resources.ResourceHandler</td>
