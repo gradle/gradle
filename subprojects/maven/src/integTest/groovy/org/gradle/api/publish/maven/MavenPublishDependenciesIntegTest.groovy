@@ -214,4 +214,47 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         repoModule.parsedPom.scopes.runtime?.expectDependency('org:explicit-dependency:1.0')
     }
 
+    void "dependency mutations are reflected in published pom file"() {
+        given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                compile "org.test:dep1:1.0"
+            }
+            configurations.compile.withDependencies { deps ->
+                deps.each { dep ->
+                    dep.version = 'X'
+                }
+                deps.add project.dependencies.create("org.test:dep2:1.0")
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublishedAsJavaModule()
+        repoModule.parsedPom.scopes.compile?.expectDependency('org.test:dep1:X')
+        repoModule.parsedPom.scopes.compile?.expectDependency('org.test:dep2:1.0')
+    }
+
 }

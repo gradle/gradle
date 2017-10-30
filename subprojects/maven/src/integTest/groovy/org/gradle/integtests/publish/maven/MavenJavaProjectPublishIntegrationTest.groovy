@@ -129,10 +129,47 @@ apply plugin: 'maven'
 group = 'org.gradle.test'
 version = '1.1'
 
-${mavenCentralRepository()}
-
 configurations.compile.defaultDependencies { deps ->
     deps.add project.dependencies.create("commons-collections:commons-collections:3.2.2")
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+        """
+
+        when:
+        succeeds "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.1")
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.compile?.expectDependency('commons-collections:commons-collections:3.2.2')
+    }
+
+    void "dependency mutations are reflected in published pom file"() {
+        given:
+        using m2
+
+        settingsFile << "rootProject.name = 'publishTest'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle.test'
+version = '1.1'
+
+dependencies {
+    compile "commons-collections:commons-collections"
+}
+configurations.compile.withDependencies { deps ->
+    deps.each { dep ->
+        dep.version = '3.2.2'
+    }
 }
 
 uploadArchives {
