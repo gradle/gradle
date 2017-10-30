@@ -33,12 +33,11 @@ import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.Deque;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class XcTestScraper implements TextStream {
-    private static final Pattern TEST_SUITE_NAME_PATTERN = Pattern.compile("'(\\p{Alnum}+)'");
-    private static final Pattern TEST_CASE_NAME_PATTERN = Pattern.compile("'-\\[\\p{Alnum}+.(\\p{Alnum}+) (\\p{Alnum}+)]'");
     private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: -\\[\\p{Alnum}+.(\\p{Alnum}+) (\\p{Alnum}+)] : (.*)");
 
     private final TestResultProcessor processor;
@@ -59,74 +58,83 @@ class XcTestScraper implements TextStream {
     @Override
     public void text(String text) {
         synchronized (testDescriptors) {
-            if (text.startsWith("Test Suite")) {
-                Matcher testSuiteMatcher = TEST_SUITE_NAME_PATTERN.matcher(text);
-                if (!testSuiteMatcher.find()) {
-                    return;
-                }
-                String testSuite = testSuiteMatcher.group(1);
+            Scanner scanner = new Scanner(text).useDelimiter("'");
+            if (scanner.hasNext()) {
+                String token = scanner.next().trim();
+                if (token.equals("Test Suite")) {
+                    // Test Suite 'PassingTestSuite' started at 2017-10-30 10:45:47.828
+                    String testSuite = scanner.next();
+                    String status = scanner.next();
+                    boolean started = status.contains("started at");
 
-                if (text.contains("started at")) {
-                    TestDescriptorInternal testDescriptor = new DefaultTestClassDescriptor(idGenerator.generateId(), testSuite);  // Using DefaultTestClassDescriptor to fake JUnit test
-
-                    processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
-                    testDescriptors.push(new XCTestDescriptor(testDescriptor));
-                } else {
-                    XCTestDescriptor xcTestDescriptor = testDescriptors.pop();
-                    lastDescriptor = xcTestDescriptor.getDescriptorInternal();
-                    TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
-                    TestResult.ResultType resultType = TestResult.ResultType.SUCCESS;
-                    if (text.contains("failed at")) {
-                        resultType = TestResult.ResultType.FAILURE;
-                    }
-
-                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
-                }
-            } else if (text.startsWith("Test Case")) {
-                Matcher testCaseMatcher = TEST_CASE_NAME_PATTERN.matcher(text);
-                testCaseMatcher.find();
-                String testSuite = testCaseMatcher.group(1);
-                String testCase = testCaseMatcher.group(2);
-
-                if (text.contains("started.")) {
-                    TestDescriptorInternal testDescriptor = new DefaultTestMethodDescriptor(idGenerator.generateId(), testSuite, testCase);
-
-                    processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
-                    testDescriptors.push(new XCTestDescriptor(testDescriptor));
-                } else {
-                    XCTestDescriptor xcTestDescriptor = testDescriptors.pop();
-                    lastDescriptor = xcTestDescriptor.getDescriptorInternal();
-                    TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
-                    TestResult.ResultType resultType = TestResult.ResultType.SUCCESS;
-                    if (text.contains("failed (")) {
-                        resultType = TestResult.ResultType.FAILURE;
-                        processor.failure(testDescriptor.getId(), new Throwable(Joiner.on(TextUtil.getPlatformLineSeparator()).join(xcTestDescriptor.getMessages())));
-                    }
-
-                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
-                }
-            } else {
-                XCTestDescriptor xcTestDescriptor = testDescriptors.peek();
-                if (xcTestDescriptor != null) {
-                    TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
-
-                    processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
-
-                    Matcher failureMessageMatcher = TEST_FAILURE_PATTERN.matcher(text);
-                    if (failureMessageMatcher.find()) {
-                        String testSuite = failureMessageMatcher.group(1);
-                        String testCase = failureMessageMatcher.group(2);
-                        String message = failureMessageMatcher.group(3);
-
-                        if (testDescriptor.getClassName().equals(testSuite) && testDescriptor.getName().equals(testCase)) {
-                            xcTestDescriptor.getMessages().add(message);
+                    if (started) {
+                        TestDescriptorInternal testDescriptor = new DefaultTestClassDescriptor(idGenerator.generateId(), testSuite);  // Using DefaultTestClassDescriptor to fake JUnit test
+                        processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
+                        testDescriptors.push(new XCTestDescriptor(testDescriptor));
+                    } else {
+                        XCTestDescriptor xcTestDescriptor = testDescriptors.pop();
+                        lastDescriptor = xcTestDescriptor.getDescriptorInternal();
+                        TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
+                        TestResult.ResultType resultType = TestResult.ResultType.SUCCESS;
+                        boolean failed = status.contains("failed at");
+                        if (failed) {
+                            resultType = TestResult.ResultType.FAILURE;
                         }
-                    }
 
-                // If no current test can be associated to the output, the last known descriptor is used.
-                // See https://bugs.swift.org/browse/SR-1127 for more information.
-                } else if (lastDescriptor != null) {
-                    processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+                        processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
+                    }
+                } else if (token.equals("Test Case")) {
+                    // Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
+                    String testSuiteAndCase = scanner.next();
+                    String[] splits = testSuiteAndCase.
+                        replace('[', ' ').
+                        replace(']', ' ').
+                        split("[. ]");
+                    String testSuite = splits[2];
+                    String testCase = splits[3];
+                    String status = scanner.next().trim();
+                    boolean started = status.contains("started");
+
+                    if (started) {
+                        TestDescriptorInternal testDescriptor = new DefaultTestMethodDescriptor(idGenerator.generateId(), testSuite, testCase);
+                        processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
+                        testDescriptors.push(new XCTestDescriptor(testDescriptor));
+                    } else {
+                        XCTestDescriptor xcTestDescriptor = testDescriptors.pop();
+                        lastDescriptor = xcTestDescriptor.getDescriptorInternal();
+                        TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
+                        TestResult.ResultType resultType = TestResult.ResultType.SUCCESS;
+                        boolean failed = status.contains("failed");
+                        if (failed) {
+                            resultType = TestResult.ResultType.FAILURE;
+                            processor.failure(testDescriptor.getId(), new Throwable(Joiner.on(TextUtil.getPlatformLineSeparator()).join(xcTestDescriptor.getMessages())));
+                        }
+
+                        processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
+                    }
+                } else {
+                    XCTestDescriptor xcTestDescriptor = testDescriptors.peek();
+                    if (xcTestDescriptor != null) {
+                        TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
+
+                        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+
+                        Matcher failureMessageMatcher = TEST_FAILURE_PATTERN.matcher(text);
+                        if (failureMessageMatcher.find()) {
+                            String testSuite = failureMessageMatcher.group(1);
+                            String testCase = failureMessageMatcher.group(2);
+                            String message = failureMessageMatcher.group(3);
+
+                            if (testDescriptor.getClassName().equals(testSuite) && testDescriptor.getName().equals(testCase)) {
+                                xcTestDescriptor.getMessages().add(message);
+                            }
+                        }
+
+                        // If no current test can be associated to the output, the last known descriptor is used.
+                        // See https://bugs.swift.org/browse/SR-1127 for more information.
+                    } else if (lastDescriptor != null) {
+                        processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+                    }
                 }
             }
         }

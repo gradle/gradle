@@ -92,7 +92,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
     }
 
-    private static class XcTestProcessor implements TestClassProcessor {
+    static class XcTestProcessor implements TestClassProcessor {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ExecHandleBuilder execHandleBuilder;
