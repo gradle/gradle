@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestListenerBuildOperationAdapter;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
@@ -32,7 +32,7 @@ public class TestingBasePluginServiceRegistry extends AbstractPluginServiceRegis
     }
 
     private static class BuildScopeServices {
-        TestListenerBuildOperationAdapter createTestListenerInternal(BuildOperationExecutor buildOperationExecutor, ListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
+        TestListenerInternal createTestListenerInternal(BuildOperationExecutor buildOperationExecutor, ListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
             return new TestListenerBuildOperationAdapter(buildOperationExecutor, listener.getBroadcaster(BuildOperationListener.class), buildOperationIdFactory, clock);
         }
     }

@@ -89,7 +89,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
     private TestReporter testReporter;
-    private TestListenerBuildOperationAdapter testListenerBuildOperationAdapter;
+    private TestListenerInternal testListenerBuildOperationAdapter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -128,7 +128,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     @Incubating
-    protected TestListenerBuildOperationAdapter getTestListenerBuildOperationAdapter() {
+    protected TestListenerInternal getTestListenerBuildOperationAdapter() {
         throw new UnsupportedOperationException();
     }
 
@@ -172,8 +172,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Internal
     @VisibleForTesting
-    void setTestListenerBuildOperationAdapter(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-        this.testListenerBuildOperationAdapter = testListenerBuildOperationAdapter;
+    void setTestListenerInternal(TestListenerInternal testListenerInternal) {
+        this.testListenerBuildOperationAdapter = testListenerInternal;
     }
 
     @Internal
