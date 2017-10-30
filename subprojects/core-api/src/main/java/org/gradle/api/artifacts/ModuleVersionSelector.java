@@ -51,7 +51,7 @@ public interface ModuleVersionSelector {
      * @since 4.4
      */
     @Incubating
-    ModuleVersionConstraint getVersionConstraint();
+    VersionConstraint getVersionConstraint();
 
     /**
      * To match strictly means that the given identifier needs to have

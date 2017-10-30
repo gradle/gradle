@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.internal.artifacts.ModuleVersionConstraintInternal;
+import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
-public class DefaultModuleVersionConstraint implements ModuleVersionConstraintInternal {
+public class DefaultVersionConstraint implements VersionConstraintInternal {
     private String version;
     private boolean strict;
 
-    public DefaultModuleVersionConstraint(String version, boolean strict) {
+    public DefaultVersionConstraint(String version, boolean strict) {
         this.version = nullToEmpty(version);
         this.strict = strict;
     }
 
-    public DefaultModuleVersionConstraint(String version) {
+    public DefaultVersionConstraint(String version) {
         this(version, false);
     }
 
@@ -70,7 +70,7 @@ public class DefaultModuleVersionConstraint implements ModuleVersionConstraintIn
             return false;
         }
 
-        DefaultModuleVersionConstraint that = (DefaultModuleVersionConstraint) o;
+        DefaultVersionConstraint that = (DefaultVersionConstraint) o;
 
         if (strict != that.strict) {
             return false;

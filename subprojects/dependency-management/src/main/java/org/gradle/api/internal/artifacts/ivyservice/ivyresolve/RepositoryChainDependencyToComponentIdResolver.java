@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ModuleVersionConstraintInternal;
+import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -48,7 +48,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
 
     public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        ModuleVersionConstraintInternal constraint = (ModuleVersionConstraintInternal) requested.getVersionConstraint();
+        VersionConstraintInternal constraint = (VersionConstraintInternal) requested.getVersionConstraint();
         VersionSelector preferredSelector = constraint.getPreferredSelector(versionSelectorScheme);
         if (preferredSelector.isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, preferredSelector, result);

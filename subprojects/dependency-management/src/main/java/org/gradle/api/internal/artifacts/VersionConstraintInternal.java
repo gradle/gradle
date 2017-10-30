@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
-public interface ModuleVersionConstraintInternal extends ModuleVersionConstraint {
+public interface VersionConstraintInternal extends VersionConstraint {
     VersionSelector getPreferredSelector(VersionSelectorScheme versionSelectorScheme);
     VersionSelector getRejectionSelector(VersionSelectorScheme versionSelectorScheme);
 }
