@@ -64,6 +64,10 @@ class XcTestScraper implements TextStream {
                 if (token.equals("Test Suite")) {
                     // Test Suite 'PassingTestSuite' started at 2017-10-30 10:45:47.828
                     String testSuite = scanner.next();
+                    if (testSuite.equals("All tests") || testSuite.endsWith(".xctest")) {
+                        // ignore these test suites
+                        return;
+                    }
                     String status = scanner.next();
                     boolean started = status.contains("started at");
 
