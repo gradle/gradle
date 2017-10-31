@@ -86,6 +86,7 @@ public class CreateSwiftBundle extends DefaultTask {
         getProject().exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
+                execSpec.setWorkingDir(outputDir.get());
                 execSpec.executable(swiftStdlibToolLocator.find());
                 execSpec.args(
                     "--copy",

@@ -159,8 +159,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
         compileTest.includes(compileMain.getObjectFileDir());
 
-        SwiftComponent swiftComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
+        SwiftComponent mainComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(swiftComponent.getDevelopmentBinary().getObjects());
+        linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
+
+        SwiftComponent testComponent = project.getComponents().withType(SwiftComponent.class).getByName("test");
+        testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
@@ -27,10 +28,13 @@ import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class XCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
         settingsFile << "rootProject.name = 'app'"
@@ -88,6 +92,27 @@ apply plugin: 'xctest'
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
+    }
+
+    def 'can build xctest bundle which depends multiple swift modules'() {
+        when:
+        succeeds 'test'
+
+        then:
+        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
+            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
+            ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+    }
+
+    def 'can run xctest in swift package manager layout'() {
+        when:
+        succeeds 'test'
+
+        then:
+        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
+            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':app:compileDebugSwift',
+            ':app:compileTestSwift', ':app:linkTest', ':app:bundleSwiftTest', ':app:xcTest', ':app:test', ':compileTestSwift',
+            ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
     }
 
     @Unroll
