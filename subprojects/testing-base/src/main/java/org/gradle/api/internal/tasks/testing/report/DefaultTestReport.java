@@ -87,7 +87,9 @@ public class DefaultTestReport implements TestReporter {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    GFileUtils.deleteQuietly(reportDir);
+                    // Clean-up old HTML report directories
+                    GFileUtils.deleteQuietly(new File(reportDir, "packages"));
+                    GFileUtils.deleteQuietly(new File(reportDir, "classes"));
                 }
 
                 @Override
