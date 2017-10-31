@@ -123,8 +123,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             : dependencyRhs.getTargetConfiguration()!=null) {
             return false;
         }
-        if (getVersion() != null ? !getVersion().equals(dependencyRhs.getVersion())
-                : dependencyRhs.getVersion() != null) {
+        if (getVersionConstraint() != null ? !getVersionConstraint().equals(dependencyRhs.getVersionConstraint())
+                : dependencyRhs.getVersionConstraint() != null) {
             return false;
         }
         return true;

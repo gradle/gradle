@@ -29,7 +29,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import spock.lang.Specification
 
 class DependencySubstitutionResolverSpec extends Specification {
-    def requested = new DefaultModuleVersionSelector("group", "module", "version")
+    def requested = DefaultModuleVersionSelector.newSelector("group", "module", "version")
     def selector = new DefaultModuleComponentSelector("group", "module", new DefaultVersionConstraint("version"))
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def targetModuleId = moduleIdentifierFactory.module("group", "module")

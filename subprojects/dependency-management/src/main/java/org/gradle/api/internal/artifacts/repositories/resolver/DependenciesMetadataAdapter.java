@@ -94,7 +94,7 @@ public class DependenciesMetadataAdapter extends AbstractList<DependencyMetadata
     }
 
     private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(DependencyMetadata details) {
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(details.getGroup(), details.getName(), details.getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(details.getGroup(), details.getName(), details.getVersion());
         return new GradleDependencyMetadata(requested);
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
@@ -25,6 +26,8 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
@@ -77,6 +80,11 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     }
 
     @Override
+    public VersionConstraint getVersionConstraint() {
+        return SelfResolvingVersionConstraint.INSTANCE;
+    }
+
+    @Override
     public void resolve(DependencyResolveContext context) {
         context.add(source);
     }
@@ -99,5 +107,21 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     @Override
     public FileCollection getFiles() {
         return source;
+    }
+
+    private static class SelfResolvingVersionConstraint implements VersionConstraint {
+        static final SelfResolvingVersionConstraint INSTANCE = new SelfResolvingVersionConstraint();
+
+        private SelfResolvingVersionConstraint() {}
+
+        @Override
+        public String getPreferredVersion() {
+            return null;
+        }
+
+        @Override
+        public List<String> getRejectedVersions() {
+            return Collections.emptyList();
+        }
     }
 }

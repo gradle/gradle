@@ -42,7 +42,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         Module module = getProjectModule(dependency);
-        ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
         List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());

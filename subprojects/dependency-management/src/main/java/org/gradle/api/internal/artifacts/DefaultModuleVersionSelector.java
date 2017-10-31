@@ -19,35 +19,18 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-
-import static com.google.common.base.Strings.nullToEmpty;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     private String group;
     private String name;
-    private ImmutableVersionConstraint moduleVersionConstraint;
+    private VersionConstraint moduleVersionConstraint;
 
-    public DefaultModuleVersionSelector(String group, String name, ImmutableVersionConstraint versionConstraint) {
+    private DefaultModuleVersionSelector(String group, String name, VersionConstraint versionConstraint) {
         this.group = group;
         this.name = name;
         this.moduleVersionConstraint = versionConstraint;
-    }
-
-    // todo: remove this constructor
-    public DefaultModuleVersionSelector(String group, String name, final String version) {
-        this.group = group;
-        this.name = name;
-        VersionSelectorScheme versionScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
-        this.moduleVersionConstraint = new DefaultImmutableVersionConstraint(
-            nullToEmpty(version),
-            versionScheme.parseSelector(version),
-            null
-            );
     }
 
     public String getGroup() {
@@ -118,7 +101,11 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return result;
     }
 
-    public static ModuleVersionSelector newSelector(String group, String name, String version) {
+    public static ModuleVersionSelector newSelector(String group, String name, String preferredVersion) {
+        return new DefaultModuleVersionSelector(group, name, new DefaultVersionConstraint(preferredVersion));
+    }
+
+    public static ModuleVersionSelector newSelector(String group, String name, VersionConstraint version) {
         return new DefaultModuleVersionSelector(group, name, version);
     }
 }

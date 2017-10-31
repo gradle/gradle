@@ -46,6 +46,7 @@ public class DefaultSelfResolvingDependencyTest {
         assertThat(dependency.getGroup(), nullValue());
         assertThat(dependency.getName(), equalTo("unspecified"));
         assertThat(dependency.getVersion(), nullValue());
+        assertThat(dependency.getVersionConstraint(), notNullValue());
     }
 
     @Test

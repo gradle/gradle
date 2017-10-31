@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -82,6 +83,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final VersionSelectorScheme versionSelectorScheme;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
@@ -91,7 +93,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         ArtifactTransforms artifactTransforms,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         BuildOperationExecutor buildOperationExecutor,
-                                        ArtifactTypeRegistry artifactTypeRegistry) {
+                                        ArtifactTypeRegistry artifactTypeRegistry,
+                                        VersionSelectorScheme versionSelectorScheme) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
@@ -102,6 +105,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -125,7 +129,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory);
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory, versionSelectorScheme);
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor();
 
