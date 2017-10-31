@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -48,24 +49,26 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
             writer.name("projects");
             writer.beginArray();
 
-            for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
+            for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
                 writer.beginObject();
                 writer.name("path").value(projectsMapping.getKey());
                 writer.name("configurations");
                 writer.beginArray();
 
-                for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, DependencyVersion>> configurationsMapping : projectsMapping.getValue().entrySet()) {
+                for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> configurationsMapping : projectsMapping.getValue().entrySet()) {
                     writer.beginObject();
                     writer.name("name").value(configurationsMapping.getKey());
                     writer.name("dependencies");
                     writer.beginArray();
 
-                    for (Map.Entry<ModuleIdentifier, DependencyVersion> lockedDependency : configurationsMapping.getValue().entrySet()) {
-                        writer.beginObject();
-                        writer.name("moduleId").value(lockedDependency.getKey().toString());
-                        writer.name("requestedVersion").value(lockedDependency.getValue().getRequestedVersion());
-                        writer.name("lockedVersion").value(lockedDependency.getValue().getSelectedVersion());
-                        writer.endObject();
+                    for (Map.Entry<ModuleIdentifier, List<DependencyVersion>> lockedDependency : configurationsMapping.getValue().entrySet()) {
+                        for (DependencyVersion dependencyVersion : lockedDependency.getValue()) {
+                            writer.beginObject();
+                            writer.name("moduleId").value(lockedDependency.getKey().toString());
+                            writer.name("requestedVersion").value(dependencyVersion.getRequestedVersion());
+                            writer.name("lockedVersion").value(dependencyVersion.getSelectedVersion());
+                            writer.endObject();
+                        }
                     }
 
                     writer.endArray();

@@ -219,10 +219,11 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         then:
         def parsedLockFile = parseLockFile()
         def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
-        locks.size() == 2
+        locks.size() == 3
         locks[0].toString() == 'foo:first:1.5 -> 1.5'
-        locks[1].toString() == 'foo:second:1.9 -> 1.9'
-        sha1File.text == 'bfb3d6afb5b5b08b1dac96586ab76d014b3ba517'
+        locks[1].toString() == 'foo:second:1.6.7 -> 1.9'
+        locks[2].toString() == 'foo:second:1.9 -> 1.9'
+        sha1File.text == '964969098a6e2d647dd2fad40841ae9467d2687a'
     }
 
     def "only creates locks for resolvable configurations"() {
