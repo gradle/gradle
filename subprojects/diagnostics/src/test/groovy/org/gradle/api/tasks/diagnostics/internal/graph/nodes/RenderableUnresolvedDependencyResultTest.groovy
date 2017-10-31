@@ -15,21 +15,26 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class RenderableUnresolvedDependencyResultTest extends Specification {
+    static VersionConstraint v(String version) {
+        new DefaultVersionConstraint(version)
+    }
 
     def "renders name"() {
         given:
-        def requested = newSelector('org.mockito', 'mockito-core', '1.0')
-        def same = newSelector('org.mockito', 'mockito-core', '1.0')
-        def differentVersion = newSelector('org.mockito', 'mockito-core', '2.0')
-        def differentName = newSelector('org.mockito', 'mockito', '1.0')
-        def differentGroup = newSelector('com.mockito', 'mockito', '2.0')
+        def requested = newSelector('org.mockito', 'mockito-core', v('1.0'))
+        def same = newSelector('org.mockito', 'mockito-core', v('1.0'))
+        def differentVersion = newSelector('org.mockito', 'mockito-core', v('2.0'))
+        def differentName = newSelector('org.mockito', 'mockito', v('1.0'))
+        def differentGroup = newSelector('com.mockito', 'mockito', v('2.0'))
 
         expect:
         dep(requested, same).name == 'org.mockito:mockito-core:1.0'

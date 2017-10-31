@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
@@ -29,13 +33,32 @@ public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersion
     public ModuleVersionSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
-        String version = decoder.readString();
-        return newSelector(group, name, version);
+        VersionConstraint versionConstraint = readVersionConstraint(decoder);
+        return newSelector(group, name, versionConstraint);
+    }
+
+    private VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
+        String preferred = decoder.readString();
+        int cpt = decoder.readSmallInt();
+        List<String> rejects = Lists.newArrayListWithCapacity(cpt);
+        for (int i = 0; i < cpt; i++) {
+            rejects.add(decoder.readString());
+        }
+        return new DefaultVersionConstraint(preferred, rejects);
     }
 
     public void write(Encoder encoder, ModuleVersionSelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
-        encoder.writeString(value.getVersion());
+        writeVersionConstraint(encoder, value.getVersionConstraint());
+    }
+
+    private void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
+        encoder.writeString(cst.getPreferredVersion());
+        List<String> rejectedVersions = cst.getRejectedVersions();
+        encoder.writeSmallInt(rejectedVersions.size());
+        for (String rejectedVersion : rejectedVersions) {
+            encoder.writeString(rejectedVersion);
+        }
     }
 }

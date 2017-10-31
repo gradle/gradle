@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -27,7 +28,7 @@ class RenderableDependencyResultTest extends Specification {
 
     def "renders name"() {
         given:
-        def requested = newSelector('org.mockito', 'mockito-core', '1.0')
+        def requested = newSelector('org.mockito', 'mockito-core', new DefaultVersionConstraint('1.0'))
         def same = newModule('org.mockito', 'mockito-core', '1.0')
         def differentVersion = newModule('org.mockito', 'mockito-core', '2.0')
         def differentName = newModule('org.mockito', 'mockito', '1.0')

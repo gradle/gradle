@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.component.ArtifactType
@@ -49,7 +50,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
     def repo = new InMemoryCachedModuleComponentRepository(caches, delegate)
     def lib = Mock(ModuleComponentIdentifier)
-    def selector = newSelector("org", "lib", "1.0")
+    def selector = newSelector("org", "lib", new DefaultVersionConstraint("1.0"))
     def dep = Stub(DependencyMetadata) { getRequested() >> selector }
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 

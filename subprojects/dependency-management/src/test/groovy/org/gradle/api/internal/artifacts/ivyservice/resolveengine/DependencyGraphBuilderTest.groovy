@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
@@ -714,7 +715,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'c', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'c', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -741,7 +742,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'unknown', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'unknown', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -767,7 +768,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'c', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'c', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -794,7 +795,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'c', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'c', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -821,7 +822,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'c', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'c', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -847,7 +848,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        result.unresolvedDependencies == [newSelector('group', 'c', '1.0')] as Set
+        result.unresolvedDependencies == [newSelector('group', 'c', new DefaultVersionConstraint('1.0'))] as Set
 
         when:
         result.rethrowFailure()
@@ -1047,7 +1048,7 @@ class DependencyGraphBuilderTest extends Specification {
         def dependencyMetaData = dependsOn(args, from, to.id)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
         1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
-            result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
+            result.failed(new ModuleVersionResolveException(newSelector("a", "b", new DefaultVersionConstraint("c")), "broken"))
         }
     }
 
@@ -1062,7 +1063,7 @@ class DependencyGraphBuilderTest extends Specification {
     def brokenSelector(Map<String, ?> args = [:], def from, String to) {
         def dependencyMetaData = dependsOn(args, from, newId("group", to, "1.0"))
         1 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _) >> { DependencyMetadata dep, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result ->
-            result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
+            result.failed(new ModuleVersionResolveException(newSelector("a", "b", new DefaultVersionConstraint("c")), "broken"))
         }
     }
 
@@ -1071,7 +1072,7 @@ class DependencyGraphBuilderTest extends Specification {
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         boolean optional = args.optional ?: false
-        ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, dependencyId.version)
+        ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, new DefaultVersionConstraint(dependencyId.version))
         ComponentSelector componentSelector = DefaultModuleComponentSelector.newSelector(selector)
         def excludeRules = []
         if (args.exclude) {

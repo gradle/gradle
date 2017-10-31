@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -28,6 +31,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     public ComponentSelector read(Decoder decoder) throws IOException {
@@ -36,12 +40,22 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (Implementation.BUILD.getId() == id) {
             return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder));
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
+    }
+
+    VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
+        String prefers = decoder.readString();
+        int rejectCount = decoder.readSmallInt();
+        List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
+        for (int i = 0; i < rejectCount; i++) {
+            rejects.add(decoder.readString());
+        }
+        return new DefaultVersionConstraint(prefers, rejects);
     }
 
     public void write(Encoder encoder, ComponentSelector value) throws IOException {
@@ -57,7 +71,13 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) value;
             encoder.writeString(moduleComponentSelector.getGroup());
             encoder.writeString(moduleComponentSelector.getModule());
-            encoder.writeString(moduleComponentSelector.getVersion());
+            VersionConstraint versionConstraint = moduleComponentSelector.getVersionConstraint();
+            encoder.writeString(versionConstraint.getPreferredVersion());
+            List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+            encoder.writeSmallInt(rejectedVersions.size());
+            for (String rejectedVersion : rejectedVersions) {
+                encoder.writeString(rejectedVersion);
+            }
         } else if (implementation == Implementation.BUILD) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
             encoder.writeString(projectComponentSelector.getBuildName());

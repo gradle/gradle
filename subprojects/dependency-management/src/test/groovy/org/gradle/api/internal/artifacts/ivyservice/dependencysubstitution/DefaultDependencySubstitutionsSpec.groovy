@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
@@ -65,7 +66,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
+        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultVersionConstraint("1.5"))
         1 * action.execute(moduleDetails)
         0 * _
 
@@ -85,7 +86,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def action = Mock(Action)
         substitutions.allWithDependencyResolveDetails(action)
 
-        def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
+        def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultVersionConstraint("1.5"))
         def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
@@ -100,7 +101,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         })
         0 * _
 
-        def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
+        def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultVersionConstraint("1.5"))
         def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
@@ -132,7 +133,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
+        _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultVersionConstraint("1.5"))
         1 * moduleDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
@@ -188,7 +189,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
+        _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", new DefaultVersionConstraint("1.5"))
         0 * _
 
         where:

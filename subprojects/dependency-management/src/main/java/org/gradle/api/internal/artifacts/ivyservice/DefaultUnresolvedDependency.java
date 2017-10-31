@@ -36,6 +36,6 @@ public class DefaultUnresolvedDependency implements UnresolvedDependency {
     }
 
     public String toString() {
-        return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersion();
+        return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersionConstraint().getPreferredVersion();
     }
 }

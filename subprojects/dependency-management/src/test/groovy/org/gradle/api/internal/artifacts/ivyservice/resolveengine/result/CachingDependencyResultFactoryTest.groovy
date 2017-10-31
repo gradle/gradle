@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -67,10 +68,10 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     def selector(String group='a', String module='a', String version='1') {
-        DefaultModuleComponentSelector.newSelector(group, module, version)
+        DefaultModuleComponentSelector.newSelector(group, module, new DefaultVersionConstraint(version))
     }
 
     def moduleVersionSelector(String group='a', String module='a', String version='1') {
-        newSelector(group, module, version)
+        newSelector(group, module, new DefaultVersionConstraint(version))
     }
 }

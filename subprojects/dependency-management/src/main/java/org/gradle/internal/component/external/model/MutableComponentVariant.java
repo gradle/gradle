@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.artifacts.VersionConstraint;
+
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, String version);
+    void addDependency(String group, String module, VersionConstraint versionConstraint);
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.component.model
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
@@ -27,6 +28,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -55,12 +57,16 @@ class LocalComponentDependencyMetadataTest extends Specification {
         factory = TestUtil.attributesFactory()
     }
 
+    private static VersionConstraint v(String version) {
+        new DefaultVersionConstraint(version)
+    }
+
     def "returns this when same version requested"() {
-        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", v("12")), DefaultModuleVersionSelector.newSelector("a", "b", v("12")), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
-        dep.withRequestedVersion("12").is(dep)
-        dep.withTarget(DefaultModuleComponentSelector.newSelector("a", "b", "12")).is(dep)
+        dep.withRequestedVersion(v("12")).is(dep)
+        dep.withTarget(DefaultModuleComponentSelector.newSelector("a", "b", v("12"))).is(dep)
     }
 
     def "returns this when same target requested"() {

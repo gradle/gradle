@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencyResolveDetails;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
-    void useVersion(String version, ComponentSelectionReason selectionReason);
+    void useVersion(VersionConstraint version, ComponentSelectionReason selectionReason);
 
     ComponentSelectionReason getSelectionReason();
 

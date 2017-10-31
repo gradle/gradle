@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
@@ -57,7 +58,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         def details = newDependencyResolveDetails("org", "foo", "1.0")
 
         when:
-        details.useVersion("1.0", VersionSelectionReasons.FORCED) //same version
+        details.useVersion(new DefaultVersionConstraint("1.0"), VersionSelectionReasons.FORCED) //same version
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
@@ -66,7 +67,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.selectionReason == VersionSelectionReasons.FORCED
 
         when:
-        details.useVersion("3.0", VersionSelectionReasons.FORCED) //different version
+        details.useVersion(new DefaultVersionConstraint("3.0"), VersionSelectionReasons.FORCED) //different version
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
@@ -79,8 +80,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         def details = newDependencyResolveDetails("org", "foo", "1.0")
 
         when:
-        details.useVersion("2.0", VersionSelectionReasons.FORCED)
-        details.useVersion("3.0", VersionSelectionReasons.SELECTED_BY_RULE)
+        details.useVersion(new DefaultVersionConstraint("2.0"), VersionSelectionReasons.FORCED)
+        details.useVersion(new DefaultVersionConstraint("3.0"), VersionSelectionReasons.SELECTED_BY_RULE)
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
@@ -144,10 +145,10 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {
-        return DefaultModuleComponentSelector.newSelector(group, module, version)
+        return DefaultModuleComponentSelector.newSelector(group, module, new DefaultVersionConstraint(version))
     }
 
     private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
-        return DefaultModuleVersionSelector.newSelector(group, name, version)
+        return DefaultModuleVersionSelector.newSelector(group, name, new DefaultVersionConstraint(version))
     }
 }

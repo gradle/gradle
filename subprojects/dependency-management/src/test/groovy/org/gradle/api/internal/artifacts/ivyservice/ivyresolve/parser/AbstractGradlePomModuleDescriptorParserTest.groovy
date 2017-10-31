@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -82,7 +83,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     }
 
     protected static ModuleVersionSelector moduleId(String group, String name, String version) {
-        DefaultModuleVersionSelector.newSelector(group, name, version)
+        DefaultModuleVersionSelector.newSelector(group, name, new DefaultVersionConstraint(version))
     }
 
     protected ArtifactRevisionId artifactId(ModuleRevisionId moduleId, String name, String type, String ext) {

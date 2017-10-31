@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -250,8 +251,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        def selector = new DefaultModuleComponentSelector("x", requested, "1")
-        def moduleVersionSelector = newSelector("x", requested, "1")
+        def selector = new DefaultModuleComponentSelector("x", requested, new DefaultVersionConstraint("1"))
+        def moduleVersionSelector = newSelector("x", requested, new DefaultVersionConstraint("1"))
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
     }

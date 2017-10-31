@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.Factory
 import spock.lang.Specification
@@ -77,7 +78,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
         root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector('a', 'a', '1'), root, dep1.selected))
+        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector('a', 'a', new DefaultVersionConstraint('1')), root, dep1.selected))
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
@@ -102,7 +103,7 @@ class DependencyInsightReporterSpec extends Specification {
 
     private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected))
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, requested),
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, new DefaultVersionConstraint(requested)),
                 selectedModule,
                 new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected)))
     }

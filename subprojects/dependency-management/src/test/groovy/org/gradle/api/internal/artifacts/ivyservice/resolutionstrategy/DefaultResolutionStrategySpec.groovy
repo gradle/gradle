@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
@@ -96,9 +97,9 @@ class DefaultResolutionStrategySpec extends Specification {
         then:
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
-        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
-        _ * details.getOldRequested() >> newSelector("org", "foo", "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
+        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultVersionConstraint("1.0"))
+        _ * details.getOldRequested() >> newSelector("org", "foo", new DefaultVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -124,9 +125,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
-        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
-        _ * details.oldRequested >> newSelector("org", "foo", "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector("org", "foo", new DefaultVersionConstraint("1.0"))
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:

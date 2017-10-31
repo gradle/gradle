@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -36,7 +37,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependency = Stub(DependencyMetadata)
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
-    final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
+    final selector = DefaultModuleVersionSelector.newSelector("group", "project", new DefaultVersionConstraint("1.0"))
 
     final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)

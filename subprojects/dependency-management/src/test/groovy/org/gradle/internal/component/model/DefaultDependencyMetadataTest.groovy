@@ -17,9 +17,11 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -31,8 +33,12 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 abstract class DefaultDependencyMetadataTest extends Specification {
     def attributesSchema = Stub(AttributesSchemaInternal)
 
-    def requested = newSelector("org", "module", "1.2+")
+    def requested = newSelector("org", "module", v("1.2+"))
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
+
+    static VersionConstraint v(String version) {
+        new DefaultVersionConstraint(version)
+    }
 
     abstract DefaultDependencyMetadata create(ModuleVersionSelector selector)
 
@@ -44,20 +50,20 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         given:
 
         when:
-        def copy = metadata.withRequestedVersion("1.3+")
+        def copy = metadata.withRequestedVersion(v("1.3+"))
 
         then:
         copy != metadata
-        copy.requested == newSelector("org", "module", "1.3+")
-        copy.selector == DefaultModuleComponentSelector.newSelector("org", "module", "1.3+")
+        copy.requested == newSelector("org", "module", v("1.3+"))
+        copy.selector == DefaultModuleComponentSelector.newSelector("org", "module", v("1.3+"))
     }
 
     def "returns this if new requested version is the same as current requested version"() {
         def metadata = create(requested)
 
         expect:
-        metadata.withRequestedVersion("1.2+").is(metadata)
-        metadata.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metadata)
+        metadata.withRequestedVersion(v("1.2+")).is(metadata)
+        metadata.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", v("1.2+"))).is(metadata)
     }
 
     def "creates a copy with new requested project selector"() {

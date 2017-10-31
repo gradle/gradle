@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -38,14 +39,14 @@ class InMemoryMetaDataCacheTest extends Specification {
         def missingResult = Mock(BuildableModuleVersionListingResolveResult)
 
         given:
-        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleVersionListingResolveResult) {
+        cache.newModuleVersions(newSelector("org", "foo-remote", new DefaultVersionConstraint("1.0")), Stub(BuildableModuleVersionListingResolveResult) {
             getState() >> BuildableModuleVersionListingResolveResult.State.Listed
             getVersions() >> versions
         })
 
         when:
-        def found = cache.supplyModuleVersions(newSelector("org", "foo-remote", "1.0"), result)
-        def missing = cache.supplyModuleVersions(newSelector("org", "foo-local", "1.0"), missingResult)
+        def found = cache.supplyModuleVersions(newSelector("org", "foo-remote", new DefaultVersionConstraint("1.0")), result)
+        def missing = cache.supplyModuleVersions(newSelector("org", "foo-local", new DefaultVersionConstraint("1.0")), missingResult)
 
         then:
         found
@@ -60,12 +61,12 @@ class InMemoryMetaDataCacheTest extends Specification {
         def failedResult = Stub(BuildableModuleVersionListingResolveResult) {
             getState() >> BuildableModuleVersionListingResolveResult.State.Failed
         }
-        cache.newModuleVersions(newSelector("org", "lib", "1.0"), failedResult)
+        cache.newModuleVersions(newSelector("org", "lib", new DefaultVersionConstraint( "1.0")), failedResult)
 
         def result = Mock(BuildableModuleVersionListingResolveResult)
 
         when:
-        def foundInCache = cache.supplyModuleVersions(newSelector("org", "lib", "1.0"), result)
+        def foundInCache = cache.supplyModuleVersions(newSelector("org", "lib", new DefaultVersionConstraint("1.0")), result)
 
         then:
         !foundInCache

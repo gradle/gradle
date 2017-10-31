@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -29,12 +30,12 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, module, version), newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, module, new DefaultVersionConstraint(version)), newModule(group, module, selectedVersion), newModule())
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
-        def requested = DefaultModuleComponentSelector.newSelector(group, module, version)
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, version), "broken"))
+        def requested = DefaultModuleComponentSelector.newSelector(group, module, new DefaultVersionConstraint(version))
+        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, new DefaultVersionConstraint(version)), "broken"))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
