@@ -22,11 +22,14 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
+
+import javax.inject.Inject;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 
@@ -71,6 +74,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
         importPath = importPathConfig;
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
+    }
+
+    @Inject
+    protected FileOperations getFileOperations() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

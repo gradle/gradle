@@ -30,6 +30,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
@@ -161,9 +162,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         SwiftComponent mainComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
+        SwiftBinary devBinary = mainComponent.getDevelopmentBinary();
+        linkTest.source(devBinary.getObjects());
 
         SwiftComponent testComponent = project.getComponents().withType(SwiftComponent.class).getByName("test");
+        ((DefaultSwiftXCTestSuite)testComponent).getTestedComponent().set(devBinary);
         testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
     }
 }
