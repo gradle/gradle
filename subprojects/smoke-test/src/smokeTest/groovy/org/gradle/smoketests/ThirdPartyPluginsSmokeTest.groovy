@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
-import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -26,7 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
-
+/*
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
     def 'shadow plugin'() {
         given:
@@ -67,7 +66,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"                
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"
                 }
             }
 
@@ -116,7 +115,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':dockerCopyDistResources').outcome == SUCCESS
     }
-
+*/
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
     def 'spring dependency management plugin'() {
         given:
@@ -216,185 +215,4 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         noExceptionThrown()
     }
 
-    @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
-    def 'tomcat plugin'() {
-        given:
-        def httpPort = portAllocator.assignPort()
-        def httpsPort = portAllocator.assignPort()
-        def stopPort = portAllocator.assignPort()
-        buildFile << """
-            plugins {
-                id "com.bmuschko.tomcat" version "2.3"
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                def tomcatVersion = '7.0.59'
-                tomcat "org.apache.tomcat.embed:tomcat-embed-core:\${tomcatVersion}",
-                       "org.apache.tomcat.embed:tomcat-embed-logging-juli:\${tomcatVersion}",
-                       "org.apache.tomcat.embed:tomcat-embed-jasper:\${tomcatVersion}"
-            }
-
-            ext {
-                tomcatStopPort = ${stopPort}
-                tomcatStopKey = 'stopKey'
-            }
-
-            tomcat {
-                httpPort = ${httpPort}
-                httpsPort = ${httpsPort}
-            }
-
-            task integrationTomcatRun(type: com.bmuschko.gradle.tomcat.tasks.TomcatRun) {
-                stopPort = tomcatStopPort
-                stopKey = tomcatStopKey
-                daemon = true
-            }
-
-            task integrationTomcatStop(type: com.bmuschko.gradle.tomcat.tasks.TomcatStop) {
-                stopPort = tomcatStopPort
-                stopKey = tomcatStopKey
-            }
-
-            task integrationTest(type: Test) {
-                include '**/*IntegrationTest.*'
-                dependsOn integrationTomcatRun
-                finalizedBy integrationTomcatStop
-            }
-
-            test {
-                exclude '**/*IntegrationTest.*'
-            }
-            """.stripIndent()
-
-        expect:
-        runner('integrationTest').build()
-    }
-
-    def 'gosu plugin'() { // Requires JDK 8 or later
-        given:
-        buildFile << """
-            plugins {
-                id 'org.gosu-lang.gosu' version '0.3.5'
-            }
-
-            apply plugin: 'org.gosu-lang.gosu'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
-            }
-            """.stripIndent()
-
-        file('src/main/gosu/example/Foo.gs') << """
-            package example
-
-            public class Foo {
-
-              function doSomething(arg : String) : String {
-                return "Hello, got the argument '\${arg}'"
-              }
-            }
-            """.stripIndent()
-
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileGosu').outcome == SUCCESS
-    }
-
-    @Issue('https://plugins.gradle.org/plugin/org.xtext.xtend')
-    def 'xtend plugin'() {
-        given:
-        buildFile << """
-            plugins {
-                id "org.xtext.xtend" version "1.0.19"
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
-            }
-            """.stripIndent()
-
-        file('src/main/java/HelloWorld.xtend') << """
-            class HelloWorld {
-                def static void main(String[] args) {
-                    println("Hello World")
-                }
-            }
-            """
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':generateXtext').outcome == SUCCESS
-    }
-
-    def 'org.ajoberstar.grgit plugin'() {
-        given:
-        GitRepository.init(testProjectDir.root)
-        buildFile << """
-            plugins {
-                id "org.ajoberstar.grgit" version "2.0.1"
-            }
-
-            def sourceFile = file("sourceFile")
-
-            task commit {
-                doLast {
-                    sourceFile.text = "hello world"
-                    grgit.add(patterns: [ 'sourceFile' ])
-                    grgit.commit {
-                        message = "first commit"
-                    }
-                }
-            }
-
-            task tag {
-                dependsOn commit
-                doLast {
-                    grgit.tag.add {
-                        name = 'previous'
-                        message = 'previous commit'
-                    }
-
-                    sourceFile.text = "goodbye world"
-                    grgit.add(patterns: [ 'sourceFile' ])
-                    grgit.commit {
-                        message = "second commit"
-                    }
-                }
-            }
-
-            task checkout {
-                dependsOn tag
-                doLast {
-                    assert sourceFile.text == 'goodbye world'
-                    grgit.checkout {
-                        branch = 'previous'
-                    }
-                    assert sourceFile.text == 'hello world'
-                }
-            }
-
-            task release {
-                dependsOn checkout
-            }
-        """.stripIndent()
-
-        when:
-        def result = runner('release').build()
-
-        then:
-        result.task(':commit').outcome == SUCCESS
-        result.task(':tag').outcome == SUCCESS
-        result.task(':checkout').outcome == SUCCESS
-    }
 }

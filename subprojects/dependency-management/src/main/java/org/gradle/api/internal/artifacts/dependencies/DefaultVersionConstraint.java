@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultVersionConstraint implements VersionConstraintInternal {
     private String version;
     private boolean strict;
 
     public DefaultVersionConstraint(String version, boolean strict) {
-        this.version = nullToEmpty(version);
+        this.version = version;
         this.strict = strict;
     }
 
@@ -45,19 +44,28 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
     }
 
     @Override
+    public VersionConstraint normalize() {
+        if (version == null) {
+            return new DefaultVersionConstraint("", strict);
+        } else {
+            return new DefaultVersionConstraint(version, strict);
+        }
+    }
+
+    @Override
     public String getPreferredVersion() {
         return version;
     }
 
     @Override
     public void prefer(String version) {
-        this.version = nullToEmpty(version);
+        this.version = version;
         strict = false;
     }
 
     @Override
     public void strictly(String version) {
-        this.version = nullToEmpty(version);
+        this.version = version;
         strict = true;
     }
 
