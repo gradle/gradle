@@ -28,6 +28,8 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.PluginId;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
@@ -44,7 +46,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(final PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         String markerVersion = getMarkerDependency(pluginRequest).getVersion();
-        if (markerVersion == null) {
+        if (isNullOrEmpty(markerVersion)) {
             result.notFound(name, "plugin dependency must include a version number for this source");
             return;
         }

@@ -238,7 +238,9 @@ project(":producer") {
         compile {
             withDependencies { deps ->
                 deps.each {
-                    it.version = '3.4'
+                    it.version {
+                       prefer '3.4'
+                    }
                 }
                 deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
@@ -291,7 +293,9 @@ include 'consumer', 'producer'
         compile {
             withDependencies { deps ->
                 deps.each {
-                    it.version = '3.4'
+                    it.version {
+                        prefer '3.4'
+                    }
                 }
                 deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
