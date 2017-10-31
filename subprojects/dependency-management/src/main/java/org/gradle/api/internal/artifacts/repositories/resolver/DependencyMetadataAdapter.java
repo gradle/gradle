@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
 
     @Override
     public DependencyMetadata setVersion(String version) {
-        updateMetadata(getOriginalMetadata().withRequestedVersion(version));
+        updateMetadata(getOriginalMetadata().withRequestedVersion(new DefaultVersionConstraint(version)));
         return this;
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
@@ -48,6 +49,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
         assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
         assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
         assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
+        assertThat(dependencyMetaData.getRequested().getVersionConstraint().getPreferredVersion(), equalTo(""));
     }
 
     @Test
@@ -63,6 +65,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
         assertEquals(moduleDependency.getGroup(), dependencyMetaData.getRequested().getGroup());
         assertEquals(moduleDependency.getName(), dependencyMetaData.getRequested().getName());
         assertEquals(moduleDependency.getVersion(), dependencyMetaData.getRequested().getVersion());
+        assertEquals(moduleDependency.getVersionConstraint(), ((ModuleComponentSelector)dependencyMetaData.getSelector()).getVersionConstraint());
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
     }
 }

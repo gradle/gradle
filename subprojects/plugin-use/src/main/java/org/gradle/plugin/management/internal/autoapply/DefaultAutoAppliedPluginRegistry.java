@@ -18,6 +18,7 @@ package org.gradle.plugin.management.internal.autoapply;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
@@ -52,7 +53,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     }
 
     private DefaultPluginRequest createScanPluginRequest() {
-        DefaultModuleVersionSelector artifact = new DefaultModuleVersionSelector(AutoAppliedBuildScanPlugin.GROUP, AutoAppliedBuildScanPlugin.NAME, AutoAppliedBuildScanPlugin.VERSION);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(AutoAppliedBuildScanPlugin.GROUP, AutoAppliedBuildScanPlugin.NAME, AutoAppliedBuildScanPlugin.VERSION);
         return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }
 

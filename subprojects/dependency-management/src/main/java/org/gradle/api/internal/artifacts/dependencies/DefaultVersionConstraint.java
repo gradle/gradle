@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.AbstractVersionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -28,7 +27,7 @@ import java.util.List;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
-public class DefaultVersionConstraint implements VersionConstraintInternal {
+public class DefaultVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String prefer;
     private List<String> rejects;
 
@@ -48,7 +47,7 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
         DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
         VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
-        this.rejects = Collections.singletonList(((AbstractVersionVersionSelector)rejectedSelector).getSelector());
+        this.rejects = Collections.singletonList(rejectedSelector.getSelector());
     }
 
     public DefaultVersionConstraint(String version, List<String> rejects) {
@@ -70,7 +69,7 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
         } else if (!rejects.isEmpty()) {
             throw new UnsupportedOperationException("Multiple rejects are not yet supported");
         }
-        return new DefaultImmutableVersionConstraint(v, preferredSelector, rejectedSelector);
+        return new DefaultImmutableVersionConstraint(v, rejects, preferredSelector, rejectedSelector);
     }
 
     @Override
@@ -93,29 +92,5 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
     @Override
     public List<String> getRejectedVersions() {
        return rejects;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultVersionConstraint that = (DefaultVersionConstraint) o;
-
-        if (prefer != null ? !prefer.equals(that.prefer) : that.prefer != null) {
-            return false;
-        }
-        return rejects != null ? rejects.equals(that.rejects) : that.rejects == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = prefer != null ? prefer.hashCode() : 0;
-        result = 31 * result + (rejects != null ? rejects.hashCode() : 0);
-        return result;
     }
 }

@@ -18,15 +18,20 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
-public class DefaultImmutableVersionConstraint implements ImmutableVersionConstraint {
+import java.util.List;
+
+public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private final String preferredVersion;
+    private final List<String> rejectedVersions;
     private final VersionSelector preferredSelector;
     private final VersionSelector rejectedSelector;
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
-                                      VersionSelector preferredSelector,
-                                      VersionSelector rejectedSelector) {
+                                             List<String> rejectedVersions,
+                                             VersionSelector preferredSelector,
+                                             VersionSelector rejectedSelector) {
         this.preferredVersion = preferredVersion;
+        this.rejectedVersions = rejectedVersions;
         this.preferredSelector = preferredSelector;
         this.rejectedSelector = rejectedSelector;
     }
@@ -47,26 +52,8 @@ public class DefaultImmutableVersionConstraint implements ImmutableVersionConstr
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultImmutableVersionConstraint that = (DefaultImmutableVersionConstraint) o;
-
-        if (!preferredSelector.equals(that.preferredSelector)) {
-            return false;
-        }
-        return rejectedSelector != null ? rejectedSelector.equals(that.rejectedSelector) : that.rejectedSelector == null;
+    public List<String> getRejectedVersions() {
+        return rejectedVersions;
     }
 
-    @Override
-    public int hashCode() {
-        int result = preferredSelector.hashCode();
-        result = 31 * result + (rejectedSelector != null ? rejectedSelector.hashCode() : 0);
-        return result;
-    }
 }

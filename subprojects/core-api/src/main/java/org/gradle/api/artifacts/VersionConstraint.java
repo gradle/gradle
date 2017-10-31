@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -33,6 +34,7 @@ public interface VersionConstraint {
      *
      * @return the baseline version, often referred to as the preferred version.
      */
+    @Nullable
     String getPreferredVersion();
 
     /**

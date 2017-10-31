@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -34,6 +36,12 @@ import java.io.IOException;
 import java.util.List;
 
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
+    private final VersionSelectorScheme versionSelectorScheme;
+
+    public ComponentSelectorSerializer(VersionSelectorScheme versionSelectorScheme) {
+        this.versionSelectorScheme = versionSelectorScheme;
+    }
+
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
@@ -48,14 +56,19 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
     }
 
-    VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
+    ImmutableVersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
         String prefers = decoder.readString();
         int rejectCount = decoder.readSmallInt();
         List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
         for (int i = 0; i < rejectCount; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultVersionConstraint(prefers, rejects);
+        if (rejectCount > 1) {
+            throw new UnsupportedOperationException("Multiple rejects are not yet supported");
+        }
+        return new DefaultImmutableVersionConstraint(prefers, rejects,
+            versionSelectorScheme.parseSelector(prefers),
+            rejectCount == 0 ? null : versionSelectorScheme.parseSelector(rejects.get(0)));
     }
 
     public void write(Encoder encoder, ComponentSelector value) throws IOException {
@@ -72,12 +85,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             encoder.writeString(moduleComponentSelector.getGroup());
             encoder.writeString(moduleComponentSelector.getModule());
             VersionConstraint versionConstraint = moduleComponentSelector.getVersionConstraint();
-            encoder.writeString(versionConstraint.getPreferredVersion());
-            List<String> rejectedVersions = versionConstraint.getRejectedVersions();
-            encoder.writeSmallInt(rejectedVersions.size());
-            for (String rejectedVersion : rejectedVersions) {
-                encoder.writeString(rejectedVersion);
-            }
+            writeVersionConstraint(encoder, versionConstraint);
         } else if (implementation == Implementation.BUILD) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
             encoder.writeString(projectComponentSelector.getBuildName());
@@ -89,6 +97,15 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             encoder.writeNullableString(libraryComponentSelector.getVariant());
         } else {
             throw new IllegalStateException("Unsupported implementation type: " + implementation);
+        }
+    }
+
+    private void writeVersionConstraint(Encoder encoder, VersionConstraint versionConstraint) throws IOException {
+        encoder.writeString(versionConstraint.getPreferredVersion());
+        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+        encoder.writeSmallInt(rejectedVersions.size());
+        for (String rejectedVersion : rejectedVersions) {
+            encoder.writeString(rejectedVersion);
         }
     }
 

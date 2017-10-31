@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -60,14 +61,15 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final BinaryStore store;
     private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
-    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
+    private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionSelectorScheme versionSelectorScheme) {
         this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory);
         this.store = store;
         this.cache = cache;
+        this.componentSelectorSerializer = new ComponentSelectorSerializer(versionSelectorScheme);
     }
 
     public ResolutionResult complete() {

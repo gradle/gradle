@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -44,7 +45,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(versionSelectorScheme));
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(versionSelectorScheme));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());

@@ -35,6 +35,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '4.4-beta2'
+        d.versionConstraint.preferredVersion == '4.4-beta2'
+        d.versionConstraint.rejectedVersions == []
 
         !d.force
         !d.transitive
@@ -52,6 +54,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.rejectedVersions == []
 
         !d.force
         !d.transitive
@@ -69,6 +73,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.rejectedVersions == []
         d.transitive
 
         !d.force
@@ -87,6 +93,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.rejectedVersions == []
         d.transitive
 
         !d.force
@@ -101,6 +109,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.rejectedVersions == []
         d.targetConfiguration == 'compile'
         d.transitive
 
@@ -116,6 +126,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.rejectedVersions == []
         d.targetConfiguration == 'default'
         d.transitive
 
@@ -131,6 +143,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.rejectedVersions == []
         d.targetConfiguration == null
         d.transitive
 
@@ -146,6 +160,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.rejectedVersions == []
 
         !d.transitive
 
@@ -161,6 +177,8 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == null
+        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.rejectedVersions == []
         d.transitive
 
         !d.force

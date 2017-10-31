@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 
 /**
@@ -44,9 +46,22 @@ public interface Dependency {
      * Returns the version of this dependency. The version is often required to find the artifacts of a dependency in a
      * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
      * null.
+     *
      */
     @Nullable
     String getVersion();
+
+    /**
+     * Returns the version constraint for this dependency. A version constraint usually only defines a preferred version
+     * for a dependency, but can also add more constraints, like rejecting specific version, or making sure that if a
+     * different dependency on the same module disagrees on the version number, the resolution fails.
+     *
+     * @return the version constraint, or null if there's no version constraint for this dependency
+     *
+     * @since 4.4
+     */
+    @Incubating
+    VersionConstraint getVersionConstraint();
 
     /**
      * Returns whether two dependencies have identical values for their properties. A dependency is an entity with a

@@ -40,7 +40,7 @@ public class UserResolverChain implements ComponentResolvers {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, metaDataFactory, moduleIdentifierFactory);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, metaDataFactory, moduleIdentifierFactory, versionSelectorScheme);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
         artifactResolver = new RepositoryChainArtifactResolver();
     }
