@@ -37,7 +37,7 @@ class MavenGcsSnapshotRepoIntegrationTest extends AbstractGcsDependencyResolutio
 configurations { compile }
 
 dependencies{
-    compile 'org.gradle:test:1.45-SNAPSHOT'
+    compile 'org.gradle:test:$artifactVersion'
 }
 
 task retrieve(type: Sync) {
@@ -69,7 +69,7 @@ configurations { compile }
 
 
 dependencies{
-    compile 'org.gradle:test:1.45-SNAPSHOT+'
+    compile 'org.gradle:test:$artifactVersion+'
 }
 
 task retrieve(type: Sync) {
@@ -127,6 +127,40 @@ task retrieve(type: Sync) {
         localModule.artifactFile.assertIsDifferentFrom(module.artifactFile)
         localModule.pomFile.assertIsDifferentFrom(module.pomFile)
         file("libs/test-${artifactVersion}.jar").assertIsCopyOf(module.artifactFile)
+    }
+
+    def "should list a dynamic snapshot module when maven root metadata is missing"() {
+        setup:
+        module.publish()
+        m2.generateGlobalSettingsFile()
+        def localModule = m2.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
+
+        buildFile << """
+buildscript {
+      
+    ${mavenGcsRepoDsl()}
+
+    dependencies {
+        classpath 'org.gradle:test:$artifactVersion+'
+    }
+}
+"""
+        and:
+        module.mavenRootMetaData.expectDownloadMissing()
+        mavenGcsRepo.directoryList("org.gradle", "test").expectDownload()
+        module.metaData.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
+
+        when:
+        using m2
+
+        then:
+        succeeds 'dependencies'
+
+        and:
+        localModule.artifactFile.assertIsDifferentFrom(module.artifactFile)
+        localModule.pomFile.assertIsDifferentFrom(module.pomFile)
     }
 
     @Override
