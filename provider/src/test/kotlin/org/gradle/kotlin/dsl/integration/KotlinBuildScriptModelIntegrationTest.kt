@@ -224,20 +224,17 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         withBuildSrc()
 
-        val settingsDependency = withFile("dependencies/settings/settings-dep/1.0/settings-dep-1.0.jar", "")
+        val settingsDependency = withFile("settings-dependency.jar", "")
         val settings = withSettings("""
             buildscript {
-                repositories {
-                    maven { setUrl(File(rootDir, "dependencies").toURI()) }
-                }
                 dependencies {
-                    classpath("settings:settings-dep:1.0")
+                    classpath(files("$settingsDependency"))
                 }
             }
         """)
 
         val projectDependency = withFile("project-dependency.jar", "")
-        withFile("dependencies/build.gradle", """
+        withFile("build.gradle", """
             buildscript {
                 dependencies {
                     classpath(files("$projectDependency"))
@@ -249,7 +246,6 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
-
         assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
     }
