@@ -130,7 +130,7 @@ apply plugin: 'xctest'
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
-        def lib = fixture.inProject(testDirectory)
+        def lib = fixture.inProject('app')
         lib.writeToProject(testDirectory)
 
         when:
@@ -246,7 +246,7 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject(testDirectory)
+        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
@@ -275,7 +275,7 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTest().withInfoPlist()
+        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
@@ -302,7 +302,7 @@ apply plugin: 'xctest'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift executable from xcode"() {
         useXcodebuildTool()
-        def app = new SwiftAppWithXCTest()
+        def app = new SwiftAppWithXCTest().inProject('app')
 
         given:
         settingsFile.text = """

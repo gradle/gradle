@@ -218,7 +218,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Connect test suite with tested component
                 testSuite.setTestedComponent(testedComponent);
 
-                // Configure test suite import path from tested component import path
+                // Configure test suite compile task from tested component compile task
+                SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
+                SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
+                compileTest.includes(compileMain.getObjectFileDir());
+
+                // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
 
                 // Configure test suite link task from tested component compiled objects

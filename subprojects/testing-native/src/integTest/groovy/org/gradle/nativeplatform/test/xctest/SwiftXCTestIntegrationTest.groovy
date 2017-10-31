@@ -54,18 +54,15 @@ rootProject.name = '$rootProjectName'
 apply plugin: 'xctest'
 """
 
-if (OperatingSystem.current().linux) {
-    buildFile << """
+        if (OperatingSystem.current().linux) {
+            buildFile << """
     dependencies {
         swiftImportTest files('${xcTestImportPath}')
         nativeLinkTest files('${xcTestLinkFile}')
         nativeRuntimeTest files('${xcTestRuntimeFile}')
     }
-    afterEvaluate {
-        println configurations.swiftImportTest.files
-    }
 """
-}
+        }
 
     }
 
