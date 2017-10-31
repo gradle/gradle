@@ -29,9 +29,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 
 public class Binary2JUnitXmlReportGenerator {
 
@@ -50,6 +52,27 @@ public class Binary2JUnitXmlReportGenerator {
 
     public void generate() {
         Timer clock = Time.startTimer();
+
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                File[] oldXmlFiles = testResultsDir.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.startsWith("TEST") && name.endsWith(".xml");
+                    }
+                });
+
+                for (File oldXmlFile : oldXmlFiles) {
+                    GFileUtils.deleteQuietly(oldXmlFile);
+                }
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Delete old JUnit XML results");
+            }
+        });
 
         buildOperationExecutor.runAll(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
             @Override

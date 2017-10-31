@@ -33,6 +33,7 @@ import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,9 +81,21 @@ public class DefaultTestReport implements TestReporter {
         return model;
     }
 
-    private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, File reportDir) {
+    private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    GFileUtils.deleteQuietly(reportDir);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Delete old HTML results");
+                }
+            });
+
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {

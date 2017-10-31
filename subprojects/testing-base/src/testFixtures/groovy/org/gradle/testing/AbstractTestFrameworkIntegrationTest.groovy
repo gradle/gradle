@@ -22,6 +22,8 @@ import org.hamcrest.Matchers
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
+    abstract void createEmptyProject()
+    abstract void changeTests()
 
     abstract String getTestTaskName()
 
@@ -93,10 +95,9 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "check"
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
-        result.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
-        result.testClass('SomeTest').assertTestFailed(failingTestCaseName, Matchers.containsString("test failure message"))
-        result.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+        testResult.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
+        testResult.testClass('SomeTest').assertTestFailed(failingTestCaseName, Matchers.containsString("test failure message"))
+        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
     def "test results capture test output"() {
@@ -111,8 +112,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "check"
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
-        result.testClass('SomeTest').assertStderr(Matchers.containsString("some error output"))
+        testResult.testClass('SomeTest').assertStderr(Matchers.containsString("some error output"))
     }
 
     def "failing tests cause report url to be printed"() {
@@ -124,5 +124,31 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         then:
         errorOutput.contains("There were failing tests. See the report at:")
+    }
+
+    def "lack of tests produce an empty report"() {
+        given:
+        createEmptyProject()
+
+        when:
+        succeeds "check"
+
+        then:
+        testResult.assertNoTestClassesExecuted()
+    }
+
+    def "adding and removing tests remove old tests from reports"() {
+        given:
+        createPassingFailingTest()
+        fails("check")
+        when:
+        changeTests()
+        fails("check")
+        then:
+        testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
+    }
+
+    private DefaultTestExecutionResult getTestResult() {
+        new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
     }
 }

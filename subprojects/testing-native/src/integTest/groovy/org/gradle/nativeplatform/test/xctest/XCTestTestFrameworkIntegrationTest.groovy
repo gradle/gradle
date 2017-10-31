@@ -16,22 +16,43 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTestTestFrameworkBundle
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+    def setup() {
+        settingsFile << "rootProject.name = 'app'"
+        buildFile << """
+            apply plugin: 'xctest'
+        """
+    }
+
     @Override
     void createPassingFailingTest() {
         def testBundle = new SwiftXCTestTestFrameworkBundle()
         testBundle.writeToProject(testDirectory)
 
-        settingsFile << "rootProject.name = 'app'"
-        buildFile << """
-    apply plugin: 'xctest'
-"""
+    }
+
+    @Override
+    void createEmptyProject() {
+        file("src/test/swift/NoTests.swift") << """
+            func someSwiftCode() {
+            }
+        """
+    }
+
+    @Override
+    void changeTests() {
+        def newTest = file("src/test/swift/NewTest.swift")
+        file("src/test/swift/SomeOtherTest.swift").renameTo(newTest)
+        newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
     }
 
     @Override
@@ -47,5 +68,31 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     @Override
     String getFailingTestCaseName() {
         return "testFail"
+    }
+
+    class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
+        List<XCTestSourceFileElement> testSuites = [
+            new XCTestSourceFileElement() {
+                String testSuiteName = "SomeTest"
+                List<XCTestCaseElement> testCases = [testCase("testFail", FAILING_TEST, true)]
+                String moduleName = "AppTest"
+            }.withImport("Darwin"),
+
+            new XCTestSourceFileElement() {
+                String testSuiteName = "SomeOtherTest"
+                List<XCTestCaseElement> testCases = [testCase("testPass", "XCTAssert(true)")]
+                String moduleName = "AppTest"
+            },
+        ]
+
+        @Override
+        List<SourceFile> getFiles() {
+            super.files + [emptyInfoPlist()]
+        }
+
+        private static final String FAILING_TEST = """
+            fputs("some error output", __stderrp)
+            XCTAssert(false, "test failure message")
+        """
     }
 }

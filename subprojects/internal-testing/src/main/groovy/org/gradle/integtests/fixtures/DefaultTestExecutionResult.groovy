@@ -21,7 +21,7 @@ import org.hamcrest.Matcher
 
 class DefaultTestExecutionResult implements TestExecutionResult {
 
-    def results = []
+    List<TestExecutionResult> results = []
 
     public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
         String binaryPath = binary?"/$binary":''
@@ -43,11 +43,23 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)});
+        new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
         new DefaultTestClassExecutionResult(results.collect { it.testClassStartsWith(testClass) })
+    }
+
+    void assertNoTestClassesExecuted() {
+        assert totalNumberOfTestClassesExecuted == 0
+    }
+
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        assert !results.isEmpty()
+        def firstResult = results[0].totalNumberOfTestClassesExecuted
+        assert results.every { firstResult == it.totalNumberOfTestClassesExecuted }
+        return firstResult
     }
 
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {

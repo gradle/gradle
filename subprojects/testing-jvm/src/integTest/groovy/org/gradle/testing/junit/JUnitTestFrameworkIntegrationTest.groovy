@@ -19,6 +19,15 @@ package org.gradle.testing.junit
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
 class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { testCompile 'junit:junit:4.12' }
+        """
+    }
+
     @Override
     void createPassingFailingTest() {
         file('src/main/java/AppException.java').writelns(
@@ -40,12 +49,20 @@ class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegration
                 public void ${passingTestCaseName}() { }
             }
         """
+    }
 
-        buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+    @Override
+    void createEmptyProject() {
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
         """
+    }
+
+    @Override
+    void changeTests() {
+        def newTest = file("src/test/java/NewTest.java")
+        file('src/test/java/SomeOtherTest.java').renameTo(newTest)
+        newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
     }
 
     @Override
