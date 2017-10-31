@@ -22,4 +22,5 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 public interface VersionConstraintInternal extends VersionConstraint {
     VersionSelector getPreferredSelector(VersionSelectorScheme versionSelectorScheme);
     VersionSelector getRejectionSelector(VersionSelectorScheme versionSelectorScheme);
+    VersionConstraint normalize();
 }
