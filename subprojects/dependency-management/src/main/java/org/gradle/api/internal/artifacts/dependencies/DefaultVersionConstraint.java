@@ -17,49 +17,82 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.AbstractVersionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.base.Strings.nullToEmpty;
+
 public class DefaultVersionConstraint implements VersionConstraintInternal {
-    private String version;
-    private boolean strict;
+    private String prefer;
+    private List<String> rejects;
 
     public DefaultVersionConstraint(String version, boolean strict) {
-        this.version = version;
-        this.strict = strict;
+        this.prefer = version;
+        if (strict) {
+            doStrict();
+        } else {
+            this.rejects = Collections.emptyList();
+        }
+    }
+
+    private void doStrict() {
+        // When strict version is used, we need to parse the preferred selector early, in order to compute its complement.
+        // Hopefully this shouldn't happen too often. If it happens to become a performance problem, we need to reconsider
+        // how we compute the "reject" clause
+        DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
+        VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
+        VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
+        this.rejects = Collections.singletonList(((AbstractVersionVersionSelector)rejectedSelector).getSelector());
+    }
+
+    public DefaultVersionConstraint(String version, List<String> rejects) {
+        this.prefer = nullToEmpty(version);
+        this.rejects = rejects;
     }
 
     public DefaultVersionConstraint(String version) {
         this(version, false);
     }
 
-
     @Override
     public ImmutableVersionConstraint asImmutable(VersionSelectorScheme scheme) {
-        String v = version == null ? "" : version;
+        String v = prefer == null ? "" : prefer;
         VersionSelector preferredSelector = scheme.parseSelector(v);
         VersionSelector rejectedSelector = null;
-        if (strict) {
-            rejectedSelector = scheme.complementForRejection(preferredSelector);
+        if (rejects.size() == 1) {
+            rejectedSelector = scheme.parseSelector(rejects.get(0));
+        } else if (!rejects.isEmpty()) {
+            throw new UnsupportedOperationException("Multiple rejects are not yet supported");
         }
         return new DefaultImmutableVersionConstraint(v, preferredSelector, rejectedSelector);
     }
 
     @Override
     public String getPreferredVersion() {
-        return version;
+        return prefer;
     }
 
     @Override
     public void prefer(String version) {
-        this.version = version;
-        strict = false;
+        this.prefer = version;
+        this.rejects = Collections.emptyList();
     }
 
     @Override
     public void strictly(String version) {
-        this.version = version;
-        strict = true;
+        this.prefer = version;
+        doStrict();
+    }
+
+    @Override
+    public List<String> getRejectedVersions() {
+       return rejects;
     }
 
     @Override
@@ -73,17 +106,16 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
 
         DefaultVersionConstraint that = (DefaultVersionConstraint) o;
 
-        if (strict != that.strict) {
+        if (prefer != null ? !prefer.equals(that.prefer) : that.prefer != null) {
             return false;
         }
-        return version != null ? version.equals(that.version) : that.version == null;
+        return rejects != null ? rejects.equals(that.rejects) : that.rejects == null;
     }
 
     @Override
     public int hashCode() {
-        int result = version != null ? version.hashCode() : 0;
-        result = 31 * result + (strict ? 1 : 0);
+        int result = prefer != null ? prefer.hashCode() : 0;
+        result = 31 * result + (rejects != null ? rejects.hashCode() : 0);
         return result;
     }
-
 }

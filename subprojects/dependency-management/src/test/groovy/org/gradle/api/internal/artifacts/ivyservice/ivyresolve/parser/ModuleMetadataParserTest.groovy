@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.Transformer
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.MutableComponentVariant
@@ -77,7 +78,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
-        1 * variant.addDependency("g1", "m1", "v1")
+        1 * variant.addDependency("g1", "m1", new DefaultVersionConstraint("v1"))
         0 * _
     }
 
@@ -180,10 +181,10 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", "v1")
-        1 * variant1.addDependency("g2", "m2", "v2")
+        1 * variant1.addDependency("g1", "m1", new DefaultVersionConstraint("v1"))
+        1 * variant1.addDependency("g2", "m2", new DefaultVersionConstraint("v2"))
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", "v3")
+        1 * variant2.addDependency("g3", "m3", new DefaultVersionConstraint("v3"))
         0 * _
     }
 
@@ -275,9 +276,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", "v1")
+        1 * variant1.addDependency("g1", "m1", new DefaultVersionConstraint("v1"))
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", "v2")
+        1 * variant2.addDependency("g2", "m2", new DefaultVersionConstraint("v2"))
         0 * _
     }
 
@@ -396,7 +397,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes()) >> variant
-        1 * variant.addDependency("g", "m", "v")
+        1 * variant.addDependency("g", "m", new DefaultVersionConstraint("v"))
         0 * metadata._
     }
 

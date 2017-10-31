@@ -17,9 +17,11 @@
 package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -35,6 +37,10 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
     def configurations = []
     def dependencies = []
+
+    static VersionConstraint v(String version) {
+        new DefaultVersionConstraint(version)
+    }
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
@@ -70,14 +76,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         then:
         deps.size() == 2
-        deps[0].requested == newSelector("org", "module", "1.2")
-        deps[1].requested == newSelector("org", "another", "1.2")
+        deps[0].requested == newSelector("org", "module", v("1.2"))
+        deps[1].requested == newSelector("org", "another", v("1.2"))
 
         and:
         def immutable = metadata.asImmutable()
         immutable.dependencies.size() == 2
-        immutable.dependencies[0].requested == newSelector("org", "module", "1.2")
-        immutable.dependencies[1].requested == newSelector("org", "another", "1.2")
+        immutable.dependencies[0].requested == newSelector("org", "module", v("1.2"))
+        immutable.dependencies[1].requested == newSelector("org", "another", v("1.2"))
         immutable.getConfiguration("compile").dependencies.size() == 1
         immutable.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
         immutable.getConfiguration("runtime").dependencies.size() == 2
@@ -87,14 +93,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         and:
         def copy = immutable.asMutable()
         copy.dependencies.size() == 2
-        copy.dependencies[0].requested == newSelector("org", "module", "1.2")
-        copy.dependencies[1].requested == newSelector("org", "another", "1.2")
+        copy.dependencies[0].requested == newSelector("org", "module", v("1.2"))
+        copy.dependencies[1].requested == newSelector("org", "another", v("1.2"))
 
         and:
         def immutable2 = copy.asImmutable()
         immutable2.dependencies.size() == 2
-        immutable2.dependencies[0].requested == newSelector("org", "module", "1.2")
-        immutable2.dependencies[1].requested == newSelector("org", "another", "1.2")
+        immutable2.dependencies[0].requested == newSelector("org", "module", v("1.2"))
+        immutable2.dependencies[1].requested == newSelector("org", "another", v("1.2"))
         immutable2.getConfiguration("compile").dependencies.size() == 1
         immutable2.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
         immutable2.getConfiguration("runtime").dependencies.size() == 2
@@ -259,7 +265,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def dependency(String org, String module, String version, List<String> confs = []) {
         def builder = ImmutableListMultimap.builder()
         confs.each { builder.put(it, it) }
-        def dependency = new IvyDependencyMetadata(newSelector(org, module, version), builder.build())
+        def dependency = new IvyDependencyMetadata(newSelector(org, module, v(version)), builder.build())
         dependencies.add(dependency)
         return dependency
     }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -32,7 +33,7 @@ class DependencyResultSerializerTest extends Specification {
     def serializer = new DependencyResultSerializer()
 
     def "serializes successful dependency result"() {
-        def requested = DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
+        def requested = DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultVersionConstraint("1.0", ['2.0', '3.0']))
         def successful = Mock(DependencyGraphEdge) {
             getSelector() >> Stub(DependencyGraphSelector) {
                 getResultId() >> 4L
@@ -57,8 +58,8 @@ class DependencyResultSerializerTest extends Specification {
     }
 
     def "serializes failed dependency result"() {
-        def requested = DefaultModuleComponentSelector.newSelector("x", "y", "1.0")
-        def failure = new ModuleVersionResolveException(newSelector("x", "y", "1.2"), new RuntimeException("Boo!"))
+        def requested = DefaultModuleComponentSelector.newSelector("x", "y", new DefaultVersionConstraint("1.0", ['2.0', '3.0']))
+        def failure = new ModuleVersionResolveException(newSelector("x", "y", new DefaultVersionConstraint("1.2")), new RuntimeException("Boo!"))
 
         def failed = Mock(DependencyGraphEdge) {
             getSelector() >> Stub(DependencyGraphSelector) {

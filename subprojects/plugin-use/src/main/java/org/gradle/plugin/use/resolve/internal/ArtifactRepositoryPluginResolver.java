@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -104,7 +104,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
             String id = pluginRequest.getId().getId();
             return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
         } else {
-            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
+            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersionConstraint().getPreferredVersion());
         }
     }
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
@@ -39,7 +40,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', 'version-one')
+        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', new DefaultVersionConstraint('version-one'))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -48,6 +49,8 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         result.group == 'group-one'
         result.module == 'name-one'
         result.version == 'version-one'
+        result.versionConstraint.preferredVersion == 'version-one'
+        result.versionConstraint.rejectedVersions == []
     }
 
     def "serializes BuildComponentSelector"() {
@@ -79,5 +82,20 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
         ':myPath'   | 'myLib'
         ':myPath'   | null
         ':myPath'   | 'myLib'
+    }
+
+    def "serializes strict constraint"() {
+        given:
+        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', new DefaultVersionConstraint('version-one', true))
+
+        when:
+        ModuleComponentSelector result = serialize(selection, serializer)
+
+        then:
+        result.group == 'group-one'
+        result.module == 'name-one'
+        result.version == 'version-one'
+        result.versionConstraint.preferredVersion == 'version-one'
+        result.versionConstraint.rejectedVersions == [']version-one,)']
     }
 }

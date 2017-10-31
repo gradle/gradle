@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -340,7 +341,7 @@ public class DynamicVersionResolver {
         }
 
         private void process(ModuleComponentRepositoryAccess access, DefaultBuildableModuleComponentMetaDataResolveResult result) {
-            DependencyMetadata dependency = dependencyMetadata.withRequestedVersion(version.getSource());
+            DependencyMetadata dependency = dependencyMetadata.withRequestedVersion(new DefaultVersionConstraint(version.getSource()));
             access.resolveComponentMetaData(identifier, DefaultComponentOverrideMetadata.forDependency(dependency), result);
             attemptCollector.execute(result);
         }

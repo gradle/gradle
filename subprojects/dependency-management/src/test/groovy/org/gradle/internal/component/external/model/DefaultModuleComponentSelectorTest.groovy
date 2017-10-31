@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,14 +27,22 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultModuleComponentSelectorTest extends Specification {
+    private static VersionConstraint v(String version) {
+        if (version!=null) {
+            return new DefaultVersionConstraint(version)
+        }
+    }
+
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
 
         then:
         defaultModuleComponentSelector.group == 'some-group'
         defaultModuleComponentSelector.module == 'some-name'
         defaultModuleComponentSelector.version == '1.0'
+        defaultModuleComponentSelector.versionConstraint.preferredVersion == '1.0'
+        defaultModuleComponentSelector.versionConstraint.rejectedVersions == []
         defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
     }
@@ -40,7 +50,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
         when:
-        new DefaultModuleComponentSelector(group, name, version)
+        new DefaultModuleComponentSelector(group, name, v(version))
 
         then:
         Throwable t = thrown(AssertionError)
@@ -56,8 +66,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector1 = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
-        ModuleComponentSelector defaultModuleComponentSelector2 = new DefaultModuleComponentSelector(group, name, version)
+        ModuleComponentSelector defaultModuleComponentSelector1 = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
+        ModuleComponentSelector defaultModuleComponentSelector2 = new DefaultModuleComponentSelector(group, name, v(version))
         strictlyEquals(defaultModuleComponentSelector1, defaultModuleComponentSelector2) == equality
         (defaultModuleComponentSelector1.hashCode() == defaultModuleComponentSelector2.hashCode()) == hashCode
         (defaultModuleComponentSelector1.toString() == defaultModuleComponentSelector2.toString()) == stringRepresentation
@@ -72,19 +82,21 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "can create new selector"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.newSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.newSelector('some-group', 'some-name', v('1.0'))
 
         then:
         defaultModuleComponentSelector.group == 'some-group'
         defaultModuleComponentSelector.module == 'some-name'
         defaultModuleComponentSelector.version == '1.0'
+        defaultModuleComponentSelector.versionConstraint.preferredVersion == '1.0'
+        defaultModuleComponentSelector.versionConstraint.rejectedVersions == []
         defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
     }
 
     def "prevents matching of null id"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
         defaultModuleComponentSelector.matchesStrictly(null)
 
         then:
@@ -94,7 +106,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
         boolean matches = defaultModuleComponentSelector.matchesStrictly(newProjectId(':mypath'))
 
         then:
@@ -104,7 +116,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
         ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier(group, name, version)
         defaultModuleComponentSelector.matchesStrictly(defaultModuleComponentIdentifier) == matchesId
 

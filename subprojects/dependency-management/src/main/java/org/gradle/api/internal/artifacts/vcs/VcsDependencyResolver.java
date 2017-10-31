@@ -123,7 +123,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {
         // TODO: Only perform source dependency resolution when version == latest.integration for now
-        if (vcsMappingsInternal.hasRules() && dependency.getRequested().getVersion().equals("latest.integration")) {
+        if (vcsMappingsInternal.hasRules() && dependency.getRequested().getVersionConstraint().getPreferredVersion().equals("latest.integration")) {
             return vcsMappingFactory.create(dependency.getSelector(), dependency.getRequested());
         }
         return null;

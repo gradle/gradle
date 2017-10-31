@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
@@ -226,7 +227,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
         selector.resultId >> resultId
-        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, ver)
+        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultVersionConstraint(ver))
         return selector
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.internal.typeconversion.UnsupportedNotationException
@@ -42,8 +43,8 @@ class ModuleSelectorStringNotationConverterTest extends Specification {
 
     def "parses module component identifier notation"() {
         expect:
-        parser.parseNotation("org.gradle:gradle-core:1.+") == DefaultModuleComponentSelector.newSelector("org.gradle", "gradle-core", "1.+")
-        parser.parseNotation(" foo:bar:[1.3, 2.0)") == DefaultModuleComponentSelector.newSelector("foo", "bar", "[1.3, 2.0)")
+        parser.parseNotation("org.gradle:gradle-core:1.+") == DefaultModuleComponentSelector.newSelector("org.gradle", "gradle-core", new DefaultVersionConstraint("1.+"))
+        parser.parseNotation(" foo:bar:[1.3, 2.0)") == DefaultModuleComponentSelector.newSelector("foo", "bar", new DefaultVersionConstraint("[1.3, 2.0)"))
     }
 
     def "reports invalid notation"() {

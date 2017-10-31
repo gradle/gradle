@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
@@ -103,10 +104,10 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
      * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
      */
     private static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
-        String version = dependency.getRequested().getVersion();
+        String version = dependency.getRequested().getVersionConstraint().getPreferredVersion();
         if (version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
             String normalizedVersion = version.substring(1, version.length() - 1);
-            return dependency.withRequestedVersion(normalizedVersion);
+            return dependency.withRequestedVersion(new DefaultVersionConstraint(normalizedVersion));
         }
         return dependency;
     }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -54,7 +55,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());
         assertFalse(dependencyMetaData.isForce());
-        assertEquals(DefaultModuleVersionSelector.newSelector("someGroup", "test", "someVersion"), dependencyMetaData.getRequested());
+        assertEquals(DefaultModuleVersionSelector.newSelector("someGroup", "test", new DefaultVersionConstraint("someVersion")), dependencyMetaData.getRequested());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 

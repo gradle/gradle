@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
@@ -41,7 +42,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when no versions attempted"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.+"), ["http://somewhere", "file:/somewhere"], [], [])
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], [])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any matches for org:a:1.+ as no versions of org:a are available.
@@ -51,7 +52,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and non rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.+"), ["http://somewhere", "file:/somewhere"], ["1.1", "1.2"], [])
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["1.1", "1.2"], [])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -64,7 +65,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and some rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.+"), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], ["1.1", "1.2"])
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], ["1.1", "1.2"])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -80,7 +81,7 @@ Searched in the following locations:
     }
 
     def "formats message for selector and locations when versions attempted and all rejected"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.+"), ["http://somewhere", "file:/somewhere"], [], ["1.1", "1.2"])
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], [], ["1.1", "1.2"])
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.
@@ -93,7 +94,7 @@ Searched in the following locations:
     }
 
     def "limits list of candidates"() {
-        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.+"), ["http://somewhere", "file:/somewhere"], (1..20).collect { it.toString() }, (1..10).collect { it.toString() })
+        def exception = new ModuleVersionNotFoundException(newSelector("org", "a", new DefaultVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], (1..20).collect { it.toString() }, (1..10).collect { it.toString() })
 
         expect:
         exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.+.

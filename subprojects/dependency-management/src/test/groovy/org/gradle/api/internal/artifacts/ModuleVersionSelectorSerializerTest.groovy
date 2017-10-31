@@ -16,18 +16,28 @@
 
 package org.gradle.api.internal.artifacts
 
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.serialize.SerializerSpec
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ModuleVersionSelectorSerializerTest extends SerializerSpec {
     private serializer = new ModuleVersionSelectorSerializer()
 
+    @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector("org", "foo", "5.0"), serializer)
+        def result = serialize(newSelector("org", "foo", new DefaultVersionConstraint(version, rejects)), serializer)
 
         then:
-        result == newSelector("org", "foo", "5.0")
+        result == newSelector("org", "foo", new DefaultVersionConstraint(version, rejects))
+
+        where:
+        version | rejects
+        '5.0'   | []
+        '5.0'   | ['1.0']
+        '5.0'   | ['1.0', '2.0']
+
     }
 }

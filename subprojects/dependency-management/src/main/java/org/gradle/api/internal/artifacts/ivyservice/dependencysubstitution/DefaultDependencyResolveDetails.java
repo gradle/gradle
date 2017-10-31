@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -40,7 +42,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         // Temporary logic until we add DependencySubstitution back in
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) delegate.getTarget();
-            return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersion());
+            return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersionConstraint());
         }
         // If the target is a project component, it must be unmodified from the requested
         return delegate.getOldRequested();
@@ -53,17 +55,20 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
 
     @Override
     public void useVersion(String version) {
-        useVersion(version, VersionSelectionReasons.SELECTED_BY_RULE);
+        if (version == null) {
+            throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
+        }
+        useVersion(new DefaultVersionConstraint(version), VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
     @Override
-    public void useVersion(String version, ComponentSelectionReason selectionReason) {
+    public void useVersion(VersionConstraint version, ComponentSelectionReason selectionReason) {
         assert selectionReason != null;
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
 
-        if (!version.equals(target.getVersion())) {
+        if (!version.equals(target.getVersionConstraint())) {
             target = DefaultModuleVersionSelector.newSelector(target.getGroup(), target.getName(), version);
             delegate.useTarget(DefaultModuleComponentSelector.newSelector(target), selectionReason);
         } else {

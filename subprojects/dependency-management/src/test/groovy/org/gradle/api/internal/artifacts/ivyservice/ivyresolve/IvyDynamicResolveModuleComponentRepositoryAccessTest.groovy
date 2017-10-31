@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -51,7 +52,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         and:
         1 * metaData.asMutable() >> mutableMetaData
         1 * metaData.dependencies >> [original]
-        1 * original.withRequestedVersion('1.2+') >> transformed
+        1 * original.withRequestedVersion(new DefaultVersionConstraint('1.2+')) >> transformed
         1 * mutableMetaData.setDependencies([transformed])
         1 * mutableMetaData.asImmutable() >> updatedMetaData
         1 * result.setMetadata(updatedMetaData)

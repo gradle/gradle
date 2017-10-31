@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -90,7 +91,7 @@ class ClientModuleResolverTest extends Specification {
 
         then:
         1 * target.resolve(id, componentRequestMetaData, result)
-        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
+        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", new DefaultVersionConstraint("c")), "broken")
         0 * _
     }
 }
