@@ -32,9 +32,15 @@ public class DependencyLockFileGenerationListener extends BuildAdapter {
 
     @Override
     public void buildFinished(BuildResult result) {
-        Project rootProject = result.getGradle().getRootProject();
-        File lockFile = getLockFile(rootProject);
-        dependencyLockManager.writeLock(lockFile);
+        if (successfulBuild(result)) {
+            Project rootProject = result.getGradle().getRootProject();
+            File lockFile = getLockFile(rootProject);
+            dependencyLockManager.writeLock(lockFile);
+        }
+    }
+
+    private boolean successfulBuild(BuildResult result) {
+        return result.getFailure() == null;
     }
 
     private File getLockFile(Project rootProject) {

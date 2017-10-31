@@ -44,31 +44,6 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
-    def "can write locks for resolvable dependencies even if at least one dependency is unresolvable"() {
-        given:
-        mavenRepo.module('foo', 'bar', '1.5').publish()
-
-        buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
-        buildFile << """
-            dependencies {
-                myConf 'does.not:exist:1.2.3'
-                myConf 'foo:bar:1.5'
-            }
-        """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
-
-        when:
-        failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
-
-        then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
-        locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
-    }
-
     def "can create locks for all supported formats of dynamic dependencies"() {
         given:
         mavenRepo.module('foo', 'bar', '1.3').publish()

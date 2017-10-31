@@ -50,4 +50,25 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         then:
         assertLockFileAndHashFileDoNotExist()
     }
+
+    def "does not wrote lock file if at least one dependency is unresolvable and fails build"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+
+        buildFile << mavenRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << """
+            dependencies {
+                myConf 'does.not:exist:1.2.3'
+                myConf 'foo:bar:1.5'
+            }
+        """
+        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertLockFileAndHashFileDoNotExist()
+    }
 }

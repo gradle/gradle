@@ -22,6 +22,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
     def "subsequent builds do not recreate lock file for unchanged dependencies"() {
         given:
+        requireOwnGradleUserHomeDir()
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
         buildFile << mavenRepository(mavenRepo)
