@@ -231,7 +231,7 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
             }
             configurations.compile.withDependencies { deps ->
                 deps.each { dep ->
-                    dep.version = 'X'
+                    dep.version { prefer 'X' }
                 }
                 deps.add project.dependencies.create("org.test:dep2:1.0")
             }
