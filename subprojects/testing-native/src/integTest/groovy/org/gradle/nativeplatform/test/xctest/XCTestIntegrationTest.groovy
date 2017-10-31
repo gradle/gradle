@@ -26,6 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithInfoPlist
+import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -253,6 +255,64 @@ dependencies {
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/AppTest").assertExists()
+        testBundle.assertTestCasesRan(testExecutionResult)
+    }
+
+    def "build passes when tests have unicode characters"() {
+        given:
+        def testBundle = new SwiftXCTestBundleWithInfoPlist()
+        testBundle.testSuites += new XCTestSourceFileElement() {
+            String testSuiteName = "SpecialCharsTestSuite"
+            List<XCTestCaseElement> testCases = [
+                testCase("test_name_with_leading_underscore", "XCTAssert(true)"),
+                testCase("testname_with_a_number_1234", "XCTAssert(true)"),
+                testCase("test·middle_dot", "XCTAssert(true)"),
+                testCase("test1234", "XCTAssert(true)"),
+                testCase("testᏀᎡᎪᎠᏞᎬ", "XCTAssert(true)")
+            ]
+            String moduleName = "AppTest"
+        }
+        testBundle.testSuites += new XCTestSourceFileElement() {
+            String testSuiteName = "UnicodeᏀᎡᎪᎠᏞᎬSuite"
+            List<XCTestCaseElement> testCases = [
+                testCase("testSomething", "XCTAssert(true)"),
+            ]
+            String moduleName = "AppTest"
+        }
+        testBundle.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.assertTestCasesRan(testExecutionResult)
+    }
+
+    def "build still fails when tests have unicode characters"() {
+        given:
+        def testBundle = new SwiftFailingXCTestBundle()
+        testBundle.testSuites += new XCTestSourceFileElement() {
+            String testSuiteName = "FailingSpecialCharsTestSuite"
+            List<XCTestCaseElement> testCases = [
+                testCase("test·middle_dot", "XCTAssert(false)", true),
+            ]
+            String moduleName = "AppTest"
+        }
+        testBundle.testSuites += new XCTestSourceFileElement() {
+            String testSuiteName = "UnicodeᏀᎡᎪᎠᏞᎬSuite"
+            List<XCTestCaseElement> testCases = [
+                testCase("testSomething", "XCTAssert(false)", true),
+            ]
+            String moduleName = "AppTest"
+        }
+        testBundle.writeToProject(testDirectory)
+
+        when:
+        fails("test")
+
+        then:
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 

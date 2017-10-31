@@ -25,7 +25,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.nativeplatform.test.xctest.internal.NativeTestExecuter;
+import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 
 import javax.inject.Inject;
@@ -86,6 +86,6 @@ public class XcTest extends AbstractTestTask {
 
     @Override
     protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
-        return objectFactory.newInstance(NativeTestExecuter.class);
+        return objectFactory.newInstance(XcTestExecuter.class);
     }
 }
