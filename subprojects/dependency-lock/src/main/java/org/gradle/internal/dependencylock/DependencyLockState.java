@@ -16,12 +16,11 @@
 
 package org.gradle.internal.dependencylock;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 
 public interface DependencyLockState {
 
-    void resolveAndPersist(Project project, Configuration configuration);
+    void resolveAndPersist(String projectPath, String configurationName, ResolutionResult resolutionResult);
     DependencyLock getDependencyLock();
 }

@@ -17,13 +17,11 @@
 package org.gradle.internal.dependencylock;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
@@ -34,24 +32,19 @@ public class DefaultDependencyLockState implements DependencyLockState {
     private final DependencyLock dependencyLock = new DependencyLock();
 
     @Override
-    public void resolveAndPersist(final Project project, final Configuration configuration) {
-        configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
+    public void resolveAndPersist(final String projectPath, final String configurationName, ResolutionResult resolutionResult) {
+        resolutionResult.allDependencies(new Action<DependencyResult>() {
             @Override
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                resolvableDependencies.getResolutionResult().allDependencies(new Action<DependencyResult>() {
-                    @Override
-                    public void execute(DependencyResult dependencyResult) {
-                        if (dependencyResult instanceof ResolvedDependencyResult) {
-                            ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
-                            ComponentSelector requested = dependencyResult.getRequested();
+            public void execute(DependencyResult dependencyResult) {
+                if (dependencyResult instanceof ResolvedDependencyResult) {
+                    ResolvedDependencyResult resolvedDependencyResult = (ResolvedDependencyResult) dependencyResult;
+                    ComponentSelector requested = dependencyResult.getRequested();
 
-                            if (requested instanceof ModuleComponentSelector) {
-                                ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
-                                addDependency(project.getPath(), configuration.getName(), requestedModule, resolvedDependencyResult, dependencyLock);
-                            }
-                        }
+                    if (requested instanceof ModuleComponentSelector) {
+                        ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
+                        addDependency(projectPath, configurationName, requestedModule, resolvedDependencyResult, dependencyLock);
                     }
-                });
+                }
             }
         });
     }

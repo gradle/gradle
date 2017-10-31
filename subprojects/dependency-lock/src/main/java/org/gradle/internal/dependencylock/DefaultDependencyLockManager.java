@@ -16,8 +16,7 @@
 
 package org.gradle.internal.dependencylock;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.internal.dependencylock.converter.DependencyLockConverter;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.hash.HashUtil;
@@ -36,8 +35,8 @@ public class DefaultDependencyLockManager implements DependencyLockManager {
     }
 
     @Override
-    public void lockResolvedDependencies(Project project, Configuration configuration) {
-        dependencyLockState.resolveAndPersist(project, configuration);
+    public void lockResolvedDependencies(String projectPath, final String configurationName, ResolutionResult resolutionResult) {
+        dependencyLockState.resolveAndPersist(projectPath, configurationName, resolutionResult);
     }
 
     @Override

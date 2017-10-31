@@ -16,13 +16,12 @@
 
 package org.gradle.internal.dependencylock;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.result.ResolutionResult;
 
 import java.io.File;
 
 public interface DependencyLockManager {
 
-    void lockResolvedDependencies(Project project, Configuration configuration);
+    void lockResolvedDependencies(String projectPath, final String configurationName, ResolutionResult resolutionResult);
     void writeLock(File lockFile);
 }

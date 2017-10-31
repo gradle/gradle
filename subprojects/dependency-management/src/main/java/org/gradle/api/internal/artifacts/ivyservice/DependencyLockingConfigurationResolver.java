@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -48,8 +49,8 @@ public class DependencyLockingConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        lockConfiguration(configuration);
         delegate.resolveGraph(configuration, results);
+        lockConfiguration(configuration, results.getResolutionResult());
     }
 
     @Override
@@ -57,10 +58,10 @@ public class DependencyLockingConfigurationResolver implements ConfigurationReso
         delegate.resolveArtifacts(configuration, results);
     }
 
-    private void lockConfiguration(ConfigurationInternal configuration) {
+    private void lockConfiguration(ConfigurationInternal configuration, ResolutionResult resolutionResult) {
         if (dependencyLockEnabled) {
             ProjectInternal project = projectFinder.getProject(configuration.getModule().getProjectPath());
-            dependencyLockManager.lockResolvedDependencies(project, configuration);
+            dependencyLockManager.lockResolvedDependencies(project.getPath(), configuration.getName(), resolutionResult);
         }
     }
 }
