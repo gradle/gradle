@@ -73,9 +73,9 @@ dependencies {
         dependency("commons-cli:commons-cli:1.0") {
             transitive = false
         }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.9.6') {
-            dependencies "org.apache.ant:ant-launcher:1.9.6@jar",
-                         "org.apache.ant:ant-junit:1.9.6"
+        module(group: 'org.apache.ant', name: 'ant', version: '1.9.9') {
+            dependencies "org.apache.ant:ant-launcher:1.9.9@jar",
+                         "org.apache.ant:ant-junit:1.9.9"
         }
     }
 }
