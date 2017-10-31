@@ -114,6 +114,8 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
+        addRule(IncubatingInternalInterfaceAddedRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(MethodsRemovedInInternalSuperClassRule, acceptedViolations.toAcceptedChangesMap())
         addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
