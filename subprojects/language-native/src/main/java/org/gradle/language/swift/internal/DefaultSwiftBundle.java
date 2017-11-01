@@ -24,17 +24,21 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftBundle;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundle {
+    private final Provider<SwiftBinary> testedComponent;
     private final Provider<RegularFile> informationPropertyList;
     private final DirectoryProperty bundleDir;
 
     @Inject
-    public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory) {
+    public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryProperty resourceDirectory, Provider<SwiftBinary> testedComponent) {
         super(name, projectLayout, objectFactory, module, debuggable, source, configurations, implementation);
+        this.testedComponent = testedComponent;
         this.bundleDir = projectLayout.directoryProperty();
         this.informationPropertyList = resourceDirectory.file("Info.plist");
     }
@@ -47,5 +51,19 @@ public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundl
     @Override
     public DirectoryProperty getBundleDirectory() {
         return bundleDir;
+    }
+
+    @Override
+    public FileCollection getCompileImportPath() {
+        return super.getCompileImportPath().plus(getFileOperations().files(new Callable<FileCollection>() {
+            @Override
+            public FileCollection call() throws Exception {
+                SwiftBinary tested = testedComponent.getOrNull();
+                if (tested == null) {
+                    return getFileOperations().files();
+                }
+                return getFileOperations().files(((DefaultSwiftBinary)tested).getObjectsDir());
+            }
+        }));
     }
 }
