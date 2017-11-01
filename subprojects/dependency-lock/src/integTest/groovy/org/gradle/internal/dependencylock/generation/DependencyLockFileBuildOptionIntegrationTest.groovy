@@ -24,13 +24,13 @@ class DependencyLockFileBuildOptionIntegrationTest extends AbstractDependencyLoc
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
     }
 
     def "does not generate lock file if no build option was provided"() {

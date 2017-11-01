@@ -26,7 +26,7 @@ import static org.gradle.initialization.StartParameterBuildOptions.DependencyLoc
 abstract class AbstractDependencyLockFileGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String ROOT_PROJECT_PATH = ':'
-    public static final String MYCONF_CUSTOM_CONFIGURATION = 'myConf'
+    public static final String MYCONF_CONFIGURATION_NAME = 'myConf'
 
     TestFile lockFile
     TestFile sha1File

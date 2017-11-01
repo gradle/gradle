@@ -30,7 +30,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         mavenRepo.module('other', 'dep', '2.9').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             configurations.myConf {
                 resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -44,14 +44,14 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
@@ -69,7 +69,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         mavenRepo.module('other', 'dep', '2.9').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             configurations.myConf {
                 resolutionStrategy.dependencySubstitution { 
@@ -85,7 +85,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
                 apply plugin: 'java-library'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
         settingsFile << "include 'fooBar'"
 
         when:
@@ -93,7 +93,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'

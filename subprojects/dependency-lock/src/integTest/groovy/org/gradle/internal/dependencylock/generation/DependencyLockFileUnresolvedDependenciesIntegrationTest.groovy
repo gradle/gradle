@@ -23,8 +23,8 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
     def "does not write lock file if no dependencies were resolved"() {
         given:
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
@@ -36,13 +36,13 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
     def "does not write lock file if all dependencies failed to be resolved"() {
         given:
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
@@ -56,14 +56,14 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'does.not:exist:1.2.3'
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)

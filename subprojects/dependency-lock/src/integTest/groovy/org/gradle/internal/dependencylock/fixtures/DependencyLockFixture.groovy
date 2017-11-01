@@ -43,6 +43,12 @@ final class DependencyLockFixture {
         """
     }
 
+    static String configurationExtension(String parentConfigurationName, String childConfigurationName) {
+        """
+            configurations.${childConfigurationName}.extendsFrom configurations.$parentConfigurationName
+        """
+    }
+
     static String copyLibsTask(String... configurationNames) {
         """
             task $COPY_LIBS_TASK_NAME(type: Copy) {

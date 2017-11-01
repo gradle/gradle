@@ -25,20 +25,20 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.5'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
@@ -52,7 +52,7 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         mavenRepo.module('dep', 'range', '1.7.1').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.+'
@@ -61,14 +61,14 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
                 myConf 'dep:range:[1.0,2.0]'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 4
         locks[0].toString() == 'foo:bar:1.+ -> 1.3'
         locks[1].toString() == 'org:gradle:+ -> 7.5'
@@ -83,21 +83,21 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         mavenRepo.module('org', 'gradle', '7.5').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION, 'unresolved')
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME, 'unresolved')
         buildFile << """
             dependencies {
                 myConf 'foo:bar:1.+'
                 unresolved 'org:gradle:+'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.+ -> 1.3'
         sha1File.text == 'a9996480fc8669d8dbb61c8352a2525cc5c554e9'
@@ -147,21 +147,21 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         mavenRepo.module('bar', 'first', '2.5').dependsOn(barSecondModule).publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:first:1.5'
                 myConf 'bar:first:2.+'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 6
         locks[0].toString() == 'foo:first:1.5 -> 1.5'
         locks[1].toString() == 'foo:second:1.6.7 -> 1.6.7'
@@ -179,21 +179,21 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         mavenRepo.module('foo', 'second', '1.9').publish()
 
         buildFile << mavenRepository(mavenRepo)
-        buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
         buildFile << """
             dependencies {
                 myConf 'foo:first:1.5'
                 myConf 'foo:second:1.9'
             }
         """
-        buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+        buildFile << copyLibsTask(MYCONF_CONFIGURATION_NAME)
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
         def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CUSTOM_CONFIGURATION)
+        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 3
         locks[0].toString() == 'foo:first:1.5 -> 1.5'
         locks[1].toString() == 'foo:second:1.6.7 -> 1.9'
