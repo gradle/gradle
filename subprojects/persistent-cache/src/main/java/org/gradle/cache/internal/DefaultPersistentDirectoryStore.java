@@ -143,6 +143,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
+    public void withFileLock(Runnable action) {
+        cacheAccess.withFileLock(action);
+    }
+
+    @Override
     public <T> T useCache(Factory<? extends T> action) {
         return cacheAccess.useCache(action);
     }
