@@ -54,12 +54,6 @@ abstract class AbstractDependencyLockFileGenerationIntegrationTest extends Abstr
         args("--no-$DependencyLockOption.LONG_OPTION")
     }
 
-    protected String dependencyLockGradleProperty(boolean enabled) {
-        """
-            $DependencyLockOption.GRADLE_PROPERTY=$enabled
-        """
-    }
-
     protected void assertLockFileAndHashFileExist() {
         assert lockFile.exists()
         assert sha1File.exists()
