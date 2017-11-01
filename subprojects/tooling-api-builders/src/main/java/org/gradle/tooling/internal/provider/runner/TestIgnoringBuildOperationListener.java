@@ -23,7 +23,7 @@ import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
-public class TestIgnoringBuildOperationListener implements BuildOperationListener {
+class TestIgnoringBuildOperationListener implements BuildOperationListener {
     private final BuildOperationListener delegate;
 
     public TestIgnoringBuildOperationListener(BuildOperationListener delegate) {
