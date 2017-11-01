@@ -212,13 +212,15 @@ public class XcodePlugin extends IdePlugin {
         final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
         xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
 
-        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
+        String targetName = component.getModule().get() + " " + toString(productType);
+        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().addTarget(target);
     }
 
     private void configureXcodeForSwift(final Project project, PBXTarget.ProductType productType) {
-        SwiftComponent component = project.getExtensions().getByType(SwiftComponent.class);
+        // TODO: Assumes there's a single 'main' Swift component
+        SwiftComponent component = project.getComponents().withType(SwiftComponent.class).getByName("main");
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getGroups().getSources().from(sources);
 
@@ -227,11 +229,12 @@ public class XcodePlugin extends IdePlugin {
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
 
-        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
+        String targetName = component.getModule().get() + " " + toString(productType);
+        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().addTarget(target);
 
-        createSchemeTask(project.getTasks(), component.getModule().get() + " " + toString(productType), xcode.getProject());
+        createSchemeTask(project.getTasks(), targetName, xcode.getProject());
     }
 
     private void configureForCppPlugin(final Project project) {
@@ -251,7 +254,8 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeForCpp(Project project, PBXTarget.ProductType productType) {
-        CppComponent component = project.getExtensions().getByType(CppComponent.class);
+        // TODO: Assumes there's a single 'main' C++ component
+        CppComponent component = project.getComponents().withType(CppComponent.class).getByName("main");
         FileCollection sources = component.getCppSource();
         xcode.getProject().getGroups().getSources().from(sources);
 
