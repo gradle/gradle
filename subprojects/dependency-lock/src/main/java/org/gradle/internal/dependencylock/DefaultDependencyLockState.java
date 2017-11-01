@@ -51,9 +51,14 @@ public class DefaultDependencyLockState implements DependencyLockState {
 
     private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
         ModuleIdentifier moduleIdentifier = new ModuleKey(requestedModule.getGroup(), requestedModule.getModule());
-        String resolvedVersion = resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
+        String resolvedVersion = determineResolvedVersion(requestedModule, resolvedDependencyResult);
         DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
         dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, dependencyVersion);
+    }
+
+    private String determineResolvedVersion(ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult) {
+        boolean selectedByRule = resolvedDependencyResult.getSelected().getSelectionReason().isSelectedByRule();
+        return selectedByRule ? requestedModule.getVersion() : resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
     }
 
     @Override
