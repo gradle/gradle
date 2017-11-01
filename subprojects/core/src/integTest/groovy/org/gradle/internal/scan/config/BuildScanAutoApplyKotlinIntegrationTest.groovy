@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
@@ -33,8 +31,6 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
 
     private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
 
-    @ToBeImplemented
-    @Ignore
     def "can automatically apply build scan plugin when --scan is provided on command-line"() {
         given:
         buildFile << """
