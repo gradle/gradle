@@ -643,6 +643,33 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks as List == [":producer"]
     }
 
+    def "re-ran task is not loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().succeeds "producer"
+
+        // Shouldn't load from cache
+        when:
+        withBuildCache().succeeds "producer", "--rerun-tasks"
+        then:
+        executed ":producer"
+    }
+
+    def "re-ran task is stored in cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().succeeds "producer", "--rerun-tasks"
+
+        when:
+        withBuildCache().succeeds "producer"
+        then:
+        skipped ":producer"
+    }
+
     def "downstream task stays cached when upstream task is loaded from cache"() {
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
