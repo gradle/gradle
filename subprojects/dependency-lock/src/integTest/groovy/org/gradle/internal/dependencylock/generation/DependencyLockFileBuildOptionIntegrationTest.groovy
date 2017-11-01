@@ -57,26 +57,4 @@ class DependencyLockFileBuildOptionIntegrationTest extends AbstractDependencyLoc
         then:
         assertLockFileAndHashFileExist()
     }
-
-    def "does not generate lock file if Gradle property is disabled"() {
-        given:
-        file('gradle.properties') << dependencyLockGradleProperty(false)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertLockFileAndHashFileDoNotExist()
-    }
-
-    def "can generate lock file if Gradle property is enabled"() {
-        given:
-        file('gradle.properties') << dependencyLockGradleProperty(true)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertLockFileAndHashFileExist()
-    }
 }

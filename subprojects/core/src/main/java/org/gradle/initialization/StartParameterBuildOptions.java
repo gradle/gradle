@@ -291,10 +291,9 @@ public class StartParameterBuildOptions {
 
     public static class DependencyLockOption extends BooleanBuildOption<StartParameter> {
         public static final String LONG_OPTION = "dependency-lock";
-        public static final String GRADLE_PROPERTY = "org.gradle.dependency.lock";
 
         public DependencyLockOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Turns on dependency locking. Gradle will store locks for resolved dependencies and reuse them in subsequent builds.", "Disables storing and using locks for dependencies.").incubating());
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Turns on dependency locking. Gradle will store locks for resolved dependencies and reuse them in subsequent builds.", "Disables storing and using locks for dependencies.").incubating());
         }
 
         @Override
