@@ -37,7 +37,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         if (clientSubscriptions.isSendBuildProgressEvents() || clientSubscriptions.isSendTaskProgressEvents()) {
             BuildOperationListener buildListener = NO_OP;
             if (clientSubscriptions.isSendBuildProgressEvents()) {
-                buildListener = new ClientForwardingBuildOperationListener(consumer);
+                buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(consumer));
             }
             listeners.add(new ClientForwardingTaskOperationListener(consumer, clientSubscriptions, buildListener));
         }

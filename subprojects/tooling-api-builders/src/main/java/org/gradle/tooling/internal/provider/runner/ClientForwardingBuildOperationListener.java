@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType;
-import org.gradle.api.tasks.testing.TestOutputBuildOperationType;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -48,21 +46,12 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!isTestRelatedBuildOperationEvent(buildOperation.getDetails())) {
-            eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
-        }
-    }
-
-    private boolean isTestRelatedBuildOperationEvent(Object details) {
-        return details != null && (TestOutputBuildOperationType.Details.class.isAssignableFrom(details.getClass())
-            || ExecuteTestBuildOperationType.Details.class.isAssignableFrom(details.getClass()));
+        eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-        if (!isTestRelatedBuildOperationEvent(buildOperation.getDetails())) {
-            eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(result)));
-        }
+        eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(result)));
     }
 
     private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationDescriptor buildOperation) {
