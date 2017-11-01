@@ -17,26 +17,24 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.language.swift.SwiftExecutable;
-import org.gradle.language.swift.internal.DefaultSwiftExecutable;
+import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 
-import javax.inject.Inject;
+public abstract class AbstractSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
+    private SwiftComponent testedComponent;
 
-public class DefaultSwiftCorelibXCTestSuite extends AbstractSwiftXCTestSuite {
-    private final SwiftExecutable executable;
-
-    @Inject
-    public DefaultSwiftCorelibXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
+    public AbstractSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-
-        executable = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Executable", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
     }
 
-    @Override
-    public SwiftExecutable getDevelopmentBinary() {
-        return executable;
+    public SwiftComponent getTestedComponent() {
+        return testedComponent;
+    }
+
+    public void setTestedComponent(SwiftComponent testedComponent) {
+        this.testedComponent = testedComponent;
     }
 }

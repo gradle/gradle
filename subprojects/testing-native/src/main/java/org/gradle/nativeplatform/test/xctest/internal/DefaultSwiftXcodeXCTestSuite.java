@@ -22,17 +22,13 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.swift.SwiftBundle;
-import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftBundle;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.nativeplatform.test.xctest.SwiftXcodeXCTestSuite;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftXcodeXCTestSuite extends DefaultSwiftComponent implements SwiftXcodeXCTestSuite {
+public class DefaultSwiftXcodeXCTestSuite extends AbstractSwiftXCTestSuite {
     private final DefaultSwiftBundle bundle;
     private final DirectoryProperty resourceDirectory;
-    private SwiftComponent testedComponent;
 
     @Inject
     public DefaultSwiftXcodeXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
@@ -43,17 +39,6 @@ public class DefaultSwiftXcodeXCTestSuite extends DefaultSwiftComponent implemen
         bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
-    @Override
-    public SwiftComponent getTestedComponent() {
-        return testedComponent;
-    }
-
-    @Override
-    public void setTestedComponent(SwiftComponent testedComponent) {
-        this.testedComponent = testedComponent;
-    }
-
-    @Override
     public DirectoryProperty getResourceDir() {
         return resourceDirectory;
     }
@@ -63,7 +48,6 @@ public class DefaultSwiftXcodeXCTestSuite extends DefaultSwiftComponent implemen
         return bundle;
     }
 
-    @Override
     public SwiftBundle getBundle() {
         return bundle;
     }

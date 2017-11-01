@@ -40,11 +40,15 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
-import org.gradle.nativeplatform.test.xctest.SwiftXcodeXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.internal.AbstractSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftCorelibXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXcodeXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
+import org.gradle.nativeplatform.toolchain.Swiftc;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 import org.gradle.util.GUtil;
 
@@ -103,7 +107,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTestSuiteBuildingTasks(Project project, SwiftXCTestSuite component) {
-        if (component instanceof SwiftXcodeXCTestSuite) {
+        if (OperatingSystem.current().isMacOsX()) {
             TaskContainer tasks = project.getTasks();
 
             // Configure compile task
@@ -216,7 +220,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
                 // Connect test suite with tested component
-                testSuite.setTestedComponent(testedComponent);
+                ((AbstractSwiftXCTestSuite)testSuite).setTestedComponent(testedComponent);
 
                 // Configure test suite compile task from tested component compile task
                 SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
