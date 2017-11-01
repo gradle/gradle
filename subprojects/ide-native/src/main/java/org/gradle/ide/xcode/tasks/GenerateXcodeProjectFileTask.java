@@ -194,6 +194,9 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
         NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).getBuildSettings();
+        if (!xcodeTarget.getImportPaths().isEmpty()) {
+            debugSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+        }
         NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE).getBuildSettings();
         NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
 
