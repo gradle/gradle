@@ -23,7 +23,7 @@ import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
+@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.NOT_WINDOWS])
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         settingsFile << "rootProject.name = 'app'"

@@ -87,8 +87,6 @@ apply plugin: 'xctest'
         return xcTestLinkFile
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "fails when test cases fail"() {
         given:
         def testBundle = new SwiftFailingXCTestBundle()
@@ -105,8 +103,6 @@ apply plugin: 'xctest'
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "succeeds when test cases pass"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -122,8 +118,6 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can build xctest bundle when Info.plist is provided"() {
         given:
         def lib = new SwiftLibWithXCTest().withInfoPlist()
@@ -139,9 +133,7 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
     @Unroll
-    @Requires(TestPrecondition.MAC_OS_X)
     def "runs tests when #task lifecycle task executes"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -160,8 +152,6 @@ apply plugin: 'xctest'
         task << ["test", "check", "build"]
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift library"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -177,8 +167,6 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "does not execute removed test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
@@ -205,8 +193,6 @@ apply plugin: 'xctest'
         testBundle.getFooTestSuite().getTestCount()
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
@@ -232,8 +218,6 @@ apply plugin: 'xctest'
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Needs RunTestExecutable to be incremental
-    @Requires(TestPrecondition.MAC_OS_X)
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -250,8 +234,6 @@ apply plugin: 'xctest'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build logic can change source layout convention"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -352,7 +334,7 @@ apply plugin: 'swift-executable'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
     }
 
-    // TODO: Need to support test report for test case assertion
+    // TODO: Need to support _main symbol duplication
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift executable"() {
         given:
@@ -373,7 +355,7 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
+    // TODO: Need to support _main symbol duplication
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
         given:
@@ -393,8 +375,6 @@ apply plugin: 'swift-executable'
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a single file Swift library using a single test source file"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -415,8 +395,6 @@ apply plugin: 'swift-library'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build passes when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -450,12 +428,10 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build still fails when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -489,7 +465,7 @@ apply plugin: 'swift-library'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest")
         test.assertTestCasesRan(testExecutionResult)
     }
 
