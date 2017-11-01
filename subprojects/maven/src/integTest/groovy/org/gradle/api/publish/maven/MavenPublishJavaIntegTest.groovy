@@ -18,13 +18,58 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
+import spock.lang.Unroll
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    def "can publish jar and meta-data to maven repository"() {
+    def "can publish java-library with no dependencies"() {
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.isEmpty()
+
+        and:
+        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
+    }
+
+    def "can publish java-library with dependencies"() {
         given:
         createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                compile "commons-collections:commons-collections:3.2.2"
+                compileOnly "javax.servlet:servlet-api:2.5"
+                runtime "commons-io:commons-io:1.4"
+                testCompile "junit:junit:4.12"
+                compile ("org.springframework:spring-core:2.5.6") {
+                    exclude group: 'commons-logging', module: 'commons-logging'
+                }
+                compile ("commons-beanutils:commons-beanutils:1.8.3") {
+                   exclude group : 'commons-logging'
+                }
+                compile ("commons-dbcp:commons-dbcp:1.4") {
+                   transitive = false
+                }
+                compile ("org.apache.camel:camel-jackson:2.15.3") {
+                   exclude module : 'camel-core'
+                }
+            }
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -54,7 +99,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
     }
 
-    def "can publish attached artifacts to maven repository"() {
+    def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""
             task sourceJar(type: Jar) {
@@ -80,8 +125,70 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
 
         and:
-        resolveArtifacts(mavenModule) == ["camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar", "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
-        resolveArtifacts(mavenModule, [classifier: 'source']) == ["camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar", "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
+        resolveArtifacts(mavenModule, [classifier: 'source']) == ["publishTest-1.9-source.jar", "publishTest-1.9.jar"]
+    }
+
+    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
+    void "maps dependencies in the correct Maven scope"() {
+        given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+
+        file("settings.gradle") << '''
+            rootProject.name = 'root' 
+            include "b"
+        '''
+        buildFile << """
+            apply plugin: "$plugin"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            dependencies {
+                $gradleConfiguration project(':b')
+            }
+        """
+
+        file('b/build.gradle') << """
+            apply plugin: 'java'
+            
+            group = 'org.gradle.test'
+            version = '1.2'
+            
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublishedAsJavaModule()
+        repoModule.parsedPom.scopes."$mavenScope"?.expectDependency('org.gradle.test:b:1.2')
+
+        where:
+        plugin         | gradleConfiguration  | mavenScope
+        'java'         | 'compile'            | 'compile'
+        'java'         | 'runtime'            | 'compile'
+        'java'         | 'implementation'     | 'runtime'
+        'java'         | 'runtimeOnly'        | 'runtime'
+
+        'java-library' | 'api'                | 'compile'
+        'java-library' | 'compile'            | 'compile'
+        'java-library' | 'runtime'            | 'compile'
+        'java-library' | 'runtimeOnly'        | 'runtime'
+        'java-library' | 'implementation'     | 'runtime'
+
     }
 
     def createBuildScripts(def append) {
@@ -97,31 +204,10 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
 
-$append
-
             group = 'org.gradle.test'
             version = '1.9'
 
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
-                compileOnly "javax.servlet:servlet-api:2.5"
-                runtime "commons-io:commons-io:1.4"
-                testCompile "junit:junit:4.12"
-                compile ("org.springframework:spring-core:2.5.6") {
-                    exclude group: 'commons-logging', module: 'commons-logging'
-                }
-                compile ("commons-beanutils:commons-beanutils:1.8.3") {
-                   exclude group : 'commons-logging'
-                }
-                compile ("commons-dbcp:commons-dbcp:1.4") {
-                   transitive = false
-                }
-                compile ("org.apache.camel:camel-jackson:2.15.3") {
-                   exclude module : 'camel-core'
-                }
-            }
+$append
 """
 
     }

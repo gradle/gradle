@@ -15,12 +15,12 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Issue
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -87,7 +87,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(module) == []
     }
 
-    def "can publish simple jar"() {
+    def "can publish simple component"() {
         given:
         using m2
         def repoModule = mavenRepo.module('group', 'root', '1.0')
@@ -137,44 +137,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(repoModule) == ['root-1.0.jar']
-    }
-
-    @Issue('GRADLE-1574')
-    def "publishes wildcard exclusions for a non-transitive dependency"() {
-        given:
-        using m2
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-        def localModule = localM2Repo.module('group', 'root', '1.0')
-
-        and:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'group'
-            version = '1.0'
-
-            dependencies {
-                compile ('commons-collections:commons-collections:3.2.2') { transitive = false }
-            }
-
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds 'publishToMavenLocal'
-
-        then: "wildcard exclusions are applied to the dependency"
-        def pom = localModule.parsedPom
-        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
-        exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {

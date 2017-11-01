@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
-    public void "version range is mapped to maven syntax in published pom file"() {
+    void "version range is mapped to maven syntax in published pom file"() {
         given:
         def repoModule = mavenRepo.module('group', 'root', '1.0')
 
@@ -59,6 +59,45 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         repoModule.assertPublishedAsJavaModule()
         repoModule.parsedPom.scopes.compile.expectDependency('group:projectA:RELEASE')
         repoModule.parsedPom.scopes.compile.expectDependency('group:projectB:LATEST')
+    }
+
+    @Issue('GRADLE-1574')
+    def "publishes wildcard exclusions for a non-transitive dependency"() {
+        given:
+        def module = mavenRepo.module('group', 'root', '1.0')
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                compile ('commons-collections:commons-collections:3.2.2') { transitive = false }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then: "wildcard exclusions are applied to the dependency"
+        def pom = module.parsedPom
+        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
+        exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
 
     @Issue("GRADLE-3233")
@@ -107,68 +146,6 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         versionType | dependencyNotation
         "empty"     | "'group:projectA'"
         "null"      | "group:'group', name:'projectA', version:null"
-    }
-
-    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    void "maps dependencies in the correct Maven scope"() {
-        given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-
-        file("settings.gradle") << '''
-            rootProject.name = 'root' 
-            include "b"
-        '''
-        buildFile << """
-            apply plugin: "$plugin"
-            apply plugin: "maven-publish"
-
-            group = 'group'
-            version = '1.0'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-            
-            dependencies {
-                $gradleConfiguration project(':b')
-            }
-        """
-
-        file('b/build.gradle') << """
-            apply plugin: 'java'
-            
-            group = 'org.gradle.test'
-            version = '1.2'
-            
-        """
-
-        when:
-        succeeds "publish"
-
-        then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes."$mavenScope"?.expectDependency('org.gradle.test:b:1.2')
-
-        where:
-        plugin         | gradleConfiguration  | mavenScope
-        'java'         | 'compile'            | 'compile'
-        'java'         | 'runtime'            | 'compile'
-        'java'         | 'implementation'     | 'runtime'
-        'java'         | 'runtimeOnly'        | 'runtime'
-
-        'java-library' | 'api'                | 'compile'
-        'java-library' | 'compile'            | 'compile'
-        'java-library' | 'runtime'            | 'compile'
-        'java-library' | 'runtimeOnly'        | 'runtime'
-        'java-library' | 'implementation'     | 'runtime'
-
     }
 
     void "defaultDependencies are included in published pom file"() {
