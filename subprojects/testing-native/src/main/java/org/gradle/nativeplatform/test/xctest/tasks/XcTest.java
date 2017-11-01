@@ -60,6 +60,7 @@ public class XcTest extends AbstractTestTask {
         testSuitePath = path;
     }
 
+    @Internal
     public File getTestSuite() {
         return getProject().file(testSuitePath);
     }
