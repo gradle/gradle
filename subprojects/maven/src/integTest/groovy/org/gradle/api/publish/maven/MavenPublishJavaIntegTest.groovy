@@ -18,10 +18,12 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
+import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import spock.lang.Unroll
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+    def javaLibrary = new MavenPublishedJavaModule(mavenModule)
 
     def "can publish java-library with no dependencies"() {
         createBuildScripts("""
@@ -63,8 +65,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenModule.assertPublishedAsJavaModule()
-        mavenModule.parsedPom.scopes.isEmpty()
+        javaLibrary.assertPublished()
+        javaLibrary.assertNoDependencies()
 
         and:
         resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
