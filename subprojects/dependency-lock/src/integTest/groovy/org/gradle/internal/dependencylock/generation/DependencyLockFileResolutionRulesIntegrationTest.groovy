@@ -22,10 +22,12 @@ import static org.gradle.internal.dependencylock.fixtures.DependencyLockFixture.
 
 class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependencyLockFileGenerationIntegrationTest {
 
-    def "lock file does not reflect dependency resolve rule"() {
+    @Unroll
+    def "lock file does not reflect dependency resolve rule for #description"() {
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
         mavenRepo.module('foo', 'bar', '2.9').publish()
+        mavenRepo.module('other', 'dep', '2.9').publish()
 
         buildFile << mavenRepository(mavenRepo)
         buildFile << customConfigurations(MYCONF_CUSTOM_CONFIGURATION)
@@ -33,7 +35,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
             configurations.myConf {
                 resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                     if (details.requested.group == 'foo' && details.requested.name == 'bar') {
-                        details.useVersion '2.9'
+                        $replacement
                     }
                 }
             }
@@ -53,6 +55,11 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
+
+        where:
+        replacement                         | description
+        "details.useVersion '2.9'"          | 'different version of same module'
+        "details.useTarget 'other:dep:2.9'" | 'different module'
     }
 
     @Unroll
