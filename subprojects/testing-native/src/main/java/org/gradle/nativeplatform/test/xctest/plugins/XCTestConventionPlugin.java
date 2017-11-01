@@ -45,10 +45,6 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftCorelibXCTestS
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXcodeXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
-import org.gradle.nativeplatform.toolchain.Swiftc;
-import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
-import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 import org.gradle.util.GUtil;
 
