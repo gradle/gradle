@@ -149,7 +149,12 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     @Override
     public void allocateTempFile(final BuildCacheKey key, final Action<? super File> action) {
-        tempFileStore.allocateTempFile(key, action);
+        persistentCache.useCache(new Runnable() {
+            @Override
+            public void run() {
+                tempFileStore.allocateTempFile(key, action);
+            }
+        });
     }
 
     @Override
