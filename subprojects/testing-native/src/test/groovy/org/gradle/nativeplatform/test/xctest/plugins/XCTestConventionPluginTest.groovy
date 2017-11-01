@@ -23,7 +23,6 @@ import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
-import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -133,7 +132,7 @@ class XCTestConventionPluginTest extends Specification {
         install.runScript.name == OperatingSystem.current().getScriptName("test_app_test")
 
         def test = project.tasks.xcTest
-        test instanceof RunTestExecutable
+        test instanceof XcTest
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -180,7 +179,7 @@ class XCTestConventionPluginTest extends Specification {
         install.runScript.name == OperatingSystem.current().getScriptName("test_app_test")
 
         def test = project.tasks.xcTest
-        test.outputDir == projectDir.file("output/test-results/xctest")
+        test.workingDirectory.get().asFile == projectDir.file("output/ext/test")
     }
 
     private String getDevelopmentBinaryName() {
