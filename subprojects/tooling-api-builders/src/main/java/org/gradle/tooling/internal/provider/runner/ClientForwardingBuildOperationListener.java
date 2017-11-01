@@ -54,8 +54,8 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     private boolean isTestRelatedBuildOperationEvent(Object details) {
-        return details != null && (TestOutputBuildOperationType.class.isAssignableFrom(details.getClass())
-            || ExecuteTestBuildOperationType.class.isAssignableFrom(details.getClass()));
+        return details != null && (TestOutputBuildOperationType.Details.class.isAssignableFrom(details.getClass())
+            || ExecuteTestBuildOperationType.Details.class.isAssignableFrom(details.getClass()));
     }
 
     @Override
