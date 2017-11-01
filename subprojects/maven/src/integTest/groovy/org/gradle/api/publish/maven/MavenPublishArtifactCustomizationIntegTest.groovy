@@ -27,6 +27,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 mavenCustom(MavenPublication) {
                     artifact "customFile.txt"
                     artifact customJar
+                    artifact regularFileTask.outputFile
                 }
             }
 """)
@@ -36,11 +37,12 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
 
         and:
-        resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
+        resolveArtifact(module, 'txt', '') == ["projectText-1.0.txt"]
+        resolveArtifact(module, 'reg', '') == ["projectText-1.0.reg"]
+        resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
     }
 
     public void "can configure artifacts added from component"() {
@@ -107,6 +109,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                         classifier "documentation"
                         builtBy customFileTask
                     }
+                    artifact(regularFileTask.outputFile) {
+                        classifier "regular"
+                        extension "txt"
+                    }
                     artifact customJar {
                         classifier null
                         extension "war"
@@ -121,10 +127,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "war"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt")
 
         and:
-        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt'], [classifier: 'regular', type: 'txt']) ==
+            ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt", "projectText-1.0.war"]
     }
 
     def "can attach custom file artifacts with map notation"() {
@@ -134,6 +141,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 mavenCustom(MavenPublication) {
                     artifact source: "customFile.txt", classifier: "output"
                     artifact source: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
+                    artifact source: regularFileTask.outputFile, extension: "txt", classifier: "regular"
                     artifact source: customJar, extension: "war", classifier: null
                 }
             }
@@ -145,10 +153,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "war"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt")
 
         and:
-        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt'], [classifier: 'regular', type: 'txt']) ==
+            ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt", "projectText-1.0.war"]
     }
 
     def "can configure custom artifacts post creation"() {
@@ -236,6 +245,14 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 ext.outputFile = file('customFile-1.0-docs.html')
                 doLast {
                     outputFile << '<html/>'
+                }
+            }
+
+            task regularFileTask {
+                ext.outputFile = newOutputFile()
+                outputFile.set(file('regularFile-1.0.reg'))
+                doLast {
+                    outputFile.get().getAsFile() << 'foo'
                 }
             }
 

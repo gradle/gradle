@@ -29,6 +29,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 ivy(IvyPublication) {
                     artifact "customFile.txt"
                     artifact customDocsTask.outputFile
+                    artifact regularFileTask.outputFile
                     artifact customJar
                 }
             }
@@ -45,16 +46,17 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
+        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
 
         and:
         def ivy = module.parsedIvy
         ivy.expectArtifact('ivyPublish', 'txt').hasType("txt").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'html').hasType("html").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'jar').hasType("jar").hasConf(null)
+        ivy.expectArtifact('ivyPublish', 'reg').hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.txt"]
+        resolveArtifacts(module) == ["ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"]
     }
 
     def "can configure custom artifacts when creating"() {
@@ -79,6 +81,10 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                         extension "htm"
                         builtBy customDocsTask
                     }
+                    artifact(regularFileTask.outputFile) {
+                        name "regular"
+                        extension "txt"
+                    }
                     artifact(customJar) {
                         extension "war"
                         type "web-archive"
@@ -92,16 +98,17 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war")
+        module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war", "regular-2.4.txt")
 
         and:
         def ivy = module.parsedIvy
         ivy.expectArtifact("ivyPublish", "war").hasType("web-archive").hasConf(["*"])
         ivy.expectArtifact("docs", "htm").hasType("html").hasConf(null)
         ivy.expectArtifact("customFile", "txt", "classified").hasType("txt").hasConf(["foo", "bar"])
+        ivy.expectArtifact("regular", "txt").hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war"]
+        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"]
     }
 
     def "can publish custom file artifacts with map notation"() {
@@ -118,6 +125,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                     }
                     artifact source: "customFile.txt", name: "customFile", classifier: "classified", conf: "foo,bar"
                     artifact source: customDocsTask.outputFile, name: "docs", extension: "htm", builtBy: customDocsTask
+                    artifact source: regularFileTask.outputFile, name: "regular", extension: "txt"
                     artifact source: customJar, extension: "war", type: "web-archive", conf: "*"
                 }
             }
@@ -127,16 +135,17 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war")
+        module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war", "regular-2.4.txt")
 
         and:
         def ivy = module.parsedIvy
         ivy.expectArtifact("ivyPublish", "war").hasType("web-archive").hasConf(["*"])
         ivy.expectArtifact("docs", "htm").hasType("html").hasConf(null)
         ivy.expectArtifact("customFile", "txt", "classified").hasType("txt").hasConf(["foo", "bar"])
+        ivy.expectArtifact("regular", "txt").hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war"]
+        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"]
     }
 
     def "can set custom artifacts to override component artifacts"() {
@@ -345,6 +354,14 @@ The following types/formats are supported:
                 ext.outputFile = file('customDocs.html')
                 doLast {
                     outputFile << '<html/>'
+                }
+            }
+
+            task regularFileTask {
+                ext.outputFile = newOutputFile()
+                outputFile.set(file('regularFile-1.0.reg'))
+                doLast {
+                    outputFile.get().getAsFile() << 'foo'
                 }
             }
 
