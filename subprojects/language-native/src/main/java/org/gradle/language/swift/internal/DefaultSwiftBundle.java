@@ -62,7 +62,7 @@ public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundl
                 if (tested == null) {
                     return getFileOperations().files();
                 }
-                return ((DefaultSwiftBinary)tested).getObjectsDir().getAsFileTree();
+                return getFileOperations().files(((DefaultSwiftBinary)tested).getObjectsDir());
             }
         }));
     }
