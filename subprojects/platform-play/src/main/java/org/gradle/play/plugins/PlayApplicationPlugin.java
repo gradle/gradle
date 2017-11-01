@@ -279,7 +279,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, final ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
             for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
                 String runTaskName = binary.getTasks().taskName("run");
@@ -289,6 +289,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setDescription("Runs the Play application for local development.");
                         playRun.setGroup(RUN_GROUP);
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
+                        playRun.setWorkingDir(projectIdentifier.getProjectDir());
                         playRun.setPlayToolProvider(playToolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
