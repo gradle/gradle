@@ -59,6 +59,11 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         return new JUnitTestClassExecutionResult(matching[1], matching[0], outputAssociation)
     }
 
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        return findClasses().size()
+    }
+
     private def findTestClass(String testClass) {
         def classes = findClasses()
         assertThat(classes.keySet(), hasItem(testClass))

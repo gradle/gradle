@@ -36,11 +36,16 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     private void indexContainsTestClass(String... expectedTestClasses) {
+        List<String> executedTestClasses = getExecutedTestClasses()
+        assert executedTestClasses.containsAll(expectedTestClasses)
+    }
+
+    private List<String> getExecutedTestClasses() {
         def indexFile = new File(htmlReportDirectory, "index.html")
         assert indexFile.exists()
         Document html = Jsoup.parse(indexFile, null)
         def executedTestClasses = html.select("div:has(h2:contains(Classes)).tab a").collect { it.text() }
-        assert executedTestClasses.containsAll(expectedTestClasses)
+        executedTestClasses
     }
 
     private void assertHtmlReportForTestClassExists(String... classNames) {
@@ -55,6 +60,11 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
         return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes").listFiles().find { it.name.startsWith(FileUtils.toSafeFileName(testClass)) })
+    }
+
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        return getExecutedTestClasses().size()
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {

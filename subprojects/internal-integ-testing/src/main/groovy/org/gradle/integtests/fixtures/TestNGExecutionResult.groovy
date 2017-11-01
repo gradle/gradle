@@ -45,11 +45,16 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
+        Set actualTestClasses = getExecutedTestClasses()
+        assert actualTestClasses == testClasses as Set
+        this
+    }
+
+    private Set getExecutedTestClasses() {
         parseResults()
         htmlReportFile().assertIsFile()
         def actualTestClasses = findTestClasses().keySet()
-        assert actualTestClasses == testClasses as Set
-        this
+        actualTestClasses
     }
 
     private TestFile htmlReportFile() {
@@ -65,6 +70,11 @@ class TestNGExecutionResult implements TestExecutionResult {
     TestClassExecutionResult testClassStartsWith(String testClass) {
         def matching = findTestClassStartsWith(testClass)
         return new TestNgTestClassExecutionResult(matching.key, matching.value)
+    }
+
+    @Override
+    int getTotalNumberOfTestClassesExecuted() {
+        return getExecutedTestClasses().size()
     }
 
     private void parseResults() {

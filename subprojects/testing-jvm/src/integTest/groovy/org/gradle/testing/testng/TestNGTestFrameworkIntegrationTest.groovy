@@ -20,6 +20,10 @@ import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 
 class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+    def setup() {
+        TestNGCoverage.enableTestNG(buildFile)
+    }
+
     @Override
     void createPassingFailingTest() {
         file('src/test/java/AppException.java') << 'public class AppException extends Exception {}'
@@ -38,8 +42,20 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
                 public void ${passingTestCaseName}() {}
             }
         """
+    }
 
-        TestNGCoverage.enableTestNG(buildFile)
+    @Override
+    void createEmptyProject() {
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+    }
+
+    @Override
+    void changeTests() {
+        def newTest = file("src/test/java/NewTest.java")
+        file('src/test/java/SomeOtherTest.java').renameTo(newTest)
+        newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
     }
 
     @Override

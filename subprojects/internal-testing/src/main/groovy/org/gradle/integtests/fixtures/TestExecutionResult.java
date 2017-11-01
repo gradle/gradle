@@ -31,4 +31,6 @@ public interface TestExecutionResult {
      * Returns the result for the first test class whose name starts with the given string.
      */
     TestClassExecutionResult testClassStartsWith(String testClass);
+
+    int getTotalNumberOfTestClassesExecuted();
 }
