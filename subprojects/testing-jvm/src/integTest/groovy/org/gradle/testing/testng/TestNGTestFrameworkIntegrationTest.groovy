@@ -52,7 +52,7 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    void changeTests() {
+    void renameTests() {
         def newTest = file("src/test/java/NewTest.java")
         file('src/test/java/SomeOtherTest.java').renameTo(newTest)
         newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")

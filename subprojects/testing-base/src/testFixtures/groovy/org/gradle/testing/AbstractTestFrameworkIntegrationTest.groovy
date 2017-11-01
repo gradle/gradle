@@ -23,7 +23,7 @@ import org.hamcrest.Matchers
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
     abstract void createEmptyProject()
-    abstract void changeTests()
+    abstract void renameTests()
 
     abstract String getTestTaskName()
 
@@ -142,7 +142,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
         fails("check")
         when:
-        changeTests()
+        renameTests()
         fails("check")
         then:
         testResult.assertTestClassesExecuted('SomeTest', 'NewTest')

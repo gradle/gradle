@@ -49,7 +49,7 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    void changeTests() {
+    void renameTests() {
         def newTest = file("src/test/swift/NewTest.swift")
         file("src/test/swift/SomeOtherTest.swift").renameTo(newTest)
         newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
