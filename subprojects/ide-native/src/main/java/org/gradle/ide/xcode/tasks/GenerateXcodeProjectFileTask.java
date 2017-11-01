@@ -194,11 +194,14 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
         NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).getBuildSettings();
-        if (!xcodeTarget.getImportPaths().isEmpty()) {
-            debugSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
-        }
         NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE).getBuildSettings();
         NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
+
+        if (!xcodeTarget.getImportPaths().isEmpty()) {
+            debugSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+            releaseSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+            testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+        }
 
         testRunnerSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
         testRunnerSettings.put("PRODUCT_NAME", target.getProductName());
