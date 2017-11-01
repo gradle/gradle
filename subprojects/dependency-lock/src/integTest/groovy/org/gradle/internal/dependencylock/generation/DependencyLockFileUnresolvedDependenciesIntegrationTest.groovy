@@ -51,7 +51,7 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         assertLockFileAndHashFileDoNotExist()
     }
 
-    def "does not wrote lock file if at least one dependency is unresolvable and fails build"() {
+    def "does not write lock file if at least one dependency of the same configuration is unresolvable"() {
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
@@ -64,6 +64,29 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
             }
         """
         buildFile << copyLibsTask(MYCONF_CUSTOM_CONFIGURATION)
+
+        when:
+        failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertLockFileAndHashFileDoNotExist()
+    }
+
+    def "does not write lock file if one of many configuration is unresolvable"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+        mavenRepo.module('org', 'gradle', '7.5').publish()
+
+        buildFile << mavenRepository(mavenRepo)
+        buildFile << customConfigurations('a', 'b', 'c')
+        buildFile << """
+            dependencies {
+                a 'foo:bar:1.5'
+                b 'org:gradle:7.5'
+                c 'my:prod:3.2.1'
+            }
+        """
+        buildFile << copyLibsTask('a', 'b', 'c')
 
         when:
         failsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
