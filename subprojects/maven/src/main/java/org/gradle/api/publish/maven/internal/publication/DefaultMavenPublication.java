@@ -278,12 +278,17 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return null;
     }
 
+    // TODO:DAZ The module metadata file should never be in the artifacts collection to start with
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         return CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
             public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
-                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
+                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact) && isNotModuleMetadata(mavenArtifact);
             }
         });
+    }
+
+    private boolean isNotModuleMetadata(MavenArtifact artifact) {
+        return !artifact.getExtension().equals("module");
     }
 
     private boolean hasNoClassifier(MavenArtifact element) {
