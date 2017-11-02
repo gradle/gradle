@@ -21,15 +21,13 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.DynamicObjectUtil;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+@NotThreadSafe
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
-    private final ThreadLocal<Boolean> _configuring = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    };
+    private boolean _configuring = false;
 
     public ConfigureDelegate(Closure configureClosure, Object delegate) {
         _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
@@ -53,8 +51,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     public Object invokeMethod(String name, Object paramsObj) {
         Object[] params = (Object[])paramsObj;
 
-        boolean isAlreadyConfiguring = _configuring.get();
-        _configuring.set(true);
+        boolean isAlreadyConfiguring = _configuring;
+        _configuring = true;
         try {
             DynamicInvokeResult result = _delegate.tryInvokeMethod(name, params);
             if (result.isFound()) {
@@ -88,7 +86,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
 
             throw _delegate.methodMissingException(name, params);
         } finally {
-            _configuring.set(isAlreadyConfiguring);
+            _configuring = isAlreadyConfiguring;
         }
     }
 
@@ -108,8 +106,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     }
 
     public Object getProperty(String name) {
-        boolean isAlreadyConfiguring = _configuring.get();
-        _configuring.set(true);
+        boolean isAlreadyConfiguring = _configuring;
+        _configuring = true;
         try {
             DynamicInvokeResult result = _delegate.tryGetProperty(name);
             if (result.isFound()) {
@@ -131,7 +129,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
 
             throw _delegate.getMissingProperty(name);
         } finally {
-            _configuring.set(isAlreadyConfiguring);
+            _configuring = isAlreadyConfiguring;
         }
     }
 }
