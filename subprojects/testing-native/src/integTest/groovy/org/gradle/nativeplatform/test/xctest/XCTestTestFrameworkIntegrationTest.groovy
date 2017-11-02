@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
@@ -23,9 +25,29 @@ import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.junit.Assume.assumeTrue
+
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.NOT_WINDOWS])
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
+        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
+        assumeTrue(toolChain != null && toolChain.isAvailable())
+
+        File initScript = file("init.gradle") << """
+allprojects { p ->
+    apply plugin: ${toolChain.pluginClass}
+
+    model {
+          toolChains {
+            ${toolChain.buildScriptConfig}
+          }
+    }
+}
+"""
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
+
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
             apply plugin: 'xctest'
