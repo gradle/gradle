@@ -21,6 +21,6 @@ import org.gradle.internal.dependencylock.model.DependencyLock;
 
 public interface DependencyLockState {
 
-    void resolveAndPersist(String projectPath, String configurationName, ResolutionResult resolutionResult);
+    void populateFrom(String projectPath, String configurationName, ResolutionResult resolutionResult);
     DependencyLock getDependencyLock();
 }

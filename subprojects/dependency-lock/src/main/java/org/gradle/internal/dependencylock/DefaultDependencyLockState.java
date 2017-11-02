@@ -32,7 +32,7 @@ public class DefaultDependencyLockState implements DependencyLockState {
     private final DependencyLock dependencyLock = new DependencyLock();
 
     @Override
-    public void resolveAndPersist(final String projectPath, final String configurationName, ResolutionResult resolutionResult) {
+    public void populateFrom(final String projectPath, final String configurationName, ResolutionResult resolutionResult) {
         resolutionResult.allDependencies(new Action<DependencyResult>() {
             @Override
             public void execute(DependencyResult dependencyResult) {

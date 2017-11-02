@@ -36,7 +36,7 @@ public class DefaultDependencyLockManager implements DependencyLockManager {
 
     @Override
     public void lockResolvedDependencies(String projectPath, final String configurationName, ResolutionResult resolutionResult) {
-        dependencyLockState.resolveAndPersist(projectPath, configurationName, resolutionResult);
+        dependencyLockState.populateFrom(projectPath, configurationName, resolutionResult);
     }
 
     @Override
