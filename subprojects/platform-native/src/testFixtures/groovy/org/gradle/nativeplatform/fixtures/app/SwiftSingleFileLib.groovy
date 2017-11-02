@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.SourceFile
 /**
  * A Swift library with 3 source files.
  */
-class SwiftSingleFileLib extends SourceElement implements GreeterElement, SumElement, MultiplyElement {
+class SwiftSingleFileLib extends SwiftSourceElement implements GreeterElement, SumElement, MultiplyElement {
     private final delegate = new SwiftLib()
     final greeter = delegate.greeter
     final sum = delegate.sum

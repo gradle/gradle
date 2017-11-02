@@ -72,6 +72,7 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
             } else {
                 args.add("-emit-executable");
             }
+            args.add("-v");
             args.add("-o");
             args.add(spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getObjectFiles()) {

@@ -24,9 +24,9 @@ class SwiftLibTest extends XCTestSourceElement {
     final XCTestSourceFileElement multiplyTest
 
     SwiftLibTest(GreeterElement greeter, SumElement sum, MultiplyElement multiply) {
-        sumTest = new SwiftSumTest("GreeterTest", sum).withImport("Greeter")
-        greeterTest = new SwiftGreeterTest("GreeterTest", greeter).withImport("Greeter")
-        multiplyTest = new SwiftMultiplyTest("GreeterTest", multiply).withTestableImport("Greeter")
+        sumTest = new SwiftSumTest(sum)
+        greeterTest = new SwiftGreeterTest(greeter)
+        multiplyTest = new SwiftMultiplyTest(multiply)
     }
 
     List<XCTestSourceFileElement> getTestSuites() {
@@ -36,5 +36,15 @@ class SwiftLibTest extends XCTestSourceElement {
     @Override
     List<SourceFile> getFiles() {
         return super.files
+    }
+
+    @Override
+    XCTestSourceElement withImport(String moduleName) {
+        return new XCTestSourceElement() {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [sumTest.withImport(moduleName), greeterTest.withImport(moduleName), multiplyTest.withTestableImport(moduleName)]
+            }
+        }
     }
 }

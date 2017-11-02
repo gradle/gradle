@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -131,6 +130,7 @@ apply plugin: 'xctest'
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
+        def lib = fixture.inProject('app')
         lib.writeToProject(testDirectory)
 
         when:
@@ -155,9 +155,9 @@ apply plugin: 'xctest'
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
 
         where:
-        scenario                  | lib
+        scenario                  | fixture
         "swift lib without plist" | new SwiftLibWithXCTest()
-        "swift lib with plist"    | new SwiftLibWithXCTestWithInfoPlist()
+        "swift lib with plist"    | new SwiftLibWithXCTest().withInfoPlist()
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -246,7 +246,7 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTestWithInfoPlist()
+        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
@@ -275,7 +275,7 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTestWithInfoPlist()
+        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
@@ -302,7 +302,7 @@ apply plugin: 'xctest'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift executable from xcode"() {
         useXcodebuildTool()
-        def app = new SwiftAppWithXCTest()
+        def app = new SwiftAppWithXCTest().inProject('app')
 
         given:
         settingsFile.text = """

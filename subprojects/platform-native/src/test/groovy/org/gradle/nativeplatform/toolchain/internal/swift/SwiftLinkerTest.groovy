@@ -60,7 +60,7 @@ class SwiftLinkerTest extends Specification {
 
         final expectedArgs = [
             "-emit-library",
-            "-o", outputFile.absolutePath,
+            "-v", "-o", outputFile.absolutePath,
             testDir.file("one.o").absolutePath].flatten()
 
         when:
@@ -102,7 +102,7 @@ class SwiftLinkerTest extends Specification {
         final expectedArgs = [
                 "-sys1", "-sys2",
                 "-emit-library",
-                "-o", outputFile.absolutePath,
+                "-v", "-o", outputFile.absolutePath,
                 testDir.file("one.o").absolutePath,
                 testDir.file("two.o").absolutePath,
                 "-arg1", "-arg2"].flatten()
@@ -138,7 +138,7 @@ class SwiftLinkerTest extends Specification {
 
         final expectedArgs = [
             "-emit-library",
-            "-o", outputFile.absolutePath,
+            "-v", "-o", outputFile.absolutePath,
             testDir.file("one.o").absolutePath].flatten()
 
         when:
@@ -162,7 +162,7 @@ class SwiftLinkerTest extends Specification {
 
         final expectedArgs = [
             "-emit-executable",
-            "-o", outputFile.absolutePath,
+            "-v", "-o", outputFile.absolutePath,
             testDir.file("one.o").absolutePath].flatten()
 
         when:
@@ -186,7 +186,7 @@ class SwiftLinkerTest extends Specification {
 
         final expectedArgs = [
             "-Xlinker", "-bundle",
-            "-o", outputFile.absolutePath,
+            "-v", "-o", outputFile.absolutePath,
             testDir.file("one.o").absolutePath].flatten()
 
         when:

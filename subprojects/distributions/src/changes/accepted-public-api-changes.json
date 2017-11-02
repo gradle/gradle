@@ -169,6 +169,11 @@
             "type": "org.gradle.ide.xcode.plugins.XcodePlugin",
             "member": "Constructor org.gradle.ide.xcode.plugins.XcodePlugin(org.gradle.ide.xcode.internal.xcodeproj.GidGenerator,org.gradle.api.model.ObjectFactory)",
             "acceptation": "Change to constructor of incubating type/plugin"
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin",
+            "member": "Constructor org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin(org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator)",
+            "acceptation": "Refactor argument of an injectable constructor"
         }
     ]
 }

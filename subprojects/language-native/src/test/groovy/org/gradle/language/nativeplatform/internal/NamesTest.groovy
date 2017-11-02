@@ -78,4 +78,14 @@ class NamesTest extends Specification {
         name.withPrefix("compile") == "compileCustom"
         name.withSuffix("implementation") == "customImplementation"
     }
+
+    def "names for test variants of custom"() {
+        expect:
+        def name = Names.of("customExecutable")
+        name.getCompileTaskName("cpp") == "compileCustomCpp"
+        name.getTaskName("link") == "linkCustom"
+        name.getDirName() == "custom/"
+        name.withPrefix("compile") == "compileCustom"
+        name.withSuffix("implementation") == "customImplementation"
+    }
 }

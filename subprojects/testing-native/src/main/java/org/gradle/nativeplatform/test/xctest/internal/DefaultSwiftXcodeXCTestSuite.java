@@ -23,17 +23,15 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftBundle;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
+public class DefaultSwiftXcodeXCTestSuite extends AbstractSwiftXCTestSuite {
     private final DefaultSwiftBundle bundle;
     private final DirectoryProperty resourceDirectory;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
+    public DefaultSwiftXcodeXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
         super(name, fileOperations, objectFactory, configurations);
 
         resourceDirectory = projectLayout.directoryProperty();
@@ -41,7 +39,6 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
-    @Override
     public DirectoryProperty getResourceDir() {
         return resourceDirectory;
     }
@@ -51,7 +48,6 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         return bundle;
     }
 
-    @Override
     public SwiftBundle getBundle() {
         return bundle;
     }

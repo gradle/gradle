@@ -20,30 +20,29 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_MAC_OS_X)
-class NonMacOSXCTestPluginIntegrationTest extends AbstractIntegrationSpec {
+@Requires([TestPrecondition.NOT_MAC_OS_X, TestPrecondition.NOT_LINUX])
+class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << "apply plugin: 'xctest'"
     }
 
-    def "can execute tasks task when applying the plugin under OS other than macOS"() {
+    def "can execute tasks task when applying the plugin under OS other than macOS and Linux"() {
         expect:
         succeeds "tasks"
     }
 
-    def "supports the 'test' lifecycle task when xctest plugin cannot be used"() {
-        succeeds "test"
+    def "does not create 'test' component lifecycle task"() {
+        def result = fails "test"
 
         expect:
-        result.assertTasksExecuted(":test")
-        result.assertTasksSkipped(":test")
+        result.assertHasDescription("Task 'test' not found in root project '" + testDirectory.name + "'.")
     }
 
     def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
         succeeds "check"
 
         expect:
-        result.assertTasksExecuted(":test", ":check")
-        result.assertTasksSkipped(":test", ":check")
+        result.assertTasksExecuted(":check")
+        result.assertTasksSkipped(":check")
     }
 }

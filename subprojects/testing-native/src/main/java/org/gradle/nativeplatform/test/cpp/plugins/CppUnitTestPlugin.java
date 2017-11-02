@@ -78,7 +78,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 ((DefaultCppTestSuite)testComponent).getTestedComponent().set(mainComponent);
 
                 // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
-                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTestExecutable");
+                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTest");
                 linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
 
                 // TODO: Replace with native test task
@@ -88,7 +88,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                         testTask.setDescription("Executes C++ unit tests.");
 
-                        final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTestExecutable");
+                        final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTest");
                         testTask.setExecutable(installTask.getRunScript());
                         testTask.dependsOn(testComponent.getDevelopmentBinary().getInstallDirectory());
                         // TODO: Honor changes to build directory

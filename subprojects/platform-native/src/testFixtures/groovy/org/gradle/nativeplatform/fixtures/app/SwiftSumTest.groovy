@@ -18,11 +18,9 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftSumTest extends XCTestSourceFileElement {
     final SumElement testedElement
-    final String moduleName
 
-    SwiftSumTest(String moduleName, SumElement testedElement) {
+    SwiftSumTest(SumElement testedElement) {
         this.testedElement = testedElement
-        this.moduleName = moduleName
     }
 
     String testSuiteName = "SumTestSuite"
