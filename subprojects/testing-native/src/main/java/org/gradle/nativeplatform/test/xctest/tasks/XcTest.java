@@ -73,7 +73,11 @@ public class XcTest extends AbstractTestTask {
      */
     @InputFiles
     protected FileTree getInputFiles() {
-        return getProject().files(testSuitePath).getAsFileTree();
+        FileTree r = getProject().files(testSuitePath).getAsFileTree();
+        for (File f : r) {
+            System.out.println("***" + f.getAbsolutePath());
+        }
+        return r;
     }
 
     /**
