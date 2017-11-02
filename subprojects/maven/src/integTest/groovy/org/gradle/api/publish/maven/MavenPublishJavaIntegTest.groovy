@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
-import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import spock.lang.Unroll
 
@@ -26,37 +25,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
     def javaLibrary = new MavenPublishedJavaModule(mavenModule)
 
-    def useModuleMetadata = false
-
-    private void useModuleMetadata() {
-        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
-        mavenModule.withModuleMetadata()
-        useModuleMetadata = true
-    }
-
     def "can publish java-library with no dependencies"() {
-        createBuildScripts("""
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-""")
-
-        when:
-        run "publish"
-
-        then:
-        mavenModule.assertPublishedAsJavaModule()
-        mavenModule.parsedPom.scopes.isEmpty()
-
-        and:
-        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
-    }
-
-    def "can publish java-library with no dependencies using Gradle metadata"() {
         useModuleMetadata()
 
         createBuildScripts("""
@@ -168,6 +137,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with attached artifacts"() {
+        useModuleMetadata()
+
         given:
         createBuildScripts("""
             task sourceJar(type: Jar) {
@@ -189,8 +160,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
+        javaLibrary.withClassifiedArtifact("source", "jar").assertPublished()
 
         and:
         resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
@@ -282,18 +252,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 $append
 """
 
-    }
-
-    protected def resolveArtifacts(MavenFileModule module) {
-        def resolvedArtifacts = super.resolveArtifacts(mavenModule)
-
-        if (useModuleMetadata) {
-            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
-            def moduleArtifacts = super.resolveArtifacts(mavenModule)
-            assert resolvedArtifacts == moduleArtifacts
-        }
-
-        return resolvedArtifacts
     }
 
 }

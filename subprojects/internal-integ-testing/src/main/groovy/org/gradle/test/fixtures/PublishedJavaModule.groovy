@@ -16,6 +16,8 @@
 package org.gradle.test.fixtures
 
 interface PublishedJavaModule {
+    PublishedJavaModule withClassifiedArtifact(String classifier, String extension)
+
     void assertPublished()
 
     void assertNoDependencies()

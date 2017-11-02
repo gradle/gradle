@@ -19,22 +19,31 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.PublishedJavaModule
 
 class MavenPublishedJavaModule implements PublishedJavaModule {
-    private final MavenModule module
+    private final AbstractMavenModule module
+    private final List<String> additionalArtifacts = []
 
-    MavenPublishedJavaModule(MavenModule module) {
+    MavenPublishedJavaModule(AbstractMavenModule module) {
         this.module = module
     }
 
     @Override
+    PublishedJavaModule withClassifiedArtifact(String classifier, String extension) {
+        additionalArtifacts << artifact(classifier, extension)
+        return this
+    }
+
+    @Override
     void assertPublished() {
-        String moduleVersion = "${module.artifactId}-${module.publishArtifactVersion}"
         module.assertPublished()
-        module.assertArtifactsPublished("${moduleVersion}.module", "${moduleVersion}.pom", "${moduleVersion}.jar")
+
+        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact("jar")]
+        expectedArtifacts.addAll(additionalArtifacts)
+        module.assertArtifactsPublished(expectedArtifacts as String[])
 
         // Verify Gradle metadata particulars
         assert module.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert module.parsedModuleMetadata.variant('api').files*.name == [moduleVersion + ".jar"]
-        assert module.parsedModuleMetadata.variant('runtime').files*.name == [moduleVersion + ".jar"]
+        assert module.parsedModuleMetadata.variant('api').files*.name == [artifact('jar')]
+        assert module.parsedModuleMetadata.variant('runtime').files*.name == [artifact('jar')]
 
         // Verify POM particulars
         assert module.parsedPom.packaging == null
@@ -66,5 +75,14 @@ class MavenPublishedJavaModule implements PublishedJavaModule {
             assert module.parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
             module.parsedPom.scopes.runtime.assertDependsOn(expected)
         }
+    }
+
+    private String artifact(String classifier = null, String extension) {
+        def artifactName = "${module.artifactId}-${module.publishArtifactVersion}"
+        if (classifier != null) {
+            artifactName += "-${classifier}"
+        }
+        artifactName += ".${extension}"
+        return artifactName.toString()
     }
 }

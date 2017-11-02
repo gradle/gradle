@@ -22,8 +22,15 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRep
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
+    def useModuleMetadata = false
+
+    protected void useModuleMetadata() {
+        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+        useModuleMetadata = true
+    }
+
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
-        doResolveArtifacts("""
+        resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'
     }
@@ -31,7 +38,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     }
 
     protected def resolveArtifacts(MavenFileModule module) {
-        doResolveArtifacts("""
+        resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
@@ -59,7 +66,19 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         }
     }
 """
-        doResolveArtifacts(dependencies)
+        resolveArtifacts(dependencies)
+    }
+
+    protected def resolveArtifacts(String dependencies) {
+        def resolvedArtifacts = doResolveArtifacts(dependencies)
+
+        if (useModuleMetadata) {
+            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
+            def moduleArtifacts = doResolveArtifacts(dependencies)
+            assert resolvedArtifacts == moduleArtifacts
+        }
+
+        return resolvedArtifacts
     }
 
     protected def doResolveArtifacts(def dependencies) {
