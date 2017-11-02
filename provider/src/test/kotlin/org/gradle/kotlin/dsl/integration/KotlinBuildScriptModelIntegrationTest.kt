@@ -228,7 +228,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val settings = withSettings("""
             buildscript {
                 dependencies {
-                    classpath(files("$settingsDependency"))
+                    classpath(files("${normaliseFileSeparators(settingsDependency.path)}"))
                 }
             }
         """)
@@ -237,7 +237,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         withFile("build.gradle", """
             buildscript {
                 dependencies {
-                    classpath(files("$projectDependency"))
+                    classpath(files("${normaliseFileSeparators(projectDependency.path)}"))
                 }
             }
         """)
