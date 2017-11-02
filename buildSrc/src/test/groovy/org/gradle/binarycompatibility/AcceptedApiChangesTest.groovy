@@ -16,7 +16,6 @@
 
 package org.gradle.binarycompatibility
 
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class AcceptedApiChangesTest extends Specification {
@@ -25,7 +24,6 @@ class AcceptedApiChangesTest extends Specification {
         when:
         def changes = AcceptedApiChanges.parse("""
             {
-                "baseVersion": "4.0.1",
                 "acceptedApiChanges": [
                     {
                         "type": "org.gradle.api.initialization.ConfigurableIncludedBuild",
@@ -38,7 +36,6 @@ class AcceptedApiChangesTest extends Specification {
         """)
 
         then:
-        changes.baseVersion == GradleVersion.version('4.0.1')
         changes.acceptedChanges.size() == 1
         def acceptedChange = changes.acceptedChanges.entrySet().iterator().next()
         def change = acceptedChange.key
@@ -52,7 +49,6 @@ class AcceptedApiChangesTest extends Specification {
         when:
         def changes = AcceptedApiChanges.parse("""
             {
-                "baseVersion": "4.0.1",
                 "acceptedApiChanges": [
                     {
                         "type": "org.gradle.api.initialization.ConfigurableIncludedBuild",

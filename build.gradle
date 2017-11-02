@@ -185,6 +185,7 @@ apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
+apply from: "gradle/updateReleasedVersions.gradle"
 
 allprojects {
     group = 'org.gradle'

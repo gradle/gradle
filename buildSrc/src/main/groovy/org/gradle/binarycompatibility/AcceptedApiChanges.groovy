@@ -28,7 +28,6 @@ class AcceptedApiChanges {
     static AcceptedApiChanges parse(String jsonText) {
         def json = new JsonSlurper().parseText(jsonText)
         def acceptedApiChanges = new AcceptedApiChanges()
-        acceptedApiChanges.baseVersion = GradleVersion.version(json.baseVersion)
         acceptedApiChanges.acceptedChanges = json.acceptedApiChanges.collectEntries { jsonChange ->
             [(ApiChange.parse(jsonChange)): jsonChange.acceptation]
         }

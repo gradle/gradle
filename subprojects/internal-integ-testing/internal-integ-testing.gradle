@@ -43,7 +43,7 @@ useTestFixtures(sourceSet: 'main')
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")
     versions = releasedVersions.allVersions
-    mostRecent = releasedVersions.mostRecentFinalRelease
+    mostRecent = releasedVersions.mostRecentRelease
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 

@@ -1,5 +1,4 @@
 {
-    "baseVersion": "4.3",
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",

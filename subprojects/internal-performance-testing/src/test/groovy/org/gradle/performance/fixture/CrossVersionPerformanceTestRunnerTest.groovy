@@ -27,7 +27,9 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
@@ -63,7 +65,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             buildContext.distribution("2.12"),
             buildContext.distribution("2.13"),
             buildContext.distribution(MOST_RECENT_RELEASE)]
-        releases.mostRecentFinalRelease >> buildContext.distribution(MOST_RECENT_RELEASE)
+        releases.mostRecentRelease >> buildContext.distribution(MOST_RECENT_RELEASE)
     }
 
     def "runs tests against version under test plus requested baseline versions and most recent released version and builds results"() {
@@ -185,11 +187,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         thrown(IllegalArgumentException)
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "can use 'nightly' baseline version to refer to most recently snapshot version and exclude most recent release"() {
         given:
-        releases.mostRecentSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
-
-        and:
         def runner = runner()
         runner.targetVersions = ['nightly']
 
@@ -197,7 +197,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         def results = runner.run()
 
         then:
-        results.baselineVersions*.version == [MOST_RECENT_SNAPSHOT]
+        results.baselineVersions*.version == [LatestNightlyBuildDeterminer.latestNightlyVersion]
 
         and:
         2 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
@@ -239,11 +239,11 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "can override baseline versions using a system property"() {
         given:
         def runner = runner()
         runner.targetVersions = versions
-        releases.mostRecentSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)
 
         when:
         System.setProperty('org.gradle.performance.baselines', override.join(','))
@@ -259,10 +259,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         versions         | override                        | expected
         ['2.13']         | ['2.12']                        | ['2.12']
         ['2.13']         | ['last']                        | [MOST_RECENT_RELEASE]
-        ['2.13']         | ['nightly']                     | [MOST_RECENT_SNAPSHOT]
-        ['2.13']         | ['last', 'nightly']             | [MOST_RECENT_RELEASE, MOST_RECENT_SNAPSHOT]
-        ['2.13', '2.12'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', '2.12', MOST_RECENT_SNAPSHOT]
-        ['2.13', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', MOST_RECENT_SNAPSHOT]
+        ['2.13']         | ['nightly']                     | [LatestNightlyBuildDeterminer.latestNightlyVersion]
+        ['2.13']         | ['last', 'nightly']             | [MOST_RECENT_RELEASE, LatestNightlyBuildDeterminer.latestNightlyVersion]
+        ['2.13', '2.12'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', '2.12', LatestNightlyBuildDeterminer.latestNightlyVersion]
+        ['2.13', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.13', LatestNightlyBuildDeterminer.latestNightlyVersion]
     }
 
     def "can use a snapshot version in baselines"() {

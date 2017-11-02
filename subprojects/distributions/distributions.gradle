@@ -109,6 +109,7 @@ task srcZip(type: Zip) {
             include 'wrapper/'
             include 'gradlew.bat'
             include 'version.txt'
+            include 'released-versions.json'
         }
     }
 }

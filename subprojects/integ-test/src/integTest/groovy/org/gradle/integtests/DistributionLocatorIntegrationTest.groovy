@@ -39,7 +39,7 @@ class DistributionLocatorIntegrationTest extends Specification {
 
     def "locates snapshot versions"() {
         expect:
-        urlExist(locator.getDistributionFor(distributions.mostRecentSnapshot.version))
+        urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
     }
 
     void urlExist(URI url) {
