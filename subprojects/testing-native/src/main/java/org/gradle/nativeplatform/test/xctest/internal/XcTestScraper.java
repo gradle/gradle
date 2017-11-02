@@ -39,7 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class XcTestScraper implements TextStream {
-    private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: -\\[\\p{Alnum}+.(\\p{Alnum}+) (\\p{Alnum}+)] : (.*)");
+    private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: (-\\[\\p{Alnum}+.)?(\\p{Alnum}+)[ .](\\p{Alnum}+)]? : (.*)");
 
     private final TestResultProcessor processor;
     private final TestOutputEvent.Destination destination;
@@ -126,9 +126,9 @@ class XcTestScraper implements TextStream {
 
                         Matcher failureMessageMatcher = TEST_FAILURE_PATTERN.matcher(text);
                         if (failureMessageMatcher.find()) {
-                            String testSuite = failureMessageMatcher.group(1);
-                            String testCase = failureMessageMatcher.group(2);
-                            String message = failureMessageMatcher.group(3);
+                            String testSuite = failureMessageMatcher.group(2);
+                            String testCase = failureMessageMatcher.group(3);
+                            String message = failureMessageMatcher.group(4);
 
                             if (testDescriptor.getClassName().equals(testSuite) && testDescriptor.getName().equals(testCase)) {
                                 xcTestDescriptor.getMessages().add(message);
