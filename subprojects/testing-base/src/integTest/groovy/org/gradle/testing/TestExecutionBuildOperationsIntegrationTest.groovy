@@ -50,8 +50,8 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         def firstLevelTestOps = directChildren(executorTestOps[0], ExecuteTestBuildOperationType)
         firstLevelTestOps.size() == 2
-        firstLevelTestOps*.details.testDescriptor.name == ["org.gradle.Test", "org.gradle.TestSuite"]
-        firstLevelTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.TestSuite"]
+        firstLevelTestOps*.details.testDescriptor.name as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
+        firstLevelTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
         firstLevelTestOps*.details.testDescriptor.composite == [true, true]
 
         def suiteTestOps = directChildren(firstLevelTestOps[1], ExecuteTestBuildOperationType)
