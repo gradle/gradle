@@ -23,7 +23,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
@@ -82,7 +81,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
         Object parentId = parentOperation == null ? buildOperationExecutor.getCurrentOperation().getId() : parentOperation.descriptor.getId();
         return BuildOperationDescriptor.displayName(testDescriptor.getName())
-            .operationType(BuildOperationCategory.TASK)
             .details(details)
             .build(newOperationIdentifier(), parentId);
     }
