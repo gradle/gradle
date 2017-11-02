@@ -18,8 +18,10 @@ package org.gradle.api.tasks.testing
 
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.TestListenerBuildOperationAdapter
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
@@ -32,11 +34,12 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     public static final int TEST_START_TIMESTAMP = 200
 
+    BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     BuildOperationState rootOperation = Mock()
     BuildOperationListener listener = Mock()
     Clock clock = Mock()
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(rootOperation, listener, buildOperationIdFactory, clock)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(buildOperationExecutor, listener, buildOperationIdFactory, clock)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()
@@ -46,6 +49,7 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     def setup() {
         _ * testDescriptorInternal.getParent() >> parentTestDescriptorInternal
+        _ * buildOperationExecutor.currentOperation >> rootOperation
     }
 
     def "tests are exposed"() {
@@ -110,23 +114,5 @@ class TestListenerBuildOperationAdapterTest extends Specification {
             assert outputOpDescriptor == it[0]
             assert it[1].result.output == testOutputEvent
         }
-    }
-
-    def "root test suite is not exposed"() {
-        when:
-        adapter.started(parentTestDescriptorInternal, testStartEvent)
-        then:
-        0 * listener._
-        0 * buildOperationIdFactory._
-        0 * clock._
-        0 * rootOperation._
-
-        when:
-        adapter.completed(parentTestDescriptorInternal, testResult, testCompleteEvent)
-        then:
-        0 * listener._
-        0 * buildOperationIdFactory._
-        0 * clock._
-        0 * rootOperation._
     }
 }

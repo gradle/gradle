@@ -134,7 +134,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
-    private TestListenerBuildOperationAdapter testListenerBuildOperationAdapter;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -523,7 +522,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
-
 
         if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
             addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));

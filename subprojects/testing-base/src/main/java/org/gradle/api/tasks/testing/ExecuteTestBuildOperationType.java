@@ -17,23 +17,43 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Build Operations for Test Results
+ *
+ * @since 4.4
  * */
-public class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
+@UsedByScanPlugin
+public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
     /**
      * Details of a running Test
+     *
+     * @since 4.4
      * */
+    @UsedByScanPlugin
     public interface Details {
+        /**
+         * the descriptor of the executed test.
+         * */
         TestDescriptor getTestDescriptor();
     }
 
     /**
      * Result of a running Test
+     *
+     * @since 4.4
      * */
+    @UsedByScanPlugin
     public interface Result {
+        /**
+         * The result of the executed test.
+         *
+         * */
         TestResult getResult();
+    }
+
+    private ExecuteTestBuildOperationType() {
     }
 }

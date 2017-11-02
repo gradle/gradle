@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.report.TestReporter
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -29,14 +30,14 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     def testFramework = Mock(TestFramework)
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)
-    def testBuildOperationAdapter = Mock(TestListenerBuildOperationAdapter)
+    def testBuildOperationAdapter = Mock(TestListenerInternal)
 
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private Test task
 
     def setup() {
         task = TestUtil.create(temporaryFolder).task(Test, [testExecuter: testExecuter, testFramework: testFramework])
-        task.testListenerBuildOperationAdapter = testBuildOperationAdapter
+        task.testListenerInternal = testBuildOperationAdapter
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')
