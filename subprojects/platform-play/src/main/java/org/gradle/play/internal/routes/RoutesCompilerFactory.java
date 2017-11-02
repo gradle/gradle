@@ -33,8 +33,6 @@ public class RoutesCompilerFactory {
         String playVersion = playPlatform.getPlayVersion();
         String scalaVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
-                return new RoutesCompilerAdapterV22X(playVersion);
             case PLAY_2_3_X:
                 return new RoutesCompilerAdapterV23X(playVersion);
             case PLAY_2_4_X:
@@ -45,7 +43,6 @@ public class RoutesCompilerFactory {
                 }
                 return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             case PLAY_2_5_X:
-                return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             case PLAY_2_6_X:
                 return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             default:
