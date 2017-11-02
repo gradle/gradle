@@ -29,7 +29,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -38,7 +37,6 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
-import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.AbstractSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftCorelibXCTestSuite;
@@ -210,11 +208,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Configure test suite link task from tested component compiled objects
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
                 linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
-
-                if (OperatingSystem.current().isLinux()) {
-                    tasks.withType(RunTestExecutable.class).getByName("xcTest")
-                        .dependsOn(((SwiftExecutable)testSuite.getDevelopmentBinary()).getInstallDirectory());
-                }
             }
         };
     }
