@@ -66,6 +66,7 @@ import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.PlayApplicationSpecInternal;
 import org.gradle.play.internal.PlayPlatformAwareComponentSpecInternal;
 import org.gradle.play.internal.PlayPlatformResolver;
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -237,6 +238,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
             configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
+
+            PlayMajorVersion playMajorVersion = PlayMajorVersion.forPlatform(playPlatform);
+            if (playMajorVersion == PlayMajorVersion.PLAY_2_6_X) {
+                // This has the downside of adding play-java-forms for all kind of play projects
+                // including Scala based projects. Still, users can exclude the dependency if they
+                // want/need. Maybe in the future we can enable users to have some flag to specify
+                // if the project is Java or Scala based.
+                configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-java-forms"));
+            }
         }
 
         @BinaryTasks
