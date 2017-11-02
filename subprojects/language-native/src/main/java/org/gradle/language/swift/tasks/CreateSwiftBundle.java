@@ -131,6 +131,8 @@ public class CreateSwiftBundle extends DefaultTask {
 
     /**
      * Returns the script file that can be used to run the install image.
+     *
+     * @since 4.4
      */
     @Internal
     public File getRunScript() {
