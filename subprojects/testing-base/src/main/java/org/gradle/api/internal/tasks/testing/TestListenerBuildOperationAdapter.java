@@ -39,7 +39,7 @@ import java.util.Map;
  * Emitting build operations for tests
  */
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
-    public static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
+    private static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
     };
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
     private final BuildOperationListener listener;
@@ -125,7 +125,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private class BuildOperationTestResult implements ExecuteTestBuildOperationType.Result {
+    private static class BuildOperationTestResult implements ExecuteTestBuildOperationType.Result {
         final TestResult result;
 
         public BuildOperationTestResult(TestResult testResult) {
@@ -138,7 +138,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private class InProgressExecuteTestBuildOperation {
+    private static class InProgressExecuteTestBuildOperation {
         final BuildOperationDescriptor descriptor;
         final long startTime;
 
