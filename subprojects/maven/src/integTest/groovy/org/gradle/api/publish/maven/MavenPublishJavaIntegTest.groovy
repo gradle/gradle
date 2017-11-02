@@ -25,6 +25,11 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
     def javaLibrary = new MavenPublishedJavaModule(mavenModule)
 
+    private void useModuleMetadata() {
+        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+        mavenModule.withModuleMetadata()
+    }
+
     def "can publish java-library with no dependencies"() {
         createBuildScripts("""
             publishing {
@@ -48,8 +53,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with no dependencies using Gradle metadata"() {
-        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
-        mavenModule.withModuleMetadata()
+        useModuleMetadata()
 
         createBuildScripts("""
             publishing {
@@ -79,6 +83,45 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies"() {
+        useModuleMetadata()
+
+        given:
+        mavenRepo.module("org.test", "foo", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "1.0").publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:foo:1.0"
+                implementation "org.test:bar:1.0"
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.assertApiDependencies("org.test:foo:1.0")
+        javaLibrary.assertRuntimeDependencies("org.test:bar:1.0")
+
+        and:
+        resolveArtifacts(mavenModule) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
+
+        when:
+        executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
+
+        then:
+        resolveArtifacts(mavenModule) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
+    }
+
+    def "can publish java-library with dependencies and excludes"() {
         given:
         createBuildScripts("""
 
@@ -229,7 +272,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             publishing {
                 repositories {

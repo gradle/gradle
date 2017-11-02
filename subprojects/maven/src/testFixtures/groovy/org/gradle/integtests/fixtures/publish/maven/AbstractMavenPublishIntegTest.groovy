@@ -69,7 +69,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             configurations {
                 resolve {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
                     }
                 }
             }

@@ -21,4 +21,6 @@ interface PublishedJavaModule {
     void assertNoDependencies()
 
     void assertApiDependencies(String... expected)
+
+    void assertRuntimeDependencies(String... expected)
 }
