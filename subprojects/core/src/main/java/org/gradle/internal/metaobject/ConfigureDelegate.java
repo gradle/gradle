@@ -21,15 +21,12 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.DynamicObjectUtil;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
-    private final ThreadLocal<Boolean> _configuring = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    };
+    private final AtomicBoolean _configuring = new AtomicBoolean(false);
 
     public ConfigureDelegate(Closure configureClosure, Object delegate) {
         _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
