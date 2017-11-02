@@ -18,15 +18,13 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
-
-import java.io.File;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -36,7 +34,8 @@ import java.io.File;
 @Incubating
 public class XcTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
-    private Object testSuitePath;
+    private final DirectoryProperty testSuiteLocation = newInputDirectory();
+    private final RegularFileProperty runScript = newInputFile();
 
     /**
      * {@inheritDoc}
@@ -44,17 +43,17 @@ public class XcTest extends AbstractTestTask {
      */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
-        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), getProject().file(testSuitePath), getPath());
+        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScript.getAsFile().get(), getPath());
     }
 
     /**
      * Sets the test suite bundle or executable location
      *
-     * @param path
      * @since 4.4
      */
-    public void setTestSuite(Object path) {
-        testSuitePath = path;
+    @InputDirectory
+    public DirectoryProperty getTestSuiteLocation() {
+        return testSuiteLocation;
     }
 
     /**
@@ -63,21 +62,8 @@ public class XcTest extends AbstractTestTask {
      * @since 4.4
      */
     @Internal
-    public File getTestSuite() {
-        return getProject().file(testSuitePath);
-    }
-
-    /**
-     * Returns input files for this task.
-     * @since 4.4
-     */
-    @InputFiles
-    protected FileTree getInputFiles() {
-        FileTree r = getProject().files(testSuitePath).getAsFileTree();
-        for (File f : r) {
-            System.out.println("***" + f.getAbsolutePath());
-        }
-        return r;
+    public RegularFileProperty getRunScript() {
+        return runScript;
     }
 
     /**

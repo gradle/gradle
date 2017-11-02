@@ -137,18 +137,17 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         final XcTest testTask = tasks.create("xcTest", XcTest.class);
         if (OperatingSystem.current().isMacOsX()) {
-            CreateSwiftBundle bundle = tasks.withType(CreateSwiftBundle.class).getByName("bundleSwiftTest");
+            CreateSwiftBundle installTask = tasks.withType(CreateSwiftBundle.class).getByName("bundleSwiftTest");
             DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-            testTask.setTestSuite(bundle.getOutputDir());
+            testTask.getTestSuiteLocation().set(installTask.getOutputDir());
+            testTask.getRunScript().set(installTask.getRunScript());
             testTask.getWorkingDirectory().set(buildDirectory.dir("bundle/test"));
         } else if (OperatingSystem.current().isLinux()) {
             final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTest");
-            testTask.setTestSuite(installTask.getRunScriptFile());
+            testTask.getTestSuiteLocation().set(installTask.getInstallDirectory());
+            testTask.getRunScript().set(installTask.getRunScript());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
-
-            // TODO: This may not be needed
-            testTask.dependsOn(installTask);
         }
 
         if (testTask != null) {
@@ -157,7 +156,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             testTask.onlyIf(new Spec<Task>() {
                 @Override
                 public boolean isSatisfiedBy(Task element) {
-                    return testTask.getTestSuite().exists();
+                    return testTask.getRunScript().getAsFile().get().exists();
                 }
             });
         }

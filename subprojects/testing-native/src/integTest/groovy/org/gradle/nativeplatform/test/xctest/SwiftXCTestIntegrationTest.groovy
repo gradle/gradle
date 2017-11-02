@@ -211,7 +211,6 @@ apply plugin: 'xctest'
 
         when:
         testBundle.applyChangesToProject(testDirectory)
-        withDebugLogging()
         succeeds("test")
 
         then:
