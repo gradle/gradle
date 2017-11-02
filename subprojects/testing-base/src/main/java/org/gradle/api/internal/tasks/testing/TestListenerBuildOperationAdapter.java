@@ -72,7 +72,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
         BuildOperationDescriptor.Builder outputDescription = BuildOperationDescriptor.displayName(event.getDestination().name())
-            .operationType(BuildOperationCategory.TASK)
             .details(TEST_OUTPUT_DETAILS);
         BuildOperationDescriptor outputBuildOperationDescriptor = outputDescription.build(newOperationIdentifier(), runningOp.descriptor.getId());
         long currentTime = clock.getCurrentTime();
