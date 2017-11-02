@@ -52,6 +52,7 @@ class SerializedOperationFinish {
          * */
         if (details.getClass().getSimpleName().equals("ResolveDependenciesBuildOperationType.Result")) {
             Map<String, Object> map = new HashMap<String, Object>();
+            // TODO add valuable information here
             return map;
         }
         return details;

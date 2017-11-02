@@ -18,17 +18,59 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class ResolveDependenciesBuildOperationType implements BuildOperationType<ResolveDependenciesBuildOperationType.Details, ResolveDependenciesBuildOperationType.Result> {
+/**
+ * Details about a dependency resolution.
+ *
+ * @since 4.4
+ */
+@UsedByScanPlugin
+public final class ResolveDependenciesBuildOperationType implements BuildOperationType<ResolveDependenciesBuildOperationType.Details, ResolveDependenciesBuildOperationType.Result> {
+
+    /**
+     * Details about a resolved configuration.
+     * @since 4.4
+     * */
+    @UsedByScanPlugin
     public interface Details {
+        /**
+         * The name of the resolved configuration
+         * */
         String getConfigurationName();
+
+        /**
+         * The description of the resolved configuration
+         * */
         String getConfigurationDescription();
+
+        /**
+         * The identityPath of the resolved configuration
+         * */
         String getIdentityPath();
+
+        /**
+         * Flag indicating if resolved configuration is visible
+         * */
         boolean isConfigurationVisible();
+
+        /**
+         * Flag indicating if resolved configuration is transitive
+         * */
         boolean isConfigurationTransitive();
     }
 
+    /**
+     * The result of a dependency resolution for a configuration.
+     * @since 4.4
+     * */
+    @UsedByScanPlugin
     public interface Result {
+
+        /**
+         * The resolvable dependencies of the configuration providing access to the
+         * resolution result.
+         * */
         ResolvableDependencies getResolvableDependencies();
     }
 }
