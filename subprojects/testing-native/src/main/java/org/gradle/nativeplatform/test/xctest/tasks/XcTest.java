@@ -35,12 +35,8 @@ import java.io.File;
  */
 @Incubating
 public class XcTest extends AbstractTestTask {
-    private final DirectoryProperty workingDirectory;
+    private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
     private Object testSuitePath;
-
-    public XcTest() {
-        workingDirectory = getProject().getLayout().directoryProperty();
-    }
 
     /**
      * {@inheritDoc}
@@ -55,16 +51,26 @@ public class XcTest extends AbstractTestTask {
      * Sets the test suite bundle or executable location
      *
      * @param path
+     * @since 4.4
      */
     public void setTestSuite(Object path) {
         testSuitePath = path;
     }
 
+    /**
+     * Returns test suite bundle or executable location
+     *
+     * @since 4.4
+     */
     @Internal
     public File getTestSuite() {
         return getProject().file(testSuitePath);
     }
 
+    /**
+     * Returns input files for this task.
+     * @since 4.4
+     */
     @InputFiles
     protected FileTree getInputFiles() {
         return getProject().files(testSuitePath).getAsFileTree();
