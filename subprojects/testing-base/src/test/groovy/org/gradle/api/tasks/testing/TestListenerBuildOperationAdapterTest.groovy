@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationIdFactory
-import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationState
@@ -66,7 +65,6 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         1 * rootOperation.getId() >> rootId
         1 * listener.started(_, _) >> {
             generatedDescriptor = it[0]
-            assert generatedDescriptor.operationType == BuildOperationCategory.TASK
             assert generatedDescriptor.details.testDescriptor == testDescriptorInternal
             assert generatedDescriptor.details.startTime == TEST_START_TIMESTAMP
         }
