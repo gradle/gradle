@@ -140,6 +140,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTest");
             testTask.setTestSuite(installTask.getRunScriptFile());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
+
+            // TODO: This may not be needed
+            testTask.dependsOn(installTask);
         }
 
         if (testTask != null) {
