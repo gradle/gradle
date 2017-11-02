@@ -21,6 +21,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import spock.lang.Unroll
 
 class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String RECOMPILE_SCRIPTS_MESSAGE = '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
+
+    private static final String NO_REBUILD_MESSAGE = '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+
     @Unroll
     def "deprecation warning appears when using #deprecatedArgs"() {
         when:
@@ -33,9 +38,9 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         issue                                          | deprecatedArgs        | message
-        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
-        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | RECOMPILE_SCRIPTS_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | NO_REBUILD_MESSAGE
     }
 
     @Unroll
@@ -53,9 +58,9 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         issue                                          | deprecatedArgs        | message
-        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | '--recompile-scripts has been deprecated and is scheduled to be removed in Gradle'
-        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle'
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | RECOMPILE_SCRIPTS_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | NO_REBUILD_MESSAGE
     }
 
 }

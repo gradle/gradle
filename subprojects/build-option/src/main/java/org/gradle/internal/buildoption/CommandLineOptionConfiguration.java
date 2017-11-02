@@ -30,7 +30,7 @@ public class CommandLineOptionConfiguration {
     private final String shortOption;
     private final String description;
     private boolean incubating;
-    private String deprecationWarning;
+    private boolean deprecated;
 
     CommandLineOptionConfiguration(String longOption, String description) {
         this(longOption, null, description);
@@ -58,11 +58,7 @@ public class CommandLineOptionConfiguration {
     }
 
     public CommandLineOptionConfiguration deprecated() {
-        return deprecated("");
-    }
-
-    public CommandLineOptionConfiguration deprecated(String deprecationWarning) {
-        this.deprecationWarning = deprecationWarning;
+        deprecated = true;
         return this;
     }
 
@@ -94,7 +90,7 @@ public class CommandLineOptionConfiguration {
         return incubating;
     }
 
-    public String getDeprecationWarning() {
-        return deprecationWarning;
+    public boolean isDeprecated() {
+        return deprecated;
     }
 }
