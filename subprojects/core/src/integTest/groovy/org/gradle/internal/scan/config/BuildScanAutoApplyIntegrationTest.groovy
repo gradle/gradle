@@ -28,7 +28,7 @@ import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = AutoAppliedBuildScanPlugin.VERSION
-    private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
+    private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION.toString()
     private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
     private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
 

@@ -25,7 +25,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
 
@@ -71,7 +70,6 @@ import java.io.File;
  * </ul>
  */
 @HasInternalProtocol
-@UsedByScanPlugin
 public interface Settings extends PluginAware {
     /**
      * <p>The default name for the settings file.</p>

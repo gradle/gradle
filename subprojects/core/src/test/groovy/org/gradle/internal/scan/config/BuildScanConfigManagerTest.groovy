@@ -19,16 +19,15 @@ package org.gradle.internal.scan.config
 import org.gradle.StartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.testing.internal.util.Specification
-import org.gradle.util.VersionNumber
+import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
 class BuildScanConfigManagerTest extends Specification {
 
     boolean scanEnabled
     boolean scanDisabled
 
-    String maxUnsupportedVersion = "0.9"
-    String minSupportedVersion = "1.0"
-    String pluginVersionNumber = minSupportedVersion
+    def attributes = Mock(BuildScanConfig.Attributes)
 
     def "conveys configuration"() {
         when:
@@ -38,6 +37,8 @@ class BuildScanConfigManagerTest extends Specification {
         with(config()) {
             enabled
             !disabled
+            unsupportedMessage == null
+            attributes.is this.attributes
         }
 
         when:
@@ -47,6 +48,8 @@ class BuildScanConfigManagerTest extends Specification {
         with(config()) {
             enabled
             !disabled
+            unsupportedMessage == null
+            attributes.is this.attributes
         }
 
         when:
@@ -57,30 +60,77 @@ class BuildScanConfigManagerTest extends Specification {
         with(config()) {
             !enabled
             disabled
+            attributes.is this.attributes
         }
     }
 
     def "throws if plugin version is too old"() {
         when:
-        pluginVersionNumber = "0.9"
-        config()
+        config("1.7")
 
         then:
         thrown UnsupportedBuildScanPluginVersionException
 
         when:
-        pluginVersionNumber = "1.1"
-        config()
+        config("1.9")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
 
         when:
-        pluginVersionNumber = "1.0-TIMESTAMP"
-        config()
+        config("1.8-TIMESTAMP")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
+    }
+
+    def "throws if has vcs mappings and plugin version is too old"() {
+        given:
+        attributes.isRootProjectHasVcsMappings() >> true
+
+        when:
+        config("1.9")
+
+        then:
+        thrown UnsupportedBuildScanPluginVersionException
+    }
+
+    @Unroll
+    def "does not throw if has vcs mappings and plugin version #version"() {
+        given:
+        attributes.isRootProjectHasVcsMappings() >> true
+
+        when:
+        config(version)
+
+        then:
+        notThrown UnsupportedBuildScanPluginVersionException
+
+        where:
+        version << ["1.11", "1.12"]
+    }
+
+    @RestoreSystemProperties
+    def "can convey unsupported"() {
+        when:
+        System.setProperty(BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE, "true")
+
+        then:
+        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+            !enabled
+            !disabled
+            unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
+        }
+
+        when:
+        scanEnabled = true
+
+        then:
+        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+            enabled
+            !disabled
+            unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
+        }
     }
 
     BuildScanConfigManager manager() {
@@ -90,10 +140,10 @@ class BuildScanConfigManagerTest extends Specification {
             getSystemPropertiesArgs() >> { [:] }
         }
 
-        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibilityEnforcer(VersionNumber.parse(maxUnsupportedVersion), VersionNumber.parse(minSupportedVersion)))
+        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(), { attributes })
     }
 
-    BuildScanConfig config(String versionNumber = pluginVersionNumber) {
+    BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) {
         def manager = manager()
         manager.init()
         manager.collect(new BuildScanPluginMetadata() {
