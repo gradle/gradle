@@ -22,13 +22,15 @@ import com.google.common.io.LineProcessor;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.specs.Spec;
@@ -61,10 +63,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -114,6 +115,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     protected BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileCollectionFactory getFileCollectionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -334,26 +340,47 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    protected FileCollection getHeaderDependencies() throws IOException {
-        File inputFile = headerDependenciesFile.getAsFile().getOrNull();
+    protected FileCollection getHeaderDependencies() {
+        final File inputFile = headerDependenciesFile.getAsFile().getOrNull();
         if (inputFile == null || !inputFile.isFile()) {
             return null;
         }
 
-        List<File> files = Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<List<File>>() {
-            private List<File> result = new ArrayList<File>();
+        return getFileCollectionFactory().create(new HeaderDependencies(inputFile));
+    }
 
-            @Override
-            public boolean processLine(String line) throws IOException {
-                result.add(new File(line));
-                return true;
-            }
+    private class HeaderDependencies implements MinimalFileSet {
+        private final File inputFile;
 
-            @Override
-            public List<File> getResult() {
-                return result;
+        public HeaderDependencies(File inputFile) {
+            this.inputFile = inputFile;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            try {
+                return Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
+                    private Set<File> result = new HashSet<File>();
+
+                    @Override
+                    public boolean processLine(String line) throws IOException {
+                        result.add(new File(line));
+                        return true;
+                    }
+
+                    @Override
+                    public Set<File> getResult() {
+                        return result;
+                    }
+                });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        });
-        return new SimpleFileCollection(files);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Header dependencies for " + AbstractNativeCompileTask.this.toString();
+        }
     }
 }

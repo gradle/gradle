@@ -174,6 +174,11 @@
             "type": "org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin",
             "member": "Constructor org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin(org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator)",
             "acceptation": "Refactor argument of an injectable constructor"
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileCollectionFactory()",
+            "acceptation": "Injected service"
         }
     ]
 }
