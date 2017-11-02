@@ -27,8 +27,17 @@ class MavenPublishedJavaModule implements PublishedJavaModule {
 
     @Override
     void assertPublished() {
-        module.assertPublishedAsJavaModule()
+        String moduleVersion = "${module.artifactId}-${module.publishArtifactVersion}"
+        module.assertPublished()
+        module.assertArtifactsPublished("${moduleVersion}.module", "${moduleVersion}.pom", "${moduleVersion}.jar")
+
+        // Verify Gradle metadata particulars
         assert module.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
+        assert module.parsedModuleMetadata.variant('api').files*.name == [moduleVersion + ".jar"]
+        assert module.parsedModuleMetadata.variant('runtime').files*.name == [moduleVersion + ".jar"]
+
+        // Verify POM particulars
+        assert module.parsedPom.packaging == null
     }
 
     void assertNoDependencies() {

@@ -73,6 +73,11 @@ interface MavenModule extends Module {
      */
     MavenModule variant(String variant, Map<String, String> attributes)
 
+    /*
+     * Asserts pom and module files are published correctly. Does not verify artifacts.
+     */
+    void assertPublished()
+
     /**
      * Asserts exactly pom and jar published, along with checksums.
      */
