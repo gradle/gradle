@@ -182,7 +182,7 @@ public class PlayDistributionPlugin extends RuleSource {
             case PLAY_2_6_X:
                 return "play.core.server.ProdServerStart";
             default:
-                throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
+                throw new RuntimeException("Could not determine main class for Play version:" + playVersion);
         }
     }
 
