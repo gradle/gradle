@@ -79,4 +79,53 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         conf3Locks[0].toString() == 'other:company:5.2 -> 5.2'
         sha1File.text == 'ba328f04e6f66725791db639c04f9b09fe0b69da'
     }
+
+    def "does not record project dependencies in lock file"() {
+        given:
+        mavenRepo.module('my', 'dep', '1.5').publish()
+        mavenRepo.module('foo', 'bar', '2.3.1').publish()
+
+        buildFile << """
+            subprojects {
+                apply plugin: 'java'
+                ${mavenRepository(mavenRepo)}
+            }
+
+            project(':a') {
+                dependencies {
+                    compile 'my:dep:1.5'
+                }
+            }
+
+            project(':b') {
+                dependencies {
+                    compile 'foo:bar:2.3.1'
+                    compile project(':a')
+                }
+            }
+        """
+        settingsFile << "include 'a', 'b'"
+        file('a/src/main/java/ClassA.java') << javaClass('ClassA')
+        file('b/src/main/java/ClassB.java') << javaClass('ClassB')
+
+        when:
+        succeedsWithEnabledDependencyLocking('compileJava')
+
+        then:
+        def parsedLockFile = parseLockFile()
+        def compileLocksProjectA = parsedLockFile.getLocks(':a', 'compileClasspath')
+        compileLocksProjectA.size() == 1
+        compileLocksProjectA[0].toString() == 'my:dep:1.5 -> 1.5'
+        def compileLocksProjectB = parsedLockFile.getLocks(':b', 'compileClasspath')
+        compileLocksProjectB.size() == 2
+        compileLocksProjectB[0].toString() == 'foo:bar:2.3.1 -> 2.3.1'
+        compileLocksProjectB[1].toString() == 'my:dep:1.5 -> 1.5'
+        sha1File.text == '444067f8d070575c3e7dee68e81a04c7f159fdc6'
+    }
+
+    static String javaClass(String className) {
+        """
+            public class $className {}
+        """
+    }
 }
