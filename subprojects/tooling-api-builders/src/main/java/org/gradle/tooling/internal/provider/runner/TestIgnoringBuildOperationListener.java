@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType;
-import org.gradle.api.tasks.testing.TestOutputBuildOperationType;
+import org.gradle.api.internal.tasks.testing.ExecuteTestBuildOperationType;
+import org.gradle.api.internal.tasks.testing.TestOutputBuildOperationType;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
