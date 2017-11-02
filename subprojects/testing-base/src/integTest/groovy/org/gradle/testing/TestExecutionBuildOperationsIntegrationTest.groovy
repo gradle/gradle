@@ -69,13 +69,15 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         and: "outputs are emitted in test build operation hierarchy"
         def testSuiteOutput = directChildren(firstLevelTestOps[1], TestOutputBuildOperationType)
         testSuiteOutput.size() == 4
-        testSuiteOutput*.result.output.message.collect { normaliseLineSeparators(it) }  == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
+        testSuiteOutput*.result.output.message.collect {
+            normaliseLineSeparators(it)
+        } == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
         testSuiteOutput*.result.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
 
         def testOutput = directChildren(testTestOps[0], TestOutputBuildOperationType)
         testOutput.size() == 2
 
-        testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
+        testOutput*.result.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
 
