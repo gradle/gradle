@@ -36,7 +36,6 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -97,8 +95,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
-
-    private Set<String> deprecations = new HashSet<String>();
 
     /**
      * {@inheritDoc}
@@ -853,28 +849,5 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
-    }
-
-    /**
-     * Adds a deprecation item.
-     *
-     * @since 4.4
-     */
-    @Incubating
-    public void addDeprecation(String deprecation) {
-        deprecations.add(deprecation);
-    }
-
-    /**
-     * Constructs and prints all deprecation warnings.
-     *
-     * @since 4.4
-     */
-    @Incubating
-    public void checkDeprecation() {
-        String suffix = SingleMessageLogger.getDeprecationMessage();
-        for (String deprecation : deprecations) {
-            DeprecationLogger.nagUserWith(String.format("%s %s.", deprecation, suffix));
-        }
     }
 }

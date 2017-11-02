@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -61,7 +62,9 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
             }
         }
 
-        startParameter.checkDeprecation();
+        if (startParameter instanceof StartParameterInternal) {
+            StartParameterInternal.class.cast(startParameter).checkDeprecation();
+        }
 
         return delegate.execute(action, requestContext, actionParameters, contextServices);
     }
