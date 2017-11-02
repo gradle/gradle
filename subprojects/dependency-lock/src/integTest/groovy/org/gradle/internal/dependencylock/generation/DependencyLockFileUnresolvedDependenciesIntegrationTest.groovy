@@ -94,4 +94,29 @@ class DependencyLockFileUnresolvedDependenciesIntegrationTest extends AbstractDe
         then:
         assertLockFileAndHashFileDoNotExist()
     }
+
+    def "does not write lock file if resolution result contains errors for lenient configurations"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+
+        buildFile << mavenRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
+        buildFile << """
+            dependencies {
+                myConf 'foo:bar:1.5'
+                myConf 'does.not:exist:1.2.3'
+            }
+            
+            task $COPY_LIBS_TASK_NAME(type: Copy) {
+                from { configurations.myConf.resolvedConfiguration.lenientConfiguration.files }
+                into "\$buildDir/libs"
+            }
+        """
+
+        when:
+        succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertLockFileAndHashFileDoNotExist()
+    }
 }

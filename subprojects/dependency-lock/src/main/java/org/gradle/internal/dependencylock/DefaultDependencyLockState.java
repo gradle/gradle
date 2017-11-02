@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.dependencylock.model.DependencyLock;
 import org.gradle.internal.dependencylock.model.DependencyVersion;
 import org.gradle.internal.dependencylock.model.ModuleKey;
@@ -30,6 +31,7 @@ import org.gradle.internal.dependencylock.model.ModuleKey;
 public class DefaultDependencyLockState implements DependencyLockState {
 
     private final DependencyLock dependencyLock = new DependencyLock();
+    private boolean successfulDependencyResolution = true;
 
     @Override
     public void populateFrom(final String projectPath, final String configurationName, ResolutionResult resolutionResult) {
@@ -44,6 +46,8 @@ public class DefaultDependencyLockState implements DependencyLockState {
                         ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
                         addDependency(projectPath, configurationName, requestedModule, resolvedDependencyResult, dependencyLock);
                     }
+                } else if (encounteredFirstUnresolvedDependency(dependencyResult)) {
+                    successfulDependencyResolution = false;
                 }
             }
         });
@@ -59,6 +63,15 @@ public class DefaultDependencyLockState implements DependencyLockState {
     private String determineResolvedVersion(ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult) {
         boolean selectedByRule = resolvedDependencyResult.getSelected().getSelectionReason().isSelectedByRule();
         return selectedByRule ? requestedModule.getVersion() : resolvedDependencyResult.getSelected().getModuleVersion().getVersion();
+    }
+
+    private boolean encounteredFirstUnresolvedDependency(DependencyResult dependencyResult) {
+        return successfulDependencyResolution && dependencyResult instanceof UnresolvedDependencyResult;
+    }
+
+    @Override
+    public boolean isSuccessfulDependencyResolution() {
+        return successfulDependencyResolution;
     }
 
     @Override

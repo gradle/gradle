@@ -41,15 +41,23 @@ public class DefaultDependencyLockManager implements DependencyLockManager {
 
     @Override
     public void writeLock(File lockFile) {
-        DependencyLock dependencyLock = dependencyLockState.getDependencyLock();
+        boolean successDependencyResolution = dependencyLockState.isSuccessfulDependencyResolution();
 
-        if (!dependencyLock.getProjectsMapping().isEmpty()) {
-            String content = dependencyLockConverter.convert(dependencyLock);
-            GFileUtils.mkdirs(lockFile.getParentFile());
-            GFileUtils.writeStringToFile(lockFile, content);
-            String sha1 = HashUtil.sha1(content.getBytes()).asHexString();
-            GFileUtils.writeStringToFile(getHashFile(lockFile), sha1);
+        if (successDependencyResolution) {
+            DependencyLock dependencyLock = dependencyLockState.getDependencyLock();
+
+            if (!dependencyLock.getProjectsMapping().isEmpty()) {
+                writeLockAndHashFile(dependencyLock, lockFile);
+            }
         }
+    }
+
+    private void writeLockAndHashFile(DependencyLock dependencyLock, File lockFile) {
+        String content = dependencyLockConverter.convert(dependencyLock);
+        GFileUtils.mkdirs(lockFile.getParentFile());
+        GFileUtils.writeStringToFile(lockFile, content);
+        String sha1 = HashUtil.sha1(content.getBytes()).asHexString();
+        GFileUtils.writeStringToFile(getHashFile(lockFile), sha1);
     }
 
     private File getHashFile(File lockFile) {
