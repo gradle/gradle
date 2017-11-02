@@ -30,13 +30,12 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     def testFramework = Mock(TestFramework)
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)
-    def testBuildOperationAdapter = Mock(TestListenerInternal)
 
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private Test task
 
     def setup() {
-        task = TestUtil.create(temporaryFolder).task(Test, [testExecuter: testExecuter, testFramework: testFramework])
+        task = TestUtil.create(temporaryFolder).task(TestTestTask, [testExecuter: testExecuter, testFramework: testFramework])
         task.testListenerInternal = testBuildOperationAdapter
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')

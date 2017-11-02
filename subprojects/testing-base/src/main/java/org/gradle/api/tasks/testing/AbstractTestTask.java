@@ -95,7 +95,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
     private TestReporter testReporter;
-    private TestListenerInternal testListenerBuildOperationAdapter;
     private File binResultsDir;
     private boolean ignoreFailures;
 
@@ -174,11 +173,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @VisibleForTesting
     ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
         return testListenerInternalBroadcaster;
-    }
-
-    @VisibleForTesting
-    void setTestListenerInternal(TestListenerInternal testListenerInternal) {
-        this.testListenerBuildOperationAdapter = testListenerInternal;
     }
 
     @VisibleForTesting
@@ -443,11 +437,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecuter testExecuter = createTestExecuter();
 
-        if (testListenerBuildOperationAdapter == null) {
-            testListenerInternalBroadcaster.add(getTestListenerBuildOperationAdapter());
-        } else {
-            testListenerInternalBroadcaster.add(testListenerBuildOperationAdapter);
-        }
+        testListenerInternalBroadcaster.add(getTestListenerBuildOperationAdapter());
 
         try {
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);
