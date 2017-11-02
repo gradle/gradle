@@ -138,7 +138,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             testTask.getWorkingDirectory().set(buildDirectory.dir("bundle/test"));
         } else if (OperatingSystem.current().isLinux()) {
             final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTest");
-            testTask.setTestSuite(installTask.getRunScript());
+            testTask.setTestSuite(installTask.getRunScriptFile());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
         }
 
