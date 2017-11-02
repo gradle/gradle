@@ -289,7 +289,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setDescription("Runs the Play application for local development.");
                         playRun.setGroup(RUN_GROUP);
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setWorkingDir(projectIdentifier.getProjectDir());
+                        playRun.getWorkingDir().set(projectIdentifier.getProjectDir());
                         playRun.setPlayToolProvider(playToolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());

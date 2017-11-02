@@ -38,6 +38,9 @@
             <tr>
                 <td>assetsDirs</td>
             </tr>
+            <tr>
+                <td>workingDir</td>
+            </tr>
         </table>
     </section>
     <section>

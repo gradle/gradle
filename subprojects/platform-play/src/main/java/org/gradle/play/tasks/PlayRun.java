@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Classpath;
@@ -49,7 +50,7 @@ public class PlayRun extends ConventionTask {
 
     private int httpPort;
 
-    private File workingDir;
+    private final DirectoryProperty workingDir = getProject().getLayout().directoryProperty();
 
     @InputFile
     private File applicationJar;
@@ -88,7 +89,7 @@ public class PlayRun extends ConventionTask {
         PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
 
         if (deploymentHandle == null) {
-            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, workingDir, getForkOptions(), getHttpPort());
+            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, workingDir.get().getAsFile(), getForkOptions(), getHttpPort());
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
             deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
 
@@ -116,14 +117,12 @@ public class PlayRun extends ConventionTask {
 
     /**
      * The working directory.
+     *
+     * @since 4.4
      */
     @Internal
-    public File getWorkingDir() {
+    public DirectoryProperty getWorkingDir() {
         return workingDir;
-    }
-
-    public void setWorkingDir(File workingDir) {
-        this.workingDir = workingDir;
     }
 
     /**
