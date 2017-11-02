@@ -58,6 +58,7 @@ class XcTestScraper implements TextStream {
 
     @Override
     public void text(String text) {
+        System.out.println(text);
         synchronized (testDescriptors) {
             Scanner scanner = new Scanner(text).useDelimiter("'");
             if (scanner.hasNext()) {
