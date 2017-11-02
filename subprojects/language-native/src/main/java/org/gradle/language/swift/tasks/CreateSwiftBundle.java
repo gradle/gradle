@@ -25,11 +25,15 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
+import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -56,8 +60,14 @@ public class CreateSwiftBundle extends DefaultTask {
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
     }
 
+    @Inject
+    protected FileSystem getFileSystem() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void createBundle() throws IOException {
+        final File bundleDir = getOutputDir().dir("lib/" + getExecutableFile().getAsFile().get().getName() + ".xctest").get().getAsFile();
         getProject().copy(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -68,11 +78,11 @@ public class CreateSwiftBundle extends DefaultTask {
                     }
                 });
 
-                copySpec.into(getOutputDir());
+                copySpec.into(bundleDir);
             }
         });
 
-        File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
+        File outputFile = new File(bundleDir, "Contents/Info.plist");
         if (!informationFile.isPresent() || !informationFile.get().getAsFile().exists()) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
@@ -86,18 +96,45 @@ public class CreateSwiftBundle extends DefaultTask {
         getProject().exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
-                execSpec.setWorkingDir(outputDir.get());
+                execSpec.setWorkingDir(bundleDir);
                 execSpec.executable(swiftStdlibToolLocator.find());
                 execSpec.args(
                     "--copy",
                     "--scan-executable", executableFile.getAsFile().get().getAbsolutePath(),
-                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
+                    "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
-                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
+                    "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
+                    "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
+
+        installUnix();
+    }
+
+    private void installUnix() {
+        final File destination = outputDir.getAsFile().get();
+        final File executable = executableFile.getAsFile().get();
+
+        //installToDir(new File(destination, "lib"));
+
+        String runScriptText =
+            "#!/bin/sh"
+                + "\nAPP_BASE_NAME=`dirname \"$0\"`"
+                + "\nXCTEST_LOCATION=`xcrun --find xctest`"
+                + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/lib/" + executable.getName() + ".xctest\""
+                + "\n";
+        GFileUtils.writeFile(runScriptText, getRunScript());
+
+        getFileSystem().chmod(getRunScript(), 0755);
+    }
+
+    /**
+     * Returns the script file that can be used to run the install image.
+     */
+    @Internal
+    public File getRunScript() {
+        return new File(outputDir.getAsFile().get(), OperatingSystem.current().getScriptName(executableFile.getAsFile().get().getName()));
     }
 
     @OutputDirectory

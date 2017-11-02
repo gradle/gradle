@@ -29,7 +29,6 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
@@ -38,7 +37,6 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 
 public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
@@ -68,7 +66,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     @Override
     public void execute(XCTestTestExecutionSpec testTestExecutionSpec, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = testTestExecutionSpec.getTestSuiteLocation();
+        File executable = testTestExecutionSpec.getRunScript();
         File workingDir = testTestExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
@@ -99,16 +97,13 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         private final ExecHandleBuilder execHandleBuilder;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
-        private final File testSuite;
-        private final MacOSXCTestLocator xcTestLocator;
 
         @Inject
-        public XcTestProcessor(Clock clock, MacOSXCTestLocator xcTestLocator, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
+        public XcTestProcessor(Clock clock, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
             this.clock = clock;
-            this.testSuite = executable;
-            this.xcTestLocator = xcTestLocator;
+            execHandleBuilder.executable(executable);
             execHandleBuilder.setWorkingDir(workingDir);
         }
 
@@ -124,13 +119,6 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private ExecHandle executeTest(String testName) {
-            if (OperatingSystem.current().isMacOsX()) {
-                execHandleBuilder.setArgs(Arrays.asList("-XCTest", testName, testSuite));
-                execHandleBuilder.executable(xcTestLocator.find());
-            } else {
-                execHandleBuilder.executable(testSuite);
-            }
-
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
             TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);

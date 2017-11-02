@@ -22,12 +22,12 @@ import java.io.File;
 
 public class XCTestTestExecutionSpec implements TestExecutionSpec {
     private final File workingDir;
-    private final File testSuiteLocation;
+    private final File runScript;
     private final String path;
 
-    public XCTestTestExecutionSpec(File workingDir, File testSuiteLocation, String path) {
+    public XCTestTestExecutionSpec(File workingDir, File runScript, String path) {
         this.workingDir = workingDir;
-        this.testSuiteLocation = testSuiteLocation;
+        this.runScript = runScript;
         this.path = path;
     }
 
@@ -35,8 +35,8 @@ public class XCTestTestExecutionSpec implements TestExecutionSpec {
         return workingDir;
     }
 
-    public File getTestSuiteLocation() {
-        return testSuiteLocation;
+    public File getRunScript() {
+        return runScript;
     }
 
     public String getPath() {
