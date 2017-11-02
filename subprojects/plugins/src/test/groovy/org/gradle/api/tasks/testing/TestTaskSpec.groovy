@@ -35,7 +35,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
     def setup() {
         task = TestUtil.create(temporaryFolder).task(TestTestTask, [testExecuter: testExecuter, testFramework: testFramework])
-        task.testListenerInternal = testBuildOperationAdapter
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')

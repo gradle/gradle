@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
 
 class TestTestTask extends Test {
 
+
     @Override
     protected TestListenerInternal getTestListenerBuildOperationAdapter() {
         return new TestListenerInternal() {
