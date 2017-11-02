@@ -59,7 +59,7 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requestedVersion, requested.getVersion()));
+        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion));
     }
 
     @Override

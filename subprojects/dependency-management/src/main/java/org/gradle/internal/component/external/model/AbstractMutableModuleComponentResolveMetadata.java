@@ -18,17 +18,22 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -53,6 +58,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     @Nullable
     private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private ImmutableMap<String, T> configurations;
+
+    protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DependencyMetadata> dependencies) {
         this.componentId = componentIdentifier;
@@ -116,7 +123,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
         for (String configName : configurationsNames) {
             DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
-            configuration.populateDependencies(dependencies);
+            configuration.populateDependencies(dependencies, dependencyMetadataRules.get(configName));
         }
         return ImmutableMap.copyOf(configurations);
     }
@@ -152,7 +159,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     }
 
     /**
-     * Creates a {@link ConfigurationMetadata} implementation for this component.
+     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
     protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides);
 
@@ -215,6 +222,17 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
+    }
+
+    @Override
+    public void addDependencyMetadataRule(String variantName, Action<DependenciesMetadata> action,
+                                          Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser) {
+        DependencyMetadataRules rulesForVariant = dependencyMetadataRules.get(variantName);
+        if (rulesForVariant == null) {
+            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
+        }
+        dependencyMetadataRules.get(variantName).getActions().add(action);
+        resetConfigurations();
     }
 
     @Nullable

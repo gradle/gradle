@@ -16,14 +16,18 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
@@ -366,6 +370,21 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         def immutable2 = copy.asImmutable()
         immutable2.variantsForGraphTraversal.size() == 3
+    }
+
+    def "resets variant backed configuration metadata if dependency rules are modified"() {
+        given:
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        metadata.addVariant("aVariant", Mock(ImmutableAttributes))
+        def before = metadata.variantsForGraphTraversal
+
+        when:
+        metadata.addDependencyMetadataRule("aVariant", Mock(Action), Mock(Instantiator), Mock(NotationParser))
+        def after = metadata.variantsForGraphTraversal
+
+        then:
+        !after.is(before)
     }
 
     def "making changes to copy does not affect original"() {

@@ -176,6 +176,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule variant(String variant, Map<String, String> attributes) {
+        backingModule.variant(variant, attributes);
+        return t();
+    }
+
+    @Override
     public T parent(String group, String artifactId, String version) {
         backingModule.parent(group, artifactId, version);
         return t();

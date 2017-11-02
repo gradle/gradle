@@ -39,6 +39,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     int publishCount = 1
     private boolean noMetaData
     private boolean moduleMetadata
+    private final List<VariantMetadata> variants = [new VariantMetadata("default")]
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -139,6 +140,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule hasType(String type) {
         this.type = type
+        return this
+    }
+
+    @Override
+    MavenModule variant(String variant, Map<String, String> attributes) {
+        this.variants.add(new VariantMetadata(variant, attributes))
         return this
     }
 
@@ -378,21 +385,25 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             { 
                 "formatVersion": "0.2", 
                 "builtBy": { "gradle": { } },
-                "variants": [
+                "variants": ["""
+        for (Iterator<VariantMetadata> i = variants.iterator(); i.hasNext(); ) {
+            def variant = i.next()
+            value << """
                     { 
-                        "name": "default",
+                        "name": "$variant.name",
+                        "attributes": { ${variant.attributes.entrySet().collect { "\"$it.key\": \"$it.value\"" }.join(", ")} },
                         "files": [
                             { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
                         ],
                         "dependencies": [
 """
-        value << dependencies.collect { d ->
-            "  { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": \"$d.version\" }\n"
-        }.join(",\n")
-
+            value << dependencies.collect { d ->
+                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": \"$d.version\" }\n"
+            }.join(",\n")
+            value << """                        ]
+                    }${i.hasNext() ? ',' : ''}"""
+        }
         value << """                        
-                        ]
-                    }
                 ]
             }
         """
@@ -532,4 +543,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     protected abstract boolean publishesMetaDataFile()
+
+    static class VariantMetadata {
+        String name
+        Map<String, String> attributes
+
+        VariantMetadata(String name, Map<String, String> attributes = [:]) {
+            this.name = name
+            this.attributes = attributes
+        }
+    }
 }

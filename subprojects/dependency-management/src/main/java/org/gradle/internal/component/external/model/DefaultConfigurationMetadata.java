@@ -18,13 +18,17 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.resolver.DependenciesMetadataAdapter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -47,6 +51,9 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
+
+    private DependencyMetadataRules dependencyMetadataRules;
+    private List<DependencyMetadata> calculatedDependencies;
 
     DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.componentId = componentId;
@@ -126,15 +133,28 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
-        return configDependencies;
+        if (calculatedDependencies == null) {
+            if (dependencyMetadataRules == null) {
+                calculatedDependencies = configDependencies;
+            } else {
+                calculatedDependencies = new ArrayList<DependencyMetadata>(configDependencies);
+                for (Action<DependenciesMetadata> dependenciesMetadataAction : dependencyMetadataRules.getActions()) {
+                    dependenciesMetadataAction.execute(dependencyMetadataRules.getInstantiator().newInstance(
+                        DependenciesMetadataAdapter.class, calculatedDependencies, dependencyMetadataRules.getInstantiator(), dependencyMetadataRules.getDependencyNotationParser()));
+                }
+            }
+        }
+        return calculatedDependencies;
     }
 
-    void populateDependencies(Iterable<? extends DependencyMetadata> dependencies) {
+    void populateDependencies(Iterable<? extends DependencyMetadata> dependencies, DependencyMetadataRules dependencyMetadataRules) {
         for (DependencyMetadata dependency : dependencies) {
             if (include(dependency)) {
                 this.configDependencies.add(dependency);
             }
         }
+        this.calculatedDependencies = null;
+        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     private boolean include(DependencyMetadata dependency) {
