@@ -48,23 +48,23 @@ class MavenPublishedJavaModule implements PublishedJavaModule {
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-             assert module.parsedPom.scopes.compile == null
-             assert module.parsedModuleMetadata.variant('api').dependencies.empty
+            assert module.parsedModuleMetadata.variant('api').dependencies.empty
+            assert module.parsedPom.scopes.compile == null
         } else {
-            module.parsedPom.scopes.compile.assertDependsOn(expected)
             assert module.parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
             assert module.parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            module.parsedPom.scopes.compile.assertDependsOn(expected)
         }
     }
 
     @Override
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
-            assert module.parsedPom.scopes.runtime == null
             assert module.parsedModuleMetadata.variant('runtime').dependencies.empty
+            assert module.parsedPom.scopes.runtime == null
         } else {
-            module.parsedPom.scopes.runtime.assertDependsOn(expected)
             assert module.parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            module.parsedPom.scopes.runtime.assertDependsOn(expected)
         }
     }
 }

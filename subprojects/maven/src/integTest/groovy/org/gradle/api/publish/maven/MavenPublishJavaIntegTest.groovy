@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
+import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import spock.lang.Unroll
 
@@ -198,19 +199,19 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
-        given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
+        useModuleMetadata()
 
+        given:
         file("settings.gradle") << '''
-            rootProject.name = 'root' 
+            rootProject.name = 'publishTest' 
             include "b"
         '''
         buildFile << """
             apply plugin: "$plugin"
             apply plugin: "maven-publish"
 
-            group = 'group'
-            version = '1.0'
+            group = 'org.gradle.test'
+            version = '1.9'
 
             publishing {
                 repositories {
@@ -240,8 +241,12 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         succeeds "publish"
 
         then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes."$mavenScope"?.expectDependency('org.gradle.test:b:1.2')
+        javaLibrary.assertPublished()
+        if (mavenScope == 'compile') {
+            javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+        } else {
+            javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
+        }
 
         where:
         plugin         | gradleConfiguration  | mavenScope
