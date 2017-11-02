@@ -228,4 +228,27 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         locks[1].toString() == 'org:gradle:7.5 -> 7.5'
         sha1File.text == '60509fcde47220bc2bbd808a5ecb8a5839fe323c'
     }
+
+    def "does not write lock file for resolved, detached configuration"() {
+        given:
+        mavenRepo.module('foo', 'bar', '1.5').publish()
+
+        buildFile << mavenRepository(mavenRepo)
+        buildFile << customConfigurations(MYCONF_CONFIGURATION_NAME)
+        buildFile << """
+            def dep = dependencies.create('foo:bar:1.5')
+            def detachedConfiguration = configurations.detachedConfiguration(dep)
+            
+            task $COPY_LIBS_TASK_NAME(type: Copy) {
+                from detachedConfiguration
+                into "\$buildDir/libs"
+            }
+        """
+
+        when:
+        succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertLockFileAndHashFileDoNotExist()
+    }
 }

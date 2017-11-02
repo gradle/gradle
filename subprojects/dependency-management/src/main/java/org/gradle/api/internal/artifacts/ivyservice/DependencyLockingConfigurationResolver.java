@@ -25,6 +25,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.dependencylock.DependencyLockManager;
 
+import static org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer.DETACHED_CONFIGURATION_DEFAULT_NAME;
+
 public class DependencyLockingConfigurationResolver implements ConfigurationResolver {
 
     private final DefaultConfigurationResolver delegate;
@@ -59,9 +62,21 @@ public class DependencyLockingConfigurationResolver implements ConfigurationReso
     }
 
     private void lockConfiguration(ConfigurationInternal configuration, ResolutionResult resolutionResult) {
-        if (dependencyLockEnabled) {
+        if (dependencyLockEnabled && !isConsideredForLocking(configuration)) {
             ProjectInternal project = projectFinder.getProject(configuration.getModule().getProjectPath());
             dependencyLockManager.lockResolvedDependencies(project.getPath(), configuration.getName(), resolutionResult);
         }
+    }
+
+    private boolean isConsideredForLocking(ConfigurationInternal configuration) {
+        return isClasspathConfiguration(configuration) || isDetachedConfiguration(configuration);
+    }
+
+    private boolean isClasspathConfiguration(ConfigurationInternal configuration) {
+        return CLASSPATH_CONFIGURATION.equals(configuration.getName());
+    }
+
+    private boolean isDetachedConfiguration(ConfigurationInternal configuration) {
+        return configuration.getName().startsWith(DETACHED_CONFIGURATION_DEFAULT_NAME);
     }
 }
