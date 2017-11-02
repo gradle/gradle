@@ -196,8 +196,18 @@ public class InstallExecutable extends DefaultTask {
      */
     @Internal
     public File getRunScript() {
+        return getRunScriptFile().get().getAsFile();
+    }
+
+    /**
+     * Returns the script file that can be used to run the install image.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public Provider<RegularFile> getRunScriptFile() {
         OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
-        return new File(getDestinationDir(), operatingSystem.getScriptName(getExecutable().getName()));
+        return getInstallDirectory().file(operatingSystem.getScriptName(getExecutable().getName()));
     }
 
     @Inject
