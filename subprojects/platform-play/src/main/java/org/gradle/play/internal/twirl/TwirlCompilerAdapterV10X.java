@@ -39,7 +39,7 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
     private static final Collection<String> DEFAULT_JAVA_IMPORTS;
     private static final Collection<String> DEFAULT_SCALA_IMPORTS;
 
-    private static List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
+    private static final List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
         Arrays.asList(
             "models._",
             "controllers._",

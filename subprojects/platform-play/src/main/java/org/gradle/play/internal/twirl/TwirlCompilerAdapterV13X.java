@@ -37,10 +37,10 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     // Default imports are based on:
     // https://github.com/playframework/playframework/blob/2.6.0/framework/src/build-link/src/main/java/play/TemplateImports.java
-    private static List<String> DEFAULT_JAVA_TEMPLATE_IMPORTS;
-    private static List<String> DEFAULT_SCALA_TEMPLATE_IMPORTS;
+    private final static List<String> DEFAULT_JAVA_TEMPLATE_IMPORTS;
+    private final static List<String> DEFAULT_SCALA_TEMPLATE_IMPORTS;
 
-    private static List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
+    private final static List<String> DEFAULT_TEMPLATE_IMPORTS = Collections.unmodifiableList(
         Arrays.asList(
             "models._",
             "controllers._",
