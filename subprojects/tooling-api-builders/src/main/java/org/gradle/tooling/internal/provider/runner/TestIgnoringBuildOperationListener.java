@@ -24,7 +24,8 @@ import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
 /**
- * Build listener that filters test related build operations before forwarding to a delegate.
+ * Build operation listener that filters test related build operations 
+ * before forwarding to a delegate.
  * @since 4.4
  */
 class TestIgnoringBuildOperationListener implements BuildOperationListener {
