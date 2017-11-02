@@ -40,7 +40,6 @@ class TestIgnoringBuildOperationListener implements BuildOperationListener {
         if (!isTestRelatedBuildOperationEvent(buildOperation.getDetails())) {
             delegate.started(buildOperation, startEvent);
         }
-
     }
 
 
