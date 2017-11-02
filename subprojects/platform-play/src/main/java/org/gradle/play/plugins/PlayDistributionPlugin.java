@@ -176,9 +176,9 @@ public class PlayDistributionPlugin extends RuleSource {
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
             case PLAY_2_2_X:
             case PLAY_2_3_X:
+                return "play.core.server.NettyServer";
             case PLAY_2_4_X:
             case PLAY_2_5_X:
-                return "play.core.server.NettyServer";
             case PLAY_2_6_X:
                 return "play.core.server.ProdServerStart";
             default:
