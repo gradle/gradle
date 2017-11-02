@@ -25,9 +25,12 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
     def javaLibrary = new MavenPublishedJavaModule(mavenModule)
 
+    def useModuleMetadata = false
+
     private void useModuleMetadata() {
         executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
         mavenModule.withModuleMetadata()
+        useModuleMetadata = true
     }
 
     def "can publish java-library with no dependencies"() {
@@ -74,12 +77,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
-
-        when:
-        executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
-
-        then:
-        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies"() {
@@ -112,12 +109,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertRuntimeDependencies("org.test:bar:1.0")
 
         and:
-        resolveArtifacts(mavenModule) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
-
-        when:
-        executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
-
-        then:
         resolveArtifacts(mavenModule) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
     }
 
@@ -286,6 +277,18 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 $append
 """
 
+    }
+
+    protected def resolveArtifacts(MavenFileModule module) {
+        def resolvedArtifacts = super.resolveArtifacts(mavenModule)
+
+        if (useModuleMetadata) {
+            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
+            def moduleArtifacts = super.resolveArtifacts(mavenModule)
+            assert resolvedArtifacts == moduleArtifacts
+        }
+
+        return resolvedArtifacts
     }
 
 }

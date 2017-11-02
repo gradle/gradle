@@ -79,6 +79,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             }
             $dependencies
             task resolveArtifacts(type: Sync) {
+                outputs.upToDateWhen { false }
                 from configurations.resolve
                 into "artifacts"
             }
