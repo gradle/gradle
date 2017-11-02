@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 @Incubating
 public class ObjectiveCppCompile extends AbstractNativeSourceCompileTask {
     @Override
-    public NativeCompileSpec createCompileSpec() {
+    protected NativeCompileSpec createCompileSpec() {
         return new DefaultObjectiveCppCompileSpec();
     }
 

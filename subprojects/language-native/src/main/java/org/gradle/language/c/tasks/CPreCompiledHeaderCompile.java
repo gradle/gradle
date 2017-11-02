@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
  */
 public class CPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
     @Override
-    public NativeCompileSpec createCompileSpec() {
+    protected NativeCompileSpec createCompileSpec() {
         return new DefaultCPCHCompileSpec();
     }
 }

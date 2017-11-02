@@ -157,7 +157,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return new DefaultHeaderDependenciesCollector(((ProjectInternal) getProject()).getServices().get(DirectoryFileTreeFactory.class));
     }
 
-    public abstract NativeCompileSpec createCompileSpec();
+    protected abstract NativeCompileSpec createCompileSpec();
 
     /**
      * The tool chain used for compilation.
