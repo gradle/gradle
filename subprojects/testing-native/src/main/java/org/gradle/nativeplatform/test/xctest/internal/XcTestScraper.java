@@ -28,6 +28,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.io.TextStream;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.TextUtil;
 
@@ -94,8 +95,8 @@ class XcTestScraper implements TextStream {
                         replace('[', ' ').
                         replace(']', ' ').
                         split("[. ]");
-                    String testSuite = splits[2];
-                    String testCase = splits[3];
+                    String testSuite = splits[OperatingSystem.current().isMacOsX() ? 2 : 0];
+                    String testCase = splits[OperatingSystem.current().isMacOsX() ? 3 : 1];
                     String status = scanner.next().trim();
                     boolean started = status.contains("started");
 
