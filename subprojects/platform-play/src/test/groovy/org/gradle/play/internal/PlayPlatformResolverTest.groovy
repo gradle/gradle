@@ -71,9 +71,9 @@ class PlayPlatformResolverTest extends Specification {
         where:
         playVersion | scalaVersion
         "2.2.3"     | "2.10.6"
-        "2.3.4"     | "2.11.8"
-        "2.4.8"     | "2.11.8"
-        "2.5.4"     | "2.11.8"
+        "2.3.4"     | "2.11.11"
+        "2.4.8"     | "2.11.11"
+        "2.5.4"     | "2.11.11"
         "2.6.5"     | "2.12.4"
     }
 
@@ -121,7 +121,7 @@ class PlayPlatformResolverTest extends Specification {
         playPlatform.name == "play-2.3.1_1.6"
         playPlatform.playVersion == "2.3.1"
         playPlatform.javaPlatform.targetCompatibility == JavaVersion.toVersion("1.6")
-        playPlatform.scalaPlatform.scalaVersion == "2.11.8"
+        playPlatform.scalaPlatform.scalaVersion == "2.11.11"
     }
 
     private PlayPlatform resolve(String playPlatform) {
