@@ -17,10 +17,12 @@
 package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -34,6 +36,8 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
+import java.io.File;
+
 /**
  * Compiles Swift source files into object files, executables and libraries.
  *
@@ -43,10 +47,12 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
 public class SwiftCompile extends AbstractNativeCompileTask {
     private final Property<String> moduleName;
     private final RegularFileProperty moduleFile;
+    private final ConfigurableFileCollection modules;
 
     public SwiftCompile() {
         moduleName = getProject().getObjects().property(String.class);
         moduleFile = newOutputFile();
+        modules = getProject().files();
     }
 
     @Override
@@ -54,6 +60,9 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName.getOrNull());
         spec.setModuleFile(moduleFile.get().getAsFile());
+        for (File file : modules.getFiles()) {
+            spec.include(file.getParentFile());
+        }
         return spec;
     }
 
@@ -84,6 +93,16 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     @Input
     public Property<String> getModuleName() {
         return moduleName;
+    }
+
+    /**
+     * The modules required to compile the source.
+     *
+     * @since 4.4
+     */
+    @InputFiles
+    public ConfigurableFileCollection getModules() {
+        return modules;
     }
 
     @Override

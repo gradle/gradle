@@ -36,7 +36,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final boolean debuggable;
     private final boolean testable;
     private final FileCollection source;
-    private final FileCollection importPath;
+    private final FileCollection compileModules;
     private final FileCollection linkLibs;
     private final Configuration runtimeLibs;
     private final DirectoryProperty objectsDir;
@@ -52,7 +52,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         Names names = Names.of(name);
 
         // TODO - reduce duplication with C++ binary
-        Configuration importPathConfig = configurations.maybeCreate(names.withPrefix("swiftImport"));
+        Configuration importPathConfig = configurations.maybeCreate(names.withPrefix("swiftCompile"));
         importPathConfig.extendsFrom(implementation);
         importPathConfig.setCanBeConsumed(false);
         importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
@@ -70,7 +70,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        importPath = importPathConfig;
+        compileModules = importPathConfig;
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
     }
@@ -101,8 +101,8 @@ public class DefaultSwiftBinary implements SwiftBinary {
     }
 
     @Override
-    public FileCollection getCompileImportPath() {
-        return importPath;
+    public FileCollection getCompileModules() {
+        return compileModules;
     }
 
     @Override

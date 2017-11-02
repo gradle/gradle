@@ -32,7 +32,7 @@ public class XcodeTarget implements Named {
     private final String id;
     private final String name;
     private final ConfigurableFileCollection headerSearchPaths;
-    private final ConfigurableFileCollection importPaths;
+    private final ConfigurableFileCollection compileModules;
     private final ConfigurableFileCollection sources;
     private String taskName;
     private String gradleCommand;
@@ -49,7 +49,7 @@ public class XcodeTarget implements Named {
         this.id = id;
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
-        this.importPaths = fileOperations.files();
+        this.compileModules = fileOperations.files();
         this.debugOutputFile = debugOutputFile;
         this.releaseOutputFile = releaseOutputFile;
     }
@@ -127,7 +127,7 @@ public class XcodeTarget implements Named {
         return headerSearchPaths;
     }
 
-    public ConfigurableFileCollection getImportPaths() {
-        return importPaths;
+    public ConfigurableFileCollection getCompileModules() {
+        return compileModules;
     }
 }

@@ -16,16 +16,12 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -40,7 +36,6 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -97,26 +92,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         debugApiElements.setCanBeResolved(false);
         debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        // TODO - should publish the module file instead
-        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile().map(new Transformer<File, RegularFile>() {
-            @Override
-            public File transform(RegularFile file) {
-                return file.getAsFile().getParentFile();
-            }
-        }), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                // TODO - map() shouldn't lose build information
-                artifact.builtBy(compileDebug);
-            }
-        });
+        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
 
         Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should distinguish between link-time and runtime files
         debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
         debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
 
         Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
@@ -132,24 +115,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         releaseApiElements.setCanBeResolved(false);
         releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile().map(new Transformer<File, RegularFile>() {
-            @Override
-            public File transform(RegularFile file) {
-                return file.getAsFile().getParentFile();
-            }
-        }), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(compileRelease);
-            }
-        });
+        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
 
         Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         releaseLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        // TODO - should distinguish between link-time and runtime files
+        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
         releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
 
         Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");

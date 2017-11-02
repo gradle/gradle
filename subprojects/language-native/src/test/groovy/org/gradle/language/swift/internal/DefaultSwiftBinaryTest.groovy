@@ -33,7 +33,7 @@ class DefaultSwiftBinaryTest extends Specification {
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.maybeCreate("swiftImportDebug") >> compile
+        _ * configurations.maybeCreate("swiftCompileDebug") >> compile
         _ * configurations.maybeCreate("nativeLinkDebug") >> link
         _ * configurations.maybeCreate("nativeRuntimeDebug") >> runtime
 
@@ -42,7 +42,7 @@ class DefaultSwiftBinaryTest extends Specification {
 
     def "creates configurations for the binary"() {
         expect:
-        binary.compileImportPath == compile
+        binary.compileModules == compile
         binary.linkLibraries == link
         binary.runtimeLibraries == runtime
     }

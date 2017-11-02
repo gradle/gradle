@@ -51,9 +51,11 @@ public interface SwiftBinary extends SoftwareComponent {
     FileCollection getSwiftSource();
 
     /**
-     * Returns the import path to use to compile this binary. Includes the import path this binary's dependencies.
+     * Returns the modules to use to compile this binary. Includes the module file of this binary's dependencies.
+     *
+     * @since 4.4
      */
-    FileCollection getCompileImportPath();
+    FileCollection getCompileModules();
 
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
