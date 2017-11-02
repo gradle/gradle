@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.report.TestReporter
-import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil

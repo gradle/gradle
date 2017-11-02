@@ -165,51 +165,6 @@
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Constructor org.gradle.api.tasks.testing.AbstractTestTask()",
             "acceptation": "Extracted super class out of Test which was already stable"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.ExecuteTestBuildOperationType",
-            "member": "Class org.gradle.api.tasks.testing.ExecuteTestBuildOperationType",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-        },
-	{
-    	    "type": "org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Details",
-            "member": "Class org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Details",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Details",
-            "member": "Method org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Details.getTestDescriptor()",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Result",
-            "member": "Class org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Result",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Result",
-            "member": "Method org.gradle.api.tasks.testing.ExecuteTestBuildOperationType$Result.getResult()",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-       },
-       {
-            "type": "org.gradle.api.tasks.testing.TestOutputBuildOperationType",
-            "member": "Class org.gradle.api.tasks.testing.TestOutputBuildOperationType",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-       },
-       {
-            "type": "org.gradle.api.tasks.testing.TestOutputBuildOperationType$Details",
-            "member": "Class org.gradle.api.tasks.testing.TestOutputBuildOperationType$Details",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-       },
-       {
-            "type": "org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result",
-            "member": "Class org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-       },
-       {
-            "type": "org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result",
-            "member": "Method org.gradle.api.tasks.testing.TestOutputBuildOperationType$Result.getOutput()",
-            "acceptation": "Build Operation typs are not annotated with incubating"
-       }
+        }
     ]
 }
