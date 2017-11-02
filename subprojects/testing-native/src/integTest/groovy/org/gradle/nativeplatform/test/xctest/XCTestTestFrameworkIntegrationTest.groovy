@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
@@ -92,7 +93,7 @@ allprojects { p ->
                 List<XCTestCaseElement> testCases = [
                     testCase("testFail", FAILING_TEST, true)
                 ]
-            }.withImport("Darwin"),
+            }.withImport(libcModuleName),
 
             new XCTestSourceFileElement("SomeOtherTest") {
                 List<XCTestCaseElement> testCases = [passingTestCase("testPass")]
@@ -103,6 +104,13 @@ allprojects { p ->
             fputs("some error output", __stderrp)
             XCTAssert(false, "test failure message")
         """
+
+        private static String getLibcModuleName() {
+            if (OperatingSystem.current().macOsX) {
+                return "Darwin"
+            }
+            return "Glibc"
+        }
     }
 
     @Override

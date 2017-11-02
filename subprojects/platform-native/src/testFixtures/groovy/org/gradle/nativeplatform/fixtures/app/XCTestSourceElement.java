@@ -51,16 +51,16 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         }
 
         if (OperatingSystem.current().isLinux()) {
-            result.add(getLinuxMainSourceFile());
+            result.add(getLinuxMainSourceFile(getTestSuites()));
         }
         return result;
     }
 
-    private SourceFile getLinuxMainSourceFile() {
+    public static SourceFile getLinuxMainSourceFile(List<XCTestSourceFileElement> testSuites) {
         StringBuilder content = new StringBuilder();
         content.append("import XCTest\n");
 
-        for (XCTestSourceFileElement testSuite : getTestSuites()) {
+        for (XCTestSourceFileElement testSuite : testSuites) {
             content.append("extension " + testSuite.getTestSuiteName() + " {\n");
             content.append("  public static var allTests = [\n");
             for (XCTestCaseElement testCase : testSuite.getTestCases()) {
@@ -71,12 +71,12 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         }
 
         content.append("XCTMain([\n");
-        for (XCTestSourceFileElement testSuite : getTestSuites()) {
+        for (XCTestSourceFileElement testSuite : testSuites) {
             content.append("  testCase(" + testSuite.getTestSuiteName() + ".allTests),\n");
         }
         content.append("])\n");
 
-        return sourceFile("swift", "main.swift", content.toString());
+        return new SourceFile("swift", "main.swift", content.toString());
     }
 
     @Override
