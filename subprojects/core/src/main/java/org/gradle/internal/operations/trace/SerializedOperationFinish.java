@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationFinishEvent;
 
+import java.util.HashMap;
 import java.util.Map;
 
 class SerializedOperationFinish {
@@ -37,9 +38,23 @@ class SerializedOperationFinish {
     SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
         this.id = ((OperationIdentifier) descriptor.getId()).getId();
         this.endTime = finishEvent.getEndTime();
-        this.result = finishEvent.getResult();
+        this.result = transform(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
+    }
+
+    private Object transform(Object details) {
+        /**
+         * TODO verify if relying on reflection or shuffling around dependencies makes most sense here.
+         * Avoiding referencing ResolveDependenciesBuildOperationType here as this brings dependency to
+         * dependencyManagement to core.
+         * Probably tracing should live somewhere else as this could be a recurring problem.
+         * */
+        if (details.getClass().getSimpleName().equals("ResolveDependenciesBuildOperationType.Result")) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            return map;
+        }
+        return details;
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

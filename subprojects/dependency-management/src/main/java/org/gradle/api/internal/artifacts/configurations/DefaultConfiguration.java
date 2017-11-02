@@ -466,7 +466,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependencies incoming = getIncoming();
+                final ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -480,11 +480,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+                context.setResult(new ResolveDependenciesBuildOperationType.Result() {
+                    @Override
+                    public ResolvableDependencies getResolvableDependencies() {
+                        return incoming;
+                    }
+                });
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath).progressDisplayName("Resolve dependencies " + identityPath);
+                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath)
+                    .progressDisplayName("Resolve dependencies " + identityPath)
+                    .details(new OperationDetails(DefaultConfiguration.this.getName(),
+                        DefaultConfiguration.this.getDescription(),
+                        DefaultConfiguration.this.getIdentityPath().getPath(),
+                        DefaultConfiguration.this.isVisible(),
+                        DefaultConfiguration.this.isTransitive())
+                    );
             }
         });
     }
@@ -1289,4 +1302,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private static class OperationDetails implements ResolveDependenciesBuildOperationType.Details {
+
+        final String configurationName;
+        final String configurationDescription;
+        final String identityPath;
+        final boolean configurationVisible;
+        final boolean configurationTransitive;
+
+        private OperationDetails(String configurationName, String configurationDescription, String identityPath, boolean configurationVisible, boolean configurationTransitive) {
+            this.configurationName = configurationName;
+            this.configurationDescription = configurationDescription;
+            this.identityPath = identityPath;
+            this.configurationVisible = configurationVisible;
+            this.configurationTransitive = configurationTransitive;
+        }
+
+        @Override
+        public String getConfigurationName() {
+            return configurationName;
+        }
+
+        @Override
+        public String getConfigurationDescription() {
+            return configurationDescription;
+        }
+
+        @Override
+        public String getIdentityPath() {
+            return identityPath;
+        }
+
+        @Override
+        public boolean isConfigurationVisible() {
+            return configurationVisible;
+        }
+
+        @Override
+        public boolean isConfigurationTransitive() {
+            return configurationTransitive;
+        }
+    }
 }
