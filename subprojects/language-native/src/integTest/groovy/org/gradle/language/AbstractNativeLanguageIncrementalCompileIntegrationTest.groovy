@@ -408,8 +408,8 @@ model {
         given:
         outputs.snapshot { run "mainExecutable" }
 
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
 
         when:
         buildFile << """
@@ -457,8 +457,8 @@ model {
         outputs.snapshot { run "mainExecutable" }
 
         when:
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
 
         and:
         run "mainExecutable"

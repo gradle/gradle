@@ -101,9 +101,10 @@ public class Depend extends DefaultTask {
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
         ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getName(), includeRoots, incrementalCompilation);
+        ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(getName(), includeRoots, incrementalCompilation);
 
         inputs.newInputs(headerDependencies);
-        writeHeaderDependenciesFile(headerDependencies);
+        writeHeaderDependenciesFile(existingHeaderDependencies);
     }
 
     private void writeHeaderDependenciesFile(ImmutableSortedSet<File> headerDependencies) throws IOException {

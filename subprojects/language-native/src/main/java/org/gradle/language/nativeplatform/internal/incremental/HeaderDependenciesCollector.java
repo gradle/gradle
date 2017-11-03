@@ -29,7 +29,14 @@ public interface HeaderDependenciesCollector {
         public ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
             return ImmutableSortedSet.of();
         }
+
+        @Override
+        public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+            return ImmutableSortedSet.of();
+        }
     };
 
     ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
+
+    ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
 }

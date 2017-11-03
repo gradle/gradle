@@ -32,5 +32,7 @@ public interface IncrementalCompileFiles {
 
     Set<File> getDiscoveredInputs();
 
+    Set<File> getExistingHeaders();
+
     boolean isSourceFilesUseMacroIncludes();
 }
