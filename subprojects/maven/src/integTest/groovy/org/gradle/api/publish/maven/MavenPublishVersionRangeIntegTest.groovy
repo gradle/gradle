@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import spock.lang.Issue
 
 class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
-    def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+    def mavenModule = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    public void "version range is mapped to maven syntax in published pom file"() {
+    void "version range is mapped to maven syntax in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
@@ -55,9 +55,14 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.assertPublished()
+        mavenModule.assertApiDependencies(
+            "group:projectA:latest.release",
+            "group:projectB:latest.integration",
+            "group:projectC:1.+",
+            "group:projectD:[1.0,2.0)",
+            "group:projectE:[1.0]")
 
-        mavenModule.parsedPom.scopes.keySet() == ["compile"] as Set
         mavenModule.parsedPom.scopes.compile.assertDependsOn(
             "group:projectA:RELEASE",
             "group:projectB:LATEST",
@@ -98,7 +103,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.assertPublished()
         mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:", "group:projectB:")
     }
 

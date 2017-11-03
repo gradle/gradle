@@ -73,6 +73,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
+        module.moduleMetadata.verifyChecksums()
     }
 
     @Unroll
@@ -93,6 +94,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.expectPut(credentials)
         module.pom.sha1.expectPut(credentials)
         module.pom.md5.expectPut(credentials)
+        module.moduleMetadata.expectPut(credentials)
+        module.moduleMetadata.sha1.expectPut(credentials)
+        module.moduleMetadata.md5.expectPut(credentials)
 
         when:
         succeeds 'publish'
@@ -106,6 +110,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.artifactFile.assertIsCopyOf(localArtifact)
         module.artifact.verifyChecksums()
 
+        module.moduleMetadata.verifyChecksums()
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
 
@@ -122,6 +127,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
         module.pom.expectPut(401, credentials)
+        module.moduleMetadata.expectPut(401, credentials)
 
         when:
         fails 'publish'
@@ -143,6 +149,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
         module.pom.expectPut(401)
+        module.moduleMetadata.expectPut(401)
 
         when:
         fails 'publish'
@@ -234,6 +241,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.expectPut()
         module.pom.sha1.expectPut()
         module.pom.md5.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
 
         and:
         module.rootMetaData.expectGet()
@@ -255,6 +265,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.verifyChecksums()
         module.artifactFile.assertIsCopyOf(localArtifact3)
         module.artifact.verifyChecksums()
+
+        module.moduleMetadata.verifyChecksums()
 
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2", "3"]
@@ -300,11 +312,14 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.expectPut()
         module.pom.sha1.expectPut()
         module.pom.md5.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
     }
 
     private void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {
         String redirectUri = targetServerUri.toString()
-        [module.artifact, module.pom, module.rootMetaData].each { artifact ->
+        [module.artifact, module.pom, module.rootMetaData, module.moduleMetadata].each { artifact ->
             [artifact, artifact.sha1, artifact.md5].each { innerArtifact ->
                 httpServer.expectPutRedirected(innerArtifact.path, "${redirectUri}${innerArtifact.path}")
                 innerArtifact.expectPut(credentials)

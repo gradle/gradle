@@ -24,18 +24,19 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRep
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
-    def resolveModuleMetadata = false
+    def resolveModuleMetadata = true
+
+    def setup() {
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+        }
+    }
 
     protected static MavenPublishedJavaModule javaLibrary(MavenFileModule mavenFileModule) {
         return new MavenPublishedJavaModule(mavenFileModule)
     }
 
-    protected void useModuleMetadata() {
-        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
-        resolveModuleMetadata = true
-    }
-
-    protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
+    protected def resolveArtifact(MavenModule module, def extension, def classifier) {
         resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'

@@ -57,8 +57,8 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module(groupId, artifactId, version)
-        module.assertPublishedAsJavaModule()
+        def module = javaLibrary(mavenRepo.module(groupId, artifactId, version))
+        module.assertPublished()
         module.parsedPom.description == description
 
         and:
@@ -101,10 +101,8 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module(groupId, artifactId, version)
+        def module = javaLibrary(mavenRepo.module(groupId, artifactId, version)).withClassifiedArtifact(classifier, extension)
         module.assertPublished()
-
-        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
 
         and:
         resolveArtifact(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]

@@ -16,14 +16,13 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-
 /**
  * Tests maven POM customization
  */
-class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
+class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def "can customize pom xml"() {

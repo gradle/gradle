@@ -130,6 +130,11 @@ interface MavenModule extends Module {
     boolean getUniqueSnapshots()
 
     /**
+     * Asserts pom file has not been published.
+     */
+    void assertNotPublished()
+
+    /**
      * Asserts pom and module files are published correctly. Does not verify artifacts.
      */
     void assertPublished()

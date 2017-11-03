@@ -129,12 +129,11 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenRepo.module("org.gradle.test", "depProject1", "1.9").assertPublishedAsJavaModule()
-        mavenRepo.module("org.gradle.test", "depProject2", "1.9").assertPublishedAsWebModule()
+        javaLibrary(mavenRepo.module("org.gradle.test", "depProject1", "1.9")).assertPublished()
+        mavenRepo.module("org.gradle.test", "depProject2", "1.9").assertPublished()
 
         def webModule = mavenRepo.module("org.gradle.test", "projectWeb", "1.9")
         webModule.assertPublishedAsWebModule()
-
         webModule.parsedPom.scopes.isEmpty()
 
         and:

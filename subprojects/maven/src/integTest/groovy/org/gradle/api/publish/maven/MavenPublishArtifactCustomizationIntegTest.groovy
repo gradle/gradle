@@ -45,7 +45,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
     }
 
-    public void "can configure artifacts added from component"() {
+    def "can configure artifacts added from component"() {
         given:
         createBuildScripts("""
             publications {
@@ -66,13 +66,19 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.pom")
+        module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.module", "projectText-1.0.pom")
 
         and:
         resolveArtifact(module, 'jar', 'classified') == ["projectText-1.0-classified.jar"]
     }
 
     def "can set custom artifacts to override component artifacts"() {
+        // When the declared artifacts for a component are not actually published, the module metadata
+        // file will not reference any components, and the module isn't really usable.
+        // This would be the case where a component is used to provide the module dependencies,
+        // With custom artifacts being provided directly.
+        resolveModuleMetadata = false
+
         given:
         createBuildScripts("""
             publications {
@@ -90,7 +96,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.module", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
 
         and:
         resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
@@ -201,9 +207,9 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module("group", "projectText", "1.0")
+        def module = javaLibrary(mavenRepo.module("group", "projectText", "1.0"))
+            .withClassifiedArtifact('classified', '')
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.jar", "projectText-1.0-classified")
 
         // TODO Find a way to resolve Maven artifact with no extension
 //        and:

@@ -69,7 +69,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes1 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes1.size() == 9
+        writes1.size() == 12
         writes1[0].details.location == m1.artifact.uri.toString()
         writes1[0].result.bytesWritten == m1.artifact.file.length()
 
@@ -89,6 +89,9 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
         m2.pom.expectPut()
         m2.pom.sha1.expectPut()
         m2.pom.md5.expectPut()
+        m2.moduleMetadata.expectPut()
+        m2.moduleMetadata.sha1.expectPut()
+        m2.moduleMetadata.md5.expectPut()
         m2.rootMetaData.expectGet()
         m2.rootMetaData.sha1.expectGet()
         m2.rootMetaData.md5.expectGet()
@@ -100,7 +103,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
 
         then:
         def writes2 = buildOperations.all(ExternalResourceWriteBuildOperationType)
-        writes2.size() == 9
+        writes2.size() == 12
 
         def reads2 = buildOperations.all(ExternalResourceReadBuildOperationType)
         reads2.size() == 3

@@ -111,6 +111,9 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         module.pom.expectPut()
         module.pom.sha1.expectPut()
         module.pom.md5.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
     }
 
     def verifyPublications() {

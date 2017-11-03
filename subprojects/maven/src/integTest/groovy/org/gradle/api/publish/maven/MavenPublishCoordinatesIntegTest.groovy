@@ -23,8 +23,8 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         using m2
 
-        def repoModule = mavenRepo.module('org.custom', 'custom', '2.2')
-        def localModule = m2.mavenRepo().module('org.custom', 'custom', '2.2')
+        def repoModule = javaLibrary(mavenRepo.module('org.custom', 'custom', '2.2'))
+        def localModule = javaLibrary(m2.mavenRepo().module('org.custom', 'custom', '2.2'))
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -55,7 +55,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
         then: "jar is published to maven local repository"
         repoModule.assertNotPublished()
-        localModule.assertPublishedAsJavaModule()
+        localModule.assertPublished()
 
         when:
         succeeds 'publish'
@@ -64,7 +64,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         file('build/libs/root-1.0.jar').assertExists()
 
         and:
-        repoModule.assertPublishedAsJavaModule()
+        repoModule.assertPublished()
 
         and:
         resolveArtifacts(repoModule) == ['custom-2.2.jar']
@@ -72,7 +72,8 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can produce multiple separate publications for single project"() {
         given:
-        def module = mavenRepo.module('org.custom', 'custom', '2.2')
+        def module = mavenRepo.module('org.custom', 'custom', '2.2').withModuleMetadata()
+        // TODO:DAZ We don't yet produce module metadata when publishing without a component
         def apiModule = mavenRepo.module('org.custom', 'custom-api', '2')
 
         and:
