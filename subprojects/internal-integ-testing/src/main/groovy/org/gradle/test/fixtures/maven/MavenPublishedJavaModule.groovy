@@ -18,11 +18,12 @@ package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.PublishedJavaModule
 
-class MavenPublishedJavaModule implements PublishedJavaModule {
-    private final AbstractMavenModule module
+class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
+    private final MavenFileModule module
     private final List<String> additionalArtifacts = []
 
-    MavenPublishedJavaModule(AbstractMavenModule module) {
+    MavenPublishedJavaModule(MavenFileModule module) {
+        super(module)
         this.module = module
     }
 
@@ -34,7 +35,7 @@ class MavenPublishedJavaModule implements PublishedJavaModule {
 
     @Override
     void assertPublished() {
-        module.assertPublished()
+        super.assertPublished()
 
         List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact("jar")]
         expectedArtifacts.addAll(additionalArtifacts)
@@ -54,31 +55,32 @@ class MavenPublishedJavaModule implements PublishedJavaModule {
         assertApiDependencies()
     }
 
+
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-            assert module.parsedModuleMetadata.variant('api').dependencies.empty
-            assert module.parsedPom.scopes.compile == null
+            assert parsedModuleMetadata.variant('api').dependencies.empty
+            assert parsedPom.scopes.compile == null
         } else {
-            assert module.parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
-            assert module.parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
-            module.parsedPom.scopes.compile.assertDependsOn(expected)
+            assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
+            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            parsedPom.scopes.compile.assertDependsOn(expected)
         }
     }
 
     @Override
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
-            assert module.parsedModuleMetadata.variant('runtime').dependencies.empty
-            assert module.parsedPom.scopes.runtime == null
+            assert parsedModuleMetadata.variant('runtime').dependencies.empty
+            assert parsedPom.scopes.runtime == null
         } else {
-            assert module.parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
-            module.parsedPom.scopes.runtime.assertDependsOn(expected)
+            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            parsedPom.scopes.runtime.assertDependsOn(expected)
         }
     }
 
     private String artifact(String classifier = null, String extension) {
-        def artifactName = "${module.artifactId}-${module.publishArtifactVersion}"
+        def artifactName = "${artifactId}-${publishArtifactVersion}"
         if (classifier != null) {
             artifactName += "-${classifier}"
         }

@@ -18,12 +18,10 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
-import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import spock.lang.Unroll
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
-    def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
-    def javaLibrary = new MavenPublishedJavaModule(mavenModule)
+    def javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     def "can publish java-library with no dependencies"() {
         useModuleMetadata()
@@ -46,7 +44,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertNoDependencies()
 
         and:
-        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies"() {
@@ -79,7 +77,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertRuntimeDependencies("org.test:bar:1.0")
 
         and:
-        resolveArtifacts(mavenModule) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies and excludes"() {
@@ -120,17 +118,18 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        mavenModule.assertPublishedAsJavaModule()
+        javaLibrary.assertPublishedAsJavaModule()
 
-        mavenModule.parsedPom.scopes.keySet() == ["compile"] as Set
-        mavenModule.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("commons-logging", "*"))
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4", new MavenDependencyExclusion("*", "*"))
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3", new MavenDependencyExclusion("*", "camel-core"))
+        // TODO:DAZ Verify excludes in .module file
+        javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
+        assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
+        assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("commons-logging", "*"))
+        assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4", new MavenDependencyExclusion("*", "*"))
+        assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3", new MavenDependencyExclusion("*", "camel-core"))
 
         and:
-        resolveArtifacts(mavenModule) == [
+        resolveArtifacts(javaLibrary) == [
             "camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar",
             "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar",
             "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
@@ -163,8 +162,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.withClassifiedArtifact("source", "jar").assertPublished()
 
         and:
-        resolveArtifacts(mavenModule) == ["publishTest-1.9.jar"]
-        resolveArtifacts(mavenModule, [classifier: 'source']) == ["publishTest-1.9-source.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary, [classifier: 'source']) == ["publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
