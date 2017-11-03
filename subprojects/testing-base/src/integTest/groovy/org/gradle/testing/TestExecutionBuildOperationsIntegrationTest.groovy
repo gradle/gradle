@@ -27,6 +27,7 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -34,7 +35,6 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     def "emitsBuildOperationsForJUnitTests"() {
         when:
-        projectDir("junit")
         runAndFail("test")
 
         then: "test build operations are emitted in expected hierarchy"
@@ -48,7 +48,6 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     def "emitsBuildOperationsForTestNgTests"() {
         when:
-        projectDir("testng")
         runAndFail "test"
 
         then: "test build operations are emitted in expected hierarchy"
@@ -60,14 +59,38 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertTestNg(rootTestOp)
     }
 
-    def supportsCompositeBuilds() {
+
+    def "emits test operations as expected for two builds in a row"() {
         given:
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest/emitsBuildOperationsForJUnitTests')
-        resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest/emitsBuildOperationsForTestNgTests')
+
+        when:
+        runAndFail("test")
+
+        then: "test build operations are emitted in expected hierarchy"
+        operations.all(ExecuteTestBuildOperationType).size() == 10
+        operations.all(TestOutputBuildOperationType).size() == 10
+        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        assertJunit(rootTestOp)
+
+        when:
+        runAndFail("test")
+
+        rootTestOp = operations.first(ExecuteTestBuildOperationType)
+
+        then:
+        operations.all(ExecuteTestBuildOperationType).size() == 10
+        operations.all(TestOutputBuildOperationType).size() == 10
+        assertJunit(rootTestOp)
+    }
+
+    def "emits test operations as expected for composite builds"() {
+        given:
+        resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')
         settingsFile.text = """
             rootProject.name = "composite"
-            includeBuild "junit"
-            includeBuild "testng"
+            includeBuild "emitsBuildOperationsForJUnitTests"
+            includeBuild "emitsBuildOperationsForTestNgTests"
         """
         buildFile.text = """
             task testng {
@@ -79,15 +102,15 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """
         when:
-        runAndFail "junit", "testng","--continue"
+        runAndFail "junit", "testng", "--continue"
 
         then:
         def rootTestOps = operations.all(ExecuteTestBuildOperationType) {
             it.details.testDescriptor.name.startsWith("Gradle Test Run")
         }
         assert rootTestOps.size() == 2
-        assertJunit(rootTestOps.find {it.details.testDescriptor.name.startsWith("Gradle Test Run :junit:test")})
-        assertTestNg(rootTestOps.find {it.details.testDescriptor.name.startsWith("Gradle Test Run :testng:test")})
+        assertJunit(rootTestOps.find { it.details.testDescriptor.name.startsWith("Gradle Test Run :junit:test") })
+        assertTestNg(rootTestOps.find { it.details.testDescriptor.name.startsWith("Gradle Test Run :testng:test") })
     }
 
     private void assertJunit(BuildOperationRecord rootTestOp) {
