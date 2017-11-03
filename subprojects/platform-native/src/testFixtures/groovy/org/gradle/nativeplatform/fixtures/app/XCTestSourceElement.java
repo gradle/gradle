@@ -26,6 +26,12 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 public abstract class XCTestSourceElement extends SwiftSourceElement implements XCTestElement {
+    private boolean hasInfoPlist;
+
+    public XCTestSourceElement(String projectName) {
+        super(projectName);
+    }
+
     @Override
     public String getSourceSetName() {
         return "test";
@@ -39,6 +45,10 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
                 return element.getSourceFile();
             }
         }));
+
+        if (hasInfoPlist) {
+            result.add(emptyInfoPlist());
+        }
 
         if (OperatingSystem.current().isLinux()) {
             result.add(getLinuxMainSourceFile());
@@ -109,73 +119,13 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
     }
 
     public XCTestSourceElement withInfoPlist() {
-        final XCTestSourceElement delegate = this;
-        return new XCTestSourceElement() {
-            @Override
-            public List<XCTestSourceFileElement> getTestSuites() {
-                return delegate.getTestSuites();
-            }
-
-            @Override
-            public List<SourceFile> getFiles() {
-                List<SourceFile> result = Lists.newArrayList(delegate.getFiles());
-                result.add(emptyInfoPlist());
-                return result;
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-
-            @Override
-            public XCTestSourceElement withImport(String moduleName) {
-                return delegate.withImport(moduleName);
-            }
-        };
+        hasInfoPlist = true;
+        return this;
     }
 
-    public XCTestSourceElement asModule(final String moduleName) {
-        final XCTestSourceElement delegate = this;
-        return new XCTestSourceElement() {
-            @Override
-            public List<XCTestSourceFileElement> getTestSuites() {
-                List<XCTestSourceFileElement> result = Lists.newArrayList();
-                for (XCTestSourceFileElement testSuite : delegate.getTestSuites()) {
-                    result.add(testSuite.inModule(moduleName));
-                }
-                return result;
-            }
-
-            @Override
-            public String getModuleName() {
-                return moduleName;
-            }
-
-            @Override
-            public XCTestSourceElement withImport(String importModuleName) {
-                return delegate.withImport(importModuleName).asModule(moduleName);
-            }
-        };
-    }
-
-    public XCTestSourceElement withImport(final String moduleName) {
-        final XCTestSourceElement delegate = this;
-        return new XCTestSourceElement() {
-            @Override
-            public List<XCTestSourceFileElement> getTestSuites() {
-                List<XCTestSourceFileElement> result = Lists.newArrayList();
-                for (XCTestSourceFileElement testSuite : delegate.getTestSuites()) {
-                    result.add(testSuite.withImport(moduleName));
-                }
-                return result;
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-        };
+    @Override
+    public String getModuleName() {
+        return super.getModuleName() + "Test";
     }
 
     public SourceFile emptyInfoPlist() {

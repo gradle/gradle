@@ -17,6 +17,16 @@
 package org.gradle.nativeplatform.fixtures.app
 
 class SwiftLibWithXCTest extends MainWithXCTestSourceElement {
-    final SwiftLib main = new SwiftLib()
-    final XCTestSourceElement test = new SwiftLibTest(main.greeter, main.sum, main.multiply)
+    final SwiftLib main
+    final XCTestSourceElement test
+
+    SwiftLibWithXCTest() {
+        this("greeter")
+    }
+
+    SwiftLibWithXCTest(String projectName) {
+        super(projectName)
+        main = new SwiftLib(projectName)
+        test = new SwiftLibTest(main, main.greeter, main.sum, main.multiply)
+    }
 }

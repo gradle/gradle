@@ -16,28 +16,20 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.integtests.fixtures.SourceFile;
-
-import java.util.List;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class SwiftSourceElement extends SourceElement {
-    public String getModuleName() {
-        throw new IllegalStateException("This fixture needs a module name. Set it either by overriding "
-            + "'getModuleName()' or by using 'inModule(String)' methods");
+    private final String projectName;
+
+    public SwiftSourceElement(String projectName) {
+        this.projectName = projectName;
     }
 
-    public SwiftSourceElement asModule(final String moduleName) {
-        final SwiftSourceElement delegate = this;
-        return new SwiftSourceElement() {
-            @Override
-            public List<SourceFile> getFiles() {
-                return delegate.getFiles();
-            }
+    public String getModuleName() {
+        return StringUtils.capitalize(projectName);
+    }
 
-            @Override
-            public String getModuleName() {
-                return moduleName;
-            }
-        };
+    public final String getProjectName() {
+        return projectName;
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestClassExecutionResult;
@@ -24,8 +25,18 @@ import org.gradle.util.CollectionUtils;
 import org.hamcrest.Matchers;
 
 import java.util.List;
+import java.util.Set;
 
 public abstract class XCTestSourceFileElement extends SourceFileElement implements XCTestElement {
+    private final String testSuiteName;
+    private final Set<String> imports = Sets.newLinkedHashSet();
+    private final Set<String> testableImports = Sets.newLinkedHashSet();
+
+    public XCTestSourceFileElement(String testSuiteName) {
+        this.testSuiteName = testSuiteName;
+        withImport("XCTest");
+    }
+
     @Override
     public int getFailureCount() {
         int result = 0;
@@ -53,7 +64,9 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return getTestCases().size();
     }
 
-    public abstract String getTestSuiteName();
+    public final String getTestSuiteName() {
+        return testSuiteName;
+    }
 
     @Override
     public String getSourceSetName() {
@@ -62,11 +75,22 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     public SourceFile getSourceFile() {
         return sourceFile("swift", getTestSuiteName() + ".swift",
-            "import XCTest\n"
+                renderImports()
                 + "\n"
                 + "class " + getTestSuiteName() + ": XCTestCase {\n"
                 + "    " + renderTestCases() + "\n"
                 + "}");
+    }
+
+    private String renderImports() {
+        StringBuilder sb = new StringBuilder();
+        for (String importModule : getImports()) {
+            sb.append("import ").append(importModule).append('\n');
+        }
+        for (String importModule : getTestableImports()) {
+            sb.append("@testable import ").append(importModule).append('\n');
+        }
+        return sb.toString();
     }
 
     private String renderTestCases() {
@@ -78,6 +102,14 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
                 }
             })
         );
+    }
+
+    protected XCTestCaseElement passingTestCase(String methodName) {
+        return testCase(methodName, "XCTAssert(true)", false);
+    }
+
+    protected XCTestCaseElement failingTestCase(String methodName) {
+        return testCase(methodName, "XCTAssert(false)", true);
     }
 
     protected XCTestCaseElement testCase(String methodName, String assertion) {
@@ -107,10 +139,6 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     public abstract List<XCTestCaseElement> getTestCases();
 
-    public String getModuleName() {
-        throw new IllegalStateException("This fixture needs a module name to be set either by overriding 'getModuleName()' or by using 'inModule(String)' methods");
-    }
-
     @SuppressWarnings("unchecked")
     public void assertTestCasesRan(TestClassExecutionResult testExecutionResult) {
         testExecutionResult.assertTestCount(getTestCount(), getFailureCount(), 0);
@@ -124,81 +152,22 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         }
     }
 
+    public Set<String> getImports() {
+        return imports;
+    }
+
     public XCTestSourceFileElement withImport(final String importName) {
-        final XCTestSourceFileElement delegate = this;
-        return new XCTestSourceFileElement() {
-            @Override
-            public List<XCTestCaseElement> getTestCases() {
-                return delegate.getTestCases();
-            }
+        imports.add(importName);
+        return this;
+    }
 
-            @Override
-            public SourceFile getSourceFile() {
-                SourceFile sourceFile = delegate.getSourceFile();
-                return sourceFile(sourceFile.getPath(), sourceFile.getName(), "import " + importName + "\n" + sourceFile.getContent());
-            }
-
-            @Override
-            public String getTestSuiteName() {
-                return delegate.getTestSuiteName();
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-        };
+    public Set<String> getTestableImports() {
+        return testableImports;
     }
 
     public XCTestSourceFileElement withTestableImport(final String importName) {
-        final XCTestSourceFileElement delegate = this;
-        return new XCTestSourceFileElement() {
-            @Override
-            public List<XCTestCaseElement> getTestCases() {
-                return delegate.getTestCases();
-            }
-
-            @Override
-            public SourceFile getSourceFile() {
-                SourceFile sourceFile = delegate.getSourceFile();
-                return sourceFile(sourceFile.getPath(), sourceFile.getName(), "@testable import " + importName + "\n" + sourceFile.getContent());
-            }
-
-            @Override
-            public String getTestSuiteName() {
-                return delegate.getTestSuiteName();
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-        };
-    }
-
-    public XCTestSourceFileElement inModule(final String moduleName) {
-        final XCTestSourceFileElement delegate = this;
-        return new XCTestSourceFileElement() {
-            @Override
-            public List<XCTestCaseElement> getTestCases() {
-                return delegate.getTestCases();
-            }
-
-            @Override
-            public SourceFile getSourceFile() {
-                return delegate.getSourceFile();
-            }
-
-            @Override
-            public String getTestSuiteName() {
-                return delegate.getTestSuiteName();
-            }
-
-            @Override
-            public String getModuleName() {
-                return moduleName;
-            }
-        };
+        testableImports.add(importName);
+        return this;
     }
 
     public SourceFile emptyInfoPlist() {

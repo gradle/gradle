@@ -31,25 +31,20 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTestSuite
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTestWithUnicodeCharactersInTestName
+import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
-@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.NOT_WINDOWS])
+@Requires([TestPrecondition.SWIFT_SUPPORT])
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
 
-    String getRootProjectName() {
-        'Foo'
-    }
-
     def setup() {
-        settingsFile << """
-rootProject.name = '$rootProjectName'
-"""
         buildFile << """
 apply plugin: 'xctest'
 """
@@ -95,9 +90,9 @@ apply plugin: 'xctest'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "fails when test cases fail"() {
-        def testBundle = new SwiftFailingXCTestBundle().asModule(rootProjectName + "Test")
-
         given:
+        def testBundle = new SwiftFailingXCTestBundle()
+        settingsFile << "rootProject.name = '${testBundle.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         testBundle.writeToProject(testDirectory)
 
@@ -113,9 +108,9 @@ apply plugin: 'xctest'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "succeeds when test cases pass"() {
-        def lib = new SwiftLibWithXCTest().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         lib.writeToProject(testDirectory)
 
@@ -130,9 +125,9 @@ apply plugin: 'xctest'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "can build xctest bundle when Info.plist is provided"() {
-        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftLibWithXCTest().withInfoPlist()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         lib.writeToProject(testDirectory)
 
@@ -148,9 +143,9 @@ apply plugin: 'xctest'
     @Unroll
     @Requires(TestPrecondition.MAC_OS_X)
     def "runs tests when #task lifecycle task executes"() {
-        def lib = new SwiftLibWithXCTest().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         lib.writeToProject(testDirectory)
 
@@ -168,12 +163,10 @@ apply plugin: 'xctest'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift library"() {
-        def lib = new SwiftLibWithXCTest().inProject(rootProjectName)
-
         given:
-        buildFile << """
-apply plugin: 'swift-library'
-"""
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << "apply plugin: 'swift-library'"
         lib.writeToProject(testDirectory)
 
         when:
@@ -187,9 +180,9 @@ apply plugin: 'swift-library'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "does not execute removed test suite and case"() {
-        def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
-
         given:
+        def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
+        settingsFile << "rootProject.name = 'app'"
         buildFile << "apply plugin: 'swift-library'"
         testBundle.writeToProject(testDirectory)
 
@@ -212,9 +205,9 @@ apply plugin: 'swift-library'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "executes added test suite and case"() {
-        def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
-
         given:
+        def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
+        settingsFile << "rootProject.name = 'app'"
         buildFile << "apply plugin: 'swift-library'"
         testBundle.writeToProject(testDirectory)
 
@@ -237,9 +230,9 @@ apply plugin: 'swift-library'
     // TODO: Needs RunTestExecutable to be incremental
     @Requires(TestPrecondition.MAC_OS_X)
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
-        def lib = new SwiftLibWithXCTest().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         lib.writeToProject(testDirectory)
 
@@ -255,9 +248,9 @@ apply plugin: 'swift-library'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "build logic can change source layout convention"() {
-        def lib = new SwiftLibWithXCTest().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << "apply plugin: 'swift-library'"
         lib.main.writeToSourceDir(file("Sources"))
         lib.test.writeToSourceDir(file("Tests"))
@@ -280,16 +273,17 @@ apply plugin: 'swift-library'
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
 
         file("build/obj/test").assertIsDir()
-        executable("build/exe/test/${rootProjectName}Test").assertExists()
+        executable("build/exe/test/${lib.test.moduleName}").assertExists()
         lib.assertTestCasesRan(testExecutionResult)
     }
 
     def "can specify a test dependency on another library"() {
         def lib = new SwiftLib()
-        def test = new SwiftLibTest(lib.greeter, lib.sum, lib.multiply).asModule(rootProjectName).withImport("Greeter")
+        def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
 
         given:
         settingsFile << """
+rootProject.name = 'app'
 include 'greeter'
 """
         buildFile << """
@@ -303,7 +297,7 @@ dependencies {
     testImplementation project(':greeter')
 }
 """
-        lib.asModule("Greeter").writeToProject(file('greeter'))
+        lib.writeToProject(file('greeter'))
         test.writeToProject(testDirectory)
 
         when:
@@ -314,9 +308,9 @@ dependencies {
     }
 
     def "does not build or run any of the tests when assemble task executes"() {
-        def testBundle = new SwiftFailingXCTestBundle()
-
         given:
+        def testBundle = new SwiftFailingXCTestBundle()
+        settingsFile << "rootProject.name = '${testBundle.projectName}'"
         testBundle.writeToProject(testDirectory)
 
         when:
@@ -356,10 +350,9 @@ apply plugin: 'swift-executable'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift executable"() {
-        def app = new SwiftAppWithXCTest()
-
         given:
-        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftAppWithXCTest()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
 apply plugin: 'swift-executable'
 
@@ -378,9 +371,9 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
-        def app = new SwiftAppWithSingleXCTestSuite().inProject(rootProjectName)
-
         given:
+        def app = new SwiftAppWithSingleXCTestSuite()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
 apply plugin: 'swift-executable'
 """
@@ -398,9 +391,10 @@ apply plugin: 'swift-executable'
     // TODO: Need to support test report for test case assertion
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a single file Swift library using a single test source file"() {
-        def lib = new SwiftSingleFileLibWithSingleXCTestSuite().inProject(rootProjectName)
-
         given:
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         buildFile << """
 apply plugin: 'swift-library'
 """
@@ -420,7 +414,31 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.MAC_OS_X)
     def "build passes when tests have unicode characters"() {
         given:
-        def test = new SwiftXCTestWithUnicodeCharactersInTestName().asModule('AppTest')
+        def test = new XCTestSourceElement("app") {
+            List<XCTestSourceFileElement> testSuites = [
+                new XCTestSourceFileElement("NormalTestSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        passingTestCase("testExpectedTestName")]
+                },
+
+                new XCTestSourceFileElement("SpecialCharsTestSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        passingTestCase("test_name_with_leading_underscore"),
+                        passingTestCase("testname_with_a_number_1234"),
+                        passingTestCase("test·middle_dot"),
+                        passingTestCase("test1234"),
+                        passingTestCase("testᏀᎡᎪᎠᏞᎬ")
+                    ]
+                },
+
+                new XCTestSourceFileElement("UnicodeᏀᎡᎪᎠᏞᎬSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        passingTestCase("testSomething"),
+                    ]
+                }
+            ]
+        }
+        settingsFile << "rootProject.name = '${test.projectName}'"
         test.writeToProject(testDirectory)
 
         when:
@@ -435,7 +453,31 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.MAC_OS_X)
     def "build still fails when tests have unicode characters"() {
         given:
-        def test = new SwiftXCTestWithUnicodeCharactersInTestName().withFailures().asModule('AppTest')
+        def test = new XCTestSourceElement("app") {
+            List<XCTestSourceFileElement> testSuites = [
+                new XCTestSourceFileElement("NormalTestSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        passingTestCase("testExpectedTestName")]
+                },
+
+                new XCTestSourceFileElement("SpecialCharsTestSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        failingTestCase("test_name_with_leading_underscore"),
+                        passingTestCase("testname_with_a_number_1234"),
+                        failingTestCase("test·middle_dot"),
+                        passingTestCase("test1234"),
+                        passingTestCase("testᏀᎡᎪᎠᏞᎬ")
+                    ]
+                },
+
+                new XCTestSourceFileElement("UnicodeᏀᎡᎪᎠᏞᎬSuite") {
+                    List<XCTestCaseElement> testCases = [
+                        failingTestCase("testSomething"),
+                    ]
+                }
+            ]
+        }
+        settingsFile << "rootProject.name = '${test.projectName}'"
         test.writeToProject(testDirectory)
 
         when:
@@ -471,13 +513,13 @@ apply plugin: 'swift-library'
             ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
     }
 
-    private void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
+    private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
         binaries.each {
             assertMainSymbolIsAbsent(it)
         }
     }
 
-    private void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
+    private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert !binary.binaryInfo.listSymbols().contains('_main')
     }
 
@@ -485,7 +527,7 @@ apply plugin: 'swift-library'
         return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 
-    private String bundleOrInstallTask(String project = '') {
+    private static String bundleOrInstallTask(String project = '') {
         if (OperatingSystem.current().isMacOsX()) {
             return "$project:bundleSwiftTest"
         }

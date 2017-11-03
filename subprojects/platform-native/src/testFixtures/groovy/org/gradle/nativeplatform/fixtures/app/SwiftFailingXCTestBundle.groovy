@@ -17,8 +17,14 @@
 package org.gradle.nativeplatform.fixtures.app
 
 class SwiftFailingXCTestBundle extends XCTestSourceElement {
-    List<XCTestSourceFileElement> testSuites = [new XCTestSourceFileElement() {
-        String testSuiteName = "FailingTestSuite"
-        List<XCTestCaseElement> testCases = [testCase("testCanFailTestCaseWithAssertion", "XCTAssert(false)", true)]
-    }]
+    private final XCTestSourceFileElement failingTestSuite = new XCTestSourceFileElement("FailingTestSuite") {
+        List<XCTestCaseElement> testCases = [
+            failingTestCase("testCanFailTestCaseWithAssertion")
+        ]
+    }
+    List<XCTestSourceFileElement> testSuites = [ failingTestSuite ]
+
+    SwiftFailingXCTestBundle() {
+        super('app')
+    }
 }

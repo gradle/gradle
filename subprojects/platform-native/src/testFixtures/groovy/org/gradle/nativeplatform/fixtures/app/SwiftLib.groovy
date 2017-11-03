@@ -26,6 +26,14 @@ class SwiftLib extends SwiftSourceElement implements GreeterElement, SumElement,
     final sum = new SwiftSum()
     final multiply = new SwiftMultiply()
 
+    SwiftLib() {
+        this("greeter")
+    }
+
+    SwiftLib(String projectName) {
+        super(projectName)
+    }
+
     @Override
     List<SourceFile> getFiles() {
         return [greeter.sourceFile, sum.sourceFile, multiply.sourceFile]

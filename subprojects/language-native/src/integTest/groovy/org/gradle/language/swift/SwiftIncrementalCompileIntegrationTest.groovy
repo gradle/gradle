@@ -166,10 +166,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     def "skips compile and link tasks for executable when source doesn't change"() {
-        def app = new SwiftApp()
-        settingsFile << "rootProject.name = 'app'"
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -190,10 +189,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     def "skips compile and link tasks for library when source doesn't change"() {
-        def lib = new SwiftLib()
-        settingsFile << "rootProject.name = 'hello'"
-
         given:
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         lib.writeToProject(testDirectory)
 
         and:
@@ -209,7 +207,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("build/lib/main/debug/Greeter").assertExists()
     }
 
     def "removes stale installed executable and library file when all source files for executable are removed"() {

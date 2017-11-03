@@ -59,10 +59,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "sources are compiled and linked with Swift tools"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -80,10 +79,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "can build debug and release variant of the executable"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftAppWithOptionalFeature()
-
         given:
+        def app = new SwiftAppWithOptionalFeature()
+        settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
 
         and:
@@ -110,10 +108,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "can use executable file as task dependency"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -132,10 +129,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "can use objects as task dependency"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -155,10 +151,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "can use installDirectory as task dependency"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -177,11 +172,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "ignores non-Swift source files in source directory"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
+
         file("src/main/swift/ignore.cpp") << 'broken!'
         file("src/main/swift/ignore.c") << 'broken!'
         file("src/main/swift/ignore.m") << 'broken!'
@@ -202,11 +197,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "build logic can change source layout convention"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToSourceDir(file("Sources"))
+
         file("src/main/swift/broken.swift") << "ignore me!"
 
         and:
@@ -222,15 +217,16 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
-        executable("build/exe/main/debug/App").assertExists()
+        executable("build/exe/main/debug/${app.moduleName}").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can add individual source files"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
+        app.writeToProject(testDirectory)
+
         app.main.writeToSourceDir(file("src/main.swift"))
         app.greeter.writeToSourceDir(file("src/one.swift"))
         app.sum.writeToSourceDir(file("src/two.swift"))
@@ -258,10 +254,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "build logic can change buildDir"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -282,10 +277,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "build logic can define the module name"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -304,10 +298,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     }
 
     def "build logic can change task output locations"() {
-        settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:

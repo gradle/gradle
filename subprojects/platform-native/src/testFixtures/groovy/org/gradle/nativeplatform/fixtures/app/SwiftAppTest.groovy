@@ -16,25 +16,19 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
 class SwiftAppTest extends XCTestSourceElement {
-    final greeterTest
-    final sumTest
-    final multiplyTest
+    final XCTestSourceFileElement greeterTest
+    final XCTestSourceFileElement sumTest
+    final XCTestSourceFileElement multiplyTest
 
-    SwiftAppTest(GreeterElement greeter, SumElement sum, MultiplyElement multiply) {
-        greeterTest = new SwiftGreeterTest(greeter).withImport("App")
-        sumTest = new SwiftSumTest(sum).withImport("App")
-        multiplyTest = new SwiftMultiplyTest(multiply).withTestableImport("App")
+    SwiftAppTest(SwiftSourceElement tested, GreeterElement greeter, SumElement sum, MultiplyElement multiply) {
+        super(tested.projectName)
+        greeterTest = new SwiftGreeterTest(greeter).withImport(tested.moduleName)
+        sumTest = new SwiftSumTest(sum).withImport(tested.moduleName)
+        multiplyTest = new SwiftMultiplyTest(multiply).withTestableImport(tested.moduleName)
     }
 
     final List<XCTestSourceFileElement> getTestSuites() {
         [greeterTest, sumTest, multiplyTest]
-    }
-
-    @Override
-    List<SourceFile> getFiles() {
-        return super.files
     }
 }

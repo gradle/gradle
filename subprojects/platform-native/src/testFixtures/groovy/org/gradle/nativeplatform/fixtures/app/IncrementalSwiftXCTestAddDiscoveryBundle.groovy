@@ -19,44 +19,25 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestElement  {
-    private static final String PASSING_ASSERTION = "XCTAssert(true)"
     String moduleName = "AddDiscovery"
 
-    final XCTestSourceFileElement fooTestSuite = new XCTestSourceFileElement() {
-        String testSuiteName = "FooTestSuite"
+    final XCTestSourceFileElement fooTestSuite = new XCTestSourceFileElement("FooTestSuite") {
         List<XCTestCaseElement> testCases = [
-            testCase("testA", PASSING_ASSERTION),
+            passingTestCase("testA"),
         ]
-
-        @Override
-        String getModuleName() {
-            moduleName
-        }
     }
 
-    final XCTestSourceFileElement alternateFooTestSuite = new XCTestSourceFileElement() {
-        String testSuiteName = "FooTestSuite"
+    final XCTestSourceFileElement alternateFooTestSuite = new XCTestSourceFileElement("FooTestSuite") {
         List<XCTestCaseElement> testCases = [
-            testCase("testA", PASSING_ASSERTION),
-            testCase("testB", PASSING_ASSERTION)
+            passingTestCase("testA"),
+            passingTestCase("testB")
         ]
-
-        @Override
-        String getModuleName() {
-            moduleName
-        }
     }
 
-    final XCTestSourceFileElement barTestSuite = new XCTestSourceFileElement() {
-        String testSuiteName = "BarTestSuite"
+    final XCTestSourceFileElement barTestSuite = new XCTestSourceFileElement("BarTestSuite") {
         List<XCTestCaseElement> testCases = [
-            testCase("testA", PASSING_ASSERTION),
+            passingTestCase("testA"),
         ]
-
-        @Override
-        String getModuleName() {
-            moduleName
-        }
     }
 
     List<XCTestSourceFileElement> testSuites = [fooTestSuite]
