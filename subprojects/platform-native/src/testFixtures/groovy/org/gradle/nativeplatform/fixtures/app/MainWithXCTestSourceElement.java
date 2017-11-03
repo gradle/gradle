@@ -20,11 +20,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GUtil;
 
 import java.util.List;
 
 public abstract class MainWithXCTestSourceElement extends XCTestSourceElement {
+    public MainWithXCTestSourceElement(String projectName) {
+        super(projectName);
+    }
+
     public abstract SwiftSourceElement getMain();
     public abstract XCTestSourceElement getTest();
 
@@ -44,45 +47,9 @@ public abstract class MainWithXCTestSourceElement extends XCTestSourceElement {
         getTest().writeToProject(projectDir);
     }
 
-    public MainWithXCTestSourceElement inProject(final String name) {
-        final MainWithXCTestSourceElement delegate = this;
-        final String mainModuleName = GUtil.toCamelCase(name);
-        return new MainWithXCTestSourceElement() {
-            @Override
-            public SwiftSourceElement getMain() {
-                return delegate.getMain().asModule(mainModuleName);
-            }
-
-            @Override
-            public XCTestSourceElement getTest() {
-                return delegate.getTest().asModule(GUtil.toCamelCase(name + "Test")).withImport(mainModuleName);
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-        };
-    }
-
     @Override
     public MainWithXCTestSourceElement withInfoPlist() {
-        final MainWithXCTestSourceElement delegate = this;
-        return new MainWithXCTestSourceElement() {
-            @Override
-            public SwiftSourceElement getMain() {
-                return delegate.getMain();
-            }
-
-            @Override
-            public XCTestSourceElement getTest() {
-                return delegate.getTest().withInfoPlist();
-            }
-
-            @Override
-            public String getModuleName() {
-                return delegate.getModuleName();
-            }
-        };
+        getTest().withInfoPlist();
+        return this;
     }
 }

@@ -20,10 +20,9 @@ class SwiftSumTest extends XCTestSourceFileElement {
     final SumElement testedElement
 
     SwiftSumTest(SumElement testedElement) {
+        super( "SumTestSuite")
         this.testedElement = testedElement
     }
-
-    String testSuiteName = "SumTestSuite"
 
     @Override
     List<XCTestCaseElement> getTestCases() {

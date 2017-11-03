@@ -20,10 +20,9 @@ class SwiftMultiplyTest extends XCTestSourceFileElement {
     final MultiplyElement testedElement
 
     SwiftMultiplyTest(MultiplyElement testedElement) {
+        super("MultiplyTestSuite")
         this.testedElement = testedElement
     }
-
-    String testSuiteName = "MultiplyTestSuite"
 
     @Override
     List<XCTestCaseElement> getTestCases() {
