@@ -26,7 +26,7 @@ import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-public class DependencyStringNotationConverter<T extends ExternalDependency> implements NotationConverter<String, T> {
+public class DependencyStringNotationConverter<T> implements NotationConverter<String, T> {
     private final Instantiator instantiator;
     private final Class<T> wantedType;
 
@@ -49,7 +49,9 @@ public class DependencyStringNotationConverter<T extends ExternalDependency> imp
         ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
         T moduleDependency = instantiator.newInstance(wantedType,
             parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
+        if (moduleDependency instanceof ExternalDependency) {
+            ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
+        }
 
         return moduleDependency;
     }

@@ -260,6 +260,16 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable2.getConfiguration("runtime").excludes == [exclude1]
     }
 
+    def "treats ivy configurations as variants when checking if a variant exists"() {
+        when:
+        configuration("compile")
+        def metadata = getMetadata()
+
+        then:
+        metadata.definesVariant("compile")
+        !metadata.definesVariant("runtime")
+    }
+
     def exclude(String group, String module, String... confs) {
         def exclude = new DefaultExclude(DefaultModuleIdentifier.newId(group, module), confs, "whatever")
         return exclude

@@ -69,6 +69,11 @@ interface MavenModule extends Module {
     MavenModule hasType(String type)
 
     /**
+     * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
+     */
+    MavenModule variant(String variant, Map<String, String> attributes)
+
+    /**
      * Asserts exactly pom and jar published, along with checksums.
      */
     void assertPublishedAsJavaModule()

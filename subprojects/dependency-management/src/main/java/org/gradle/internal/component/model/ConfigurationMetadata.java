@@ -41,6 +41,9 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     /**
      * Returns the dependencies that apply to this configuration.
+     *
+     * If the implementation supports {@link DependencyMetadataRules}, this method
+     * is responsible for lazily applying the rules the first time it is called.
      */
     List<? extends DependencyMetadata> getDependencies();
 

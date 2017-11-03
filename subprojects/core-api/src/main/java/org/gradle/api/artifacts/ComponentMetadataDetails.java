@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 
@@ -52,4 +53,14 @@ public interface ComponentMetadataDetails extends ComponentMetadata {
      * @param statusScheme the status scheme of the component
      */
     void setStatusScheme(List<String> statusScheme);
+
+    /**
+     * Add a rule for adjusting an existing variant of the component.
+     *
+     * @param name name of the variant to adjust (e.g. 'compile')
+     * @param action the action to modify the variant
+     *
+     * @since 4.4
+     */
+    void withVariant(String name, Action<VariantMetadata> action);
 }
