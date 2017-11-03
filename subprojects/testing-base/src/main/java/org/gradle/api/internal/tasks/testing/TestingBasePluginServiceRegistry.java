@@ -16,27 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.api.internal.tasks.testing.operations.TestExecutionBuildOperationBuildScopeServices;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.time.Clock;
 
 public class TestingBasePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeServices());
+        registration.addProvider(new TestExecutionBuildOperationBuildScopeServices());
     }
 
-    private static class BuildScopeServices {
-        TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(ListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
-            return new TestListenerBuildOperationAdapter(listener.getBroadcaster(BuildOperationListener.class), buildOperationIdFactory, clock);
-        }
-
-        void configure(ServiceRegistration serviceRegistration, ListenerManager listenerManager, TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-            listenerManager.addListener(testListenerBuildOperationAdapter);
-        }
-
-    }
 }

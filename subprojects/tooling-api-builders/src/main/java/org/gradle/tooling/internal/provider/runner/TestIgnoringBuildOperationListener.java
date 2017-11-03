@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.tasks.testing.ExecuteTestBuildOperationType;
-import org.gradle.api.internal.tasks.testing.TestOutputBuildOperationType;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
+import org.gradle.api.internal.tasks.testing.operations.TestOutputBuildOperationType;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
 /**
- * Build operation listener that filters test related build operations 
+ * Build operation listener that filters test related build operations
  * before forwarding to a delegate.
  * @since 4.4
  */

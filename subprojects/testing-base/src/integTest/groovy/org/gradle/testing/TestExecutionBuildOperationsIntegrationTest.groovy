@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.api.internal.tasks.testing.ExecuteTestBuildOperationType
-import org.gradle.api.internal.tasks.testing.TestOutputBuildOperationType
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
+import org.gradle.api.internal.tasks.testing.operations.TestOutputBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
