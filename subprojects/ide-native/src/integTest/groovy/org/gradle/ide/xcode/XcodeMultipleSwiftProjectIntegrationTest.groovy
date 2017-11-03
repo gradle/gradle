@@ -297,7 +297,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             }
         """
         def app = new SwiftAppWithLibraryTest()
-        app.library.writeToProject(file("greeter"))
+        app.library.inProject('greeter').writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
         succeeds("xcode")
 

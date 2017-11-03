@@ -22,7 +22,7 @@ package org.gradle.nativeplatform.fixtures.app
 class SwiftAppWithLibraryTest implements AppElement {
     private final baseLibrary = new SwiftLibWithXCTest()
     final library = baseLibrary.withInfoPlist()
-    final executable = new SwiftAppWithDep(baseLibrary.lib, baseLibrary.lib)
+    final executable = new SwiftAppWithDep(baseLibrary.main, baseLibrary.main)
 
     @Override
     String getExpectedOutput() {
