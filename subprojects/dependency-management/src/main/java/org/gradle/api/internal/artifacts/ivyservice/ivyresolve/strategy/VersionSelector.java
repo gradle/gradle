@@ -71,4 +71,11 @@ public interface VersionSelector {
      * @return true if this selector can short-circuit
      */
     boolean canShortCircuitWhenVersionAlreadyPreselected();
+
+    /**
+     * Returns this selector as a string.
+     *
+     * @return a stringy representation of this selector
+     */
+    String getSelector();
 }

@@ -95,7 +95,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Unable to choose between the following component versions: org:foo:1.0, org:foo:1.1')
+        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.0, rejects ]1.0,), prefers 1.1')
 
     }
 
@@ -287,7 +287,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Unable to choose between the following component versions: org:foo:17, org:foo:15')
+        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, prefers 15, rejects ]15,)')
 
     }
 
@@ -334,7 +334,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Unable to choose between the following component versions: org:foo:17, org:foo:15')
+        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
 
     }
 
@@ -385,7 +385,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Unable to choose between the following component versions: org:foo:16, org:foo:18')
+        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers [15,16], rejects ]16,), prefers [17,18], rejects ]18,)')
 
     }
 

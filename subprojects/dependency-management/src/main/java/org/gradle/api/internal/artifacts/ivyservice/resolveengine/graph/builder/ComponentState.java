@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -169,18 +168,6 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
             resolve();
         }
         return metaData;
-    }
-
-    @Override
-    public VersionSelector getPreferredVersionSelector() {
-        ImmutableVersionConstraint vc = getVersionConstraint();
-        return vc == null ? null : vc.getPreferredSelector();
-    }
-
-    @Override
-    public VersionSelector getRejectedVersionSelector() {
-        ImmutableVersionConstraint vc = getVersionConstraint();
-        return vc == null ? null : vc.getRejectedSelector();
     }
 
     public ImmutableVersionConstraint getVersionConstraint() {
