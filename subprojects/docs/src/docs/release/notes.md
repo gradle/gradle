@@ -71,6 +71,47 @@ It is now possible to compile native applications with the Visual C++ toolchain 
 With this release, Gradle will also begin discovering Visual Studio installations using the [vswhere utility](https://github.com/Microsoft/vswhere)
 from Microsoft if it's available.  
 
+### Plugin repositories enhancements
+
+Plugin repositories declared in a settings script can now have custom names:
+
+```
+// settings.gradle
+pluginManagement {
+    repositories {
+        maven {
+            name = "My Custom Plugin Repository"
+            url = "https://..."
+        }
+    }
+}
+```
+
+Explicit notation for common repositories can now be used in settings scripts:
+
+```
+// settings.gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        jcenter()
+        google()
+        mavenCentral()
+    }
+}
+```
+
+Plugin resolution now takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Before that change, it was required that all transitive dependencies of a given plugin were present in the same repository as the plugin. It's not anymore. 
+
+The Gradle Plugin Portal repository can now be added to build scripts. This is particularly useful for `buildSrc` or binary plugin builds:
+
+```
+// build.gradle
+repositories {
+    gradlePluginPortal()
+}
+``` 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -122,6 +163,10 @@ In previous versions, Gradle would prefer a version of Visual Studio found on th
 means.  It will now consider a version found on the path only if a version is not found in the registry or through executing 
 the [vswhere](https://github.com/Microsoft/vswhere) utility (i.e. it will consider the path only as a last resort).  In order to 
 force a particular version of Visual Studio to be used, configure the [installation directory](dsl/org.gradle.nativeplatform.toolchain.VisualCpp.html#org.gradle.nativeplatform.toolchain.VisualCpp:installDir) on the Visual Studio toolchain.
+
+### The type of `pluginManagement.repositories` changed
+
+Before Gradle 4.4 it was a `PluginRepositoriesSpec`. This type has been removed and `pluginManagement.repositories` is now a regular `RepositoryHandler`.
 
 ## External contributions
 
