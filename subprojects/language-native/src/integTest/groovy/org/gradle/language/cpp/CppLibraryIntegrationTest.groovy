@@ -240,7 +240,10 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildFile << """
             apply plugin: 'cpp-library'
             compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
-            linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+            linkDebug.binaryFile = layout.buildDirectory.file("shared/main.bin")
+            if (linkDebug.importLibrary.present) {
+                linkDebug.importLibrary = layout.buildDirectory.file("import/main.lib")
+            }
          """
 
         expect:
@@ -248,7 +251,10 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
 
         file("build/object-files").assertIsDir()
-        file("build/some-lib/main.bin").assertIsFile()
+        file("build/shared/main.bin").assertIsFile()
+        if (toolChain.visualCpp) {
+            file("build/import/main.lib").assertIsFile()
+        }
     }
 
     def "library can define public and implementation headers"() {

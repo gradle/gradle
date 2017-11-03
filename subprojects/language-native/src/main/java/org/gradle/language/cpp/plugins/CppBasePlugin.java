@@ -157,20 +157,25 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                             return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
-                    Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryLinkFileName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
                     link.getBinaryFile().set(runtimeFile);
-                    link.getImportLibrary().set(importLibrary);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
+                    Provider<RegularFile> linkFile = link.getBinaryFile();
+                    if (toolProvider.producesImportLibrary()) {
+                        Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getImportLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
+                            }
+                        }));
+                        link.getImportLibrary().set(importLibrary);
+                        linkFile = link.getImportLibrary();
+                    }
+
                     ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
-                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(link.getImportLibrary());
+                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linkFile);
                 }
             }
 

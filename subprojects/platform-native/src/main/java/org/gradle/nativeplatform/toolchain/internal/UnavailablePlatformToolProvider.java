@@ -65,6 +65,16 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public boolean producesImportLibrary() {
+        return targetOperatingSystem.getInternalOs().isWindows();
+    }
+
+    @Override
+    public String getImportLibraryName(String libraryPath) {
+        return getSharedLibraryLinkFileName(libraryPath);
+    }
+
+    @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }

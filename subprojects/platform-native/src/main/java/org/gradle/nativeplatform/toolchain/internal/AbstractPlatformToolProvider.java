@@ -64,6 +64,16 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
+    public boolean producesImportLibrary() {
+        return false;
+    }
+
+    @Override
+    public String getImportLibraryName(String libraryPath) {
+        return getSharedLibraryLinkFileName(libraryPath);
+    }
+
+    @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }

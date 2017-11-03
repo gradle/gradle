@@ -77,6 +77,11 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
+    public boolean producesImportLibrary() {
+        return true;
+    }
+
+    @Override
     public String getSharedLibraryLinkFileName(String libraryName) {
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }

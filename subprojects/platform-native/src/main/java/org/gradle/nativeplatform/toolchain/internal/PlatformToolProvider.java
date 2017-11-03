@@ -25,6 +25,10 @@ public interface PlatformToolProvider extends ToolProvider {
 
     String getSharedLibraryName(String libraryPath);
 
+    boolean producesImportLibrary();
+
+    String getImportLibraryName(String libraryPath);
+
     String getSharedLibraryLinkFileName(String libraryPath);
 
     String getStaticLibraryName(String libraryPath);
