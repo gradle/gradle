@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -39,16 +38,6 @@ class PluginResolutionServiceIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-    }
-
-    @LeaksFileHandles
-    def "plugin declared in plugins {} block gets resolved and applied"() {
-        publishPlugin()
-
-        buildScript applyAndVerify(PLUGIN_ID, VERSION)
-
-        expect:
-        succeeds("verify")
     }
 
     def "resolution fails if Gradle is in offline mode"() {
