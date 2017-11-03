@@ -16,21 +16,38 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     private String group;
     private String name;
-    private VersionConstraint moduleVersionConstraint;
+    private ImmutableVersionConstraint moduleVersionConstraint;
 
-    public DefaultModuleVersionSelector(String group, String name, String version) {
+    public DefaultModuleVersionSelector(String group, String name, ImmutableVersionConstraint versionConstraint) {
         this.group = group;
         this.name = name;
-        setVersion(version);
+        this.moduleVersionConstraint = versionConstraint;
+    }
+
+    // todo: remove this constructor
+    public DefaultModuleVersionSelector(String group, String name, final String version) {
+        this.group = group;
+        this.name = name;
+        VersionSelectorScheme versionScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
+        this.moduleVersionConstraint = new DefaultImmutableVersionConstraint(
+            nullToEmpty(version),
+            versionScheme.parseSelector(version),
+            null
+            );
     }
 
     public String getGroup() {
@@ -62,11 +79,6 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
-    }
-
-    public DefaultModuleVersionSelector setVersion(String version) {
-        this.moduleVersionConstraint = new DefaultVersionConstraint(version);
-        return this;
     }
 
     @Override
@@ -102,12 +114,8 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     public int hashCode() {
         int result = group != null ? group.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (moduleVersionConstraint != null ? moduleVersionConstraint.hashCode() : 0);
+        result = 31 * result + moduleVersionConstraint.hashCode();
         return result;
-    }
-
-    public void setVersionConstraint(VersionConstraint prefersVersion) {
-        this.moduleVersionConstraint = prefersVersion;
     }
 
     public static ModuleVersionSelector newSelector(String group, String name, String version) {

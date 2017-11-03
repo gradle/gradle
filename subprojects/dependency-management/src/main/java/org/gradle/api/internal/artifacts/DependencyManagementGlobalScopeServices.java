@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
@@ -53,8 +57,16 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
-    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
-        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
+    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator) {
+        return new DefaultVersionSelectorScheme(versionComparator);
+    }
+
+    VersionComparator createVersionComparator() {
+        return new DefaultVersionComparator();
+    }
+
+    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, VersionSelectorScheme versionSelectorScheme) {
+        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter, versionSelectorScheme);
     }
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {

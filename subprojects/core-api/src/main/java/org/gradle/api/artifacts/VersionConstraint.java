@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents a constrained version. By default, when a dependency has a version number, it is assumed
@@ -24,7 +23,6 @@ import org.gradle.internal.HasInternalProtocol;
  * in some cases we don't want this behavior. This class represents the base spec of module constraints.
  * @since 4.4
  */
-@HasInternalProtocol
 @Incubating
 public interface VersionConstraint {
     /**
@@ -34,19 +32,4 @@ public interface VersionConstraint {
      * @return the baseline version, often referred to as the preferred version.
      */
     String getPreferredVersion();
-
-
-    /**
-     * Sets the preferred version of this module. Any other rejection/strict constraint will be overriden.
-     * @param version the preferred version of this module
-     */
-    void prefer(String version);
-
-    /**
-     * Sets the version as strict, meaning that if any other dependency version for this module disagrees with
-     * this version, resolution will fail.
-     *
-     * @param version the strict version to be used for this module
-     */
-    void strictly(String version);
 }

@@ -21,10 +21,9 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -32,12 +31,10 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
-    private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.versionSelectorScheme = versionSelectorScheme;
+    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
     }
@@ -48,8 +45,8 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
 
     public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        VersionConstraintInternal constraint = (VersionConstraintInternal) requested.getVersionConstraint();
-        VersionSelector preferredSelector = constraint.getPreferredSelector(versionSelectorScheme);
+        ImmutableVersionConstraint constraint = (ImmutableVersionConstraint) requested.getVersionConstraint();
+        VersionSelector preferredSelector = constraint.getPreferredSelector();
         if (preferredSelector.isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, preferredSelector, result);
         } else {
@@ -64,7 +61,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
             result.resolved(id, mvId);
         }
         if (result.hasResult()) {
-            VersionSelector rejectSelector = constraint.getRejectionSelector(versionSelectorScheme);
+            VersionSelector rejectSelector = constraint.getRejectedSelector();
             result.setSelectors(preferredSelector, rejectSelector);
         }
     }
