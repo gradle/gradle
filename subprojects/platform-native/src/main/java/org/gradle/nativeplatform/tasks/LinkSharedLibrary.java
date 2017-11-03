@@ -24,17 +24,15 @@ import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 
+import java.io.File;
+
 /**
  * Links a binary shared library from object files and imported libraries.
  */
 @Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
-    private final RegularFileProperty importLibrary;
-
-    public LinkSharedLibrary() {
-        importLibrary = newOutputFile();
-    }
+    private final RegularFileProperty importLibrary = newOutputFile();
 
     /**
      * Returns the import library produced by this task.
@@ -58,20 +56,32 @@ public class LinkSharedLibrary extends AbstractLinkTask {
 
     @Override
     protected LinkerSpec createLinkerSpec() {
-        final Spec spec = new Spec();
+        Spec spec = new Spec();
         spec.setInstallName(getInstallName());
+        spec.setImportLibrary(importLibrary.getAsFile().getOrNull());
         return spec;
     }
 
     private static class Spec extends DefaultLinkerSpec implements SharedLibraryLinkerSpec {
         private String installName;
+        private File importLibrary;
 
+        @Override
         public String getInstallName() {
             return installName;
         }
 
-        public void setInstallName(String installName) {
+        void setInstallName(String installName) {
             this.installName = installName;
+        }
+
+        @Override
+        public File getImportLibrary() {
+            return importLibrary;
+        }
+
+        void setImportLibrary(File importLibrary) {
+            this.importLibrary = importLibrary;
         }
     }
 }
