@@ -34,7 +34,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
-import org.gradle.nativeplatform.fixtures.xctest.XcTestFinderFixture
+import org.gradle.nativeplatform.fixtures.xctest.XCTestFinderFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -42,7 +42,7 @@ import spock.lang.Unroll
 @Requires([TestPrecondition.SWIFT_SUPPORT])
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
-        def xcTestFinder = new XcTestFinderFixture(toolChain)
+        def xcTestFinder = new XCTestFinderFixture(toolChain)
         buildFile << """
 apply plugin: 'xctest'
 """

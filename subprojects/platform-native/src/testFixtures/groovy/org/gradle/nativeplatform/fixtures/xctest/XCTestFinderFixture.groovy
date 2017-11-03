@@ -19,10 +19,10 @@ package org.gradle.nativeplatform.fixtures.xctest
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
-class XcTestFinderFixture {
+class XCTestFinderFixture {
     private final AvailableToolChains.InstalledToolChain toolChain
 
-    XcTestFinderFixture(AvailableToolChains.InstalledToolChain toolChain) {
+    XCTestFinderFixture(AvailableToolChains.InstalledToolChain toolChain) {
         this.toolChain = toolChain
     }
 
