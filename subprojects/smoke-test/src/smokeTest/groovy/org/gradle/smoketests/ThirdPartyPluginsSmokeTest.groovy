@@ -25,7 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
-/*
+
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
     def 'shadow plugin'() {
         given:
@@ -115,7 +115,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':dockerCopyDistResources').outcome == SUCCESS
     }
-*/
+
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
     def 'spring dependency management plugin'() {
         given:
