@@ -19,6 +19,7 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
+import org.junit.Assume
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
@@ -101,6 +102,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     def "test results capture test output"() {
+        Assume.assumeTrue(capturesTestOutput())
         given:
         createPassingFailingTest()
 
@@ -150,5 +152,9 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
     private DefaultTestExecutionResult getTestResult() {
         new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
+    }
+
+    protected boolean capturesTestOutput() {
+        return true
     }
 }

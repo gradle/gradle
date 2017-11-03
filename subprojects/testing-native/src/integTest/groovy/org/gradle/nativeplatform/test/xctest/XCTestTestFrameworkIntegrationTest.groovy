@@ -56,6 +56,16 @@ allprojects { p ->
     }
 
     @Override
+    protected boolean capturesTestOutput() {
+        // The driver application for XCTest behave very differently on macOS and Linux.
+        // It was hard to get the desired outcome on macOS and impossible for Linux. It
+        // all seems to be related to https://bugs.swift.org/browse/SR-1127. On Linux,
+        // we just can't assert that test output is captured correctly. Until we roll out
+        // our own driver app, test output capture only works on macOS.
+        return OperatingSystem.current().macOsX
+    }
+
+    @Override
     void createPassingFailingTest() {
         def testBundle = new SwiftXCTestTestFrameworkBundle('app')
         testBundle.writeToProject(testDirectory)
@@ -105,9 +115,7 @@ allprojects { p ->
         ]
 
         private static final String FAILING_TEST = """
-            fflush(stdout)
             fputs("some error output\\n", stderr)
-            fflush(stderr)
             XCTAssert(false, "test failure message")
         """
 
