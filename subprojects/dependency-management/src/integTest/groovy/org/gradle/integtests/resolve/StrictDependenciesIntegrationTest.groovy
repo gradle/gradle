@@ -64,7 +64,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     }
 
-    void "should fail if transitive dependency version doesn't match the strict dependency version"() {
+    void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
         given:
         def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
         def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
@@ -185,14 +185,14 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
     }
 
     @Unroll
-    void "should pass if transitive dependency version matches a strict dependency version range"() {
+    void "should pass if transitive dependency version (range) matches a strict dependency version (range)"() {
         given:
         def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
         def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
         def foo12 = mavenHttpRepo.module("org", "foo", '1.2').publish()
         def foo13 = mavenHttpRepo.module("org", "foo", '1.3').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(mavenHttpRepo.module("org", "foo", secondSeenInGraph))
+            .dependsOn(mavenHttpRepo.module("org", "foo", transitiveDependencyVersion))
             .publish()
 
         buildFile << """
@@ -205,7 +205,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             dependencies {
                 conf('org:foo') {
                     version {
-                       strictly '$firstSeenInGraph'
+                       strictly '$directDependencyVersion'
                     }
                 }
                 conf('org:bar:1.0')
@@ -232,8 +232,8 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         noExceptionThrown()
 
         where:
-        firstSeenInGraph << ['[1.0,1.3]', '1.2']
-        secondSeenInGraph << ['1.2', '[1.0,1.3]']
+        directDependencyVersion << ['[1.0,1.3]', '1.2', '[1.0, 1.2]', '[1.0, 1.3]']
+        transitiveDependencyVersion << ['1.2', '[1.0,1.3]', '[1.0, 1.3]', '[1.0, 1.2]']
     }
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
