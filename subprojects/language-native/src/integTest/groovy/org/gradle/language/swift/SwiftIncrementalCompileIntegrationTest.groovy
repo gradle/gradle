@@ -207,7 +207,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/main/debug/Greeter").assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "removes stale installed executable and library file when all source files for executable are removed"() {

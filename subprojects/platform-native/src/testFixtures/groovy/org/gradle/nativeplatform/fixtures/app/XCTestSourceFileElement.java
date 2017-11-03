@@ -156,7 +156,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return imports;
     }
 
-    public XCTestSourceFileElement withImport(final String importName) {
+    public XCTestSourceFileElement withImport(String importName) {
         imports.add(importName);
         return this;
     }
@@ -165,7 +165,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return testableImports;
     }
 
-    public XCTestSourceFileElement withTestableImport(final String importName) {
+    public XCTestSourceFileElement withTestableImport(String importName) {
         testableImports.add(importName);
         return this;
     }

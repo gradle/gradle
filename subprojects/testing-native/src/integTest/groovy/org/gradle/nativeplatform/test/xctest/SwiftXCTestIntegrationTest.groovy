@@ -182,6 +182,8 @@ apply plugin: 'xctest'
     def "does not execute removed test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
+        assert testBundle.alternateFooTestSuite.testCount < testBundle.fooTestSuite.testCount
+
         settingsFile << "rootProject.name = 'app'"
         buildFile << "apply plugin: 'swift-library'"
         testBundle.writeToProject(testDirectory)
@@ -200,6 +202,7 @@ apply plugin: 'xctest'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
+        testBundle.getFooTestSuite().getTestCount()
     }
 
     // TODO: Need to support test report for test case assertion
@@ -207,6 +210,8 @@ apply plugin: 'xctest'
     def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
+        assert testBundle.alternateFooTestSuite.testCount > testBundle.fooTestSuite.testCount
+
         settingsFile << "rootProject.name = 'app'"
         buildFile << "apply plugin: 'swift-library'"
         testBundle.writeToProject(testDirectory)
