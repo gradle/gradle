@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -31,7 +33,7 @@ import static org.junit.Assert.assertThat;
 public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
 
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
-            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
+            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub, new DefaultVersionSelectorScheme(new DefaultVersionComparator()));
 
     @Test
     public void canConvert() {

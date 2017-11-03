@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -33,23 +33,16 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
         this(version, false);
     }
 
-    @Override
-    public VersionSelector getPreferredSelector(VersionSelectorScheme versionSelectorScheme) {
-        return versionSelectorScheme.parseSelector(version);
-    }
 
     @Override
-    public VersionSelector getRejectionSelector(VersionSelectorScheme versionSelectorScheme) {
-        return strict ? versionSelectorScheme.complementForRejection(getPreferredSelector(versionSelectorScheme)) : null;
-    }
-
-    @Override
-    public VersionConstraint normalize() {
-        if (version == null) {
-            return new DefaultVersionConstraint("", strict);
-        } else {
-            return new DefaultVersionConstraint(version, strict);
+    public ImmutableVersionConstraint asImmutable(VersionSelectorScheme scheme) {
+        String v = version == null ? "" : version;
+        VersionSelector preferredSelector = scheme.parseSelector(v);
+        VersionSelector rejectedSelector = null;
+        if (strict) {
+            rejectedSelector = scheme.complementForRejection(preferredSelector);
         }
+        return new DefaultImmutableVersionConstraint(v, preferredSelector, rejectedSelector);
     }
 
     @Override
@@ -92,4 +85,5 @@ public class DefaultVersionConstraint implements VersionConstraintInternal {
         result = 31 * result + (strict ? 1 : 0);
         return result;
     }
+
 }

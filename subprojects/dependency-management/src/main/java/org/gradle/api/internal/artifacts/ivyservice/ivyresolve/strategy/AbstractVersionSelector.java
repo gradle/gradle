@@ -37,4 +37,23 @@ abstract class AbstractVersionSelector implements VersionSelector {
     public boolean canShortCircuitWhenVersionAlreadyPreselected() {
         return true;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractVersionSelector that = (AbstractVersionSelector) o;
+
+        return selector.equals(that.selector);
+    }
+
+    @Override
+    public int hashCode() {
+        return selector.hashCode();
+    }
 }
