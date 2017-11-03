@@ -163,8 +163,8 @@ class PlayDistributionPluginTest extends Specification {
         where:
         playVersion | mainClass
         "2.3.10"    | "play.core.server.NettyServer"
-        "2.4.11"    | "play.core.server.NettyServer"
-        "2.5.18"    | "play.core.server.NettyServer"
+        "2.4.11"    | "play.core.server.ProdServerStart"
+        "2.5.18"    | "play.core.server.ProdServerStart"
         "2.6.6"     | "play.core.server.ProdServerStart"
     }
 
