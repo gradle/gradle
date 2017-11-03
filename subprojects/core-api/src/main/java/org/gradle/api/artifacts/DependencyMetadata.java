@@ -45,9 +45,4 @@ public interface DependencyMetadata {
      * repository. For example the version name corresponds to a directory name in a Maven like repository.
      */
     String getVersion();
-
-    /**
-     * Returns the optional property of the dependency
-     */
-    boolean isOptional();
 }

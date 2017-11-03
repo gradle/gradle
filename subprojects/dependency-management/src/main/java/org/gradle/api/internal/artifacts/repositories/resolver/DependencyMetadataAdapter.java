@@ -47,9 +47,4 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
     public String getVersion() {
         return getOriginalMetadata().getRequested().getVersion();
     }
-
-    @Override
-    public boolean isOptional() {
-        return getOriginalMetadata().isOptional();
-    }
 }

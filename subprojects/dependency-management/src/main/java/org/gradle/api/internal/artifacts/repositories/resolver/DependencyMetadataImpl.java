@@ -24,7 +24,6 @@ public class DependencyMetadataImpl implements DependencyMetadata {
     private final String group;
     private final String name;
     private String version;
-    private boolean optional;
 
     public DependencyMetadataImpl(String group, String name, String version) {
         this.group = group;
@@ -45,10 +44,5 @@ public class DependencyMetadataImpl implements DependencyMetadata {
     @Override
     public String getVersion() {
         return this.version;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return this.optional;
     }
 }
