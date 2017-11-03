@@ -57,7 +57,7 @@ apply plugin: 'xctest'
         if (OperatingSystem.current().linux) {
             buildFile << """
     dependencies {
-        swiftImportTest files('${xcTestImportPath}')
+        swiftCompileTest files('${xcTestImportPath}')
         nativeLinkTest files('${xcTestLinkFile}')
         nativeRuntimeTest files('${xcTestRuntimeFile}')
     }
