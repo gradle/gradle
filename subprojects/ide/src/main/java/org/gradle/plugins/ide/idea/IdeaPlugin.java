@@ -395,21 +395,17 @@ public class IdeaPlugin extends IdePlugin {
         Project project = ideaModule.getProject();
         IdeaScopesConfig scopes = new IdeaScopesConfig(project.getConfigurations());
 
-        scopes.named(GeneratedIdeaScope.COMPILE)
-            .plus(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-            .minus(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
-
         scopes.named(GeneratedIdeaScope.PROVIDED)
-            .plus(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
+            .plus(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
 
         scopes.named(GeneratedIdeaScope.RUNTIME)
-            .plus(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-            .minus(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+            .plus(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
 
         scopes.named(GeneratedIdeaScope.TEST)
             .plus(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
             .plus(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
             .minus(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+
 
         ideaModule.getModule().setScopes(scopes.build());
     }
