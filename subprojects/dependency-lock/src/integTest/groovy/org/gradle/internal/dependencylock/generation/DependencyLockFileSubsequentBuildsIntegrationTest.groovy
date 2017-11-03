@@ -24,7 +24,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
     static final String OTHER_CONFIGURATION_NAME = 'other'
 
-    def "does not update lock file if command line option isn't provides for subsequent build"() {
+    def "does not update lock file if command line option isn't provided for subsequent build"() {
         given:
         mavenRepo.module('foo', 'bar', '1.5').publish()
 
@@ -41,11 +41,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
@@ -53,9 +53,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "does not update lock file for unchanged dependencies"() {
@@ -75,11 +75,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
@@ -87,9 +87,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "recreates lock file for newly declared and resolved dependencies of an existing configuration"() {
@@ -111,10 +111,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << """
@@ -128,10 +128,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         locks.size() == 2
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         locks[1].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == '972a625f8f26cb15c53a9962cdbc9230ae551aec'
     }
 
     def "recreates lock file for removed, resolved dependencies for an existing configuration"() {
@@ -154,11 +154,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 2
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         locks[1].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == '972a625f8f26cb15c53a9962cdbc9230ae551aec'
 
         when:
         buildFile.text = mavenRepository(mavenRepo) + customConfigurations(MYCONF_CONFIGURATION_NAME) + """
@@ -172,9 +172,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "merges resolved dependencies of newly introduced independent, configuration"() {
@@ -196,11 +196,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -218,11 +218,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
         addedLocks.size() == 1
         addedLocks[0].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == '5dddb985e4b746fb5678cf1e6745c788dc3d7e5f'
     }
 
     def "merges resolved dependencies of newly introduced parent configuration"() {
@@ -244,11 +244,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -267,12 +267,12 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         myConfLocks.size() == 2
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
         myConfLocks[1].toString() == 'org:gradle:7.5 -> 7.5'
         addedLocks.size() == 1
         addedLocks[0].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == '3a0963c3c19f24570226d537edd2139f04a90a7e'
     }
 
     def "merges resolved dependencies of newly introduced child configuration"() {
@@ -294,11 +294,11 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -317,12 +317,12 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
 
         then:
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
+        assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
         addedLocks.size() == 2
         addedLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
         addedLocks[1].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == 'bbc4db0fa9642c82e05b56762215749a7b396285'
     }
 
     def "does not modify existing lock file if same configuration is unresolvable"() {
@@ -342,10 +342,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         def myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         deleteMavenRepo()
@@ -353,9 +353,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "does not modify existing lock file if different configuration is unresolvable"() {
@@ -375,10 +375,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         def myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -393,9 +393,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
         myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     private void deleteMavenRepo() {

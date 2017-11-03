@@ -67,6 +67,7 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
         def conf1Locks = parsedLockFile.getLocks(':a', 'conf1')
         conf1Locks.size() == 1
@@ -77,7 +78,6 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         def conf3Locks = parsedLockFile.getLocks(':c', 'conf3')
         conf3Locks.size() == 1
         conf3Locks[0].toString() == 'other:company:5.2 -> 5.2'
-        sha1File.text == 'ba328f04e6f66725791db639c04f9b09fe0b69da'
     }
 
     def "does not record project dependencies in lock file"() {
@@ -112,6 +112,7 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         succeedsWithEnabledDependencyLocking('compileJava')
 
         then:
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
         def compileLocksProjectA = parsedLockFile.getLocks(':a', 'compileClasspath')
         compileLocksProjectA.size() == 1
@@ -120,7 +121,6 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         compileLocksProjectB.size() == 2
         compileLocksProjectB[0].toString() == 'foo:bar:2.3.1 -> 2.3.1'
         compileLocksProjectB[1].toString() == 'my:dep:1.5 -> 1.5'
-        sha1File.text == '444067f8d070575c3e7dee68e81a04c7f159fdc6'
     }
 
     static String javaClass(String className) {

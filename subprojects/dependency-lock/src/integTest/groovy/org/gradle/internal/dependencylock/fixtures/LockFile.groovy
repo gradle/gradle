@@ -38,19 +38,17 @@ class LockFile {
     }
 
     List<LockedDependency> getLocks(String projectPath, String configurationName) {
-        def matchingProject = json.projects.find { it.path == projectPath }
+        def matchingLock = json.locks.find { it.id == buildLockId(projectPath, configurationName) }
 
-        if (!matchingProject) {
+        if (!matchingLock) {
             return []
         }
 
-        def matchingConfiguration = matchingProject.configurations.find { it.name == configurationName }
+        matchingLock.dependencies.collect { new LockedDependency(it.moduleId, it.requestedVersion, it.lockedVersion) }
+    }
 
-        if (!matchingConfiguration) {
-            return []
-        }
-
-        matchingConfiguration.dependencies.collect { new LockedDependency(it.moduleId, it.requestedVersion, it.lockedVersion) }
+    private String buildLockId(String projectPath, String configurationName) {
+        projectPath + ":" + configurationName
     }
 
     @TupleConstructor

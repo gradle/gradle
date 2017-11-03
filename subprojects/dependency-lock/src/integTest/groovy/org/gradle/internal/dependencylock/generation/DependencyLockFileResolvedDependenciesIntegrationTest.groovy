@@ -37,11 +37,10 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
     }
 
     def "can create locks for all supported formats of dynamic dependencies"() {
@@ -67,14 +66,13 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 4
         locks[0].toString() == 'foo:bar:1.+ -> 1.3'
         locks[1].toString() == 'org:gradle:+ -> 7.5'
         locks[2].toString() == 'my:prod:latest.release -> 3.2.1'
         locks[3].toString() == 'dep:range:[1.0,2.0] -> 1.7.1'
-        sha1File.text == 'e1694e2aaafe588b76b0acb82b258a06b853a494'
     }
 
     def "only creates locks for resolved dependencies"() {
@@ -96,11 +94,10 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.+ -> 1.3'
-        sha1File.text == 'a9996480fc8669d8dbb61c8352a2525cc5c554e9'
     }
 
     def "can create locks for all multiple resolved configurations"() {
@@ -124,8 +121,9 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
+        assertLockFileAndHashFileExist()
         def parsedLockFile = parseLockFile()
-        def aLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'a')
+        def aLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, 'a')
         aLocks.size() == 1
         aLocks[0].toString() == 'foo:bar:1.+ -> 1.3'
         def bLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'b')
@@ -134,7 +132,6 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         def cLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'c')
         cLocks.size() == 1
         cLocks[0].toString() == 'my:prod:latest.release -> 3.2.1'
-        sha1File.text == '59578372a1c61109e5af9ad4d915c8ec8c62a330'
     }
 
     def "can create locks for first-level and transitive resolved dependencies"() {
@@ -160,8 +157,8 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 6
         locks[0].toString() == 'foo:first:1.5 -> 1.5'
         locks[1].toString() == 'foo:second:1.6.7 -> 1.6.7'
@@ -169,7 +166,6 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         locks[3].toString() == 'bar:first:2.+ -> 2.5'
         locks[4].toString() == 'bar:second:2.6.7 -> 2.6.7'
         locks[5].toString() == 'bar:third:2.5 -> 2.5'
-        sha1File.text == 'c9dede601fb738575952da5dae120b2a35a9ff0d'
     }
 
     def "can create lock for conflict-resolved dependency"() {
@@ -192,13 +188,12 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 3
         locks[0].toString() == 'foo:first:1.5 -> 1.5'
         locks[1].toString() == 'foo:second:1.6.7 -> 1.9'
         locks[2].toString() == 'foo:second:1.9 -> 1.9'
-        sha1File.text == '964969098a6e2d647dd2fad40841ae9467d2687a'
     }
 
     def "only creates locks for resolvable configurations"() {
@@ -221,12 +216,11 @@ class DependencyLockFileResolvedDependenciesIntegrationTest extends AbstractDepe
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, 'compileClasspath')
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, 'compileClasspath')
         locks.size() == 2
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
         locks[1].toString() == 'org:gradle:7.5 -> 7.5'
-        sha1File.text == '60509fcde47220bc2bbd808a5ecb8a5839fe323c'
     }
 
     def "does not write lock file for resolved, detached configuration"() {

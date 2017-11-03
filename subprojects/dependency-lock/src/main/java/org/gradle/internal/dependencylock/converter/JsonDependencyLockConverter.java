@@ -46,18 +46,13 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
             writer.beginObject();
             writer.name("_comment").value(USER_NOTICE);
             writer.name("lockFileVersion").value(LOCK_FILE_VERSION);
-            writer.name("projects");
+            writer.name("locks");
             writer.beginArray();
 
             for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
-                writer.beginObject();
-                writer.name("path").value(projectsMapping.getKey());
-                writer.name("configurations");
-                writer.beginArray();
-
                 for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> configurationsMapping : projectsMapping.getValue().entrySet()) {
                     writer.beginObject();
-                    writer.name("name").value(configurationsMapping.getKey());
+                    writer.name("id").value(buildLockId(projectsMapping.getKey(), configurationsMapping.getKey()));
                     writer.name("dependencies");
                     writer.beginArray();
 
@@ -74,9 +69,6 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
                     writer.endArray();
                     writer.endObject();
                 }
-
-                writer.endArray();
-                writer.endObject();
             }
 
             writer.endArray();
@@ -92,5 +84,9 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
         }
 
         return stringWriter.toString();
+    }
+
+    private String buildLockId(String projectPath, String configurationName) {
+        return projectPath + ":" + configurationName;
     }
 }

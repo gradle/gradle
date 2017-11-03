@@ -50,11 +50,10 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         where:
         replacement                         | description
@@ -92,11 +91,10 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
 
         then:
-        def parsedLockFile = parseLockFile()
-        def locks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
+        assertLockFileAndHashFileExist()
+        def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
         locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        sha1File.text == '47ec5ad9e745cef18cea6adc42e4be3624572c9f'
 
         where:
         sourceComponent         | targetComponent           | type
