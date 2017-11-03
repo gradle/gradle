@@ -753,16 +753,10 @@ uploadArchives {
 
         and:
         def module1 = mavenRemoteRepo.module(group, name, '1')
-        module1.artifact.expectPut()
-        module1.artifact.sha1.expectPut()
-        module1.artifact.md5.expectPut()
+        module1.artifact.expectPublish()
         module1.rootMetaData.expectGetMissing()
-        module1.rootMetaData.expectPut()
-        module1.rootMetaData.sha1.expectPut()
-        module1.rootMetaData.md5.expectPut()
-        module1.pom.expectPut()
-        module1.pom.sha1.expectPut()
-        module1.pom.md5.expectPut()
+        module1.rootMetaData.expectPublish()
+        module1.pom.expectPublish()
 
         when:
         succeeds 'uploadArchives', '-Pversion=1'
@@ -773,19 +767,13 @@ uploadArchives {
 
         and:
         def module2 = mavenRemoteRepo.module(group, name, '2')
-        module2.artifact.expectPut()
-        module2.artifact.sha1.expectPut()
-        module2.artifact.md5.expectPut()
-        module2.pom.expectPut()
-        module2.pom.sha1.expectPut()
-        module2.pom.md5.expectPut()
+        module2.artifact.expectPublish()
+        module2.pom.expectPublish()
 
         and:
         module2.rootMetaData.expectGet()
         module2.rootMetaData.sha1.expectGet()
-        module2.rootMetaData.expectPut()
-        module2.rootMetaData.sha1.expectPut()
-        module2.rootMetaData.md5.expectPut()
+        module2.rootMetaData.expectPublish()
 
         when:
         succeeds 'uploadArchives', '-Pversion=2'

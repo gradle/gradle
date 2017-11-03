@@ -235,24 +235,16 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module = mavenRemoteRepo.module(group, name, "3")
 
         then:
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
-        module.moduleMetadata.expectPut()
-        module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.md5.expectPut()
+        module.artifact.expectPublish()
+        module.pom.expectPublish()
+        module.moduleMetadata.expectPublish()
 
         and:
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
+        module.rootMetaData.expectPublish()
 
         and:
         succeeds 'publish'
@@ -302,19 +294,11 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     private void expectModulePublish(MavenHttpModule module) {
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
+        module.artifact.expectPublish()
         module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
-        module.moduleMetadata.expectPut()
-        module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.md5.expectPut()
+        module.rootMetaData.expectPublish()
+        module.pom.expectPublish()
+        module.moduleMetadata.expectPublish()
     }
 
     private void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {

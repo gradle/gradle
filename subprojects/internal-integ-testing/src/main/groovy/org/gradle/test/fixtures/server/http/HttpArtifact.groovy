@@ -56,6 +56,12 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
         assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(getFile(), "md5"), 16)
     }
 
+    void expectPublish() {
+        expectPut()
+        sha1.expectPut()
+        md5.expectPut()
+    }
+
     protected String getHash(TestFile file, String algorithm) {
         HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
     }
