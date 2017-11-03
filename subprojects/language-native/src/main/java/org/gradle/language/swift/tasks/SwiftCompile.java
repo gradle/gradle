@@ -16,64 +16,194 @@
 
 package org.gradle.language.swift.tasks;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
-import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
-import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
 import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * Compiles Swift source files into object files, executables and libraries.
+ * Compiles Swift source files into object files.
  *
  * @since 4.1
  */
 @Incubating
-public class SwiftCompile extends AbstractNativeCompileTask {
+public class SwiftCompile extends DefaultTask {
+    private NativeToolChainInternal toolChain;
+    private NativePlatformInternal targetPlatform;
+    private boolean debug;
+    private boolean optimize;
     private final Property<String> moduleName;
     private final RegularFileProperty moduleFile;
     private final ConfigurableFileCollection modules;
+    private final ListProperty<String> compilerArgs;
+    private final DirectoryProperty objectFileDir;
+    private final ConfigurableFileCollection source;
+    private final Map<String, String> macros = new LinkedHashMap<String, String>();
 
     public SwiftCompile() {
+        source = getProject().files();
+        compilerArgs = getProject().getObjects().listProperty(String.class);
+        objectFileDir = newOutputDirectory();
         moduleName = getProject().getObjects().property(String.class);
         moduleFile = newOutputFile();
         modules = getProject().files();
     }
 
-    @Override
-    protected NativeCompileSpec createCompileSpec() {
-        SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
-        spec.setModuleName(moduleName.getOrNull());
-        spec.setModuleFile(moduleFile.get().getAsFile());
-        for (File file : modules.getFiles()) {
-            spec.include(file.getParentFile());
-        }
-        return spec;
+    /**
+     * The tool chain used for compilation.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public NativeToolChain getToolChain() {
+        return toolChain;
     }
 
-    @Override
-    protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
-        return new IncrementalCompilerBuilder() {
-            @Override
-            public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, HeaderDependenciesCollector headerDependenciesCollector) {
-                return compiler;
-            }
-        };
+    /**
+     * Sets the tool chain to use for compilation.
+     *
+     * @since 4.4
+     */
+    public void setToolChain(NativeToolChain toolChain) {
+        this.toolChain = (NativeToolChainInternal) toolChain;
+    }
+
+    /**
+     * The platform being compiled for.
+     *
+     * @since 4.4
+     */
+    @Nested
+    public NativePlatform getTargetPlatform() {
+        return targetPlatform;
+    }
+
+    /**
+     * Sets the platform being compiled for.
+     *
+     * @since 4.4
+     */
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
+    }
+
+    /**
+     * Returns the source files to be compiled.
+     *
+     * @since 4.4
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public ConfigurableFileCollection getSource() {
+        return source;
+    }
+
+    /**
+     * Macros that should be defined for the compiler.
+     *
+     * @since 4.4
+     */
+    @Input
+    public Map<String, String> getMacros() {
+        return macros;
+    }
+
+    /**
+     * Sets the macros that should be defined when compiling.
+     *
+     * @since 4.4
+     */
+    public void setMacros(Map<String, String> macros) {
+        this.macros.clear();
+        this.macros.putAll(macros);
+    }
+
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.4
+     */
+    @Input
+    public boolean isDebuggable() {
+        return debug;
+    }
+
+    /**
+     * Should the compiler generate debuggable code?
+     *
+     * @since 4.4
+     */
+    public void setDebuggable(boolean debug) {
+        this.debug = debug;
+    }
+
+    /**
+     * Should the compiler generate optimized code?
+     *
+     * @since 4.4
+     */
+    @Input
+    public boolean isOptimized() {
+        return optimize;
+    }
+
+    /**
+     * Should the compiler generate optimized code?
+     *
+     * @since 4.4
+     */
+    public void setOptimized(boolean optimize) {
+        this.optimize = optimize;
+    }
+
+    /**
+     * <em>Additional</em> arguments to provide to the compiler.
+     *
+     * @since 4.4
+     */
+    @Input
+    public ListProperty<String> getCompilerArgs() {
+        return compilerArgs;
+    }
+
+    /**
+     * The directory where object files will be generated.
+     *
+     * @since 4.4
+     */
+    @OutputDirectory
+    public DirectoryProperty getObjectFileDir() {
+        return objectFileDir;
     }
 
     /**
@@ -105,8 +235,8 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         return modules;
     }
 
-    @Override
-    public void compile(IncrementalTaskInputs inputs) {
+    @TaskAction
+    void compile() {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
         cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
         cleaner.execute();
@@ -116,6 +246,30 @@ public class SwiftCompile extends AbstractNativeCompileTask {
             return;
         }
 
-        super.compile(inputs);
+        BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
+
+        SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
+        spec.setModuleName(moduleName.getOrNull());
+        spec.setModuleFile(moduleFile.get().getAsFile());
+        for (File file : modules.getFiles()) {
+            spec.include(file.getParentFile());
+        }
+
+        spec.setTargetPlatform(targetPlatform);
+        spec.setTempDir(getTemporaryDir());
+        spec.setObjectFileDir(objectFileDir.get().getAsFile());
+        spec.source(getSource());
+        spec.setMacros(getMacros());
+        spec.args(getCompilerArgs().get());
+        spec.setDebuggable(isDebuggable());
+        spec.setOptimized(isOptimized());
+        spec.setIncrementalCompile(false);
+        spec.setOperationLogger(operationLogger);
+
+        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
+        Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
+        WorkResult result = loggingCompiler.execute(spec);
+        setDidWork(result.getDidWork());
     }
 }

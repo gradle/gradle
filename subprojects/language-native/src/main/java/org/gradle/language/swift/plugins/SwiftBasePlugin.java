@@ -79,7 +79,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 final Names names = Names.of(binary.getName());
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.getModules().from(binary.getCompileModules());
-                compile.source(binary.getSwiftSource());
+                compile.getSource().from(binary.getSwiftSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
                 } else {
