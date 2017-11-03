@@ -55,6 +55,32 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].requested.version == "1.0"
     }
 
+    def "add via string id with action is propagate to the underlying dependency list"() {
+        when:
+        adapter.add("org.gradle.test:module1") {
+            it.version = '1.0'
+        }
+
+        then:
+        dependenciesMetadata.size() == 1
+        dependenciesMetadata[0].requested.group == "org.gradle.test"
+        dependenciesMetadata[0].requested.name == "module1"
+        dependenciesMetadata[0].requested.version == "1.0"
+    }
+
+    def "add via map id with action propagate to the underlying dependency list"() {
+        when:
+        adapter.add(group: "org.gradle.test", name: "module1") {
+            it.version = '1.0'
+        }
+
+        then:
+        dependenciesMetadata.size() == 1
+        dependenciesMetadata[0].requested.group == "org.gradle.test"
+        dependenciesMetadata[0].requested.name == "module1"
+        dependenciesMetadata[0].requested.version == "1.0"
+    }
+
     def "remove is propagated to the underlying dependency list"() {
         given:
         fillDependencyList(1)
@@ -127,6 +153,20 @@ class DependenciesMetadataAdapterTest extends Specification {
         then:
         dependencyMetadata instanceof DependencyMetadataAdapter
         !(dependencyMetadata instanceof DependencyMetadataImpl)
+    }
+
+    def "can modify underlying list items"() {
+        given:
+        fillDependencyList(1)
+
+        when:
+        adapter.get(0).version = "2.0"
+
+        then:
+        dependenciesMetadata.size() == 1
+        dependenciesMetadata[0].requested.group == "org.gradle.test"
+        dependenciesMetadata[0].requested.name == "module1"
+        dependenciesMetadata[0].requested.version == "2.0"
     }
 
     private fillDependencyList(int size) {

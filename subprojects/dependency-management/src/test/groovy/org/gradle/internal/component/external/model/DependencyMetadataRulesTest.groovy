@@ -129,6 +129,28 @@ class DependencyMetadataRulesTest extends Specification {
     }
 
     @Unroll
+    def "dependencies of selected variant are modifiable in dependency metadata rule for #metadataType metadata"() {
+        given:
+        addDependency(metadataImplementation, "org.test", "toModify", "1.0")
+        def rule = { dependencies ->
+            assert dependencies.size() == 1
+            dependencies[0].version = "2.0"
+        }
+
+        when:
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+
+        then:
+        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].requested.version == "2.0"
+
+        where:
+        metadataType | metadataImplementation
+        "maven"      | mavenComponentMetadata()
+        "ivy"        | ivyComponentMetadata()
+        "gradle"     | gradleComponentMetadata()
+    }
+
+    @Unroll
     def "dependencies added in dependency metadata rules are added to dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->

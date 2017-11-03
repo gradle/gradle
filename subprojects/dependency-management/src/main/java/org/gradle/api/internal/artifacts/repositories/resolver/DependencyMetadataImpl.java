@@ -43,4 +43,10 @@ public class DependencyMetadataImpl implements DependencyMetadata {
     public String getVersion() {
         return this.version;
     }
+
+    @Override
+    public DependencyMetadata setVersion(String version) {
+        this.version = version;
+        return this;
+    }
 }
