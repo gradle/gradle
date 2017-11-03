@@ -16,8 +16,10 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
@@ -28,6 +30,21 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 @Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
+    private final RegularFileProperty importLibrary;
+
+    public LinkSharedLibrary() {
+        importLibrary = newOutputFile();
+    }
+
+    /**
+     * Returns the import library produced by this task.
+     *
+     * @since 4.4
+     */
+    @Optional @OutputFile
+    public RegularFileProperty getImportLibrary() {
+        return importLibrary;
+    }
 
     @Input
     @Optional
