@@ -28,14 +28,15 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -219,6 +220,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Configure test suite link task from tested component compiled objects
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
                 linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
+
+                Spec<File> ignoreMainObject = new Spec<File>() {
+                    @Override
+                    public boolean isSatisfiedBy(File element) {
+                        return !element.getName().equals("main.o");
+                    }
+                };
+                linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(ignoreMainObject));
             }
         };
     }
