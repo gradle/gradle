@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.api.Project
-import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -42,91 +40,6 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.requireGradleDistribution() // need accurate classloading
         executer.requireOwnGradleUserHomeDir()
-    }
-
-    def "plugin is available via plugins container"() {
-        publishPlugin()
-
-        buildScript """
-            $USE
-
-            task verify {
-                doLast {
-                    def foundByClass = false
-                    plugins.withType(pluginClass) { foundByClass = true }
-                    def foundById = false
-                    plugins.withId("$PLUGIN_ID") { foundById = true }
-
-                    assert foundByClass
-                    assert foundById
-                }
-            }
-        """
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "plugin class is visible to build script"() {
-        publishPlugin()
-
-        buildScript """
-            $USE
-
-            task verify {
-                doLast {
-                    getClass().getClassLoader().loadClass("org.gradle.test.TestPlugin")
-                }
-            }
-        """
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "plugin can access Gradle API classes"() {
-        publishPlugin """
-            assert project instanceof ${Project.name}; new ${AndSpec.name}()
-            project.task("verify")
-        """
-
-        buildScript USE
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "plugin can access core Gradle plugin classes"() {
-        publishPlugin("""
-            getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')
-            project.task("verify")
-        """)
-
-        buildScript USE
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "plugin cannot access Gradle implementation classes"() {
-        publishPlugin("""
-            def implClassName = 'com.google.common.collect.Multimap'
-            project.getClass().getClassLoader().loadClass(implClassName)
-
-            try {
-                getClass().getClassLoader().loadClass(implClassName)
-                assert false : "should have failed to load gradle implementation class: \$implClassName"
-            } catch (ClassNotFoundException ignore) {
-
-            }
-
-            project.task("verify")
-        """)
-
-        buildScript USE
-
-        expect:
-        succeeds("verify")
     }
 
     def "plugin classes are reused if possible"() {
