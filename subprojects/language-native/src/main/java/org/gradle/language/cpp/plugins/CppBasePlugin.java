@@ -17,7 +17,6 @@
 package org.gradle.language.cpp.plugins;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -113,7 +112,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                 ((DefaultCppBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
 
-                Depend depend = tasks.create(names.getTaskName("depend") + StringUtils.capitalize(language), Depend.class);
+                Depend depend = tasks.create(names.getDependTaskName(language), Depend.class);
                 configureDepend(depend, binary, toolChain, systemIncludes);
                 compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
 

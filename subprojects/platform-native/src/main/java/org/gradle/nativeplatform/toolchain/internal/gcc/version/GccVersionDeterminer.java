@@ -49,7 +49,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
     private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
     private static final String SYSTEM_INCLUDES_START = "#include <...> search starts here:";
     private static final String SYSTEM_INCLUDES_END = "End of search list.";
-    private static final Pattern FRAMEWORK_INCLUDE = Pattern.compile(".* \\(framework directory\\)");
+    private static final String FRAMEWORK_INCLUDE = " (framework directory)";
     private final ExecActionFactory execActionFactory;
     private final CompilerType compilerType;
 
@@ -136,7 +136,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
                 }
                 if (systemIncludesStarted) {
                     // Exclude frameworks for CLang - they need to be handled differently
-                    if (compilerType == CompilerType.CLANG && FRAMEWORK_INCLUDE.matcher(line).matches()) {
+                    if (compilerType == CompilerType.CLANG && line.contains(FRAMEWORK_INCLUDE)) {
                         continue;
                     }
                     // Exclude framework directories for GCC - they are added as system search paths but they are actually not
