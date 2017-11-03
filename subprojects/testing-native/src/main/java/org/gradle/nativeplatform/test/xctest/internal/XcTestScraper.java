@@ -66,7 +66,6 @@ class XcTestScraper implements TextStream {
         }
         String text = this.textFragment + textFragment;
         this.textFragment = "";
-        System.out.println(text);
         synchronized (testDescriptors) {
             Scanner scanner = new Scanner(text).useDelimiter("'");
             if (scanner.hasNext()) {
