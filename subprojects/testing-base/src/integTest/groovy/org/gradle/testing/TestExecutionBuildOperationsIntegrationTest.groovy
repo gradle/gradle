@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType
-import org.gradle.api.tasks.testing.TestOutputBuildOperationType
+import org.gradle.api.internal.tasks.testing.ExecuteTestBuildOperationType
+import org.gradle.api.internal.tasks.testing.TestOutputBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
@@ -50,8 +50,8 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         def firstLevelTestOps = directChildren(executorTestOps[0], ExecuteTestBuildOperationType)
         firstLevelTestOps.size() == 2
-        firstLevelTestOps*.details.testDescriptor.name == ["org.gradle.Test", "org.gradle.TestSuite"]
-        firstLevelTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.TestSuite"]
+        firstLevelTestOps*.details.testDescriptor.name as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
+        firstLevelTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
         firstLevelTestOps*.details.testDescriptor.composite == [true, true]
 
         def suiteTestOps = directChildren(firstLevelTestOps[1], ExecuteTestBuildOperationType)
@@ -69,13 +69,15 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         and: "outputs are emitted in test build operation hierarchy"
         def testSuiteOutput = directChildren(firstLevelTestOps[1], TestOutputBuildOperationType)
         testSuiteOutput.size() == 4
-        testSuiteOutput*.result.output.message.collect { normaliseLineSeparators(it) }  == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
+        testSuiteOutput*.result.output.message.collect {
+            normaliseLineSeparators(it)
+        } == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
         testSuiteOutput*.result.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
 
         def testOutput = directChildren(testTestOps[0], TestOutputBuildOperationType)
         testOutput.size() == 2
 
-        testOutput*.result.output.message == ["sys out ok\n", "sys err ok\n"]
+        testOutput*.result.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
         testOutput*.result.output.destination == ["StdOut", "StdErr"]
     }
 

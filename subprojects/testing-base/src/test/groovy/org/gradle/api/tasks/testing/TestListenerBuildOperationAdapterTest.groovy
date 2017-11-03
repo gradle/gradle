@@ -21,12 +21,9 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestListenerBuildOperationAdapter
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationIdFactory
-import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
 
@@ -34,22 +31,18 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     public static final int TEST_START_TIMESTAMP = 200
 
-    BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    BuildOperationState rootOperation = Mock()
     BuildOperationListener listener = Mock()
     Clock clock = Mock()
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(buildOperationExecutor, listener, buildOperationIdFactory, clock)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(listener, buildOperationIdFactory, clock)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()
     TestCompleteEvent testCompleteEvent = Mock()
     TestResult testResult = Mock()
-    Object rootId = Mock()
 
     def setup() {
         _ * testDescriptorInternal.getParent() >> parentTestDescriptorInternal
-        _ * buildOperationExecutor.currentOperation >> rootOperation
     }
 
     def "tests are exposed"() {
@@ -63,10 +56,8 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         then:
         1 * buildOperationIdFactory.nextId() >> 1
         1 * clock.currentTime >> 0
-        1 * rootOperation.getId() >> rootId
         1 * listener.started(_, _) >> {
             generatedDescriptor = it[0]
-            assert generatedDescriptor.operationType == BuildOperationCategory.TASK
             assert generatedDescriptor.details.testDescriptor == testDescriptorInternal
             assert generatedDescriptor.details.startTime == TEST_START_TIMESTAMP
         }
@@ -83,13 +74,11 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         }
         1 * clock.currentTime >> 500
         0 * buildOperationIdFactory.nextId()
-        0 * rootOperation.getId() >> rootId
     }
 
     def "test output is exposed as test child operation"() {
         setup:
         _ * clock.currentTime >> 0
-        _ * rootOperation.getId() >> rootId
         long operationId = 1
         _ * buildOperationIdFactory.nextId() >> { operationId++ }
         TestOutputEvent testOutputEvent = new SimpleTestOutputEvent()

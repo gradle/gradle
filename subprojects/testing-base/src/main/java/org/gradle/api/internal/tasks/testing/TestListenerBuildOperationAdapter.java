@@ -17,15 +17,12 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestOutputBuildOperationType;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.progress.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
@@ -39,16 +36,14 @@ import java.util.Map;
  * Emitting build operations for tests
  */
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
-    public static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
+    private static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
     };
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final Clock clock;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public TestListenerBuildOperationAdapter(BuildOperationExecutor buildOperationExecutor, BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public TestListenerBuildOperationAdapter(BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
         this.listener = listener;
         this.buildOperationIdFactory = buildOperationIdFactory;
         this.clock = clock;
@@ -72,7 +67,6 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
         BuildOperationDescriptor.Builder outputDescription = BuildOperationDescriptor.displayName(event.getDestination().name())
-            .operationType(BuildOperationCategory.TASK)
             .details(TEST_OUTPUT_DETAILS);
         BuildOperationDescriptor outputBuildOperationDescriptor = outputDescription.build(newOperationIdentifier(), runningOp.descriptor.getId());
         long currentTime = clock.getCurrentTime();
@@ -83,9 +77,8 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
         DefaultTestBuildOperationDetails details = new DefaultTestBuildOperationDetails(testDescriptor, testStartEvent.getStartTime());
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
-        Object parentId = parentOperation == null ? buildOperationExecutor.getCurrentOperation().getId() : parentOperation.descriptor.getId();
+        Object parentId = parentOperation == null ? BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() : parentOperation.descriptor.getId();
         return BuildOperationDescriptor.displayName(testDescriptor.getName())
-            .operationType(BuildOperationCategory.TASK)
             .details(details)
             .build(newOperationIdentifier(), parentId);
     }
@@ -125,7 +118,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private class BuildOperationTestResult implements ExecuteTestBuildOperationType.Result {
+    private static class BuildOperationTestResult implements ExecuteTestBuildOperationType.Result {
         final TestResult result;
 
         public BuildOperationTestResult(TestResult testResult) {
@@ -138,7 +131,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private class InProgressExecuteTestBuildOperation {
+    private static class InProgressExecuteTestBuildOperation {
         final BuildOperationDescriptor descriptor;
         final long startTime;
 

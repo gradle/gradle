@@ -14,46 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * Build Operations for Test Results
+ *
+ * Output of a Test.
  *
  * @since 4.4
- * */
+ */
 @UsedByScanPlugin
-public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
+public final class TestOutputBuildOperationType implements BuildOperationType<TestOutputBuildOperationType.Details, TestOutputBuildOperationType.Result> {
 
     /**
-     * Details of a running Test
+     * Details of a test output.
      *
      * @since 4.4
-     * */
+     */
     @UsedByScanPlugin
     public interface Details {
-        /**
-         * the descriptor of the executed test.
-         * */
-        TestDescriptor getTestDescriptor();
     }
 
     /**
-     * Result of a running Test
+     * The output of a test.
      *
      * @since 4.4
-     * */
+     */
     @UsedByScanPlugin
     public interface Result {
-        /**
-         * The result of the executed test.
-         *
-         * */
-        TestResult getResult();
+        TestOutputEvent getOutput();
     }
 
-    private ExecuteTestBuildOperationType() {
+    private TestOutputBuildOperationType(){
     }
 }
