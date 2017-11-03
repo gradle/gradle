@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
-    private boolean _configuring = false;
+    private boolean _configuring;
 
     public ConfigureDelegate(Closure configureClosure, Object delegate) {
         _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
