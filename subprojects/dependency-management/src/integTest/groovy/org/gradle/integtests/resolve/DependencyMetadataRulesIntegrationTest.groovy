@@ -194,7 +194,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         given:
         setupCustomVariantsForModule(moduleB).publish()
         moduleA.dependsOn(moduleB).publish()
-        repo.module("org.test", "moduleC").allowAll().publish() //.withModuleMetadata().variant("anotherVariant", [format: "custom"]).publish()
+        repo.module("org.test", "moduleC").allowAll().publish()
 
         when:
         buildFile << """
@@ -225,7 +225,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         }
     }
 
-    def "attribute matching is used for all dependencies added by rules"() {
+    def "attribute matching is used to select a variant of the dependency's target if the dependency was added by a rule"() {
         given:
         setupCustomVariantsForModule(moduleB).publish()
         moduleA.dependsOn(moduleB).publish()
@@ -242,7 +242,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
             }
         """
 
-        //All dependencies added by rules are of type GradleDependencyMetadata and thus use attribute matching
+        //All dependencies added by rules are of type GradleDependencyMetadata and thus attribute matching is used for selecting the variant/configuration of the dependency's target.
         //Here we add a module with Gradle metadata which defines a variant that uses the same attributes declared in the build script (format: "custom").
         //The dependency to this module is then added using the rule and thus is matched correctly.
         mavenGradleRepo.module("org.test", "moduleC").withModuleMetadata().variant("anotherVariantWithFormatCustom", [format: "custom"]).publish()
@@ -300,5 +300,38 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         then:
         fails 'checkDep'
         failure.assertHasCause("Variant testBlue is not declared for org.test:moduleA:1.0")
+    }
+
+    def "resolving one configuration does not influence the result of resolving another configuration."() {
+        given:
+        moduleA.dependsOn(moduleB).publish()
+
+        when:
+        buildFile << """
+            $repoDeclaration
+            
+            configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
+            
+            dependencies {
+                anotherConfiguration group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") {
+                            withDependencies {
+                                //check that the dependency has not been removed already during resolution of the other configuration
+                                assert it.size() == 1
+                                removeAll { true }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds 'dependencies'
     }
 }

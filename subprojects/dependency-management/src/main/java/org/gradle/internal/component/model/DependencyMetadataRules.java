@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.DependenciesMetadata;
+import org.gradle.api.internal.artifacts.repositories.resolver.DependenciesMetadataAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -28,29 +28,30 @@ import java.util.List;
 
 /**
  * A set of rules provided by the build script author (as {@link Action<DependenciesMetadata>}) that
- * are applied on the dependencies defined in variant/configuration metadata.
- * The rules are applied in implementations of {@link ConfigurationMetadata#getDependencies()}.
+ * are applied on the dependencies defined in variant/configuration metadata. The rules are applied
+ * in the {@link #execute(List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {
     private final Instantiator instantiator;
-    private final NotationParser<Object, DependencyMetadata> dependencyNotationParser;
+    private final NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser;
 
     private final List<Action<DependenciesMetadata>> actions = new ArrayList<Action<DependenciesMetadata>>();
 
-    public DependencyMetadataRules(Instantiator instantiator, NotationParser<Object, DependencyMetadata> dependencyNotationParser) {
+    public DependencyMetadataRules(Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
     }
 
-    public List<Action<DependenciesMetadata>> getActions() {
-        return actions;
+    public void addAction(Action<DependenciesMetadata> action) {
+        actions.add(action);
     }
 
-    public Instantiator getInstantiator() {
-        return instantiator;
-    }
-
-    public NotationParser<Object, DependencyMetadata> getDependencyNotationParser() {
-        return dependencyNotationParser;
+    public <T extends DependencyMetadata> List<T> execute(List<T> dependencies) {
+        List<T> calculatedDependencies = new ArrayList<T>(dependencies);
+        for (Action<DependenciesMetadata> dependenciesMetadataAction : actions) {
+            dependenciesMetadataAction.execute(instantiator.newInstance(
+                DependenciesMetadataAdapter.class, calculatedDependencies, instantiator, dependencyNotationParser));
+        }
+        return calculatedDependencies;
     }
 }

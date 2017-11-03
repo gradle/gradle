@@ -14,33 +14,8 @@
  * limitations under the License.
  */
 
+/**
+ * Implementation classes of API declaring and using artifacts and artifact dependencies.
+ */
+@org.gradle.api.NonNullApi
 package org.gradle.api.internal.artifacts.repositories.resolver;
-
-import org.gradle.api.artifacts.DependencyMetadata;
-
-public class DependencyMetadataImpl implements DependencyMetadata {
-    private final String group;
-    private final String name;
-    private String version;
-
-    public DependencyMetadataImpl(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
-        this.version = version;
-    }
-
-    @Override
-    public String getGroup() {
-        return this.group;
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public String getVersion() {
-        return this.version;
-    }
-}

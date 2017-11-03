@@ -18,10 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.repositories.resolver.DependenciesMetadataAdapter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -137,11 +134,7 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
             if (dependencyMetadataRules == null) {
                 calculatedDependencies = configDependencies;
             } else {
-                calculatedDependencies = new ArrayList<DependencyMetadata>(configDependencies);
-                for (Action<DependenciesMetadata> dependenciesMetadataAction : dependencyMetadataRules.getActions()) {
-                    dependenciesMetadataAction.execute(dependencyMetadataRules.getInstantiator().newInstance(
-                        DependenciesMetadataAdapter.class, calculatedDependencies, dependencyMetadataRules.getInstantiator(), dependencyMetadataRules.getDependencyNotationParser()));
-                }
+                calculatedDependencies = dependencyMetadataRules.execute(configDependencies);
             }
         }
         return calculatedDependencies;

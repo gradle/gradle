@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -73,6 +74,13 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void withVariant(String name, Action<VariantMetadata> action) {
+        assertVariantExists(name);
         action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser));
+    }
+
+    private void assertVariantExists(String name) {
+        if (!metadata.definesVariant(name)) {
+            throw new GradleException("Variant " + name + " is not declared for " + metadata.getId());
+        }
     }
 }

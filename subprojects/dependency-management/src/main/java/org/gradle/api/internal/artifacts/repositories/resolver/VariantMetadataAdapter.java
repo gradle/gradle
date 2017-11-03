@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.VariantMetadata;
@@ -36,13 +35,6 @@ public class VariantMetadataAdapter implements VariantMetadata {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
-        assertVariantExists();
-    }
-
-    private void assertVariantExists() {
-        if (!metadata.definesVariant(name)) {
-            throw new GradleException("Variant " + name + " is not declared for " + metadata.getId());
-        }
     }
 
     @Override

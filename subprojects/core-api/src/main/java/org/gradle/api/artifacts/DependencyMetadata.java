@@ -29,20 +29,19 @@ import org.gradle.api.Incubating;
 public interface DependencyMetadata {
 
     /**
-     * Returns the group of this dependency. The group is often required to find the artifacts of a dependency in a
-     * repository. For example, the group name corresponds to a directory name in a Maven like repository.
+     * Returns the group of the module that is targeted by this dependency.
+     * The group allows the definition of modules of the same name in different organizations or contexts.
      */
     String getGroup();
 
     /**
-     * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency in
-     * a repository.
+     * Returns the name of the module that is targeted by this dependency.
      */
     String getName();
 
     /**
-     * Returns the version of this dependency. The version is often required to find the artifacts of a dependency in a
-     * repository. For example the version name corresponds to a directory name in a Maven like repository.
+     * Returns the version of the module that is targeted by this dependency,
+     * which usually expresses what API level of the module you are compatible with.
      */
     String getVersion();
 }

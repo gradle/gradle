@@ -231,7 +231,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         if (rulesForVariant == null) {
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
-        dependencyMetadataRules.get(variantName).getActions().add(action);
+        dependencyMetadataRules.get(variantName).addAction(action);
         resetConfigurations();
     }
 

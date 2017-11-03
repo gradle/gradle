@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
@@ -98,8 +98,8 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         adapterOnGradleMetadata.withVariant("doesNotExist", {})
 
         then:
-        def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
+        def e = thrown(GradleException)
+        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
     }
 
     def "fails when selecting a maven scope that does not exist"() {
@@ -107,8 +107,8 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         adapterOnMavenMetadata.withVariant("doesNotExist", {})
 
         then:
-        def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
+        def e = thrown(GradleException)
+        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
     }
 
     def "fails when selecting an ivy configuration that does not exist"() {
@@ -116,7 +116,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         adapterOnIvyMetadata.withVariant("doesNotExist", {})
 
         then:
-        def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
+        def e = thrown(GradleException)
+        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
     }
 }
