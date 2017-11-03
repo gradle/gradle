@@ -25,7 +25,6 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -88,9 +87,9 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public void load(final BuildCacheKey key, final Action<? super File> reader) {
         // We need to lock here because garbage collection can be under way in another process
-        persistentCache.withFileLock(new Factory<Void>() {
+        persistentCache.withFileLock(new Runnable() {
             @Override
-            public Void create() {
+            public void run() {
                 LocallyAvailableResource resource = fileStore.get(key.getHashCode());
                 if (resource != null) {
                     final File file = resource.getFile();
@@ -109,7 +108,6 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-                return null;
             }
         });
     }
@@ -149,7 +147,12 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     @Override
     public void allocateTempFile(final BuildCacheKey key, final Action<? super File> action) {
-        tempFileStore.allocateTempFile(key, action);
+        persistentCache.withFileLock(new Runnable() {
+            @Override
+            public void run() {
+                tempFileStore.allocateTempFile(key, action);
+            }
+        });
     }
 
     @Override
