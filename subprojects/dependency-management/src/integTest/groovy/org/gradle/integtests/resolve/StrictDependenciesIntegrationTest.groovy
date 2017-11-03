@@ -338,6 +338,57 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     }
 
+    def "should fail if 2 non overlapping strict versions ranges disagree"() {
+        given:
+        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
+        def foo16 = mavenHttpRepo.module("org", "foo", '16').publish()
+        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
+        def foo18 = mavenHttpRepo.module("org", "foo", '18').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf('org:foo') {
+                    version {
+                        strictly '[15,16]'
+                    }
+                }
+                conf project(path: 'other', configuration: 'conf')
+            }                       
+        """
+        file("other/build.gradle") << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf('org:foo') {
+                    version {
+                        strictly '[17,18]'
+                    }
+                }
+            }       
+        """
+        settingsFile << "\ninclude 'other'"
+
+        when:
+        foo15.rootMetaData.expectGet()
+        foo16.pom.expectGet()
+        foo18.pom.expectGet()
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause('Unable to choose between the following component versions: org:foo:16, org:foo:18')
+
+    }
+
     void "should pass if strict version ranges overlap"() {
         given:
         def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
