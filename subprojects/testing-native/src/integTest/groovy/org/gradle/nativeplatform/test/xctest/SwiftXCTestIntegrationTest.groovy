@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+import org.gradle.nativeplatform.fixtures.xctest.XcTestFinderFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -45,46 +46,11 @@ class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
+        def xcTestFinder = new XcTestFinderFixture(toolChain)
         buildFile << """
 apply plugin: 'xctest'
 """
-
-        if (OperatingSystem.current().linux) {
-            buildFile << """
-    dependencies {
-        swiftCompileTest files('${xcTestImportPath}')
-        nativeLinkTest files('${xcTestLinkFile}')
-        nativeRuntimeTest files('${xcTestRuntimeFile}')
-    }
-"""
-        }
-
-    }
-
-    private File getXcTestImportPath() {
-        for (File pathEntry : toolChain.getPathEntries()) {
-            File result = new File(pathEntry.parentFile, 'lib/swift/linux/x86_64/XCTest.swiftmodule')
-            if (result.exists()) {
-                return result.parentFile
-            }
-        }
-
-        throw new IllegalStateException("'XCTest.swiftmodule' couldn't be found.")
-    }
-
-    private String getXcTestLinkFile() {
-        for (File pathEntry : toolChain.getPathEntries()) {
-            File result = new File(pathEntry.parentFile, 'lib/swift/linux/libXCTest.so')
-            if (result.exists()) {
-                return result.absolutePath
-            }
-        }
-
-        throw new IllegalStateException("'libXCTest.so' couldn't be found.")
-    }
-
-    private String getXcTestRuntimeFile() {
-        return xcTestLinkFile
+        buildFile << xcTestFinder.buildscript()
     }
 
     def "fails when test cases fail"() {
