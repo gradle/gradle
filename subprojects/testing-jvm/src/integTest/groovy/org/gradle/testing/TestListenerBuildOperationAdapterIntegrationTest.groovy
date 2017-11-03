@@ -16,13 +16,14 @@
 
 package org.gradle.testing
 
-import org.gradle.api.tasks.testing.ExecuteTestBuildOperationType
+import org.gradle.api.internal.tasks.testing.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -31,33 +32,37 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
     def "emits build operations for junit tests"() {
         given:
         resources.maybeCopy('/org/gradle/testing/junit/JUnitIntegrationTest/suitesOutputIsVisible')
+
         when:
         succeeds "test"
 
         then:
-
         def ops = operations.all(ExecuteTestBuildOperationType) { true }
+        ops.size() == 6
 
-        ops.size() == 5
-        ops[0].details.testDescriptor.name == "Gradle Test Executor 1"
+        ops[0].details.testDescriptor.name == "Gradle Test Run :test"
         ops[0].details.testDescriptor.className == null
         ops[0].details.testDescriptor.composite == true
 
-        ops[1].details.testDescriptor.name == "org.gradle.ASuite"
-        ops[1].details.testDescriptor.className == "org.gradle.ASuite"
+        ops[1].details.testDescriptor.name == "Gradle Test Executor 1"
+        ops[1].details.testDescriptor.className == null
         ops[1].details.testDescriptor.composite == true
 
-        ops[2].details.testDescriptor.name == "anotherOk"
-        ops[2].details.testDescriptor.className == "org.gradle.OkTest"
-        ops[2].details.testDescriptor.composite == false
+        ops[2].details.testDescriptor.name == "org.gradle.ASuite"
+        ops[2].details.testDescriptor.className == "org.gradle.ASuite"
+        ops[2].details.testDescriptor.composite == true
 
-        ops[3].details.testDescriptor.name == "ok"
+        ops[3].details.testDescriptor.name == "anotherOk"
         ops[3].details.testDescriptor.className == "org.gradle.OkTest"
         ops[3].details.testDescriptor.composite == false
 
-        ops[4].details.testDescriptor.className == "org.gradle.OtherTest"
         ops[4].details.testDescriptor.name == "ok"
+        ops[4].details.testDescriptor.className == "org.gradle.OkTest"
         ops[4].details.testDescriptor.composite == false
+
+        ops[5].details.testDescriptor.name == "ok"
+        ops[5].details.testDescriptor.className == "org.gradle.OtherTest"
+        ops[5].details.testDescriptor.composite == false
     }
 
 }

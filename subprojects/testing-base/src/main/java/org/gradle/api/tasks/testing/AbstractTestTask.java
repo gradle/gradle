@@ -132,12 +132,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     @Inject
-    @Incubating
-    protected TestListenerInternal getTestListenerBuildOperationAdapter() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
     }
@@ -436,8 +430,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
 
         TestExecuter testExecuter = createTestExecuter();
-
-        testListenerInternalBroadcaster.add(getTestListenerBuildOperationAdapter());
 
         try {
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);

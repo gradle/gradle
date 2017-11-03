@@ -26,7 +26,11 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.internal.tasks.testing.TestExecuter
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.internal.tasks.testing.TestFramework
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
@@ -67,7 +71,7 @@ class TestTest extends AbstractConventionTaskTest {
         reportDir = temporaryFolder.createDir("report")
         completion = project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
 
-        test = createTask(TestTestTask.class)
+        test = createTask(Test.class)
     }
 
     def cleanup() {
