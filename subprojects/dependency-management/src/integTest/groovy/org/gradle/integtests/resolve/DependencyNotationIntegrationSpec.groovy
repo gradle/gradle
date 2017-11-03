@@ -129,7 +129,12 @@ dependencies {
         dependency 'org.foo:bar:1.0'
         dependencies ('org.foo:one:1', 'org.foo:two:1')
         dependency ('high:five:5') { transitive = false }
-        dependency('org.test:lateversion') { version { prefer '1.1' } }
+        dependency('org.test:lateversion') { 
+               version {
+                  prefer '1.0' 
+                  strictly '1.1' // intentionally overriding "prefer" 
+               } 
+           }
     }
 }
 
