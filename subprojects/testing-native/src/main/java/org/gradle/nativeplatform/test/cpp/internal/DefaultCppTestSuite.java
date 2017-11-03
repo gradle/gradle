@@ -22,15 +22,15 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
-import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 
 import javax.inject.Inject;
 
 public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestSuite {
     private final Property<CppComponent> testedComponent;
-    private final CppTestExecutable testBinary;
+    private final CppExecutable testBinary;
 
     @Inject
     public DefaultCppTestSuite(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -45,7 +45,12 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     }
 
     @Override
-    public CppTestExecutable getDevelopmentBinary() {
+    public CppExecutable getTestExecutable() {
+        return testBinary;
+    }
+
+    @Override
+    public CppExecutable getDevelopmentBinary() {
         return testBinary;
     }
 }

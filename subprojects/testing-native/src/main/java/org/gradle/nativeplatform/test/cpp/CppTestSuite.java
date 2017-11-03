@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppExecutable;
 
 /**
  * A C++ test suite.
@@ -32,5 +33,12 @@ public interface CppTestSuite extends CppComponent {
      * For test suites, this is the test executable binary.
      */
     @Override
-    CppTestExecutable getDevelopmentBinary();
+    CppExecutable getDevelopmentBinary();
+
+    /**
+     * Returns the executable that will be executed to run the tests.
+     *
+     * @since 4.4
+     */
+    CppExecutable getTestExecutable();
 }
