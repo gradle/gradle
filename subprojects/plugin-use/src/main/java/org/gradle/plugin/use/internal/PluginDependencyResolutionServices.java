@@ -60,19 +60,20 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         return getDependencyResolutionServices().getDependencyHandler();
     }
 
-    public Factory<RepositoryHandler> getResolveRepositoryHandlerFactory() {
-        return new Factory<RepositoryHandler>() {
+
+    public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
+        return new PluginRepositoryHandlerProvider() {
             @Override
-            public RepositoryHandler create() {
+            public RepositoryHandler getPluginRepositoryHandler() {
                 return getResolveRepositoryHandler();
             }
         };
     }
 
-    public Factory<List<ArtifactRepository>> getPluginRepositoriesFactory() {
-        return new Factory<List<ArtifactRepository>>() {
+    public PluginRepositoriesProvider getPluginRepositoriesProvider() {
+        return new PluginRepositoriesProvider() {
             @Override
-            public List<ArtifactRepository> create() {
+            public List<ArtifactRepository> getPluginRepositories() {
                 RepositoryHandler repositories = getResolveRepositoryHandler();
                 List<ArtifactRepository> list = new ArrayList<ArtifactRepository>(repositories.size());
                 for (ArtifactRepository repository : repositories) {

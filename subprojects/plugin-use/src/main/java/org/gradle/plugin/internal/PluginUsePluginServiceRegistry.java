@@ -73,7 +73,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginDependencyResolutionServices dependencyResolutionServices,
                                                                   PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
-            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getResolveRepositoryHandlerFactory(), internalPluginResolutionStrategy);
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, dependencyResolutionServices.getPluginRepositoryHandlerProvider(), internalPluginResolutionStrategy);
         }
     }
 
@@ -100,7 +100,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
                                                               PluginResolverFactory pluginResolverFactory, PluginResolutionStrategyInternal internalPluginResolutionStrategy,
                                                               PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
             return new DefaultPluginRequestApplicator(
-                pluginRegistry, pluginResolverFactory, dependencyResolutionServices.getPluginRepositoriesFactory(),
+                pluginRegistry, pluginResolverFactory, dependencyResolutionServices.getPluginRepositoriesProvider(),
                 internalPluginResolutionStrategy, pluginInspector, cachedClasspathTransformer);
         }
 
