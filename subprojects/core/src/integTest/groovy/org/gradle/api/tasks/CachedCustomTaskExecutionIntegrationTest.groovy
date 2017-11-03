@@ -657,6 +657,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executed ":producer"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/3358")
     def "re-ran task is stored in cache"() {
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
