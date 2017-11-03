@@ -44,7 +44,7 @@ class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrati
         ops[0].details.testDescriptor.className == null
         ops[0].details.testDescriptor.composite == true
 
-        ops[1].details.testDescriptor.name == "Gradle Test Executor 1"
+        ops[1].details.testDescriptor.name ==~ "Gradle Test Executor \\d+"
         ops[1].details.testDescriptor.className == null
         ops[1].details.testDescriptor.composite == true
 
