@@ -124,7 +124,6 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
             execHandleBuilder.setStandardOutput(new LineBufferingOutputStream(stdOut));
             execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
-            ((DefaultExecHandleBuilder)execHandleBuilder).redirectErrorStream();
             ExecHandle handle = execHandleBuilder.build();
             return handle.start();
         }
