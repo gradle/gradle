@@ -18,12 +18,12 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
@@ -37,14 +37,10 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.nativeplatform.fixtures.xctest.XcTestFinderFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule
-    TestResources resources = new TestResources(temporaryFolder)
-
     def setup() {
         def xcTestFinder = new XcTestFinderFixture(toolChain)
         buildFile << """
@@ -419,9 +415,56 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support _main symbol duplication
-    @Requires(TestPrecondition.MAC_OS_X)
-    def 'can build xctest bundle which depends multiple swift modules'() {
+    def 'can build xctest bundle which transitively dependencies on other Swift libraries'() {
+        given:
+        def app = new SwiftAppWithLibraries()
+        settingsFile << """
+            rootProject.name = 'app'
+            include 'hello', 'log'
+        """
+        buildFile << """
+            apply plugin: 'swift-executable'
+            dependencies {
+                implementation project(':hello')
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+            }
+        """
+
+        app.executable.writeToProject(testDirectory)
+        app.greeter.writeToProject(file('hello'))
+        app.logger.writeToProject(file('log'))
+
+        file("src/main/swift/Util.swift") << """
+            import Hello 
+            
+            public class Util {
+                public init() {}
+                public func doIt() {
+                    let greeter = Greeter()
+                    greeter.sayHello()
+                }
+            }
+        """
+        file('src/test/swift/UtilTest.swift') << """
+            import XCTest
+            import App
+            
+            public class UtilTest : XCTestCase {
+                public func testGetMessage() {
+                    let util = Util()
+                    util.doIt()
+                    XCTAssert(true)
+                }
+            } 
+        """
         when:
         succeeds 'test'
 
@@ -431,9 +474,69 @@ apply plugin: 'swift-library'
             ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
-    // TODO: Need to support _main symbol duplication
-    @Requires(TestPrecondition.MAC_OS_X)
     def 'can run xctest in swift package manager layout'() {
+        given:
+        def app = new SwiftAppWithLibraries()
+        settingsFile << """
+            rootProject.name = 'app'
+            include 'hello', 'log'
+        """
+        buildFile << """
+            apply plugin: 'swift-executable'
+            executable {
+                source.from rootProject.file('Sources/App')
+            }
+            xctest {
+                source.from rootProject.file('Tests/AppTests')
+            }
+            dependencies {
+                implementation project(':hello')
+            }
+            
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library {
+                    source.from rootProject.file('Sources/Hello')
+                }
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library {
+                    source.from rootProject.file('Sources/Log')
+                }
+            }
+        """
+
+        app.executable.writeToProject(file('Sources/App'))
+        app.greeter.writeToProject(file('Sources/Hello'))
+        app.logger.writeToProject(file('Sources/Log'))
+
+        file("Sources/App/Util.swift") << """
+            import Hello 
+            
+            public class Util {
+                public init() {}
+                public func doIt() {
+                    let greeter = Greeter()
+                    greeter.sayHello()
+                }
+            }
+        """
+        file('Tests/AppTests/UtilTest.swift') << """
+            import XCTest
+            import App
+            
+            public class UtilTest : XCTestCase {
+                public func testGetMessage() {
+                    let util = Util()
+                    util.doIt()
+                    XCTAssert(true)
+                }
+            } 
+        """
         when:
         succeeds 'test'
 

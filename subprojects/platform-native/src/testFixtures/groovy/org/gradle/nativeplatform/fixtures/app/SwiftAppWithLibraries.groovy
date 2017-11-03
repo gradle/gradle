@@ -36,14 +36,7 @@ class SwiftAppWithLibraries implements AppElement {
     }
 
     SourceElement getLibrary() {
-        return new SourceElement() {
-            @Override
-            List<SourceFile> getFiles() {
-                return [greeter.sourceFile].collect {
-                    sourceFile(it.path, it.name, "import Log\n${it.content}")
-                }
-            }
-        }
+        return greeter
     }
 
     SourceElement getExecutable() {

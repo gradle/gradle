@@ -29,10 +29,14 @@ class XcTestFinderFixture {
     String buildscript() {
         if (OperatingSystem.current().linux) {
 """
-    dependencies {
-        swiftCompileTest files('${xcTestImportPath}')
-        nativeLinkTest files('${xcTestLinkFile}')
-        nativeRuntimeTest files('${xcTestRuntimeFile}')
+    allprojects {
+        pluginManager.withPlugin("xctest") {
+            dependencies {
+                swiftCompileTest files('${xcTestImportPath}')
+                nativeLinkTest files('${xcTestLinkFile}')
+                nativeRuntimeTest files('${xcTestRuntimeFile}')
+            }
+        }
     }
 """
         } else {
