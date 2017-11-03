@@ -23,6 +23,7 @@ dependencies {
     integTestRuntime project(':plugins')
     integTestRuntime project(':pluginDevelopment')
     integTestRuntime project(':testKit')
+    integTestRuntime project(':toolingApiBuilders')
 }
 
 useClassycle()
