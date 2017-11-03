@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -41,8 +41,7 @@ class SelectorState implements DependencyGraphSelector {
     private ModuleResolveState targetModule;
     private ComponentState selected;
     private BuildableComponentIdResolveResult idResolveResult;
-    private VersionSelector preferredVersionSelector;
-    private VersionSelector rejectedVersionSelector;
+    private ImmutableVersionConstraint versionConstraint;
 
     SelectorState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
@@ -107,8 +106,7 @@ class SelectorState implements DependencyGraphSelector {
         selected.setSelectionReason(idResolveResult.getSelectionReason());
         targetModule = selected.getModule();
         targetModule.addSelector(this);
-        preferredVersionSelector = idResolveResult.getPreferredSelector();
-        rejectedVersionSelector = idResolveResult.getRejectionSelector();
+        versionConstraint = idResolveResult.getVersionConstraint();
 
         return selected;
     }
@@ -132,11 +130,7 @@ class SelectorState implements DependencyGraphSelector {
         return idResolveResult;
     }
 
-    public VersionSelector getPreferredVersionSelector() {
-        return preferredVersionSelector;
-    }
-
-    public VersionSelector getRejectedVersionSelector() {
-        return rejectedVersionSelector;
+    public ImmutableVersionConstraint getVersionConstraint() {
+        return versionConstraint;
     }
 }

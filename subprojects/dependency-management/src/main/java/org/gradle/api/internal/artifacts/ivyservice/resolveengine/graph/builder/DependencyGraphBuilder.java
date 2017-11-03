@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
@@ -368,15 +369,18 @@ public class DependencyGraphBuilder {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {
             if (filter.apply(selectorState)) {
-                VersionSelector candidateSelector = selectorState.getPreferredVersionSelector();
-                if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                    return false;
+                ImmutableVersionConstraint versionConstraint = selectorState.getVersionConstraint();
+                if (versionConstraint != null) {
+                    VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
+                    if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
+                        return false;
+                    }
+                    candidateSelector = versionConstraint.getRejectedSelector();
+                    if (candidateSelector != null && candidateSelector.accept(version)) {
+                        return false;
+                    }
+                    atLeastOneAgrees = true;
                 }
-                candidateSelector = selectorState.getRejectedVersionSelector();
-                if (candidateSelector != null && candidateSelector.accept(version)) {
-                    return false;
-                }
-                atLeastOneAgrees = true;
             }
         }
         return atLeastOneAgrees;

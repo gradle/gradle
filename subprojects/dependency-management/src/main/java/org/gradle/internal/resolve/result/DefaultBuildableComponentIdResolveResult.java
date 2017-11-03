@@ -19,12 +19,10 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import javax.annotation.Nullable;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
@@ -32,8 +30,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private ComponentSelectionReason selectionReason;
-    private VersionSelector preferredVersionSelector;
-    private VersionSelector rejectedVersionSelector;
+    private ImmutableVersionConstraint versionConstraint;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -97,23 +94,16 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         id = null;
         moduleVersionId = null;
         selectionReason = VersionSelectionReasons.REQUESTED;
-        preferredVersionSelector = null;
+        versionConstraint = null;
     }
 
     @Override
-    public VersionSelector getPreferredSelector() {
-        return preferredVersionSelector;
-    }
-
-    @Nullable
-    @Override
-    public VersionSelector getRejectionSelector() {
-        return rejectedVersionSelector;
+    public ImmutableVersionConstraint getVersionConstraint() {
+        return versionConstraint;
     }
 
     @Override
-    public void setSelectors(VersionSelector preferredSelector, VersionSelector rejectSelector) {
-        this.preferredVersionSelector = preferredSelector;
-        this.rejectedVersionSelector = rejectSelector;
+    public void setVersionConstraint(ImmutableVersionConstraint versionConstraint) {
+        this.versionConstraint = versionConstraint;
     }
 }
