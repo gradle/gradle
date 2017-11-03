@@ -22,7 +22,7 @@ import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 
-public class TestExecutionBuildOperationBuildScopeServices {
+public class TestExecutionBuildOperationBuildSessionScopeServices {
 
     TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(ListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
         return new TestListenerBuildOperationAdapter(listener.getBroadcaster(BuildOperationListener.class), buildOperationIdFactory, clock);

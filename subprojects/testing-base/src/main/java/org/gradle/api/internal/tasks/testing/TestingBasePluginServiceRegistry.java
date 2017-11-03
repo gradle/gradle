@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.operations.TestExecutionBuildOperationBuildScopeServices;
+import org.gradle.api.internal.tasks.testing.operations.TestExecutionBuildOperationBuildSessionScopeServices;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class TestingBasePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new TestExecutionBuildOperationBuildScopeServices());
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new TestExecutionBuildOperationBuildSessionScopeServices());
     }
 
 }
