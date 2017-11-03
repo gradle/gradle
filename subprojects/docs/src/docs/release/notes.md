@@ -71,6 +71,10 @@ It is now possible to compile native applications with the Visual C++ toolchain 
 With this release, Gradle will also begin discovering Visual Studio installations using the [vswhere utility](https://github.com/Microsoft/vswhere)
 from Microsoft if it's available.  
 
+### Embedded Ant version upgraded to Ant 1.9.9
+
+Gradle now embeds [Ant 1.9.9](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.9.html). Previous releases used Ant 1.9.6.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -122,6 +126,10 @@ In previous versions, Gradle would prefer a version of Visual Studio found on th
 means.  It will now consider a version found on the path only if a version is not found in the registry or through executing 
 the [vswhere](https://github.com/Microsoft/vswhere) utility (i.e. it will consider the path only as a last resort).  In order to 
 force a particular version of Visual Studio to be used, configure the [installation directory](dsl/org.gradle.nativeplatform.toolchain.VisualCpp.html#org.gradle.nativeplatform.toolchain.VisualCpp:installDir) on the Visual Studio toolchain.
+
+### Ant version upgraded to Ant 1.9.9
+
+Gradle has been upgraded to embed Ant 1.9.9 over Ant 1.9.6.
 
 ## External contributions
 

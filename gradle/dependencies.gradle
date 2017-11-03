@@ -29,8 +29,10 @@ versions.bouncycastle = "1.58"
 
 versions.maven = "3.0.4"
 
-libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
-    dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
+versions.ant = "1.9.9"
+
+libraries.ant = dependencies.module("org.apache.ant:ant:${versions.ant}") {
+    dependency "org.apache.ant:ant-launcher:${versions.ant}@jar"
 }
 
 libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_ALPHA'
