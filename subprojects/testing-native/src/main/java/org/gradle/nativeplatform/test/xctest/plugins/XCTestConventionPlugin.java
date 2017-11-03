@@ -82,7 +82,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         final Task testingTask = createTestingTask(project);
 
         // Configure tasks
-        configureTestSuiteBuildingTasks(project, component);
+        configureTestSuiteBuildingTasks(project);
         configureTestSuiteWithTestedComponentWhenAvailable(project);
 
         // Create check lifecycle task
@@ -102,7 +102,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private void configureTestSuiteBuildingTasks(Project project, SwiftXCTestSuite component) {
+    private void configureTestSuiteBuildingTasks(Project project) {
         if (OperatingSystem.current().isMacOsX()) {
             TaskContainer tasks = project.getTasks();
 
