@@ -134,7 +134,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         resolve.expectGraph {
             root(":", ":test:") {
                 edge "org:foo:1.0", "org:foo:1.0"
-                edge ("org:bar:1.0", "org:bar:1.0") {
+                edge("org:bar:1.0", "org:bar:1.0") {
                     edge "org:foo:1.0", "org:foo:1.0"
                 }
             }
@@ -177,15 +177,15 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         resolve.expectGraph {
             root(":", ":test:") {
                 edge "org:foo:1.1", "org:foo:1.1"
-                edge ("org:bar:1.0", "org:bar:1.0") {
-                    edge ("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:bar:1.0", "org:bar:1.0") {
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
                 }
             }
         }
     }
 
     @Unroll
-    void "should pass if transitive dependency version (range) matches a strict dependency version (range)"() {
+    void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
         def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
         def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
@@ -211,6 +211,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                 conf('org:bar:1.0')
             }
             
+            // todo: remove if expectGraph works as expected
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
@@ -230,6 +231,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
         then:
         noExceptionThrown()
+        // should be this, but a couple of combinations don't work
+        /*
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:$directDependencyVersion", "org:foo:1.2")
+                edge("org:bar:1.0", "org:bar:1.0") {
+                    edge("org:foo:$transitiveDependencyVersion", "org:foo:1.2")
+                }
+            }
+        }
+        */
 
         where:
         directDependencyVersion << ['[1.0,1.3]', '1.2', '[1.0, 1.2]', '[1.0, 1.3]']
@@ -348,13 +360,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                 }
                 conf project(path:'other', configuration: 'conf')
             }
-            
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.2.jar']
-                }
-            }                  
+                                  
         """
         file("other/build.gradle") << """
             repositories {
@@ -381,7 +387,16 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         run ':checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0,1.2]", "org:foo:1.2")
+                project(':other', 'test:other:') {
+                    configuration = 'conf'
+                    noArtifacts()
+                    edge("org:foo:[1.1,1.3]", "org:foo:1.2")
+                }
+            }
+        }
     }
 
 }
