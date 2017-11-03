@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
@@ -47,6 +48,7 @@ class XcTestScraper implements TextStream {
     private final Clock clock;
     private final Deque<XCTestDescriptor> testDescriptors;
     private TestDescriptorInternal lastDescriptor;
+    private String textFragment = "";
 
     XcTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
         this.processor = processor;
@@ -57,7 +59,13 @@ class XcTestScraper implements TextStream {
     }
 
     @Override
-    public void text(String text) {
+    public void text(String textFragment) {
+        if (!textFragment.endsWith(SystemProperties.getInstance().getLineSeparator())) {
+            this.textFragment += textFragment;
+            return;
+        }
+        String text = this.textFragment + textFragment;
+        this.textFragment = "";
         System.out.println(text);
         synchronized (testDescriptors) {
             Scanner scanner = new Scanner(text).useDelimiter("'");
