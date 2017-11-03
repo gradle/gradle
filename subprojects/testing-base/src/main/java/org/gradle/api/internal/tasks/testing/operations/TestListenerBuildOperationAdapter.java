@@ -124,6 +124,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
             return testDescriptor;
         }
 
+        @Override
         public long getStartTime() {
             return startTime;
         }

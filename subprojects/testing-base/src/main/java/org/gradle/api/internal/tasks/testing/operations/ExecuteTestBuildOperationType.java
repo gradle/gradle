@@ -40,6 +40,8 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
          * the descriptor of the executed test.
          * */
         TestDescriptor getTestDescriptor();
+
+        long getStartTime();
     }
 
     /**
