@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -37,6 +38,8 @@ public interface ComponentResolutionState extends StringVersioned {
     VersionSelector getPreferredVersionSelector();
 
     VersionSelector getRejectedVersionSelector();
+
+    ImmutableVersionConstraint getVersionConstraint();
 
     boolean isResolved();
 

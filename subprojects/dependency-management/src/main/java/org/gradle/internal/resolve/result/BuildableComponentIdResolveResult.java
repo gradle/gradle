@@ -19,11 +19,9 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import javax.annotation.Nullable;
 
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
@@ -34,10 +32,7 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
 
     void failed(ModuleVersionResolveException failure);
 
-    VersionSelector getPreferredSelector();
+    ImmutableVersionConstraint getVersionConstraint();
 
-    @Nullable
-    VersionSelector getRejectionSelector();
-
-    void setSelectors(VersionSelector preferredSelector, VersionSelector acceptSelector);
+    void setVersionConstraint(ImmutableVersionConstraint versionConstraint);
 }

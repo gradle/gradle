@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -50,19 +49,13 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         if (preferredSelector.isDynamic()) {
             dynamicRevisionResolver.resolve(dependency, preferredSelector, result);
         } else {
-            String version;
-            if (preferredSelector instanceof ExactVersionSelector) {
-                version = ((ExactVersionSelector) preferredSelector).getSelector();
-            } else {
-                version = requested.getVersion();
-            }
+            String version = constraint.getPreferredVersion();
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), version);
-            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, requested.getVersion());
+            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, version);
             result.resolved(id, mvId);
         }
         if (result.hasResult()) {
-            VersionSelector rejectSelector = constraint.getRejectedSelector();
-            result.setSelectors(preferredSelector, rejectSelector);
+            result.setVersionConstraint(constraint);
         }
     }
 
