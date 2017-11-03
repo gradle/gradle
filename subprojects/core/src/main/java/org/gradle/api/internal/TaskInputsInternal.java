@@ -27,15 +27,15 @@ import org.gradle.api.tasks.TaskInputs;
 public interface TaskInputsInternal extends TaskInputs {
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
 
-    TaskInputFilePropertyBuilderInternal files(ValidatingValue paths);
+    TaskInputFilePropertyBuilderInternal registerFiles(ValidatingValue paths);
 
-    TaskInputFilePropertyBuilderInternal file(ValidatingValue value);
+    TaskInputFilePropertyBuilderInternal registerFile(ValidatingValue value);
 
-    TaskInputFilePropertyBuilderInternal dir(ValidatingValue dirPath);
+    TaskInputFilePropertyBuilderInternal registerDir(ValidatingValue dirPath);
 
-    TaskInputPropertyBuilder property(String name, ValidatingValue value);
+    TaskInputPropertyBuilder registerProperty(String name, ValidatingValue value);
 
-    TaskInputPropertyBuilder nested(String name, ValidatingValue value);
+    TaskInputPropertyBuilder registerNested(String name, ValidatingValue value);
 
     void validate(TaskValidationContext context);
 }
