@@ -49,7 +49,7 @@ class IncrementalAnnotationProcessorFixture {
         }
 
         dependencies {
-          api 'org.gradle.incap:incap-ap-client:0.0.2'
+          api 'org.gradle.incap:incap-ap-client:0.0.4'
         }
         """
     }

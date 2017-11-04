@@ -7,7 +7,7 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJvm")
 
-    compile 'org.gradle.incap:incap-build-client:0.0.2'
+    compile 'org.gradle.incap:incap-build-client:0.0.4'
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
@@ -24,3 +24,7 @@ useTestFixtures(project: ":launcher")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
+integTest {
+    maxParallelForks=1
+    jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
+}

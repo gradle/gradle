@@ -112,10 +112,9 @@ public class ClassSetAnalysisUpdater {
                 }
             }
         } catch (IOException iox) {
-            // TODO:  We couldn't read the mapping file.  What should we do?
+            // We don't currently have a way to ask the Incap library whether the mappings file exists.
+            // So the only way to check for it is to try to read it, and get an exception.
+            // https://github.com/gradle/incap/issues/111
         }
     }
 }
-
-
-
