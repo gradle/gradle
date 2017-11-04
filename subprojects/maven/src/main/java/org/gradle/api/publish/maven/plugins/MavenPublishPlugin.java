@@ -175,7 +175,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
-            if (publication.getComponent() == null || !(publication.getComponent() instanceof ComponentWithVariants)) {
+            if (!canPublishModuleMetadata(publication)) {
                 return;
             }
 
@@ -195,6 +195,18 @@ public class MavenPublishPlugin implements Plugin<Project> {
             MavenArtifact metadataFile = publication.artifact(generatorTask.getOutputFile());
             metadataFile.setExtension("module");
         }
+    }
+
+    private static boolean canPublishModuleMetadata(MavenPublicationInternal publication) {
+        if (publication.getComponent() == null) {
+            // Cannot yet publish module metadata without component
+            return false;
+        }
+        if (publication.getComponent() instanceof ComponentWithVariants) {
+            // Always publish `ComponentWithVariants`
+            return true;
+        }
+        return System.getProperty("org.gradle.internal.publishModuleMetadata") != null;
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {

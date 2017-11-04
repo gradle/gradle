@@ -25,8 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.java.ComponentWithVariantsAdapter;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -103,10 +101,6 @@ public class WarPlugin implements Plugin<Project> {
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        SoftwareComponentInternal webApplication = objectFactory.newInstance(WebApplication.class, warArtifact, objectFactory.named(Usage.class, "master"));
-        if (System.getProperty("org.gradle.internal.publishModuleMetadata") != null) {
-            webApplication = objectFactory.newInstance(ComponentWithVariantsAdapter.class, webApplication);
-        }
-        project.getComponents().add(webApplication);
+        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, objectFactory.named(Usage.class, "master")));
     }
 }
