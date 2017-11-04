@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -27,6 +28,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -311,6 +313,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public PublishedFile getPublishedFile(final PublishArtifact source) {
+        checkThatArtifactIsPublishedUnmodified(source);
         final String publishedUrl = getPublishedUrl(source);
         final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
@@ -324,6 +327,27 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 return publishedUrl;
             }
         };
+    }
+
+    /*
+      When the artifacts declared in a component are modified for publishing (name/classifier/extension),
+      then the Maven publication no longer represents the underlying java component.
+      Instead of publishing incorrect metadata, we fail any attempt to publish the module metadata.
+
+      In the long term, we will likely prevent any modification of artifacts added from a component.
+      Instead, we will make it easier to modify the component(s) produced by a project, allowing the published
+      metadata to accurately reflect the local component metadata.
+     */
+    private void checkThatArtifactIsPublishedUnmodified(PublishArtifact source) {
+        for (MavenArtifact mavenArtifact : mavenArtifacts) {
+            if (source.getFile().equals(mavenArtifact.getFile())
+                && source.getExtension().equals(mavenArtifact.getExtension())
+                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+                return;
+            }
+        }
+
+        throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
     }
 
     private String getPublishedUrl(PublishArtifact source) {

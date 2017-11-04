@@ -45,6 +45,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
     }
 
+    /**
+     * Not enabled with module metadata.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
     def "can modify artifacts added from component"() {
         disableModuleMetadataPublishing()
 
@@ -68,13 +72,17 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.module", "projectText-1.0.pom")
+        module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.pom")
 
         and:
         resolveArtifact(module, 'jar', 'classified') == ["projectText-1.0-classified.jar"]
     }
 
-    def "can set custom artifacts to override component artifacts"() {
+    /**
+     * Not enabled with module metadata.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
+    def "can override artifacts added from component"() {
         disableModuleMetadataPublishing()
 
         given:
@@ -94,10 +102,32 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.module", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
 
         and:
         resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
+    }
+
+    /**
+     * Cannot publish module metadata for component when artifacts are modified.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
+    def "fails when publishing module metadata for component with modified artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifacts = ["customFile.txt"]
+                }
+            }
+
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
     }
 
     def "can configure custom artifacts when creating"() {
