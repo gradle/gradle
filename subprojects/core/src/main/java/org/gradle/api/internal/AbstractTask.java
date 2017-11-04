@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -159,7 +160,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert name != null;
         state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
-        dependencies = new DefaultTaskDependency(tasks);
         mustRunAfter = new DefaultTaskDependency(tasks);
         finalizedBy = new DefaultTaskDependency(tasks);
         shouldRunAfter = new DefaultTaskDependency(tasks);
@@ -171,6 +171,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskOutputs = new DefaultTaskOutputs(fileResolver, this, taskMutator);
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator);
         taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator);
+
+        dependencies = new InputsAwareTaskDependency(taskInputs, tasks);
     }
 
     private void assertDynamicObject() {
