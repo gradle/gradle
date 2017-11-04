@@ -104,7 +104,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         mavenModule.assertPublished()
-        mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:", "group:projectB:")
+        mavenModule.assertApiDependencies("group:projectA:", "group:projectB:")
     }
 
 }

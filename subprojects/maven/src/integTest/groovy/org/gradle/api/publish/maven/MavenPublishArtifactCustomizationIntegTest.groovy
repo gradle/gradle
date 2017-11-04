@@ -46,6 +46,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     def "can configure artifacts added from component"() {
+        // The published .module file is not really usable, since the artifact customization means that the
+        // Maven publication no longer represents the java component that was published.
+        resolveModuleMetadata = false
+
         given:
         createBuildScripts("""
             publications {
@@ -73,10 +77,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     def "can set custom artifacts to override component artifacts"() {
-        // When the declared artifacts for a component are not actually published, the module metadata
-        // file will not reference any components, and the module isn't really usable.
-        // This would be the case where a component is used to provide the module dependencies,
-        // With custom artifacts being provided directly.
+        // The published .module file is not really usable, since the artifact customization means that the
+        // Maven publication no longer represents the java component that was published.
         resolveModuleMetadata = false
 
         given:

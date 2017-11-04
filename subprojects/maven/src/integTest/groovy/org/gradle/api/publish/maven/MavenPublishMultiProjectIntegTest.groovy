@@ -134,7 +134,7 @@ project(":project3") {
         succeeds "publish"
 
         then:
-        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0", "custom:custom3:456")
+        project1.assertApiDependencies("org.gradle.test:project2:2.0", "custom:custom3:456")
     }
 
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
@@ -289,6 +289,7 @@ project(":project2") {
         then:
         project2.assertPublished()
         project2.assertApiDependencies("org.gradle.test:project1:1.0")
+
         def dependency = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
         dependency.exclusions.size() == 2
         def sorted = dependency.exclusions.sort { it.groupId }
