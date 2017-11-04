@@ -25,6 +25,7 @@ public enum TargetJdk {
     VERSION_1_5,
     VERSION_1_6,
     VERSION_1_7,
+    VERSION_1_8,
     VERSION_JSP;
 
     /**
@@ -43,7 +44,9 @@ public enum TargetJdk {
         }
 
         String name = value.toString();
-        if (name.equalsIgnoreCase("1.7")) {
+        if (name.equalsIgnoreCase("1.8")) {
+            return VERSION_1_8;
+        } else if (name.equalsIgnoreCase("1.7")) {
             return VERSION_1_7;
         } else if (name.equalsIgnoreCase("1.6")) {
             return VERSION_1_6;
