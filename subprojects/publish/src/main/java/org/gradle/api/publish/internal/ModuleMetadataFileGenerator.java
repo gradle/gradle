@@ -31,7 +31,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
@@ -63,7 +62,7 @@ public class ModuleMetadataFileGenerator {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(publication.getCoordinates(), (ComponentWithVariants) publication.getComponent(), coordinates, owners, jsonWriter);
+        writeComponentWithVariants(publication, (ComponentWithVariants) publication.getComponent(), coordinates, owners, jsonWriter);
         jsonWriter.flush();
         writer.append('\n');
     }
@@ -87,12 +86,12 @@ public class ModuleMetadataFileGenerator {
         }
     }
 
-    private void writeComponentWithVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal publication, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
-        writeIdentity(coordinates, component, componentCoordinates, owners, jsonWriter);
+        writeIdentity(publication.getCoordinates(), component, componentCoordinates, owners, jsonWriter);
         writeCreator(jsonWriter);
-        writeVariants(coordinates, component, componentCoordinates, jsonWriter);
+        writeVariants(publication, component, componentCoordinates, jsonWriter);
         jsonWriter.endObject();
     }
 
@@ -124,7 +123,7 @@ public class ModuleMetadataFileGenerator {
         }
     }
 
-    private void writeVariants(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+    private void writeVariants(PublicationInternal publication, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
         boolean started = false;
         if (component instanceof SoftwareComponentInternal) {
             SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
@@ -134,7 +133,7 @@ public class ModuleMetadataFileGenerator {
                     jsonWriter.beginArray();
                     started = true;
                 }
-                writeVariantHostedInThisModule(coordinates, usageContext, jsonWriter);
+                writeVariantHostedInThisModule(publication, usageContext, jsonWriter);
             }
         }
         for (SoftwareComponent childComponent : component.getVariants()) {
@@ -150,7 +149,7 @@ public class ModuleMetadataFileGenerator {
                         jsonWriter.beginArray();
                         started = true;
                     }
-                    writeVariantHostedInAnotherModule(coordinates, childCoordinates, usageContext, jsonWriter);
+                    writeVariantHostedInAnotherModule(publication.getCoordinates(), childCoordinates, usageContext, jsonWriter);
                 }
             }
         }
@@ -215,13 +214,13 @@ public class ModuleMetadataFileGenerator {
         return path.toString();
     }
 
-    private void writeVariantHostedInThisModule(ModuleVersionIdentifier coordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
+    private void writeVariantHostedInThisModule(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
         writeAttributes(variant.getAttributes(), jsonWriter);
         writeDependencies(variant, jsonWriter);
-        writeArtifacts(coordinates, variant, jsonWriter);
+        writeArtifacts(publication, variant, jsonWriter);
 
         jsonWriter.endObject();
     }
@@ -255,38 +254,26 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeArtifacts(ModuleVersionIdentifier coordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
+    private void writeArtifacts(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
         if (variant.getArtifacts().isEmpty()) {
             return;
         }
         jsonWriter.name("files");
         jsonWriter.beginArray();
         for (PublishArtifact artifact : variant.getArtifacts()) {
-            writeArtifact(coordinates, artifact, jsonWriter);
+            writeArtifact(publication, artifact, jsonWriter);
         }
         jsonWriter.endArray();
     }
 
-    private void writeArtifact(ModuleVersionIdentifier coordinates, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
+    private void writeArtifact(PublicationInternal publication, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
+        PublicationInternal.PublishedFile publishedFile = publication.getPublishedFile(artifact);
+
         jsonWriter.beginObject();
         jsonWriter.name("name");
-        jsonWriter.value(artifact.getFile().getName());
-
+        jsonWriter.value(publishedFile.getName());
         jsonWriter.name("url");
-        // TODO - do not assume Maven layout
-        StringBuilder artifactPath = new StringBuilder();
-        artifactPath.append(coordinates.getName());
-        artifactPath.append('-');
-        artifactPath.append(coordinates.getVersion());
-        if (GUtil.isTrue(artifact.getClassifier())) {
-            artifactPath.append('-');
-            artifactPath.append(artifact.getClassifier());
-        }
-        if (GUtil.isTrue(artifact.getExtension())) {
-            artifactPath.append('.');
-            artifactPath.append(artifact.getExtension());
-        }
-        jsonWriter.value(artifactPath.toString());
+        jsonWriter.value(publishedFile.getUri());
 
         jsonWriter.name("size");
         jsonWriter.value(artifact.getFile().length());

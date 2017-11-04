@@ -81,10 +81,13 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         a1.file >> file1
         a1.extension >> "zip"
         a1.classifier >> ""
+        publication.getPublishedFile(a1) >> new SimplePublishedFile("a1.name", "a1.url")
+
         def a2 = Stub(PublishArtifact)
         a2.file >> file2
         a2.extension >> "dll"
         a2.classifier >> "windows"
+        publication.getPublishedFile(a2) >> new SimplePublishedFile("a2.name", "a2.url")
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -122,8 +125,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       },
       "files": [
         {
-          "name": "artifact-1",
-          "url": "module-1.2.zip",
+          "name": "a1.name",
+          "url": "a1.url",
           "size": 3,
           "sha1": "40bd001563085fc35165329ea1ff5c5ecbdbbeef",
           "md5": "202cb962ac59075b964b07152d234b70"
@@ -137,8 +140,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       },
       "files": [
         {
-          "name": "thing.dll",
-          "url": "module-1.2-windows.dll",
+          "name": "a2.name",
+          "url": "a2.url",
           "size": 4,
           "sha1": "81fe8bfe87576c3ecb22426f8e57847382917acf",
           "md5": "e2fc714c4727ee9395f324cd2e7f331f"
@@ -412,5 +415,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {
 
+    }
+
+    class SimplePublishedFile implements PublicationInternal.PublishedFile {
+        SimplePublishedFile(String name, String uri) {
+            this.name = name
+            this.uri = uri
+        }
+        String name;
+        String uri;
     }
 }

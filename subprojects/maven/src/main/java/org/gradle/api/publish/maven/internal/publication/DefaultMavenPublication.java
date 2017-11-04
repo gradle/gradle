@@ -49,6 +49,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -301,6 +302,43 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
+    }
+
+    @Override
+    public PublishedFile getPublishedFile(final PublishArtifact source) {
+        final String publishedUrl = getPublishedUrl(source);
+        final String publishedName = source.getFile().getName();
+        return new PublishedFile() {
+            @Override
+            public String getName() {
+                return publishedName;
+            }
+
+            @Override
+            public String getUri() {
+                return publishedUrl;
+            }
+        };
+    }
+
+    private String getPublishedUrl(PublishArtifact source) {
+        return getArtifactFileName(source.getClassifier(), source.getExtension());
+    }
+
+    private String getArtifactFileName(String classifier, String extension) {
+        StringBuilder artifactPath = new StringBuilder();
+        artifactPath.append(getCoordinates().getName());
+        artifactPath.append('-');
+        artifactPath.append(getCoordinates().getVersion());
+        if (GUtil.isTrue(classifier)) {
+            artifactPath.append('-');
+            artifactPath.append(classifier);
+        }
+        if (GUtil.isTrue(extension)) {
+            artifactPath.append('.');
+            artifactPath.append(extension);
+        }
+        return artifactPath.toString();
     }
 
     private static class ArtifactKey {

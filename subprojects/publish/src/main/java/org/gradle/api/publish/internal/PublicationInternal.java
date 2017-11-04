@@ -16,6 +16,7 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.Publication;
 
@@ -26,4 +27,12 @@ public interface PublicationInternal extends Publication {
     SoftwareComponentInternal getComponent();
 
     ModuleVersionIdentifier getCoordinates();
+
+    PublishedFile getPublishedFile(PublishArtifact source);
+
+    interface PublishedFile {
+        String getName();
+
+        String getUri();
+    }
 }
