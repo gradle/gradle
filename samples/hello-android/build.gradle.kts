@@ -1,15 +1,15 @@
 plugins {
-    id("com.android.application") version "2.3.3"
+    id("com.android.application") version "3.0.0"
     kotlin("android") version "1.1.51"
 }
 
 android {
-    buildToolsVersion("25.0.0")
-    compileSdkVersion(23)
+    buildToolsVersion("27.0.0")
+    compileSdkVersion(27)
 
     defaultConfig {
         minSdkVersion(15)
-        targetSdkVersion(23)
+        targetSdkVersion(27)
 
         applicationId = "com.example.kotlingradle"
         versionCode = 1
@@ -25,11 +25,12 @@ android {
 }
 
 dependencies {
-    compile("com.android.support:appcompat-v7:23.4.0")
-    compile("com.android.support.constraint:constraint-layout:1.0.0-alpha8")
+    compile("com.android.support:appcompat-v7:27.0.0")
+    compile("com.android.support.constraint:constraint-layout:1.0.2")
     compile(kotlin("stdlib", "1.1.51"))
 }
 
 repositories {
     jcenter()
+    google()
 }

@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://jcenter.bintray.com/") }
+        maven { url = uri("https://maven.google.com/") }
     }
     resolutionStrategy {
         eachPlugin {
