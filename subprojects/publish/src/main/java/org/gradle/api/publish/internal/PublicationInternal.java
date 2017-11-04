@@ -28,6 +28,12 @@ public interface PublicationInternal extends Publication {
 
     ModuleVersionIdentifier getCoordinates();
 
+    /**
+     * Provide the file coordinates for the published artifact, if any.
+     *
+     * @param source The original PublishArtifact
+     * @return The name and URI of the published file, or `null` if the source artifact is not published.
+     */
     PublishedFile getPublishedFile(PublishArtifact source);
 
     interface PublishedFile {

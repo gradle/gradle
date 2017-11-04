@@ -33,6 +33,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -175,6 +176,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get());
                                 publication.setVersion(project.getVersion().toString());
                                 publication.from(mainVariant);
+                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                             }
                         });
                         for (final SoftwareComponent child : mainVariant.getVariants()) {
@@ -186,6 +188,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                     publication.setArtifactId(library.getBaseName().get() + "_" + child.getName());
                                     publication.setVersion(project.getVersion().toString());
                                     publication.from(child);
+                                    ((MavenPublicationInternal) publication).publishWithOriginalFileName();
                                 }
                             });
                         }

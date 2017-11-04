@@ -91,6 +91,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
+    private boolean isPublishWithOriginalFileName;
 
     public DefaultMavenPublication(
             String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
@@ -304,10 +305,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
     }
 
+    public void publishWithOriginalFileName() {
+        this.isPublishWithOriginalFileName = true;
+    }
+
     @Override
     public PublishedFile getPublishedFile(final PublishArtifact source) {
         final String publishedUrl = getPublishedUrl(source);
-        final String publishedName = source.getFile().getName();
+        final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
             @Override
             public String getName() {
