@@ -133,9 +133,10 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary(mavenRepo.module("org.gradle.test", "depProject1", "1.9")).assertPublished()
         mavenRepo.module("org.gradle.test", "depProject2", "1.9").assertPublished()
 
-        def webModule = mavenRepo.module("org.gradle.test", "projectWeb", "1.9")
+        def webModule = mavenRepo.module("org.gradle.test", "projectWeb", "1.9").withModuleMetadata()
         webModule.assertPublishedAsWebModule()
         webModule.parsedPom.scopes.isEmpty()
+        webModule.parsedModuleMetadata.variant("master").dependencies.isEmpty()
 
         and:
         resolveArtifacts(webModule) == ["projectWeb-1.9.war"]
