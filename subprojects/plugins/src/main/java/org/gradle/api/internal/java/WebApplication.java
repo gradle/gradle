@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
@@ -33,12 +32,10 @@ public class WebApplication implements SoftwareComponentInternal {
     private final UsageContext webArchiveUsage = new WebArchiveUsageContext();
     private final PublishArtifact warArtifact;
     private final Usage masterUsage;
-    private final ImmutableAttributes attributes;
 
     @Inject
-    public WebApplication(PublishArtifact warArtifact, Usage masterUsage, ImmutableAttributesFactory attributesFactory) {
+    public WebApplication(PublishArtifact warArtifact, Usage masterUsage) {
         this.warArtifact = warArtifact;
-        this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, masterUsage);
         this.masterUsage = masterUsage;
     }
 
@@ -65,7 +62,7 @@ public class WebApplication implements SoftwareComponentInternal {
 
         @Override
         public AttributeContainer getAttributes() {
-            return attributes;
+            return ImmutableAttributes.EMPTY;
         }
 
         @Override
