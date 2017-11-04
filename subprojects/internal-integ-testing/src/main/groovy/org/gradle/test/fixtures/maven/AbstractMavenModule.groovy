@@ -225,25 +225,25 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     void assertPublishedAsJavaModule() {
+        assertPublishedWithSingleArtifact("jar", null)
+    }
+
+    void assertPublishedAsWebModule() {
+        assertPublishedWithSingleArtifact('war')
+    }
+
+    void assertPublishedAsEarModule() {
+        assertPublishedWithSingleArtifact('ear')
+    }
+
+    private assertPublishedWithSingleArtifact(String extension, String packaging = extension) {
         assertPublished()
-        def expectedArtifacts = ["${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom"]
+        def expectedArtifacts = ["${artifactId}-${publishArtifactVersion}.${extension}", "${artifactId}-${publishArtifactVersion}.pom"]
         if (hasModuleMetadata) {
             expectedArtifacts << "${artifactId}-${publishArtifactVersion}.module"
         }
         assertArtifactsPublished(expectedArtifacts as String[])
-        assert parsedPom.packaging == null
-    }
-
-    void assertPublishedAsWebModule() {
-        assertPublished()
-        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.war", "${artifactId}-${publishArtifactVersion}.pom")
-        assert parsedPom.packaging == 'war'
-    }
-
-    void assertPublishedAsEarModule() {
-        assertPublished()
-        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.ear", "${artifactId}-${publishArtifactVersion}.pom")
-        assert parsedPom.packaging == 'ear'
+        assert parsedPom.packaging == packaging
     }
 
     /**

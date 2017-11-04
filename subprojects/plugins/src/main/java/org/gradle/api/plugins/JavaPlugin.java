@@ -303,7 +303,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
         SoftwareComponentInternal javaLibrary = objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), jarArtifact);
-        if (System.getProperty("org.gradle.internal.publishJavaModuleMetadata") != null) {
+        if (System.getProperty("org.gradle.internal.publishModuleMetadata") != null) {
             javaLibrary = objectFactory.newInstance(ComponentWithVariantsAdapter.class, javaLibrary);
         }
         project.getComponents().add(javaLibrary);

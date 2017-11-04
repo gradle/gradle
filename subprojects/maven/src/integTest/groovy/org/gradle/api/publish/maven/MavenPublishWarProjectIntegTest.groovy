@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
     public void "publishes war and meta-data for web component with external dependencies"() {
-        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
+        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9").withModuleMetadata()
 
         given:
         settingsFile << "rootProject.name = 'project1'"
@@ -64,6 +64,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         then:
         webModule.assertPublishedAsWebModule()
         webModule.parsedPom.scopes.isEmpty()
+        webModule.parsedModuleMetadata.variant("master").dependencies.isEmpty()
 
         and:
         resolveArtifacts(webModule) == ["project1-1.9.war"]
