@@ -69,12 +69,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options) {
-        Map<String, Object> mutableOptions = new HashMap<String, Object>(options);
+        Map<String, ?> factoryOptions = options;
+        boolean replace = false;
+        if (options.containsKey(Task.TASK_OVERWRITE)) {
+            factoryOptions = new HashMap<String, Object>(options);
+            Object replaceStr = factoryOptions.remove(Task.TASK_OVERWRITE);
+            replace = "true".equals(replaceStr.toString());
+        }
 
-        Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
-        boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
-
-        Task task = taskFactory.createTask(mutableOptions);
+        Task task = taskFactory.createTask(factoryOptions);
         return addTask(task, replace);
     }
 
