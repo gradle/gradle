@@ -45,7 +45,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
@@ -55,7 +55,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
     }
 
     def "does not update lock file for unchanged dependencies"() {
@@ -79,7 +79,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         succeedsWithEnabledDependencyLocking(COPY_LIBS_TASK_NAME)
@@ -89,7 +89,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTaskSkipped(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
     }
 
     def "recreates lock file for newly declared and resolved dependencies of an existing configuration"() {
@@ -114,7 +114,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         buildFile << """
@@ -130,8 +130,8 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         locks.size() == 2
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        locks[1].toString() == 'org:gradle:7.5 -> 7.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
+        locks[1].toString() == 'org:gradle -> 7.5'
     }
 
     def "recreates lock file for removed, resolved dependencies for an existing configuration"() {
@@ -157,8 +157,8 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 2
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        locks[1].toString() == 'org:gradle:7.5 -> 7.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
+        locks[1].toString() == 'org:gradle -> 7.5'
 
         when:
         buildFile.text = mavenRepository(mavenRepo) + customConfigurations(MYCONF_CONFIGURATION_NAME) + """
@@ -174,7 +174,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
     }
 
     def "merges resolved dependencies of newly introduced independent, configuration"() {
@@ -200,7 +200,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -220,9 +220,9 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
         addedLocks.size() == 1
-        addedLocks[0].toString() == 'org:gradle:7.5 -> 7.5'
+        addedLocks[0].toString() == 'org:gradle -> 7.5'
     }
 
     def "merges resolved dependencies of newly introduced parent configuration"() {
@@ -248,7 +248,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -269,10 +269,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         myConfLocks.size() == 2
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        myConfLocks[1].toString() == 'org:gradle:7.5 -> 7.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
+        myConfLocks[1].toString() == 'org:gradle -> 7.5'
         addedLocks.size() == 1
-        addedLocks[0].toString() == 'org:gradle:7.5 -> 7.5'
+        addedLocks[0].toString() == 'org:gradle -> 7.5'
     }
 
     def "merges resolved dependencies of newly introduced child configuration"() {
@@ -298,7 +298,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         def parsedLockFile = parseLockFile()
         def myConfLocks = parsedLockFile.getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -319,10 +319,10 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         result.assertTasksExecuted(COPY_LIBS_TASK_PATH)
         assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
         addedLocks.size() == 2
-        addedLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
-        addedLocks[1].toString() == 'org:gradle:7.5 -> 7.5'
+        addedLocks[0].toString() == 'foo:bar -> 1.5'
+        addedLocks[1].toString() == 'org:gradle -> 7.5'
     }
 
     def "does not modify existing lock file if same configuration is unresolvable"() {
@@ -345,7 +345,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         assertLockFileAndHashFileExist()
         def myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         deleteMavenRepo()
@@ -355,7 +355,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         then:
         assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
     }
 
     def "does not modify existing lock file if different configuration is unresolvable"() {
@@ -378,7 +378,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         assertLockFileAndHashFileExist()
         def myConfLocks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
 
         when:
         buildFile << customConfigurations(OTHER_CONFIGURATION_NAME)
@@ -395,7 +395,7 @@ class DependencyLockFileSubsequentBuildsIntegrationTest extends AbstractDependen
         then:
         assertLockFileAndHashFileExist()
         myConfLocks.size() == 1
-        myConfLocks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        myConfLocks[0].toString() == 'foo:bar -> 1.5'
     }
 
     private void deleteMavenRepo() {

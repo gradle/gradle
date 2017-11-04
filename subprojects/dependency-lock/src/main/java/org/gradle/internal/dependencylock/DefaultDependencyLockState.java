@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.dependencylock.model.DependencyLock;
-import org.gradle.internal.dependencylock.model.DependencyVersion;
 import org.gradle.internal.dependencylock.model.ModuleKey;
 
 public class DefaultDependencyLockState implements DependencyLockState {
@@ -56,8 +55,7 @@ public class DefaultDependencyLockState implements DependencyLockState {
     private void addDependency(String projectPath, String configurationName, ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult, DependencyLock dependencyLock) {
         ModuleIdentifier moduleIdentifier = new ModuleKey(requestedModule.getGroup(), requestedModule.getModule());
         String resolvedVersion = determineResolvedVersion(requestedModule, resolvedDependencyResult);
-        DependencyVersion dependencyVersion = new DependencyVersion(requestedModule.getVersion(), resolvedVersion);
-        dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, dependencyVersion);
+        dependencyLock.addDependency(projectPath, configurationName, moduleIdentifier, resolvedVersion);
     }
 
     private String determineResolvedVersion(ModuleComponentSelector requestedModule, ResolvedDependencyResult resolvedDependencyResult) {

@@ -18,57 +18,41 @@ package org.gradle.internal.dependencylock.model;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class DependencyLock {
 
-    private final SortedMap<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>> projectsMapping = new TreeMap<String,  SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>>();
+    private final SortedMap<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, String>>> locksMapping = new TreeMap<String,  SortedMap<String, LinkedHashMap<ModuleIdentifier, String>>>();
 
-    public void addDependency(String projectPath, String configurationName, ModuleIdentifier moduleIdentifier, DependencyVersion dependencyVersion) {
-        if (projectsMapping.containsKey(projectPath)) {
-            SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> project = projectsMapping.get(projectPath);
-            LinkedHashMap<ModuleIdentifier, List<DependencyVersion>> modulesMapping = createAndGetModulesMapping(project, configurationName);
+    public void addDependency(String projectPath, String configurationName, ModuleIdentifier moduleIdentifier, String resolvedVersion) {
+        if (locksMapping.containsKey(projectPath)) {
+            SortedMap<String, LinkedHashMap<ModuleIdentifier, String>> project = locksMapping.get(projectPath);
 
-            if (!modulesMapping.containsKey(moduleIdentifier)) {
-                startCapturingDependenciesForModule(modulesMapping, moduleIdentifier, dependencyVersion);
-            } else {
-                modulesMapping.get(moduleIdentifier).add(dependencyVersion);
+            if (!project.containsKey(configurationName)) {
+                project.put(configurationName, new LinkedHashMap<ModuleIdentifier, String>());
             }
+
+            project.get(configurationName).put(moduleIdentifier, resolvedVersion);
         } else {
-            SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> configurationMapping = createNewConfigurationMapping(configurationName);
-            LinkedHashMap<ModuleIdentifier, List<DependencyVersion>> modulesMapping = new LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>();
-            startCapturingDependenciesForModule(modulesMapping, moduleIdentifier, dependencyVersion);
-            configurationMapping.put(configurationName, modulesMapping);
-            projectsMapping.put(projectPath, configurationMapping);
+            SortedMap<String, LinkedHashMap<ModuleIdentifier, String>> configurationMapping = createNewConfigurationMapping(configurationName);
+            LinkedHashMap<ModuleIdentifier, String> modules = new LinkedHashMap<ModuleIdentifier, String>();
+            modules.put(moduleIdentifier, resolvedVersion);
+            configurationMapping.put(configurationName, modules);
+            locksMapping.put(projectPath, configurationMapping);
         }
     }
 
-    private LinkedHashMap<ModuleIdentifier, List<DependencyVersion>> createAndGetModulesMapping(SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> project, String configurationName) {
-        if (!project.containsKey(configurationName)) {
-            project.put(configurationName, new LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>());
-        }
-
-        return project.get(configurationName);
-    }
-
-    private void startCapturingDependenciesForModule(LinkedHashMap<ModuleIdentifier, List<DependencyVersion>> modulesMapping, ModuleIdentifier moduleIdentifier, DependencyVersion dependencyVersion) {
-        List<DependencyVersion> dependencies = new ArrayList<DependencyVersion>();
-        dependencies.add(dependencyVersion);
-        modulesMapping.put(moduleIdentifier, dependencies);
-    }
-
-    private SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> createNewConfigurationMapping(String configurationName) {
-        SortedMap<String, LinkedHashMap<ModuleIdentifier,  List<DependencyVersion>>> configurationMapping = new TreeMap<String, LinkedHashMap<ModuleIdentifier,  List<DependencyVersion>>>();
-        configurationMapping.put(configurationName, new LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>());
+    private SortedMap<String, LinkedHashMap<ModuleIdentifier, String>> createNewConfigurationMapping(String configurationName) {
+        SortedMap<String, LinkedHashMap<ModuleIdentifier, String>> configurationMapping = new TreeMap<String, LinkedHashMap<ModuleIdentifier, String>>();
+        LinkedHashMap<ModuleIdentifier, String> modules = new LinkedHashMap<ModuleIdentifier, String>();
+        configurationMapping.put(configurationName, modules);
         return configurationMapping;
     }
 
-    public Map<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>> getProjectsMapping() {
-        return projectsMapping;
+    public Map<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, String>>> getLocksMapping() {
+        return locksMapping;
     }
 }

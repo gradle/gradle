@@ -71,13 +71,13 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         def parsedLockFile = parseLockFile()
         def conf1Locks = parsedLockFile.getLocks(':a', 'conf1')
         conf1Locks.size() == 1
-        conf1Locks[0].toString() == 'my:dep:1.5 -> 1.5'
+        conf1Locks[0].toString() == 'my:dep -> 1.5'
         def conf2Locks = parsedLockFile.getLocks(':b', 'conf2')
         conf2Locks.size() == 1
-        conf2Locks[0].toString() == 'foo:bar:2.3.1 -> 2.3.1'
+        conf2Locks[0].toString() == 'foo:bar -> 2.3.1'
         def conf3Locks = parsedLockFile.getLocks(':c', 'conf3')
         conf3Locks.size() == 1
-        conf3Locks[0].toString() == 'other:company:5.2 -> 5.2'
+        conf3Locks[0].toString() == 'other:company -> 5.2'
     }
 
     def "does not record project dependencies in lock file"() {
@@ -116,11 +116,11 @@ class DependencyLockFileMultiProjectIntegrationTest extends AbstractDependencyLo
         def parsedLockFile = parseLockFile()
         def compileLocksProjectA = parsedLockFile.getLocks(':a', 'compileClasspath')
         compileLocksProjectA.size() == 1
-        compileLocksProjectA[0].toString() == 'my:dep:1.5 -> 1.5'
+        compileLocksProjectA[0].toString() == 'my:dep -> 1.5'
         def compileLocksProjectB = parsedLockFile.getLocks(':b', 'compileClasspath')
         compileLocksProjectB.size() == 2
-        compileLocksProjectB[0].toString() == 'foo:bar:2.3.1 -> 2.3.1'
-        compileLocksProjectB[1].toString() == 'my:dep:1.5 -> 1.5'
+        compileLocksProjectB[0].toString() == 'foo:bar -> 2.3.1'
+        compileLocksProjectB[1].toString() == 'my:dep -> 1.5'
     }
 
     static String javaClass(String className) {

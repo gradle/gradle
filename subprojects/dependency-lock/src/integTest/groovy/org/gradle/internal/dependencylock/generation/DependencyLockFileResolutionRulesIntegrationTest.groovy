@@ -53,7 +53,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
 
         where:
         replacement                         | description
@@ -94,7 +94,7 @@ class DependencyLockFileResolutionRulesIntegrationTest extends AbstractDependenc
         assertLockFileAndHashFileExist()
         def locks = parseLockFile().getLocks(ROOT_PROJECT_PATH, MYCONF_CONFIGURATION_NAME)
         locks.size() == 1
-        locks[0].toString() == 'foo:bar:1.5 -> 1.5'
+        locks[0].toString() == 'foo:bar -> 1.5'
 
         where:
         sourceComponent         | targetComponent           | type

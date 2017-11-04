@@ -46,7 +46,7 @@ public class DefaultDependencyLockManager implements DependencyLockManager {
         if (successDependencyResolution) {
             DependencyLock dependencyLock = dependencyLockState.getDependencyLock();
 
-            if (!dependencyLock.getProjectsMapping().isEmpty()) {
+            if (!dependencyLock.getLocksMapping().isEmpty()) {
                 writeLockAndHashFile(dependencyLock, lockFile);
             }
         }

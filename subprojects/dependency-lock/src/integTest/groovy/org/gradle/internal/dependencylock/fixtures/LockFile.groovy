@@ -44,7 +44,7 @@ class LockFile {
             return []
         }
 
-        matchingLock.dependencies.collect { new LockedDependency(it.moduleId, it.requestedVersion, it.lockedVersion) }
+        matchingLock.dependencies.collect { new LockedDependency(it.moduleId, it.lockedVersion) }
     }
 
     private String buildLockId(String projectPath, String configurationName) {
@@ -54,11 +54,10 @@ class LockFile {
     @TupleConstructor
     static class LockedDependency {
         final String moduleId
-        final String requestedVersion
         final String lockedVersion
 
         String toString() {
-            "${moduleId}:${requestedVersion} -> ${lockedVersion}"
+            "${moduleId} -> ${lockedVersion}"
         }
     }
 }

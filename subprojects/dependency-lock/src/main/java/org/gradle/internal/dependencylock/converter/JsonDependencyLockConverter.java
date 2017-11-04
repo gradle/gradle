@@ -20,13 +20,11 @@ import com.google.gson.stream.JsonWriter;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.dependencylock.model.DependencyLock;
-import org.gradle.internal.dependencylock.model.DependencyVersion;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -49,21 +47,18 @@ public class JsonDependencyLockConverter implements DependencyLockConverter {
             writer.name("locks");
             writer.beginArray();
 
-            for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>>> projectsMapping : dependencyLock.getProjectsMapping().entrySet()) {
-                for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, List<DependencyVersion>>> configurationsMapping : projectsMapping.getValue().entrySet()) {
+            for (Map.Entry<String, SortedMap<String, LinkedHashMap<ModuleIdentifier, String>>> locksMapping : dependencyLock.getLocksMapping().entrySet()) {
+                for (Map.Entry<String, LinkedHashMap<ModuleIdentifier, String>> configurationsMapping : locksMapping.getValue().entrySet()) {
                     writer.beginObject();
-                    writer.name("id").value(buildLockId(projectsMapping.getKey(), configurationsMapping.getKey()));
+                    writer.name("id").value(buildLockId(locksMapping.getKey(), configurationsMapping.getKey()));
                     writer.name("dependencies");
                     writer.beginArray();
 
-                    for (Map.Entry<ModuleIdentifier, List<DependencyVersion>> lockedDependency : configurationsMapping.getValue().entrySet()) {
-                        for (DependencyVersion dependencyVersion : lockedDependency.getValue()) {
+                    for (Map.Entry<ModuleIdentifier, String> lockedDependency : configurationsMapping.getValue().entrySet()) {
                             writer.beginObject();
                             writer.name("moduleId").value(lockedDependency.getKey().toString());
-                            writer.name("requestedVersion").value(dependencyVersion.getRequestedVersion());
-                            writer.name("lockedVersion").value(dependencyVersion.getSelectedVersion());
+                            writer.name("lockedVersion").value(lockedDependency.getValue());
                             writer.endObject();
-                        }
                     }
 
                     writer.endArray();
