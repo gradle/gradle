@@ -111,11 +111,14 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
+        includedClasses = toPatterns(publicApiIncludes)
+        excludedClasses = toPatterns(publicApiExcludes)
+
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
-        addRule(IncubatingInternalInterfaceAddedRule, acceptedViolations.toAcceptedChangesMap())
-        addRule(MethodsRemovedInInternalSuperClassRule, acceptedViolations.toAcceptedChangesMap())
+        addRule(IncubatingInternalInterfaceAddedRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
+        addRule(MethodsRemovedInInternalSuperClassRule, [acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(), publicApiPatterns: includedClasses])
         addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
@@ -124,9 +127,6 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         addSetupRule(SinceAnnotationMissingRuleAPISourceFoldersSetup, foldersWithAPISources.collectEntries { [(it): it] })
         addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: baseVersion])
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
-
-        includedClasses = toPatterns(publicApiIncludes)
-        excludedClasses = toPatterns(publicApiExcludes)
     }
 }
 check.dependsOn(checkBinaryCompatibility)

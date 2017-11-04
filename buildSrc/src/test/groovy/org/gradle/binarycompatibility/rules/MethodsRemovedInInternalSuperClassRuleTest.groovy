@@ -19,15 +19,12 @@ package org.gradle.binarycompatibility.rules
 import japicmp.model.JApiCompatibilityChange
 
 import me.champeau.gradle.japicmp.report.Violation
-import japicmp.model.JApiClass
 import javassist.CtClass
 import com.google.common.base.Optional
 
 
 class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRuleSpecification {
-    MethodsRemovedInInternalSuperClassRule rule = new MethodsRemovedInInternalSuperClassRule([:])
-
-    JApiClass apiClass = Stub(JApiClass)
+    MethodsRemovedInInternalSuperClassRule rule = new MethodsRemovedInInternalSuperClassRule(getInitializationParams())
 
     static class OldSuperInternal {
         public void publicMethod() {}
@@ -51,7 +48,7 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
         rule.context = context
         [OldSuperInternal, NewSuperInternal].each {
             CtClass c = instanceScopedPool.get(it.name)
-            c.name = 'test.internal.' + c.name
+            c.name = replaceAsInternal(c.name)
             classes[it.simpleName] = c
         }
         [OldBase, OldSub, NewBase, NewSub].each {
@@ -60,13 +57,14 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
 
         classes['OldBase'].superclass = classes['OldSuperInternal']
         classes['NewBase'].superclass = classes['NewSuperInternal']
+
+        apiClass.compatibilityChanges >> [JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS]
     }
 
-    def "method removal can be reported if current class is top"() {
+    def "method removal can be reported if current class is first public class"() {
         given:
         apiClass.oldClass >> Optional.of(classes['OldBase'])
         apiClass.newClass >> Optional.of(classes['NewBase'])
-        apiClass.compatibilityChanges >> [JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS]
 
         when:
         Violation violation = rule.maybeViolation(apiClass)
@@ -76,13 +74,12 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
         !violation.humanExplanation.contains('SuperInternal.privateMethod()')
     }
 
-    def "method removal would not be reported if current class is not top"() {
+    def "method removal would not be reported if current class is not first public class"() {
         given:
         apiClass.oldClass >> Optional.of(classes['OldSub'])
         apiClass.newClass >> Optional.of(classes['NewSub'])
-        apiClass.compatibilityChanges >> [JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS]
 
         expect:
-        rule.maybeViolation(apiClass) == null
+        noViolation(rule)
     }
 }

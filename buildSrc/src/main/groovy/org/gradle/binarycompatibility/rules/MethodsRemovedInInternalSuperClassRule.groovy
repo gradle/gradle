@@ -26,8 +26,8 @@ import javassist.Modifier
 
 class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRule {
 
-    MethodsRemovedInInternalSuperClassRule(Map<String, String> acceptedApiChanges) {
-        super(acceptedApiChanges)
+    MethodsRemovedInInternalSuperClassRule(Map params) {
+        super(params)
     }
 
     protected boolean changed(JApiCompatibility member) {
@@ -62,7 +62,7 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
             return
         }
 
-        result.addAll(c.declaredMethods.grep { isPublicApi(it) })
+        result.addAll(c.declaredMethods.findAll { isPublicApi(it) })
 
         collect(result, c.superclass)
     }
@@ -72,14 +72,14 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     }
 
     private List<String> filterChangesToReport(CtClass c, Set<CtMethod> methods) {
-        return methods.grep { isTopDeclaration(it, c) }.collect { it.longName }.sort()
+        return methods.findAll { isFirstPublicClassInHierarchy(it, c) }*.longName.sort()
     }
 
     private boolean declaredInInternalClass(CtMethod method) {
         return isInternal(method.declaringClass)
     }
 
-    private boolean isTopDeclaration(CtMethod method, CtClass c) {
+    private boolean isFirstPublicClassInHierarchy(CtMethod method, CtClass c) {
         List<CtClass> classesContainingMethod = []
 
         CtClass current = c

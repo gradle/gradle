@@ -24,8 +24,8 @@ import javassist.CtClass
 
 class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule {
 
-    IncubatingInternalInterfaceAddedRule(Map<String, String> acceptedApiChanges) {
-        super(acceptedApiChanges)
+    IncubatingInternalInterfaceAddedRule(Map params) {
+        super(params)
     }
 
     protected boolean changed(JApiCompatibility member) {
@@ -64,7 +64,7 @@ class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule
     }
 
     private List<String> filterChangesToReport(CtClass c, Map<String, CtClass> interfaces) {
-        return interfaces.values().grep { implementedDirectly(it, c) && addedInterfaceIsIncubatingOrInternal(it, c) }.collect { it.name }.sort()
+        return interfaces.values().findAll { implementedDirectly(it, c) && addedInterfaceIsIncubatingOrInternal(it, c) }*.name.sort()
     }
 
     private boolean implementedDirectly(CtClass interf, CtClass c) {
