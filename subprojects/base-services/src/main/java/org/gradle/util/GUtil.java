@@ -310,29 +310,43 @@ public class GUtil {
      * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -> withUnderscores
      */
     public static String toCamelCase(CharSequence string) {
+        return toCamelCase(string, false);
+    }
+
+    public static String toLowerCamelCase(CharSequence string) {
+        return toCamelCase(string, true);
+    }
+
+    private static String toCamelCase(CharSequence string, boolean lower) {
         if (string == null) {
             return null;
         }
         StringBuilder builder = new StringBuilder();
         Matcher matcher = WORD_SEPARATOR.matcher(string);
         int pos = 0;
+        boolean first = true;
         while (matcher.find()) {
-            builder.append(StringUtils.capitalize(string.subSequence(pos, matcher.start()).toString()));
+            String chunk = string.subSequence(pos, matcher.start()).toString();
             pos = matcher.end();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+            if (lower && first) {
+                chunk = StringUtils.uncapitalize(chunk);
+                first = false;
+            } else {
+                chunk = StringUtils.capitalize(chunk);
+            }
+            builder.append(chunk);
         }
-        builder.append(StringUtils.capitalize(string.subSequence(pos, string.length()).toString()));
+        String rest = string.subSequence(pos, string.length()).toString();
+        if (lower && first) {
+            rest = StringUtils.uncapitalize(rest);
+        } else {
+            rest = StringUtils.capitalize(rest);
+        }
+        builder.append(rest);
         return builder.toString();
-    }
-
-    public static String toLowerCamelCase(CharSequence string) {
-        String camelCase = toCamelCase(string);
-        if (camelCase == null) {
-            return null;
-        }
-        if (camelCase.length() == 0) {
-            return "";
-        }
-        return ((Character) camelCase.charAt(0)).toString().toLowerCase() + camelCase.subSequence(1, camelCase.length());
     }
 
     /**
