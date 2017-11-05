@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.hamcrest.Matchers.startsWith
+
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
@@ -131,5 +133,21 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         output.contains("Hello World!")
+    }
+
+    def "resolution fails if Gradle is in offline mode"() {
+        given:
+        buildScript """
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        when:
+        args "--offline"
+        fails "help"
+
+        then:
+        failure.assertThatDescription(startsWith("Plugin [id: '$HELLO_WORLD_PLUGIN_ID', version: '$HELLO_WORLD_PLUGIN_VERSION'] was not found"))
     }
 }

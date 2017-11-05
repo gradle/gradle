@@ -261,43 +261,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         succeeds("helloWorld")
     }
 
-    def "can name custom plugin repositories"() {
-        given:
-        def mavenRepoName = "Custom Maven Repo Name"
-        def ivyRepoName = "Custom Ivy Repo Name"
-
-        and:
-        settingsFile << """
-            pluginManagement {
-                repositories {
-                    maven {
-                        name = "$mavenRepoName"
-                        url = ""
-                    }
-                    ivy {
-                        name = "$ivyRepoName"
-                        url = ""
-                    }
-                }
-            }
-        """
-
-        and:
-        buildFile << """
-            plugins {
-                id("com.example.absent") version "1.0"
-            }
-        """
-
-        when:
-        fails "help"
-
-        then:
-        failure.assertThatDescription(containsNormalizedString("""
-- $mavenRepoName (Could not resolve plugin artifact 'com.example.absent:com.example.absent.gradle.plugin:1.0')
-- $ivyRepoName (Could not resolve plugin artifact 'com.example.absent:com.example.absent.gradle.plugin:1.0')"""))
-    }
-
     @Issue("gradle/gradle#3210")
     def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
         given:

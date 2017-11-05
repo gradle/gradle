@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
 @LeaksFileHandles
@@ -40,21 +39,6 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-    }
-
-    def "error finding plugin by id"() {
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true", "otherid")
-        pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer)
-
-        buildScript applyPlugin()
-
-        pluginRepo.expectPluginMarkerMissing(PLUGIN_ID, VERSION)
-
-        expect:
-        fails "verify"
-        failure.assertThatDescription(startsWith("Plugin [id: 'org.my.myplugin', version: '1.0'] was not found in any of the following sources"))
-        failure.assertThatDescription(containsString("Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.my.myplugin:org.my.myplugin.gradle.plugin:1.0')"))
-        failure.assertHasLineNumber(3)
     }
 
     def "error loading plugin"() {
