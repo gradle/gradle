@@ -50,7 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.*;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
 
 public class DynamicVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
@@ -114,9 +115,6 @@ public class DynamicVersionResolver {
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findLatestModule(queue, failures, missing);
-        if (!failures.isEmpty()) {
-            return null;
-        }
         if (best != null) {
             return best;
         }
@@ -140,7 +138,6 @@ public class DynamicVersionResolver {
             switch (request.resolvedVersionMetadata.getState()) {
                 case Failed:
                     failures.add(request.resolvedVersionMetadata.getFailure());
-                    queue.clear();
                     break;
                 case Missing:
                 case Unknown:

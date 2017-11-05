@@ -442,32 +442,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         0 * result._
     }
 
-    def "fails to resolve local dependency on error during resolve"() {
+    def "ignores failure to resolve local dependency when available in another repository"() {
         given:
-        addRepo1()
-        addRepo2()
-
-        when:
-        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
-
-        then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            throw new RuntimeException("ERROR")
-        }
-        1 * result.failed(_)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * localAccess2._
-        0 * remoteAccess2._
-        0 * result._
-    }
-
-    def "fails to resolve local dependency on failure in first repository"() {
-        given:
-        addRepo1()
-        addRepo2()
+        def repo1 = addRepo1()
+        def repo2 = addRepo2()
 
         when:
         resolver.resolve(moduleComponentId, componentRequestMetaData, result)
@@ -475,57 +453,18 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(new ModuleVersionResolveException(id, "broken"))
-        }
-        1 * result.failed(_)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * localAccess2._
-        0 * remoteAccess2._
-        0 * result._
-    }
-
-    def "fails to resolve local dependency on failure in second repository, if first misses explicit metadata"() {
-        given:
-        addRepo1()
-        addRepo2()
-        def metadataGenerated = metaData("1.2", true)
-
-        when:
-        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
-
-        then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metadataGenerated)
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.failed(new ModuleVersionResolveException(id, "broken"))
-        }
-        1 * componentSelectionStrategy.isRejectedComponent(_, _)
-        1 * result.failed(_)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * localAccess2._
-        0 * remoteAccess2._
-        0 * result._
-    }
-
-    def "succeeds to resolve local dependency without checking the second repository, if first has explicit metadata"() {
-        given:
-        addRepo1()
-        addRepo2()
-
-        when:
-        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
-
-        then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * result.resolved(_)
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
+            assert metaData == this.metaData
+        }
 
         and:
         0 * localAccess._
@@ -535,92 +474,31 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         0 * result._
     }
 
-    def "fails to resolve remote dependency on failure in first repository"() {
+    def "ignores failure to resolve remote dependency when available in another repository"() {
         given:
-        addRepo1()
-        addRepo2()
+        def repo1 = addRepo1()
+        def repo2 = addRepo2()
 
         when:
         resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
-        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(new ModuleVersionResolveException(id, "broken"))
         }
-        1 * result.failed(_)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * localAccess2._
-        0 * remoteAccess2._
-        0 * result._
-    }
-
-    def "fails to resolve remote dependency on failure in second repository, if first misses explicit metadata"() {
-        given:
-        addRepo1()
-        addRepo2()
-        def metadataGenerated = metaData("1.2", true)
-
-        when:
-        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
-
-        then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
-        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
-        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metadataGenerated)
-        }
-        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)>> { id, meta, result ->
-            result.failed(new ModuleVersionResolveException(id, "broken"))
-        }
-        1 * componentSelectionStrategy.isRejectedComponent(_, _)
-        1 * result.failed(_)
-
-        and:
-        0 * localAccess._
-        0 * remoteAccess._
-        0 * localAccess2._
-        0 * remoteAccess2._
-        0 * result._
-    }
-
-    def "succeeds to resolve remote dependency without checking the second repository, if first has explicit metadata"() {
-        given:
-        addRepo1()
-        addRepo2()
-
-        when:
-        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
-
-        then:
-        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
-        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.missing()
-            result.authoritative = false
-        }
-        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * result.resolved(_)
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
+            assert metaData == this.metaData
+        }
 
         and:
         0 * localAccess._
@@ -633,8 +511,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     def "rethrows failure to resolve local dependency when not available in any repository"() {
         given:
         def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
-        addRepo1()
-        addRepo2()
+        def repo1 = addRepo1()
+        def repo2 = addRepo2()
 
         when:
         resolver.resolve(moduleComponentId, componentRequestMetaData, result)
@@ -643,7 +521,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(failure)
         }
-
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.missing()
+        }
         1 * result.failed({ it.cause == failure })
 
         and:
@@ -654,11 +535,11 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         0 * result._
     }
 
-    def "rethrows failure to resolve remote dependency"() {
+    def "rethrows failure to resolve remote dependency when not available in any repository"() {
         given:
         def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), "broken")
-        addRepo1()
-        addRepo2()
+        def repo1 = addRepo1()
+        def repo2 = addRepo2()
 
         when:
         resolver.resolve(moduleComponentId, componentRequestMetaData, result)
@@ -667,6 +548,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(failure)
+        }
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
+            result.missing()
         }
         1 * result.failed({ it.cause == failure })
 
@@ -684,12 +569,11 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         return descriptor
     }
 
-    def metaData(String version, boolean missing = false) {
+    def metaData(String version) {
         return Stub(ModuleComponentResolveMetadata) {
             toString() >> version
             getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
             getDescriptor() >> descriptor(version)
-            isMissing() >> missing
         }
     }
 }

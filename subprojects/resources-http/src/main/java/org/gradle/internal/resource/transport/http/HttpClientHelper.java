@@ -33,6 +33,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +156,8 @@ public class HttpClientHelper implements Closeable {
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", method, response.getStatusLine(), source);
-            throw new HttpErrorStatusCodeException(method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+            throw new UncheckedIOException(String.format("Could not %s '%s'. Received status code %s from server: %s",
+                method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
 
         return response;
