@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
 import java.io.InterruptedIOException;
+import java.util.Collection;
 import java.util.Set;
 
 public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
@@ -52,7 +53,15 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
         return blacklistedRepositories;
     }
 
-    private static boolean isCriticalFailure(Throwable throwable) {
+    public static boolean hasCriticalFailure(Collection<? extends Throwable> failures) {
+        for (Throwable failure : failures) {
+            if (isCriticalFailure(failure)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isCriticalFailure(Throwable throwable) {
         return isTimeoutException(throwable);
     }
     private static boolean isTimeoutException(Throwable throwable) {

@@ -361,7 +361,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    def "fails on broken directory listing in subsequent resolution"() {
+    def "recovers from broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -375,22 +375,19 @@ dependencies {
     """
 
         when:
-        def projectA12 = repo1.module("group", "projectA", "1.2").publish()
-        def projectA11 = repo2.module("group", "projectA", "1.1").publish()
+        def repo1projectA12 = repo1.module("group", "projectA", "1.2").publish()
+        def repo2projectA11 = repo2.module("group", "projectA", "1.1").publish()
 
         and: "projectA is broken in repo1"
         repo1.directoryList("group", "projectA").expectGetBroken()
+        expectGetDynamicRevision(repo2projectA11)
 
         then:
-        fails "checkDeps"
-        failure.assertHasCause "Could not resolve group:projectA:1.+."
-        failure.assertHasCause "Could not list versions"
-        failure.assertHasCause "Could not GET '$repo1.uri/group/projectA/'"
+        checkResolve "group:projectA:1.+": "group:projectA:1.1"
 
         when:
         server.resetExpectations()
-        expectGetDynamicRevision(projectA12)
-        expectGetDynamicRevisionMetadata(projectA11)
+        expectGetDynamicRevision(repo1projectA12)
 
         then:
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
@@ -1217,7 +1214,8 @@ dependencies {
     }
 
     def expectGetDynamicRevision(IvyHttpModule module) {
-        expectGetDynamicRevisionMetadata(module)
+        expectListVersions(module)
+        module.ivy.expectGet()
         module.jar.expectGet()
     }
 

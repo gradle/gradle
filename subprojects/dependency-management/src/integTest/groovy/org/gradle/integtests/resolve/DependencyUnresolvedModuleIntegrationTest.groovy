@@ -25,8 +25,8 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.HttpResource
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.Unroll
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -219,10 +219,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
-    def "fails build if HTTP connection #reason when resolving metadata"() {
+    def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving metadata"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
-        publishMavenModule(backupMavenHttpRepo, 'a')
+        def backupA = publishMavenModule(backupMavenHttpRepo, 'a')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -233,6 +233,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         moduleA.pom."$action"()
+        if (!abort) {
+            backupA.pom."${action}"()
+        }
         fails('resolve')
 
         then:
@@ -240,13 +243,15 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        reason                          | action              | outcome
-        'exceeds timeout'               | 'expectGetBlocking' | 'assertDependencyMetaDataReadTimeout'
-        'returns internal server error' | 'expectGetBroken'   | 'assertDependencyMetaDataInternalServerError'
+        reason                          | abort | action              | outcome
+        'exceeds timeout'               | true  | 'expectGetBlocking' | 'assertDependencyMetaDataReadTimeout'
+        'returns internal server error' | false | 'expectGetBroken'   | 'assertDependencyMetaDataInternalServerError'
+
+        abortDescriptor = abort ? 'aborts' : 'does not abort'
     }
 
     @Unroll
-    def "fails build if HTTP connection #reason when resolving artifact"() {
+    def "fails build and aborts repository search if HTTP connection #reason when resolving artifact for found module"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
         publishMavenModule(backupMavenHttpRepo, 'a')
@@ -274,7 +279,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
-    def "fails build if HTTP connection #reason when resolving dynamic version"() {
+    def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving dynamic version"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
         publishMavenModule(backupMavenHttpRepo, 'a')
@@ -288,6 +293,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         mavenHttpRepo.getModuleMetaData('group', 'a')"$action"()
+        if (!abort) {
+            backupMavenHttpRepo.getModuleMetaData('group', 'a')"$action"()
+        }
         fails('resolve')
 
         then:
@@ -295,9 +303,11 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        reason                          | action              | outcome
-        'exceeds timeout'               | 'expectGetBlocking' | 'assertDependencyListingReadTimeout'
-        'returns internal server error' | 'expectGetBroken'   | 'assertDependencyListingInternalServerError'
+        reason                          | abort | action              | outcome
+        'exceeds timeout'               | true  | 'expectGetBlocking' | 'assertDependencyListingReadTimeout'
+        'returns internal server error' | false | 'expectGetBroken'   | 'assertDependencyListingInternalServerError'
+
+        abortDescriptor = abort ? 'aborts' : 'does not abort'
     }
 
     private String mavenRepository(MavenRepository repo) {
