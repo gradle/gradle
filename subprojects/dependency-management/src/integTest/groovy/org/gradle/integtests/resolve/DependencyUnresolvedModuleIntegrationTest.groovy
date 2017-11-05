@@ -127,6 +127,74 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
+    def "blacklists repository from later resolution within the same build on HTTP timeout "() {
+        given:
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+        MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            
+            configurations {
+                first
+                second
+                third
+            }
+            dependencies {
+                first '${mavenModuleCoordinates(moduleA)}'
+                second '${mavenModuleCoordinates(moduleB)}'
+                third '${mavenModuleCoordinates(moduleC)}'
+            }
+            
+            task resolve {
+                doLast {
+                    def filesA = configurations.first.resolvedConfiguration.lenientConfiguration.files*.name
+                    def filesB = configurations.second.resolvedConfiguration.lenientConfiguration.files*.name
+                    def filesC = configurations.third.resolvedConfiguration.lenientConfiguration.files*.name
+                    println "Resolved: \${filesA} \${filesB} \${filesC}"
+                }
+            }
+        """
+
+        when:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+        moduleB.pom.expectGetBlocking()
+        // No attempt made to get moduleC
+
+        succeeds 'resolve'
+
+        then:
+        output.contains "Resolved: [a-1.0.jar] [] []"
+    }
+
+    def "repository is blacklisted only for the current build execution"() {
+        given:
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGetBlocking()
+        fails('resolve')
+
+        then:
+        assertDependencyMetaDataReadTimeout(moduleA)
+        !downloadedLibsDir.isDirectory()
+
+        when:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+        succeeds('resolve')
+
+        then:
+        downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
+    }
+
     @Ignore
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
@@ -148,37 +216,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         assertDependencySkipped(moduleB)
         assertDependencySkipped(moduleC)
         !downloadedLibsDir.isDirectory()
-    }
-
-    @Ignore
-    def "skipped repositories are only recorded for the time of a single build execution"() {
-        given:
-        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
-
-        buildFile << """
-            ${mavenRepository(mavenHttpRepo)}
-            ${customConfigDependencyAssignment(moduleA, moduleB)}
-            ${configSyncTask()}
-        """
-
-        when:
-        moduleA.pom.expectGetBlocking()
-        fails('resolve', '--max-workers=1')
-
-        then:
-        assertDependencyMetaDataReadTimeout(moduleA)
-        assertDependencySkipped(moduleB)
-        !downloadedLibsDir.isDirectory()
-
-        when:
-        moduleA.pom.expectGet()
-        moduleA.artifact.expectGet()
-        moduleB.pom.expectGet()
-        moduleB.artifact.expectGet()
-        succeeds('resolve', '--max-workers=1')
-
-        then:
-        downloadedLibsDir.assertContainsDescendants('a-1.0.jar', 'b-1.0.jar')
     }
 
     @Unroll
