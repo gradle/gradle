@@ -25,11 +25,11 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
 
     @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
 
-    def "blacklists repository for normal IOException"() {
+    def "blacklists repository for timeout exception"() {
         given:
         def repositoryId1 = 'abc'
         def repositoryId2 = 'def'
-        def exception = createIOException('Read time out')
+        def exception = createDummyTimeoutException('Read time out')
 
         when:
         boolean blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
@@ -76,8 +76,8 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         createNestedException(new HttpErrorStatusCodeException(method, source, statusCode, reason))
     }
 
-    static RuntimeException createIOException(String message) {
-        createNestedException(new IOException(message))
+    static RuntimeException createDummyTimeoutException(String message) {
+        createNestedException(new InterruptedIOException(message))
     }
 
     static RuntimeException createNestedException(Throwable t) {
