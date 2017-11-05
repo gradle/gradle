@@ -30,6 +30,8 @@ abstract class HttpResource extends AbstractHttpResource {
 
     @Override
     void expectGet() {
+        println(getPath())
+        println(file)
         server.expectGet(getPath(), file)
     }
 
@@ -45,6 +47,7 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectGetBroken(getPath())
     }
 
+    @Override
     void expectGetBlocking() {
         server.expectGetBlocking(getPath())
     }
@@ -68,6 +71,11 @@ abstract class HttpResource extends AbstractHttpResource {
 
     void expectHeadBroken() {
         server.expectHeadBroken(path)
+    }
+
+    @Override
+    void expectHeadBlocking() {
+        server.expectGetBlocking(path)
     }
 
     void expectHeadRevalidate() {

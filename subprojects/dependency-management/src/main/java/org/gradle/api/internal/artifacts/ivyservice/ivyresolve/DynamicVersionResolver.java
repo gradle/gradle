@@ -38,6 +38,7 @@ import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,6 +116,9 @@ public class DynamicVersionResolver {
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findLatestModule(queue, failures, missing);
+        if (HttpClientHelper.hasCriticalFailure(failures)) {
+            return null;
+        }
         if (best != null) {
             return best;
         }
@@ -138,6 +142,9 @@ public class DynamicVersionResolver {
             switch (request.resolvedVersionMetadata.getState()) {
                 case Failed:
                     failures.add(request.resolvedVersionMetadata.getFailure());
+                    if (HttpClientHelper.isCriticalFailure(request.resolvedVersionMetadata.getFailure())) {
+                        queue.clear();
+                    }
                     break;
                 case Missing:
                 case Unknown:

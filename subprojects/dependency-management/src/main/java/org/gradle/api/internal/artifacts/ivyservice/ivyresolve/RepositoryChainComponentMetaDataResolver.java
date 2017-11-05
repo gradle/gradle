@@ -34,6 +34,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.internal.resource.transport.http.HttpClientHelper.hasCriticalFailure;
+import static org.gradle.internal.resource.transport.http.HttpClientHelper.isCriticalFailure;
+
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
@@ -114,11 +117,14 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
+        if (hasCriticalFailure(failures)) {
+            return null;
+        }
         if (best != null) {
             return best;
         }
 
-        // Nothing found - do a second pass
+        // Nothing found locally - try a remote search for all resolve states that were not yet searched remotely
         queue.addAll(missing);
         missing.clear();
         return findBestMatch(queue, failures, missing);
@@ -138,6 +144,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             switch (metaDataResolveResult.getState()) {
                 case Failed:
                     failures.add(metaDataResolveResult.getFailure());
+                    if (isCriticalFailure(metaDataResolveResult.getFailure())) {
+                        queue.clear();
+                    }
                     break;
                 case Missing:
                     // Queue this up for checking again later

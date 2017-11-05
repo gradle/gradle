@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 class MavenDynamicResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "can resolve snapshot versions with version range"() {
@@ -357,21 +359,7 @@ Searched in the following locations:
         def projectA1 = repo1.module('group', 'projectA', '1.1').publish()
         def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
 
-        buildFile << """
-        repositories {
-            maven { url '${repo1.uri}' }
-            maven { url '${repo2.uri}' }
-        }
-        configurations { compile }
-        dependencies {
-            compile 'group:projectA:1.+'
-        }
-
-        task retrieve(type: Sync) {
-            into 'libs'
-            from configurations.compile
-        }
-        """
+        buildFile << createBuildFile(repo1.uri, repo2.uri)
 
         when:
         repo1.getModuleMetaData("group", "projectA").expectGet()
@@ -397,5 +385,60 @@ Searched in the following locations:
 
         then:
         file('libs').assertHasDescendants('projectA-1.5.jar')
+    }
+
+    def "dynamic version fails on timeout module in one repository when available in another repository"() {
+        given:
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
+        def projectA1 = repo1.module('group', 'projectA', '1.1').publish()
+        def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
+
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+
+        buildFile << createBuildFile(repo1.uri, repo2.uri)
+
+        when:
+        repo1.getModuleMetaData("group", "projectA").expectGet()
+        projectA1.pom.expectGetBlocking()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause('Could not resolve group:projectA:1.+')
+        failure.assertHasCause('Could not resolve group:projectA:1.1')
+        failure.assertHasCause("Could not GET '${repo1.uri}/group/projectA/1.1/projectA-1.1.pom'")
+        failure.assertHasCause('Read timed out')
+
+        when:
+        server.resetExpectations()
+        repo2.getModuleMetaData("group", "projectA").expectGet()
+        projectA1.pom.expectGet()
+        projectA2.pom.expectGet()
+        projectA2.artifact.expectGet()
+
+        and:
+        succeeds 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.5.jar')
+    }
+
+    static String createBuildFile(URI... repoUris) {
+        """
+         repositories {
+             ${repoUris.collect { "maven { url '${it.toString()}' }" }.join("\n")}
+         }
+         configurations { compile }
+         dependencies {
+             compile 'group:projectA:1.+'
+         }
+ 
+        task retrieve(type: Sync) {
+            into 'libs'
+             from configurations.compile
+         }
+         """
     }
 }
