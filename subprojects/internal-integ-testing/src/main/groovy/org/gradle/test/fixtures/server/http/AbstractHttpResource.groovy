@@ -37,6 +37,8 @@ abstract class AbstractHttpResource implements RemoteResource {
 
     abstract void expectGetBroken()
 
+    abstract void expectGetBlocking()
+
     abstract void expectGetMissing()
 
     abstract void expectGetRevalidate()
@@ -44,6 +46,8 @@ abstract class AbstractHttpResource implements RemoteResource {
     abstract void expectHead()
 
     abstract void expectHeadBroken()
+
+    abstract void expectHeadBlocking()
 
     abstract void expectHeadMissing()
 
@@ -68,6 +72,10 @@ abstract class AbstractHttpResource implements RemoteResource {
         expectGetMissing()
     }
 
+    void expectDownloadBlocking() {
+        expectGetBlocking()
+    }
+
     @Override
     void expectMetadataRetrieve() {
         expectHead()
@@ -76,6 +84,10 @@ abstract class AbstractHttpResource implements RemoteResource {
     @Override
     void expectMetadataRetrieveBroken() {
         expectHeadBroken()
+    }
+
+    void expectMetadataRetrieveBlocking() {
+        expectHeadBlocking()
     }
 
     @Override

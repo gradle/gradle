@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
@@ -361,7 +363,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    def "fails on broken directory listing in subsequent resolution"() {
+    def "recovers from broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
 
@@ -380,12 +382,46 @@ dependencies {
 
         and: "projectA is broken in repo1"
         repo1.directoryList("group", "projectA").expectGetBroken()
+        expectGetDynamicRevision(projectA11)
 
         then:
-        fails "checkDeps"
+        checkResolve "group:projectA:1.+": "group:projectA:1.1"
+
+        when:
+        server.resetExpectations()
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        checkResolve "group:projectA:1.+": "group:projectA:1.2"
+    }
+
+    def "fails timeout listing in subsequent resolution"() {
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+
+        given:
+        useRepository repo1, repo2
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        buildFile << """
+    configurations { compile }
+    dependencies {
+        compile group: "group", name: "projectA", version: "1.+"
+    }
+    """
+
+        when:
+        def projectA12 = repo1.module("group", "projectA", "1.2").publish()
+        def projectA11 = repo2.module("group", "projectA", "1.1").publish()
+
+        and: "projectA read time out in repo1"
+        repo1.directoryList("group", "projectA").expectGetBlocking()
+
+        then:
+        fails 'checkDeps'
         failure.assertHasCause "Could not resolve group:projectA:1.+."
         failure.assertHasCause "Could not list versions"
         failure.assertHasCause "Could not GET '$repo1.uri/group/projectA/'"
+        failure.assertHasCause "Read timed out"
 
         when:
         server.resetExpectations()
@@ -1217,7 +1253,8 @@ dependencies {
     }
 
     def expectGetDynamicRevision(IvyHttpModule module) {
-        expectGetDynamicRevisionMetadata(module)
+        expectListVersions(module)
+        module.ivy.expectGet()
         module.jar.expectGet()
     }
 

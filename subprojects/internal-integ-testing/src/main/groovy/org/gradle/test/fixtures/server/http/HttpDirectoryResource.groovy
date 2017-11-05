@@ -49,6 +49,11 @@ class HttpDirectoryResource extends AbstractHttpResource {
     }
 
     @Override
+    void expectGetBlocking() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     void expectGetRevalidate() {
         server.expectGetRevalidate(path, directory)
     }
@@ -60,6 +65,11 @@ class HttpDirectoryResource extends AbstractHttpResource {
 
     @Override
     void expectHeadBroken() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectHeadBlocking() {
         throw new UnsupportedOperationException()
     }
 

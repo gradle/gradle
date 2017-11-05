@@ -20,6 +20,8 @@ import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
@@ -105,5 +107,61 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
 
         then:
         succeeds 'listJars'
+    }
+
+    void "skip subsequent Ivy repositories on timeout"() {
+        given:
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        def repo1 = server.getRemoteIvyRepo("/repo1")
+        def repo2 = server.getRemoteIvyRepo("/repo2")
+        def module1 = repo1.module('group', 'projectA').publish()
+        def module2 = repo2.module('group', 'projectA').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${repo1.uri}"
+                    $server.validCredentials
+                }
+                ivy {
+                    url "${repo2.uri}"
+                    $server.validCredentials
+                }
+            }
+            configurations {
+                compile {
+                    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+                }
+            }
+            dependencies {
+                compile 'group:projectA:1.0'
+            }
+            task listJars {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        // Handles timeout in repo1
+        module1.ivy.expectDownloadBlocking()
+
+        then:
+        fails'listJars'
+        failureHasCause("Could not resolve group:projectA:1.0")
+        failureHasCause("Could not GET '$repo1.uri/group/projectA/1.0/ivy-1.0.xml'")
+        failureHasCause('Read timed out')
+
+        when:
+        server.resetExpectations()
+        module1.ivy.expectGetMissing()
+        module1.jar.expectHeadMissing()
+        module2.ivy.expectGet()
+        module2.jar.expectDownload()
+
+        then:
+        succeeds('listJars')
     }
 }

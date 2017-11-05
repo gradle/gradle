@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -28,16 +29,20 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -155,7 +160,8 @@ public class HttpClientHelper implements Closeable {
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", method, response.getStatusLine(), source);
-            throw new HttpErrorStatusCodeException(method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+            throw new UncheckedIOException(String.format("Could not %s '%s'. Received status code %s from server: %s",
+                method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
 
         return response;
@@ -179,6 +185,25 @@ public class HttpClientHelper implements Closeable {
                 sharedContext.clear();
             }
         }
+    }
+
+    private static boolean isTimeoutException(Throwable throwable) {
+        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+        //http://hc.apache.org/httpclient-3.x/exception-handling.html
+        return rootCause instanceof ConnectTimeoutException || rootCause instanceof SocketTimeoutException;
+    }
+
+    public static boolean isCriticalFailure(Throwable throwable) {
+        return isTimeoutException(throwable);
+    }
+
+    public static boolean hasCriticalFailure(Collection<Throwable> failures) {
+        for (Throwable t : failures) {
+            if (isCriticalFailure(t)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class AutoClosedHttpResponse implements CloseableHttpResponse {
