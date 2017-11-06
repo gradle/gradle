@@ -220,7 +220,7 @@ public class BuildOperationTrace implements Stoppable {
             final JsonSlurper slurper = new JsonSlurper();
 
             final List<BuildOperationRecord> roots = new ArrayList<BuildOperationRecord>();
-            final Map<Object, SerializedOperationStart> pending = new HashMap<Object, SerializedOperationStart>();
+            final Map<Object, PendingOperation> pendings = new HashMap<Object, PendingOperation>();
             final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<Object, List<BuildOperationRecord>>();
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
@@ -229,19 +229,36 @@ public class BuildOperationTrace implements Stoppable {
                     Map<String, ?> map = uncheckedCast(slurper.parseText(line));
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);
-                        pending.put(serialized.id, serialized);
+                        pendings.put(serialized.id, new PendingOperation(serialized));
                         childrens.put(serialized.id, new LinkedList<BuildOperationRecord>());
+                    } else if (map.containsKey("time")) {
+                        SerializedOperationProgress serialized = new SerializedOperationProgress(map);
+                        PendingOperation pending = pendings.get(serialized.id);
+                        assert pending != null;
+                        pending.progress.add(serialized);
                     } else {
                         SerializedOperationFinish finish = new SerializedOperationFinish(map);
 
-                        SerializedOperationStart start = pending.remove(finish.id);
-                        assert start != null;
+                        PendingOperation pending = pendings.remove(finish.id);
+                        assert pending != null;
 
                         List<BuildOperationRecord> children = childrens.remove(finish.id);
                         assert children != null;
 
+                        SerializedOperationStart start = pending.start;
+
                         Map<String, ?> detailsMap = uncheckedCast(start.details);
                         Map<String, ?> resultMap = uncheckedCast(finish.result);
+
+                        List<BuildOperationRecord.Progress> progresses = new ArrayList<BuildOperationRecord.Progress>();
+                        for (SerializedOperationProgress progress : pending.progress) {
+                            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+                            progresses.add(new BuildOperationRecord.Progress(
+                                progress.time,
+                                progressDetailsMap,
+                                progress.detailsClassName
+                            ));
+                        }
 
                         BuildOperationRecord record = new BuildOperationRecord(
                             start.id,
@@ -254,6 +271,7 @@ public class BuildOperationTrace implements Stoppable {
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
                             finish.resultClassName,
                             finish.failureMsg,
+                            progresses,
                             children
                         );
 
@@ -275,7 +293,7 @@ public class BuildOperationTrace implements Stoppable {
                 }
             });
 
-            assert pending.isEmpty();
+            assert pendings.isEmpty();
 
             return roots;
         } catch (Exception e) {
@@ -292,4 +310,14 @@ public class BuildOperationTrace implements Stoppable {
         return new File((base == null || base.trim().isEmpty() ? "operations" : base) + suffix).getAbsoluteFile();
     }
 
+    static class PendingOperation {
+
+        final SerializedOperationStart start;
+        final List<SerializedOperationProgress> progress = new ArrayList<SerializedOperationProgress>();
+
+        public PendingOperation(SerializedOperationStart start) {
+            this.start = start;
+        }
+
+    }
 }

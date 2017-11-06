@@ -17,45 +17,38 @@
 package org.gradle.api.internal.tasks.testing.operations;
 
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * Build Operations for Test Results
- *
  * @since 4.4
- * */
+ **/
 @UsedByScanPlugin
 public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
-    /**
-     * Details of a running Test
-     *
-     * @since 4.4
-     * */
     @UsedByScanPlugin
     public interface Details {
-        /**
-         * the descriptor of the executed test.
-         * */
-        TestDescriptor getTestDescriptor();
 
         long getStartTime();
+
+        TestDescriptor getTestDescriptor();
+
     }
 
-    /**
-     * Result of a running Test
-     *
-     * @since 4.4
-     * */
     @UsedByScanPlugin
     public interface Result {
-        /**
-         * The result of the executed test.
-         *
-         * */
+
         TestResult getResult();
+
+    }
+
+    @UsedByScanPlugin
+    public interface Output {
+
+        TestOutputEvent getOutput();
+        
     }
 
     private ExecuteTestBuildOperationType() {

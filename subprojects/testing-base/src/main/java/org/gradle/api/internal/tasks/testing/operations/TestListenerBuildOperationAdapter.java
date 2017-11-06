@@ -29,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Clock;
 
@@ -43,9 +44,6 @@ import java.util.Map;
  * but is relying on serialisation guarantees provided by ListenerManager.
  */
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
-
-    private static final TestOutputBuildOperationType.Details TEST_OUTPUT_DETAILS = new TestOutputBuildOperationType.Details() {
-    };
 
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
     private final BuildOperationListener listener;
@@ -70,22 +68,18 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
-        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new BuildOperationTestResult(testResult)));
+        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new Result(testResult)));
     }
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
-        BuildOperationDescriptor.Builder outputDescription = BuildOperationDescriptor.displayName(event.getDestination().name())
-            .details(TEST_OUTPUT_DETAILS);
-        BuildOperationDescriptor outputBuildOperationDescriptor = outputDescription.build(newOperationIdentifier(), runningOp.descriptor.getId());
-        listener.started(outputBuildOperationDescriptor, new OperationStartEvent(currentTime));
-        listener.finished(outputBuildOperationDescriptor, new OperationFinishEvent(currentTime, currentTime, null, new DefaultTestOutputBuildOperationResult(event)));
+        listener.progress(runningOp.descriptor, new OperationProgressEvent(currentTime, new OutputProgress(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
-        DefaultTestBuildOperationDetails details = new DefaultTestBuildOperationDetails(testDescriptor, testStartEvent.getStartTime());
+        Details details = new Details(testDescriptor, testStartEvent.getStartTime());
         InProgressExecuteTestBuildOperation parentOperation = runningTests.get(testDescriptor.getParent());
         Object parentId = parentOperation == null ? BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() : parentOperation.descriptor.getId();
         return BuildOperationDescriptor.displayName(testDescriptor.getName())
@@ -97,24 +91,11 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         return new OperationIdentifier(buildOperationIdFactory.nextId());
     }
 
-    private static class DefaultTestOutputBuildOperationResult implements TestOutputBuildOperationType.Result {
-        private final TestOutputEvent event;
-
-        DefaultTestOutputBuildOperationResult(TestOutputEvent event) {
-            this.event = event;
-        }
-
-        @Override
-        public TestOutputEvent getOutput() {
-            return event;
-        }
-    }
-
-    private static class DefaultTestBuildOperationDetails implements ExecuteTestBuildOperationType.Details {
+    private static class Details implements ExecuteTestBuildOperationType.Details {
         private final TestDescriptor testDescriptor;
         private long startTime;
 
-        DefaultTestBuildOperationDetails(TestDescriptor testDescriptor, long startTime) {
+        Details(TestDescriptor testDescriptor, long startTime) {
             this.testDescriptor = testDescriptor;
             this.startTime = startTime;
         }
@@ -130,10 +111,24 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private static class BuildOperationTestResult implements ExecuteTestBuildOperationType.Result {
+    private static class OutputProgress implements ExecuteTestBuildOperationType.Output {
+        private final TestOutputEvent event;
+
+        private OutputProgress(TestOutputEvent event) {
+            this.event = event;
+        }
+
+        @Override
+        public TestOutputEvent getOutput() {
+            return event;
+        }
+    }
+
+    private static class Result implements ExecuteTestBuildOperationType.Result {
+
         final TestResult result;
 
-        BuildOperationTestResult(TestResult testResult) {
+        Result(TestResult testResult) {
             this.result = testResult;
         }
 
@@ -141,15 +136,18 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         public TestResult getResult() {
             return result;
         }
+
     }
 
     private static class InProgressExecuteTestBuildOperation {
         final BuildOperationDescriptor descriptor;
+
         final long startTime;
 
         InProgressExecuteTestBuildOperation(BuildOperationDescriptor testBuildOperationDescriptor, long startTime) {
             this.descriptor = testBuildOperationDescriptor;
             this.startTime = startTime;
         }
+
     }
 }

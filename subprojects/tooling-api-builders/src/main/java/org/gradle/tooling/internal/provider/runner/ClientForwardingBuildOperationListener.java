@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.events.AbstractOperationResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
@@ -47,6 +48,10 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
+    }
+
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
     }
 
     @Override

@@ -17,10 +17,10 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.internal.tasks.testing.operations.TestOutputBuildOperationType;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
 /**
@@ -37,21 +37,20 @@ class TestIgnoringBuildOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!isTestRelatedBuildOperationEvent(buildOperation.getDetails())) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Details)) {
             delegate.started(buildOperation, startEvent);
         }
     }
 
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+    }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!isTestRelatedBuildOperationEvent(buildOperation.getDetails())) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Result)) {
             delegate.finished(buildOperation, finishEvent);
         }
     }
 
-    private boolean isTestRelatedBuildOperationEvent(Object details) {
-        return details != null && (TestOutputBuildOperationType.Details.class.isAssignableFrom(details.getClass())
-            || ExecuteTestBuildOperationType.Details.class.isAssignableFrom(details.getClass()));
-    }
 }

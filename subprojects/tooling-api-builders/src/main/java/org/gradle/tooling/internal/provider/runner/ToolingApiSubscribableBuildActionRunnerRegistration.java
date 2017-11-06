@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
@@ -47,6 +48,10 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        }
+
+        @Override
+        public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
         }
 
         @Override

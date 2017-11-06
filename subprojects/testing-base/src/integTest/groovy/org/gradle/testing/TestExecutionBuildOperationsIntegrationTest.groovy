@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
-import org.gradle.api.internal.tasks.testing.operations.TestOutputBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
@@ -68,19 +67,19 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         run "test"
 
         then: "test build operations are emitted in expected hierarchy"
-        operations.all(ExecuteTestBuildOperationType).size() == 10
-        operations.all(TestOutputBuildOperationType).size() == 10
-        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        def operations = operations.all(ExecuteTestBuildOperationType)
+        operations.size() == 10
+        def rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
         assertJunit(rootTestOp, operations)
 
         when:
         run "test", "--rerun-tasks"
 
-        rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
+        operations = this.operations.all(ExecuteTestBuildOperationType)
 
         then:
-        operations.all(ExecuteTestBuildOperationType).size() == 10
-        operations.all(TestOutputBuildOperationType).size() == 10
+        operations.size() == 10
         assertJunit(rootTestOp, operations)
     }
 

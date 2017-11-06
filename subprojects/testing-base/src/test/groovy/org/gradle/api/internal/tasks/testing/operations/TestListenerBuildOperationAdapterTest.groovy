@@ -77,7 +77,7 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         0 * buildOperationIdFactory.nextId()
     }
 
-    def "test output is exposed as test child operation"() {
+    def "test output is exposed as progress"() {
         setup:
         _ * clock.currentTime >> 0
         long operationId = 1
@@ -85,24 +85,21 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         TestOutputEvent testOutputEvent = new SimpleTestOutputEvent()
 
         BuildOperationDescriptor testOpDescriptor
-        BuildOperationDescriptor outputOpDescriptor
 
         when:
         adapter.started(testDescriptorInternal, testStartEvent)
+
         and:
         adapter.output(testDescriptorInternal, testOutputEvent)
 
         then:
         listener.started(_, _) >> {
             testOpDescriptor = it[0]
-        } >> {
-            outputOpDescriptor = it[0]
-            assert outputOpDescriptor.parentId == testOpDescriptor.id
         }
 
-        1 * listener.finished(_, _) >> {
-            assert outputOpDescriptor == it[0]
-            assert it[1].result.output == testOutputEvent
+        1 * listener.progress(_, _) >> {
+            assert testOpDescriptor == it[0]
+            assert it[1].details.output == testOutputEvent
         }
     }
 }
