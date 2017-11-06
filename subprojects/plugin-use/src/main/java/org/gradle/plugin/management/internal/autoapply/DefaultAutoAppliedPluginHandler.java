@@ -15,6 +15,7 @@
  */
 package org.gradle.plugin.management.internal.autoapply;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -42,12 +43,13 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         }
         Project project = (Project) pluginTarget;
 
-        List<PluginRequestInternal> merged = Lists.newArrayList(initialRequests);
+        List<PluginRequestInternal> merged = Lists.newArrayList();
         for (PluginRequestInternal autoAppliedPlugin : registry.getAutoAppliedPlugins(project)) {
             if (!isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, project)) {
                 merged.add(autoAppliedPlugin);
             }
         }
+        merged.addAll(ImmutableList.copyOf(initialRequests));
         return new DefaultPluginRequests(merged);
     }
 

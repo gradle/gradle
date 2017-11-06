@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
@@ -34,6 +35,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_LICENSE_NOTE = 'The Gradle Cloud Services license agreement has not been agreed to.'
     private static final String BUILD_SCAN_LICENSE_ACCEPTANCE = 'Gradle Cloud Services license agreement accepted.'
     private static final String BUILD_SCAN_LICENSE_DECLINATION = 'Gradle Cloud Services license agreement not accepted.'
+    private static final String BUILD_SCAN_WARNING = 'WARNING: The build scan plugin was applied after other plugins.'
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -105,6 +107,32 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         then:
         writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
+        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
+        !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
+        result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        result.output.contains(BUILD_SCAN_LICENSE_NOTE)
+        !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3341")
+    def "does not render warning message if other plugins are applied via plugin DSL"() {
+        given:
+        withInteractiveConsole()
+        buildFile << """
+            plugins {
+                id 'org.gradle.hello-world' version '0.2'
+            }
+        """
+        buildFile << dummyBuildFile()
+
+        when:
+        def gradleHandle = startBuildWithBuildScanCommandLineOption()
+
+        then:
+        writeToStdInAndClose(gradleHandle, EOF)
+        def result = gradleHandle.waitForFinish()
+        !result.output.contains(BUILD_SCAN_WARNING)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
