@@ -97,11 +97,13 @@ public class Depend extends DefaultTask {
     public void detectHeaders(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
         List<File> includeRoots = ImmutableList.copyOf(includes);
-        IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots);
+        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(getPath());
+        IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots, compileStateCache);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
         ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getName(), includeRoots, incrementalCompilation);
         ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(getName(), includeRoots, incrementalCompilation);
+        compileStateCache.set(incrementalCompilation.getFinalState());
 
         inputs.newInputs(headerDependencies);
         writeHeaderDependenciesFile(existingHeaderDependencies);
@@ -120,8 +122,7 @@ public class Depend extends DefaultTask {
         }
     }
 
-    private IncrementalCompileProcessor createIncrementalCompileProcessor(List<File> includeRoots) {
-        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(getPath());
+    private IncrementalCompileProcessor createIncrementalCompileProcessor(List<File> includeRoots, PersistentStateCache<CompilationState> compileStateCache) {
         DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes.getOrElse(false));
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots);
         IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
