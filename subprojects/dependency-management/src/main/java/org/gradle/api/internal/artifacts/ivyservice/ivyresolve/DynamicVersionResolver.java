@@ -51,8 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister.hasCriticalFailure;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister.isCriticalFailure;
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
 

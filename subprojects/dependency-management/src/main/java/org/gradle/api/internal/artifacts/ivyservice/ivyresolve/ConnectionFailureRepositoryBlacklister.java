@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.exception.ExceptionUtils;
 
-import java.io.InterruptedIOException;
-import java.util.Collection;
 import java.util.Set;
+
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
 public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
 
@@ -51,22 +50,5 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
     @Override
     public Set<String> getBlacklistedRepositories() {
         return blacklistedRepositories;
-    }
-
-    public static boolean hasCriticalFailure(Collection<? extends Throwable> failures) {
-        for (Throwable failure : failures) {
-            if (isCriticalFailure(failure)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public static boolean isCriticalFailure(Throwable throwable) {
-        return isTimeoutException(throwable);
-    }
-    private static boolean isTimeoutException(Throwable throwable) {
-        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        //http://hc.apache.org/httpclient-3.x/exception-handling.html
-        return rootCause instanceof InterruptedIOException;
     }
 }
