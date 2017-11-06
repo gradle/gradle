@@ -36,7 +36,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.4
  */
 @UsedByScanPlugin("implemented by the scan plugin - 1.11")
-public interface BuildOperationNotificationListener_2 {
+public interface BuildOperationNotificationListener2 {
 
     void started(BuildOperationStartedNotification notification);
 

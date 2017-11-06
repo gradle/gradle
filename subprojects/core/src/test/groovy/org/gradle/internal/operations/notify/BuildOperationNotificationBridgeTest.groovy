@@ -33,7 +33,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def listenerManager = new DefaultBuildOperationListenerManager(rawListenerManager)
     def broadcast = rawListenerManager.getBroadcaster(BuildOperationListener)
     def listener = Mock(BuildOperationNotificationListener)
-    def listener_2 = Mock(BuildOperationNotificationListener_2)
+    def listener2 = Mock(BuildOperationNotificationListener2)
     def gradle = Mock(GradleInternal)
     BuildOperationNotificationBridge bridge
 
@@ -271,7 +271,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "emits progress events"() {
         given:
-        register(listener_2)
+        register(listener2)
         def d1 = d(1, null, 1)
         def d2 = d(2, 1, null)
         def d3 = d(3, 2, 3)
@@ -293,35 +293,35 @@ class BuildOperationNotificationBridgeTest extends Specification {
         broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, null))
 
         then:
-        1 * listener_2.started(_) >> { BuildOperationStartedNotification n ->
+        1 * listener2.started(_) >> { BuildOperationStartedNotification n ->
             assert n.notificationOperationId == d1.id
         }
 
         then:
-        1 * listener_2.progress(_) >> { BuildOperationProgressNotification n ->
+        1 * listener2.progress(_) >> { BuildOperationProgressNotification n ->
             assert n.notificationOperationId == d1.id
             assert n.notificationOperationProgressDetails == 1
         }
 
         then:
-        1 * listener_2.started(_) >> { BuildOperationStartedNotification n ->
+        1 * listener2.started(_) >> { BuildOperationStartedNotification n ->
             assert n.notificationOperationId == d3.id
             assert n.notificationOperationParentId == d1.id
         }
 
         then:
-        1 * listener_2.progress(_) >> { BuildOperationProgressNotification n ->
+        1 * listener2.progress(_) >> { BuildOperationProgressNotification n ->
             assert n.notificationOperationId == d3.id
             assert n.notificationOperationProgressDetails == 1
         }
 
         then:
-        1 * listener_2.finished(_) >> { BuildOperationFinishedNotification n ->
+        1 * listener2.finished(_) >> { BuildOperationFinishedNotification n ->
             assert n.notificationOperationId == d3.id
         }
 
         then:
-        1 * listener_2.finished(_) >> { BuildOperationFinishedNotification n ->
+        1 * listener2.finished(_) >> { BuildOperationFinishedNotification n ->
             assert n.notificationOperationId == d1.id
         }
     }
@@ -334,7 +334,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         bridge.registerBuildScopeListener(listener)
     }
 
-    void register(BuildOperationNotificationListener_2 listener) {
+    void register(BuildOperationNotificationListener2 listener) {
         if (bridge == null) {
             bridge = new BuildOperationNotificationBridge(listenerManager)
         }

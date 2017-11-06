@@ -57,6 +57,6 @@ public interface BuildOperationNotificationListenerRegistrar {
      *
      * @since 4.4
      */
-    void register(BuildOperationNotificationListener_2 listener);
+    void register(BuildOperationNotificationListener2 listener);
 
 }
