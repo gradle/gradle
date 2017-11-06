@@ -18,6 +18,7 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -27,6 +28,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["4.3-20171011120745+0000"]
     }
 
+    @Ignore
     @Unroll
     def "clean assemble on #testProject"() {
         given:
@@ -59,6 +61,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "bigCppMulti"                     | '1g'      | null
     }
 
+    @Ignore
     def "clean assemble on manyProjectsNative"() {
         given:
         runner.testProject = "manyProjectsNative"
