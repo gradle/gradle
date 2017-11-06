@@ -73,8 +73,8 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         expectPublish(module.pom)
         expectPublish(module.moduleMetadata)
 
-        module.rootMavenMetadata.expectLstatMissing()
-        expectPublish(module.rootMavenMetadata)
+        module.rootMetaData.expectLstatMissing()
+        expectPublish(module.rootMetaData)
 
         and:
         succeeds 'publish'

@@ -65,8 +65,8 @@ publishing {
         expectPublish(module.artifact)
         expectPublish(module.pom)
         expectPublish(module.moduleMetadata)
-        module.mavenRootMetaData.expectDownloadMissing()
-        expectPublish(module.mavenRootMetaData)
+        module.rootMetaData.expectDownloadMissing()
+        expectPublish(module.rootMetaData)
 
         succeeds 'publish'
 

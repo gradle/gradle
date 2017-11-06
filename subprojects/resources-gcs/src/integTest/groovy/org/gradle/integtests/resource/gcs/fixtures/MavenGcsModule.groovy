@@ -18,9 +18,9 @@ package org.gradle.integtests.resource.gcs.fixtures
 
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.RemoteMavenModule
 
-class MavenGcsModule extends DelegatingMavenModule<MavenGcsModule> implements MavenModule {
+class MavenGcsModule extends DelegatingMavenModule<MavenGcsModule> implements RemoteMavenModule {
     MavenFileModule backingModule
     GcsServer server
     String bucket
@@ -46,11 +46,12 @@ class MavenGcsModule extends DelegatingMavenModule<MavenGcsModule> implements Ma
         return new GcsArtifact(server, artifactFile, repositoryPath, bucket)
     }
 
-    GcsArtifact getMetaData() {
-        new GcsArtifact(server, backingModule.metaDataFile, repositoryPath, bucket)
+    @Override
+    GcsArtifact getRootMetaData() {
+        return new GcsArtifact(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
     }
 
-    GcsArtifact getMavenRootMetaData() {
-        new GcsArtifact(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
+    GcsArtifact getMetaData() {
+        new GcsArtifact(server, backingModule.metaDataFile, repositoryPath, bucket)
     }
 }

@@ -125,7 +125,7 @@ interface MavenModule extends Module {
 
     GradleModuleMetadata getParsedModuleMetadata()
 
-    MavenMetaData getRootMetaData()
+    ModuleArtifact getRootMetaData()
 
     boolean getUniqueSnapshots()
 
