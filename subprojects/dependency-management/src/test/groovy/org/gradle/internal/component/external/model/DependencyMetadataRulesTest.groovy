@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -194,7 +195,7 @@ class DependencyMetadataRulesTest extends Specification {
 
     private addDependency(AbstractMutableModuleComponentResolveMetadata<? extends DefaultConfigurationMetadata> resolveMetadata, String group, String name, String version) {
         if (resolveMetadata instanceof MutableMavenModuleResolveMetadata && !resolveMetadata.variants.empty) {
-            defaultVariant.addDependency(group, name, version)
+            defaultVariant.addDependency(group, name, new DefaultVersionConstraint(version))
         } else if (resolveMetadata instanceof MutableMavenModuleResolveMetadata) {
             //legacy dependency handling
             resolveMetadata.dependencies += new MavenDependencyMetadata(MavenScope.Compile, false, newSelector(group, name, version), [], [])
@@ -206,7 +207,7 @@ class DependencyMetadataRulesTest extends Specification {
 
     private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
         def consumerIdentifier = new DefaultModuleVersionIdentifier("org.test", "consumer", "1.0")
-        def componentSelector = DefaultModuleComponentSelector.newSelector(consumerIdentifier.group, consumerIdentifier.name, consumerIdentifier.version)
+        def componentSelector = DefaultModuleComponentSelector.newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultVersionConstraint(consumerIdentifier.version))
         def selector = newSelector(consumerIdentifier.group, consumerIdentifier.name, consumerIdentifier.version)
         def consumerResolveMetadata = new DefaultMutableMavenModuleResolveMetadata(consumerIdentifier, DefaultModuleComponentIdentifier.newId(consumerIdentifier)).asImmutable()
         def consumer = new LocalComponentDependencyMetadata(componentSelector, selector, "default", attributes, null, [] as Set, [], false, false, true)
