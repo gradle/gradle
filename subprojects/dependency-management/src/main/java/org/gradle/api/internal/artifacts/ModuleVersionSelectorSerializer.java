@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -44,7 +44,7 @@ public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersion
         for (int i = 0; i < cpt; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultVersionConstraint(preferred, rejects);
+        return new DefaultImmutableVersionConstraint(preferred, rejects);
     }
 
     public void write(Encoder encoder, ModuleVersionSelector value) throws IOException {

@@ -26,7 +26,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -519,7 +519,7 @@ public class ModuleMetadataSerializer {
             for (int i = 0; i < rejectCount; i++) {
                 rejects.add(decoder.readString());
             }
-            return new DefaultVersionConstraint(prefers, rejects);
+            return new DefaultImmutableVersionConstraint(prefers, rejects);
         }
 
         private SetMultimap<String, String> readDependencyConfigurationMapping() throws IOException {
