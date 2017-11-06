@@ -172,7 +172,7 @@ class DependenciesMetadataAdapterTest extends Specification {
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
-            ModuleVersionSelector requested = new DefaultModuleVersionSelector("org.gradle.test", "module$size", "1.0")
+            ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector("org.gradle.test", "module$size", "1.0")
             dependenciesMetadata += [ new MavenDependencyMetadata(MavenScope.Compile, false, requested, [], []) ]
         }
         adapter = new DependenciesMetadataAdapter(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE))
