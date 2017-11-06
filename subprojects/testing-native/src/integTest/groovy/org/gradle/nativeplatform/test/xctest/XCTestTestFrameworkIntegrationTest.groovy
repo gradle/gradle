@@ -28,7 +28,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.NOT_WINDOWS])
+@Requires([TestPrecondition.SWIFT_SUPPORT])
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)

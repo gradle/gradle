@@ -25,15 +25,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
-import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,14 +56,9 @@ public class CreateSwiftBundle extends DefaultTask {
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
     }
 
-    @Inject
-    protected FileSystem getFileSystem() {
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
-    void createBundle() throws IOException {
-        final File bundleDir = getOutputDir().dir("lib/" + getExecutableFile().getAsFile().get().getName() + ".xctest").get().getAsFile();
+    private void createBundle() throws IOException {
+        final File bundleDir = outputDir.getAsFile().get();
         getProject().copy(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -108,35 +99,6 @@ public class CreateSwiftBundle extends DefaultTask {
                 );
             }
         }).assertNormalExitValue();
-
-        installUnix();
-    }
-
-    private void installUnix() {
-        final File destination = outputDir.getAsFile().get();
-        final File executable = executableFile.getAsFile().get();
-
-        //installToDir(new File(destination, "lib"));
-
-        String runScriptText =
-            "#!/bin/sh"
-                + "\nAPP_BASE_NAME=`dirname \"$0\"`"
-                + "\nXCTEST_LOCATION=`xcrun --find xctest`"
-                + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/lib/" + executable.getName() + ".xctest\""
-                + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScript());
-
-        getFileSystem().chmod(getRunScript(), 0755);
-    }
-
-    /**
-     * Returns the script file that can be used to run the install image.
-     *
-     * @since 4.4
-     */
-    @Internal
-    public File getRunScript() {
-        return new File(outputDir.getAsFile().get(), OperatingSystem.current().getScriptName(executableFile.getAsFile().get().getName()));
     }
 
     @OutputDirectory
