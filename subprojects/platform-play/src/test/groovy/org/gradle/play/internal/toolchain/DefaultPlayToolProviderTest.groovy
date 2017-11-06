@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
+import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
@@ -77,7 +78,7 @@ class DefaultPlayToolProviderTest extends Specification {
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
-        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [2.6.x, 2.5.x, 2.4.x, 2.3.x, 2.2.x]."
+        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [${PlayMajorVersion.values().join(', ')}]."
 
         and: "no dependencies resolved"
         0 * dependencyHandler.create(_)

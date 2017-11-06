@@ -103,8 +103,8 @@ class TwirlCompilerAdapterV22X extends VersionedTwirlCompilerAdapter {
     }
 
     @Override
-    public String getDependencyNotation() {
-        return "com.typesafe.play:templates-compiler_" + scalaVersion + ":" + twirlVersion;
+    public List<String> getDependencyNotation() {
+        return Collections.singletonList("com.typesafe.play:templates-compiler_" + scalaVersion + ":" + twirlVersion);
     }
 
     @Override
