@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -106,7 +107,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
                 pomReader.getParentGroupId(),
                 pomReader.getParentArtifactId(),
-                new DefaultVersionConstraint(pomReader.getParentVersion()));
+                new DefaultImmutableVersionConstraint(pomReader.getParentVersion()));
             PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
             pomReader.setPomParent(parentPomReader);
         }
@@ -136,7 +137,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         + " is relocated to " + relocation
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");
-                ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(relocation.getGroup(), relocation.getName(), new DefaultVersionConstraint(relocation.getVersion()));
+                ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(relocation.getGroup(), relocation.getName(), new DefaultMutableVersionConstraint(relocation.getVersion()));
                 mdBuilder.addDependencyForRelocation(selector);
             }
         } else {
@@ -178,7 +179,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 ModuleComponentSelector importedId = DefaultModuleComponentSelector.newSelector(
                     currentDependencyMgt.getGroupId(),
                     currentDependencyMgt.getArtifactId(),
-                    new DefaultVersionConstraint(currentDependencyMgt.getVersion()));
+                    new DefaultMutableVersionConstraint(currentDependencyMgt.getVersion()));
                 PomReader importedPom = parsePomForSelector(parseContext, importedId, Maps.<String, String>newHashMap());
                 for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importedPom.getDependencyMgt().entrySet()) {
                     if (!importedDependencyMgts.containsKey(entry.getKey())) {

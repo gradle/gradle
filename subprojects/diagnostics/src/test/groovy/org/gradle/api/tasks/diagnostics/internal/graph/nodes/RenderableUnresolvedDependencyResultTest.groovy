@@ -18,14 +18,14 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class RenderableUnresolvedDependencyResultTest extends Specification {
     static VersionConstraint v(String version) {
-        new DefaultVersionConstraint(version)
+        new DefaultMutableVersionConstraint(version)
     }
 
     def "renders name"() {

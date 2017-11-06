@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -37,7 +37,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 
     static VersionConstraint v(String version) {
-        new DefaultVersionConstraint(version)
+        new DefaultMutableVersionConstraint(version)
     }
 
     abstract DefaultDependencyMetadata create(ModuleVersionSelector selector)

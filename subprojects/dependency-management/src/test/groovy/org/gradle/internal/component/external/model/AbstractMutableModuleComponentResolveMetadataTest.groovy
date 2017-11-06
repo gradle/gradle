@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -39,7 +39,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def dependencies = []
 
     static VersionConstraint v(String version) {
-        new DefaultVersionConstraint(version)
+        new DefaultMutableVersionConstraint(version)
     }
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)

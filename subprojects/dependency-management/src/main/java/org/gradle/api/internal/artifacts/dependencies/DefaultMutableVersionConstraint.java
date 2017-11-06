@@ -26,11 +26,11 @@ import java.util.List;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
-public class DefaultVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
+public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String prefer;
     private List<String> rejects;
 
-    public DefaultVersionConstraint(String version, boolean strict) {
+    public DefaultMutableVersionConstraint(String version, boolean strict) {
         this.prefer = version;
         if (strict) {
             doStrict();
@@ -39,7 +39,7 @@ public class DefaultVersionConstraint extends AbstractVersionConstraint implemen
         }
     }
 
-    public DefaultVersionConstraint(String version, List<String> rejects) {
+    public DefaultMutableVersionConstraint(String version, List<String> rejects) {
         this.prefer = nullToEmpty(version);
         this.rejects = rejects;
     }
@@ -54,7 +54,7 @@ public class DefaultVersionConstraint extends AbstractVersionConstraint implemen
         this.rejects = Collections.singletonList(rejectedSelector.getSelector());
     }
 
-    public DefaultVersionConstraint(String version) {
+    public DefaultMutableVersionConstraint(String version) {
         this(version, false);
     }
 

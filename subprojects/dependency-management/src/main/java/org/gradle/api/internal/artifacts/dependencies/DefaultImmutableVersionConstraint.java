@@ -30,6 +30,11 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
     }
 
+    public DefaultImmutableVersionConstraint(String preferredVersion) {
+        this.preferredVersion = preferredVersion;
+        this.rejectedVersions = ImmutableList.of();
+    }
+
     @Override
     public String getPreferredVersion() {
         return preferredVersion;

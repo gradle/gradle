@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
@@ -55,7 +55,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         }
         ModuleIdentifier key = moduleIdentifierFactory.module(details.getOldRequested().getGroup(), details.getOldRequested().getName());
         if (forcedModules.containsKey(key) && details.getRequested() instanceof ModuleComponentSelector) {
-            details.useTarget(DefaultModuleComponentSelector.newSelector(key.getGroup(), key.getName(), new DefaultVersionConstraint(forcedModules.get(key))), VersionSelectionReasons.FORCED);
+            details.useTarget(DefaultModuleComponentSelector.newSelector(key.getGroup(), key.getName(), new DefaultImmutableVersionConstraint(forcedModules.get(key))), VersionSelectionReasons.FORCED);
         }
     }
 }

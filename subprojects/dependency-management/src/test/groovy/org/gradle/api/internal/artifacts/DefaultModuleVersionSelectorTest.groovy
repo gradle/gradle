@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -26,7 +26,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class DefaultModuleVersionSelectorTest extends Specification {
 
     static VersionConstraint v(String version) {
-        new DefaultVersionConstraint(version)
+        new DefaultMutableVersionConstraint(version)
     }
 
     def "equality"() {
