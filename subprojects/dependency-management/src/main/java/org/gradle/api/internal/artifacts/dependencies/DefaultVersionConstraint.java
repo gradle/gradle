@@ -39,6 +39,11 @@ public class DefaultVersionConstraint extends AbstractVersionConstraint implemen
         }
     }
 
+    public DefaultVersionConstraint(String version, List<String> rejects) {
+        this.prefer = nullToEmpty(version);
+        this.rejects = rejects;
+    }
+
     private void doStrict() {
         // When strict version is used, we need to parse the preferred selector early, in order to compute its complement.
         // Hopefully this shouldn't happen too often. If it happens to become a performance problem, we need to reconsider
@@ -47,11 +52,6 @@ public class DefaultVersionConstraint extends AbstractVersionConstraint implemen
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
         VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
         this.rejects = Collections.singletonList(rejectedSelector.getSelector());
-    }
-
-    public DefaultVersionConstraint(String version, List<String> rejects) {
-        this.prefer = nullToEmpty(version);
-        this.rejects = rejects;
     }
 
     public DefaultVersionConstraint(String version) {
