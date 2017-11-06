@@ -70,7 +70,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def operations = operations.all(ExecuteTestBuildOperationType)
         operations.size() == 10
         def rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
-        assertJunit(rootTestOp, operations)
+        assertJunit(rootTestOp, this.operations)
 
         when:
         run "test", "--rerun-tasks"
@@ -80,7 +80,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         then:
         operations.size() == 10
-        assertJunit(rootTestOp, operations)
+        assertJunit(rootTestOp, this.operations)
     }
 
     def "emits test operations as expected for composite builds"() {

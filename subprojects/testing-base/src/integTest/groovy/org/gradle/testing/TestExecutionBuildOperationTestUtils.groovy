@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
-import org.gradle.api.internal.tasks.testing.operations.TestOutputBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
@@ -51,11 +50,10 @@ abstract class TestExecutionBuildOperationTestUtils {
         assert suiteTestTestOps*.details.testDescriptor.className == ["org.gradle.FooTest", "org.gradle.FooTest", "org.gradle.BarTest"]
         assert suiteTestTestOps*.details.testDescriptor.composite == [false, false, false]
 
-        // outputs are emitted in test build operation hierarchy
-        def testOutput = operations.children(suiteTestTestOps[1], TestOutputBuildOperationType)
+        def testOutput = suiteTestTestOps[1].progress
         assert testOutput.size() == 2
-        assert testOutput*.result.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
-        assert testOutput*.result.output.destination == ["StdOut", "StdErr"]
+        assert testOutput*.details.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
+        assert testOutput*.details.output.destination == ["StdOut", "StdErr"]
     }
 
     static void assertJunit(BuildOperationRecord rootTestOp, BuildOperationsFixture operations) {
@@ -84,18 +82,18 @@ abstract class TestExecutionBuildOperationTestUtils {
         assert testTestOps*.details.testDescriptor.composite == [false, false]
 
         // outputs are emitted in test build operation hierarchy
-        def testSuiteOutput = operations.children(firstLevelTestOps[1], TestOutputBuildOperationType)
+        def testSuiteOutput = firstLevelTestOps[1].progress
         assert testSuiteOutput.size() == 4
-        assert testSuiteOutput*.result.output.message.collect {
+        assert testSuiteOutput*.details.output.message.collect {
             normaliseLineSeparators(it)
         } == ["before suite class out\n", "before suite class err\n", "after suite class out\n", "after suite class err\n"]
-        assert testSuiteOutput*.result.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
+        assert testSuiteOutput*.details.output.destination == ["StdOut", "StdErr", "StdOut", "StdErr"]
 
-        def testOutput = operations.children(testTestOps[0], TestOutputBuildOperationType)
+        def testOutput = testTestOps[0].progress
         testOutput.size() == 2
 
-        testOutput*.result.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
-        testOutput*.result.output.destination == ["StdOut", "StdErr"]
+        testOutput*.details.output.message.collect { normaliseLineSeparators(it) } == ["sys out ok\n", "sys err ok\n"]
+        testOutput*.details.output.destination == ["StdOut", "StdErr"]
     }
 
 }
