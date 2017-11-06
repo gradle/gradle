@@ -23,13 +23,20 @@ import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
-
+    def publishModuleMetadata = true
     def resolveModuleMetadata = true
 
     def setup() {
         executer.beforeExecute {
-            withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+            if (publishModuleMetadata) {
+                withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+            }
         }
+    }
+
+    protected void disableModuleMetadataPublishing() {
+        publishModuleMetadata = false
+        resolveModuleMetadata = false
     }
 
     protected static MavenPublishedJavaModule javaLibrary(MavenFileModule mavenFileModule) {

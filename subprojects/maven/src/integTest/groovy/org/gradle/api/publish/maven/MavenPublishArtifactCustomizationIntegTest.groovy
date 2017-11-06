@@ -45,10 +45,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
     }
 
-    def "can configure artifacts added from component"() {
-        // The published .module file is not really usable, since the artifact customization means that the
-        // Maven publication no longer represents the java component that was published.
-        resolveModuleMetadata = false
+    def "can modify artifacts added from component"() {
+        disableModuleMetadataPublishing()
 
         given:
         createBuildScripts("""
@@ -77,9 +75,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     }
 
     def "can set custom artifacts to override component artifacts"() {
-        // The published .module file is not really usable, since the artifact customization means that the
-        // Maven publication no longer represents the java component that was published.
-        resolveModuleMetadata = false
+        disableModuleMetadataPublishing()
 
         given:
         createBuildScripts("""
