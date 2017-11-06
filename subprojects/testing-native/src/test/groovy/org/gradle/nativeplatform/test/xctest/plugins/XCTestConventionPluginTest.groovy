@@ -191,7 +191,7 @@ class XCTestConventionPluginTest extends Specification {
         install.runScript.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
-        test.workingDirectory.get().asFile == projectDir.file("output/ext/test")
+        test.workingDirectory.get().asFile == projectDir.file("output/install/test")
     }
 
     private String getDevelopmentBinaryName() {
