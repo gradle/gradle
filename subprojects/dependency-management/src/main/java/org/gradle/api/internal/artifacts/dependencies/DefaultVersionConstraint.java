@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,16 +59,9 @@ public class DefaultVersionConstraint extends AbstractVersionConstraint implemen
     }
 
     @Override
-    public ImmutableVersionConstraint asImmutable(VersionSelectorScheme scheme) {
+    public ImmutableVersionConstraint asImmutable() {
         String v = prefer == null ? "" : prefer;
-        VersionSelector preferredSelector = scheme.parseSelector(v);
-        VersionSelector rejectedSelector = null;
-        if (rejects.size() == 1) {
-            rejectedSelector = scheme.parseSelector(rejects.get(0));
-        } else if (!rejects.isEmpty()) {
-            throw new UnsupportedOperationException("Multiple rejects are not yet supported");
-        }
-        return new DefaultImmutableVersionConstraint(v, rejects, preferredSelector, rejectedSelector);
+        return new DefaultImmutableVersionConstraint(v, rejects);
     }
 
     @Override

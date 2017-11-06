@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -369,7 +369,7 @@ public class DependencyGraphBuilder {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {
             if (filter.apply(selectorState)) {
-                ImmutableVersionConstraint versionConstraint = selectorState.getVersionConstraint();
+                ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
                 if (versionConstraint != null) {
                     VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
                     if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {

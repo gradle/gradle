@@ -15,35 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 import java.util.List;
 
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private final String preferredVersion;
-    private final List<String> rejectedVersions;
-    private final VersionSelector preferredSelector;
-    private final VersionSelector rejectedSelector;
+    private final ImmutableList<String> rejectedVersions;
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
-                                             List<String> rejectedVersions,
-                                             VersionSelector preferredSelector,
-                                             VersionSelector rejectedSelector) {
+                                             List<String> rejectedVersions) {
         this.preferredVersion = preferredVersion;
-        this.rejectedVersions = rejectedVersions;
-        this.preferredSelector = preferredSelector;
-        this.rejectedSelector = rejectedSelector;
-    }
-
-    @Override
-    public VersionSelector getPreferredSelector() {
-        return preferredSelector;
-    }
-
-    @Override
-    public VersionSelector getRejectedSelector() {
-        return rejectedSelector;
+        this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
     }
 
     @Override

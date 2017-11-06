@@ -26,7 +26,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String module;
     private final VersionConstraint versionConstraint;
 
-    public DefaultModuleComponentSelector(String group, String module, VersionConstraint version) {
+    private DefaultModuleComponentSelector(String group, String module, VersionConstraint version) {
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
