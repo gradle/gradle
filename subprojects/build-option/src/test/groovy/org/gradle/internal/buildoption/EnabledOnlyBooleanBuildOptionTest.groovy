@@ -66,8 +66,8 @@ class EnabledOnlyBooleanBuildOptionTest extends Specification {
         CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
         assertNoArguments(longOption)
         assertNoArguments(shortOption)
-        assertNoDeprecationWarning(longOption)
-        assertNoDeprecationWarning(shortOption)
+        assertNotDeprecated(longOption)
+        assertNotDeprecated(shortOption)
         assertDescription(longOption)
         assertDescription(shortOption)
     }
@@ -96,12 +96,9 @@ class EnabledOnlyBooleanBuildOptionTest extends Specification {
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
-            .deprecated(deprecationWarning)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
@@ -109,10 +106,10 @@ class EnabledOnlyBooleanBuildOptionTest extends Specification {
         then:
         CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
         CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
-        assertDeprecationWarning(longOption, deprecationWarning)
-        assertDeprecationWarning(shortOption, deprecationWarning)
-        assertDeprecatedDescription(longOption, deprecationWarning)
-        assertDeprecatedDescription(shortOption, deprecationWarning)
+        assertDeprecated(longOption)
+        assertDeprecated(shortOption)
+        assertDeprecatedDescription(longOption, true)
+        assertDeprecatedDescription(shortOption, true)
     }
 
     def "can apply from command line"() {

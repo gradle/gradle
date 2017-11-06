@@ -23,9 +23,9 @@ public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();
     private Class<?> argumentType = Void.TYPE;
     private String description;
-    private String deprecationWarning;
     private boolean incubating;
     private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
+    private boolean deprecated;
 
     public CommandLineOption(Iterable<String> options) {
         for (String option : options) {
@@ -57,21 +57,20 @@ public class CommandLineOption {
         if (description != null) {
             result.append(description);
         }
-        if (deprecationWarning != null) {
-            if (result.length() > 0) {
-                result.append(' ');
-            }
-            result.append("[deprecated - ");
-            result.append(deprecationWarning);
-            result.append("]");
-        }
-        if (incubating) {
-            if (result.length() > 0) {
-                result.append(' ');
-            }
-            result.append("[incubating]");
-        }
+
+        appendMessage(result, deprecated, "[deprecated]");
+        appendMessage(result, incubating, "[incubating]");
+
         return result.toString();
+    }
+
+    private void appendMessage(StringBuilder result, boolean append, String message) {
+        if (append) {
+            if (result.length() > 0) {
+                result.append(' ');
+            }
+            result.append(message);
+        }
     }
 
     public CommandLineOption hasDescription(String description) {
@@ -87,8 +86,8 @@ public class CommandLineOption {
         return argumentType == List.class;
     }
 
-    public CommandLineOption deprecated(String deprecationWarning) {
-        this.deprecationWarning = deprecationWarning;
+    public CommandLineOption deprecated() {
+        this.deprecated = true;
         return this;
     }
 
@@ -97,8 +96,8 @@ public class CommandLineOption {
         return this;
     }
 
-    public String getDeprecationWarning() {
-        return deprecationWarning;
+    public boolean isDeprecated() {
+        return deprecated;
     }
 
     public boolean isIncubating() {

@@ -34,7 +34,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     protected final List<V> commandLineOptionConfigurations;
 
     public AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, null);
+        this(gradleProperty, (V[]) null);
     }
 
     public AbstractBuildOption(String gradleProperty, V... commandLineOptionConfiguration) {
@@ -52,10 +52,13 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         return value != null && value.trim().equalsIgnoreCase("true");
     }
 
-    protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, String deprecationWarning, boolean incubating) {
+    protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
         CommandLineOption option = parser.option(options)
-            .hasDescription(description)
-            .deprecated(deprecationWarning);
+            .hasDescription(description);
+
+        if(deprecated) {
+            option.deprecated();
+        }
 
         if (incubating) {
             option.incubating();

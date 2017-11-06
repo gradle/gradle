@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.buildoption.BuildOption;
 
@@ -26,10 +27,10 @@ import java.util.Map;
 public class PropertiesToStartParameterConverter {
     private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
     private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
-    private final List<BuildOption<StartParameter>> buildOptions = StartParameterBuildOptions.get();
+    private final List<BuildOption<StartParameterInternal>> buildOptions = StartParameterBuildOptions.get();
 
-    public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
-        for (BuildOption<StartParameter> option : buildOptions) {
+    public StartParameter convert(Map<String, String> properties, StartParameterInternal startParameter) {
+        for (BuildOption<StartParameterInternal> option : buildOptions) {
             option.applyFromProperty(properties, startParameter);
         }
 

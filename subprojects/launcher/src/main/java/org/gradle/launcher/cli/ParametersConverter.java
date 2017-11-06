@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -80,8 +81,8 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         layoutToPropertiesConverter.convert(target.getLayout(), properties);
         propertiesConverter.convert(args, properties);
 
-        propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
-        commandLineConverter.convert(args, target.getStartParameter());
+        propertiesToStartParameterConverter.convert(properties, (StartParameterInternal) target.getStartParameter());
+        commandLineConverter.convert(args, (StartParameterInternal) target.getStartParameter());
 
         DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), target.getStartParameter().getSystemPropertiesArgs());
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
