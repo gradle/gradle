@@ -33,6 +33,10 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
         return container.get(originalIndex);
     }
 
+    private void updateMetadata(org.gradle.internal.component.model.DependencyMetadata modifiedMetadata) {
+        container.set(originalIndex, modifiedMetadata);
+    }
+
     @Override
     public String getGroup() {
         return getOriginalMetadata().getRequested().getGroup();
@@ -46,5 +50,11 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
     @Override
     public String getVersion() {
         return getOriginalMetadata().getRequested().getVersion();
+    }
+
+    @Override
+    public DependencyMetadata setVersion(String version) {
+        updateMetadata(getOriginalMetadata().withRequestedVersion(version));
+        return this;
     }
 }

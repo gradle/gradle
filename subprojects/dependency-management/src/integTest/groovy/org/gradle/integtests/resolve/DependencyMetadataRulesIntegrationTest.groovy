@@ -93,6 +93,42 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
     }
 
+    @Unroll
+    def "a dependency can be added and configured using #notation notation"() {
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") {
+                            withDependencies {
+                                add($dependency) {
+                                    it.version = '1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("org.test:moduleA:1.0:$variantToTest") {
+                    module('org.test:moduleB:1.0')
+                }
+            }
+        }
+
+        where:
+        notation | dependency
+        "string" | "'org.test:moduleB:1.0'"
+        "map"    | "group: 'org.test', name: 'moduleB'"
+    }
+
     def "a dependency can be removed"() {
         given:
         moduleA.dependsOn(moduleB).publish()
@@ -160,6 +196,39 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module("org.test:moduleA:1.0:$variantToTest")
+            }
+        }
+    }
+
+    def "can set version on dependency"() {
+        given:
+        moduleA.dependsOn('org.test', 'moduleB', '2.0').publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") { 
+                            withDependencies {
+                                it.each {
+                                    it.version = '1.0'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("org.test:moduleA:1.0:$variantToTest") {
+                    module('org.test:moduleB:1.0')
+                }
             }
         }
     }

@@ -44,4 +44,11 @@ public interface DependencyMetadata {
      * which usually expresses what API level of the module you are compatible with.
      */
     String getVersion();
+
+    /**
+     * Adjust the version constraints of the dependency.
+     *
+     * @param version version in string notation
+     */
+    DependencyMetadata setVersion(String version);
 }
