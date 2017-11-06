@@ -16,9 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 public interface ImmutableVersionConstraint extends VersionConstraint {
-    VersionSelector getPreferredSelector();
-    VersionSelector getRejectedSelector();
 }

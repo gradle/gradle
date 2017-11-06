@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -36,11 +35,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
-    private final VersionSelectorScheme versionSelectorScheme;
-
-    public ComponentSelectorSerializer(VersionSelectorScheme versionSelectorScheme) {
-        this.versionSelectorScheme = versionSelectorScheme;
-    }
 
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
@@ -48,7 +42,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (Implementation.BUILD.getId() == id) {
             return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder));
+            return DefaultModuleComponentSelector.newSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder));
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
@@ -66,9 +60,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (rejectCount > 1) {
             throw new UnsupportedOperationException("Multiple rejects are not yet supported");
         }
-        return new DefaultImmutableVersionConstraint(prefers, rejects,
-            versionSelectorScheme.parseSelector(prefers),
-            rejectCount == 0 ? null : versionSelectorScheme.parseSelector(rejects.get(0)));
+        return new DefaultImmutableVersionConstraint(prefers, rejects);
     }
 
     public void write(Encoder encoder, ComponentSelector value) throws IOException {

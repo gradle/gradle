@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -49,7 +49,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
                 boolean accept = true;
                 for (T t : candidates) {
-                    ImmutableVersionConstraint candidateConstraints = t.getVersionConstraint();
+                    ResolvedVersionConstraint candidateConstraints = t.getVersionConstraint();
                     if (t != candidate && candidateConstraints != null) { // may be null for local components
                         VersionSelector rejectedVersionSelector = candidateConstraints.getRejectedSelector();
                         if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
@@ -110,7 +110,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         details.select(matches.get(sorted.get(0)));
     }
 
-    private static String render(ImmutableVersionConstraint constraint) {
+    private static String render(ResolvedVersionConstraint constraint) {
         VersionSelector preferredSelector = constraint.getPreferredSelector();
         VersionSelector rejectedSelector = constraint.getRejectedSelector();
         StringBuilder sb = new StringBuilder("prefers ");

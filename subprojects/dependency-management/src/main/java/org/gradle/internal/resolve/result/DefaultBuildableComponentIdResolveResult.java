@@ -19,7 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -30,7 +30,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private ComponentSelectionReason selectionReason;
-    private ImmutableVersionConstraint versionConstraint;
+    private ResolvedVersionConstraint versionConstraint;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -98,12 +98,12 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public ImmutableVersionConstraint getVersionConstraint() {
+    public ResolvedVersionConstraint getResolvedVersionConstraint() {
         return versionConstraint;
     }
 
     @Override
-    public void setVersionConstraint(ImmutableVersionConstraint versionConstraint) {
+    public void setResolvedVersionConstraint(ResolvedVersionConstraint versionConstraint) {
         this.versionConstraint = versionConstraint;
     }
 }

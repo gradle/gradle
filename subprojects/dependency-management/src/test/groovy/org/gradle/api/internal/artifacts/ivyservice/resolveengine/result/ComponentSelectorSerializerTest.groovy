@@ -29,19 +29,16 @@ import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
-public class ComponentSelectorSerializerTest extends SerializerSpec {
+class ComponentSelectorSerializerTest extends SerializerSpec {
     private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(versionSelectorScheme)
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
 
     private ImmutableVersionConstraint constraint(String version, boolean strict = false) {
-        def preferred = versionSelectorScheme.parseSelector(version)
         def reject = strict ? versionSelectorScheme.complementForRejection(versionSelectorScheme.parseSelector(version)) : null
         List<String> rejects = strict ? [reject.selector] : []
         return new DefaultImmutableVersionConstraint(
             version,
-            rejects,
-            preferred,
-            reject
+            rejects
         )
     }
 

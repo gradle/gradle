@@ -69,7 +69,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory);
         this.store = store;
         this.cache = cache;
-        this.componentSelectorSerializer = new ComponentSelectorSerializer(versionSelectorScheme);
+        this.componentSelectorSerializer = new ComponentSelectorSerializer();
     }
 
     public ResolutionResult complete() {

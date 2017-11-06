@@ -66,7 +66,7 @@ class DependencyManagementGlobalScopeServices {
     }
 
     ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, VersionSelectorScheme versionSelectorScheme) {
-        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter, versionSelectorScheme);
+        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
     }
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
