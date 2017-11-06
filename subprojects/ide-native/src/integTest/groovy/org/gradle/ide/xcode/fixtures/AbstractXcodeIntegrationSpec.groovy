@@ -191,4 +191,12 @@ Actual: ${actual[key]}
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
     }
+
+    void assertTargetIsIndexerWithTestComponent(ProjectFile.PBXTarget target, String expectedProductName) {
+        assert target.productName == expectedProductName
+        assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == '"' + file('build/modules/main').absolutePath + '"'
+    }
 }
