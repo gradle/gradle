@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.Contextual;
@@ -57,19 +57,19 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String message) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), new DefaultVersionConstraint(id.getVersion())), message);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), new DefaultImmutableVersionConstraint(id.getVersion())), message);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultVersionConstraint(id.getVersion())), messageFormat);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultVersionConstraint(id.getVersion())), Arrays.asList(cause));
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), Arrays.asList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultVersionConstraint(id.getVersion())), causes);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), causes);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {

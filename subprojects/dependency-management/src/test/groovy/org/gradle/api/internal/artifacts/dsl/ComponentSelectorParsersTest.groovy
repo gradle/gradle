@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
@@ -60,7 +60,7 @@ public class ComponentSelectorParsersTest extends Specification {
     }
 
     def "allows exact type on input"() {
-        def id = DefaultModuleComponentSelector.newSelector("org.foo", "bar", new DefaultVersionConstraint("2.0"))
+        def id = DefaultModuleComponentSelector.newSelector("org.foo", "bar", new DefaultMutableVersionConstraint("2.0"))
 
         when:
         def v = multiParser().parseNotation(id) as List
@@ -76,7 +76,7 @@ public class ComponentSelectorParsersTest extends Specification {
     }
 
     def "allows list of objects on input"() {
-        def id = DefaultModuleComponentSelector.newSelector("org.foo", "bar", new DefaultVersionConstraint("2.0"))
+        def id = DefaultModuleComponentSelector.newSelector("org.foo", "bar", new DefaultMutableVersionConstraint("2.0"))
 
         when:
         def v = multiParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List

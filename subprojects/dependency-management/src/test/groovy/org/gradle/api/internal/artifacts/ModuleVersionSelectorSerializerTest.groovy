@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
@@ -28,10 +28,10 @@ class ModuleVersionSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector("org", "foo", new DefaultVersionConstraint(version, rejects)), serializer)
+        def result = serialize(newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects)), serializer)
 
         then:
-        result == newSelector("org", "foo", new DefaultVersionConstraint(version, rejects))
+        result == newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects))
 
         where:
         version | rejects

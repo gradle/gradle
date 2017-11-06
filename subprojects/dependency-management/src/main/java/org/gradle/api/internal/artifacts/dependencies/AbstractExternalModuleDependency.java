@@ -37,7 +37,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.group = group;
         this.name = name;
-        versionConstraint = new DefaultVersionConstraint(version);
+        this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {

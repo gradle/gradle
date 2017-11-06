@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.dependencies.DefaultVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
@@ -231,7 +231,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
         selector.resultId >> resultId
-        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultVersionConstraint(ver))
+        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultMutableVersionConstraint(ver))
         return selector
     }
 }
