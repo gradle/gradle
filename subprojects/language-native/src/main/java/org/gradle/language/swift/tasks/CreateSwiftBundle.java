@@ -58,7 +58,6 @@ public class CreateSwiftBundle extends DefaultTask {
 
     @TaskAction
     void createBundle() throws IOException {
-        final File bundleDir = outputDir.getAsFile().get();
         getProject().copy(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -69,11 +68,11 @@ public class CreateSwiftBundle extends DefaultTask {
                     }
                 });
 
-                copySpec.into(bundleDir);
+                copySpec.into(getOutputDir());
             }
         });
 
-        File outputFile = new File(bundleDir, "Contents/Info.plist");
+        File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
         if (!informationFile.isPresent() || !informationFile.get().getAsFile().exists()) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
@@ -87,15 +86,15 @@ public class CreateSwiftBundle extends DefaultTask {
         getProject().exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
-                execSpec.setWorkingDir(bundleDir);
+                execSpec.setWorkingDir(outputDir.get());
                 execSpec.executable(swiftStdlibToolLocator.find());
                 execSpec.args(
                     "--copy",
                     "--scan-executable", executableFile.getAsFile().get().getAbsolutePath(),
-                    "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
+                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
-                    "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
+                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
+                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
