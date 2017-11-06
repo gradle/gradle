@@ -63,22 +63,22 @@ abstract class TestExecutionBuildOperationTestUtils {
         assert executorTestOps[0].details.testDescriptor.className == null
         assert executorTestOps[0].details.testDescriptor.composite == true
 
-        def firstLevelTestOps = operations.children(executorTestOps[0], ExecuteTestBuildOperationType)
+        def firstLevelTestOps = operations.children(executorTestOps[0], ExecuteTestBuildOperationType).sort { it.details.testDescriptor.name }
         assert firstLevelTestOps.size() == 2
-        assert firstLevelTestOps*.details.testDescriptor.name as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
-        assert firstLevelTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.TestSuite"] as Set
+        assert firstLevelTestOps*.details.testDescriptor.name == ["org.gradle.Test", "org.gradle.TestSuite"]
+        assert firstLevelTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.TestSuite"]
         assert firstLevelTestOps*.details.testDescriptor.composite == [true, true]
 
         def suiteTestOps = operations.children(firstLevelTestOps[1], ExecuteTestBuildOperationType)
         assert suiteTestOps.size() == 4
-        assert suiteTestOps*.details.testDescriptor.name == ["ok", "fail", "otherFail", "otherOk"]
-        assert suiteTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.Test", "org.gradle.OtherTest", "org.gradle.OtherTest"]
+        assert suiteTestOps*.details.testDescriptor.name as Set == ["ok", "fail", "otherFail", "otherOk"] as Set
+        assert suiteTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.Test", "org.gradle.OtherTest", "org.gradle.OtherTest"] as Set
         assert suiteTestOps*.details.testDescriptor.composite == [false, false, false, false]
 
         def testTestOps = operations.children(firstLevelTestOps[0], ExecuteTestBuildOperationType)
         assert testTestOps.size() == 2
-        assert testTestOps*.details.testDescriptor.name == ["ok", "fail"]
-        assert testTestOps*.details.testDescriptor.className == ["org.gradle.Test", "org.gradle.Test"]
+        assert testTestOps*.details.testDescriptor.name as Set == ["ok", "fail"] as Set
+        assert testTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.Test"] as Set
         assert testTestOps*.details.testDescriptor.composite == [false, false]
 
         // outputs are emitted in test build operation hierarchy
