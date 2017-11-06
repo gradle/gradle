@@ -57,6 +57,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
+        options.add(new DependencyLockOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -290,6 +291,19 @@ public class StartParameterBuildOptions {
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+    }
+
+    public static class DependencyLockOption extends BooleanBuildOption<StartParameter> {
+        public static final String LONG_OPTION = "dependency-lock";
+
+        public DependencyLockOption() {
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Indicates to Gradle that resolved dependencies should be locked in a lock file. Gradle will create a new lock file if it doesn't exist yet or update the existing one.", "Disables writing locks to the lock file for resolved dependencies.").incubating());
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
+            settings.setDependencyLockEnabled(value);
         }
     }
 }

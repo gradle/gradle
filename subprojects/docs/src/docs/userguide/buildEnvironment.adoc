@@ -52,6 +52,8 @@ When set to false, Gradle will not monitor the memory usage of running daemons. 
 When set to true, Gradle will try to reuse outputs from previous builds. See <<sec:build_cache_intro>>.
 `org.gradle.console`::
 When set to plain, auto or rich, Gradle will use different type of console. See <<sec:console_build_output>>.
+`org.gradle.dependency.lock`::
+Turns on dependency locking. Gradle will store locks for resolved dependencies and reuse them in subsequent builds.
 
 [[sec:forked_java_processes]]
 ==== Forked Java processes

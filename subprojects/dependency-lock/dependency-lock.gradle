@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+
+sourceCompatibility = 1.7
+
+dependencies {
+    api project(':coreApi')
+    implementation libraries.gson
+}
+
+useTestFixtures()
+useClassycle()
+strictCompile()

@@ -53,6 +53,7 @@ class StartParameterTest extends Specification {
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
         parameter.interactive = true
+        parameter.dependencyLockEnabled = false
         parameter.includeBuild(new File('participant'))
 
         when:
@@ -122,6 +123,7 @@ class StartParameterTest extends Specification {
         !parameter.parallelProjectExecutionEnabled
         !parameter.buildCacheEnabled
         !parameter.interactive
+        !parameter.dependencyLockEnabled
 
         assertThat(parameter, isSerializable())
     }
@@ -286,6 +288,7 @@ class StartParameterTest extends Specification {
         parameter.parallelProjectExecutionEnabled = true
         parameter.buildCacheEnabled = true
         parameter.interactive = true
+        parameter.dependencyLockEnabled = true
 
         assertThat(parameter, isSerializable())
 
@@ -307,6 +310,7 @@ class StartParameterTest extends Specification {
         newParameter.parallelProjectExecutionEnabled == parameter.parallelProjectExecutionEnabled
         newParameter.buildCacheEnabled == parameter.buildCacheEnabled
         newParameter.interactive == parameter.interactive
+        newParameter.dependencyLockEnabled == parameter.dependencyLockEnabled
 
         newParameter.buildFile == null
         newParameter.taskRequests.empty

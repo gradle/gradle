@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyLockingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualArtifactPublisher;
@@ -80,6 +81,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.dependencylock.DependencyLockManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -236,25 +238,31 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        BuildOperationExecutor buildOperationExecutor,
-                                                       ArtifactTypeRegistry artifactTypeRegistry) {
+                                                       ArtifactTypeRegistry artifactTypeRegistry,
+                                                       ProjectFinder projectFinder,
+                                                       DependencyLockManager dependencyLockManager) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
-                        new DefaultConfigurationResolver(
-                            artifactDependencyResolver,
-                            repositories,
-                            metadataHandler,
-                            resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(),
-                            attributesSchema,
-                            new DefaultArtifactTransforms(
-                                new VariantAttributeMatchingCache(
-                                    variantTransforms,
-                                    attributesSchema,
-                                    attributesFactory),
-                                attributesSchema),
-                            moduleIdentifierFactory,
-                            buildOperationExecutor,
-                            artifactTypeRegistry),
+                        new DependencyLockingConfigurationResolver(
+                            new DefaultConfigurationResolver(
+                                artifactDependencyResolver,
+                                repositories,
+                                metadataHandler,
+                                resolutionResultsStoreFactory,
+                                startParameter.isBuildProjectDependencies(),
+                                attributesSchema,
+                                new DefaultArtifactTransforms(
+                                    new VariantAttributeMatchingCache(
+                                        variantTransforms,
+                                        attributesSchema,
+                                        attributesFactory),
+                                    attributesSchema),
+                                moduleIdentifierFactory,
+                                buildOperationExecutor,
+                                artifactTypeRegistry),
+                            projectFinder,
+                            startParameter.isDependencyLockEnabled(),
+                            dependencyLockManager),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }
