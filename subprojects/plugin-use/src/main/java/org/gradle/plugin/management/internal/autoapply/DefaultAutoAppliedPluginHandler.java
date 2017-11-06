@@ -15,6 +15,9 @@
  */
 package org.gradle.plugin.management.internal.autoapply;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -25,6 +28,7 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler {
@@ -42,13 +46,20 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         }
         Project project = (Project) pluginTarget;
 
-        List<PluginRequestInternal> merged = Lists.newArrayList(initialRequests);
-        for (PluginRequestInternal autoAppliedPlugin : registry.getAutoAppliedPlugins(project)) {
-            if (!isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, project)) {
-                merged.add(autoAppliedPlugin);
-            }
-        }
+        List<PluginRequestInternal> autoAppliedPlugins = filterAlreadyAppliedOrRequested(registry.getAutoAppliedPlugins(project), initialRequests, project);
+        List<PluginRequestInternal> merged = new ArrayList<PluginRequestInternal>(initialRequests.size() + autoAppliedPlugins.size());
+        merged.addAll(autoAppliedPlugins);
+        merged.addAll(ImmutableList.copyOf(initialRequests));
         return new DefaultPluginRequests(merged);
+    }
+
+    private List<PluginRequestInternal> filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final Project project) {
+        return Lists.newArrayList(Iterables.filter(autoAppliedPlugins, new Predicate<PluginRequestInternal>() {
+            @Override
+            public boolean apply(PluginRequestInternal autoAppliedPlugin) {
+                return !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, project);
+            }
+        }));
     }
 
     private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, Project project) {
