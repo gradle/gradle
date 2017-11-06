@@ -219,10 +219,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
-    def "fails build if HTTP connection #reason when resolving metadata"() {
+    def "resolves metadata if HTTP connection #reason for first repository but succeeds for second repository"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
-        publishMavenModule(backupMavenHttpRepo, 'a')
+        def moduleInFallbackRepo = publishMavenModule(backupMavenHttpRepo, 'a')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -233,16 +233,17 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         moduleA.pom."$action"()
-        fails('resolve')
+        moduleInFallbackRepo.pom.expectGet()
+        moduleInFallbackRepo.artifact.expectGet()
+        succeeds('resolve')
 
         then:
-        "$outcome"(moduleA)
-        !downloadedLibsDir.isDirectory()
+        downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
 
         where:
-        reason                          | action              | outcome
-        'exceeds timeout'               | 'expectGetBlocking' | 'assertDependencyMetaDataReadTimeout'
-        'returns internal server error' | 'expectGetBroken'   | 'assertDependencyMetaDataInternalServerError'
+        reason                          | action
+        'exceeds timeout'               | 'expectGetBlocking'
+        'returns internal server error' | 'expectGetBroken'
     }
 
     @Unroll
@@ -274,10 +275,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
-    def "fails build if HTTP connection #reason when resolving dynamic version"() {
+    def "resolves dynamic version if HTTP connection #reason for first repository but succeeds for second repository"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
-        publishMavenModule(backupMavenHttpRepo, 'a')
+        def module = publishMavenModule(backupMavenHttpRepo, 'a')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -288,16 +289,18 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         mavenHttpRepo.getModuleMetaData('group', 'a')"$action"()
-        fails('resolve')
+        backupMavenHttpRepo.getModuleMetaData('group', 'a').expectGet()
+        module.pom.expectGet()
+        module.artifact.expectGet()
+        succeeds('resolve')
 
         then:
-        "$outcome"('group', 'a', '1.+')
-        !downloadedLibsDir.isDirectory()
+        downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
 
         where:
-        reason                          | action              | outcome
-        'exceeds timeout'               | 'expectGetBlocking' | 'assertDependencyListingReadTimeout'
-        'returns internal server error' | 'expectGetBroken'   | 'assertDependencyListingInternalServerError'
+        reason                          | action
+        'exceeds timeout'               | 'expectGetBlocking'
+        'returns internal server error' | 'expectGetBroken'
     }
 
     private String mavenRepository(MavenRepository repo) {

@@ -156,7 +156,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("Could not parse POM $corruptLocalPom.absolutePath")
 
         where:
-        remoteStatus << ['valid', 'invalid']
+        remoteStatus << ['invalid']
     }
 
     def "mavenLocal is ignored if no local maven repository exists"() {
