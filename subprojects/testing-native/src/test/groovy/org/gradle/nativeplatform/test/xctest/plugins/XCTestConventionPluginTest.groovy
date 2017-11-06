@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
+import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -32,7 +33,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires([TestPrecondition.MAC_OS_X, TestPrecondition.LINUX])
+@Requires(TestPrecondition.SWIFT_SUPPORT)
 class XCTestConventionPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -100,8 +101,14 @@ class XCTestConventionPluginTest extends Specification {
         bundle instanceof CreateSwiftBundle
         bundle.outputDir.get().asFile == project.file("build/bundle/test/TestAppTest.xctest")
 
+        def install = project.tasks.installTest
+        install instanceof InstallXCTestBundle
+        install.installDirectory.get().asFile == project.file("build/install/test")
+        install.runScript.name == "TestAppTest"
+
         def test = project.tasks.xcTest
         test instanceof XcTest
+        test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
     @Requires(TestPrecondition.LINUX)
@@ -133,6 +140,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def test = project.tasks.xcTest
         test instanceof XcTest
+        test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -154,8 +162,12 @@ class XCTestConventionPluginTest extends Specification {
         def bundle = project.tasks.bundleSwiftTest
         bundle.outputDir.get().asFile == project.file("output/bundle/test/TestAppTest.xctest")
 
+        def install = project.tasks.installTest
+        install.installDirectory.get().asFile == project.file("output/install/test")
+        install.runScript.name == "TestAppTest"
+
         def test = project.tasks.xcTest
-        test.workingDirectory.get().asFile == projectDir.file("output/bundle/test")
+        test.workingDirectory.get().asFile == projectDir.file("output/install/test")
     }
 
     @Requires(TestPrecondition.LINUX)
