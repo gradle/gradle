@@ -18,16 +18,19 @@ package org.gradle.language.nativeplatform.tasks;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.specs.Spec;
@@ -63,7 +66,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -113,6 +115,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     protected BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileCollectionFactory getFileCollectionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -257,8 +264,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             return null; // => Include paths are handled by a different task
         }
         if (includePaths == null) {
-            Set<File> roots = includes.getFiles();
             ImmutableList.Builder<String> builder = ImmutableList.builder();
+            Set<File> roots = includes.getFiles();
             for (File root : roots) {
                 builder.add(root.getAbsolutePath());
             }
@@ -333,17 +340,47 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    protected FileCollection getHeaderDependencies() throws IOException {
-        File inputFile = headerDependenciesFile.getAsFile().getOrNull();
+    protected FileCollection getHeaderDependencies() {
+        final File inputFile = headerDependenciesFile.getAsFile().getOrNull();
         if (inputFile == null || !inputFile.isFile()) {
             return null;
         }
 
-        List<String> lines = Files.readLines(inputFile, Charsets.UTF_8);
-        Set<File> files = new HashSet<File>();
-        for (String line : lines) {
-            files.add(new File(line));
+        return getFileCollectionFactory().create(new HeaderDependencies(inputFile));
+    }
+
+    private class HeaderDependencies implements MinimalFileSet {
+        private final File inputFile;
+
+        public HeaderDependencies(File inputFile) {
+            this.inputFile = inputFile;
         }
-        return new SimpleFileCollection(files);
+
+        @Override
+        public Set<File> getFiles() {
+            try {
+                return Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
+                    private Set<File> result = new HashSet<File>();
+
+                    @Override
+                    public boolean processLine(String line) throws IOException {
+                        result.add(new File(line));
+                        return true;
+                    }
+
+                    @Override
+                    public Set<File> getResult() {
+                        return result;
+                    }
+                });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Header dependencies for " + AbstractNativeCompileTask.this.toString();
+        }
     }
 }

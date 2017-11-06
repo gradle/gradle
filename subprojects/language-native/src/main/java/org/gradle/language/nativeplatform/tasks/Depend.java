@@ -27,6 +27,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -86,7 +87,8 @@ public class Depend extends DefaultTask {
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
         this.headerDependenciesFile = newOutputFile();
-        this.importsAreIncludes = getProject().getObjects().property(Boolean.class);
+        ObjectFactory objectFactory = getProject().getObjects();
+        this.importsAreIncludes = objectFactory.property(Boolean.class);
         this.headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
         dependsOn(includes);
     }
@@ -128,8 +130,8 @@ public class Depend extends DefaultTask {
     @Input
     protected Collection<String> getIncludePaths() {
         if (includePaths == null) {
-            Set<File> roots = includes.getFiles();
             ImmutableList.Builder<String> builder = ImmutableList.builder();
+            Set<File> roots = includes.getFiles();
             for (File root : roots) {
                 builder.add(root.getAbsolutePath());
             }
@@ -170,5 +172,4 @@ public class Depend extends DefaultTask {
     public Property<Boolean> getImportsAreIncludes() {
         return importsAreIncludes;
     }
-
 }

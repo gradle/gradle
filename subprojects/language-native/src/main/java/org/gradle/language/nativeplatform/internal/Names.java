@@ -41,6 +41,8 @@ public abstract class Names {
 
     public abstract String getCompileTaskName(String language);
 
+    public abstract String getDependTaskName(String language);
+
     // Includes trailing '/'
     public abstract String getDirName();
 
@@ -48,6 +50,11 @@ public abstract class Names {
         @Override
         public String getCompileTaskName(String language) {
             return "compile" + StringUtils.capitalize(language);
+        }
+
+        @Override
+        public String getDependTaskName(String language) {
+            return "depend" + StringUtils.capitalize(language);
         }
 
         @Override
@@ -116,6 +123,11 @@ public abstract class Names {
         @Override
         public String getCompileTaskName(String language) {
             return "compile" + capitalizedBaseName + StringUtils.capitalize(language);
+        }
+
+        @Override
+        public String getDependTaskName(String language) {
+            return "depend" + capitalizedBaseName + StringUtils.capitalize(language);
         }
 
         // Includes trailing '/'

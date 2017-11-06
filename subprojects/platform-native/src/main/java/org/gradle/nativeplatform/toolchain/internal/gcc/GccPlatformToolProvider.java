@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -31,6 +32,7 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToo
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -47,20 +49,22 @@ import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConf
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.List;
 
-class GccPlatformToolProvider extends AbstractPlatformToolProvider {
+class GccPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final boolean useCommandFile;
     private final WorkerLeaseService workerLeaseService;
-    private final CompilerMetaDataProvider metaDataProvider;
+    private final CompilerMetaDataProvider.CompilerType compilerType;
+    private final GccVersionResult gccVersionResult;
+    private ImmutableList<File> systemIncludes;
 
-    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider metaDataProvider) {
+    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider.CompilerType compilerType, GccVersionResult gccVersionResult) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
@@ -68,16 +72,16 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         this.useCommandFile = useCommandFile;
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
-        this.metaDataProvider = metaDataProvider;
+        this.compilerType = compilerType;
+        this.gccVersionResult = gccVersionResult;
     }
 
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        GccVersionResult gccMetadata = gccMetadata(cppCompilerTool);
         CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
         OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return versionAwareCompiler(outputCleaningCompiler, gccMetadata.getVersion());
+        return versionAwareCompiler(outputCleaningCompiler);
     }
 
     @Override
@@ -89,20 +93,15 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
-        return versionAwareCompiler(compiler, VersionNumber.UNKNOWN);
-    }
-
-    private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, VersionNumber version) {
-        return new VersionAwareCompiler<T>(compiler, metaDataProvider.getCompilerType().getIdentifier(), version);
+        return new VersionAwareCompiler<T>(compiler, compilerType.getIdentifier(), gccVersionResult.getVersion());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
-        GccVersionResult gccMetadata = gccMetadata(cCompilerTool);
         CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile, workerLeaseService);
         OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return versionAwareCompiler(outputCleaningCompiler, gccMetadata.getVersion());
+        return versionAwareCompiler(outputCleaningCompiler);
     }
 
     @Override
@@ -165,11 +164,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(staticLibArchiverTool), context(staticLibArchiverTool), workerLeaseService);
     }
 
-    private GccVersionResult gccMetadata(GccCommandLineToolConfigurationInternal cppCompilerTool) {
-        File gccLocation = toolSearchPath.locate(cppCompilerTool.getToolType(), cppCompilerTool.getExecutable()).getTool();
-        return metaDataProvider.getGccMetaData(gccLocation, ((DefaultGccPlatformToolChain) toolRegistry).getCompilerProbeArgs());
-    }
-
     private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
@@ -187,5 +181,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private String getPCHFileExtension() {
         return ".h.gch";
+    }
+
+    @Override
+    public List<File> getSystemIncludes() {
+        return gccVersionResult.getSystemIncludes();
     }
 }

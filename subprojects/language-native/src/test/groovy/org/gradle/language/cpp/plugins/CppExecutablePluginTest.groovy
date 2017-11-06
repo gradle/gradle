@@ -66,7 +66,7 @@ class CppExecutablePluginTest extends Specification {
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
         compileDebugCpp instanceof CppCompile
-        compileDebugCpp.includes.files == [project.file("src/main/headers")] as Set
+        compileDebugCpp.includes.files.first() == project.file("src/main/headers")
         compileDebugCpp.source.files == [src] as Set
         compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebugCpp.debuggable
@@ -84,7 +84,7 @@ class CppExecutablePluginTest extends Specification {
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
         compileReleaseCpp instanceof CppCompile
-        compileReleaseCpp.includes.files == [project.file("src/main/headers")] as Set
+        compileReleaseCpp.includes.files.first() == project.file("src/main/headers")
         compileReleaseCpp.source.files == [src] as Set
         compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         !compileReleaseCpp.debuggable

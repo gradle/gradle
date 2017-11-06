@@ -70,7 +70,7 @@ class CppLibraryPluginTest extends Specification {
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
         compileDebugCpp instanceof CppCompile
-        compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileDebugCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
         compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebugCpp.debuggable
@@ -83,7 +83,7 @@ class CppLibraryPluginTest extends Specification {
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
         compileReleaseCpp instanceof CppCompile
-        compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileReleaseCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
         compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         !compileReleaseCpp.debuggable

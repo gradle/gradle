@@ -16,19 +16,16 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.tasks.CCompile;
-import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
@@ -58,24 +55,6 @@ public class DependPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {
-            @Override
-            public void execute(CppBinary binary) {
-                final Names names = Names.of(binary.getName());
-                final String language = "cpp";
-                project.getTasks().matching(new Spec<Task>() {
-                    @Override
-                    public boolean isSatisfiedBy(Task element) {
-                        return element.getName().equals(names.getCompileTaskName(language));
-                    }
-                }).all(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        createDependTask(project, names.withSuffix(language), (AbstractNativeCompileTask) task);
-                    }
-                });
-            }
-        });
     }
 
     static class Rules extends RuleSource {
@@ -114,11 +93,6 @@ public class DependPlugin implements Plugin<Project> {
                 }
             });
         }
-    }
-
-    private static void createDependTask(Project project, String name, final AbstractNativeCompileTask compile) {
-        Depend discoverInputs = project.getTasks().create("depend" + StringUtils.capitalize(name), Depend.class);
-        configureDependTask(project, compile, discoverInputs);
     }
 
     private static void configureDependTask(Project project, final AbstractNativeCompileTask compile, Depend depend) {

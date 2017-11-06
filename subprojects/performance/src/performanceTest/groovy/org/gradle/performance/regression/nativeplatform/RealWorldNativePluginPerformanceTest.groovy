@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.LogFiles
 import org.gradle.performance.measure.MeasuredOperation
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -32,12 +33,13 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = ["4.3-20171011120745+0000"]
     }
 
+    @Ignore
     @Unroll
     def "build on #testProject with #parallelWorkers parallel workers"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
+        runner.gradleOpts = ["-Xms1500m", "-Xmx2500m"]
         runner.warmUpRuns = 5
         runner.runs = 10
 
@@ -59,6 +61,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         "nativeMonolithicOverlapping" | 12
     }
 
+    @Ignore
     @Unroll
     def "build with #changeType change on #testProject"() {
         given:
