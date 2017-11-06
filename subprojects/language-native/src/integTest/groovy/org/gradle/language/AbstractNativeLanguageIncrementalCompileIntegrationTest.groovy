@@ -17,7 +17,6 @@
 package org.gradle.language
 
 import groovy.io.FileType
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -182,7 +181,6 @@ model {
         skipped compileTask
     }
 
-    @NotYetImplemented
     def "recompiles when included header has the same name as a directory and the directory becomes a file"() {
         given:
         buildFile << """
