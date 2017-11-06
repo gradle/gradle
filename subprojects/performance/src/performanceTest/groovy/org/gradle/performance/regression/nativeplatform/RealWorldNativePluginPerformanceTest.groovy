@@ -30,7 +30,7 @@ import spock.lang.Unroll
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.3-20171011120745+0000"]
+        runner.targetVersions = ["4.3"]
     }
 
     @Ignore
@@ -143,6 +143,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
         testProject               | changeType       | fileToChange                      | change                | iterations
         "mediumNativeMonolithic"  | 'source file'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
+        "mediumNativeMonolithic"  | 'header file'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
         "smallNativeMonolithic"   | 'build file'     | 'common.gradle'                   | this.&changeArgs      | 40
     }
 
@@ -151,6 +152,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                     |  printf("Hello world!");
                     |  return 0;
                     |}\n""".stripMargin()
+    }
+
+    void changeHeader(File file, String originalContent) {
+        file.text = originalContent.replaceFirst(~/#endif/, '#define HELLO_WORLD "Hello world!"\n#endif')
     }
 
     void changeArgs(File file, String originalContent) {
