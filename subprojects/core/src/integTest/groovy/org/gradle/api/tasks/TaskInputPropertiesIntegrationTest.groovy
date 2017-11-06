@@ -653,4 +653,40 @@ task someTask(type: SomeTask) {
         "dir"   | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
         "dirs"  | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
     }
+
+    def "can specify null as an input property in ad-hoc task"() {
+        buildFile << """
+            task foo {
+                inputs.property("a", null).optional(true)
+                doLast {}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3366")
+    def "can specify null as an input property in Java task"() {
+        file("buildSrc/src/main/java/Foo.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class Foo extends DefaultTask {
+                public Foo() {
+                    getInputs().property("a", null).optional(true);
+                }
+                
+                @TaskAction
+                public void doSomething() {}
+            }
+        """
+
+        buildFile << """
+            task foo(type: Foo)
+        """
+
+        expect:
+        succeeds "foo"
+    }
 }

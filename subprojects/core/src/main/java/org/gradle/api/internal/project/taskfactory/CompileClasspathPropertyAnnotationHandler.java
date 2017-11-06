@@ -46,7 +46,7 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getInputs().files(futureValue)
+                task.getInputs().registerFiles(futureValue)
                     .withPropertyName(context.getName())
                     .withNormalizer(CompileClasspathNormalizer.class)
                     .optional(context.isOptional());

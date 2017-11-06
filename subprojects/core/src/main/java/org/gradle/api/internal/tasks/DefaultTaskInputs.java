@@ -90,7 +90,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return files(new StaticValue(unpackVarargs(paths)));
+                return registerFiles(new StaticValue(unpackVarargs(paths)));
             }
         });
     }
@@ -103,7 +103,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal files(ValidatingValue paths) {
+    public TaskInputFilePropertyBuilderInternal registerFiles(ValidatingValue paths) {
         return addSpec(paths, ValidationAction.NO_OP);
     }
 
@@ -118,7 +118,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal file(ValidatingValue value) {
+    public TaskInputFilePropertyBuilderInternal registerFile(ValidatingValue value) {
         return fileInternal(value, INPUT_FILE_VALIDATOR);
     }
 
@@ -137,7 +137,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal dir(final ValidatingValue dirPath) {
+    public TaskInputFilePropertyBuilderInternal registerDir(final ValidatingValue dirPath) {
         return dir(dirPath, INPUT_DIRECTORY_VALIDATOR);
     }
 
@@ -217,7 +217,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.property(String, Object)", new Callable<TaskInputPropertyBuilder>() {
             @Override
             public TaskInputPropertyBuilder call() {
-                return property(name, new StaticValue(value));
+                return registerProperty(name, new StaticValue(value));
             }
         });
     }
@@ -228,7 +228,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public void run() {
                 for (Map.Entry<String, ?> entry : newProps.entrySet()) {
-                    property(entry.getKey(), new StaticValue(entry.getValue()));
+                    registerProperty(entry.getKey(), new StaticValue(entry.getValue()));
                 }
             }
         });
@@ -236,7 +236,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputPropertyBuilder property(String name, ValidatingValue value) {
+    public TaskInputPropertyBuilder registerProperty(String name, ValidatingValue value) {
         PropertyValue propertyValue = properties.get(name);
         DeclaredTaskInputProperty spec;
         if (propertyValue instanceof SimplePropertyValue) {
@@ -251,7 +251,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputPropertyBuilder nested(String name, ValidatingValue value) {
+    public TaskInputPropertyBuilder registerNested(String name, ValidatingValue value) {
         PropertyValue propertyValue = properties.get(name);
         DeclaredTaskInputProperty spec;
         if (propertyValue instanceof NestedBeanTypePropertyValue) {

@@ -32,7 +32,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getInputs().property(context.getName(), futureValue)
+                task.getInputs().registerProperty(context.getName(), futureValue)
                     .optional(context.isOptional());
             }
         });
