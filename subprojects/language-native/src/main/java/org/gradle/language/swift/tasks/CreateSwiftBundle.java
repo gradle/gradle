@@ -57,7 +57,7 @@ public class CreateSwiftBundle extends DefaultTask {
     }
 
     @TaskAction
-    private void createBundle() throws IOException {
+    void createBundle() throws IOException {
         final File bundleDir = outputDir.getAsFile().get();
         getProject().copy(new Action<CopySpec>() {
             @Override
