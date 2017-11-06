@@ -21,7 +21,7 @@ package org.gradle.internal.progress;
  *
  * Be aware that there are two instances of this within the services hierarchy.
  * One is global scoped (used by TAPI infrastructure).
- * The other is build tree scoped (used by build operation notifications).
+ * The other is build session scoped (used by build operation notifications).
  *
  * @since 3.5
  */

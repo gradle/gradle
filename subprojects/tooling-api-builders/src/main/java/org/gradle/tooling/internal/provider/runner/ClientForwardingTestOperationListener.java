@@ -29,6 +29,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
@@ -62,6 +63,11 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     @Override
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
         eventConsumer.dispatch(new DefaultTestStartedProgressEvent(startEvent.getStartTime(), adapt(testDescriptor)));
+    }
+
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+
     }
 
     @Override

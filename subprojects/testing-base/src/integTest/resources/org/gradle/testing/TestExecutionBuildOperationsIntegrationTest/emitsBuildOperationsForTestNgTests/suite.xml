@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="SimpleSuite">
+    <test name="SimpleTest">
+        <classes>
+            <class name="org.gradle.FooTest"/>
+            <class name="org.gradle.BarTest"/>
+        </classes>
+    </test>
+</suite>

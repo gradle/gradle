@@ -21,6 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
 import java.io.IOException;
@@ -45,6 +46,11 @@ class SerializingBuildOperationListener implements BuildOperationListener {
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         write(new SerializedOperationStart(buildOperation, startEvent).toMap(), false);
+    }
+
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+        write(new SerializedOperationProgress(buildOperation, progressEvent).toMap(), false);
     }
 
     @Override
