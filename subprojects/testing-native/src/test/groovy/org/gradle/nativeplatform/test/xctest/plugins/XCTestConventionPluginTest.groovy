@@ -104,7 +104,7 @@ class XCTestConventionPluginTest extends Specification {
         def install = project.tasks.installTest
         install instanceof InstallXCTestBundle
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScript.name == "TestAppTest"
+        install.runScript.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test instanceof XcTest
@@ -136,7 +136,7 @@ class XCTestConventionPluginTest extends Specification {
         def install = project.tasks.installTest
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScript.name == OperatingSystem.current().getScriptName("test_app_test")
+        install.runScript.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test instanceof XcTest
@@ -164,7 +164,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")
-        install.runScript.name == "TestAppTest"
+        install.runScript.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test.workingDirectory.get().asFile == projectDir.file("output/install/test")
@@ -188,7 +188,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")
-        install.runScript.name == OperatingSystem.current().getScriptName("test_app_test")
+        install.runScript.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test.workingDirectory.get().asFile == projectDir.file("output/ext/test")
