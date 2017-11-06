@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,7 +29,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultModuleComponentSelectorTest extends Specification {
     private static VersionConstraint v(String version) {
         if (version!=null) {
-            return new DefaultMutableVersionConstraint(version)
+            return DefaultImmutableVersionConstraint.of(version)
         }
     }
 

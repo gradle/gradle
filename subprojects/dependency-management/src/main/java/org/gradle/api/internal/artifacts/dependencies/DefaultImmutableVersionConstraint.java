@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 
 import java.util.List;
@@ -45,4 +46,14 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return rejectedVersions;
     }
 
+    public static ImmutableVersionConstraint of(VersionConstraint versionConstraint) {
+        if (versionConstraint instanceof ImmutableVersionConstraint) {
+            return (ImmutableVersionConstraint) versionConstraint;
+        }
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRejectedVersions());
+    }
+
+    public static ImmutableVersionConstraint of(String preferredVersion) {
+        return new DefaultImmutableVersionConstraint(preferredVersion);
+    }
 }
