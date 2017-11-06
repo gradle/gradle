@@ -96,6 +96,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
+                ((DefaultSwiftBinary)binary).getModuleFile().set(compile.getModuleFile());
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);
