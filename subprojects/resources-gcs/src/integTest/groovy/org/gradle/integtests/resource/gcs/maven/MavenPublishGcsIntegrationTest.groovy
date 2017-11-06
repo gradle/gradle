@@ -17,13 +17,12 @@
 package org.gradle.integtests.resource.gcs.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.integtests.resource.gcs.fixtures.GcsArtifact
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
 import org.junit.Rule
 
-import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_DISABLE_AUTH_PROPERTY
-import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_ENDPOINT_PROPERTY
-import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_SERVICE_PATH_PROPERTY
+import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.*
 
 class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
@@ -62,22 +61,23 @@ publishing {
 """
 
         when:
-        def module = mavenRepo.module('org.gradle.test', 'publishGcsTest', '1.0')
-        module.artifact.expectUpload()
-        module.artifact.sha1.expectUpload()
-        module.artifact.md5.expectUpload()
-        module.pom.expectUpload()
-        module.pom.sha1.expectUpload()
-        module.pom.md5.expectUpload()
+        def module = mavenRepo.module('org.gradle.test', 'publishGcsTest', '1.0').withModuleMetadata()
+        expectPublish(module.artifact)
+        expectPublish(module.pom)
+        expectPublish(module.moduleMetadata)
         module.mavenRootMetaData.expectDownloadMissing()
-        module.mavenRootMetaData.expectUpload()
-        module.mavenRootMetaData.sha1.expectUpload()
-        module.mavenRootMetaData.md5.expectUpload()
+        expectPublish(module.mavenRootMetaData)
 
         succeeds 'publish'
 
         then:
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
+    }
+
+    private static void expectPublish(GcsArtifact artifact) {
+        artifact.expectUpload()
+        artifact.sha1.expectUpload()
+        artifact.md5.expectUpload()
     }
 }

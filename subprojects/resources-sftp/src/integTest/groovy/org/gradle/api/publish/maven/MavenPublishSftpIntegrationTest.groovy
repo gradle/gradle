@@ -15,9 +15,11 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.server.sftp.SftpArtifact
 import org.junit.Rule
 
 class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
@@ -38,7 +40,7 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
     def "can publish to a SFTP repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
-        def module = mavenSftpRepo.module('org.group.name', 'publish', '2')
+        def module = mavenSftpRepo.module('org.group.name', 'publish', '2').withModuleMetadata()
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -67,27 +69,12 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         """
 
         when:
-        module.artifact.expectParentMkdir()
-        module.artifact.expectFileUpload()
-        // TODO - should not check on each upload to a particular directory
-        module.artifact.sha1.expectParentCheckdir()
-        module.artifact.sha1.expectFileUpload()
-        module.artifact.md5.expectParentCheckdir()
-        module.artifact.md5.expectFileUpload()
+        expectPublish(module.artifact, true)
+        expectPublish(module.pom)
+        expectPublish(module.moduleMetadata)
 
         module.rootMavenMetadata.expectLstatMissing()
-        module.rootMavenMetadata.expectParentCheckdir()
-        module.rootMavenMetadata.expectFileUpload()
-        module.rootMavenMetadata.sha1.expectParentCheckdir()
-        module.rootMavenMetadata.sha1.expectFileUpload()
-        module.rootMavenMetadata.md5.expectParentCheckdir()
-        module.rootMavenMetadata.md5.expectFileUpload()
-        module.pom.expectParentCheckdir()
-        module.pom.expectFileUpload()
-        module.pom.sha1.expectParentCheckdir()
-        module.pom.sha1.expectFileUpload()
-        module.pom.md5.expectParentCheckdir()
-        module.pom.md5.expectFileUpload()
+        expectPublish(module.rootMavenMetadata)
 
         and:
         succeeds 'publish'
@@ -95,5 +82,18 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         then:
         module.backingModule.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
+    }
+
+    private static void expectPublish(SftpArtifact pom, boolean parentMkdir = false) {
+        if (parentMkdir) {
+            pom.expectParentMkdir()
+        } else {
+            pom.expectParentCheckdir()
+        }
+        pom.expectFileUpload()
+        pom.sha1.expectParentCheckdir()
+        pom.sha1.expectFileUpload()
+        pom.md5.expectParentCheckdir()
+        pom.md5.expectFileUpload()
     }
 }

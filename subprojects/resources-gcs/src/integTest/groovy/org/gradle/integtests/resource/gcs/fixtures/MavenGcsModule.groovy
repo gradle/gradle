@@ -39,7 +39,7 @@ class MavenGcsModule extends DelegatingMavenModule<MavenGcsModule> implements Ma
     }
 
     GcsArtifact getModuleMetadata() {
-        throw new UnsupportedOperationException()
+        return new GcsArtifact(server, backingModule.moduleMetadata.file, repositoryPath, bucket)
     }
 
     GcsArtifact getArtifact() {
