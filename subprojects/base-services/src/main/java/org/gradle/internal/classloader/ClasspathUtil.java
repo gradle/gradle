@@ -70,9 +70,14 @@ public class ClasspathUtil {
         return DefaultClassPath.of(implementationClassPath);
     }
 
-    public static File getClasspathForClass(String targetClassName){
+    public static File getClasspathForClass(String targetClassName) {
         try {
-            return getClasspathForClass(Class.forName(targetClassName));
+            Class clazz = Class.forName(targetClassName);
+            if (clazz.getClassLoader() == null) {
+                return null;
+            } else {
+                return getClasspathForClass(Class.forName(targetClassName));
+            }
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
