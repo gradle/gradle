@@ -57,19 +57,19 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String message) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), new DefaultImmutableVersionConstraint(id.getVersion())), message);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), messageFormat);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), Arrays.asList(cause));
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), Arrays.asList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), new DefaultImmutableVersionConstraint(id.getVersion())), causes);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), causes);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {

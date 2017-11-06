@@ -20,13 +20,15 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String group;
     private final String module;
-    private final VersionConstraint versionConstraint;
+    private final ImmutableVersionConstraint versionConstraint;
 
-    private DefaultModuleComponentSelector(String group, String module, VersionConstraint version) {
+    private DefaultModuleComponentSelector(String group, String module, ImmutableVersionConstraint version) {
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
@@ -113,10 +115,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public static ModuleComponentSelector newSelector(String group, String name, VersionConstraint version) {
-        return new DefaultModuleComponentSelector(group, name, version);
+        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version));
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), selector.getVersionConstraint());
+        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersionConstraint()));
     }
 }

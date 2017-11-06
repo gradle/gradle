@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -49,7 +49,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         given:
         def dependency = Mock(DependencyMetadata)
         def result = Mock(BuildableModuleVersionListingResolveResult)
-        dependency.getSelector() >> new DefaultModuleComponentSelector('a', 'b', new DefaultMutableVersionConstraint('1.0'))
+        dependency.getSelector() >> new DefaultModuleComponentSelector('a', 'b', DefaultImmutableVersionConstraint.of('1.0'))
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
