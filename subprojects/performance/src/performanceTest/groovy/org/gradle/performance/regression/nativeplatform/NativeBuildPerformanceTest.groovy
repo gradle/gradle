@@ -94,6 +94,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "bigCppMulti" | '1g'
     }
 
+    @Ignore
     @Unroll
     def "assemble with #changeType file change on #testProject"() {
         given:
