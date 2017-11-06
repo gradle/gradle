@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
@@ -35,6 +36,12 @@ import org.gradle.util.GFileUtils;
 import javax.inject.Inject;
 import java.io.File;
 
+/**
+ * Installs a XCTest bundle with a run script so it can be easily executed.
+ *
+ * @since 4.4
+ */
+@Incubating
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty bundleDirectory = newInputDirectory();
     private final DirectoryProperty installDirectory = newOutputDirectory();
