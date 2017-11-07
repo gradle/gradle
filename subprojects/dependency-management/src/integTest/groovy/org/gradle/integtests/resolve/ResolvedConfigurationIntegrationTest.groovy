@@ -186,7 +186,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         m1.allowAll()
         m2.allowAll()
-        m3.pom.expectGetBroken()
+        m3.pom.expectGetUnofficial()
         m4.allowAll()
 
         expect:
@@ -249,9 +249,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         m1.allowAll()
         m2.allowAll()
-        m3.pom.expectGetBroken()
+        m3.pom.expectGetUnofficial()
         m4.pom.expectGet()
-        m4.artifact.expectGetBroken()
+        m4.artifact.expectGetUnofficial()
 
         expect:
         succeeds "validate"

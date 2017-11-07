@@ -96,7 +96,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
 """
 
         when:
-        module.pom.expectGetBroken()
+        module.pom.expectGetUnofficial()
         module2.pom.expectGet()
 
         then:
