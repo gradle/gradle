@@ -102,7 +102,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
      */
     private boolean exists(ModuleDependency dependency) {
         ConfigurationContainer configurations = resolution.getConfigurationContainer();
-        Configuration configuration = configurations.detachedConfiguration(dependency.copy().setTransitive(false));
+        Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
         return !configuration.getResolvedConfiguration().hasError();
     }
