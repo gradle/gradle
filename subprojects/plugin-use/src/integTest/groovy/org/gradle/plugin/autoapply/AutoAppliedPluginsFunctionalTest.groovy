@@ -133,8 +133,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdInAndClose(gradleHandle, EOF)
+        writeToStdIn(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
+        closeStdIn(gradleHandle)
         !result.output.contains(BUILD_SCAN_WARNING)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
