@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftAppTest
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
@@ -29,6 +30,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileApp
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTestSuite
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
@@ -275,8 +277,8 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     // TODO: Need to support _main symbol duplication
@@ -296,11 +298,33 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support _main symbol duplication
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "can test public and internal features of a Swift executable with a single source file"() {
+        given:
+        def main = new SwiftSingleFileApp()
+        def test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply).withInfoPlist()
+        settingsFile << "rootProject.name = '${main.projectName}'"
+        buildFile << """
+apply plugin: 'swift-executable'
+"""
+        main.writeToProject(testDirectory)
+        test.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        test.assertTestCasesRan(testExecutionResult)
+    }
+
+
+    // TODO: Need to support test report for test case assertion
+>>>>>>> Relocate _main symbol when XCTest is used with Swift executables
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
         given:
@@ -315,7 +339,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
         app.assertTestCasesRan(testExecutionResult)
     }
@@ -470,7 +494,7 @@ apply plugin: 'swift-library'
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
             ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
-            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
+            ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     def 'can run xctest in swift package manager layout'() {
@@ -544,7 +568,7 @@ apply plugin: 'swift-library'
             ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test',
             ':app:compileDebugSwift', ':app:compileTestSwift',
             ':app:linkTest', ':app:installTest', ':app:xcTest', ':app:test',
-            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
+            ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
@@ -554,7 +578,7 @@ apply plugin: 'swift-library'
     }
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
-        assert !binary.binaryInfo.listSymbols().contains('_main')
+        assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
     }
 
     TestExecutionResult getTestExecutionResult() {

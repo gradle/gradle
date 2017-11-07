@@ -33,6 +33,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftExecutable;
@@ -40,6 +41,7 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
+import org.gradle.language.swift.tasks.RelocateMainSymbol;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -196,7 +198,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(T plugin) {
                 TaskContainer tasks = project.getTasks();
-                SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
                 SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
                 // Connect test suite with tested component
@@ -219,15 +221,21 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                 // Configure test suite link task from tested component compiled objects
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-                linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
 
-                Spec<File> ignoreMainObject = new Spec<File>() {
-                    @Override
-                    public boolean isSatisfiedBy(File element) {
-                        return !element.getName().equals("main.o");
-                    }
-                };
-                linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(ignoreMainObject));
+                if (testedComponent instanceof SwiftApplication) {
+                    final RelocateMainSymbol relocate = tasks.create("relocateMainForTest", RelocateMainSymbol.class);
+                    relocate.source(testedComponent.getDevelopmentBinary().getObjects());
+
+                    linkTest.source(relocate);
+                    linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
+                        @Override
+                        public boolean isSatisfiedBy(File objectFile) {
+                            return !objectFile.equals(relocate.getMainObject());
+                        }
+                    }));
+                } else {
+                    linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
+                }
             }
         };
     }
