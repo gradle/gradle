@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -114,6 +115,10 @@ class SelectorState implements DependencyGraphSelector {
     public void restart(ComponentState moduleRevision) {
         this.selected = moduleRevision;
         this.targetModule = moduleRevision.getModule();
+        ComponentResolveMetadata metaData = moduleRevision.getMetaData();
+        if (metaData != null) {
+            this.idResolveResult.resolved(metaData);
+        }
     }
 
     public void reset() {
