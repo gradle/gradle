@@ -48,7 +48,7 @@ class XcTestScraper implements TextStream {
     private final Clock clock;
     private final Deque<XCTestDescriptor> testDescriptors;
     private TestDescriptorInternal lastDescriptor;
-    private String textFragment = "";
+    private StringBuilder textBuilder = new StringBuilder();
 
     XcTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
         this.processor = processor;
@@ -60,12 +60,12 @@ class XcTestScraper implements TextStream {
 
     @Override
     public void text(String textFragment) {
+        textBuilder.append(textFragment);
         if (!textFragment.endsWith(SystemProperties.getInstance().getLineSeparator())) {
-            this.textFragment += textFragment;
             return;
         }
-        String text = this.textFragment + textFragment;
-        this.textFragment = "";
+        String text = textBuilder.toString();
+        textBuilder = new StringBuilder();
         synchronized (testDescriptors) {
             Scanner scanner = new Scanner(text).useDelimiter("'");
             if (scanner.hasNext()) {
@@ -97,14 +97,23 @@ class XcTestScraper implements TextStream {
                         processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
                     }
                 } else if (token.equals("Test Case")) {
-                    // Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
+                    // (macOS) Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
+                    // (Linux) Looks like: Test Case 'PassingTestSuite.testCanPassTestCaseWithAssertion' started.
                     String testSuiteAndCase = scanner.next();
                     String[] splits = testSuiteAndCase.
                         replace('[', ' ').
                         replace(']', ' ').
                         split("[. ]");
-                    String testSuite = splits[OperatingSystem.current().isMacOsX() ? 2 : 0];
-                    String testCase = splits[OperatingSystem.current().isMacOsX() ? 3 : 1];
+                    String testSuite;
+                    String testCase;
+                    if (OperatingSystem.current().isMacOsX()) {
+                        testSuite = splits[2];
+                        testCase = splits[3];
+                    } else {
+                        testSuite = splits[0];
+                        testCase = splits[1];
+                    }
+
                     String status = scanner.next().trim();
                     boolean started = status.contains("started");
 
