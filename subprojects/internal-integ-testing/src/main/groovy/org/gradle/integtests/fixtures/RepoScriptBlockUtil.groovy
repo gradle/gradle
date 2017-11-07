@@ -73,31 +73,31 @@ class RepoScriptBlockUtil {
         }
     }
 
-    static String typesafeMavenRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafemaven')
+    static String lightbendMavenRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendmaven')
         if (repoUrl) {
             return """
                 maven {
-                    name 'typesafe-maven-release-remote'
+                    name 'lightbend-maven-release-remote'
                     url '${repoUrl}'
                 }
             """
         } else {
             return """
                 maven {
-                    name 'typesafe-maven-release'
-                    url 'https://repo.typesafe.com/typesafe/maven-releases'
+                    name 'lightbend-maven-release'
+                    url 'https://repo.lightbend.com/lightbend/maven-releases'
                 }
             """
         }
     }
 
-    static String typesafeIvyRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.typesafeivy')
+    static String lightbendIvyRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendivy')
         if (repoUrl) {
             return """
                 ivy {
-                    name 'typesafe-ivy-release-remote'
+                    name 'lightbend-ivy-release-remote'
                     url '${repoUrl}'
                     layout 'ivy'
                 }
@@ -105,8 +105,8 @@ class RepoScriptBlockUtil {
         } else {
             return """
                 ivy {
-                    name 'typesafe-ivy-release'
-                    url 'https://repo.typesafe.com/typesafe/ivy-releases'
+                    name 'lightbend-ivy-release'
+                    url 'https://repo.lightbend.com/lightbend/ivy-releases'
                     layout 'ivy'
                 }
             """
