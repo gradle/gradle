@@ -66,12 +66,6 @@ class CompositeConflictResolver implements ModuleConflictResolver {
         }
 
         @Override
-        public void restart() {
-            hasResult = true;
-            delegate.restart();
-        }
-
-        @Override
         public void fail(Throwable error) {
             hasResult = true;
             delegate.fail(error);
