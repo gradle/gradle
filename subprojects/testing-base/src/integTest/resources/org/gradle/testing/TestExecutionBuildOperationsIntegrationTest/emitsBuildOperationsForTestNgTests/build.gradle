@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp;
+apply plugin: 'java'
 
-import org.gradle.api.Incubating;
-import org.gradle.language.cpp.CppExecutable;
+repositories {
+    jcenter()
+}
 
-/**
- * A C++ test executable.
- *
- * @since 4.4
- */
-@Incubating
-public interface CppTestExecutable extends CppExecutable {
+dependencies {
+    testCompile 'org.testng:testng:6.8.7'
+}
+
+test {
+    ignoreFailures = true
+    useTestNG {
+        suites "suite.xml"
+    }
 }

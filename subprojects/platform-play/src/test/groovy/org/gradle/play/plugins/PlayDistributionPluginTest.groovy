@@ -41,8 +41,10 @@ import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.distribution.PlayDistribution
 import org.gradle.play.distribution.PlayDistributionContainer
+import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.distribution.DefaultPlayDistribution
+import org.gradle.play.platform.PlayPlatform
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -90,7 +92,7 @@ class PlayDistributionPluginTest extends Specification {
         def distributions = Mock(PlayDistributionContainer)
         File buildDir = new File("")
         DomainObjectSet jarTasks = Stub(DomainObjectSet)
-        PlayApplicationBinarySpec binary = binary("playBinary", jarTasks)
+        PlayApplicationBinarySpec binary = binary("playBinary", jarTasks, playVersion)
         binary.getJarFile() >> Stub(File) {
             getName() >> "playBinary.zip"
         }
@@ -136,7 +138,7 @@ class PlayDistributionPluginTest extends Specification {
             action.execute(Mock(CreateStartScripts) {
                 1 * setDescription(_)
                 1 * setClasspath(_)
-                1 * setMainClassName("play.core.server.NettyServer")
+                1 * setMainClassName(mainClass)
                 1 * setApplicationName("playBinary")
                 1 * setOutputDir(_)
             })
@@ -157,6 +159,13 @@ class PlayDistributionPluginTest extends Specification {
                 }
             })
         }
+
+        where:
+        playVersion | mainClass
+        "2.3.10"    | "play.core.server.NettyServer"
+        "2.4.11"    | "play.core.server.ProdServerStart"
+        "2.5.18"    | "play.core.server.ProdServerStart"
+        "2.6.6"     | "play.core.server.ProdServerStart"
     }
 
     def "adds dist and stage tasks for binary" () {
@@ -222,13 +231,20 @@ class PlayDistributionPluginTest extends Specification {
         }
     }
 
-    def binary(String name, DomainObjectSet jarTasks) {
+    def binary(String name, DomainObjectSet jarTasks, String playVersion = DefaultPlayPlatform.DEFAULT_PLAY_VERSION) {
         return Stub(PlayApplicationBinarySpecInternal) {
             getTasks() >> Stub(BinaryTasksCollection) {
                 withType(Jar.class) >> jarTasks
             }
             getName() >> name
             getProjectScopedName() >> name
+            getTargetPlatform() >> platform(playVersion)
+        }
+    }
+
+    def platform(String playVersion) {
+        return Stub(PlayPlatform) {
+            getPlayVersion() >> playVersion
         }
     }
 

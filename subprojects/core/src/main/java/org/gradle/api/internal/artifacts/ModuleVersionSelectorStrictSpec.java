@@ -32,6 +32,6 @@ public class ModuleVersionSelectorStrictSpec implements Spec<ModuleVersionIdenti
     public boolean isSatisfiedBy(ModuleVersionIdentifier candidate) {
         return candidate.getName().equals(selector.getName())
                 && candidate.getGroup().equals(selector.getGroup())
-                && candidate.getVersion().equals(selector.getVersion());
+                && candidate.getVersion().equals(selector.getVersionConstraint().getPreferredVersion());
     }
 }

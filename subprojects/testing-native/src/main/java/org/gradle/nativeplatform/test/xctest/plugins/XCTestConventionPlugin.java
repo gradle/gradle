@@ -82,7 +82,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         final Task testingTask = createTestingTask(project);
 
         // Configure tasks
-        configureTestSuiteBuildingTasks(project, component);
+        configureTestSuiteBuildingTasks(project);
         configureTestSuiteWithTestedComponentWhenAvailable(project);
 
         // Create check lifecycle task
@@ -102,7 +102,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private void configureTestSuiteBuildingTasks(Project project, SwiftXCTestSuite component) {
+    private void configureTestSuiteBuildingTasks(Project project) {
         if (OperatingSystem.current().isMacOsX()) {
             TaskContainer tasks = project.getTasks();
 
@@ -221,7 +221,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Configure test suite compile task from tested component compile task
                 SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
                 SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-                compileTest.includes(compileMain.getObjectFileDir());
+                compileTest.getModules().from(compileMain.getModuleFile());
 
                 // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());

@@ -28,6 +28,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
@@ -44,15 +45,19 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
+    private final DependencyMetadataRules dependencyMetadataRules;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant) {
+    private List<GradleDependencyMetadata> calculatedDependencies;
+
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, DependencyMetadataRules dependencyMetadataRules) {
         this.componentId = componentId;
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersion())));
+            dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint())));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
+        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     @Override
@@ -122,6 +127,13 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
-        return dependencies;
+        if (calculatedDependencies == null) {
+            if (dependencyMetadataRules == null) {
+                calculatedDependencies = dependencies;
+            } else {
+                calculatedDependencies = dependencyMetadataRules.execute(dependencies);
+            }
+        }
+        return calculatedDependencies;
     }
 }

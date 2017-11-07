@@ -31,6 +31,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -135,6 +136,10 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
         }
         Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
         runningTasks.put(buildOperation.getId(), task.getPath());
+    }
+
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
     }
 
     @Override

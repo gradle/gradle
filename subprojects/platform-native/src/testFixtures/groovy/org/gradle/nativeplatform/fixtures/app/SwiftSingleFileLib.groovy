@@ -21,30 +21,10 @@ import org.gradle.integtests.fixtures.SourceFile
 /**
  * A Swift library with 3 source files.
  */
-class SwiftSingleFileLib extends SwiftSourceElement implements GreeterElement, SumElement, MultiplyElement {
-    private final delegate = new SwiftLib()
-    final greeter = delegate.greeter
-    final sum = delegate.sum
-    final multiply = delegate.multiply
-
+class SwiftSingleFileLib extends SwiftLib implements GreeterElement, SumElement, MultiplyElement {
     @Override
     List<SourceFile> getFiles() {
-        def content = delegate.files.collect { it.content }.join('\n')
+        def content = super.files.collect { it.content }.join('\n')
         return [sourceFile("swift", "combined.swift", content)]
-    }
-
-    @Override
-    String getExpectedOutput() {
-        return greeter.expectedOutput
-    }
-
-    @Override
-    int sum(int a, int b) {
-        return sum.sum(a, b)
-    }
-
-    @Override
-    int multiply(int a, int b) {
-        return multiply.multiply(a, b)
     }
 }

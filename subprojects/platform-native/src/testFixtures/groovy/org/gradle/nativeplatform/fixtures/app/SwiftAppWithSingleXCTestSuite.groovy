@@ -18,34 +18,23 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftAppWithSingleXCTestSuite extends MainWithXCTestSourceElement implements AppElement {
     final SwiftApp main = new SwiftApp()
-    final XCTestSourceElement test = new XCTestSourceElement() {
+    final XCTestSourceElement test = new XCTestSourceElement(main.projectName) {
         @Override
         List<XCTestSourceFileElement> getTestSuites() {
-            return [new XCTestSourceFileElement() {
-                final delegate = new SwiftAppTest(main.greeter, main.sum, main.multiply)
-
-                @Override
-                String getTestSuiteName() {
-                    return "CombinedTests"
-                }
+            return [new XCTestSourceFileElement("CombinedTests") {
+                final delegate = new SwiftAppTest(main, main.greeter, main.sum, main.multiply)
 
                 @Override
                 List<XCTestCaseElement> getTestCases() {
                     return delegate.sumTest.testCases + delegate.greeterTest.testCases + delegate.multiplyTest.testCases
                 }
-
-                @Override
-                String getModuleName() {
-                    return delegate.sumTest.moduleName
-                }
-
-                @Override
-                XCTestSourceFileElement withImport(String importName) {
-                    return this.withTestableImport(importName)
-                }
-            }]
+            }.withTestableImport(main.moduleName)]
         }
     }
 
     String expectedOutput = main.expectedOutput
+
+    SwiftAppWithSingleXCTestSuite() {
+        super('app')
+    }
 }

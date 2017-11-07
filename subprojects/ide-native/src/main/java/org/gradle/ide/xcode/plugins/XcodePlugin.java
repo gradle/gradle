@@ -213,7 +213,7 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
 
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
-        target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
+        target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
         xcode.getProject().addTarget(target);
     }
 
@@ -228,7 +228,7 @@ public class XcodePlugin extends IdePlugin {
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
 
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
-        target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
+        target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
         xcode.getProject().addTarget(target);
 
         createSchemeTask(project.getTasks(), component.getModule().get() + " " + toString(productType), xcode.getProject());

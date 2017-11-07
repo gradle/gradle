@@ -42,6 +42,8 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.group == "org.gradle"
         dependency.name == "gradle-core"
         dependency.version == "4.4-beta2"
+        dependency.versionConstraint.preferredVersion == "4.4-beta2"
+        dependency.versionConstraint.rejectedVersions == []
         dependency.transitive
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
@@ -115,6 +117,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.group == dependency.group
         assert copiedDependency.name == dependency.name
         assert copiedDependency.version == dependency.version
+        assert copiedDependency.versionConstraint == dependency.versionConstraint
         assert copiedDependency.targetConfiguration == dependency.targetConfiguration
         assert copiedDependency.transitive == dependency.transitive
         assert copiedDependency.artifacts == dependency.artifacts

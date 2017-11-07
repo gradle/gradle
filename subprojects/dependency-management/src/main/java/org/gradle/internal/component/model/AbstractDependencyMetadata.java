@@ -27,7 +27,7 @@ import java.util.List;
 public abstract class AbstractDependencyMetadata implements DependencyMetadata {
     @Override
     public String getDynamicConstraintVersion() {
-        return getRequested().getVersion();
+        return getRequested().getVersionConstraint().getPreferredVersion();
     }
 
     /**

@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -55,18 +56,18 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
-        if (requestedVersion.equals(requested.getVersion())) {
+    public DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        if (requestedVersion.equals(requested.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requestedVersion, requested.getVersion()));
+        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion));
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) target;
-            return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersion()));
+            return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint()));
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }

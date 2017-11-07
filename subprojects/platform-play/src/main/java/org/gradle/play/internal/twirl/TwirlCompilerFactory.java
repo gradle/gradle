@@ -44,7 +44,7 @@ public class TwirlCompilerFactory {
                 // We don't want to use the legacy TwirlScalaCompiler for Twirl 3.0 because the interface is more
                 // complicated and it would be really frustrating to deal with typed parameters via reflection,
                 // to create Scala Seqs in Java, etc.
-                return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
+                return new TwirlCompilerAdapterV13X("1.3.13", scalaCompatibilityVersion);
             default:
                 throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
         }

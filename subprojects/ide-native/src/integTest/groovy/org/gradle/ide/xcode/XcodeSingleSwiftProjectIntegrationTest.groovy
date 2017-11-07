@@ -130,7 +130,7 @@ apply plugin: 'xctest'
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
-        def lib = fixture.inProject('app')
+        def lib = fixture
         lib.writeToProject(testDirectory)
 
         when:
@@ -246,7 +246,7 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
+        def lib = new SwiftLibWithXCTest().withInfoPlist()
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
@@ -269,13 +269,15 @@ apply plugin: 'swift-library'
 
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
+        resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
         resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTest().withInfoPlist().inProject('greeter')
+        def lib = new SwiftLibWithXCTest().withInfoPlist()
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
@@ -296,13 +298,15 @@ apply plugin: 'xctest'
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
+        resultTestRunner.assertOutputContains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertOutputContains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift executable from xcode"() {
         useXcodebuildTool()
-        def app = new SwiftAppWithXCTest().inProject('app')
+        def app = new SwiftAppWithXCTest()
 
         given:
         settingsFile.text = """
@@ -325,6 +329,8 @@ apply plugin: 'xctest'
         then:
         resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':bundleSwiftTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
+        resultTestRunner.assertOutputContains("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
+        resultTestRunner.assertOutputContains("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 

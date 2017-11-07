@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -45,7 +46,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.optional = optional;
         this.artifacts = map(dependencyArtifacts);
-        selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
+        selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersionConstraint());
     }
 
     private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
@@ -102,8 +103,8 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
     }
 
     @Override
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
-        if (requestedVersion.equals(requested.getVersion())) {
+    public DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        if (requestedVersion.equals(requested.getVersionConstraint())) {
             return this;
         }
         ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
@@ -114,7 +115,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
             if (requestedVersion.equals(requested)) {
                 return this;
             }

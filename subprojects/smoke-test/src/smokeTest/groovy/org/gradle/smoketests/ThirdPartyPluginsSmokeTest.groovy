@@ -67,7 +67,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"                
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"
                 }
             }
 

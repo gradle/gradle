@@ -25,6 +25,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationListenerManager
 import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationProgressEvent
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -56,6 +57,8 @@ class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFix
                             gradle.ext.originIds[buildOperation.details.task.identityPath] = finishEvent.result.originBuildInvocationId        
                             println "Finished task: " + buildOperation.details.task.identityPath
                         }
+                    }
+                    void progress($BuildOperationDescriptor.name buildOperation, ${OperationProgressEvent.name} progressEvent){
                     }
                 })
                 

@@ -276,7 +276,7 @@ $append
             }
             configurations.compile.withDependencies { deps ->
                 deps.each { dep ->
-                    dep.version = 'X'
+                    dep.version { prefer 'X' }
                 }
             }
 """

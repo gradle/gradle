@@ -34,23 +34,25 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final String name;
     private final Provider<String> module;
     private final boolean debuggable;
+    private final boolean testable;
     private final FileCollection source;
-    private final FileCollection importPath;
+    private final FileCollection compileModules;
     private final FileCollection linkLibs;
     private final Configuration runtimeLibs;
     private final DirectoryProperty objectsDir;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
+        this.testable = testable;
         this.source = source;
         this.objectsDir = projectLayout.directoryProperty();
 
         Names names = Names.of(name);
 
         // TODO - reduce duplication with C++ binary
-        Configuration importPathConfig = configurations.maybeCreate(names.withPrefix("swiftImport"));
+        Configuration importPathConfig = configurations.maybeCreate(names.withPrefix("swiftCompile"));
         importPathConfig.extendsFrom(implementation);
         importPathConfig.setCanBeConsumed(false);
         importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
@@ -68,7 +70,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
-        importPath = importPathConfig;
+        compileModules = importPathConfig;
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
     }
@@ -89,13 +91,18 @@ public class DefaultSwiftBinary implements SwiftBinary {
     }
 
     @Override
+    public boolean isTestable() {
+        return testable;
+    }
+
+    @Override
     public FileCollection getSwiftSource() {
         return source;
     }
 
     @Override
-    public FileCollection getCompileImportPath() {
-        return importPath;
+    public FileCollection getCompileModules() {
+        return compileModules;
     }
 
     @Override

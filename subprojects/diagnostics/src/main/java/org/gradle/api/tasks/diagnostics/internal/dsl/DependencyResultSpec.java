@@ -46,7 +46,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
         if(requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-            String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
+            String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersionConstraint().getPreferredVersion();
             return requestedCandidate.contains(stringNotation);
         }
 

@@ -67,7 +67,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         final CppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", project.getLayout(), objectFactory, fileOperations, configurations);
         // Register components created for the test Component and test binaries
         project.getComponents().add(testComponent);
-        project.getComponents().add(testComponent.getDevelopmentBinary());
+        project.getComponents().add(testComponent.getTestExecutable());
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
@@ -90,7 +90,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
                         final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTest");
                         testTask.setExecutable(installTask.getRunScript());
-                        testTask.dependsOn(testComponent.getDevelopmentBinary().getInstallDirectory());
+                        testTask.dependsOn(testComponent.getTestExecutable().getInstallDirectory());
                         // TODO: Honor changes to build directory
                         testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/unitTest").get().getAsFile());
                     }

@@ -25,12 +25,11 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
-import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
-public class DefaultCppTestExecutable extends DefaultCppExecutable implements CppTestExecutable {
+public class DefaultCppTestExecutable extends DefaultCppExecutable {
     private final Provider<CppComponent> testedComponent;
 
     @Inject

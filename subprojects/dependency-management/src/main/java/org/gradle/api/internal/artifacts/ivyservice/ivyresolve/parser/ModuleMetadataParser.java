@@ -20,7 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
@@ -128,7 +131,7 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.version);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint);
         }
     }
 
@@ -150,7 +153,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, version));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version)));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -173,7 +176,7 @@ public class ModuleMetadataParser {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version));
+            dependencies.add(new ModuleDependency(group, module, new DefaultMutableVersionConstraint(version)));
             reader.endObject();
         }
         reader.endArray();
@@ -238,12 +241,12 @@ public class ModuleMetadataParser {
     private static class ModuleDependency {
         final String group;
         final String module;
-        final String version;
+        final VersionConstraint versionConstraint;
 
-        ModuleDependency(String group, String module, String version) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint) {
             this.group = group;
             this.module = module;
-            this.version = version;
+            this.versionConstraint = versionConstraint;
         }
     }
 }

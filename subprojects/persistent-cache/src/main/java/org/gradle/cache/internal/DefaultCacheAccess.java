@@ -194,6 +194,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     @Override
+    public void withFileLock(Runnable action) {
+        crossProcessCacheAccess.withFileLock(Factories.toFactory(action));
+    }
+
+    @Override
     public void useCache(Runnable action) {
         useCache(Factories.toFactory(action));
     }

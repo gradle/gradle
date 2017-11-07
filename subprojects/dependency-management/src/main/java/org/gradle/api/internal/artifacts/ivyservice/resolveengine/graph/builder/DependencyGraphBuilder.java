@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -368,11 +369,18 @@ public class DependencyGraphBuilder {
         boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {
             if (filter.apply(selectorState)) {
-                VersionSelector candidateSelector = selectorState.getVersionSelector();
-                if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                    return false;
+                ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
+                if (versionConstraint != null) {
+                    VersionSelector candidateSelector = versionConstraint.getPreferredSelector();
+                    if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
+                        return false;
+                    }
+                    candidateSelector = versionConstraint.getRejectedSelector();
+                    if (candidateSelector != null && candidateSelector.accept(version)) {
+                        return false;
+                    }
+                    atLeastOneAgrees = true;
                 }
-                atLeastOneAgrees = true;
             }
         }
         return atLeastOneAgrees;

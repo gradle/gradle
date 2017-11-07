@@ -123,6 +123,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
+    public boolean definesVariant(String name) {
+        return configurations.containsKey(name);
+    }
+
+    @Override
     public ImmutableList<Artifact> getArtifactDefinitions() {
         return artifactDefinitions;
     }

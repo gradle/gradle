@@ -132,7 +132,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         }
         String libraryName = projectDependency.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
-        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
@@ -140,12 +140,12 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         String projectPath = binarySpec.getProjectPath();
         String libraryName = binarySpec.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
-        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(projectPath, libraryName, getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
     private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
-        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
+        return DefaultModuleVersionSelector.newSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
     }
 
     /**

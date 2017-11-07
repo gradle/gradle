@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.AbstractCommandLineConverter;
@@ -37,12 +38,12 @@ import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
-public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
+public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameterInternal> {
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private final List<BuildOption<StartParameter>> buildOptions = StartParameterBuildOptions.get();
+    private final List<BuildOption<StartParameterInternal>> buildOptions = StartParameterBuildOptions.get();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
     public DefaultCommandLineConverter() {
@@ -57,12 +58,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         layoutCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
 
-        for (BuildOption<StartParameter> option : buildOptions) {
+        for (BuildOption<? extends StartParameter> option : buildOptions) {
             option.configure(parser);
         }
     }
 
-    public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
+    public StartParameterInternal convert(final ParsedCommandLine options, final StartParameterInternal startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
         parallelConfigurationCommandLineConverter.convert(options, startParameter);
         Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
@@ -88,7 +89,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setTaskNames(options.getExtraArguments());
         }
 
-        for (BuildOption<StartParameter> option : buildOptions) {
+        for (BuildOption<StartParameterInternal> option : buildOptions) {
             option.applyFromCommandLine(options, startParameter);
         }
 

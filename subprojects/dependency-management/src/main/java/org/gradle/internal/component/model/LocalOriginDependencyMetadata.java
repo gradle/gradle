@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface LocalOriginDependencyMetadata extends DependencyMetadata {
     List<Exclude> getExcludes();
 
     @Override
-    LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion);
+    LocalOriginDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
 
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);

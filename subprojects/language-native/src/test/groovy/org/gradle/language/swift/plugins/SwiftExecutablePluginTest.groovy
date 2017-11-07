@@ -67,6 +67,7 @@ class SwiftExecutablePluginTest extends Specification {
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
         compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/TestApp.swiftmodule")
         compileDebug.debuggable
         !compileDebug.optimized
 
@@ -84,6 +85,7 @@ class SwiftExecutablePluginTest extends Specification {
         compileRelease instanceof SwiftCompile
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        compileRelease.moduleFile.get().asFile == projectDir.file("build/modules/main/release/TestApp.swiftmodule")
         !compileRelease.debuggable
         compileRelease.optimized
 
@@ -105,7 +107,8 @@ class SwiftExecutablePluginTest extends Specification {
 
         then:
         def compileSwift = project.tasks.compileDebugSwift
-        compileSwift.moduleName == "App"
+        compileSwift.moduleName.get() == "App"
+        compileSwift.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/App.swiftmodule")
 
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))

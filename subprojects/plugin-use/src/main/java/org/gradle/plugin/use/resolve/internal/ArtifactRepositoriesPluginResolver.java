@@ -31,6 +31,8 @@ import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nonnull;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -54,7 +56,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
-        if (markerVersion == null) {
+        if (isNullOrEmpty(markerVersion)) {
             handleNotFound(result, "plugin dependency must include a version number for this source");
             return;
         }
@@ -111,7 +113,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             String id = pluginRequest.getId().getId();
             return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
         } else {
-            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
+            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersionConstraint().getPreferredVersion());
         }
     }
 

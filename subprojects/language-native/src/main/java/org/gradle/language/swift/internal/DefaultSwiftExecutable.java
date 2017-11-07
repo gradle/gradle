@@ -32,8 +32,8 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     @Inject
-    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, module, debuggable, source, configurations, implementation);
+    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
     }

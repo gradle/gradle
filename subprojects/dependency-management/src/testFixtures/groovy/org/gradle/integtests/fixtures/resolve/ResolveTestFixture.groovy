@@ -279,7 +279,7 @@ allprojects {
             def attrs
             if (moduleVersionId.matches(':\\w+:')) {
                 def parts = moduleVersionId.split(':')
-                attrs = [group: null, module: parts[1], version:null]
+                attrs = [group: null, module: parts[1], version: null]
                 moduleVersionId = ":${attrs.module}:unspecified"
             } else if (moduleVersionId.matches('\\w+:\\w+:')) {
                 def parts = moduleVersionId.split(':')
@@ -287,8 +287,14 @@ allprojects {
                 moduleVersionId = "${attrs.group}:${attrs.module}:unspecified"
             } else {
                 def parts = moduleVersionId.split(':')
-                assert parts.length == 3
-                attrs = [group: parts[0], module: parts[1], version: parts[2]]
+                if (parts.length == 3) {
+                    attrs = [group: parts[0], module: parts[1], version: parts[2]]
+                } else {
+                    assert parts.length == 4
+                    attrs = [group: parts[0], module: parts[1], version: parts[2], configuration: parts[3]]
+                    id = "${attrs.group}:${attrs.module}:${attrs.version}"
+                    moduleVersionId = id
+                }
             }
             return node(id, moduleVersionId, attrs)
         }
@@ -357,7 +363,7 @@ allprojects {
         final String group
         final String module
         final String version
-        String configuration = "default"
+        String configuration
         private boolean implicitArtifact = true
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
@@ -368,6 +374,7 @@ allprojects {
             this.group = attrs.group
             this.module = attrs.module
             this.version = attrs.version
+            this.configuration = attrs.configuration ? attrs.configuration : "default"
             this.moduleVersionId = moduleVersionId
             this.id = id
         }

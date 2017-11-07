@@ -94,6 +94,9 @@ class TestUtil {
     private static void hackInTaskProperties(Class type, Task task, Map args) {
         args.each { k, v ->
             def field = type.getDeclaredFields().find { it.name == k }
+            if (!field) {
+                field = type.getSuperclass().getDeclaredFields().find { it.name == k }
+            }
             if (field) {
                 field.setAccessible(true)
                 field.set(task, v)
@@ -179,6 +182,7 @@ class TestUtil {
     static String createUniqueId() {
         return new UID().toString();
     }
+
 }
 
 

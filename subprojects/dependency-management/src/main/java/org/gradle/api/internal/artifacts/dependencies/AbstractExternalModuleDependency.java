@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private String group;
     private String name;
-    private String version;
     private boolean changing;
     private boolean force;
+    private final MutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
@@ -34,7 +37,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         this.group = group;
         this.name = name;
-        this.version = version;
+        this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {
@@ -63,13 +66,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public String getVersion() {
-        return version;
-    }
-
-    @Override
-    public void setVersion(String version) {
-        validateMutation(this.version, version);
-        this.version = version;
+        return versionConstraint.getPreferredVersion();
     }
 
     public boolean isForce() {
@@ -90,5 +87,16 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         validateMutation(this.changing, changing);
         this.changing = changing;
         return this;
+    }
+
+    @Override
+    public VersionConstraint getVersionConstraint() {
+        return versionConstraint;
+    }
+
+    @Override
+    public void version(Action<? super MutableVersionConstraint> configureAction) {
+        validateMutation();
+        configureAction.execute(versionConstraint);
     }
 }

@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.internal.progress;
 
-import org.gradle.integtests.fixtures.SourceFile
+import javax.annotation.Nullable;
 
-/**
- * A single module Swift app.
- */
-class SwiftAlternateApp extends SourceElement implements AppElement {
-    final greeter = new SwiftGreeter()
-    final sum = new SwiftSum()
-    final multiply = new SwiftMultiply()
-    final main = new SwiftAlternateMain(greeter)
-    final List<SourceFile> files = [main.sourceFile, greeter.sourceFile, sum.sourceFile, multiply.sourceFile]
+public final class OperationProgressEvent {
 
-    @Override
-    String getExpectedOutput() {
-        return main.expectedOutput
+    private final long time;
+    private final Object details;
+
+    public OperationProgressEvent(long time, @Nullable Object details) {
+        this.time = time;
+        this.details = details;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    @Nullable
+    public Object getDetails() {
+        return details;
     }
 }

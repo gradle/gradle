@@ -21,7 +21,6 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
@@ -193,9 +192,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(apiDir).withTasks('classes').run()
         TestFile sharedJar = javaprojectDir.file("shared/build/libs/shared-1.0.jar")
         TestFile.Snapshot snapshot = sharedJar.snapshot()
-        if(!GradleContextualExecuter.isEmbedded()){
-           executer.expectDeprecationWarning()
-        }
+        executer.expectDeprecationWarning()
         executer.inDirectory(apiDir).withTasks('clean', 'classes').withArguments("-a").run()
         sharedJar.assertHasNotChangedSince(snapshot)
     }

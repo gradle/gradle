@@ -37,7 +37,7 @@ import org.gradle.api.tasks.Internal;
  *         <td>"linux"</td>
  *     </tr>
  *     <tr>
- *         <td>macOS</td>
+ *         <td>MacOS</td>
  *         <td>"osx", "mac os x", "darwin"</td>
  *     </tr>
  *     <tr>

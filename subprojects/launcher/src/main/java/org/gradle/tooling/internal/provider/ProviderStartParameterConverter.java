@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.DefaultTaskExecutionRequest;
@@ -54,7 +55,7 @@ class ProviderStartParameterConverter {
 
     public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
-        StartParameter startParameter = new StartParameter();
+        StartParameterInternal startParameter = new StartParameterInternal();
 
         startParameter.setProjectDir(parameters.getProjectDir());
         if (parameters.getGradleUserHomeDir() != null) {

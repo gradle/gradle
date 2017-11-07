@@ -56,8 +56,8 @@ public class BooleanCommandLineOptionConfiguration extends CommandLineOptionConf
     }
 
     @Override
-    public BooleanCommandLineOptionConfiguration deprecated(String deprecationWarning) {
-        super.deprecated(deprecationWarning);
+    public BooleanCommandLineOptionConfiguration deprecated() {
+        super.deprecated();
         return this;
     }
 }

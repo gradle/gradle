@@ -236,7 +236,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        BuildOperationExecutor buildOperationExecutor,
-                                                       ArtifactTypeRegistry artifactTypeRegistry) {
+                                                       ArtifactTypeRegistry artifactTypeRegistry,
+                                                       VersionSelectorScheme versionSelectorScheme) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -254,7 +255,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 attributesSchema),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
-                            artifactTypeRegistry),
+                            artifactTypeRegistry, versionSelectorScheme),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }

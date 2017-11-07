@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -33,9 +34,14 @@ import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -80,6 +86,16 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
                         return original.getIncludeRoots();
                     }
                 });
+            }
+        });
+        task.includes(new Callable<List<File>>() {
+            @Override
+            public List<File> call() throws Exception {
+                PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
+                if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
+                    return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes();
+                }
+                return ImmutableList.of();
             }
         });
 

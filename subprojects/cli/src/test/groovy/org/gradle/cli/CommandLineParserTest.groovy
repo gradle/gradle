@@ -377,17 +377,17 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-                '-a, --long-option                    this is option a',
-                '--another-long-option                this is a long option',
-                '-B',
-                '-b',
-                '-y, -z, --end-option, --last-option  this is the last option'
+            '-a, --long-option                    this is option a',
+            '--another-long-option                this is a long option',
+            '-B',
+            '-b',
+            '-y, -z, --end-option, --last-option  this is the last option'
         ]
     }
 
     def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
-        parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
-        parser.option('b').deprecated('will be removed')
+        parser.option('a', 'long-option').hasDescription('this is option a').deprecated()
+        parser.option('b').deprecated()
         parser.option('c').hasDescription('option c').incubating()
         parser.option('d').incubating()
         def outstr = new StringWriter()
@@ -395,30 +395,11 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-                '-a, --long-option  this is option a [deprecated - don\'t use this]',
-                '-b                 [deprecated - will be removed]',
-                '-c                 option c [incubating]',
-                '-d                 [incubating]'
+            '-a, --long-option  this is option a [deprecated]',
+            '-b                 [deprecated]',
+            '-c                 option c [incubating]',
+            '-d                 [incubating]'
         ]
-    }
-
-    def showsDeprecationWarning() {
-        def outstr = new StringWriter()
-        def parser = new CommandLineParser(outstr)
-        parser.option("foo").hasDescription("usless option, just for testing").deprecated("Please use --bar instead.")
-        parser.option("x").hasDescription("I'm not deprecated")
-
-        when:
-        parser.parse(["-x"])
-
-        then:
-        outstr.toString() == ''
-
-        when:
-        parser.parse(["--foo"])
-
-        then:
-        outstr.toString().startsWith("The --foo option is deprecated - Please use --bar instead.")
     }
 
     def parseFailsWhenCommandLineContainsUnknownShortOption() {

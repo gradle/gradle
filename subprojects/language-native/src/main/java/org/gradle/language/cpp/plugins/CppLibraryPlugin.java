@@ -89,12 +89,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Configure the component
         library.getBaseName().set(project.getName());
 
-        // Define the outgoing artifacts
-        // TODO - move this to the base plugin
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getLinkFile());
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
+
+        // Define the outgoing artifacts
+        // TODO - move this to the base plugin
 
         final Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
         final Configuration apiElements = configurations.maybeCreate("cppApiElements");

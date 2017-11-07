@@ -18,32 +18,23 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftSingleFileLibWithSingleXCTestSuite extends MainWithXCTestSourceElement {
     final SwiftSingleFileLib main = new SwiftSingleFileLib()
-    final XCTestSourceElement test = new XCTestSourceElement() {
+    final XCTestSourceElement test = new XCTestSourceElement(main.projectName) {
         @Override
         List<XCTestSourceFileElement> getTestSuites() {
-            return [new XCTestSourceFileElement() {
-                final delegate = new SwiftLibTest(main.greeter, main.sum, main.multiply)
+            return [
+                new XCTestSourceFileElement("CombinedTests") {
+                    final delegate = new SwiftLibTest(main, main.greeter, main.sum, main.multiply)
 
-                @Override
-                String getTestSuiteName() {
-                    return "CombinedTests"
-                }
-
-                @Override
-                List<XCTestCaseElement> getTestCases() {
-                    return delegate.sumTest.testCases + delegate.greeterTest.testCases + delegate.multiplyTest.testCases
-                }
-
-                @Override
-                String getModuleName() {
-                    return delegate.sumTest.moduleName
-                }
-
-                @Override
-                XCTestSourceFileElement withImport(String moduleName) {
-                    return this.withTestableImport(moduleName)
-                }
-            }]
+                    @Override
+                    List<XCTestCaseElement> getTestCases() {
+                        return delegate.sumTest.testCases + delegate.greeterTest.testCases + delegate.multiplyTest.testCases
+                    }
+                }.withTestableImport(main.moduleName)
+            ]
         }
+    }
+
+    SwiftSingleFileLibWithSingleXCTestSuite() {
+        super("greeter")
     }
 }

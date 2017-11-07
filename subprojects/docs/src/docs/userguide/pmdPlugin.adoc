@@ -30,7 +30,7 @@ To use the PMD plugin, include the following in your build script:
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
-Note that Findbugs will run with the same Java version used to run Gradle.
+Note that PMD will run with the same Java version used to run Gradle.
 
 [[sec:pmd_tasks]]
 === Tasks

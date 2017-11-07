@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationProgressEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
@@ -74,6 +75,10 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         } else {
             delegate.started(buildOperation, startEvent);
         }
+    }
+
+    @Override
+    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
     }
 
     @Override

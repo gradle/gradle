@@ -78,15 +78,24 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final SwiftBinary binary) {
                 final Names names = Names.of(binary.getName());
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
-                compile.includes(binary.getCompileImportPath());
-                compile.source(binary.getSwiftSource());
+                compile.getModules().from(binary.getCompileModules());
+                compile.getSource().from(binary.getSwiftSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
                 } else {
                     compile.setOptimized(true);
                 }
-                compile.setModuleName(binary.getModule());
+                if (binary.isTestable()) {
+                    compile.getCompilerArgs().add("-enable-testing");
+                }
+                compile.getModuleName().set(binary.getModule());
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+                compile.getModuleFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
+                    }
+                })));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);

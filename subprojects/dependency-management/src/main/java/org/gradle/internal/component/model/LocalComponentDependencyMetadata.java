@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -177,8 +178,8 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     }
 
     @Override
-    public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
-        if (requestedVersion.equals(requested.getVersion())) {
+    public LocalOriginDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        if (requestedVersion.equals(requested.getVersionConstraint())) {
             return this;
         }
         ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
@@ -190,7 +191,7 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
             if (selector.equals(target) && requested.equals(requestedVersion)) {
                 return this;
             }

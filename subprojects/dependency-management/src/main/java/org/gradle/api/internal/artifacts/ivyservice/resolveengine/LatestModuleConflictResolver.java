@@ -15,12 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final Comparator<Version> versionComparator;
@@ -34,15 +43,46 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         // Find the candidates with the highest base version
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();
-        for (T candidate : details.getCandidates()) {
+        Collection<? extends T> candidates = details.getCandidates();
+        for (T candidate : candidates) {
             Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
-                matches.clear();
+                boolean accept = true;
+                for (T t : candidates) {
+                    ResolvedVersionConstraint candidateConstraints = t.getVersionConstraint();
+                    if (t != candidate && candidateConstraints != null) { // may be null for local components
+                        VersionSelector rejectedVersionSelector = candidateConstraints.getRejectedSelector();
+                        if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
+                            accept = false;
+                            break;
+                        }
+                    }
+                }
                 baseVersion = version.getBaseVersion();
-                matches.put(version, candidate);
+                if (accept) {
+                    matches.put(version, candidate);
+                } else {
+                    matches.clear();
+                }
             } else if (version.getBaseVersion().equals(baseVersion)) {
                 matches.put(version, candidate);
             }
+        }
+        if (matches.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Cannot find a version of ");
+            boolean first = true;
+            for (T candidate : candidates) {
+                if (first) {
+                    sb.append("'").append(candidate.getId().getModule()).append("'");
+                    sb.append(" that satisfies the constraints: ");
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(render(candidate.getVersionConstraint()));
+                first = false;
+            }
+            details.fail(new GradleException(sb.toString()));
+            return;
         }
 
         if (matches.size() == 1) {
@@ -68,5 +108,16 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
 
         // Nothing - just return the highest version
         details.select(matches.get(sorted.get(0)));
+    }
+
+    private static String render(ResolvedVersionConstraint constraint) {
+        VersionSelector preferredSelector = constraint.getPreferredSelector();
+        VersionSelector rejectedSelector = constraint.getRejectedSelector();
+        StringBuilder sb = new StringBuilder("prefers ");
+        sb.append(preferredSelector.getSelector());
+        if (rejectedSelector != null) {
+            sb.append(", rejects ").append(rejectedSelector.getSelector());
+        }
+        return sb.toString();
     }
 }

@@ -36,7 +36,7 @@ class BooleanCommandLineOptionConfigurationTest extends Specification {
         configuration.description == ENABLED_DESCRIPTION
         configuration.disabledDescription == DISABLED_DESCRIPTION
         !configuration.incubating
-        !configuration.deprecationWarning
+        !configuration.deprecated
         configuration.allOptions == [LONG_OPTION] as String[]
     }
 
@@ -50,7 +50,7 @@ class BooleanCommandLineOptionConfigurationTest extends Specification {
         configuration.description == ENABLED_DESCRIPTION
         configuration.disabledDescription == DISABLED_DESCRIPTION
         !configuration.incubating
-        !configuration.deprecationWarning
+        !configuration.deprecated
         configuration.allOptions == [LONG_OPTION, SHORT_OPTION] as String[]
     }
 
@@ -64,15 +64,12 @@ class BooleanCommandLineOptionConfigurationTest extends Specification {
     }
 
     def "can mark option as deprecated"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         BooleanCommandLineOptionConfiguration configuration = BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, ENABLED_DESCRIPTION, DISABLED_DESCRIPTION)
-        configuration.deprecated(deprecationWarning)
+        configuration.deprecated()
 
         then:
-        configuration.deprecationWarning == deprecationWarning
+        configuration.deprecated
     }
 
     @Unroll

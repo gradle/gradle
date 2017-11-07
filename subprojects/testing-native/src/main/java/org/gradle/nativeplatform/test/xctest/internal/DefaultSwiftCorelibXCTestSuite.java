@@ -32,7 +32,7 @@ public class DefaultSwiftCorelibXCTestSuite extends AbstractSwiftXCTestSuite {
     public DefaultSwiftCorelibXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ProjectLayout projectLayout) {
         super(name, fileOperations, objectFactory, configurations);
 
-        executable = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Executable", projectLayout, objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+        executable = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Executable", projectLayout, objectFactory, getModule(), true, false, getSwiftSource(), configurations, getImplementationDependencies());
     }
 
     @Override

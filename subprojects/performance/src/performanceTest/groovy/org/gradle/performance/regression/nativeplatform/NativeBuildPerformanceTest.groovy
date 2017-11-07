@@ -17,6 +17,8 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -26,6 +28,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["4.3-20171011120745+0000"]
     }
 
+    @Ignore
     @Unroll
     def "clean assemble on #testProject"() {
         given:
@@ -58,6 +61,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "bigCppMulti"                     | '1g'      | null
     }
 
+    @Ignore
     def "clean assemble on manyProjectsNative"() {
         given:
         runner.testProject = "manyProjectsNative"
@@ -70,4 +74,48 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         then:
         result.assertCurrentVersionHasNotRegressed()
     }
+
+    @Unroll
+    def "up-to-date assemble on #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ["assemble"]
+        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject   | maxMemory
+        "bigCppApp"   | '256m'
+        "bigCppMulti" | '1g'
+    }
+
+    @Ignore
+    @Unroll
+    def "assemble with #changeType file change on #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ["assemble"]
+        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.addBuildExperimentListener(new ApplyChangeToNativeSourceFileMutator(fileToChange))
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject   | maxMemory | fileToChange
+        "bigCppApp"   | '256m'    | 'src/main/cpp/lib250.cpp'
+        "bigCppApp"   | '256m'    | 'src/main/headers/lib250.h'
+        "bigCppMulti" | '1g'      | 'project101/src/main/cpp/project101lib4.cpp'
+        "bigCppMulti" | '1g'      | 'project101/src/main/public/project101lib4.h'
+        changeType = fileToChange.endsWith('.h') ? 'header' : 'source'
+    }
+
 }

@@ -171,9 +171,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return testListenerInternalBroadcaster;
     }
 
-    /**
-     * ATM. for testing only
-     */
+    @VisibleForTesting
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
     }
@@ -241,8 +239,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task.
-     * If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task. If the listener was
+     * registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
      * org.gradle.api.invocation.Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
@@ -252,8 +250,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)}
-     * on this task.  If the listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)} on this task.  If the
+     * listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
      * org.gradle.api.invocation.Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
@@ -518,7 +516,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     /**
      * Configures the reports that this task potentially produces.
-     *
      *
      * @param configureAction The configuration
      * @return The reports that this task potentially produces

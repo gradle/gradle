@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -167,6 +168,10 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
             resolve();
         }
         return metaData;
+    }
+
+    public ResolvedVersionConstraint getVersionConstraint() {
+        return selectedBy == null ? null : selectedBy.getVersionConstraint();
     }
 
     @Override

@@ -43,7 +43,9 @@ import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.ide.xcode.internal.DefaultXcodeProject.*;
@@ -232,14 +234,22 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             buildSettings.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.getHeaderSearchPaths()));
         }
 
-        if (!xcodeTarget.getImportPaths().isEmpty()) {
-            buildSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
+        if (!xcodeTarget.getCompileModules().isEmpty()) {
+            buildSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
         }
 
         target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).setBuildSettings(buildSettings);
         target.getBuildPhases().add(buildPhase);
 
         return target;
+    }
+
+    private Iterable<File> parentDirs(Iterable<File> files) {
+        List<File> parents = new ArrayList<File>();
+        for (File file : files) {
+            parents.add(file.getParentFile());
+        }
+        return parents;
     }
 
     @Internal

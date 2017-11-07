@@ -58,7 +58,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     public IvyDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confMappings) {
-        this(requested, requested.getVersion(), false, false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
+        this(requested, requested.getVersionConstraint().getPreferredVersion(), false, false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
     }
 
     @Override

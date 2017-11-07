@@ -68,8 +68,8 @@ class BooleanBuildOptionTest extends Specification {
         CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
         assertNoArguments(enabledOption)
         assertNoArguments(disabledOption)
-        assertNoDeprecationWarning(enabledOption)
-        assertNoDeprecationWarning(disabledOption)
+        assertNotDeprecated(enabledOption)
+        assertNotDeprecated(disabledOption)
         assertDescription(enabledOption, DESCRIPTION)
         assertDescription(disabledOption, DISABLED_DESCRIPTION)
     }
@@ -98,12 +98,9 @@ class BooleanBuildOptionTest extends Specification {
     }
 
     def "can configure deprecated command line option"() {
-        given:
-        String deprecationWarning = 'replaced by other'
-
         when:
         def commandLineOptionConfiguration = BooleanCommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION, DISABLED_DESCRIPTION)
-            .deprecated(deprecationWarning)
+            .deprecated()
 
         def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
@@ -111,10 +108,10 @@ class BooleanBuildOptionTest extends Specification {
         then:
         CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
         CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
-        assertDeprecationWarning(enabledOption, deprecationWarning)
-        assertDeprecationWarning(disabledOption, deprecationWarning)
-        assertDeprecatedDescription(enabledOption, deprecationWarning, DESCRIPTION)
-        assertDeprecatedDescription(disabledOption, deprecationWarning, DISABLED_DESCRIPTION)
+        assertDeprecated(enabledOption)
+        assertDeprecated(disabledOption)
+        assertDeprecatedDescription(enabledOption, true, DESCRIPTION)
+        assertDeprecatedDescription(disabledOption, true, DISABLED_DESCRIPTION)
     }
 
     def "can apply from command line"() {

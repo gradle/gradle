@@ -75,11 +75,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         module.set(GUtil.toCamelCase(project.getName()));
 
         // Configure compile task
-        SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compileDebug.getCompilerArgs().add("-enable-testing");
-        SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+        final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
+        final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
@@ -93,14 +92,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         debugApiElements.setCanBeResolved(false);
         debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDir());
+        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
 
         Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should distinguish between link-time and runtime files
         debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
         debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
 
         Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
@@ -116,14 +115,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         releaseApiElements.setCanBeResolved(false);
         releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDir());
+        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
 
         Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         releaseLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        // TODO - should distinguish between link-time and runtime files
+        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
         releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
 
         Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");

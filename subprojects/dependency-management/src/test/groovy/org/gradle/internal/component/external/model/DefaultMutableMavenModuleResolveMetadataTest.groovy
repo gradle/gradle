@@ -16,14 +16,18 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
@@ -256,24 +260,24 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         given:
         def v1 = metadata.addVariant("api", attributes(usage: "compile"))
-        v1.addDependency("g1", "m1", "v1")
-        v1.addDependency("g2", "m2", "v2")
+        v1.addDependency("g1", "m1", v("v1"))
+        v1.addDependency("g2", "m2", v("v2"))
         def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
-        v2.addDependency("g1", "m1", "v1")
+        v2.addDependency("g1", "m1", v("v1"))
 
         expect:
         metadata.variants.size() == 2
         metadata.variants[0].dependencies.size() == 2
         metadata.variants[0].dependencies[0].group == "g1"
         metadata.variants[0].dependencies[0].module == "m1"
-        metadata.variants[0].dependencies[0].version == "v1"
+        metadata.variants[0].dependencies[0].versionConstraint.preferredVersion == "v1"
         metadata.variants[0].dependencies[1].group == "g2"
         metadata.variants[0].dependencies[1].module == "m2"
-        metadata.variants[0].dependencies[1].version == "v2"
+        metadata.variants[0].dependencies[1].versionConstraint.preferredVersion == "v2"
         metadata.variants[1].dependencies.size() == 1
         metadata.variants[1].dependencies[0].group == "g1"
         metadata.variants[1].dependencies[0].module == "m1"
-        metadata.variants[1].dependencies[0].version == "v1"
+        metadata.variants[1].dependencies[0].versionConstraint.preferredVersion == "v1"
 
         def immutable = metadata.asImmutable()
         immutable.variants.size() == 2
@@ -306,11 +310,11 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def v1 = metadata.addVariant("api", attributes1)
         v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
-        v1.addDependency("g1", "m1", "v1")
+        v1.addDependency("g1", "m1", v("v1"))
         def v2 = metadata.addVariant("runtime", attributes2)
         v2.addFile("f2", "f2-version.zip")
-        v2.addDependency("g2", "m2", "v2")
-        v2.addDependency("g3", "m3", "v3")
+        v2.addDependency("g2", "m2", v("v2"))
+        v2.addDependency("g3", "m3", v("v3"))
 
         expect:
         metadata.variantsForGraphTraversal.size() == 2
@@ -366,6 +370,21 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         def immutable2 = copy.asImmutable()
         immutable2.variantsForGraphTraversal.size() == 3
+    }
+
+    def "resets variant backed configuration metadata if dependency rules are modified"() {
+        given:
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        metadata.addVariant("aVariant", Mock(ImmutableAttributes))
+        def before = metadata.variantsForGraphTraversal
+
+        when:
+        metadata.addDependencyMetadataRule("aVariant", Mock(Action), Mock(Instantiator), Mock(NotationParser))
+        def after = metadata.variantsForGraphTraversal
+
+        then:
+        !after.is(before)
     }
 
     def "making changes to copy does not affect original"() {

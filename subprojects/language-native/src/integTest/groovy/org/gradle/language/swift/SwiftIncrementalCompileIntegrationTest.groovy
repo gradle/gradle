@@ -103,7 +103,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         then:
         result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
         when:
@@ -135,7 +135,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate, app.moduleName))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
@@ -161,15 +161,14 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate, lib.moduleName))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
     def "skips compile and link tasks for executable when source doesn't change"() {
-        def app = new SwiftApp()
-        settingsFile << "rootProject.name = 'app'"
-
         given:
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
 
         and:
@@ -190,10 +189,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     def "skips compile and link tasks for library when source doesn't change"() {
-        def lib = new SwiftLib()
-        settingsFile << "rootProject.name = 'hello'"
-
         given:
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
         lib.writeToProject(testDirectory)
 
         and:
@@ -209,7 +207,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "removes stale installed executable and library file when all source files for executable are removed"() {
@@ -236,11 +234,11 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         then:
         executable("app/build/exe/main/debug/App").assertExists()
-        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.executable.original, app.executable.moduleName))
+        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.executable.original))
         installation("app/build/install/main/debug").assertInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.original, app.library.moduleName))
+        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.original))
 
         when:
         app.library.applyChangesToProject(file('greeter'))
@@ -260,7 +258,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         installation("app/build/install/main/debug").assertNotInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.alternate, app.library.moduleName))
+        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.alternate))
     }
 
     def "removes stale executable file when all source files are removed"() {
@@ -278,7 +276,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         then:
         executable("build/exe/main/debug/App").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.original, app.moduleName))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.original))
         installation("build/install/main/debug").assertInstalled()
 
         when:
@@ -312,7 +310,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         then:
         sharedLibrary("build/lib/main/debug/Greeter").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.original, lib.moduleName))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.original))
 
         when:
         lib.applyChangesToProject(testDirectory)
@@ -327,7 +325,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         file("build/obj/main/debug").assertHasDescendants()
     }
 
-    private List<String> expectIntermediateDescendants(SourceElement sourceElement, String moduleName) {
+    private List<String> expectIntermediateDescendants(SourceElement sourceElement) {
         List<String> result = new ArrayList<String>()
 
         String sourceSetName = sourceElement.getSourceSetName()
@@ -340,8 +338,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
         }
         result.add("output-file-map.json")
-        result.add(moduleName + ".swiftmodule")
-        result.add(moduleName + ".swiftdoc")
         return result
     }
 

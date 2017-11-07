@@ -20,6 +20,10 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
@@ -35,7 +39,8 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 class StreamingResolutionResultBuilderTest extends Specification {
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory)
+    final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, versionSelectorScheme)
 
     def "result can be read multiple times"() {
         def rootNode = node(1, "org", "root", "1.0", ROOT)
@@ -226,7 +231,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
         selector.resultId >> resultId
-        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, ver)
+        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultMutableVersionConstraint(ver))
         return selector
     }
 }

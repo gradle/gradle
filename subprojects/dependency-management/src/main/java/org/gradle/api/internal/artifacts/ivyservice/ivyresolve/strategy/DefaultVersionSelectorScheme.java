@@ -42,4 +42,19 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     public String renderSelector(VersionSelector selector) {
         return ((AbstractVersionSelector) selector).getSelector();
     }
+
+    @Override
+    public VersionSelector complementForRejection(VersionSelector selector) {
+        if (selector instanceof ExactVersionSelector) {
+            return new VersionRangeSelector("]" + ((ExactVersionSelector) selector).getSelector() + ",)", versionComparator.asVersionComparator());
+        }
+        if (selector instanceof VersionRangeSelector) {
+            VersionRangeSelector vrs = (VersionRangeSelector) selector;
+            if (vrs.getUpperBound() != null) {
+                String lowerBoundInclusion = vrs.isUpperInclusive() ? "]" : "[";
+                return new VersionRangeSelector(lowerBoundInclusion + vrs.getUpperBound() + ",)", versionComparator.asVersionComparator());
+            }
+        }
+        throw new IllegalArgumentException("Version '" + renderSelector(selector) + "' cannot be converted to a strict version constraint.");
+    }
 }

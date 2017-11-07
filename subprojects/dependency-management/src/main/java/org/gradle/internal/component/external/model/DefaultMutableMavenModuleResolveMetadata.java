@@ -17,7 +17,10 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,6 +32,8 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -98,6 +103,37 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
     }
 
+    @Override
+    public boolean definesVariant(String name) {
+        if (explicitlyDefinesVariants()) {
+            return containsNamedVariant(name);
+        } else {
+            return getConfigurationDefinitions().containsKey(name);
+        }
+    }
+
+    private boolean explicitlyDefinesVariants() {
+        return (variants != null && !variants.isEmpty()) || (newVariants != null && !newVariants.isEmpty());
+    }
+
+    private boolean containsNamedVariant(String name) {
+        if (variants != null) {
+            for (ComponentVariant variant : variants) {
+                if (variant.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        if (newVariants != null) {
+            for (MutableVariantImpl variant : newVariants) {
+                if (variant.name.equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Nullable
     @Override
     public String getSnapshotTimestamp() {
@@ -140,6 +176,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
+    public void addDependencyMetadataRule(String variantName, Action<DependenciesMetadata> action, Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser) {
+        super.addDependencyMetadataRule(variantName, action, instantiator, dependencyNotationParser);
+        graphVariants = null;
+    }
+
+    @Override
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
         MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
         if (newVariants == null) {
@@ -159,7 +201,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
             } else {
                 List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
                 for (ComponentVariant variant : variants) {
-                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant));
+                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
                 }
                 graphVariants = ImmutableList.copyOf(configurations);
             }
@@ -197,8 +239,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
 
         @Override
-        public void addDependency(String group, String module, String version) {
-            dependencies.add(new DependencyImpl(group, module, version));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint));
         }
 
         @Override
@@ -230,12 +272,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private static class DependencyImpl implements ComponentVariant.Dependency {
         private final String group;
         private final String module;
-        private final String version;
+        private final VersionConstraint versionConstraint;
 
-        DependencyImpl(String group, String module, String version) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint) {
             this.group = group;
             this.module = module;
-            this.version = version;
+            this.versionConstraint = versionConstraint;
         }
 
         @Override
@@ -249,8 +291,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         }
 
         @Override
-        public String getVersion() {
-            return version;
+        public VersionConstraint getVersionConstraint() {
+            return versionConstraint;
         }
     }
 

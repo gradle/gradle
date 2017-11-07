@@ -25,6 +25,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -47,6 +48,9 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
+
+    private DependencyMetadataRules dependencyMetadataRules;
+    private List<DependencyMetadata> calculatedDependencies;
 
     DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.componentId = componentId;
@@ -126,15 +130,24 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
-        return configDependencies;
+        if (calculatedDependencies == null) {
+            if (dependencyMetadataRules == null) {
+                calculatedDependencies = configDependencies;
+            } else {
+                calculatedDependencies = dependencyMetadataRules.execute(configDependencies);
+            }
+        }
+        return calculatedDependencies;
     }
 
-    void populateDependencies(Iterable<? extends DependencyMetadata> dependencies) {
+    void populateDependencies(Iterable<? extends DependencyMetadata> dependencies, DependencyMetadataRules dependencyMetadataRules) {
         for (DependencyMetadata dependency : dependencies) {
             if (include(dependency)) {
                 this.configDependencies.add(dependency);
             }
         }
+        this.calculatedDependencies = null;
+        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     private boolean include(DependencyMetadata dependency) {

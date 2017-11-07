@@ -142,16 +142,16 @@ dependencies {
 configurations.compile.withDependencies { deps ->
     def foo = deps.find { it.name == 'foo' }
     assert foo.version == null
-    foo.version = '1.0'
+    foo.version { prefer '1.0' }
 
     def bar = deps.find { it.name == 'bar' }
     assert bar.version == '2.2'
-    bar.version = null
+    bar.version { prefer null }
 }
 configurations.compile.withDependencies { deps ->
     def bar = deps.find { it.name == 'bar' }
     assert bar.version == null
-    bar.version = '1.0'
+    bar.version { prefer '1.0' }
 }
 """
 
@@ -238,7 +238,9 @@ project(":producer") {
         compile {
             withDependencies { deps ->
                 deps.each {
-                    it.version = '3.4'
+                    it.version {
+                       prefer '3.4'
+                    }
                 }
                 deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
@@ -291,7 +293,9 @@ include 'consumer', 'producer'
         compile {
             withDependencies { deps ->
                 deps.each {
-                    it.version = '3.4'
+                    it.version {
+                        prefer '3.4'
+                    }
                 }
                 deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }

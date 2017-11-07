@@ -70,7 +70,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     @Override
     public PlayToolProvider select(PlayPlatform targetPlatform) {
         try {
-            Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
+            Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
             return new DefaultPlayToolProvider(fileResolver, workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);

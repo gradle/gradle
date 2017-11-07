@@ -33,6 +33,7 @@ public interface CppSharedLibrary extends CppBinary {
      * @since 4.4
      */
     Provider<RegularFile> getLinkFile();
+
     /**
      * Returns the run-time file for this binary.
      *

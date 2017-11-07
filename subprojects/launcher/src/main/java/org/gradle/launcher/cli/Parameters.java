@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
@@ -27,7 +28,7 @@ public class Parameters {
 
     public Parameters() {
         this.layout = new BuildLayoutParameters();
-        this.startParameter = new StartParameter();
+        this.startParameter = new StartParameterInternal();
         this.daemonParameters = new DaemonParameters(layout);
     }
 

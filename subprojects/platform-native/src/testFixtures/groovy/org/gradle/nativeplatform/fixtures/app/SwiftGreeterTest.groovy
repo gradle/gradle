@@ -20,10 +20,9 @@ class SwiftGreeterTest extends XCTestSourceFileElement {
     final GreeterElement testedElement
 
     SwiftGreeterTest(GreeterElement testedElement) {
+        super("GreeterTestSuite")
         this.testedElement = testedElement
     }
-
-    String testSuiteName = "GreeterTestSuite"
 
     @Override
     List<XCTestCaseElement> getTestCases() {
