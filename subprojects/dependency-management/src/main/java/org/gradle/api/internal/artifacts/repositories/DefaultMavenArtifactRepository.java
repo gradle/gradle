@@ -118,9 +118,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     protected boolean isPreferGradleMetadata() {
-        if (System.getProperty("org.gradle.internal.preferGradleMetadata") != null) {
-            return true;
-        }
         return preferGradleMetadata;
     }
 

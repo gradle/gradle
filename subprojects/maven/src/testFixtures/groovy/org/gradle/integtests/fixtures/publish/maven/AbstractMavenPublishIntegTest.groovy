@@ -87,15 +87,14 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         def resolvedArtifacts = doResolveArtifacts(dependencies)
 
         if (resolveModuleMetadata) {
-            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
-            def moduleArtifacts = doResolveArtifacts(dependencies)
+            def moduleArtifacts = doResolveArtifacts(dependencies, "useGradleMetadata()")
             assert resolvedArtifacts == moduleArtifacts
         }
 
         return resolvedArtifacts
     }
 
-    protected def doResolveArtifacts(def dependencies) {
+    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "") {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
@@ -107,7 +106,10 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
                 }
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { 
+                    url "${mavenRepo.uri}"
+                     ${maybeUseGradleMetadata}
+                }
                 ${mavenCentralRepositoryDefinition()}
             }
             $dependencies
