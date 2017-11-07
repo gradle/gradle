@@ -19,11 +19,11 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
-class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
+class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
     private final MavenFileModule module
     private final List<String> additionalArtifacts = []
 
-    MavenPublishedJavaModule(MavenFileModule module) {
+    MavenJavaModule(MavenFileModule module) {
         super(module)
         this.module = module
     }

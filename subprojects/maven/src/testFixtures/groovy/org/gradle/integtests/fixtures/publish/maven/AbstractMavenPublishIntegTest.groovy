@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
+import org.gradle.test.fixtures.maven.MavenJavaModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
@@ -39,8 +39,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         resolveModuleMetadata = false
     }
 
-    protected static MavenPublishedJavaModule javaLibrary(MavenFileModule mavenFileModule) {
-        return new MavenPublishedJavaModule(mavenFileModule)
+    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
+        return new MavenJavaModule(mavenFileModule)
     }
 
     protected def resolveArtifact(MavenModule module, def extension, def classifier) {
