@@ -860,7 +860,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <packaging>\${packaege.type}</packaging>
+    <packaging>\${package.type}</packaging>
 
     <properties>
         <!-- missing property for package.type --> 
