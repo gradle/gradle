@@ -50,6 +50,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public void assertPublished() {
+        backingModule.assertPublished();
+    }
+
+    @Override
     public void assertPublishedAsJavaModule() {
         backingModule.assertPublishedAsJavaModule();
     }

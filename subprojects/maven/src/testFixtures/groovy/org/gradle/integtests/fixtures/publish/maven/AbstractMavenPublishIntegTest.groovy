@@ -17,28 +17,41 @@ package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+
+    def resolveModuleMetadata = false
+
+    protected static MavenPublishedJavaModule javaLibrary(MavenFileModule mavenFileModule) {
+        return new MavenPublishedJavaModule(mavenFileModule)
+    }
+
+    protected void useModuleMetadata() {
+        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+        resolveModuleMetadata = true
+    }
 
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
-        doResolveArtifacts("""
+        resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'
     }
 """)
     }
 
-    protected def resolveArtifacts(MavenFileModule module) {
-        doResolveArtifacts("""
+    protected def resolveArtifacts(MavenModule module) {
+        resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
 """)
     }
 
-    protected def resolveArtifacts(MavenFileModule module, Map... additionalArtifacts) {
+    protected def resolveArtifacts(MavenModule module, Map... additionalArtifacts) {
         def dependencies = """
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
@@ -49,7 +62,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             def type = it.type == null ? 'jar' : it.type
             dependencies += """
             artifact {
-                name = '${sq(module.artifactId)}' // TODO:DAZ Get NPE if name isn't set
+                name = '${sq(module.artifactId)}'
                 classifier = '${it.classifier}'
                 type = '${type}'
             }
@@ -59,7 +72,19 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         }
     }
 """
-        doResolveArtifacts(dependencies)
+        resolveArtifacts(dependencies)
+    }
+
+    protected def resolveArtifacts(String dependencies) {
+        def resolvedArtifacts = doResolveArtifacts(dependencies)
+
+        if (resolveModuleMetadata) {
+            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
+            def moduleArtifacts = doResolveArtifacts(dependencies)
+            assert resolvedArtifacts == moduleArtifacts
+        }
+
+        return resolvedArtifacts
     }
 
     protected def doResolveArtifacts(def dependencies) {
@@ -67,7 +92,11 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
             configurations {
-                resolve
+                resolve {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
+                    }
+                }
             }
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -75,6 +104,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             }
             $dependencies
             task resolveArtifacts(type: Sync) {
+                outputs.upToDateWhen { false }
                 from configurations.resolve
                 into "artifacts"
             }

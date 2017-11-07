@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 
 class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
-    def "can publish single jar with specified coordinates"() {
+    def "can publish with specified coordinates"() {
         given:
         using m2
 

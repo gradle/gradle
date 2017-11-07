@@ -73,11 +73,6 @@ interface MavenModule extends Module {
      */
     MavenModule variant(String variant, Map<String, String> attributes)
 
-    /**
-     * Asserts exactly pom and jar published, along with checksums.
-     */
-    void assertPublishedAsJavaModule()
-
     String getPublishArtifactVersion()
 
     String getGroupId()
@@ -133,4 +128,14 @@ interface MavenModule extends Module {
     MavenMetaData getRootMetaData()
 
     boolean getUniqueSnapshots()
+
+    /**
+     * Asserts pom and module files are published correctly. Does not verify artifacts.
+     */
+    void assertPublished()
+
+    /**
+     * Asserts exactly pom and jar published, along with checksums.
+     */
+    void assertPublishedAsJavaModule()
 }
