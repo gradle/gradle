@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.gradle.internal.resource.transport.http.HttpUnrecoverable5xxErrorStatusCodeException;
 
-import java.io.InterruptedIOException;
-import java.util.Collection;
 import java.util.Set;
+
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
 public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
 
@@ -52,30 +50,5 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
     @Override
     public Set<String> getBlacklistedRepositories() {
         return blacklistedRepositories;
-    }
-
-    public static boolean hasCriticalFailure(Collection<? extends Throwable> failures) {
-        for (Throwable failure : failures) {
-            if (isCriticalFailure(failure)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isCriticalFailure(Throwable throwable) {
-        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause);
-    }
-
-    /**
-     * See <a href="http://hc.apache.org/httpclient-3.x/exception-handling.html">HTTPClient exception handling</a> for more information.
-     */
-    private static boolean isTimeoutException(Throwable rootCause) {
-        return rootCause instanceof InterruptedIOException;
-    }
-
-    private static boolean isUnrecoverable5xxStatusCode(Throwable rootCause) {
-        return rootCause instanceof HttpUnrecoverable5xxErrorStatusCodeException;
     }
 }
