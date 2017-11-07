@@ -70,10 +70,11 @@ class M2ResourcePatternTest extends Specification {
         pattern.getLocation(artifact).uri == new URI(expectPath)
 
         where:
-        group       | module     | version | expectPath
-        "group"     | "projectA" | "1.2"   | 'http://server/lookup/group/projectA/1.2/ivys/1.2/ivy.xml'
-        "org.group" | "projectA" | "1.2"   | 'http://server/lookup/org/group/projectA/1.2/ivys/1.2/ivy.xml'
-        "#?:%12"    | "projectA" | "1.2"   | 'http://server/lookup/%23%3F:%2512/projectA/1.2/ivys/1.2/ivy.xml'
+        group       | module        | version | expectPath
+        "group"     | "projectA"    | "1.2"   | 'http://server/lookup/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA"    | "1.2"   | 'http://server/lookup/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "#?:%12"    | "projectA"    | "1.2"   | 'http://server/lookup/%23%3F:%2512/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | '${projectA}' | "1.2"   | 'http://server/lookup/org/group/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes attributes into pattern to determine version list pattern"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.base.CharMatcher;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -24,9 +25,24 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 public class M2ResourcePattern extends AbstractResourcePattern {
+    /*
+     * A matcher whose characters are forbidden to be used by any attribute that is used to substitute a part of the
+     * given pattern.
+     *
+     * There is no clear documentation of the characters that are valid to use for coordinates such as ghroupId,
+     * artifactId and others. The official maven guide only states the following for the artifactId:
+     * "(...) whatever name you want with lowercase letters and no strange symbols". To be safe, this matcher should
+     * only match characters that are surely to be considered "strange".
+     *
+     * While a whitelist of valid characters would be preferred, this is a blacklist of characters that have proven to
+     * be problematic when constructing an URI for retrieval of the artifact.
+     */
+    private static final CharMatcher INVALID_ATTRIBUTE_CHAR_MATCHER = CharMatcher.anyOf("${}");
+
     public M2ResourcePattern(String pattern) {
         super(pattern);
     }
@@ -80,10 +96,22 @@ public class M2ResourcePattern extends AbstractResourcePattern {
     }
 
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
-        String org = attributes.get(IvyPatternHelper.ORGANISATION_KEY);
-        if (org != null) {
-            attributes.put(IvyPatternHelper.ORGANISATION_KEY, org.replace(".", "/"));
+        return super.substituteTokens(pattern, toAttributesForSubstitution(attributes));
+    }
+
+    private Map<String, String> toAttributesForSubstitution(Map<String, String> attributes) {
+        Map<String, String> result = new HashMap<String, String>(attributes);
+        for (Map.Entry<String, String> entry : result.entrySet()) {
+            String value = entry.getValue();
+            if (value != null) {
+                // let's just remove the invalid characters until there is a better way to handle them
+                entry.setValue(INVALID_ATTRIBUTE_CHAR_MATCHER.removeFrom(value));
+            }
         }
-        return super.substituteTokens(pattern, attributes);
+        String org = result.get(IvyPatternHelper.ORGANISATION_KEY);
+        if (org != null) {
+            result.put(IvyPatternHelper.ORGANISATION_KEY, org.replace(".", "/"));
+        }
+        return result;
     }
 }
