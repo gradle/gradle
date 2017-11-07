@@ -35,12 +35,12 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.AbstractSwiftXCTestSuite;
@@ -147,10 +147,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             testTask.getRunScript().set(installTask.getRunScript());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
         } else if (OperatingSystem.current().isLinux()) {
-            InstallExecutable installTask = (InstallExecutable) tasks.getByName("installTest");
-            testTask.getTestSuiteLocation().set(installTask.getInstallDirectory());
-            testTask.getRunScript().set(installTask.getRunScript());
-            testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
+            SwiftExecutable binary = (SwiftExecutable) testSuite.getDevelopmentBinary();
+            testTask.getTestSuiteLocation().set(binary.getInstallDirectory());
+            testTask.getRunScript().set(binary.getRunScriptFile());
+            testTask.getWorkingDirectory().set(binary.getInstallDirectory());
         }
 
         testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);

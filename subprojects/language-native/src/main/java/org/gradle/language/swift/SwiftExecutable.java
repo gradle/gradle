@@ -41,4 +41,11 @@ public interface SwiftExecutable extends SwiftBinary {
      * @since 4.4
      */
     Provider<Directory> getInstallDirectory();
+
+    /**
+     * Returns the script for running this binary.
+     *
+     * @since 4.4
+     */
+    Provider<RegularFile> getRunScriptFile();
 }

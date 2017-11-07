@@ -135,6 +135,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.setExecutable(link.getBinaryFile());
                     install.lib(binary.getRuntimeLibraries());
                     ((DefaultSwiftExecutable)binary).getInstallDirectory().set(install.getInstallDirectory());
+                    ((DefaultSwiftExecutable)binary).getRunScriptFile().set(install.getRunScriptFile());
                 } else if (binary instanceof SwiftSharedLibrary) {
                     // Specific compiler arguments
                     compile.getCompilerArgs().add("-parse-as-library");
