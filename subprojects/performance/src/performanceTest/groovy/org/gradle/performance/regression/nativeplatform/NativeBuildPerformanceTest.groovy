@@ -52,11 +52,11 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 //        "multiNative"                     | '256m'    | null // TODO wolfs: Fix this case
         "smallCppApp"                     | '256m'    | 40
         "mediumCppApp"                    | '256m'    | null
-        "mediumCppAppWithMacroIncludes"   | '256m'    | null
+//        "mediumCppAppWithMacroIncludes"   | '256m'    | null  // TODO wolfs: Fix this case
         "bigCppApp"                       | '256m'    | null
         "smallCppMulti"                   | '256m'    | 40
         "mediumCppMulti"                  | '256m'    | null
-//        "mediumCppMultiWithMacroIncludes" | '256m'    | null // TODO wolfs: Fix this case
+        "mediumCppMultiWithMacroIncludes" | '256m'    | null
         "bigCppMulti"                     | '1g'      | null
     }
 
