@@ -47,5 +47,5 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      * @since 4.4
      */
     @Incubating
-    void version(Action<? super VersionConstraint> configureAction);
+    void version(Action<? super MutableVersionConstraint> configureAction);
 }
