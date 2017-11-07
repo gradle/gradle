@@ -64,17 +64,18 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
     }
 
     public static boolean isCriticalFailure(Throwable throwable) {
-        return isTimeoutException(throwable) || isUnrecoverable5xxStatusCode(throwable);
+        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause);
     }
 
-    private static boolean isTimeoutException(Throwable throwable) {
-        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        //http://hc.apache.org/httpclient-3.x/exception-handling.html
+    /**
+     * See <a href="http://hc.apache.org/httpclient-3.x/exception-handling.html">HTTPClient exception handling</a> for more information.
+     */
+    private static boolean isTimeoutException(Throwable rootCause) {
         return rootCause instanceof InterruptedIOException;
     }
 
-    private static boolean isUnrecoverable5xxStatusCode(Throwable throwable) {
-        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+    private static boolean isUnrecoverable5xxStatusCode(Throwable rootCause) {
         return rootCause instanceof HttpUnrecoverable5xxErrorStatusCodeException;
     }
 }
