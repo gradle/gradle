@@ -53,12 +53,14 @@ class ReadelfBinaryInfo implements BinaryInfo {
     }
 
     List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', binaryFile.absolutePath].execute()
+        def process = ['nm', '-f', 'posix', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
         return lines.collect { line ->
+            // Looks like:
+            // _main t 0 0
             def splits = line.split(' ')
-            char type = splits.first().getChars()[0]
-            String name = splits.last()
+            String name = splits[0]
+            char type = splits[1].getChars()[0]
             new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
         }
     }

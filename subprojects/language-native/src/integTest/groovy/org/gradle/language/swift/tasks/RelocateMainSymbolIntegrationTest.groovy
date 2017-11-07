@@ -44,7 +44,6 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         succeeds("relocate", "assemble")
         then:
         assertMainSymbolIsNotExported("build/tmp/relocate/main.o")
-        assertMainSymbolIsExported("build/exe/main/debug/App")
     }
 
     def "relocate _main symbol with notMain.swift"() {
@@ -56,7 +55,6 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         succeeds("relocate", "assemble")
         then:
         assertMainSymbolIsNotExported("build/tmp/relocate/notMain.o")
-        assertMainSymbolIsExported("build/exe/main/debug/App")
     }
 
     def "relocate _main symbol with multiple swift files"() {
@@ -71,7 +69,6 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         succeeds("relocate", "assemble")
         then:
         assertMainSymbolIsNotExported("build/tmp/relocate/main.o")
-        assertMainSymbolIsExported("build/exe/main/debug/App")
     }
 
     def "does not relocate when there is no main.swift"() {
@@ -92,14 +89,10 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         assert !findMainSymbol(objectFile).exported
     }
 
-    private void assertMainSymbolIsExported(String objectFile) {
-        assert findMainSymbol(objectFile).exported
-    }
-
     private BinaryInfo.Symbol findMainSymbol(String objectFile) {
         def binary = new NativeBinaryFixture(file(objectFile), toolChain)
         def symbols = binary.binaryInfo.listSymbols()
-        def mainSymbol = symbols.find({ it.name == "_main" })
+        def mainSymbol = symbols.find({ it.name == "_main" || it.name == "main" })
         assert mainSymbol
         mainSymbol
     }

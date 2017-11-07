@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -68,11 +69,20 @@ public class RelocateMainSymbol extends SourceTask {
             getProject().exec(new Action<ExecSpec>() {
                 @Override
                 public void execute(ExecSpec execSpec) {
-                    execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
-                    execSpec.args(mainObjectFile);
-                    execSpec.args("-o", relocatedMainObject);
-                    execSpec.args("-r"); // relink, produce another object file
-                    execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
+                    if (OperatingSystem.current().isMacOsX()) {
+                        execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
+                        execSpec.args(mainObjectFile);
+                        execSpec.args("-o", relocatedMainObject);
+                        execSpec.args("-r"); // relink, produce another object file
+                        execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
+                    } else if (OperatingSystem.current().isLinux()) {
+                        execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
+                        execSpec.args("-L", "main"); // hide _main symbol
+                        execSpec.args(mainObjectFile);
+                        execSpec.args(relocatedMainObject);
+                    } else {
+                        throw new IllegalStateException("Do not know how to relocate a main symbol on " + OperatingSystem.current());
+                    }
                 }
             });
             setDidWork(true);
