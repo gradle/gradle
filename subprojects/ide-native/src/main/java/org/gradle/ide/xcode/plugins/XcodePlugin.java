@@ -209,8 +209,7 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getGroups().getTests().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
-        final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
-        xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
+        CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
 
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());

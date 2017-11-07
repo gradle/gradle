@@ -99,7 +99,6 @@ allprojects { p ->
     class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
         SwiftXCTestTestFrameworkBundle(String projectName) {
             super(projectName)
-            withInfoPlist()
         }
 
         List<XCTestSourceFileElement> testSuites = [
