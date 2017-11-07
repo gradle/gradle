@@ -37,6 +37,8 @@ abstract class AbstractHttpResource implements RemoteResource {
 
     abstract void expectGetBroken()
 
+    abstract void expectGetUnofficial()
+
     abstract void expectGetMissing()
 
     abstract void expectGetRevalidate()

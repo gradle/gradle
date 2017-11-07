@@ -15,6 +15,7 @@ dependencies {
     compile project(":core")
     compile project(":resources")
     compile project(":versionControl")
+    compile project(":resourcesHttp")
 
     compile libraries.asm
     compile libraries.commons_lang
@@ -31,8 +32,6 @@ dependencies {
     compile libraries.maven3
 
     testCompile libraries.nekohtml
-
-    integTestImplementation project(":resourcesHttp")
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")

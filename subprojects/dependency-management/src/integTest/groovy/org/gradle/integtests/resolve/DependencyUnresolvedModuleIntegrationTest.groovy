@@ -243,9 +243,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        reason                          | abort | action              | outcome
-        'exceeds timeout'               | true  | 'expectGetBlocking' | 'assertDependencyMetaDataReadTimeout'
-        'returns internal server error' | false | 'expectGetBroken'   | 'assertDependencyMetaDataInternalServerError'
+        reason                          | abort | action                | outcome
+        'exceeds timeout'               | true  | 'expectGetBlocking'   | 'assertDependencyMetaDataReadTimeout'
+        'returns internal server error' | true  | 'expectGetBroken'     | 'assertDependencyMetaDataInternalServerError'
+        'returns uncritical error'      | false | 'expectGetUnofficial' | 'assertDependencyMetaDataSiteFrozenError'
 
         abortDescriptor = abort ? 'aborts' : 'does not abort'
     }
@@ -273,9 +274,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        reason                          | action              | outcome
-        'exceeds timeout'               | 'expectGetBlocking' | 'assertDependencyArtifactReadTimeout'
-        'returns internal server error' | 'expectGetBroken'   | 'assertDependencyArtifactInternalServerError'
+        reason                          | action                | outcome
+        'exceeds timeout'               | 'expectGetBlocking'   | 'assertDependencyArtifactReadTimeout'
+        'returns internal server error' | 'expectGetBroken'     | 'assertDependencyArtifactInternalServerError'
+        'returns uncritical error'      | 'expectGetUnofficial' | 'assertDependencyArtifactSiteFrozenError'
     }
 
     @Unroll
@@ -303,9 +305,10 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
 
         where:
-        reason                          | abort | action              | outcome
-        'exceeds timeout'               | true  | 'expectGetBlocking' | 'assertDependencyListingReadTimeout'
-        'returns internal server error' | false | 'expectGetBroken'   | 'assertDependencyListingInternalServerError'
+        reason                          | abort | action                | outcome
+        'exceeds timeout'               | true  | 'expectGetBlocking'   | 'assertDependencyListingReadTimeout'
+        'returns internal server error' | true  | 'expectGetBroken'     | 'assertDependencyListingInternalServerError'
+        'returns uncritical error'      | false | 'expectGetUnofficial' | 'assertDependencyListingSiteFrozenError'
 
         abortDescriptor = abort ? 'aborts' : 'does not abort'
     }
@@ -360,6 +363,14 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 500 from server: broken")
     }
 
+    private void assertDependencyListingSiteFrozenError(String group, String module, String version) {
+        failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
+        failure.assertHasCause("Failed to list versions for ${group}:${module}.")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
+        failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 530 from server: Site is frozen")
+    }
+
     private void assertDependencyMetaDataReadTimeout(MavenModule module) {
         failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
@@ -373,6 +384,12 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'. Received status code 500 from server: broken")
     }
 
+    private void assertDependencyMetaDataSiteFrozenError(MavenModule module) {
+        failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'. Received status code 530 from server: Site is frozen")
+    }
+
     private void assertDependencyArtifactReadTimeout(MavenModule module) {
         failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
@@ -384,6 +401,12 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 500 from server: broken")
+    }
+
+    private void assertDependencyArtifactSiteFrozenError(MavenModule module) {
+        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 530 from server: Site is frozen")
     }
 
     private void assertDependencySkipped(MavenModule module) {

@@ -49,6 +49,11 @@ class HttpDirectoryResource extends AbstractHttpResource {
     }
 
     @Override
+    void expectGetUnofficial() {
+        server.expectGetUnofficial(path)
+    }
+
+    @Override
     void expectGetRevalidate() {
         server.expectGetRevalidate(path, directory)
     }

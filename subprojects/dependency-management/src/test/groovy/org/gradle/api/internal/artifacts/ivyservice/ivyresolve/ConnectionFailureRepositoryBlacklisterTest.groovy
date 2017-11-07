@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.transport.http.HttpUnrecoverable5xxErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -25,11 +26,11 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
 
     @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
 
-    def "blacklists repository for timeout exception"() {
+    @Unroll
+    def "blacklists repository for critical exception [#exception]"() {
         given:
         def repositoryId1 = 'abc'
         def repositoryId2 = 'def'
-        def exception = createDummyTimeoutException('Read time out')
 
         when:
         boolean blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
@@ -55,6 +56,9 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.size() == 2
         blacklister.blacklistedRepositories.contains(repositoryId1)
         blacklister.blacklistedRepositories.contains(repositoryId2)
+
+        where:
+        exception << [createTimeoutException(), createUnrecoverableHttp5xxException()]
     }
 
     @Unroll
@@ -67,17 +71,21 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.empty
 
         where:
-        type                           | exception
-        'NullPointerException'         | createNestedException(new NullPointerException())
-        'HttpErrorStatusCodeException' | createHttpErrorStatusCodeException()
+        type                                        | exception
+        'NullPointerException'                      | createNestedException(new NullPointerException())
+        'HttpErrorStatusCodeException with status ' | createHttpErrorStatusCodeException()
     }
 
-    static RuntimeException createHttpErrorStatusCodeException(String method = 'GET', String source = 'test.file', int statusCode = 500, String reason = '') {
-        createNestedException(new HttpErrorStatusCodeException(method, source, statusCode, reason))
+    static RuntimeException createHttpErrorStatusCodeException() {
+        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', 530, ''))
     }
 
-    static RuntimeException createDummyTimeoutException(String message) {
-        createNestedException(new InterruptedIOException(message))
+    static RuntimeException createTimeoutException() {
+        createNestedException(new InterruptedIOException('Read time out'))
+    }
+
+    static RuntimeException createUnrecoverableHttp5xxException() {
+        createNestedException(new HttpUnrecoverable5xxErrorStatusCodeException('GET', 'test.file', 500, ''))
     }
 
     static RuntimeException createNestedException(Throwable t) {

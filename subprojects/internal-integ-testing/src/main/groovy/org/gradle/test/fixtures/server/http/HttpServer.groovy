@@ -229,6 +229,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Expects one GET request, which fails with a unofficial status code (530 as representative).
+     * For more information see <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes">Unoffical status codes</a>.
+     */
+    void expectGetUnofficial(String path) {
+        expect(path, false, ['GET'], unofficial())
+    }
+
+    /**
      * Expects one GET request, which will block for maximum 60 seconds
      */
     void expectGetBlocking(String path) {
@@ -272,6 +280,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
+            }
+        }
+    }
+
+    private Action unofficial() {
+        new ActionSupport("return 530 Site is frozen") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(530, "Site is frozen")
             }
         }
     }
