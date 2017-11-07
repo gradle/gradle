@@ -47,7 +47,7 @@ distributionTestTasks.all { DistributionTest task ->
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
     def mirrorUrls = collectMirrorUrls()
-    def mirrors = ['mavencentral', 'jcenter', 'typesafemaven', 'typesafeivy', 'google']
+    def mirrors = ['mavencentral', 'jcenter', 'lightbendmaven', 'ligthbendivy', 'google']
     mirrors.each { mirror ->
         systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ''
     }
