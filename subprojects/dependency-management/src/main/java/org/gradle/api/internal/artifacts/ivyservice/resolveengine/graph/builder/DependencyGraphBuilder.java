@@ -323,7 +323,7 @@ public class DependencyGraphBuilder {
         while (!queue.isEmpty()) {
             ComponentState component = queue.get(0);
             if (component.getVisitState() == VisitState.NotSeen) {
-                component.setVisitState(VisitState.Visting);
+                component.setVisitState(VisitState.Visiting);
                 int pos = 0;
                 for (NodeState node : component.getNodes()) {
                     if (!node.isSelected()) {
@@ -347,7 +347,7 @@ public class DependencyGraphBuilder {
                         }
                     }
                 }
-            } else if (component.getVisitState() == VisitState.Visting) {
+            } else if (component.getVisitState() == VisitState.Visiting) {
                 // have visited all consumers, so visit this node
                 component.setVisitState(VisitState.Visited);
                 queue.remove(0);
@@ -388,7 +388,7 @@ public class DependencyGraphBuilder {
 
 
     enum VisitState {
-        NotSeen, Visting, Visited
+        NotSeen, Visiting, Visited
     }
 
 }

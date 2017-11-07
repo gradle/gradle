@@ -280,7 +280,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren();
+        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {

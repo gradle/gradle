@@ -128,6 +128,7 @@ class ModuleResolveState implements CandidateModule {
             version.makeSelectable();
         }
         selected.select();
+        doRestart(selected);
     }
 
     private void doRestart(ComponentState selected) {
