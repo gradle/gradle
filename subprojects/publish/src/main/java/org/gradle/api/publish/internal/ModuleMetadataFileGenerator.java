@@ -62,7 +62,7 @@ public class ModuleMetadataFileGenerator {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(publication, (ComponentWithVariants) publication.getComponent(), coordinates, owners, jsonWriter);
+        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter);
         jsonWriter.flush();
         writer.append('\n');
     }
@@ -86,7 +86,7 @@ public class ModuleMetadataFileGenerator {
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal publication, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
         writeIdentity(publication.getCoordinates(), component, componentCoordinates, owners, jsonWriter);
@@ -95,7 +95,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeIdentity(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeIdentity(ModuleVersionIdentifier coordinates, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
         SoftwareComponent owner = owners.get(component);
         if (owner == null) {
             jsonWriter.name("component");
@@ -123,33 +123,31 @@ public class ModuleMetadataFileGenerator {
         }
     }
 
-    private void writeVariants(PublicationInternal publication, ComponentWithVariants component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
         boolean started = false;
-        if (component instanceof SoftwareComponentInternal) {
-            SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
-            for (UsageContext usageContext : softwareComponentInternal.getUsages()) {
-                if (!started) {
-                    jsonWriter.name("variants");
-                    jsonWriter.beginArray();
-                    started = true;
-                }
-                writeVariantHostedInThisModule(publication, usageContext, jsonWriter);
+        for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
+            if (!started) {
+                jsonWriter.name("variants");
+                jsonWriter.beginArray();
+                started = true;
             }
+            writeVariantHostedInThisModule(publication, usageContext, jsonWriter);
         }
-        for (SoftwareComponent childComponent : component.getVariants()) {
-            ModuleVersionIdentifier childCoordinates = componentCoordinates.get(childComponent);
-            if (childCoordinates == null) {
-                continue;
-            }
-            if (childComponent instanceof SoftwareComponentInternal) {
-                SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) childComponent;
-                for (UsageContext usageContext : softwareComponentInternal.getUsages()) {
-                    if (!started) {
-                        jsonWriter.name("variants");
-                        jsonWriter.beginArray();
-                        started = true;
+        if (component instanceof ComponentWithVariants) {
+            for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
+                ModuleVersionIdentifier childCoordinates = componentCoordinates.get(childComponent);
+                if (childCoordinates == null) {
+                    continue;
+                }
+                if (childComponent instanceof SoftwareComponentInternal) {
+                    for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                        if (!started) {
+                            jsonWriter.name("variants");
+                            jsonWriter.beginArray();
+                            started = true;
+                        }
+                        writeVariantHostedInAnotherModule(publication.getCoordinates(), childCoordinates, usageContext, jsonWriter);
                     }
-                    writeVariantHostedInAnotherModule(publication.getCoordinates(), childCoordinates, usageContext, jsonWriter);
                 }
             }
         }
