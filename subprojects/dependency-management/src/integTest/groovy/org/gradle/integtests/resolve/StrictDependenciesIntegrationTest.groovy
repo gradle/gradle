@@ -211,14 +211,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                 }
                 conf('org:bar:1.0')
             }
-            
-            // todo: remove if expectGraph works as expected
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.2.jar']
-                }
-            }                  
+                          
         """
 
         when:
@@ -232,8 +225,7 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
         then:
         noExceptionThrown()
-        // should be this, but a couple of combinations don't work
-        /*
+
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:$directDependencyVersion", "org:foo:1.2")
@@ -242,7 +234,6 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                 }
             }
         }
-        */
 
         where:
         directDependencyVersion << ['[1.0,1.3]', '1.2', '[1.0, 1.2]', '[1.0, 1.3]']
