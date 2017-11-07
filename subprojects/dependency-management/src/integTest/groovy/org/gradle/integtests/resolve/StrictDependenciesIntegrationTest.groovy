@@ -16,11 +16,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile, "conf")
 
@@ -285,7 +284,12 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo17.pom.expectGet()
+        if (GradleContextualExecuter.parallel) {
+            foo15.allowAll()
+            foo17.allowAll()
+        } else {
+            foo17.pom.expectGet()
+        }
         fails 'checkDeps'
 
         then:
@@ -332,7 +336,12 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo17.pom.expectGet()
+        if (GradleContextualExecuter.parallel) {
+            foo15.allowAll()
+            foo17.allowAll()
+        } else {
+            foo17.pom.expectGet()
+        }
         fails 'checkDeps'
 
         then:
@@ -381,9 +390,16 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo15.rootMetaData.expectGet()
-        foo16.pom.expectGet()
-        foo18.pom.expectGet()
+        if (GradleContextualExecuter.parallel) {
+            foo15.rootMetaData.allowGetOrHead()
+            foo15.allowAll()
+            foo16.allowAll()
+            foo18.allowAll()
+        } else {
+            foo15.rootMetaData.expectGet()
+            foo16.pom.expectGet()
+            foo18.pom.expectGet()
+        }
         fails 'checkDeps'
 
         then:
@@ -433,10 +449,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo10.rootMetaData.expectGet()
-        foo12.pom.expectGet()
-        foo13.pom.expectGet()
-        foo12.artifact.expectGet()
+        if (GradleContextualExecuter.parallel) {
+            foo10.rootMetaData.allowGetOrHead()
+            foo10.allowAll()
+            foo12.allowAll()
+            foo13.allowAll()
+        } else {
+            foo10.rootMetaData.expectGet()
+            foo12.pom.expectGet()
+            foo13.pom.expectGet()
+            foo12.artifact.expectGet()
+        }
         run ':checkDeps'
 
         then:
