@@ -339,7 +339,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     @Optional
     @InputFiles
-    @PathSensitive(PathSensitivity.NONE)
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {
         final File inputFile = headerDependenciesFile.getAsFile().getOrNull();
         if (inputFile == null || !inputFile.isFile()) {
