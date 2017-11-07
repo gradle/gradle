@@ -130,7 +130,7 @@ interface MavenModule extends Module {
     boolean getUniqueSnapshots()
 
     /**
-     * Asserts pom file has not been published.
+     * Asserts pom and module files have not been published.
      */
     void assertNotPublished()
 
@@ -141,6 +141,7 @@ interface MavenModule extends Module {
 
     /**
      * Asserts exactly pom and jar published, along with checksums.
+     * If created {@link #withModuleMetadata()}, module file is also expected.
      */
     void assertPublishedAsJavaModule()
 }
