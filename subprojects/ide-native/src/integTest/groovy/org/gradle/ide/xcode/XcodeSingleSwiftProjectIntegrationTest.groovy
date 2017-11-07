@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def "can create xcode project for Swift executable"() {
@@ -122,15 +121,14 @@ apply plugin: 'xctest'
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
     }
 
-    @Unroll
     @Requires(TestPrecondition.MAC_OS_X)
-    def "can create xcode project for #scenario and xctest"() {
+    def "can create xcode project for Swift library and xctest"() {
         given:
         buildFile << """
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
-        def lib = fixture
+        def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
 
         when:
@@ -153,11 +151,6 @@ apply plugin: 'xctest'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
-
-        where:
-        scenario                  | fixture
-        "swift lib without plist" | new SwiftLibWithXCTest()
-        "swift lib with plist"    | new SwiftLibWithXCTest().withInfoPlist()
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -246,7 +239,7 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTest().withInfoPlist()
+        def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
@@ -277,7 +270,7 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTest().withInfoPlist()
+        def lib = new SwiftLibWithXCTest()
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"

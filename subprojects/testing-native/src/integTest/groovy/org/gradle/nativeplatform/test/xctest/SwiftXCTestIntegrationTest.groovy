@@ -118,21 +118,6 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can build xctest bundle when Info.plist is provided"() {
-        given:
-        def lib = new SwiftLibWithXCTest().withInfoPlist()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
-        lib.assertTestCasesRan(testExecutionResult)
-    }
-
     @Unroll
     def "runs tests when #task lifecycle task executes"() {
         given:

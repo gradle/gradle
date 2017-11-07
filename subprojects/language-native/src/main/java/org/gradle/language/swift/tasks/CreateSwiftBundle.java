@@ -24,8 +24,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
@@ -43,14 +41,12 @@ import java.nio.charset.Charset;
  */
 @Incubating
 public class CreateSwiftBundle extends DefaultTask {
-    private final RegularFileProperty informationFile;
     private final RegularFileProperty executableFile;
     private final DirectoryProperty outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
     public CreateSwiftBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
-        this.informationFile = newInputFile();
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
@@ -73,15 +69,11 @@ public class CreateSwiftBundle extends DefaultTask {
         });
 
         File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
-        if (!informationFile.isPresent() || !informationFile.get().getAsFile().exists()) {
-            Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-                + "<plist version=\"1.0\">\n"
-                + "<dict/>\n"
-                + "</plist>", outputFile, Charset.forName("UTF-8"));
-        } else {
-            Files.copy(informationFile.get().getAsFile(), outputFile);
-        }
+        Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+            + "<plist version=\"1.0\">\n"
+            + "<dict/>\n"
+            + "</plist>", outputFile, Charset.forName("UTF-8"));
 
         getProject().exec(new Action<ExecSpec>() {
             @Override
@@ -108,11 +100,5 @@ public class CreateSwiftBundle extends DefaultTask {
     @InputFile
     public RegularFileProperty getExecutableFile() {
         return executableFile;
-    }
-
-    @Optional
-    @InputFiles
-    public RegularFileProperty getInformationFile() {
-        return informationFile;
     }
 }
