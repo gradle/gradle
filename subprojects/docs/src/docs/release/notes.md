@@ -109,7 +109,7 @@ Since then Gradle optimized its up-to-date checking for project dependencies whi
 ### Maven optional dependencies may lead to different dependency resolution result
 
 Supporting optional dependencies means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
-Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those.
+Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those. Alternatively, you can compare the output of the `dependencyInsight` task executed with a pre-4.4 version of Gradle and the one produced by Gradle 4.4.
 
 ### Change to the `Test` task structure
 

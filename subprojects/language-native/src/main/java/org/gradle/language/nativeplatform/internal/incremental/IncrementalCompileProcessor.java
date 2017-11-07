@@ -37,7 +37,7 @@ public class IncrementalCompileProcessor {
             result.processSource(sourceFile);
         }
 
-        return new DefaultIncrementalCompilation(result.getCurrent(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs(), result.isSourceFilesUseMacroIncludes());
+        return new DefaultIncrementalCompilation(result.getCurrent(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs(), result.getExistingHeaders(), result.isSourceFilesUseMacroIncludes());
     }
 
 }

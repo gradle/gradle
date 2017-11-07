@@ -17,7 +17,6 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
@@ -28,7 +27,6 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Ignore
     @Unroll
     def "clean #task on #testProject with local cache"() {
         given:
