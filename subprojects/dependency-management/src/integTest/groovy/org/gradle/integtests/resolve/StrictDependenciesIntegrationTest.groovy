@@ -17,8 +17,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile, "conf")
 
