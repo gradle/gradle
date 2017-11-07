@@ -27,11 +27,20 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              List<String> rejectedVersions) {
+        if (preferredVersion == null) {
+            throw new IllegalArgumentException("Preferred version must not be null");
+        }
+        if (rejectedVersions == null) {
+            throw new IllegalArgumentException("Rejected versions must not be null");
+        }
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion) {
+        if (preferredVersion == null) {
+            throw new IllegalArgumentException("Preferred version must not be null");
+        }
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.of();
     }
