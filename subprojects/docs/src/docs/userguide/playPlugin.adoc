@@ -256,10 +256,35 @@ By default, Gradle uses Play 2.3.10, Scala 2.11 and the version of Java used to 
 
 ++++
 <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">
-                <sourcefile file="build.gradle" snippet="play-platform"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="play-platform"/>
+</sample>
 ++++
 
+The following versions of Play and Scala are supported:
+
+.Play supported versions
+[cols="a,a,a", options="header"]
+|===
+| Play
+| Scala
+| Java
+
+| 2.6.x
+| 2.11 and 2.12
+| 1.8
+
+| 2.5.x
+| 2.11
+| 1.8
+
+| 2.4.x
+| 2.10 and 2.11
+| 1.8
+
+| 2.3.x
+| 2.10 and 2.11
+| 1.6, 1.7 and 1.8
+|===
 
 [[sec:adding_dependencies]]
 ==== Adding dependencies
@@ -280,6 +305,27 @@ Other dependencies that have short names, such as `jacksons` may actually be mul
 </sample>
 ++++
 
+[NOTE]
+====
+Play 2.6 has a more modular architecture and, because of that, you may need to add some dependencies manually. For example, https://playframework.com/documentation/2.6.x/Migration26#Guice-DI-support-moved-to-separate-module[Guice support was moved to a separated module]. Considering the following definition for a Play 2.6 project:
+
+++++
+<sample id="play26Project" dir="play/play-2.6" title="A Play 2.6 project">
+    <sourcefile file="build.gradle" snippet="play-platform-2.6"/>
+</sample>
+++++
+
+You can add Guice dependency like:
+
+++++
+<sample id="play26ProjectDependencies" dir="play/play-2.6" title="Adding Guice dependency in Play 2.6 project">
+    <sourcefile file="build.gradle" snippet="play-dependencies-2.6"/>
+</sample>
+++++
+
+Of course, pay attention to keep Play version and Scala version for the dependency consistent with the platform versions.
+====
+
 
 [[configuring_play_sourcesets]]
 ==== Configuring the default source sets
@@ -288,8 +334,8 @@ You can further configure the default source sets to do things like add new dire
 
 ++++
 <sample id="addExtraPlaySourcesets" dir="play/sourcesets" title="Adding extra source sets to a Play application">
-                <sourcefile file="build.gradle" snippet="default-sourcesets"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="default-sourcesets"/>
+</sample>
 ++++
 
 
@@ -300,8 +346,8 @@ If your Play application has additional sources that exist in non-standard direc
 
 ++++
 <sample id="addExtraPlaySourcesets" dir="play/sourcesets" title="Adding extra source sets to a Play application">
-                <sourcefile file="build.gradle" snippet="play-extra-sourcesets"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="play-extra-sourcesets"/>
+</sample>
 ++++
 
 
@@ -312,8 +358,8 @@ If your Play application requires additional Scala compiler flags, you can add t
 
 ++++
 <sample id="configureScalaCompiler" dir="play/configure-compiler" title="Configuring Scala compiler options">
-                <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
+</sample>
 ++++
 
 
@@ -330,8 +376,8 @@ If your Play application's router uses dependency injection to access your contr
 
 ++++
 <sample id="configureRoutesCompiler" dir="play/play-2.4" title="Configuring routes style">
-                <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
+</sample>
 ++++
 
 
