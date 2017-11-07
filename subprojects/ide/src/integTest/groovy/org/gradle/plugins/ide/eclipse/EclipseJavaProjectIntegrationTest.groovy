@@ -45,4 +45,70 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         '1.9'   | 'JavaSE-9'
         '1.10'  | 'JavaSE-10'
     }
+
+    def "generated JDT preferences have correct compiler version"(String version, String expectedVersion) {
+        settingsFile << "rootProject.name = 'java'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            sourceCompatibility = $version
+        """
+
+        when:
+        run "eclipse"
+
+        then:
+        def properties = parseProperties('.settings/org.eclipse.jdt.core.prefs')
+        properties['org.eclipse.jdt.core.compiler.compliance'] == expectedVersion
+        properties['org.eclipse.jdt.core.compiler.source'] == expectedVersion
+
+        where:
+        version | expectedVersion
+        '1.1'   | '1.1'
+        '1.2'   | '1.2'
+        '1.3'   | '1.3'
+        '1.4'   | '1.4'
+        '1.5'   | '1.5'
+        '1.6'   | '1.6'
+        '1.7'   | '1.7'
+        '1.8'   | '1.8'
+        '1.9'   | '9'
+        '1.10'  | '10'
+    }
+
+    def "generated JDT preferences have correct target platform version"(String version, String expectedVersion) {
+        settingsFile << "rootProject.name = 'java'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            targetCompatibility = $version
+        """
+
+        when:
+        run "eclipse"
+
+        then:
+        def properties = parseProperties('.settings/org.eclipse.jdt.core.prefs')
+        properties['org.eclipse.jdt.core.compiler.codegen.targetPlatform'] == expectedVersion
+
+        where:
+        version | expectedVersion
+        '1.1'   | '1.1'
+        '1.2'   | '1.2'
+        '1.3'   | '1.3'
+        '1.4'   | '1.4'
+        '1.5'   | '1.5'
+        '1.6'   | '1.6'
+        '1.7'   | '1.7'
+        '1.8'   | '1.8'
+        '1.9'   | '9'
+        '1.10'  | '10'
+    }
+
+    protected parseProperties(String filename) {
+        Properties properties = new Properties()
+        File propertiesFile = file(filename)
+        propertiesFile.withInputStream { properties.load(it) }
+        properties
+    }
 }
