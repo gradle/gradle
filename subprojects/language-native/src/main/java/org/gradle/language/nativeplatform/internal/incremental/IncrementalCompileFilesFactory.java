@@ -62,6 +62,7 @@ public class IncrementalCompileFilesFactory {
         private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> discoveredInputs = Sets.newHashSet();
+        private final Set<File> existingHeaders = Sets.newHashSet();
 
         private boolean sourceFilesUseMacroIncludes;
 
@@ -108,6 +109,9 @@ public class IncrementalCompileFilesFactory {
             for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
                 if (resolvedInclude.isMaybeMacro()) {
                     sourceFilesUseMacroIncludes = true;
+                }
+                if (!resolvedInclude.isUnknown()) {
+                    existingHeaders.add(resolvedInclude.getFile());
                 }
             }
             discoveredInputs.addAll(resolutionResult.getCheckedLocations());
@@ -165,6 +169,11 @@ public class IncrementalCompileFilesFactory {
         @Override
         public Set<File> getDiscoveredInputs() {
             return discoveredInputs;
+        }
+
+        @Override
+        public Set<File> getExistingHeaders() {
+            return existingHeaders;
         }
 
         @Override

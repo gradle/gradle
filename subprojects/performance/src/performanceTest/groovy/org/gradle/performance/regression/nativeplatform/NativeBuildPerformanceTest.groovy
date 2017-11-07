@@ -28,7 +28,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["4.3-20171011120745+0000"]
     }
 
-    @Ignore
     @Unroll
     def "clean assemble on #testProject"() {
         given:
@@ -50,18 +49,18 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "smallNative"                     | '256m'    | 40
         "mediumNative"                    | '256m'    | null
         "bigNative"                       | '1g'      | null
-        "multiNative"                     | '256m'    | null
+//        "multiNative"                     | '256m'    | null // TODO wolfs: Fix this case
         "smallCppApp"                     | '256m'    | 40
         "mediumCppApp"                    | '256m'    | null
         "mediumCppAppWithMacroIncludes"   | '256m'    | null
         "bigCppApp"                       | '256m'    | null
         "smallCppMulti"                   | '256m'    | 40
         "mediumCppMulti"                  | '256m'    | null
-        "mediumCppMultiWithMacroIncludes" | '256m'    | null
+//        "mediumCppMultiWithMacroIncludes" | '256m'    | null // TODO wolfs: Fix this case
         "bigCppMulti"                     | '1g'      | null
     }
 
-    @Ignore
+    @Ignore("Still to be fixed by wolfs")
     def "clean assemble on manyProjectsNative"() {
         given:
         runner.testProject = "manyProjectsNative"
@@ -94,7 +93,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "bigCppMulti" | '1g'
     }
 
-    @Ignore
     @Unroll
     def "assemble with #changeType file change on #testProject"() {
         given:
