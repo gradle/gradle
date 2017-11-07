@@ -93,7 +93,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
      * This is used by consumers 1.2-rc-1 and later.
      */
     public void configure(ConnectionParameters parameters) {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        assertUsingJava7();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
         File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
         if (gradleUserHomeDir == null) {
@@ -102,6 +102,15 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         initializeServices(gradleUserHomeDir);
         connection.configure(providerConnectionParameters);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
+    }
+
+    private void assertUsingJava7() {
+        try {
+            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        } catch (IllegalArgumentException e) {
+            // https://github.com/gradle/gradle/issues/3317
+            DeprecationLogger.nagUserWith(e.getMessage());
+        }
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -241,7 +250,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        assertUsingJava7();
 
         checkUnsupportedTapiVersion();
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
