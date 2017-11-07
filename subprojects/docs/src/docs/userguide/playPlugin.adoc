@@ -27,7 +27,7 @@ The Play plugin makes use of the Gradle <<software_model,software model>>.
 [[sec:play_usage]]
 === Usage
 
-To use the Play plugin, include the following in your build script to apply the `play` plugin and add the Typesafe repositories:
+To use the Play plugin, include the following in your build script to apply the `play` plugin and add the Lightbend repositories:
 
 ++++
 <sample id="usePlayPlugin" dir="play/basic" title="Using the Play plugin">
@@ -35,7 +35,7 @@ To use the Play plugin, include the following in your build script to apply the 
 </sample>
 ++++
 
-Note that defining the Typesafe repositories is necessary. In future versions of Gradle, this will be replaced with a more convenient syntax.
+Note that defining the Lightbend repositories is necessary. In future versions of Gradle, this will be replaced with a more convenient syntax.
 
 [[sec:play_limitations]]
 === Limitations
