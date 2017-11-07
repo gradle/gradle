@@ -44,5 +44,12 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
     String determinePackagingFromArtifacts();
 
+    /**
+     * Some components (e.g. Native) are published such that the module metadata references the original file name,
+     * rather than the Maven-standard {artifactId}-{version}-{classifier}.{extension}.
+     * This method enables this behaviour for the current publication.
+     */
+    void publishWithOriginalFileName();
+
 }
 

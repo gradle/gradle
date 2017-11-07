@@ -16,57 +16,16 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
-
-    void "version range is mapped to maven syntax in published pom file"() {
-        given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-
-        and:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'group'
-            version = '1.0'
-
-            dependencies {
-                compile "group:projectA:latest.release"
-                runtime "group:projectB:latest.integration"
-            }
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-"""
-
-        when:
-        succeeds "publish"
-
-        then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.compile.expectDependency('group:projectA:RELEASE')
-        repoModule.parsedPom.scopes.compile.expectDependency('group:projectB:LATEST')
-    }
+class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
+    def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
 
     @Issue('GRADLE-1574')
     def "publishes wildcard exclusions for a non-transitive dependency"() {
         given:
-        def module = mavenRepo.module('group', 'root', '1.0')
-
-        and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -76,7 +35,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
             version = '1.0'
 
             dependencies {
-                compile ('commons-collections:commons-collections:3.2.2') { transitive = false }
+                compile ('org.test:non-transitive:1.0') { transitive = false }
+                compile 'org.test:artifact-only:1.0@jar'
             }
 
             publishing {
@@ -94,19 +54,22 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         when:
         succeeds 'publish'
 
-        then: "wildcard exclusions are applied to the dependency"
-        def pom = module.parsedPom
-        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
-        exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
+        then: "wildcard exclusions are applied to the dependencies"
+        repoModule.assertApiDependencies('org.test:non-transitive:1.0', 'org.test:artifact-only:1.0')
+
+        def pom = repoModule.parsedPom
+        ['non-transitive', 'artifact-only'].each {
+            def exclusions = pom.scopes.compile.dependencies["org.test:${it}:1.0"].exclusions
+            assert exclusions.size() == 1
+            assert exclusions[0].groupId=='*'
+            assert exclusions[0].artifactId=='*'
+        }
     }
 
     @Issue("GRADLE-3233")
     @Unroll
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-
-        and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -135,8 +98,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:")
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies("group:projectA:")
         def dependency = repoModule.parsedPom.scopes.compile.dependencies.get("group:projectA:")
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
@@ -150,8 +113,6 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
     void "defaultDependencies are included in published pom file"() {
         given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java"
@@ -186,15 +147,13 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         succeeds "publish"
 
         then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.compile?.expectDependency('org:default-dependency:1.0')
-        repoModule.parsedPom.scopes.runtime?.expectDependency('org:explicit-dependency:1.0')
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies('org:default-dependency:1.0')
+        repoModule.assertRuntimeDependencies('org:explicit-dependency:1.0')
     }
 
     void "dependency mutations are reflected in published pom file"() {
         given:
-        def repoModule = mavenRepo.module('group', 'root', '1.0')
-
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java"
@@ -229,9 +188,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         succeeds "publish"
 
         then:
-        repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.compile?.expectDependency('org.test:dep1:X')
-        repoModule.parsedPom.scopes.compile?.expectDependency('org.test:dep2:1.0')
+        repoModule.assertPublished()
+        repoModule.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:1.0')
     }
 
 }

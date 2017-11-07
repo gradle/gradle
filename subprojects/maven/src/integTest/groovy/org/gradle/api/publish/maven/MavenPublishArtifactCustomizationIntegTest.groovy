@@ -45,7 +45,13 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
     }
 
-    public void "can configure artifacts added from component"() {
+    /**
+     * Not enabled with module metadata.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
+    def "can modify artifacts added from component"() {
+        disableModuleMetadataPublishing()
+
         given:
         createBuildScripts("""
             publications {
@@ -72,7 +78,13 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifact(module, 'jar', 'classified') == ["projectText-1.0-classified.jar"]
     }
 
-    def "can set custom artifacts to override component artifacts"() {
+    /**
+     * Not enabled with module metadata.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
+    def "can override artifacts added from component"() {
+        disableModuleMetadataPublishing()
+
         given:
         createBuildScripts("""
             publications {
@@ -94,6 +106,28 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
         and:
         resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
+    }
+
+    /**
+     * Cannot publish module metadata for component when artifacts are modified.
+     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     */
+    def "fails when publishing module metadata for component with modified artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifacts = ["customFile.txt"]
+                }
+            }
+
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
     }
 
     def "can configure custom artifacts when creating"() {
@@ -201,9 +235,9 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module("group", "projectText", "1.0")
+        def module = javaLibrary(mavenRepo.module("group", "projectText", "1.0"))
+            .withClassifiedArtifact('classified', '')
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.jar", "projectText-1.0-classified")
 
         // TODO Find a way to resolve Maven artifact with no extension
 //        and:

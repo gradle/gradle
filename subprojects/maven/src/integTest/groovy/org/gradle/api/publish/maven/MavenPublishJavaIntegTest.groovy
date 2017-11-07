@@ -24,8 +24,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     def "can publish java-library with no dependencies"() {
-        useModuleMetadata()
-
         createBuildScripts("""
             publishing {
                 publications {
@@ -48,8 +46,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies"() {
-        useModuleMetadata()
-
         given:
         mavenRepo.module("org.test", "foo", "1.0").publish()
         mavenRepo.module("org.test", "bar", "1.0").publish()
@@ -81,6 +77,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies and excludes"() {
+        resolveModuleMetadata = false // Excludes not yet honoured in module metadata
         given:
         createBuildScripts("""
 
@@ -118,7 +115,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.assertPublished()
 
         // TODO:DAZ Verify excludes in .module file
         javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
@@ -136,8 +133,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with attached artifacts"() {
-        useModuleMetadata()
-
         given:
         createBuildScripts("""
             task sourceJar(type: Jar) {
@@ -168,8 +163,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
-        useModuleMetadata()
-
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest' 

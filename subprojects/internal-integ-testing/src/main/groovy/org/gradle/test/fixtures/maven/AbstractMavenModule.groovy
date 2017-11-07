@@ -37,8 +37,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String type = 'jar'
     String packaging
     int publishCount = 1
-    private boolean noMetaData
-    private boolean moduleMetadata
+    private boolean hasPom = true
+    private boolean hasModuleMetadata
     private final List<VariantMetadata> variants = [new VariantMetadata("default")]
     private final List dependencies = []
     private final List artifacts = []
@@ -84,7 +84,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule withModuleMetadata() {
-        moduleMetadata = true
+        hasModuleMetadata = true
         return this
     }
 
@@ -172,6 +172,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     void assertNotPublished() {
         pomFile.assertDoesNotExist()
+        moduleMetadata.file.assertDoesNotExist()
     }
 
     void assertPublished() {
@@ -226,7 +227,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     void assertPublishedAsJavaModule() {
         assertPublished()
         def expectedArtifacts = ["${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom"]
-        if (moduleMetadata) {
+        if (hasModuleMetadata) {
             expectedArtifacts << "${artifactId}-${publishArtifactVersion}.module"
         }
         assertArtifactsPublished(expectedArtifacts as String[])
@@ -509,16 +510,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule withNoPom() {
-        noMetaData = true
+        hasPom = false
         return this
     }
 
     @Override
     MavenModule publish() {
-        if(!noMetaData) {
+        if (hasPom) {
             publishPom()
         }
-        if (moduleMetadata) {
+        if (hasModuleMetadata) {
             publishModuleMetadata()
         }
 

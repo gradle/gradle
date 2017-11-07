@@ -403,19 +403,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         module.publish()
 
         // module will be published a second time via 'maven-publish'
-        module.artifact.expectPut()
-        module.artifact.sha1.expectPut()
-        module.artifact.md5.expectPut()
-        module.pom.expectPut()
-        module.pom.sha1.expectPut()
-        module.pom.md5.expectPut()
+        module.artifact.expectPublish()
+        module.pom.expectPublish()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectPut()
-        module.rootMetaData.sha1.expectPut()
-        module.rootMetaData.md5.expectPut()
+        module.rootMetaData.expectPublish()
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """

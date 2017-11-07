@@ -15,7 +15,8 @@
  */
 
 package org.gradle.api.publish.maven
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
@@ -23,7 +24,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
-class MavenPublishIssuesIntegTest extends AbstractIntegrationSpec {
+class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
 
     @Issue("GRADLE-2456")
     def "generates SHA1 file with leading zeros"() {

@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.PublishedJavaModule
+import org.gradle.util.GUtil
 
 class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
     private final MavenFileModule module
@@ -31,6 +32,17 @@ class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> im
     PublishedJavaModule withClassifiedArtifact(String classifier, String extension) {
         additionalArtifacts << artifact(classifier, extension)
         return this
+    }
+
+    @Override
+    void assertPublishedAsJavaModule() {
+        this.assertPublished()
+    }
+
+    @Override
+    MavenPom getParsedPom() {
+        // TODO:DAZ Use of this method indicates tests where we validate the POM without checking module metadata
+        return super.getParsedPom()
     }
 
     @Override
@@ -64,7 +76,7 @@ class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> im
         } else {
             assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
             assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
-            parsedPom.scopes.compile.assertDependsOn(expected)
+            parsedPom.scopes.compile.assertDependsOn(mavenizeDependencies(expected))
         }
     }
 
@@ -75,16 +87,22 @@ class MavenPublishedJavaModule extends DelegatingMavenModule<MavenFileModule> im
             assert parsedPom.scopes.runtime == null
         } else {
             assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
-            parsedPom.scopes.runtime.assertDependsOn(expected)
+            parsedPom.scopes.runtime.assertDependsOn(mavenizeDependencies(expected))
         }
     }
 
     private String artifact(String classifier = null, String extension) {
         def artifactName = "${artifactId}-${publishArtifactVersion}"
-        if (classifier != null) {
+        if (GUtil.isTrue(classifier)) {
             artifactName += "-${classifier}"
         }
-        artifactName += ".${extension}"
+        if (GUtil.isTrue(extension)) {
+            artifactName += ".${extension}"
+        }
         return artifactName.toString()
+    }
+
+    private static String[] mavenizeDependencies(String[] input) {
+        return input.collect {it.replace("latest.integration", "LATEST").replace("latest.release", "RELEASE")}
     }
 }

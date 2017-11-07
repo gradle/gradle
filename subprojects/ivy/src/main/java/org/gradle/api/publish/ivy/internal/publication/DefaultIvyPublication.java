@@ -255,4 +255,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getOrganisation(), getModule(), getRevision());
     }
+
+    @Override
+    public PublishedFile getPublishedFile(PublishArtifact source) {
+        throw new UnsupportedOperationException("Will be required for publishing module metadata");
+    }
 }

@@ -23,19 +23,27 @@ import org.gradle.test.fixtures.maven.MavenPublishedJavaModule
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
+    def publishModuleMetadata = true
+    def resolveModuleMetadata = true
 
-    def resolveModuleMetadata = false
+    def setup() {
+        executer.beforeExecute {
+            if (publishModuleMetadata) {
+                withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
+            }
+        }
+    }
+
+    protected void disableModuleMetadataPublishing() {
+        publishModuleMetadata = false
+        resolveModuleMetadata = false
+    }
 
     protected static MavenPublishedJavaModule javaLibrary(MavenFileModule mavenFileModule) {
         return new MavenPublishedJavaModule(mavenFileModule)
     }
 
-    protected void useModuleMetadata() {
-        executer.withArgument("-Dorg.gradle.internal.publishJavaModuleMetadata")
-        resolveModuleMetadata = true
-    }
-
-    protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
+    protected def resolveArtifact(MavenModule module, def extension, def classifier) {
         resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'
@@ -79,15 +87,14 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         def resolvedArtifacts = doResolveArtifacts(dependencies)
 
         if (resolveModuleMetadata) {
-            executer.withArgument("-Dorg.gradle.internal.preferGradleMetadata")
-            def moduleArtifacts = doResolveArtifacts(dependencies)
+            def moduleArtifacts = doResolveArtifacts(dependencies, "useGradleMetadata()")
             assert resolvedArtifacts == moduleArtifacts
         }
 
         return resolvedArtifacts
     }
 
-    protected def doResolveArtifacts(def dependencies) {
+    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "") {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
@@ -99,7 +106,10 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
                 }
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { 
+                    url "${mavenRepo.uri}"
+                     ${maybeUseGradleMetadata}
+                }
                 ${mavenCentralRepositoryDefinition()}
             }
             $dependencies
