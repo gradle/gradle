@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
@@ -196,8 +197,23 @@ public class InstallExecutable extends DefaultTask {
      */
     @Internal
     public File getRunScript() {
-        OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
-        return new File(getDestinationDir(), operatingSystem.getScriptName(getExecutable().getName()));
+        return getRunScriptFile().get().getAsFile();
+    }
+
+    /**
+     * Returns the script file that can be used to run the install image.
+     *
+     * @since 4.4
+     */
+    @Internal
+    public Provider<RegularFile> getRunScriptFile() {
+        return destinationDir.file(executable.map(new Transformer<CharSequence, RegularFile>() {
+            @Override
+            public CharSequence transform(RegularFile regularFile) {
+                OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
+                return operatingSystem.getScriptName(regularFile.getAsFile().getName());
+            }
+        }));
     }
 
     @Inject
