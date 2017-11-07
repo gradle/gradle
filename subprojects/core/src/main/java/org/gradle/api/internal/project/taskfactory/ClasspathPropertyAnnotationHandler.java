@@ -46,7 +46,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getInputs().files(futureValue)
+                task.getInputs().registerFiles(futureValue)
                     .withPropertyName(context.getName())
                     .withNormalizer(ClasspathNormalizer.class)
                     .optional(context.isOptional());

@@ -34,6 +34,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister.hasCriticalFailure;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister.isCriticalFailure;
+
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
@@ -79,35 +82,44 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
+        List<Throwable> errors = new ArrayList<Throwable>();
+
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
             resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
-        try {
-            final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates);
-            if (latestResolved == null) {
-                for (ComponentMetaDataResolveState resolveState : resolveStates) {
-                    resolveState.applyTo(result);
-                }
-                result.notFound(identifier);
-            } else {
-                LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
-                result.resolved(metaDataFactory.transform(latestResolved));
+        final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
+        if (latestResolved != null) {
+            LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
+            for (Throwable error : errors) {
+                LOGGER.debug("Discarding resolve failure.", error);
             }
-        } catch (Throwable error) {
-            result.failed(new ModuleVersionResolveException(identifier, error));
+
+            result.resolved(metaDataFactory.transform(latestResolved));
+            return;
+        }
+        if (!errors.isEmpty()) {
+            result.failed(new ModuleVersionResolveException(identifier, errors));
+        } else {
+            for (ComponentMetaDataResolveState resolveState : resolveStates) {
+                resolveState.applyTo(result);
+            }
+            result.notFound(identifier);
         }
     }
 
-    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates) throws Throwable {
+    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<ComponentMetaDataResolveState>();
         queue.addAll(resolveStates);
 
         LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<ComponentMetaDataResolveState>();
 
         // A first pass to do local resolves only
-        RepositoryChainModuleResolution best = findBestMatch(queue, missing);
+        RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
+        if (hasCriticalFailure(failures)) {
+            return null;
+        }
         if (best != null) {
             return best;
         }
@@ -115,10 +127,10 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         // Nothing found locally - try a remote search for all resolve states that were not yet searched remotely
         queue.addAll(missing);
         missing.clear();
-        return findBestMatch(queue, missing);
+        return findBestMatch(queue, failures, missing);
     }
 
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<ComponentMetaDataResolveState> missing) throws Throwable {
+    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
@@ -126,7 +138,12 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             metaDataResolveResult = request.resolve();
             switch (metaDataResolveResult.getState()) {
                 case Failed:
-                    throw metaDataResolveResult.getFailure();
+                    failures.add(metaDataResolveResult.getFailure());
+                    if (isCriticalFailure(metaDataResolveResult.getFailure())) {
+                        // TODO:DAZ Consider re-throwing here
+                        queue.clear();
+                    }
+                    break;
                 case Missing:
                     // Queue this up for checking again later
                     if (request.canMakeFurtherAttempts()) {

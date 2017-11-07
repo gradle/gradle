@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSettings {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesHttpTimeoutSettings.class);
-    public static final String CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "http.connectionTimeout";
-    public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "http.socketTimeout";
+    public static final String CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.connectionTimeout";
+    public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.socketTimeout";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     public static final int DEFAULT_SOCKET_TIMEOUT = 30000;
     private final int connectionTimeoutMs;

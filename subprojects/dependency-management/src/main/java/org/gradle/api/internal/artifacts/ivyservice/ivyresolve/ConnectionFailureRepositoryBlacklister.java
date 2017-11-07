@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.gradle.api.UncheckedIOException;
 
-import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.util.Collection;
 import java.util.Set;
 
 public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
@@ -40,7 +40,7 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
             return true;
         }
 
-        if (isRootCauseIOException(throwable)) {
+        if (isCriticalFailure(throwable)) {
             blacklistedRepositories.add(repositoryId);
             return true;
         }
@@ -53,8 +53,20 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
         return blacklistedRepositories;
     }
 
-    private boolean isRootCauseIOException(Throwable throwable) {
+    public static boolean hasCriticalFailure(Collection<? extends Throwable> failures) {
+        for (Throwable failure : failures) {
+            if (isCriticalFailure(failure)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isCriticalFailure(Throwable throwable) {
+        return isTimeoutException(throwable);
+    }
+    private static boolean isTimeoutException(Throwable throwable) {
         Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        return rootCause instanceof IOException || rootCause instanceof UncheckedIOException;
+        //http://hc.apache.org/httpclient-3.x/exception-handling.html
+        return rootCause instanceof InterruptedIOException;
     }
 }

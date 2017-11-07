@@ -33,7 +33,7 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
         context.setNestedType(context.getValueType());
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final TaskPropertyValue futureValue) {
-                task.getInputs().nested(context.getName(), futureValue)
+                task.getInputs().registerNested(context.getName(), futureValue)
                     .optional(context.isOptional());
             }
         });
