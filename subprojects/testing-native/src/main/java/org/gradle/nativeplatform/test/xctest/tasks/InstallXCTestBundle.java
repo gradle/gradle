@@ -21,9 +21,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
@@ -55,16 +53,6 @@ import java.util.concurrent.Callable;
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory = newOutputDirectory();
     private final RegularFileProperty bundleBinaryFile = newInputFile();
-    private final DirectoryProperty bundleDirectory = newOutputDirectory();
-
-    public InstallXCTestBundle() {
-        bundleDirectory.set(installDirectory.dir(bundleBinaryFile.map(new Transformer<String, RegularFile>() {
-            @Override
-            public String transform(RegularFile regularFile) {
-                return regularFile.getAsFile().getName() + ".xctest";
-            }
-        })));
-    }
 
     @Inject
     protected SwiftStdlibToolLocator getSwiftStdlibToolLocator() {
@@ -83,27 +71,27 @@ public class InstallXCTestBundle extends DefaultTask {
 
     @TaskAction
     void install() throws IOException {
-        final Directory destination = installDirectory.get();
-        final Directory bundle = getBundleDirectory().get();
+        File bundleFile = bundleBinaryFile.get().getAsFile();
+        File bundleDir = installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
+        installToDir(bundleDir, bundleFile);
 
-        installToDir(bundle);
-
+        File runScript = getRunScriptFile().get().getAsFile();
         String runScriptText =
             "#!/bin/sh"
                 + "\nAPP_BASE_NAME=`dirname \"$0\"`"
                 + "\nXCTEST_LOCATION=`xcrun --find xctest`"
-                + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/" + bundle.getAsFile().getName() + "\""
+                + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/" + bundleDir.getName() + "\""
                 + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScriptFile().get().getAsFile());
 
-        getFileSystem().chmod(getRunScriptFile().get().getAsFile(), 0755);
+        GFileUtils.writeFile(runScriptText, runScript);
+        getFileSystem().chmod(runScript, 0755);
     }
 
-    private void installToDir(final Directory bundleDir) throws IOException {
+    private void installToDir(final File bundleDir, final File bundleFile) throws IOException {
         getFileOperations().sync(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
-                copySpec.from(getBundleBinaryFile(), new Action<CopySpec>() {
+                copySpec.from(bundleFile, new Action<CopySpec>() {
                     @Override
                     public void execute(CopySpec copySpec) {
                         copySpec.into("Contents/MacOS");
@@ -114,26 +102,26 @@ public class InstallXCTestBundle extends DefaultTask {
             }
         });
 
-        RegularFile outputFile = bundleDir.file("Contents/Info.plist");
-        outputFile.getAsFile().getParentFile().mkdirs();
+        File outputFile = new File(bundleDir, "Contents/Info.plist");
+
         Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
             + "<plist version=\"1.0\">\n"
             + "<dict/>\n"
-            + "</plist>", outputFile.getAsFile(), Charset.forName("UTF-8"));
+            + "</plist>", outputFile, Charset.forName("UTF-8"));
 
         getProject().exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
-                execSpec.setWorkingDir(bundleDir.getAsFile());
+                execSpec.setWorkingDir(bundleDir);
                 execSpec.executable(getSwiftStdlibToolLocator().find());
                 execSpec.args(
                     "--copy",
-                    "--scan-executable", bundleBinaryFile.get().getAsFile().getAbsolutePath(),
-                    "--destination", bundleDir.dir("Contents/Frameworks").getAsFile().getAbsolutePath(),
+                    "--scan-executable", bundleFile.getAbsolutePath(),
+                    "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", bundleDir.dir("Contents/Resources").getAsFile().getAbsolutePath(),
-                    "--scan-folder", bundleDir.dir("Contents/Frameworks").getAsFile().getAbsolutePath()
+                    "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
+                    "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
@@ -151,18 +139,24 @@ public class InstallXCTestBundle extends DefaultTask {
             }
         }));
     }
-
-    @Internal
-    public Provider<Directory> getBundleDirectory() {
-        return bundleDirectory;
-    }
-
     /**
      * Returns the bundle binary file property.
      */
-    @Internal("Covered by inputFileIfExists")
+    @Internal("covered by getBundleBinary()")
     public RegularFileProperty getBundleBinaryFile() {
         return bundleBinaryFile;
+    }
+
+    @SkipWhenEmpty
+    @InputFile
+    @Optional
+    protected File getBundleBinary() {
+        RegularFile bundle = getBundleBinaryFile().get();
+        File bundleFile = bundle.getAsFile();
+        if (!bundleFile.exists()) {
+            return null;
+        }
+        return bundleFile;
     }
 
     /**
@@ -171,20 +165,5 @@ public class InstallXCTestBundle extends DefaultTask {
     @OutputDirectory
     public DirectoryProperty getInstallDirectory() {
         return installDirectory;
-    }
-
-    /**
-     * Workaround for when the task is given an input file that doesn't exist
-     */
-    @SkipWhenEmpty
-    @Optional
-    @InputFile
-    protected File getInputFileIfExists() {
-        File inputFile = bundleBinaryFile.get().getAsFile();
-        if (inputFile != null && inputFile.exists()) {
-            return inputFile;
-        } else {
-            return null;
-        }
     }
 }

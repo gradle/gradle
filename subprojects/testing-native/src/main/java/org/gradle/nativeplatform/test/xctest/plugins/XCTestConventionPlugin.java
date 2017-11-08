@@ -86,11 +86,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         TaskContainer tasks = project.getTasks();
 
-        // Swift is only supported on macOS and Linux right now
-        if (!(OperatingSystem.current().isMacOsX() || OperatingSystem.current().isLinux())) {
-            return;
-        }
-
         // Create test suite component
         SwiftXCTestSuite testSuite = createTestSuite(project);
 
@@ -105,9 +100,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         Task test = tasks.create(testSuite.getName());
         test.dependsOn(testingTask);
 
-        // Wire to check lifecycle task
-        Task check = tasks.getByName("check");
-        check.dependsOn(test);
+        // Swift is only supported on macOS and Linux right now
+        if (OperatingSystem.current().isMacOsX() || OperatingSystem.current().isLinux()) {
+            // Wire to check lifecycle task
+            Task check = tasks.getByName("check");
+            check.dependsOn(test);
+        }
     }
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, SwiftXCTestSuite testSuite) {

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.tasks.InputDirectory;
@@ -66,7 +67,7 @@ public class XcTest extends AbstractTestTask {
      *
      * @since 4.4
      */
-    @Internal("Covered by inputFileIfExists")
+    @Internal("Covered by getRunScript")
     public RegularFileProperty getRunScriptFile() {
         return runScriptFile;
     }
@@ -94,12 +95,12 @@ public class XcTest extends AbstractTestTask {
     @SkipWhenEmpty
     @Optional
     @InputFile
-    protected File getInputFileIfExists() {
-        File inputFile = getRunScriptFile().get().getAsFile();
-        if (inputFile != null && inputFile.exists()) {
-            return inputFile;
-        } else {
+    protected File getRunScript() {
+        RegularFile runScript = getRunScriptFile().get();
+        File runScriptFile = runScript.getAsFile();
+        if (!runScriptFile.exists()) {
             return null;
         }
+        return runScriptFile;
     }
 }
