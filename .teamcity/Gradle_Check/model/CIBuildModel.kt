@@ -1,7 +1,6 @@
 package model
 
 import configurations.BuildDistributions
-import configurations.ColonyCompatibility
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
@@ -34,8 +33,6 @@ data class CIBuildModel (
                     performanceTests = listOf(PerformanceTestType.test)),
             Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
                     trigger = Trigger.eachCommit,
-                    specificBuilds = listOf(
-                            SpecificBuild.ColonyCompatibility),
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
@@ -198,7 +195,7 @@ enum class Trigger {
 }
 
 enum class SpecificBuild {
-    SanityCheck, BuildDistributions, Gradleception, SmokeTests, ColonyCompatibility;
+    SanityCheck, BuildDistributions, Gradleception, SmokeTests;
 
     fun create(model: CIBuildModel): BuildType {
         if (this == SanityCheck) {
@@ -210,9 +207,6 @@ enum class SpecificBuild {
         if (this == Gradleception) {
             return Gradleception(model)
         }
-        if (this == SmokeTests) {
-            return SmokeTests(model)
-        }
-        return ColonyCompatibility(model)
+        return SmokeTests(model)
     }
 }
