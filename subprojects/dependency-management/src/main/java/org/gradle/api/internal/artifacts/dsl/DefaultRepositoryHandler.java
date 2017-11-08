@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -34,6 +35,7 @@ import static org.gradle.util.CollectionUtils.flattenCollections;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
 
+    public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
     public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
     public static final String GOOGLE_REPO_NAME = "Google";
@@ -63,6 +65,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
         return flatDir(new ConfigureByMapAction<FlatDirectoryArtifactRepository>(modifiedArgs));
+    }
+
+    @Override
+    public ArtifactRepository gradlePluginPortal() {
+        return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
 
     public MavenArtifactRepository mavenCentral() {

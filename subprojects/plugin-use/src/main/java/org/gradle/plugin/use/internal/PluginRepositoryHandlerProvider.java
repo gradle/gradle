@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugin.use.internal;
 
-package org.gradle.plugin.repository;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+public interface PluginRepositoryHandlerProvider {
 
-/**
- * Represents a repository from which Gradle plugins can be resolved.
- * <p>
- * This type of repository will only be consulted when resolving plugins
- * applied using the <code>plugins {}</code> syntax.
- */
-@Incubating
-@HasInternalProtocol
-public interface PluginRepository {
+    RepositoryHandler getPluginRepositoryHandler();
 }

@@ -49,8 +49,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
 
@@ -76,8 +74,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
-    def pluginRepositoryRegistry = Mock(PluginRepositoryRegistry)
-    def pluginRepositoryFactory = Mock(PluginRepositoryFactory)
     def providerFactory = Mock(ProviderFactory)
     def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
@@ -85,7 +81,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader,
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
         streamHasher, fileHasher, autoAppliedPluginHandler)
 
     def setup() {

@@ -18,8 +18,8 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 /**
  * Configures how plugins are resolved.
@@ -33,12 +33,12 @@ public interface PluginManagementSpec {
     /**
      * Defines the plugin repositories to use.
      */
-    void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
+    void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
     /**
      * The plugin repositories to use.
      */
-    PluginRepositoriesSpec getRepositories();
+    RepositoryHandler getRepositories();
 
     /**
      * Configure the plugin resolution strategy.

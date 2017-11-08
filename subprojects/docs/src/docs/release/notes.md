@@ -75,6 +75,47 @@ from Microsoft if it's available.
 
 Gradle now embeds [Ant 1.9.9](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.9.html). Previous releases used Ant 1.9.6.
 
+### Plugin repositories enhancements
+
+Plugin repositories declared in a settings script can now have custom names:
+
+```
+// settings.gradle
+pluginManagement {
+    repositories {
+        maven {
+            name = "My Custom Plugin Repository"
+            url = "https://..."
+        }
+    }
+}
+```
+
+Explicit notation for common repositories can now be used in settings scripts:
+
+```
+// settings.gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        jcenter()
+        google()
+        mavenCentral()
+    }
+}
+```
+
+Plugin resolution now takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Before that change, it was required that all transitive dependencies of a given plugin were present in the same repository as the plugin. It's not anymore. 
+
+The Gradle Plugin Portal repository can now be added to build scripts. This is particularly useful for `buildSrc` or binary plugin builds:
+
+```
+// build.gradle
+repositories {
+    gradlePluginPortal()
+}
+``` 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -134,6 +175,10 @@ Gradle has been upgraded to embed Ant 1.9.9 over Ant 1.9.6.
 ### Avoid checking other repositories when dependency resolution in one repository fails with HTTP status code in the 500 range
 
 The HTTP status codes 500-511 can be considered unrecoverable server states. Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository similar to timeout issues introduced in Gradle 4.3.
+
+### The type of `pluginManagement.repositories` changed
+
+Before Gradle 4.4 it was a `PluginRepositoriesSpec`. This type has been removed and `pluginManagement.repositories` is now a regular `RepositoryHandler`.
 
 ## External contributions
 

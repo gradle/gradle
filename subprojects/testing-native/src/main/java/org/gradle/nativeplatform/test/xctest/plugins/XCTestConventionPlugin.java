@@ -22,7 +22,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
@@ -30,6 +35,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -225,6 +231,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                 // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
+                ((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getDependencies()
+                    .add(new DefaultSelfResolvingDependency((FileCollectionInternal)project.files(((DefaultSwiftBinary)testedComponent.getDevelopmentBinary()).getModuleFile().map(new Transformer<File, RegularFile>() {
+                        @Override
+                        public File transform(RegularFile regularFile) {
+                            return regularFile.getAsFile().getParentFile();
+                        }
+                    }))));
 
                 // Configure test suite link task from tested component compiled objects
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");

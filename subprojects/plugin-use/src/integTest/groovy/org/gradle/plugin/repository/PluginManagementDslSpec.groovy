@@ -18,6 +18,7 @@ package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
@@ -238,8 +239,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                     ivy {
                         url "http://repo.internal.net/ivy"
                         layout("pattern") {
-                            ivy = '[organisation]/[module]/[revision]/[module]-[revision].ivy'
-                            artifact = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                            ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                            artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
                             m2compatible true
                         }
                     }
@@ -266,6 +267,25 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'help'
+    }
+
+    @Issue("gradle/gradle#3169")
+    def "pluginManagement block supports named repositories"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                    jcenter()
+                    google()
+                    mavenCentral()
+                    mavenLocal()
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
     }
 
 
