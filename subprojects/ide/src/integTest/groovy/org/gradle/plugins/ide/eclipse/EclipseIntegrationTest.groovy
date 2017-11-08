@@ -365,8 +365,10 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 '''
         def jdt = parseJdtFile()
-        assert jdt.contains('source=' + JavaVersion.current().toString())
-        assert jdt.contains('targetPlatform=' + JavaVersion.current().toString())
+        def javaVersion = JavaVersion.current()
+        def javaVersionNumber = javaVersion.isJava9Compatible() ? javaVersion.getMajorVersion() : javaVersion.toString()
+        assert jdt.contains('source=' + javaVersionNumber)
+        assert jdt.contains('targetPlatform=' + javaVersionNumber)
     }
 
     @Test
