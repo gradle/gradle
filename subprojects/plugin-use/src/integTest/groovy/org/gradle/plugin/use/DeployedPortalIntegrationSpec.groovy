@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.hamcrest.Matchers.startsWith
+
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
@@ -104,7 +106,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
-        failureDescriptionContains("- Gradle Central Plugin Repository (no 'org.gradle.non-existing' plugin available - see https://plugins.gradle.org for available plugins)")
+        failureDescriptionContains("- Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')")
     }
 
     def "can resolve and plugin from portal with buildscript notation"() {
@@ -116,9 +118,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             buildscript {
                 repositories {
-                    maven {
-                        url "https://plugins.gradle.org/m2/"
-                    }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "$helloWorldGroup:$helloWorldName:$HELLO_WORLD_PLUGIN_VERSION"
@@ -133,5 +133,21 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         output.contains("Hello World!")
+    }
+
+    def "resolution fails if Gradle is in offline mode"() {
+        given:
+        buildScript """
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        when:
+        args "--offline"
+        fails "help"
+
+        then:
+        failure.assertThatDescription(startsWith("Plugin [id: '$HELLO_WORLD_PLUGIN_ID', version: '$HELLO_WORLD_PLUGIN_VERSION'] was not found"))
     }
 }

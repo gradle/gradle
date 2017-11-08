@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -170,8 +171,8 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
-- ${repoType}(${repoB.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')"""
+- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
+- ${repoType}2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')"""
         )
 
         where:
@@ -194,8 +195,8 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         then:
         failure.assertThatDescription(containsNormalizedString("""
-- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')
-- ${repoType}(${repoB.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')"""
+- ${repoType} (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')
+- ${repoType}2 (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')"""
         ))
 
         where:
@@ -258,5 +259,38 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         then:
         succeeds("helloWorld")
+    }
+
+    @Issue("gradle/gradle#3210")
+    def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
+        given:
+        requireOwnGradleUserHomeDir()
+
+        and:
+        repoA = mavenRepo("maven-repo")
+        repoB = ivyRepo("ivy-repo")
+
+        and:
+        def abModule = publishPlugin(pluginAB, repoB).pluginModule
+        (publishPlugin(pluginA, repoA).pluginModule as MavenModule)
+            .dependsOn(abModule.group, abModule.module, abModule.version)
+            .publishPom()
+
+        and:
+        use(repoB, repoA)
+
+        and:
+        buildFile << """
+            plugins {
+                id "$pluginA" version "1.0"
+            }
+        """
+
+        when:
+        succeeds "buildEnvironment"
+
+        then:
+        output.contains("org.example:pluginA:1.0")
+        output.contains("org.example:pluginAB:1.0")
     }
 }

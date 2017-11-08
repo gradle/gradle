@@ -39,9 +39,6 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
-import org.gradle.plugin.repository.PluginRepository;
-import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -65,15 +62,15 @@ import static org.gradle.util.CollectionUtils.collect;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginRepositoriesProvider pluginRepositoriesProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoriesProvider pluginRepositoriesProvider, PluginResolutionStrategyInternal pluginResolutionStrategy, PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
-        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
+        this.pluginRepositoriesProvider = pluginRepositoriesProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.pluginInspector = pluginInspector;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
@@ -102,7 +99,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
 
-            createPluginArtifactRepositories(repositories);
+            addPluginArtifactRepositories(repositories);
 
             final Set<String> repoUrls = newLinkedHashSet();
 
@@ -168,12 +165,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private void createPluginArtifactRepositories(RepositoryHandler repositories) {
-        for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-            if (pluginRepository instanceof BackedByArtifactRepositories) {
-                ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
-            }
-        }
+    private void addPluginArtifactRepositories(RepositoryHandler repositories) {
+        repositories.addAll(0, pluginRepositoriesProvider.getPluginRepositories());
     }
 
     private void addMissingMavenRepositories(RepositoryHandler repositories, Set<String> repoUrls) {

@@ -24,10 +24,12 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
+import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.maven.MavenRepository
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.TextUtil
 
 class PluginBuilder {
@@ -81,17 +83,25 @@ class PluginBuilder {
 
     PluginPublicationResults publishAs(String coordinates, MavenRepository mavenRepo, GradleExecuter executer) {
         List<String> gav = Splitter.on(":").splitToList(coordinates)
+        return publishAs(gav.get(0), gav.get(1), gav.get(2), mavenRepo, executer)
+    }
+
+    PluginHttpPublicationResults publishAs(String group, String artifact, String version, MavenHttpPluginRepository mavenRepo, GradleExecuter executer) {
+        return new PluginHttpPublicationResults(publishAs(group, artifact, version, mavenRepo as MavenRepository, executer))
+    }
+
+    PluginPublicationResults publishAs(String group, String artifact, String version, MavenRepository mavenRepo, GradleExecuter executer) {
 
         // The implementation jar module.
-        def module = mavenRepo.module(gav.get(0), gav.get(1), gav.get(2))
+        def module = mavenRepo.module(group, artifact, version)
         def artifactFile = module.getArtifactFile()
         def pluginModule = module.publish()
 
         def markerModules = new ArrayList<Module>()
 
-        pluginIds.keySet().each {id ->
+        pluginIds.keySet().each { id ->
             // The marker files for each plugin.
-            def marker = mavenRepo.module(id, id + PLUGIN_MARKER_SUFFIX, gav[2])
+            def marker = mavenRepo.module(id, id + PLUGIN_MARKER_SUFFIX, version)
             marker.dependsOn(module)
             markerModules.add(marker.publish())
         }
@@ -111,7 +121,7 @@ class PluginBuilder {
 
         def markerModules = new ArrayList<Module>()
 
-        pluginIds.keySet().each {id ->
+        pluginIds.keySet().each { id ->
             // The marker files for each plugin.
             def marker = ivyRepo.module(id, id + PLUGIN_MARKER_SUFFIX, omr[2])
             marker.dependsOn(module)
@@ -209,13 +219,29 @@ class PluginBuilder {
         this
     }
 
-    public class PluginPublicationResults {
+    class PluginPublicationResults {
         final Module pluginModule
         final List<Module> markerModules
 
         PluginPublicationResults(pluginModule, markerModules) {
             this.pluginModule = pluginModule
             this.markerModules = markerModules
+        }
+    }
+
+    class PluginHttpPublicationResults extends PluginPublicationResults {
+        final HttpModule pluginModule
+        final List<HttpModule> markerModules
+
+        PluginHttpPublicationResults(PluginPublicationResults results) {
+            super(results.pluginModule, results.markerModules)
+            this.pluginModule = results.pluginModule as HttpModule
+            this.markerModules = results.markerModules as List<HttpModule>
+        }
+
+        PluginHttpPublicationResults allowAll() {
+            ([pluginModule] + markerModules)*.allowAll()
+            return this
         }
     }
 }

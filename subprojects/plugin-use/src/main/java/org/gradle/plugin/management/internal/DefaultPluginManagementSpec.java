@@ -17,27 +17,28 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.plugin.management.PluginResolutionStrategy;
-import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
 
 public class DefaultPluginManagementSpec implements PluginManagementSpecInternal {
 
-    private final PluginRepositoriesSpec repositoriesSpec;
+    private final PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
 
-    public DefaultPluginManagementSpec(PluginRepositoriesSpec repositoriesSpec, PluginResolutionStrategyInternal pluginResolutionStrategy) {
-        this.repositoriesSpec = repositoriesSpec;
+    public DefaultPluginManagementSpec(PluginRepositoryHandlerProvider pluginRepositoryHandlerProvider, PluginResolutionStrategyInternal pluginResolutionStrategy) {
+        this.pluginRepositoryHandlerProvider = pluginRepositoryHandlerProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
     }
 
     @Override
-    public void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction) {
-        repositoriesAction.execute(repositoriesSpec);
+    public void repositories(Action<? super RepositoryHandler> repositoriesAction) {
+        repositoriesAction.execute(getRepositories());
     }
 
     @Override
-    public PluginRepositoriesSpec getRepositories() {
-        return repositoriesSpec;
+    public RepositoryHandler getRepositories() {
+        return pluginRepositoryHandlerProvider.getPluginRepositoryHandler();
     }
 
     @Override

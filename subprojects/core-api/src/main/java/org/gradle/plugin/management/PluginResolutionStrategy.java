@@ -21,8 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Allows modification of {@link PluginRequest}s before they are resolved by a
- * {@link org.gradle.plugin.repository.PluginRepository}.
+ * Allows modification of {@link PluginRequest}s before they are resolved.
  *
  * @since 3.5
  */
