@@ -38,11 +38,11 @@ val embeddedRepositoryCacheKeyVersion = 1
 
 
 private
-data class EmbeddedKotlinModule(
+data class EmbeddedModule(
     val group: String,
     val name: String,
     val version: String,
-    val dependencies: List<EmbeddedKotlinModule> = emptyList()) {
+    val dependencies: List<EmbeddedModule> = emptyList()) {
 
     val notation = "$group:$name:$version"
     val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
@@ -50,13 +50,13 @@ data class EmbeddedKotlinModule(
 
 
 private
-val embeddedKotlinModules: List<EmbeddedKotlinModule> by lazy {
+val embeddedModules: List<EmbeddedModule> by lazy {
 
-    fun embeddedKotlin(name: String, dependencies: List<EmbeddedKotlinModule> = emptyList()) =
-        EmbeddedKotlinModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies)
+    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList()) =
+        EmbeddedModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies)
 
     // TODO:pm could be generated at build time
-    val annotations = EmbeddedKotlinModule("org.jetbrains", "annotations", "13.0")
+    val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
     val stdlib = embeddedKotlin("stdlib", listOf(annotations))
     val stdlibJre7 = embeddedKotlin("stdlib-jre7", listOf(stdlib))
     val stdlibJre8 = embeddedKotlin("stdlib-jre8", listOf(stdlibJre7))
@@ -106,17 +106,16 @@ class EmbeddedKotlinProvider constructor(
         kotlinModules.map { embeddedKotlinModuleFor(it) }
 
     private
-    fun transitiveClosureOf(modules: Collection<EmbeddedKotlinModule>): Set<EmbeddedKotlinModule> {
-        val closure = identitySetOf<EmbeddedKotlinModule>()
-        val q = ArrayDeque(modules)
-        while (q.isNotEmpty()) {
-            val module = q.removeFirst()
-            if (closure.add(module)) {
-                q.addAll(module.dependencies)
+    fun transitiveClosureOf(modules: Collection<EmbeddedModule>): Set<EmbeddedModule> =
+        identitySetOf<EmbeddedModule>().apply {
+            val q = ArrayDeque(modules)
+            while (q.isNotEmpty()) {
+                val module = q.removeFirst()
+                if (add(module)) {
+                    q.addAll(module.dependencies)
+                }
             }
         }
-        return closure
-    }
 
     private
     fun <T> identitySetOf(): MutableSet<T> =
@@ -140,13 +139,13 @@ class EmbeddedKotlinProvider constructor(
 
     private
     fun copyEmbeddedKotlinModulesTo(cache: PersistentCache) {
-        embeddedKotlinModules.forEach { module ->
+        embeddedModules.forEach { module ->
             fileFor(module).copyTo(File(repoDirFrom(cache), module.jarRepoPath))
         }
     }
 
     private
-    fun fileFor(module: EmbeddedKotlinModule) =
+    fun fileFor(module: EmbeddedModule) =
         moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
 
     private
@@ -158,7 +157,7 @@ class EmbeddedKotlinProvider constructor(
         File(cache.baseDir, "repo")
 
     private
-    fun clientModuleFor(dependencies: DependencyHandler, embeddedModule: EmbeddedKotlinModule): ClientModule =
+    fun clientModuleFor(dependencies: DependencyHandler, embeddedModule: EmbeddedModule): ClientModule =
         (dependencies.module(embeddedModule.notation) as ClientModule).apply {
             embeddedModule.dependencies.forEach { dependency ->
                 addDependency(clientModuleFor(dependencies, dependency))
@@ -167,9 +166,9 @@ class EmbeddedKotlinProvider constructor(
 
     private
     fun embeddedKotlinModuleFor(kotlinModule: String) =
-        embeddedKotlinModules.first { it.name == "kotlin-$kotlinModule" && it.group == "org.jetbrains.kotlin" }
+        embeddedModules.first { it.group == "org.jetbrains.kotlin" && it.name == "kotlin-$kotlinModule" }
 
     private
-    fun Iterable<EmbeddedKotlinModule>.findWithSameGroupAndNameAs(requested: ModuleVersionSelector) =
+    fun Iterable<EmbeddedModule>.findWithSameGroupAndNameAs(requested: ModuleVersionSelector) =
         find { it.name == requested.name && it.group == requested.group }
 }
