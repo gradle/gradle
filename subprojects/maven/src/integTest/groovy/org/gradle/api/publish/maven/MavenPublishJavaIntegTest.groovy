@@ -43,6 +43,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
+        resolveApiArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
+        resolveRuntimeArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies"() {
@@ -74,6 +76,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
+        resolveApiArtifacts(javaLibrary) == ["foo-1.0.jar", "publishTest-1.9.jar"]
+        resolveRuntimeArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies and excludes"() {
