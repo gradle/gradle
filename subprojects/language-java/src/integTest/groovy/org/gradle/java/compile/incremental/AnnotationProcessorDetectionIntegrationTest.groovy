@@ -25,6 +25,10 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
 
     CompilationOutputsFixture outputs
 
+    def setup() {
+        outputs = new CompilationOutputsFixture(file("build/classes"))
+    }
+
     def "presence of non-incremental AP should preclude incremental build"() {
         given:
         incapProject()
@@ -36,20 +40,21 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
         executedAndNotSkipped ':inc:compileJava'
         executedAndNotSkipped ':noninc:compileJava'
 
-        // TODO(stevey):
-        //  - make sure these files are created:
-        //   ./app/build/generated-sources/AppIncremental.java
-        //   ./app/build/generated-sources/AppNonIncremental.java
+        // TODO:  Why are these files not being generated on clean build?
+        file('app/build/generated-sources/AppIncremental.java').exists()
+        file('app/build/generated-sources/AppNonIncremental.java').exists()
 
-        // Then modify ./app/src/main/java/App.java in some trivial way and:
+
         when:
+        // Trivial reformatting of the main source file.  Would normally be incremental.
+        file('app/src/main/java/App.java').text = "@Incremental @NonIncremental class App {}"
         succeeds 'app:compileJava'
 
         then:
-        //   - verify that it was NON-incremental, but that :app was rebuilt:
         skipped ':inc:compileJava'
         skipped ':noninc:compileJava'
 
+        //   - verify that it was NON-incremental, but that :app was rebuilt:
         ///    - output should warn about nonIncapProcessor being non-incremental
 
         // Other tests:
@@ -70,6 +75,14 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
     }
 
     private void appWithIncap() {
+        file('build.gradle') << """
+            allprojects {
+                tasks.withType(JavaCompile) {
+                    options.incremental = true
+                }
+            }
+        """
+
         subproject('app') {
             'build.gradle'("""
                 apply plugin: 'java'
@@ -92,8 +105,9 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
                 }
 
                 compileJava {
-                  // Use forking to work around javac's jar cache
-                  options.fork = true
+                  // Use forking to work around javac's jar cache.
+                  // (But comment this out to debug the integration test.)
+                  //options.fork = true
                   options.annotationProcessorPath = configurations.annotationProcessor
                   options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
                 }
