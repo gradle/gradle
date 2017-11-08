@@ -521,26 +521,13 @@ apply plugin: 'swift-library'
         app.greeter.writeToProject(file('Sources/Hello'))
         app.logger.writeToProject(file('Sources/Log'))
 
-        file("Sources/App/Util.swift") << """
-            import Hello 
-            
-            public class Util {
-                public init() {}
-                public func doIt() {
-                    let greeter = Greeter()
-                    greeter.sayHello()
-                }
-            }
-        """
         file('Tests/AppTests/UtilTest.swift') << """
             import XCTest
             import App
             
-            public class UtilTest : XCTestCase {
-                public func testGetMessage() {
-                    let util = Util()
-                    util.doIt()
-                    XCTAssert(true)
+            public class MainTest : XCTestCase {
+                public func testMain() {
+                    XCTAssert(main() == 0)
                 }
             } 
         """
@@ -548,11 +535,9 @@ apply plugin: 'swift-library'
         succeeds 'test'
 
         then:
-        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test',
-            ':app:compileDebugSwift', ':app:compileTestSwift',
-            ':app:linkTest', ':app:installTest', ':app:xcTest', ':app:test',
-            ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
+        result.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
