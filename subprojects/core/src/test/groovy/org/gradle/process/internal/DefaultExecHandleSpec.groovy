@@ -302,7 +302,7 @@ class DefaultExecHandleSpec extends Specification {
 
         then:
         result.rethrowFailure()
-        1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as ExecutorFactory)
+        1 * streamsHandler.connectStreams(_ as Process, execHandle, _ as ExecutorFactory)
         1 * streamsHandler.start()
         1 * streamsHandler.stop()
         0 * streamsHandler._
