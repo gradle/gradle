@@ -17,14 +17,25 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.DisambiguationRule;
+import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
@@ -92,4 +103,42 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return variants;
     }
 
+    @Nullable
+    @Override
+    public AttributesSchemaInternal getAttributesSchema() {
+        return new PreferJavaRuntimeVariant();
+    }
+
+    /**
+     * When no consumer attributes are provided, prefer the Java runtime variant over the API variant.
+     *
+     * Gradle has long assumed that, by default, consumers of a maven repository require the _runtime_ variant
+     * of the published library.
+     * The following disambiguation rule encodes this assumption for the case where a java library is published
+     * with variants using Gradle module metadata. This will allow us to migrate to consuming the new module
+     * metadata format by default without breaking a bunch of consumers that depend on this assumption,
+     * declaring no preference for a particular variant.
+     */
+    private static class PreferJavaRuntimeVariant extends EmptySchema {
+        private static final NamedObjectInstantiator INSTANTIATOR = NamedObjectInstantiator.INSTANCE;
+        private static final Usage JAVA_API = INSTANTIATOR.named(Usage.class, Usage.JAVA_API);
+        private static final Usage JAVA_RUNIME = INSTANTIATOR.named(Usage.class, Usage.JAVA_RUNTIME);
+        private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(JAVA_API, JAVA_RUNIME);
+
+        @Override
+        public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
+            if (attribute.getType().equals(Usage.class)) {
+                return Cast.uncheckedCast(new DisambiguationRule<Usage>() {
+                    public void execute(MultipleCandidatesResult<Usage> details) {
+                        if (details.getConsumerValue() == null) {
+                            if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {
+                                details.closestMatch(JAVA_RUNIME);
+                            }
+                        }
+                    }
+                });
+            }
+            return super.disambiguationRules(attribute);
+        }
+    }
 }
