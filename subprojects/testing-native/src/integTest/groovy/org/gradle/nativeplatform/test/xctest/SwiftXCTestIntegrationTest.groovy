@@ -462,26 +462,13 @@ apply plugin: 'swift-library'
         app.greeter.writeToProject(file('hello'))
         app.logger.writeToProject(file('log'))
 
-        file("src/main/swift/Util.swift") << """
-            import Hello 
-            
-            public class Util {
-                public init() {}
-                public func doIt() {
-                    let greeter = Greeter()
-                    greeter.sayHello()
-                }
-            }
-        """
-        file('src/test/swift/UtilTest.swift') << """
+        file('src/test/swift/MainTest.swift') << """
             import XCTest
             import App
             
-            public class UtilTest : XCTestCase {
-                public func testGetMessage() {
-                    let util = Util()
-                    util.doIt()
-                    XCTAssert(true)
+            public class MainTest : XCTestCase {
+                public func testMain() {
+                    XCTAssert(main() == 0)
                 }
             } 
         """
@@ -489,9 +476,9 @@ apply plugin: 'swift-library'
         succeeds 'test'
 
         then:
-        result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
-            ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
+        result.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     def 'can run xctest in swift package manager layout'() {
