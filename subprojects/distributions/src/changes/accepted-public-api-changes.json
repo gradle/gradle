@@ -179,6 +179,11 @@
             "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
             "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileCollectionFactory()",
             "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XcTest",
+            "member": "Constructor org.gradle.nativeplatform.test.xctest.tasks.XcTest()",
+            "acceptation": "Using default constructor"
         }
     ]
 }

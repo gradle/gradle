@@ -17,7 +17,6 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
@@ -29,14 +28,9 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface SwiftBundle extends SwiftBinary {
     /**
-     * Defines the location of Info.plist.
-     */
-    Provider<RegularFile> getInformationPropertyList();
-
-    /**
-     * Returns the bundle dir for this binary.
+     * Returns the run-time file for this binary.
      *
      * @since 4.4
      */
-    Provider<Directory> getBundleDirectory();
+    Provider<RegularFile> getRuntimeFile();
 }

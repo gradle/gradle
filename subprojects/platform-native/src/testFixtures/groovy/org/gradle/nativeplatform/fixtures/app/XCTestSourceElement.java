@@ -26,8 +26,6 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 public abstract class XCTestSourceElement extends SwiftSourceElement implements XCTestElement {
-    private boolean hasInfoPlist;
-
     public XCTestSourceElement(String projectName) {
         super(projectName);
     }
@@ -46,21 +44,17 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
             }
         }));
 
-        if (hasInfoPlist) {
-            result.add(emptyInfoPlist());
-        }
-
         if (OperatingSystem.current().isLinux()) {
-            result.add(getLinuxMainSourceFile());
+            result.add(getLinuxMainSourceFile(getTestSuites()));
         }
         return result;
     }
 
-    private SourceFile getLinuxMainSourceFile() {
+    public static SourceFile getLinuxMainSourceFile(List<XCTestSourceFileElement> testSuites) {
         StringBuilder content = new StringBuilder();
         content.append("import XCTest\n");
 
-        for (XCTestSourceFileElement testSuite : getTestSuites()) {
+        for (XCTestSourceFileElement testSuite : testSuites) {
             content.append("extension " + testSuite.getTestSuiteName() + " {\n");
             content.append("  public static var allTests = [\n");
             for (XCTestCaseElement testCase : testSuite.getTestCases()) {
@@ -71,12 +65,12 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         }
 
         content.append("XCTMain([\n");
-        for (XCTestSourceFileElement testSuite : getTestSuites()) {
+        for (XCTestSourceFileElement testSuite : testSuites) {
             content.append("  testCase(" + testSuite.getTestSuiteName() + ".allTests),\n");
         }
         content.append("])\n");
 
-        return sourceFile("swift", "main.swift", content.toString());
+        return new SourceFile("swift", "main.swift", content.toString());
     }
 
     @Override
@@ -118,23 +112,8 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         }
     }
 
-    public XCTestSourceElement withInfoPlist() {
-        hasInfoPlist = true;
-        return this;
-    }
-
     @Override
     public String getModuleName() {
         return super.getModuleName() + "Test";
-    }
-
-    public SourceFile emptyInfoPlist() {
-        return sourceFile("resources", "Info.plist",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-                + "<plist version=\"1.0\">\n"
-                + "<dict>\n"
-                + "</dict>\n"
-                + "</plist>");
     }
 }
