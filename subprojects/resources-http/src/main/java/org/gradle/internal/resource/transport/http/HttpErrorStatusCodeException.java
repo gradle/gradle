@@ -23,8 +23,16 @@ import org.gradle.internal.exceptions.Contextual;
  */
 @Contextual
 public class HttpErrorStatusCodeException extends RuntimeException {
+
+    private final int statusCode;
+
     public HttpErrorStatusCodeException(String method, String source, int statusCode, String reason) {
         super(String.format("Could not %s '%s'. Received status code %s from server: %s",
             method, source, statusCode, reason));
+        this.statusCode = statusCode;
+    }
+
+    public boolean isServerError() {
+        return statusCode >= 500 && statusCode < 600;
     }
 }

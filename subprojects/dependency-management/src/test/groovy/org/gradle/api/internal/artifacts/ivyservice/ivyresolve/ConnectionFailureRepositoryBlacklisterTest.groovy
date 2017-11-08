@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
-import org.gradle.internal.resource.transport.http.HttpUnrecoverable5xxErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -58,7 +57,7 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.contains(repositoryId2)
 
         where:
-        exception << [createTimeoutException(), createUnrecoverableHttp5xxException()]
+        exception << [createTimeoutException(), createInternalServerException()]
     }
 
     @Unroll
@@ -73,19 +72,23 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         where:
         type                                        | exception
         'NullPointerException'                      | createNestedException(new NullPointerException())
-        'HttpErrorStatusCodeException with status ' | createHttpErrorStatusCodeException()
+        'HttpErrorStatusCodeException with status ' | createUnauthorizedException()
     }
 
-    static RuntimeException createHttpErrorStatusCodeException() {
-        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', 401, ''))
+    static RuntimeException createInternalServerException() {
+        createHttpErrorStatusCodeException(500)
+    }
+
+    static RuntimeException createUnauthorizedException() {
+        createHttpErrorStatusCodeException(401)
+    }
+
+    static RuntimeException createHttpErrorStatusCodeException(int statusCode) {
+        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', statusCode, ''))
     }
 
     static RuntimeException createTimeoutException() {
         createNestedException(new InterruptedIOException('Read time out'))
-    }
-
-    static RuntimeException createUnrecoverableHttp5xxException() {
-        createNestedException(new HttpUnrecoverable5xxErrorStatusCodeException('GET', 'test.file', 500, ''))
     }
 
     static RuntimeException createNestedException(Throwable t) {

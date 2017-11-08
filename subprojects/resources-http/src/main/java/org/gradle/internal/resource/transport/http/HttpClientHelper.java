@@ -120,11 +120,6 @@ public class HttpClientHelper implements Closeable {
         return statusCode >= 200 && statusCode < 400;
     }
 
-    public boolean wasUnrecoverable5xx(CloseableHttpResponse response) {
-        int statusCode = response.getStatusLine().getStatusCode();
-        return statusCode >= 500 && statusCode <= 511;
-    }
-
     public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
@@ -160,11 +155,6 @@ public class HttpClientHelper implements Closeable {
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", method, response.getStatusLine(), source);
-
-            if (wasUnrecoverable5xx(response)) {
-                throw new HttpUnrecoverable5xxErrorStatusCodeException(method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
-            }
-
             throw new HttpErrorStatusCodeException(method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
         }
 

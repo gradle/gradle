@@ -16,7 +16,7 @@
 package org.gradle.internal.resolve;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.gradle.internal.resource.transport.http.HttpUnrecoverable5xxErrorStatusCodeException;
+import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
 import java.io.InterruptedIOException;
 import java.util.Collection;
@@ -45,6 +45,6 @@ public class ResolveExceptionAnalyzer {
     }
 
     private static boolean isUnrecoverable5xxStatusCode(Throwable rootCause) {
-        return rootCause instanceof HttpUnrecoverable5xxErrorStatusCodeException;
+        return rootCause instanceof HttpErrorStatusCodeException && ((HttpErrorStatusCodeException) rootCause).isServerError();
     }
 }
