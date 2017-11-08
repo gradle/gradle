@@ -47,10 +47,11 @@ public class DaemonOutputConsumer implements StreamsHandler {
     }
 
     public void connectStreams(final Process process, ExecHandle execHandle, ExecutorFactory executorFactory) {
-        String processName = execHandle.getDisplayName();
-        if (process == null || processName == null) {
+        if (process == null || execHandle == null) {
             throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
         }
+
+        String processName = execHandle.getDisplayName();
         standardInputRunner = new ExecOutputHandleRunner("write standard input into: " + processName, stdInput, process.getOutputStream());
         executor = executorFactory.create("Read output from: " + processName);
         final InputStream inputStream = process.getInputStream();

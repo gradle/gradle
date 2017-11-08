@@ -15,14 +15,16 @@
  */
 package org.gradle.launcher.daemon.bootstrap
 
+import org.gradle.process.internal.ExecHandle
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DaemonOutputConsumerTest extends ConcurrentSpec {
     def consumer = new DaemonOutputConsumer(new ByteArrayInputStream([] as byte[]))
+    def execHandle = Mock(ExecHandle)
 
-    def "input process and name cannot be null"() {
+    def "input process and exec handle cannot be null"() {
         when:
-        consumer.connectStreams((Process) null, "foo", executorFactory)
+        consumer.connectStreams((Process) null, execHandle, executorFactory)
         then:
         thrown(IllegalArgumentException)
 
@@ -38,7 +40,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         def process = process("", receivedInput)
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process , execHandle, executorFactory)
         consumer.start()
         consumer.stop()
 
@@ -50,7 +52,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         def process = process('hey Joe!')
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process , execHandle, executorFactory)
         consumer.start()
         consumer.stop()
         then:
@@ -71,7 +73,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         consumer.startupCommunication.containsGreeting( {it.contains "Come visit Krakow"} ) >> true
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process , execHandle, executorFactory)
         consumer.start()
         consumer.stop()
 
@@ -88,7 +90,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
     def "starting is required"() {
         when:
-        consumer.connectStreams(process(""), "cool process", executorFactory)
+        consumer.connectStreams(process(""), execHandle, executorFactory)
 
         then:
         illegalStateReportedWhen {consumer.stop()}
@@ -97,7 +99,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
     def "stopping is required"() {
         when:
-        consumer.connectStreams(process("") , "cool process", executorFactory)
+        consumer.connectStreams(process("") , execHandle, executorFactory)
         consumer.start()
 
         then:
