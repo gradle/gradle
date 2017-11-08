@@ -33,6 +33,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
@@ -137,14 +138,15 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         final XcTest testTask = tasks.create("xcTest", XcTest.class);
         if (OperatingSystem.current().isMacOsX()) {
-            Names names = Names.of(testSuite.getDevelopmentBinary().getName());
+            SwiftBundle binary = (SwiftBundle) testSuite.getDevelopmentBinary();
+            Names names = Names.of(binary.getName());
 
             InstallXCTestBundle installTask = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            installTask.getBundle().set(((DefaultSwiftXcodeXCTestSuite)testSuite).getDevelopmentBinary().getBundleDirectory());
+            installTask.getBundleBinaryFile().set(binary.getRuntimeFile());
             installTask.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
 
             testTask.getTestSuiteLocation().set(installTask.getInstallDirectory());
-            testTask.getRunScript().set(installTask.getRunScript());
+            testTask.getRunScript().set(installTask.getRunScriptFile());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
         } else if (OperatingSystem.current().isLinux()) {
             SwiftExecutable binary = (SwiftExecutable) testSuite.getDevelopmentBinary();

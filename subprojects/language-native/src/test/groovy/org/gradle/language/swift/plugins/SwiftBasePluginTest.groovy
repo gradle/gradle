@@ -22,7 +22,6 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftBundle
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
-import org.gradle.language.swift.tasks.CreateSwiftBundle
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -131,16 +130,11 @@ class SwiftBasePluginTest extends Specification {
         link instanceof LinkMachOBundle
         link.binaryFile.get().asFile == projectDir.file("build/exe/${bundleDir}" + OperatingSystem.current().getExecutableName("TestBundle"))
 
-        and:
-        def bundleTask = project.tasks[bundleTaskName]
-        bundleTask instanceof CreateSwiftBundle
-        bundleTask.outputDir.get().asFile == projectDir.file("build/bundle/${bundleDir}TestBundle.xctest")
-
         where:
-        name        | linkTaskName    | bundleTaskName         | bundleDir
-        "main"      | "link"          | "bundleSwift"          | "main/"
-        "mainDebug" | "linkDebug"     | "bundleSwiftDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "bundleSwiftTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "bundleSwiftTestDebug" | "test/debug/"
+        name        | linkTaskName    | bundleDir
+        "main"      | "link"          | "main/"
+        "mainDebug" | "linkDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "test/debug/"
     }
 }

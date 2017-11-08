@@ -99,7 +99,7 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
@@ -114,7 +114,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
 
@@ -148,7 +148,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
 
@@ -165,7 +165,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -173,7 +173,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
         testBundle.getFooTestSuite().getTestCount()
     }
@@ -191,7 +191,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -199,7 +199,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
@@ -215,8 +215,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "build logic can change source layout convention"() {
@@ -236,15 +236,12 @@ apply plugin: 'xctest'
             }
             xctest {
                 source.from 'Tests'
-                if (${OperatingSystem.canonicalName}.current().macOsX) {
-                    resourceDir.set(file('Tests'))
-                }
             }
          """
 
         expect:
         succeeds "test"
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/${lib.test.moduleName}").assertExists()
@@ -278,7 +275,7 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "does not build or run any of the tests when assemble task executes"() {
@@ -303,8 +300,8 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "skips test tasks when no source is available for Swift executable"() {
@@ -317,8 +314,8 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     // TODO: Need to support _main symbol duplication
@@ -338,7 +335,7 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         app.assertTestCasesRan(testExecutionResult)
     }
 
@@ -357,7 +354,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
         app.assertTestCasesRan(testExecutionResult)
     }
@@ -376,7 +373,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
         assertMainSymbolIsAbsent(machOBundle("build/exe/test/${lib.test.moduleName}"))
         lib.assertTestCasesRan(testExecutionResult)
@@ -415,7 +412,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         test.assertTestCasesRan(testExecutionResult)
     }
 
@@ -452,7 +449,7 @@ apply plugin: 'swift-library'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", bundleTask(), ":installTest", ":xcTest")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
         test.assertTestCasesRan(testExecutionResult)
     }
 
@@ -464,8 +461,8 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
-            ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':installTest', ':xcTest', ':test')
+            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
+            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     // TODO: Need to support _main symbol duplication
@@ -476,10 +473,10 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test',
+            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test',
             ':app:compileDebugSwift', ':app:compileTestSwift',
-            ':app:linkTest', ':app:bundleSwiftTest', ':app:installTest', ':app:xcTest', ':app:test',
-            ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':installTest', ':xcTest', ':test')
+            ':app:linkTest', ':app:installTest', ':app:xcTest', ':app:test',
+            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
@@ -494,12 +491,5 @@ apply plugin: 'swift-library'
 
     TestExecutionResult getTestExecutionResult() {
         return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
-    }
-
-    private static String[] bundleTask(String project = '') {
-        if (OperatingSystem.current().isMacOsX()) {
-            return ["$project:bundleSwiftTest"]
-        }
-        return []
     }
 }
