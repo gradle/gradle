@@ -252,7 +252,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         withFile("init.gradle", """
             initscript {
                 repositories {
-                    maven { url "https://plugins.gradle.org/m2" }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:1.8"

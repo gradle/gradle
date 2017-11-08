@@ -71,18 +71,18 @@ artifact.
 This is done in two steps.
 
 First add a plugin repository in your `settings.gradle.kts` file for the whole build: 
-```groovy
+```kotlin
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url = uri("https://maven.google.com") }
+        google()
     }
 }
 ```
 
 Then, map the plugin `id` to the corresponding artifact coordinates, still in your `settings.gradle.kts` file:
 
-```groovy
+```kotlin
 pluginManagement {
     // ...
     resolutionStrategy {
@@ -112,8 +112,10 @@ android {
 See the [Plugin Management](https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_management) section of
 the Gradle documentation for more information.
 
-However, it is not yet possible to use the `plugins {}` block to request
-[plugins from composite builds](https://github.com/gradle/gradle/issues/2528)
+The same can be applied to resolving plugins from composite builds.
+Composite builds [do not expose plugin markers](https://github.com/gradle/gradle/issues/2528) yet.
+This can be worked around by mapping the plugin `id` to the corresponding artifact coordinates using a plugin
+resolution strategy, just like above.
 
 If you can't use the `plugins {}` block, you need to apply the plugin imperatively (using the `buildscript` block and
 `apply { from("") }`) and to know the type of the extension.

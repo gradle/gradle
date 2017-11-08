@@ -18,8 +18,8 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         withSettings("""
             pluginManagement {
                 repositories {
-                    maven { setUrl("$testRepository") }
-                    maven { setUrl("https://jcenter.bintray.com/") }
+                    maven { url = uri("$testRepository") }
+                    jcenter()
                 }
                 resolutionStrategy {
                     eachPlugin {
