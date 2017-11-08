@@ -94,6 +94,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
+    private boolean alias;
 
     public DefaultMavenPublication(
             String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
@@ -127,6 +128,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
+    }
+
+    @Override
+    public boolean isAlias() {
+        return alias;
+    }
+
+    @Override
+    public void setAlias(boolean alias) {
+        this.alias = alias;
     }
 
     public void from(SoftwareComponent component) {

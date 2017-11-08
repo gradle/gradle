@@ -25,6 +25,7 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
@@ -71,7 +72,8 @@ class IvyPluginPublishingRules extends RuleSource {
 
     private void createIvyMarkerPublication(PluginDeclaration declaration, final IvyPublication mainPublication, PublicationContainer publications) {
         String pluginId = declaration.getId();
-        IvyPublication publication = publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
+        IvyPublicationInternal publication = (IvyPublicationInternal) publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
+        publication.setAlias(true);
         publication.setOrganisation(pluginId);
         publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.descriptor(new Action<IvyModuleDescriptorSpec>() {
