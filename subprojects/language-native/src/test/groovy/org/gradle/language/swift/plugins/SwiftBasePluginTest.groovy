@@ -16,16 +16,13 @@
 
 package org.gradle.language.swift.plugins
 
-import org.gradle.api.file.RegularFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.internal.DefaultSwiftBinary
-
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
-import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -106,32 +103,6 @@ class SwiftBasePluginTest extends Specification {
 
         where:
         name        | taskName        | libDir
-        "main"      | "link"          | "main/"
-        "mainDebug" | "linkDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "test/debug/"
-    }
-
-    def "adds link task for bundle"() {
-        def module = project.objects.property(String)
-        module.set("TestBundle")
-        def infoPlist = project.objects.property(RegularFile)
-        def bundleBinary = Stub(DefaultSwiftBundle)
-        bundleBinary.name >> name
-        bundleBinary.module >> module
-        bundleBinary.informationPropertyList >> infoPlist
-
-        when:
-        project.pluginManager.apply(SwiftBasePlugin)
-        project.components.add(bundleBinary)
-
-        then:
-        def link = project.tasks[linkTaskName]
-        link instanceof LinkMachOBundle
-        link.binaryFile.get().asFile == projectDir.file("build/exe/${bundleDir}" + OperatingSystem.current().getExecutableName("TestBundle"))
-
-        where:
-        name        | linkTaskName    | bundleDir
         "main"      | "link"          | "main/"
         "mainDebug" | "linkDebug"     | "main/debug/"
         "test"      | "linkTest"      | "test/"
