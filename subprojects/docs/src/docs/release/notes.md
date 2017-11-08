@@ -160,6 +160,12 @@ Common test framework functionality in the `Test` task moved to `AbstractTestTas
 
 The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html#org.gradle.plugins.ide.eclipse.model.EclipseClasspath:defaultOutputDir) changed from `${project.projectDir}/bin` to `${project.projectDir}/bin/default`.
 
+### Removal of `@Incubating` methods
+
+- `org.gradle.nativeplatform.tasks.InstallExecutable.setDestinationDir(Provider<? extends Directory>)` was removed.
+    - Use `org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()` instead.
+- `org.gradle.nativeplatform.tasks.InstallExecutable.setExecutable(Provider<? extends RegularFile>)` was removed.
+    - Use `org.gradle.nativeplatform.tasks.InstallExecutable.getSourceFile()` instead.
 
 ### Changes to Visual Studio toolchain discovery
 
