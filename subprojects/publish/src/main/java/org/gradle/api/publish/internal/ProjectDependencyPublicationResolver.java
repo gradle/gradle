@@ -57,7 +57,7 @@ public class ProjectDependencyPublicationResolver {
         }
         Set<PublicationInternal> topLevel = new LinkedHashSet<PublicationInternal>();
         for (PublicationInternal publication : publications) {
-            if (publication.getComponent() == null || !ignored.contains(publication.getComponent())) {
+            if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
                 topLevel.add(publication);
             }
         }
@@ -72,7 +72,7 @@ public class ProjectDependencyPublicationResolver {
                 formatter.node("Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.");
                 formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
                 formatter.startChildren();
-                for (PublicationInternal publication : publications) {
+                for (PublicationInternal publication : topLevel) {
                     formatter.node("Publication '" + publication.getName() + "' with coordinates " + publication.getCoordinates());
                 }
                 formatter.endChildren();

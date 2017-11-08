@@ -29,6 +29,14 @@ public interface PublicationInternal extends Publication {
     ModuleVersionIdentifier getCoordinates();
 
     /**
+     * Specifies that this publication is just an alias for another one and should not
+     * be considered when converting project dependencies to published metadata.
+     */
+    boolean isAlias();
+
+    void setAlias(boolean alias);
+
+    /**
      * Provide the file coordinates for the published artifact, if any.
      *
      * @param source The original PublishArtifact
