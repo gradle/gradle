@@ -23,11 +23,11 @@ gradlePlugin {
         }
         kotlinDslModule {
             id = "kotlin-dsl-module"
-            implementationClass = "plugins.GskModule"
+            implementationClass = "plugins.KotlinDslModule"
         }
-        kotlinDslPublishedModule {
-            id = "kotlin-dsl-published-module"
-            implementationClass = "plugins.GskPublishedModule"
+        publicKotlinDslModule {
+            id = "public-kotlin-dsl-module"
+            implementationClass = "plugins.PublicKotlinDslModule"
         }
     }
 }

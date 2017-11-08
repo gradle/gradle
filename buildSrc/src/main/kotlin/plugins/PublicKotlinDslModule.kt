@@ -19,13 +19,13 @@ import org.gradle.api.publish.maven.MavenPublication
  *  - include all sources
  *  - contain a classpath manifest
  */
-open class GskPublishedModule : Plugin<Project> {
+open class PublicKotlinDslModule : Plugin<Project> {
 
     override fun apply(project: Project) {
 
         project.run {
 
-            plugins.apply(GskModule::class.java)
+            plugins.apply(KotlinDslModule::class.java)
             plugins.apply("maven-publish")
             plugins.apply("com.jfrog.artifactory")
 

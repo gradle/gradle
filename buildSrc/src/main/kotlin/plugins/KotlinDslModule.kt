@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
  *  - be named after `base.archivesBaseName`
  *  - include all sources
  */
-open class GskModule : Plugin<Project> {
+open class KotlinDslModule : Plugin<Project> {
 
     override fun apply(project: Project) {
 
