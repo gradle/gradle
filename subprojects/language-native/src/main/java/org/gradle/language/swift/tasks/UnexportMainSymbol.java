@@ -34,24 +34,30 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Relocates the symbol <code>_main</code> to <code>relocated_main</code> in an object file, so the
+ * Unexports the <code>main</code> entry point symbol in an object file, so the object file can be linked with an executable.
  *
  * @since 4.4
  */
 @Incubating
-public class RelocateMainSymbol extends SourceTask {
+public class UnexportMainSymbol extends SourceTask {
     private File mainObjectFile;
     private final DirectoryProperty outputFile = newOutputDirectory();
 
-    public RelocateMainSymbol() {
+    public UnexportMainSymbol() {
         outputFile.set(getTemporaryDir());
     }
 
+    /**
+     * Modified object files.
+     */
     @OutputFiles
     public FileCollection getOutputFiles() {
         return outputFile.getAsFileTree();
     }
 
+    /**
+     * Object file that may contain a main symbol.
+     */
     @InputFile
     @Optional
     public File getMainObject() {
@@ -62,7 +68,7 @@ public class RelocateMainSymbol extends SourceTask {
     }
 
     @TaskAction
-    public void relocate() {
+    public void unexport() {
         final File mainObjectFile = getMainObject();
         if (mainObjectFile != null) {
             final File relocatedMainObject = outputFile.file(mainObjectFile.getName()).get().getAsFile();
@@ -77,11 +83,11 @@ public class RelocateMainSymbol extends SourceTask {
                         execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
                     } else if (OperatingSystem.current().isLinux()) {
                         execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
-                        execSpec.args("-L", "main"); // hide _main symbol
+                        execSpec.args("-L", "main"); // hide main symbol
                         execSpec.args(mainObjectFile);
                         execSpec.args(relocatedMainObject);
                     } else {
-                        throw new IllegalStateException("Do not know how to relocate a main symbol on " + OperatingSystem.current());
+                        throw new IllegalStateException("Do not know how to hide a main symbol on " + OperatingSystem.current());
                     }
                 }
             });
@@ -94,10 +100,13 @@ public class RelocateMainSymbol extends SourceTask {
     private File findMainObject() {
         Set<File> objectFiles = getSource().getFiles();
         if (objectFiles.isEmpty()) {
+            // no objects means no main symbol
             return null;
         } else if (objectFiles.size() == 1) {
+            // a single object file may contain a main symbol
             return objectFiles.iterator().next();
         } else {
+            // otherwise, we assume the main symbol is in an object called 'main.o'
             return CollectionUtils.findFirst(objectFiles, new Spec<File>() {
                 @Override
                 public boolean isSatisfiedBy(File objectFile) {

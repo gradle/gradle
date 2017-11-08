@@ -322,9 +322,6 @@ apply plugin: 'swift-executable'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-
-    // TODO: Need to support test report for test case assertion
->>>>>>> Relocate _main symbol when XCTest is used with Swift executables
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
         given:

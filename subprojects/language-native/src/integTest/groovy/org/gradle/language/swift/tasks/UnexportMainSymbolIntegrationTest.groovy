@@ -23,13 +23,13 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
-class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
             apply plugin: "swift-executable"
-            task relocate(type: RelocateMainSymbol) {
+            task unexport(type: UnexportMainSymbol) {
                 source components.main.developmentBinary.objects
             }
         """
@@ -41,9 +41,9 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
 
         when:
-        succeeds("relocate", "assemble")
+        succeeds("unexport", "assemble")
         then:
-        assertMainSymbolIsNotExported("build/tmp/relocate/main.o")
+        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
     }
 
     def "relocate _main symbol with notMain.swift"() {
@@ -52,9 +52,9 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
 
         when:
-        succeeds("relocate", "assemble")
+        succeeds("unexport", "assemble")
         then:
-        assertMainSymbolIsNotExported("build/tmp/relocate/notMain.o")
+        assertMainSymbolIsNotExported("build/tmp/unexport/notMain.o")
     }
 
     def "relocate _main symbol with multiple swift files"() {
@@ -66,9 +66,9 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
 
         when:
-        succeeds("relocate", "assemble")
+        succeeds("unexport", "assemble")
         then:
-        assertMainSymbolIsNotExported("build/tmp/relocate/main.o")
+        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
     }
 
     def "does not relocate when there is no main.swift"() {
@@ -80,9 +80,9 @@ class RelocateMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
 
         when:
-        succeeds("relocate")
+        succeeds("unexport")
         then:
-        file("build/tmp/relocate/main.o").assertDoesNotExist()
+        file("build/tmp/unexport/main.o").assertDoesNotExist()
     }
 
     private void assertMainSymbolIsNotExported(String objectFile) {

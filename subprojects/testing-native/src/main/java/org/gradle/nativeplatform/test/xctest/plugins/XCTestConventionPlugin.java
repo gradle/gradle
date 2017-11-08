@@ -41,7 +41,7 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.language.swift.tasks.RelocateMainSymbol;
+import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -223,7 +223,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
 
                 if (testedComponent instanceof SwiftApplication) {
-                    final RelocateMainSymbol relocate = tasks.create("relocateMainForTest", RelocateMainSymbol.class);
+                    final UnexportMainSymbol relocate = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
                     relocate.source(testedComponent.getDevelopmentBinary().getObjects());
 
                     linkTest.source(relocate);
