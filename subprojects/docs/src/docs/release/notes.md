@@ -154,7 +154,7 @@ Should you see any problem, [build scans](https://scans.gradle.com) can help you
 
 ### Change to the `Test` task structure
 
-Common test framework functionality in the `Test` task has been moved to `AbstractTestTask`. 
+Common test framework functionality in the `Test` task moved to `AbstractTestTask`. Be aware that `AbstractTestTask` is the new base class for the `Test` task. The `AbstractTestTask` will be used by test frameworks outside of the JVM ecosystem. Plugins configuring an `AbstractTestTask` will find tasks for test frameworks (e.g., XCTest, Google Test, etc.).
 
 ### Changes in the `eclipse` plugin
 
