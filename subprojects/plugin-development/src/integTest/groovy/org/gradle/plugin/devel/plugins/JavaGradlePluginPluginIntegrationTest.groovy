@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Issue
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE.substring(4)
@@ -248,31 +247,6 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
         file("build", "pluginDescriptors").listFiles().size() == 1
         file("build", "resources", "main", "META-INF", "gradle-plugins").listFiles().size() == 1
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/1061")
-    def "one plugin project can depend on another"() {
-        given:
-        settingsFile << "include 'a', 'b'"
-        file("a/build.gradle") << """
-            apply plugin: 'java-gradle-plugin'
-            gradlePlugin {
-                plugins {
-                    foo {
-                        id = 'foo-plugin'
-                        implementationClass = "com.foo.Foo"
-                    }
-                }
-            }
-        """
-        file("b/build.gradle") << """
-            apply plugin: 'java-gradle-plugin'
-            dependencies {
-                implementation project(':a')
-            }
-        """
-        expect:
-        succeeds("help")
     }
 
     def buildFile() {
