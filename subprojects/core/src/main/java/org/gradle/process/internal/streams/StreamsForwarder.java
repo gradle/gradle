@@ -19,6 +19,9 @@ package org.gradle.process.internal.streams;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
@@ -44,13 +47,14 @@ public class StreamsForwarder implements StreamsHandler {
         this.readErrorStream = readErrorStream;
     }
 
-    public void connectStreams(Process process, String processName, ExecutorFactory executorFactory) {
+    public void connectStreams(Process process, ExecHandle execHandle, ExecutorFactory executorFactory) {
+        String processName = execHandle.getDisplayName();
         /*
             There's a potential problem here in that DisconnectableInputStream reads from input in the background.
             This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
             will run forever. It would be better to ensure that this thread stops when the process does.
          */
-        InputStream instr = new DisconnectableInputStream(input);
+        final DisconnectableInputStream instr = new DisconnectableInputStream(input);
 
         standardOutputRunner = new ExecOutputHandleRunner("read standard output of: " + processName,
                 process.getInputStream(), standardOutput);
@@ -60,6 +64,17 @@ public class StreamsForwarder implements StreamsHandler {
                 instr, process.getOutputStream());
 
         this.executor = executorFactory.create("Forward streams with process: " + processName);
+
+        execHandle.addListener(new ExecHandleListener() {
+            @Override
+            public void executionStarted(ExecHandle execHandle) {
+            }
+
+            @Override
+            public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
+                instr.stopInternalProcessing();
+            }
+        });
     }
 
     public void start() {

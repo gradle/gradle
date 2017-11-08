@@ -20,6 +20,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,6 +37,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     private int writePos;
     private boolean closed;
     private boolean inputFinished;
+    private static Thread thread;
 
     /*
         The song and dance with Action<Runnable> is to ease testing.
@@ -44,7 +46,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
 
     static class ThreadExecuter implements Action<Runnable> {
         public void execute(Runnable runnable) {
-            Thread thread = new Thread(runnable);
+            thread = new Thread(runnable);
             thread.setName("DisconnectableInputStream source reader");
             thread.setDaemon(true);
             thread.start();
@@ -93,7 +95,13 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                             lock.unlock();
                         }
 
-                        int nread = source.read(buffer, pos, buffer.length - pos);
+                        int nread = 0;
+
+                        try {
+                            nread = source.read(buffer, pos, buffer.length - pos);
+                        } catch (InterruptedIOException e) {
+                            // ignore
+                        }
 
                         lock.lock();
                         try {
@@ -175,5 +183,9 @@ public class DisconnectableInputStream extends BulkReadInputStream {
         } finally {
             lock.unlock();
         }
+    }
+
+    public void stopInternalProcessing() {
+        thread.interrupt();
     }
 }

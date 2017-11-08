@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.streams.ExecOutputHandleRunner;
 import org.gradle.process.internal.streams.StreamsHandler;
 
@@ -45,7 +46,8 @@ public class DaemonOutputConsumer implements StreamsHandler {
         this.stdInput = stdInput;
     }
 
-    public void connectStreams(final Process process, String processName, ExecutorFactory executorFactory) {
+    public void connectStreams(final Process process, ExecHandle execHandle, ExecutorFactory executorFactory) {
+        String processName = execHandle.getDisplayName();
         if (process == null || processName == null) {
             throw new IllegalArgumentException("Cannot connect streams because provided process or its name is null");
         }

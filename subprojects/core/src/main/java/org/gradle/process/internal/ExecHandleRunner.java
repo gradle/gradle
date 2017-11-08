@@ -66,7 +66,7 @@ public class ExecHandleRunner implements Runnable {
         try {
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
             Process process = processLauncher.start(processBuilder);
-            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executorFactory);
+            streamsHandler.connectStreams(process, execHandle, executorFactory);
             setProcess(process);
 
             execHandle.started();

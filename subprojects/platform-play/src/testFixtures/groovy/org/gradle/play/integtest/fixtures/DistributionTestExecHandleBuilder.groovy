@@ -107,5 +107,9 @@ class DistributionTestExecHandleBuilder extends DefaultExecHandleBuilder {
         ByteArrayOutputStream getErrorOutput() {
             return errorOutput
         }
+
+        String getDisplayName() {
+            "test exec handle"
+        }
     }
 }

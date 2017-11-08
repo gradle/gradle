@@ -294,11 +294,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-
-            executor.stop();
         } finally {
             lock.unlock();
         }
+
+        executor.stop();
 
         return result();
     }
@@ -350,6 +350,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         broadcast.remove(listener);
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }

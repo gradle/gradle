@@ -18,10 +18,11 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.process.internal.ExecHandle;
 
 public interface StreamsHandler extends Stoppable {
 
     void start();
 
-    void connectStreams(Process process, String processName, ExecutorFactory executorFactory);
+    void connectStreams(Process process, ExecHandle execHandle, ExecutorFactory executorFactory);
 }
