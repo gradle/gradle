@@ -46,9 +46,6 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         app.greeterLib.writeToProject(project.file('lib1'))
         app.loggerLib.writeToProject(project.file("lib2"))
         app.main.writeToProject(project)
-        executer.beforeExecute {
-            withArgument("-Dorg.gradle.caching.native=true")
-        }
     }
 
     def 'compilation can be cached'() {

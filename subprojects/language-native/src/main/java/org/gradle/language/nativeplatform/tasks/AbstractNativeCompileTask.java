@@ -93,12 +93,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         headerDependenciesFile = newInputFile();
-        getOutputs().doNotCacheIf("Experimental native caching is not enabled", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                return !Boolean.getBoolean("org.gradle.caching.native");
-            }
-        });
         getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
