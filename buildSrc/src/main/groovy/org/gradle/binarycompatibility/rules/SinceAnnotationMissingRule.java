@@ -20,6 +20,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -131,6 +132,13 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             }
             className = constructor.getjApiClass().getFullyQualifiedName();
             visitor = new GenericVisitorAdapter<Object, Void>() {
+                @Override
+                public Object visit(ConstructorDeclaration constructorDeclaration, Void arg) {
+                    if (matchesNameAndContainsAnnotation(constructorDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), constructorDeclaration)) {
+                        return new Object();
+                    }
+                    return super.visit(constructorDeclaration, arg);
+                }
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), classDeclaration)) {

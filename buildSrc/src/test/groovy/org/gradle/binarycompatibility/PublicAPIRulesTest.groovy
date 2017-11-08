@@ -157,10 +157,15 @@ class PublicAPIRulesTest extends Specification {
              */
             public @interface $TEST_INTERFACE_NAME { }
         """
-        : apiElement in ['class', 'constructor'] ? """
+        : apiElement.startsWith('class') ? """
             /**
              * @since 11.38
              */
+            public class $TEST_INTERFACE_NAME {
+                public ApiTest() { }
+            }
+        """
+        : apiElement.startsWith('constructor') ? """
             public class $TEST_INTERFACE_NAME {
                 /**
                  * @since 11.38
