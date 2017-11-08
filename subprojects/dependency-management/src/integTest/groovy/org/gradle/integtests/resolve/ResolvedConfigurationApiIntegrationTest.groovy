@@ -102,7 +102,7 @@ task show {
         m1.pom.expectGetMissing()
         m1.artifact.expectHeadMissing()
         def m2 = mavenHttpRepo.module("test", "test2", "1.2")
-        m2.pom.expectGetUnofficial()
+        m2.pom.expectGetUnauthorized()
         def m3 = mavenHttpRepo.module("test", "test3", "1.2").publish()
         m3.pom.expectGet()
 

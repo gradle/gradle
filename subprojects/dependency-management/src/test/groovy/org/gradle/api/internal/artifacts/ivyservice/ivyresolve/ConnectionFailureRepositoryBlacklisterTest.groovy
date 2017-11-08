@@ -77,7 +77,7 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
     }
 
     static RuntimeException createHttpErrorStatusCodeException() {
-        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', 530, ''))
+        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', 401, ''))
     }
 
     static RuntimeException createTimeoutException() {

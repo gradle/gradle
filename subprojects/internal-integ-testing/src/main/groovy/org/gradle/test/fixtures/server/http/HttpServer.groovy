@@ -229,11 +229,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
-     * Expects one GET request, which fails with a unofficial status code (530 as representative).
-     * For more information see <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Unofficial_codes">Unoffical status codes</a>.
+     *  Expects one GET request, which fails with a 401 status code.
      */
-    void expectGetUnofficial(String path) {
-        expect(path, false, ['GET'], unofficial())
+    void expectGetUnauthorized(String path) {
+        expect(path, false, ['GET'], unauthorized())
     }
 
     /**
@@ -284,10 +283,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
-    private Action unofficial() {
-        new ActionSupport("return 530 Site is frozen") {
+    private Action unauthorized() {
+        new ActionSupport("return 401 unauthorized") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(530, "Site is frozen")
+                response.sendError(401, "unauthorized")
             }
         }
     }
