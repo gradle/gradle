@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -321,7 +322,7 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(identifier.getName());
-            writeVersionConstraint(moduleDependency.getVersionConstraint(), jsonWriter);
+            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), jsonWriter);
         } else {
             jsonWriter.name("group");
             jsonWriter.value(moduleDependency.getGroup());
