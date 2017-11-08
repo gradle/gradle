@@ -19,15 +19,12 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
@@ -38,7 +35,6 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
-import org.gradle.language.swift.tasks.CreateSwiftBundle;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -177,23 +173,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    final CreateSwiftBundle bundle = tasks.create(names.getTaskName("bundleSwift"), CreateSwiftBundle.class);
-                    bundle.getExecutableFile().set(link.getBinaryFile());
-                    Provider<Directory> bundleLocation = buildDirectory.dir(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return "bundle/" + names.getDirName() + binary.getModule().get() + ".xctest";
-                        }
-                    }));
-                    bundle.getOutputDir().set(bundleLocation);
-                    bundle.onlyIf(new Spec<Task>() {
-                        @Override
-                        public boolean isSatisfiedBy(Task element) {
-                            return bundle.getExecutableFile().getAsFile().get().exists();
-                        }
-                    });
-
-                    ((DefaultSwiftBundle)binary).getBundleDirectory().set(bundle.getOutputDir());
+                    ((DefaultSwiftBundle)binary).getRuntimeFile().set(link.getBinaryFile());
                 }
             }
         });

@@ -18,9 +18,9 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftBundle;
@@ -28,16 +28,16 @@ import org.gradle.language.swift.SwiftBundle;
 import javax.inject.Inject;
 
 public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundle {
-    private final DirectoryProperty bundleDir;
+    private final RegularFileProperty runtimeFile;
 
     @Inject
     public DefaultSwiftBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
-        this.bundleDir = projectLayout.directoryProperty();
+        this.runtimeFile = projectLayout.fileProperty();
     }
 
     @Override
-    public DirectoryProperty getBundleDirectory() {
-        return bundleDir;
+    public RegularFileProperty getRuntimeFile() {
+        return runtimeFile;
     }
 }
