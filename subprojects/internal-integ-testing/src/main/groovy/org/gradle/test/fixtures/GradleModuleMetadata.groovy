@@ -131,7 +131,7 @@ class GradleModuleMetadata {
         }
 
         List<Dependency> getDependencies() {
-            return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version) }
+            return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[]) }
         }
 
         List<File> getFiles() {
@@ -143,11 +143,13 @@ class GradleModuleMetadata {
         final String group
         final String module
         final String version
+        final List<String> rejectsVersion
 
-        Coords(String group, String module, String version) {
+        Coords(String group, String module, String version, List<String> rejectsVersion = []) {
             this.group = group
             this.module = module
             this.version = version
+            this.rejectsVersion = rejectsVersion
         }
 
         String getCoords() {
@@ -165,8 +167,8 @@ class GradleModuleMetadata {
     }
 
     static class Dependency extends Coords {
-        Dependency(String group, String module, String version) {
-            super(group, module, version)
+        Dependency(String group, String module, String version, List<String> rejectedVersions) {
+            super(group, module, version, rejectedVersions)
         }
     }
 
