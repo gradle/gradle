@@ -87,7 +87,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=3.4")
+    @TargetGradleVersion(">=3.4 <4.4")
     def "provides correct dependencies when using java-library plugin"() {
         given:
         settingsFile << """
@@ -134,6 +134,53 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         hasDependency(module, "c", "TEST")
         hasDependency(module, "e", "RUNTIME")
         hasDependency(module, "e", "TEST")
+    }
+
+
+    @ToolingApiVersion(">=3.4")
+    @TargetGradleVersion(">=4.4")
+    def "provides minimal set of dependencies when using java-library plugin"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b', 'c', 'd', 'e', 'f'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
+            
+            dependencies {
+                compile project(':a')
+                testCompile project(':f')
+            }
+            
+            project(':a') {
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(':b')
+                    implementation project(':c')
+                    compileOnly project(':d')
+                    runtimeOnly project(':e')
+                }
+            }
+        """
+
+        when:
+        def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
+        def module = ideaProject.modules.find {it. name == 'root'}
+
+        then:
+        module.dependencies.size() == 7
+        hasDependency(module, "a", "COMPILE")
+        hasDependency(module, "b", "COMPILE")
+        hasDependency(module, "c", "RUNTIME")
+        hasDependency(module, "c", "TEST")
+        hasDependency(module, "e", "RUNTIME")
+        hasDependency(module, "e", "TEST")
+        hasDependency(module, "f", "TEST")
     }
 
     def hasDependency(IdeaModule module, String name, String scope) {
