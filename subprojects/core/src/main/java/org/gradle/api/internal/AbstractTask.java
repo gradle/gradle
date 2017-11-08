@@ -226,7 +226,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ContextAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<ContextAwareTaskAction>();
+            actions = new ArrayList<ContextAwareTaskAction>(3);
         }
         return actions;
     }
