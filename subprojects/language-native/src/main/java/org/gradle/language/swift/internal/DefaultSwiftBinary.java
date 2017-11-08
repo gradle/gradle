@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
@@ -40,6 +41,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final FileCollection linkLibs;
     private final Configuration runtimeLibs;
     private final DirectoryProperty objectsDir;
+    private final RegularFileProperty moduleFile;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
@@ -48,6 +50,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         this.testable = testable;
         this.source = source;
         this.objectsDir = projectLayout.directoryProperty();
+        this.moduleFile = projectLayout.fileProperty();
 
         Names names = Names.of(name);
 
@@ -117,6 +120,10 @@ public class DefaultSwiftBinary implements SwiftBinary {
 
     public DirectoryProperty getObjectsDir() {
         return objectsDir;
+    }
+
+    public RegularFileProperty getModuleFile() {
+        return moduleFile;
     }
 
     @Override
