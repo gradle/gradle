@@ -294,11 +294,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
+
+            executor.stop();
         } finally {
             lock.unlock();
         }
-
-        executor.stop();
 
         return result();
     }

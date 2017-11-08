@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.userinput
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
@@ -55,7 +54,6 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         ConsoleOutput.Rich  | RICH_CONSOLE
     }
 
-    @Ignore("flaky test - sometimes fails with java.io.IOException: Write end dead or Pipe closed")
     @Unroll
     def "can ask for license acceptance in interactive build with daemon and #description console"() {
         given:
@@ -100,7 +98,6 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         ConsoleOutput.Rich  | RICH_CONSOLE
     }
 
-    @Ignore("flaky test - sometimes fails with java.io.IOException: Write end dead or Pipe closed")
     @Unroll
     def "use of ctrl-d when asking for license acceptance returns null with daemon and #description console"() {
         given:
