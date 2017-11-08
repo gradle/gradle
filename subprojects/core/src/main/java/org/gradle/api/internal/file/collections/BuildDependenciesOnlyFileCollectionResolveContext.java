@@ -18,10 +18,14 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.file.PathToFileResolver;
 
@@ -63,7 +67,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
         } else if (element instanceof TaskOutputs) {
             TaskOutputs outputs = (TaskOutputs) element;
             taskContext.add(outputs.getFiles());
-        } else if (element instanceof RegularFileProperty || element instanceof DirectoryProperty) {
+        } else if (element instanceof Provider && (((ProviderInternal)element).getType().isAssignableFrom(Directory.class) || ((ProviderInternal)element).getType().isAssignableFrom(RegularFile.class))) {
             taskContext.add(element);
         } else if (element instanceof Closure) {
             Closure closure = (Closure) element;

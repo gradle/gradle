@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -265,6 +266,29 @@ apply plugin: 'swift-library'
         resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
         resultDebugWithXCTest.assertOutputContains("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
         resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
+    }
+
+    def "can build xctest from xcode"() {
+        def lib = new SwiftLibWithXCTest()
+
+        given:
+        settingsFile.text = "rootProject.name = 'greeter'"
+        buildFile << """
+apply plugin: 'swift-library'
+apply plugin: 'xctest'
+"""
+
+        lib.writeToProject(testDirectory)
+        TestFile derivedDataDir = testDirectory.file('xcode-derived')
+
+        when:
+        executer.withEnvironmentVars ACTION: 'build', PRODUCT_NAME: 'GreeterTest', CONFIGURATION: '__GradleTestRunner_Debug', BUILT_PRODUCTS_DIR: derivedDataDir
+        succeeds("_xcode__build_GreeterTest___GradleTestRunner_Debug")
+
+        then:
+        result.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
+            ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
+        derivedDataDir.file('GreeterTest.xctest').assertIsDir()
     }
 
     @Requires(TestPrecondition.XCODE)

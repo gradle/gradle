@@ -55,16 +55,6 @@ import java.util.concurrent.Callable;
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory = newOutputDirectory();
     private final RegularFileProperty bundleBinaryFile = newInputFile();
-    private final DirectoryProperty bundleDirectory = newOutputDirectory();
-
-    public InstallXCTestBundle() {
-        bundleDirectory.set(installDirectory.dir(bundleBinaryFile.map(new Transformer<String, RegularFile>() {
-            @Override
-            public String transform(RegularFile regularFile) {
-                return regularFile.getAsFile().getName() + ".xctest";
-            }
-        })));
-    }
 
     @Inject
     protected SwiftStdlibToolLocator getSwiftStdlibToolLocator() {
@@ -154,7 +144,12 @@ public class InstallXCTestBundle extends DefaultTask {
 
     @Internal
     public Provider<Directory> getBundleDirectory() {
-        return bundleDirectory;
+        return installDirectory.dir(bundleBinaryFile.map(new Transformer<String, RegularFile>() {
+            @Override
+            public String transform(RegularFile regularFile) {
+                return regularFile.getAsFile().getName() + ".xctest";
+            }
+        }));
     }
 
     /**

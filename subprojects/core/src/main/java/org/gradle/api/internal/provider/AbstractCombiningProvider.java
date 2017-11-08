@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractProvider<OUT> {
+public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractProvider<OUT> implements TaskDependencyContainer {
     private final Class<OUT> type;
     private final Provider<? extends BASE> base;
     private final Provider<? extends IN> provider;
@@ -48,6 +50,16 @@ public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractP
             return map(base.get(), provider.get());
         }
         return null;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (base instanceof TaskDependencyContainer) {
+            context.add(base);
+        }
+        if (provider instanceof TaskDependencyContainer) {
+            context.add(provider);
+        }
     }
 
     protected abstract OUT map(BASE b, IN v);
