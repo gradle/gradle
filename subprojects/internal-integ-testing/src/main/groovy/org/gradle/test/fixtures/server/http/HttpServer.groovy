@@ -229,6 +229,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     *  Expects one GET request, which fails with a 401 status code.
+     */
+    void expectGetUnauthorized(String path) {
+        expect(path, false, ['GET'], unauthorized())
+    }
+
+    /**
      * Expects one GET request, which will block for maximum 60 seconds
      */
     void expectGetBlocking(String path) {
@@ -272,6 +279,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
+            }
+        }
+    }
+
+    private Action unauthorized() {
+        new ActionSupport("return 401 unauthorized") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(401, "unauthorized")
             }
         }
     }

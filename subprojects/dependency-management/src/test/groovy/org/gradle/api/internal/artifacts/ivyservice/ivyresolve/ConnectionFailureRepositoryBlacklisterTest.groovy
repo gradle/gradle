@@ -25,11 +25,11 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
 
     @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
 
-    def "blacklists repository for timeout exception"() {
+    @Unroll
+    def "blacklists repository for critical exception [#exception]"() {
         given:
         def repositoryId1 = 'abc'
         def repositoryId2 = 'def'
-        def exception = createDummyTimeoutException('Read time out')
 
         when:
         boolean blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
@@ -55,6 +55,9 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.size() == 2
         blacklister.blacklistedRepositories.contains(repositoryId1)
         blacklister.blacklistedRepositories.contains(repositoryId2)
+
+        where:
+        exception << [createTimeoutException(), createInternalServerException()]
     }
 
     @Unroll
@@ -67,17 +70,25 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.empty
 
         where:
-        type                           | exception
-        'NullPointerException'         | createNestedException(new NullPointerException())
-        'HttpErrorStatusCodeException' | createHttpErrorStatusCodeException()
+        type                                        | exception
+        'NullPointerException'                      | createNestedException(new NullPointerException())
+        'HttpErrorStatusCodeException with status ' | createUnauthorizedException()
     }
 
-    static RuntimeException createHttpErrorStatusCodeException(String method = 'GET', String source = 'test.file', int statusCode = 500, String reason = '') {
-        createNestedException(new HttpErrorStatusCodeException(method, source, statusCode, reason))
+    static RuntimeException createInternalServerException() {
+        createHttpErrorStatusCodeException(500)
     }
 
-    static RuntimeException createDummyTimeoutException(String message) {
-        createNestedException(new InterruptedIOException(message))
+    static RuntimeException createUnauthorizedException() {
+        createHttpErrorStatusCodeException(401)
+    }
+
+    static RuntimeException createHttpErrorStatusCodeException(int statusCode) {
+        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', statusCode, ''))
+    }
+
+    static RuntimeException createTimeoutException() {
+        createNestedException(new InterruptedIOException('Read time out'))
     }
 
     static RuntimeException createNestedException(Throwable t) {
