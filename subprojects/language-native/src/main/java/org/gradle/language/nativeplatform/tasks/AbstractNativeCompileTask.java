@@ -21,7 +21,6 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -93,12 +91,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         headerDependenciesFile = newInputFile();
-        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return !getHeaderDependenciesFile().isPresent();
-            }
-        });
         dependsOn(includes);
     }
 
@@ -279,7 +271,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public ConfigurableFileCollection getSource() {
         return source;
     }
