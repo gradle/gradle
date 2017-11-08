@@ -186,6 +186,8 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     }
 
     public void stopInternalProcessing() {
-        thread.interrupt();
+        if (!thread.isInterrupted()) {
+            thread.interrupt();
+        }
     }
 }
