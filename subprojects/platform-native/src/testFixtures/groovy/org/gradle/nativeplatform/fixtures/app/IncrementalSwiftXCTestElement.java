@@ -16,11 +16,42 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestExecutionResult;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.List;
 
 public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElement implements XCTestElement {
+    @Override
+    public void writeToProject(TestFile projectDir) {
+        super.writeToProject(projectDir);
+        writeLinuxMainToProjectIfNeeded(projectDir, getTestSuites());
+    }
+
+    @Override
+    public void applyChangesToProject(TestFile projectDir) {
+        super.applyChangesToProject(projectDir);
+        writeLinuxMainToProjectIfNeeded(projectDir, getAlternateTestSuites());
+    }
+
+    private static void writeLinuxMainToProjectIfNeeded(TestFile projectDir, final List<XCTestSourceFileElement> testSuites) {
+        if (OperatingSystem.current().isLinux()) {
+            new SourceFileElement() {
+                @Override
+                public String getSourceSetName() {
+                    return "test";
+                }
+
+                @Override
+                public SourceFile getSourceFile() {
+                    return XCTestSourceElement.getLinuxMainSourceFile(testSuites);
+                }
+            }.writeToProject(projectDir);
+        }
+    }
+
     public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
         XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }

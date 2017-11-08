@@ -46,10 +46,4 @@ public abstract class MainWithXCTestSourceElement extends XCTestSourceElement {
         getMain().writeToProject(projectDir);
         getTest().writeToProject(projectDir);
     }
-
-    @Override
-    public MainWithXCTestSourceElement withInfoPlist() {
-        getTest().withInfoPlist();
-        return this;
-    }
 }

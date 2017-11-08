@@ -17,10 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.MAC_OS_X)
 class XCTestPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {

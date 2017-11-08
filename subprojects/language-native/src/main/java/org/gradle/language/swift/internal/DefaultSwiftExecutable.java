@@ -31,11 +31,13 @@ import javax.inject.Inject;
 public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
+    private final RegularFileProperty runScriptFile;
     @Inject
     public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
+        this.runScriptFile = projectLayout.fileProperty();
     }
 
     @Override
@@ -46,5 +48,10 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     @Override
     public DirectoryProperty getInstallDirectory() {
         return installDirectory;
+    }
+
+    @Override
+    public RegularFileProperty getRunScriptFile() {
+        return runScriptFile;
     }
 }

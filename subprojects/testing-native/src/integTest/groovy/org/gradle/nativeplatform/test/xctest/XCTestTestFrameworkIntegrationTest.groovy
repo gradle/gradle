@@ -16,6 +16,9 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
@@ -23,13 +26,43 @@ import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
+import static org.junit.Assume.assumeTrue
+
+@Requires([TestPrecondition.SWIFT_SUPPORT])
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
+        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
+        assumeTrue(toolChain != null && toolChain.isAvailable())
+
+        File initScript = file("init.gradle") << """
+allprojects { p ->
+    apply plugin: ${toolChain.pluginClass}
+
+    model {
+          toolChains {
+            ${toolChain.buildScriptConfig}
+          }
+    }
+}
+"""
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
+
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
             apply plugin: 'xctest'
         """
+    }
+
+    @Override
+    protected boolean capturesTestOutput() {
+        // The driver application for XCTest behave very differently on macOS and Linux.
+        // It was hard to get the desired outcome on macOS and impossible for Linux. It
+        // all seems to be related to https://bugs.swift.org/browse/SR-1127. On Linux,
+        // we just can't assert that test output is captured correctly. Until we roll out
+        // our own driver app, test output capture only works on macOS.
+        return OperatingSystem.current().macOsX
     }
 
     @Override
@@ -52,6 +85,10 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         def newTest = file("src/test/swift/NewTest.swift")
         file("src/test/swift/SomeOtherTest.swift").renameTo(newTest)
         newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
+        if (OperatingSystem.current().linux) {
+            def linuxMain = file("src/test/swift/main.swift")
+            linuxMain.text = linuxMain.text.replaceAll("SomeOtherTest", "NewTest")
+        }
     }
 
     @Override
@@ -62,7 +99,6 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     class SwiftXCTestTestFrameworkBundle extends XCTestSourceElement {
         SwiftXCTestTestFrameworkBundle(String projectName) {
             super(projectName)
-            withInfoPlist()
         }
 
         List<XCTestSourceFileElement> testSuites = [
@@ -70,7 +106,7 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
                 List<XCTestCaseElement> testCases = [
                     testCase("testFail", FAILING_TEST, true)
                 ]
-            }.withImport("Darwin"),
+            }.withImport(libcModuleName),
 
             new XCTestSourceFileElement("SomeOtherTest") {
                 List<XCTestCaseElement> testCases = [passingTestCase("testPass")]
@@ -78,9 +114,16 @@ class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         ]
 
         private static final String FAILING_TEST = """
-            fputs("some error output", __stderrp)
+            fputs("some error output\\n", stderr)
             XCTAssert(false, "test failure message")
         """
+
+        private static String getLibcModuleName() {
+            if (OperatingSystem.current().macOsX) {
+                return "Darwin"
+            }
+            return "Glibc"
+        }
     }
 
     @Override

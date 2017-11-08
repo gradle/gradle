@@ -87,8 +87,6 @@ apply plugin: 'xctest'
         return xcTestLinkFile
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "fails when test cases fail"() {
         given:
         def testBundle = new SwiftFailingXCTestBundle()
@@ -101,12 +99,10 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "succeeds when test cases pass"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -118,30 +114,11 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "can build xctest bundle when Info.plist is provided"() {
-        given:
-        def lib = new SwiftLibWithXCTest().withInfoPlist()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
-        lib.assertTestCasesRan(testExecutionResult)
-    }
-
-    // TODO: Need to support test report for test case assertion
     @Unroll
-    @Requires(TestPrecondition.MAC_OS_X)
     def "runs tests when #task lifecycle task executes"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -160,8 +137,6 @@ apply plugin: 'xctest'
         task << ["test", "check", "build"]
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift library"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -173,12 +148,10 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "does not execute removed test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
@@ -192,7 +165,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -200,13 +173,11 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
         testBundle.getFooTestSuite().getTestCount()
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
@@ -220,7 +191,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertTestCasesRan(testExecutionResult)
 
         when:
@@ -228,12 +199,10 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Needs RunTestExecutable to be incremental
-    @Requires(TestPrecondition.MAC_OS_X)
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -246,12 +215,10 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build logic can change source layout convention"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -269,13 +236,12 @@ apply plugin: 'xctest'
             }
             xctest {
                 source.from 'Tests'
-                resourceDir.set(file('Tests'))
             }
          """
 
         expect:
         succeeds "test"
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/${lib.test.moduleName}").assertExists()
@@ -309,7 +275,7 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "does not build or run any of the tests when assemble task executes"() {
@@ -334,8 +300,8 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "skips test tasks when no source is available for Swift executable"() {
@@ -348,11 +314,11 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    // TODO: Need to support test report for test case assertion
+    // TODO: Need to support _main symbol duplication
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift executable"() {
         given:
@@ -369,11 +335,11 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
+    // TODO: Need to support _main symbol duplication
     @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
         given:
@@ -388,13 +354,11 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(app.test, "build/obj/test"))
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a single file Swift library using a single test source file"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -409,14 +373,12 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
         assertMainSymbolIsAbsent(machOBundle("build/exe/test/${lib.test.moduleName}"))
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build passes when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -450,12 +412,10 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    // TODO: Need to support test report for test case assertion
-    @Requires(TestPrecondition.MAC_OS_X)
     def "build still fails when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -489,7 +449,7 @@ apply plugin: 'swift-library'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
         test.assertTestCasesRan(testExecutionResult)
     }
 
@@ -501,8 +461,8 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
-            ':compileTestSwift', ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test', ':compileDebugSwift',
+            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     // TODO: Need to support _main symbol duplication
@@ -513,9 +473,10 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkDebug',
-            ':greeter:linkTest', ':greeter:bundleSwiftTest', ':greeter:xcTest', ':greeter:test', ':app:compileDebugSwift',
-            ':app:compileTestSwift', ':app:linkTest', ':app:bundleSwiftTest', ':app:xcTest', ':app:test', ':compileTestSwift',
-            ':linkTest', ':bundleSwiftTest', ':xcTest', ':test')
+            ':greeter:linkTest', ':greeter:installTest', ':greeter:xcTest', ':greeter:test',
+            ':app:compileDebugSwift', ':app:compileTestSwift',
+            ':app:linkTest', ':app:installTest', ':app:xcTest', ':app:test',
+            ':compileTestSwift', ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
@@ -530,12 +491,5 @@ apply plugin: 'swift-library'
 
     TestExecutionResult getTestExecutionResult() {
         return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
-    }
-
-    private static String bundleOrInstallTask(String project = '') {
-        if (OperatingSystem.current().isMacOsX()) {
-            return "$project:bundleSwiftTest"
-        }
-        return "$project:installTest"
     }
 }

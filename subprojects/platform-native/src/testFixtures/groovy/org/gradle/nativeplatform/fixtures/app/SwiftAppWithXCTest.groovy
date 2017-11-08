@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 class SwiftAppWithXCTest extends MainWithXCTestSourceElement implements AppElement {
     final SwiftApp main = new SwiftApp()
-    final XCTestSourceElement test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply).withInfoPlist()
+    final XCTestSourceElement test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply)
 
     String expectedOutput = main.expectedOutput
 

@@ -63,10 +63,10 @@ import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.language.swift.tasks.CreateSwiftBundle;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
+import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -209,11 +209,10 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getGroups().getTests().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
-        final CreateSwiftBundle bundleDebug = (CreateSwiftBundle) project.getTasks().getByName("bundleSwiftTest");
-        xcode.getProject().getGroups().getTests().from(bundleDebug.getInformationFile());
+        InstallXCTestBundle installXCTestBundle = (InstallXCTestBundle) project.getTasks().getByName("installTest");
 
         String targetName = component.getModule().get() + " " + toString(productType);
-        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
+        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), installXCTestBundle.getBundleDirectory(), installXCTestBundle.getBundleDirectory(), sources);
         target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
         xcode.getProject().addTarget(target);
     }

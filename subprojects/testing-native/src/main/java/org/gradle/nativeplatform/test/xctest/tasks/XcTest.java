@@ -18,15 +18,18 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
+import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 
-import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -35,16 +38,9 @@ import javax.inject.Inject;
  */
 @Incubating
 public class XcTest extends AbstractTestTask {
-    private final DirectoryProperty testBundleDirectory;
-    private final DirectoryProperty workingDirectory;
-    private final ObjectFactory objectFactory;
-
-    @Inject
-    public XcTest(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-        testBundleDirectory = newInputDirectory();
-        workingDirectory = getProject().getLayout().directoryProperty();
-    }
+    private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
+    private final DirectoryProperty testInstallDirectory = newInputDirectory();
+    private final RegularFileProperty runScriptFile = newInputFile();
 
     /**
      * {@inheritDoc}
@@ -52,17 +48,27 @@ public class XcTest extends AbstractTestTask {
      */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
-        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), testBundleDirectory.getAsFile().get(), getPath());
+        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath());
     }
 
     /**
-     * Returns the test bundle property for this test.
+     * Sets the test suite bundle or executable location
      *
      * @since 4.4
      */
     @InputDirectory
-    public DirectoryProperty getTestBundleDirectory() {
-        return testBundleDirectory;
+    public DirectoryProperty getTestInstallDirectory() {
+        return testInstallDirectory;
+    }
+
+    /**
+     * Returns test suite bundle or executable location
+     *
+     * @since 4.4
+     */
+    @Internal("Covered by inputFileIfExists")
+    public RegularFileProperty getRunScriptFile() {
+        return runScriptFile;
     }
 
     /**
@@ -77,6 +83,23 @@ public class XcTest extends AbstractTestTask {
 
     @Override
     protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
-        return objectFactory.newInstance(XcTestExecuter.class);
+        return getProject().getObjects().newInstance(XcTestExecuter.class);
+    }
+
+    /**
+     * Workaround for when the task is given an input file that doesn't exist
+     *
+     * @since 4.4
+     */
+    @SkipWhenEmpty
+    @Optional
+    @InputFile
+    protected File getInputFileIfExists() {
+        File inputFile = getRunScriptFile().get().getAsFile();
+        if (inputFile != null && inputFile.exists()) {
+            return inputFile;
+        } else {
+            return null;
+        }
     }
 }

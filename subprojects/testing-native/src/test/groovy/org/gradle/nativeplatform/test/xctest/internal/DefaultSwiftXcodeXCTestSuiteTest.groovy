@@ -42,19 +42,6 @@ class DefaultSwiftXcodeXCTestSuiteTest extends Specification {
         testSuite.testedComponent == null
     }
 
-    def "can change location of Info.plist by changing the test suite resource directory location"() {
-        def file = tmpDir.createFile("Tests")
-
-        expect:
-        testSuite.resourceDir.set(file)
-        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("Tests/Info.plist")
-    }
-
-    def "uses source layout convention when Info.plist not set"() {
-        expect:
-        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
-    }
-
     def "can set a tested component"() {
         def testedComponent = Mock(SwiftComponent)
         testSuite.setTestedComponent(testedComponent)

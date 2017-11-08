@@ -26,8 +26,10 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.io.TextStream;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.TextUtil;
 
@@ -38,7 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class XcTestScraper implements TextStream {
-    private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: -\\[\\p{Alnum}+.(\\p{Alnum}+) (\\p{Alnum}+)] : (.*)");
+    private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: (-\\[\\p{Alnum}+.)?(\\p{Alnum}+)[ .](\\p{Alnum}+)]? : (.*)");
 
     private final TestResultProcessor processor;
     private final TestOutputEvent.Destination destination;
@@ -46,6 +48,7 @@ class XcTestScraper implements TextStream {
     private final Clock clock;
     private final Deque<XCTestDescriptor> testDescriptors;
     private TestDescriptorInternal lastDescriptor;
+    private StringBuilder textBuilder = new StringBuilder();
 
     XcTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
         this.processor = processor;
@@ -56,7 +59,13 @@ class XcTestScraper implements TextStream {
     }
 
     @Override
-    public void text(String text) {
+    public void text(String textFragment) {
+        textBuilder.append(textFragment);
+        if (!textFragment.endsWith(SystemProperties.getInstance().getLineSeparator())) {
+            return;
+        }
+        String text = textBuilder.toString();
+        textBuilder = new StringBuilder();
         synchronized (testDescriptors) {
             Scanner scanner = new Scanner(text).useDelimiter("'");
             if (scanner.hasNext()) {
@@ -88,14 +97,23 @@ class XcTestScraper implements TextStream {
                         processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
                     }
                 } else if (token.equals("Test Case")) {
-                    // Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
+                    // (macOS) Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
+                    // (Linux) Looks like: Test Case 'PassingTestSuite.testCanPassTestCaseWithAssertion' started.
                     String testSuiteAndCase = scanner.next();
                     String[] splits = testSuiteAndCase.
                         replace('[', ' ').
                         replace(']', ' ').
                         split("[. ]");
-                    String testSuite = splits[2];
-                    String testCase = splits[3];
+                    String testSuite;
+                    String testCase;
+                    if (OperatingSystem.current().isMacOsX()) {
+                        testSuite = splits[2];
+                        testCase = splits[3];
+                    } else {
+                        testSuite = splits[0];
+                        testCase = splits[1];
+                    }
+
                     String status = scanner.next().trim();
                     boolean started = status.contains("started");
 
@@ -125,9 +143,9 @@ class XcTestScraper implements TextStream {
 
                         Matcher failureMessageMatcher = TEST_FAILURE_PATTERN.matcher(text);
                         if (failureMessageMatcher.find()) {
-                            String testSuite = failureMessageMatcher.group(1);
-                            String testCase = failureMessageMatcher.group(2);
-                            String message = failureMessageMatcher.group(3);
+                            String testSuite = failureMessageMatcher.group(2);
+                            String testCase = failureMessageMatcher.group(3);
+                            String message = failureMessageMatcher.group(4);
 
                             if (testDescriptor.getClassName().equals(testSuite) && testDescriptor.getName().equals(testCase)) {
                                 xcTestDescriptor.getMessages().add(message);
