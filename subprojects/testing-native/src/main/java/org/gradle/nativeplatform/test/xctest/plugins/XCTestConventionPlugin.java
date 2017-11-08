@@ -28,7 +28,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -145,24 +144,18 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             installTask.getBundleBinaryFile().set(binary.getRuntimeFile());
             installTask.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
 
-            testTask.getTestSuiteLocation().set(installTask.getInstallDirectory());
-            testTask.getRunScript().set(installTask.getRunScriptFile());
+            testTask.getTestInstallDirectory().set(installTask.getInstallDirectory());
+            testTask.getRunScriptFile().set(installTask.getRunScriptFile());
             testTask.getWorkingDirectory().set(installTask.getInstallDirectory());
         } else if (OperatingSystem.current().isLinux()) {
             SwiftExecutable binary = (SwiftExecutable) testSuite.getDevelopmentBinary();
-            testTask.getTestSuiteLocation().set(binary.getInstallDirectory());
-            testTask.getRunScript().set(binary.getRunScriptFile());
+            testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
+            testTask.getRunScriptFile().set(binary.getRunScriptFile());
             testTask.getWorkingDirectory().set(binary.getInstallDirectory());
         }
 
         testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         testTask.setDescription("Executes XCTest suites");
-        testTask.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return testTask.getRunScript().getAsFile().get().exists();
-            }
-        });
         return testTask;
     }
 
