@@ -96,8 +96,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean isPublishWithOriginalFileName;
 
     public DefaultMavenPublication(
-            String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
-            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
+        String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
+        ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
     ) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -356,9 +356,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private String getArtifactFileName(String classifier, String extension) {
         StringBuilder artifactPath = new StringBuilder();
-        artifactPath.append(getCoordinates().getName());
+        ModuleVersionIdentifier coordinates = getCoordinates();
+        artifactPath.append(coordinates.getName());
         artifactPath.append('-');
-        artifactPath.append(getCoordinates().getVersion());
+        artifactPath.append(coordinates.getVersion());
         if (GUtil.isTrue(classifier)) {
             artifactPath.append('-');
             artifactPath.append(classifier);
