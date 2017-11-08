@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
@@ -163,7 +164,7 @@ public class ModuleMetadataParser {
             reader.beginObject();
             String group = null;
             String module = null;
-            String version = null;
+            VersionConstraint version = null;
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -171,16 +172,36 @@ public class ModuleMetadataParser {
                 } else if (name.equals("module")) {
                     module = reader.nextString();
                 } else if (name.equals("version")) {
-                    version = reader.nextString();
+                    version = consumeVersion(reader);
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, new DefaultMutableVersionConstraint(version)));
+            dependencies.add(new ModuleDependency(group, module, version));
             reader.endObject();
         }
         reader.endArray();
         return dependencies;
+    }
+
+    private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
+        reader.beginObject();
+        String preferred = null;
+        List<String> rejects = Lists.newArrayList();
+        while (reader.peek() != END_OBJECT) {
+            String cst = reader.nextName();
+            if ("prefers".equals(cst)) {
+                preferred = reader.nextString();
+            } else if ("rejects".equals(cst)) {
+                reader.beginArray();
+                while (reader.peek() != END_ARRAY) {
+                    rejects.add(reader.nextString());
+                }
+                reader.endArray();
+            }
+        }
+        reader.endObject();
+        return DefaultImmutableVersionConstraint.of(preferred, rejects);
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {

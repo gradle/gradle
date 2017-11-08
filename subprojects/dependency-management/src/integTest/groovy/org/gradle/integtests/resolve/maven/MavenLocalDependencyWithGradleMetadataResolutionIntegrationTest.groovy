@@ -84,7 +84,7 @@ dependencies {
                 "buildType": "debug"
             },
             "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ],
-            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
+            "dependencies": [ { "group": "test", "module": "b", "version": { "prefers": "2.0", "rejects": [] } } ]
         },
         {
             "name": "release",
@@ -92,7 +92,7 @@ dependencies {
                 "buildType": "release"
             },
             "files": [ { "name": "a-1.2-release.jar", "url": "a-1.2-release.jar" } ],
-            "dependencies": [ { "group": "test", "module": "c", "version": "2.2" } ]
+            "dependencies": [ { "group": "test", "module": "c", "version": { "prefers": "2.2" } } ]
         }
     ]
 }
@@ -151,14 +151,14 @@ task checkRelease {
                 { "name": "a-1.2-api.jar", "url": "a-1.2-api.jar" },
                 { "name": "a-1.2-runtime.jar", "url": "a-1.2-runtime.jar" } 
             ],
-            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
+            "dependencies": [ { "group": "test", "module": "b", "version": { "prefers": "2.0" } } ]
         },
         {
             "name": "release",
             "attributes": {
                 "buildType": "release"
             },
-            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
+            "dependencies": [ { "group": "test", "module": "b", "version": { "prefers": "2.0" } } ]
         }
     ]
 }
@@ -343,14 +343,14 @@ task checkDebug {
                 "buildType": "debug"
             },
             "files": [ { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" } ],
-            "dependencies": [ { "group": "test", "module": "b", "version": "2.0" } ]
+            "dependencies": [ { "group": "test", "module": "b", "version": { "prefers": "2.0" } } ]
         },
         {
             "name": "release",
             "attributes": {
                 "buildType": "release"
             },
-            "dependencies": [ { "group": "test", "module": "c", "version": "preview" } ]
+            "dependencies": [ { "group": "test", "module": "c", "version": { "prefers": "preview" } } ]
         }
     ]
 }
