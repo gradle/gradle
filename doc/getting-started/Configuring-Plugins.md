@@ -60,7 +60,7 @@ with the `plugins {}` block depending on how they have been published. If you're
 the Gradle built-in [`java-gradle-plugin`](https://docs.gradle.org/current/userguide/javaGradle_plugin.html) plugin
 that automates publication of supplementary data to make your plugins usable with the `plugins {}` block.
 
-For example, the Android Gradle Plugin 2.x plugins are not published to the Gradle Plugin Portal and the metadata
+For example, the Android Gradle Plugin plugins are not published to the Gradle Plugin Portal and the metadata
 required to resolve plugin identifiers to resolvable artifacts
 [is not published](https://issuetracker.google.com/issues/64551265).
 The following snippets will use the Android Gradle Plugin to demonstrate how to enable the use of the `plugins {}` block
@@ -70,17 +70,17 @@ The goal here is to instruct your build how to map the `com.android.application`
 artifact.
 This is done in two steps.
 
-First add a plugin repository in your `settings.gradle` file for the whole build: 
+First add a plugin repository in your `settings.gradle.kts` file for the whole build: 
 ```groovy
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url "https://jcenter.bintray.com/" }
+        maven { url = uri("https://maven.google.com") }
     }
 }
 ```
 
-Then, map the plugin `id` to the corresponding artifact coordinates, still in your `settings.gradle` file:
+Then, map the plugin `id` to the corresponding artifact coordinates, still in your `settings.gradle.kts` file:
 
 ```groovy
 pluginManagement {
@@ -100,12 +100,12 @@ plugin extension accessors, in your `build.gradle.kts` file:
 
 ```kotlin
 plugins {
-    id("com.android.application") version "2.3.3"
+    id("com.android.application") version "3.0.0"
 }
 
 android {
-    buildToolsVersion("25.0.0")
-    compileSdkVersion(23)    
+    buildToolsVersion("27.0.0")
+    compileSdkVersion(27)
 }
 ```
 
