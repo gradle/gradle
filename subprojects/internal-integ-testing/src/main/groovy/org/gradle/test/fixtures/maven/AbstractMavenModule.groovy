@@ -403,7 +403,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         "dependencies": [
 """
             value << dependencies.collect { d ->
-                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": \"$d.version\" }\n"
+                def rejects = d.rejects?", \"rejects\": [${d.rejects.collect { "\"$it\""}.join(',')}]":""
+                def versionConstraint = "{ \"prefers\": \"${d.version}\"$rejects }"
+                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": $versionConstraint }\n"
             }.join(",\n")
             value << """                        ]
                     }${i.hasNext() ? ',' : ''}"""

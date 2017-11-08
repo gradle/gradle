@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ComponentWithVariants;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -92,6 +94,21 @@ public class ModuleMetadataFileGenerator {
         writeIdentity(publication.getCoordinates(), component, componentCoordinates, owners, jsonWriter);
         writeCreator(jsonWriter);
         writeVariants(publication, component, componentCoordinates, jsonWriter);
+        jsonWriter.endObject();
+    }
+
+    private void writeVersionConstraint(VersionConstraint versionConstraint, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.name("version");
+        jsonWriter.beginObject();
+        jsonWriter.name("prefers");
+        jsonWriter.value(versionConstraint.getPreferredVersion());
+        jsonWriter.name("rejects");
+        jsonWriter.beginArray();
+        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+        for (String reject : rejectedVersions) {
+            jsonWriter.value(reject);
+        }
+        jsonWriter.endArray();
         jsonWriter.endObject();
     }
 
@@ -304,15 +321,13 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(identifier.getName());
-            jsonWriter.name("version");
-            jsonWriter.value(identifier.getVersion());
+            writeVersionConstraint(moduleDependency.getVersionConstraint(), jsonWriter);
         } else {
             jsonWriter.name("group");
             jsonWriter.value(moduleDependency.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(moduleDependency.getName());
-            jsonWriter.name("version");
-            jsonWriter.value(moduleDependency.getVersion());
+            writeVersionConstraint(moduleDependency.getVersionConstraint(), jsonWriter);
         }
         jsonWriter.endObject();
     }
