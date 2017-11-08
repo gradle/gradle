@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -35,9 +35,9 @@ public final class ResolveDependenciesBuildOperationType implements BuildOperati
     @UsedByScanPlugin
     public interface Details {
         /**
-         * The name of the resolved configuration
+         * The path of the resolved configuration
          * */
-        String getConfigurationName();
+        String getConfigurationPath();
 
         /**
          * The description of the resolved configuration
@@ -45,9 +45,9 @@ public final class ResolveDependenciesBuildOperationType implements BuildOperati
         String getConfigurationDescription();
 
         /**
-         * The identityPath of the resolved configuration
+         * The path of the build of the resolved configuration
          * */
-        String getIdentityPath();
+        String getBuildPath();
 
         /**
          * Flag indicating if resolved configuration is visible
@@ -68,9 +68,9 @@ public final class ResolveDependenciesBuildOperationType implements BuildOperati
     public interface Result {
 
         /**
-         * The resolvable dependencies of the configuration providing access to the
+         * The root component of the
          * resolution result.
          * */
-        ResolvableDependencies getResolvableDependencies();
+        ResolvedComponentResult getRootComponent();
     }
 }

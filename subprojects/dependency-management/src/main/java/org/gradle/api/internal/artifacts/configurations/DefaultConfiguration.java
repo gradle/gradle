@@ -42,6 +42,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
@@ -97,6 +98,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
+import org.gradle.util.TextUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -482,8 +484,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.removeAll();
                 context.setResult(new ResolveDependenciesBuildOperationType.Result() {
                     @Override
-                    public ResolvableDependencies getResolvableDependencies() {
-                        return incoming;
+                    public ResolvedComponentResult getRootComponent() {
+                        return incoming.getResolutionResult().getRoot();
                     }
                 });
             }
@@ -492,9 +494,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath)
                     .progressDisplayName("Resolve dependencies " + identityPath)
-                    .details(new OperationDetails(DefaultConfiguration.this.getName(),
+                    .details(new OperationDetails(DefaultConfiguration.this.getPath(),
                         DefaultConfiguration.this.getDescription(),
-                        DefaultConfiguration.this.getIdentityPath().getPath(),
+                        TextUtil.minus(DefaultConfiguration.this.getIdentityPath().getPath(), DefaultConfiguration.this.getPath()),
                         DefaultConfiguration.this.isVisible(),
                         DefaultConfiguration.this.isTransitive())
                     );
@@ -1306,21 +1308,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         final String configurationName;
         final String configurationDescription;
-        final String identityPath;
+        final String buildPath;
         final boolean configurationVisible;
         final boolean configurationTransitive;
 
-        private OperationDetails(String configurationName, String configurationDescription, String identityPath, boolean configurationVisible, boolean configurationTransitive) {
-            this.configurationName = configurationName;
+        private OperationDetails(String configurationPath, String configurationDescription, String buildPath, boolean configurationVisible, boolean configurationTransitive) {
+            this.configurationName = configurationPath;
             this.configurationDescription = configurationDescription;
-            this.identityPath = identityPath;
+            this.buildPath = buildPath;
             this.configurationVisible = configurationVisible;
             this.configurationTransitive = configurationTransitive;
         }
 
         @Override
-        public String getConfigurationName() {
-            return configurationName;
+        public String getConfigurationPath() {
+            return null;
         }
 
         @Override
@@ -1329,8 +1331,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public String getIdentityPath() {
-            return identityPath;
+        public String getBuildPath() {
+            return buildPath;
         }
 
         @Override
