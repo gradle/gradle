@@ -232,7 +232,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
                 ((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getDependencies()
-                // testSuite.getImplementationDependencies().getDependencies()
                     .add(new DefaultSelfResolvingDependency((FileCollectionInternal)project.files(((DefaultSwiftBinary)testedComponent.getDevelopmentBinary()).getModuleFile().map(new Transformer<File, RegularFile>() {
                         @Override
                         public File transform(RegularFile regularFile) {

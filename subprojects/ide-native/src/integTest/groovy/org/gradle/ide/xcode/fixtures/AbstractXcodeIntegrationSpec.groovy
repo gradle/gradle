@@ -136,7 +136,10 @@ Actual: ${actual[key]}
         assert target.name == "$expectedProductName XCTestBundle"
         assert target.productReference.path == xctest("build/bundle/test/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
-            assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assert target.buildConfigurationList.buildConfigurations.every {
+            it.buildSettings.SWIFT_INCLUDE_PATHS == '"' + file('build/modules/main/debug').absolutePath + '"'
+        }
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
         assertUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[2].buildSettings)
@@ -184,19 +187,11 @@ Actual: ${actual[key]}
         assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == null
     }
 
-    void assertTargetIsIndexer(ProjectFile.PBXTarget target, String expectedProductName) {
+    void assertTargetIsIndexer(ProjectFile.PBXTarget target, String expectedProductName, String swiftIncludes = null) {
         assert target.productName == expectedProductName
         assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
-    }
-
-    void assertTargetIsIndexerWithTestComponent(ProjectFile.PBXTarget target, String expectedProductName) {
-        assert target.productName == expectedProductName
-        assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
-        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == '"' + file('build/modules/main').absolutePath + '"'
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == swiftIncludes
     }
 }
