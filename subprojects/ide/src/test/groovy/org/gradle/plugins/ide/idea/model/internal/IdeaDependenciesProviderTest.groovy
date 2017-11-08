@@ -19,9 +19,9 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
@@ -66,10 +66,8 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 4
-        assertSingleLibrary(result, 'PROVIDED', 'guava.jar')
-        assertSingleLibrary(result, 'RUNTIME', 'guava.jar')
-        assertSingleLibrary(result, 'TEST', 'guava.jar')
+        result.size() == 2
+        assertSingleLibrary(result, 'COMPILE', 'guava.jar')
         assertSingleLibrary(result, 'TEST', 'mockito.jar')
     }
 
@@ -144,10 +142,8 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 3
-        result.findAll { it.scope == 'PROVIDED' }.size() == 1
-        result.findAll { it.scope == 'RUNTIME' }.size() == 1
-        result.findAll { it.scope == 'TEST' }.size() == 1
+        result.size() == 1
+        result.findAll { it.scope == 'COMPILE' }.size() == 1
     }
 
     def "test and runtime scope for the same dependency"() {
@@ -201,12 +197,9 @@ public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 5
-        assertSingleLibrary(result, 'PROVIDED', 'foo-runtime.jar')
+        result.size() == 2
+        assertSingleLibrary(result, 'COMPILE', 'foo-runtime.jar')
         assertSingleLibrary(result, 'PROVIDED', 'foo-testRuntime.jar')
-        assertSingleLibrary(result, 'RUNTIME', 'foo-runtime.jar')
-        assertSingleLibrary(result, 'TEST', 'foo-runtime.jar')
-        assertSingleLibrary(result, 'TEST', 'foo-testRuntime.jar')
     }
 
     def "ignore unknown configurations"() {
