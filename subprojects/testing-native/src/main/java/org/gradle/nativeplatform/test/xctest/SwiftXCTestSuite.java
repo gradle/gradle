@@ -26,4 +26,18 @@ import org.gradle.language.swift.SwiftComponent;
  */
 @Incubating
 public interface SwiftXCTestSuite extends SwiftComponent {
+    /**
+     * {@inheritDoc}
+     * <p>
+     * For test suites, this is the test executable binary.
+     */
+    @Override
+    SwiftTestExecutable getDevelopmentBinary();
+
+    /**
+     * Returns the executable that will be executed to run the tests.
+     *
+     * @since 4.4
+     */
+    SwiftTestExecutable getTestExecutable();
 }

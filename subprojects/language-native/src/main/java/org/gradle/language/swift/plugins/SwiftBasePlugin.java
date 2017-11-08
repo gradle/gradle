@@ -28,11 +28,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.language.swift.internal.DefaultSwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -40,7 +38,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -154,27 +151,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setDebuggable(binary.isDebuggable());
 
                     ((DefaultSwiftSharedLibrary)binary).getRuntimeFile().set(link.getBinaryFile());
-                } else if (binary instanceof SwiftBundle) {
-                    // Specific compiler arguments
-                    compile.getCompilerArgs().add("-parse-as-library");
-
-                    // Add a link task
-                    LinkMachOBundle link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-                    Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
-                        }
-                    }));
-                    link.setOutputFile(exeLocation);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    ((DefaultSwiftBundle)binary).getRuntimeFile().set(link.getBinaryFile());
                 }
             }
         });

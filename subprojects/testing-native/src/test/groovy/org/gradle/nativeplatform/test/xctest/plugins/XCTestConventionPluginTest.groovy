@@ -162,9 +162,6 @@ class XCTestConventionPluginTest extends Specification {
     }
 
     private String getDevelopmentBinaryName() {
-        if (OperatingSystem.current().isMacOsX()) {
-            return "testBundle"
-        }
         return "testExecutable"
     }
 }

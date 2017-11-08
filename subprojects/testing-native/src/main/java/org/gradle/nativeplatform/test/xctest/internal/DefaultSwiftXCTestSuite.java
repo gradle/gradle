@@ -17,17 +17,24 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.nativeplatform.test.xctest.SwiftTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 
-public abstract class AbstractSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
-    private SwiftComponent testedComponent;
+import javax.inject.Inject;
 
-    public AbstractSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
+    private SwiftComponent testedComponent;
+    private final SwiftTestExecutable testBinary;
+
+    @Inject
+    public DefaultSwiftXCTestSuite(String name, ProjectLayout projectLayout, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
+        this.testBinary = objectFactory.newInstance(DefaultSwiftTestExecutable.class, name + "Executable", projectLayout, objectFactory, getModule(), true, true, getSwiftSource(), configurations, getImplementationDependencies());
     }
 
     public SwiftComponent getTestedComponent() {
@@ -36,5 +43,15 @@ public abstract class AbstractSwiftXCTestSuite extends DefaultSwiftComponent imp
 
     public void setTestedComponent(SwiftComponent testedComponent) {
         this.testedComponent = testedComponent;
+    }
+
+    @Override
+    public SwiftTestExecutable getDevelopmentBinary() {
+        return testBinary;
+    }
+
+    @Override
+    public SwiftTestExecutable getTestExecutable() {
+        return testBinary;
     }
 }

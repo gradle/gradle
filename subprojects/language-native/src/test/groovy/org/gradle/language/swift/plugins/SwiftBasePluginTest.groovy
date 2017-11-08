@@ -19,7 +19,7 @@ package org.gradle.language.swift.plugins
 import org.gradle.api.file.RegularFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.internal.DefaultSwiftBinary
-import org.gradle.language.swift.internal.DefaultSwiftBundle
+
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile

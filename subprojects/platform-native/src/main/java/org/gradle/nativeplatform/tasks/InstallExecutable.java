@@ -106,16 +106,22 @@ public class InstallExecutable extends DefaultTask {
     }
 
     /**
+     * Returns the path to install into.
+     *
      * @deprecated Use {@link #getInstallDirectory()}.
      */
+    @Deprecated
     @Internal
     public File getDestinationDir() {
         return destinationDir.getAsFile().getOrNull();
     }
 
     /**
+     * Sets the path to install into.
+     *
      * @deprecated Use {@link #getInstallDirectory()}.
      */
+    @Deprecated
     public void setDestinationDir(File destinationDir) {
         this.destinationDir.set(destinationDir);
     }
@@ -131,16 +137,22 @@ public class InstallExecutable extends DefaultTask {
     }
 
     /**
+     * Returns the executable to be installed.
+     *
      * @deprecated Use {@link #getSourceFile()}.
      */
+    @Deprecated
     @Internal("Covered by inputFileIfExists")
     public File getExecutable() {
         return executable.getAsFile().getOrNull();
     }
 
     /**
+     * Sets the executable to be installed.
+     *
      * @deprecated Use {@link #getSourceFile()}.
      */
+    @Deprecated
     public void setExecutable(File executable) {
         this.executable.set(executable);
     }

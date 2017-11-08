@@ -14,23 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.nativeplatform.test.xctest;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.SwiftBinary;
 
 /**
- * An bundle built from Swift source.
+ * An test executable built from Swift source.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Incubating
-public interface SwiftBundle extends SwiftBinary {
+public interface SwiftTestExecutable extends SwiftBinary {
     /**
-     * Returns the run-time file for this binary.
+     * Returns the executable file for this binary.
      *
      * @since 4.4
      */
-    Provider<RegularFile> getRuntimeFile();
+    Provider<RegularFile> getExecutableFile();
+
+    /**
+     * Returns the installation directory for this binary.
+     *
+     * @since 4.4
+     */
+    Provider<Directory> getInstallDirectory();
+
+    /**
+     * Returns the script for running this binary.
+     *
+     * @since 4.4
+     */
+    Provider<RegularFile> getRunScriptFile();
 }
