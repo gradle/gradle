@@ -184,6 +184,14 @@
             "type": "org.gradle.nativeplatform.test.xctest.tasks.XcTest",
             "member": "Constructor org.gradle.nativeplatform.test.xctest.tasks.XcTest()",
             "acceptation": "Using default constructor"
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.ArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.ArtifactRepository",
+            "acceptation": "ArtifactRepository implements Describable",
+            "changes": [
+                "org.gradle.api.Describable"
+            ]
         }
     ]
 }

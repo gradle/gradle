@@ -108,6 +108,15 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.ivyContextManager = ivyContextManager;
     }
 
+    @Override
+    public String getDisplayName() {
+        URI url = getUrl();
+        if (url == null) {
+            return super.getDisplayName();
+        }
+        return super.getDisplayName() + '(' + url + ')';
+    }
+
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }

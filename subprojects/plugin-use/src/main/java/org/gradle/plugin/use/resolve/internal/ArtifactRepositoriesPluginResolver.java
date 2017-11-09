@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -38,8 +39,9 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     public static ArtifactRepositoriesPluginResolver createWithDefaults(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        if (dependencyResolutionServices.getResolveRepositoryHandler().isEmpty()) {
-            dependencyResolutionServices.getResolveRepositoryHandler().gradlePluginPortal();
+        RepositoryHandler repositories = dependencyResolutionServices.getResolveRepositoryHandler();
+        if (repositories.isEmpty()) {
+            repositories.gradlePluginPortal();
         }
         return new ArtifactRepositoriesPluginResolver(dependencyResolutionServices, versionSelectorScheme);
     }
@@ -72,13 +74,13 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         if (exists(markerDependency)) {
-            handleFound(pluginRequest, markerDependency, result);
+            handleFound(result, pluginRequest, markerDependency);
         } else {
             handleNotFound(result, "Could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
-    private void handleFound(final PluginRequestInternal pluginRequest, final Dependency markerDependency, PluginResolutionResult result) {
+    private void handleFound(PluginResolutionResult result, final PluginRequestInternal pluginRequest, final Dependency markerDependency) {
         result.found("Plugin Repositories", new PluginResolution() {
             @Override
             public PluginId getPluginId() {
@@ -93,7 +95,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         for (ArtifactRepository repository : resolution.getResolveRepositoryHandler()) {
-            result.notFound(repository.getName(), message);
+            result.notFound(repository.getDisplayName(), message);
         }
     }
 

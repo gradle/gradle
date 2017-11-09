@@ -237,7 +237,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertThatDescription(startsWith("Plugin [id: 'org.myplugin', version: '1.0'] was not found in any of the following sources"))
-        failure.assertThatDescription(containsString("Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.myplugin:org.myplugin.gradle.plugin:1.0')"))
+        failure.assertThatDescription(containsString("Gradle Central Plugin Repository(${pluginRepo.uri}) (Could not resolve plugin artifact 'org.myplugin:org.myplugin.gradle.plugin:1.0')"))
         failure.assertHasLineNumber(2)
     }
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
@@ -61,6 +62,15 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         this.ivyContextManager = ivyContextManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.fileResourceRepository = fileResourceRepository;
+    }
+
+    @Override
+    public String getDisplayName() {
+        Set<File> dirs = getDirs();
+        if (dirs.isEmpty()) {
+            return super.getDisplayName();
+        }
+        return super.getDisplayName() + '(' + Joiner.on(", ").join(dirs) + ')';
     }
 
     public Set<File> getDirs() {

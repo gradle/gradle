@@ -53,6 +53,11 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         this.fileResourceRepository = fileResourceRepository;
     }
 
+    @Override
+    public String getDisplayName() {
+        return getName();
+    }
+
     protected MavenResolver createRealResolver() {
         URI rootUri = getUrl();
         if (rootUri == null) {

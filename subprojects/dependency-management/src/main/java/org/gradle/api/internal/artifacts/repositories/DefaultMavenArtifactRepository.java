@@ -79,6 +79,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.fileResourceRepository = fileResourceRepository;
     }
 
+    @Override
+    public String getDisplayName() {
+        URI url = getUrl();
+        if (url == null) {
+            return super.getDisplayName();
+        }
+        return super.getDisplayName() + '(' + url + ')';
+    }
+
     public URI getUrl() {
         return url == null ? null : fileResolver.resolveUri(url);
     }

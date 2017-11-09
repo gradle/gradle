@@ -104,6 +104,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         }
 
         @Override
+        public String getDisplayName() {
+            return getName();
+        }
+
+        @Override
         public ConfiguredModuleComponentRepository createResolver() {
             return resolutionAwareDelegate.createResolver();
         }

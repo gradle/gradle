@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import static org.hamcrest.Matchers.startsWith
 
 //These tests depend on https://plugins.gradle.org
@@ -106,7 +107,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
-        failureDescriptionContains("- Gradle Central Plugin Repository (Could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')")
+        failureDescriptionContains("- Gradle Central Plugin Repository(${PLUGIN_PORTAL_DEFAULT_URL}) (Could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')")
     }
 
     def "can resolve and plugin from portal with buildscript notation"() {
