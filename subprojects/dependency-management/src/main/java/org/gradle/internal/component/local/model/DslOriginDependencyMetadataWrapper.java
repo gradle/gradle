@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata {
+public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final ModuleDependency source;
 

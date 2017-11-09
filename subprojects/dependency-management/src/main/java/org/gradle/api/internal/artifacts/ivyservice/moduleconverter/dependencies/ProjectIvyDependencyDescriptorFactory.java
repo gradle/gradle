@@ -25,10 +25,10 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         Module module = getProjectModule(dependency);

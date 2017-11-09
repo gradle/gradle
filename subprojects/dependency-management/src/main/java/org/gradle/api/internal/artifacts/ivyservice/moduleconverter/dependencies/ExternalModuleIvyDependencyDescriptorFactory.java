@@ -23,10 +23,10 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
