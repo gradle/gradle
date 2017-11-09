@@ -42,7 +42,7 @@ class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<M
 
     private static final Pattern CLASSNAME = Pattern.compile("([\\p{L}_$][\\p{L}\\p{N}_$]*\\.)*[\\p{L}_$][\\p{L}\\p{N}_$]*");
 
-    public static final String META_INF_INCAP = "META-INF/incap";
+    public static final String META_INF_INCAP = "META-INF/org.gradle.incap";
 
     // Per the JSR-269 spec, you can have multiple Annotation Processor classes declared in
     // META-INF/services/javax.annotation.processing.Processor

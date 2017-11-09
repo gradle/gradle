@@ -30,7 +30,7 @@ class IncrementalAnnotationProcessorFixture {
     String annotationFileName = 'src/main/java/Incremental.java'
     String processorClassName = 'src/main/java/IncapProcessor.java'
     String serviceFileName = 'src/main/resources/META-INF/services/javax.annotation.processing.Processor'
-    String incapTagFileName = 'src/main/resources/META-INF/incap'
+    String incapTagFileName = 'src/main/resources/META-INF/org.gradle.incap'
 
     def writeLibraryTo(TestFile projectDir) {
         writeBuildFile(projectDir)
