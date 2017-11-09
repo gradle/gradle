@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.MavenDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
+
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependenciesMetadataAdapterTest extends Specification {
     List<DependencyMetadata> dependenciesMetadata = []
@@ -172,7 +173,7 @@ class DependenciesMetadataAdapterTest extends Specification {
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
-            ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector("org.gradle.test", "module$size", "1.0")
+            ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
             dependenciesMetadata += [ new MavenDependencyMetadata(MavenScope.Compile, false, requested, [], []) ]
         }
         adapter = new DependenciesMetadataAdapter(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE))

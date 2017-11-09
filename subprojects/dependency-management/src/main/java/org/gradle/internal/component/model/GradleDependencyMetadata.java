@@ -35,15 +35,15 @@ import java.util.List;
 import java.util.Set;
 
 public class GradleDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
-    private final ModuleVersionSelector requested;
+    private final ModuleComponentSelector selector;
 
-    public GradleDependencyMetadata(ModuleVersionSelector requested) {
-        this.requested = requested;
+    public GradleDependencyMetadata(ModuleComponentSelector selector) {
+        this.selector = selector;
     }
 
     @Override
     public ModuleVersionSelector getRequested() {
-        return requested;
+        return DefaultModuleVersionSelector.newSelector(selector);
     }
 
     @Override
@@ -58,24 +58,23 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata impleme
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(requested.getVersionConstraint())) {
+        if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion));
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion));
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            ModuleComponentSelector selector = (ModuleComponentSelector) target;
-            return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint()));
+            return new GradleDependencyMetadata((ModuleComponentSelector) target);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
 
     @Override
     public ModuleComponentSelector getSelector() {
-        return DefaultModuleComponentSelector.newSelector(requested);
+        return selector;
     }
 
     @Override

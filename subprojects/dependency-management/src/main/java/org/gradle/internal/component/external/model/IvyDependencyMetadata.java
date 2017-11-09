@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -46,8 +46,8 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     private final SetMultimap<String, String> confs;
     private final List<Exclude> excludes;
 
-    public IvyDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, artifacts, optional);
+    public IvyDependencyMetadata(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+        super(selector, artifacts, optional);
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.force = force;
         this.changing = changing;
@@ -56,7 +56,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
-    public IvyDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confMappings) {
+    public IvyDependencyMetadata(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
         this(requested, requested.getVersionConstraint().getPreferredVersion(), false, false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
     }
 
@@ -66,7 +66,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+    protected ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
         return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 

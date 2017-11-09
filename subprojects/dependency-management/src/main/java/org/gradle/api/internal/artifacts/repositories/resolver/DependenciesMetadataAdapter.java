@@ -20,8 +20,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.DependencyMetadata;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -94,7 +95,7 @@ public class DependenciesMetadataAdapter extends AbstractList<DependencyMetadata
     }
 
     private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(DependencyMetadata details) {
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(details.getGroup(), details.getName(), details.getVersion());
-        return new GradleDependencyMetadata(requested);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getGroup(), details.getName(), DefaultImmutableVersionConstraint.of(details.getVersion()));
+        return new GradleDependencyMetadata(selector);
     }
 }

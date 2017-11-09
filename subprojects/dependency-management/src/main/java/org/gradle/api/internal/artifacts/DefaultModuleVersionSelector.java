@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
@@ -107,5 +108,9 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     public static ModuleVersionSelector newSelector(String group, String name, VersionConstraint version) {
         return new DefaultModuleVersionSelector(group, name, version);
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
+        return new DefaultModuleVersionSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
     }
 }

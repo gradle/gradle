@@ -19,12 +19,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -39,6 +38,7 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
@@ -238,9 +238,9 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeDependency(ModuleDependencyMetadata dep) throws IOException {
-            ModuleVersionSelector selector = dep.getRequested();
+            ModuleComponentSelector selector = dep.getSelector();
             writeString(selector.getGroup());
-            writeString(selector.getName());
+            writeString(selector.getModule());
             writeVersionConstraint(selector.getVersionConstraint());
 
             if (dep instanceof IvyDependencyMetadata) {
@@ -487,7 +487,7 @@ public class ModuleMetadataSerializer {
         }
 
         private ModuleDependencyMetadata readDependency() throws IOException {
-            ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(readString(), readString(), readVersionConstraint());
+            ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(readString(), readString(), readVersionConstraint());
 
             byte type = decoder.readByte();
             switch (type) {

@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -39,8 +39,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final Set<String> moduleConfigurations;
     private final List<Exclude> excludes;
 
-    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, artifacts, optional);
+    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<Artifact> artifacts, List<Exclude> excludes) {
+        super(selector, artifacts, optional);
         this.scope = scope;
         if (isOptional() && scope != MavenScope.Test && scope != MavenScope.System) {
             moduleConfigurations = ImmutableSet.of("optional", scope.name().toLowerCase());
@@ -121,7 +121,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+    protected ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
         return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), getExcludes());
     }
 

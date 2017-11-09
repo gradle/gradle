@@ -18,8 +18,8 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.LinkedHashMultimap
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
@@ -39,16 +39,16 @@ import static com.google.common.collect.ImmutableList.copyOf
 class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
 
     @Override
-    DefaultDependencyMetadata create(ModuleVersionSelector selector) {
+    DefaultDependencyMetadata create(ModuleComponentSelector selector) {
         return new IvyDependencyMetadata(selector, ImmutableListMultimap.of())
     }
 
-    DefaultDependencyMetadata createWithExcludes(ModuleVersionSelector selector, List<Exclude> excludes) {
+    DefaultDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
         return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), [], excludes)
     }
 
     @Override
-    DefaultDependencyMetadata createWithArtifacts(ModuleVersionSelector selector, List<Artifact> artifacts) {
+    DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
         return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), artifacts, [])
     }
 

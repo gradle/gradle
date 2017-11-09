@@ -36,18 +36,16 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class DefaultDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
-    private final ModuleVersionSelector requested;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
     private final boolean optional;
 
-    protected DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts, boolean optional) {
-        this.requested = requested;
+    protected DefaultDependencyMetadata(ModuleComponentSelector selector, List<Artifact> artifacts, boolean optional) {
+        this.selector = selector;
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.optional = optional;
         this.artifacts = map(dependencyArtifacts);
-        selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersionConstraint());
     }
 
     private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
@@ -63,7 +61,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
 
     @Override
     public ModuleVersionSelector getRequested() {
-        return requested;
+        return DefaultModuleVersionSelector.newSelector(selector);
     }
 
     @Override
@@ -105,22 +103,22 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(requested.getVersionConstraint())) {
+        if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
-        return withRequested(newRequested);
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        return withRequested(newSelector);
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
-            if (requestedVersion.equals(requested)) {
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
+            if (newSelector.equals(selector)) {
                 return this;
             }
-            return withRequested(requestedVersion);
+            return withRequested(newSelector);
         } else if (target instanceof ProjectComponentSelector) {
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
             return new DefaultProjectDependencyMetadata(projectTarget, this);
@@ -129,7 +127,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
         }
     }
 
-    protected abstract ModuleDependencyMetadata withRequested(ModuleVersionSelector newRequested);
+    protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested);
 
     @Override
     public ModuleComponentSelector getSelector() {
