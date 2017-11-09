@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
+
 /**
  * Details about a dependency resolution.
  *
@@ -42,6 +44,7 @@ public final class ResolveDependenciesBuildOperationType implements BuildOperati
         /**
          * The description of the resolved configuration
          * */
+        @Nullable
         String getConfigurationDescription();
 
         /**

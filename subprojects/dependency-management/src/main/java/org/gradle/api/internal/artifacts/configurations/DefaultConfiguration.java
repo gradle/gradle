@@ -492,14 +492,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath)
-                    .progressDisplayName("Resolve dependencies " + identityPath)
+                String displayName = "Resolve dependencies of " + identityPath;
+                return BuildOperationDescriptor.displayName(displayName)
+                    .progressDisplayName(displayName)
                     .details(new OperationDetails(DefaultConfiguration.this.getPath(),
                         DefaultConfiguration.this.getDescription(),
-                        TextUtil.minus(DefaultConfiguration.this.getIdentityPath().getPath(), DefaultConfiguration.this.getPath()),
+                        getBuildPath(),
                         DefaultConfiguration.this.isVisible(),
                         DefaultConfiguration.this.isTransitive())
                     );
+            }
+
+            private String getBuildPath() {
+                String buildPath = TextUtil.minus(DefaultConfiguration.this.getIdentityPath().getPath(), DefaultConfiguration.this.getPath());
+                return buildPath.isEmpty() ? ":" : buildPath;
             }
         });
     }
