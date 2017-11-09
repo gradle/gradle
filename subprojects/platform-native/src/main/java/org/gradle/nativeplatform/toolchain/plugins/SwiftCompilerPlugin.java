@@ -32,7 +32,7 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
+import org.gradle.nativeplatform.toolchain.internal.swift.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -57,7 +57,7 @@ public class SwiftCompilerPlugin implements Plugin<Project> {
             final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
-            final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
+            final CompilerMetaDataProvider metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProvider.class);
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
 
             toolChainRegistry.registerFactory(Swiftc.class, new NamedDomainObjectFactory<Swiftc>() {

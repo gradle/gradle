@@ -26,9 +26,13 @@ import javax.annotation.Nullable;
 public class DefaultCompilerVersion implements CompilerVersion {
 
     private final String type;
-    private final VersionNumber version;
+    private final String version;
 
     public DefaultCompilerVersion(String type, VersionNumber version) {
+        this(type, version == VersionNumber.UNKNOWN ? null : version.toString());
+    }
+
+    public DefaultCompilerVersion(String type, @Nullable String version) {
         this.type = type;
         this.version = version;
     }
@@ -36,7 +40,7 @@ public class DefaultCompilerVersion implements CompilerVersion {
     @Nullable
     @Override
     public String getVersion() {
-        return version == VersionNumber.UNKNOWN ? null : version.toString();
+        return version;
     }
 
     @Override

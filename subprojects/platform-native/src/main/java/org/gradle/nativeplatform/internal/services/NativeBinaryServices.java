@@ -43,6 +43,9 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualCppMeta
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.WindowsRegistryVersionLocator;
+import org.gradle.nativeplatform.toolchain.internal.swift.CachingCompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.swift.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.swift.SwiftcVersionDeterminer;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class NativeBinaryServices extends AbstractPluginServiceRegistry {
@@ -66,6 +69,7 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new NativeDependencyResolverServices());
         registration.add(CompilerMetaDataProviderFactory.class);
+        registration.addProvider(new BuildScopeServices());
     }
 
     @Override
@@ -108,4 +112,11 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);
         }
     }
+
+    private static class BuildScopeServices {
+        CompilerMetaDataProvider createCompilerMetadataProvider(ExecActionFactory execActionFactory) {
+            return new CachingCompilerMetaDataProvider(new SwiftcVersionDeterminer(execActionFactory));
+        }
+    }
+
 }

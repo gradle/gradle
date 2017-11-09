@@ -36,7 +36,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
@@ -233,6 +235,20 @@ public class SwiftCompile extends DefaultTask {
     @InputFiles
     public ConfigurableFileCollection getModules() {
         return modules;
+    }
+
+    /**
+     * The compiler used, including the type and the version.
+     *
+     * @since 4.4
+     */
+    @Nested
+    protected CompilerVersion getCompilerVersion() {
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        VersionAwareCompiler<?> compiler = (VersionAwareCompiler<?>) toolProvider.newCompiler(SwiftCompileSpec.class);
+        return compiler.getVersion();
     }
 
     @TaskAction
