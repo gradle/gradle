@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -62,7 +61,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     private final WorkerLeaseService workerLeaseService;
     private final CompilerMetaDataProvider.CompilerType compilerType;
     private final GccVersionResult gccVersionResult;
-    private ImmutableList<File> systemIncludes;
 
     GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider.CompilerType compilerType, GccVersionResult gccVersionResult) {
         super(buildOperationExecutor, targetOperatingSystem);
