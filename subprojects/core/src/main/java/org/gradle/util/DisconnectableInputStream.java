@@ -95,13 +95,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                             lock.unlock();
                         }
 
-                        int nread = 0;
-
-                        try {
-                            nread = source.read(buffer, pos, buffer.length - pos);
-                        } catch (InterruptedIOException e) {
-                            // ignore
-                        }
+                        int nread = source.read(buffer, pos, buffer.length - pos);
 
                         lock.lock();
                         try {
@@ -182,12 +176,6 @@ public class DisconnectableInputStream extends BulkReadInputStream {
             condition.signalAll();
         } finally {
             lock.unlock();
-        }
-    }
-
-    public void stopInternalProcessing() {
-        if (!thread.isInterrupted()) {
-            thread.interrupt();
         }
     }
 }

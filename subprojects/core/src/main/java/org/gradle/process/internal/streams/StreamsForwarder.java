@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.streams;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
@@ -72,7 +73,11 @@ public class StreamsForwarder implements StreamsHandler {
 
             @Override
             public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
-                instr.stopInternalProcessing();
+                try {
+                    instr.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         });
     }
