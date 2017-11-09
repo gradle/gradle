@@ -23,9 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
@@ -51,7 +51,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def repo = new InMemoryCachedModuleComponentRepository(caches, delegate)
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", new DefaultMutableVersionConstraint("1.0"))
-    def dep = Stub(DependencyMetadata) { getRequested() >> selector }
+    def dep = Stub(ModuleDependencyMetadata) { getRequested() >> selector }
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
 

@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
@@ -57,11 +56,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this(id, componentIdentifier,
             ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
-            ImmutableList.<DependencyMetadata>of(),
+            ImmutableList.<ModuleDependencyMetadata>of(),
             ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))));
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurations, Collection<? extends DependencyMetadata> dependencies, Collection<? extends Artifact> artifacts) {
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurations, Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifacts) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
         this.configurations = toMap(configurations);
         this.artifactDefinitions = ImmutableList.copyOf(artifacts);

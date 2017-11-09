@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 
 import java.util.Collection;
@@ -34,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata extends AbstractDependencyMetadata {
+public abstract class DefaultDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleVersionSelector requested;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
@@ -103,7 +104,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
     }
 
     @Override
-    public DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         if (requestedVersion.equals(requested.getVersionConstraint())) {
             return this;
         }
@@ -128,10 +129,10 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
         }
     }
 
-    protected abstract DependencyMetadata withRequested(ModuleVersionSelector newRequested);
+    protected abstract ModuleDependencyMetadata withRequested(ModuleVersionSelector newRequested);
 
     @Override
-    public ComponentSelector getSelector() {
+    public ModuleComponentSelector getSelector() {
         return selector;
     }
 

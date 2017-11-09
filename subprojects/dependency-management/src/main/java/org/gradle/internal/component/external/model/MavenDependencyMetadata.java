@@ -28,7 +28,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.DefaultDependencyMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import java.util.Collection;
@@ -122,7 +121,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+    protected ModuleDependencyMetadata withRequested(ModuleVersionSelector newRequested) {
         return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), getExcludes());
     }
 

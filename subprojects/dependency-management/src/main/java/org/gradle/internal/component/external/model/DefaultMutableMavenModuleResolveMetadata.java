@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -62,10 +61,10 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<DependencyMetadata>of());
+        this(id, componentIdentifier, ImmutableList.<ModuleDependencyMetadata>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends DependencyMetadata> dependencies) {
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ModuleDependencyMetadata> dependencies) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
     }
 

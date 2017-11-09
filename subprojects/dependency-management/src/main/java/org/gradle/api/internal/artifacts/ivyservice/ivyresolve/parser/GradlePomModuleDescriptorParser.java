@@ -85,7 +85,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
+        List<ModuleDependencyMetadata> dependencies = mdBuilder.getDependencies();
         ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, cid, dependencies);

@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -64,10 +66,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     }
 
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetadata clientModuleMetaData) {
-        List<DependencyMetadata> dependencies = Lists.newArrayList();
+        List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
+            // TODO:DAZ Address this cast
             DependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getTargetConfiguration(), null, moduleDependency);
-            dependencies.add(dependencyMetadata);
+            dependencies.add(new ModuleDependencyMetadataWrapper(dependencyMetadata));
         }
         clientModuleMetaData.setDependencies(dependencies);
     }

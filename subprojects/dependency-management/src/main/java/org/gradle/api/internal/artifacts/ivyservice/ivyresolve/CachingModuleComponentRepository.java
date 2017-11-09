@@ -36,6 +36,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -136,7 +137,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (result.hasResult()) {
@@ -341,7 +342,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:

@@ -47,7 +47,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     // This should live in a decorator rather than here
     @Nullable
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
-    private final List<? extends DependencyMetadata> dependencies;
+    private final List<? extends ModuleDependencyMetadata> dependencies;
     private final HashValue contentHash;
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
@@ -155,7 +155,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
         return dependencies;
     }
 
