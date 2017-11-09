@@ -17,10 +17,12 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.artifacts.configurations.ResolveDependenciesBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationFinishEvent;
 
+import java.util.HashMap;
 import java.util.Map;
 
 class SerializedOperationFinish {
@@ -37,9 +39,19 @@ class SerializedOperationFinish {
     SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
         this.id = ((OperationIdentifier) descriptor.getId()).getId();
         this.endTime = finishEvent.getEndTime();
-        this.result = finishEvent.getResult();
+        this.result = transform(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
+    }
+
+    private Object transform(Object details) {
+        if (details != null && ResolveDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            ResolveDependenciesBuildOperationType.Result result = (ResolveDependenciesBuildOperationType.Result) details;
+            map.put("resolvedDependenciesCount", result.getRootComponent().getDependencies().size());
+            return map;
+        }
+        return details;
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

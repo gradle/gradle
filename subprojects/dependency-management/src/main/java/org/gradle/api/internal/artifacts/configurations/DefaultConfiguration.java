@@ -42,6 +42,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
@@ -97,6 +98,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
+import org.gradle.util.TextUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -466,7 +468,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependencies incoming = getIncoming();
+                final ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
                 cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
@@ -480,11 +482,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+                context.setResult(new ResolveDependenciesBuildOperationType.Result() {
+                    @Override
+                    public ResolvedComponentResult getRootComponent() {
+                        return incoming.getResolutionResult().getRoot();
+                    }
+                });
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath).progressDisplayName("Resolve dependencies " + identityPath);
+                String displayName = "Resolve dependencies of " + identityPath;
+                return BuildOperationDescriptor.displayName(displayName)
+                    .progressDisplayName(displayName)
+                    .details(new OperationDetails(DefaultConfiguration.this.getPath(),
+                        DefaultConfiguration.this.getDescription(),
+                        getBuildPath(),
+                        DefaultConfiguration.this.isVisible(),
+                        DefaultConfiguration.this.isTransitive())
+                    );
+            }
+
+            private String getBuildPath() {
+                String buildPath = TextUtil.minus(DefaultConfiguration.this.getIdentityPath().getPath(), DefaultConfiguration.this.getPath());
+                return buildPath.isEmpty() ? ":" : buildPath;
             }
         });
     }
@@ -1289,4 +1310,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private static class OperationDetails implements ResolveDependenciesBuildOperationType.Details {
+
+        final String configurationPath;
+        final String configurationDescription;
+        final String buildPath;
+        final boolean configurationVisible;
+        final boolean configurationTransitive;
+
+        private OperationDetails(String configurationPath, String configurationDescription, String buildPath, boolean configurationVisible, boolean configurationTransitive) {
+            this.configurationPath = configurationPath;
+            this.configurationDescription = configurationDescription;
+            this.buildPath = buildPath;
+            this.configurationVisible = configurationVisible;
+            this.configurationTransitive = configurationTransitive;
+        }
+
+        @Override
+        public String getConfigurationPath() {
+            return configurationPath;
+        }
+
+        @Override
+        public String getConfigurationDescription() {
+            return configurationDescription;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Override
+        public boolean isConfigurationVisible() {
+            return configurationVisible;
+        }
+
+        @Override
+        public boolean isConfigurationTransitive() {
+            return configurationTransitive;
+        }
+    }
 }
