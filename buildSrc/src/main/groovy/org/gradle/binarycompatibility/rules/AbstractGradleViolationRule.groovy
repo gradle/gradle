@@ -132,8 +132,12 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
-        Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
         List<String> changes = member.compatibilityChanges.collect { Violation.describe(it) }
+        return acceptOrReject(member, changes, rejection)
+    }
+
+    Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
+        Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
         def change = new ApiChange(
             context.className,
             Violation.describe(member),
