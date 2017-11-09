@@ -24,6 +24,30 @@ public interface BinaryInfo {
     ArchitectureInternal getArch();
     List<String> listObjectFiles();
     List<String> listLinkedLibraries();
-    List<String> listSymbols();
+    List<Symbol> listSymbols();
     String getSoName();
+
+    class Symbol {
+        private final char type;
+        private final String name;
+        private final boolean exported;
+
+        public Symbol(String name, char type, boolean exported) {
+            this.type = type;
+            this.name = name;
+            this.exported = exported;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public char getType() {
+            return type;
+        }
+
+        public boolean isExported() {
+            return exported;
+        }
+    }
 }

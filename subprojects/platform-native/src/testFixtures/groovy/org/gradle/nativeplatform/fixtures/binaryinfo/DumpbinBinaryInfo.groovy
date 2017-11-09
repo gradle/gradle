@@ -94,7 +94,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         return process.inputStream.readLines()
     }
 
-    List<String> listSymbols() {
+    List<BinaryInfo.Symbol> listSymbols() {
         throw new UnsupportedOperationException("Not yet implemented")
     }
 

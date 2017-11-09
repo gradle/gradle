@@ -1,4 +1,0 @@
-plugins {
-    id 'swift-library'
-    id 'xctest'
-}

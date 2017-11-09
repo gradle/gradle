@@ -335,6 +335,6 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
-        assert !binary.binaryInfo.listSymbols().contains('_main')
+        assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
     }
 }

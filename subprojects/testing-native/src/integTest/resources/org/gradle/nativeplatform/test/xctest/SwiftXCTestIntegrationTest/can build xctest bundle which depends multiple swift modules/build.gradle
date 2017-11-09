@@ -1,8 +1,0 @@
-plugins {
-    id 'swift-executable'
-    id 'xctest'
-}
-
-dependencies {
-    implementation project('greeter')
-}
