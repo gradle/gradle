@@ -306,7 +306,7 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
     def "can test public and internal features of a Swift executable with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
-        def test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply).withInfoPlist()
+        def test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply)
         settingsFile << "rootProject.name = '${main.projectName}'"
         buildFile << """
 apply plugin: 'swift-executable'
