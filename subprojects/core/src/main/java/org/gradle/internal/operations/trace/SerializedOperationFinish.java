@@ -45,12 +45,6 @@ class SerializedOperationFinish {
     }
 
     private Object transform(Object details) {
-        /**
-         * TODO verify if relying on reflection or shuffling around dependencies makes most sense here.
-         * Avoiding referencing ResolveDependenciesBuildOperationType here as this brings dependency to
-         * dependencyManagement to core.
-         * Probably tracing should live somewhere else as this could be a recurring problem.
-         * */
         if (details != null && ResolveDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
             Map<String, Object> map = new HashMap<String, Object>();
             ResolveDependenciesBuildOperationType.Result result = (ResolveDependenciesBuildOperationType.Result) details;
