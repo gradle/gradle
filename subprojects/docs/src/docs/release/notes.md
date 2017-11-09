@@ -180,7 +180,7 @@ Gradle has been upgraded to embed Ant 1.9.9 over Ant 1.9.6.
 
 ### Avoid checking other repositories when dependency resolution in one repository fails with HTTP status code in the 500 range
 
-The HTTP status codes 500-511 can be considered unrecoverable server states. Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository similar to timeout issues introduced in Gradle 4.3.
+The HTTP status codes 5xx can be considered unrecoverable server states. Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository similar to timeout issues introduced in Gradle 4.3.
 
 ### The type of `pluginManagement.repositories` changed
 
