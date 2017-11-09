@@ -26,55 +26,147 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
     CompilationOutputsFixture outputs
 
     def setup() {
-        outputs = new CompilationOutputsFixture(file("build/classes"))
+        outputs = new CompilationOutputsFixture(file("app/build/classes"))
+        createBothProcessors()
     }
 
-    def "presence of non-incremental AP should preclude incremental build"() {
-        given:
-        incapProject()
+    def "build should be incremental when all APs are incremental"() {
+        appWithIncapProcessorOnly()
+        outputs.snapshot { run "compileJava" }
 
         when:
         succeeds 'app:compileJava'
 
         then:
-        executedAndNotSkipped ':inc:compileJava'
-        executedAndNotSkipped ':noninc:compileJava'
+        file('app/build/generated-sources/AppIncremental.java').exists()
+        !file('app/build/generated-sources/AppNonIncremental.java').exists()
 
-        // TODO:  Why are these files not being generated on clean build?
+        when:
+        // Modify main source file.  Would normally be incremental.
+        file('app/src/main/java/App.java').text = "@Incremental class App { /*change*/ }"
+        succeeds 'app:compileJava'
+
+        then:
+        skipped ':inc:compileJava'
+
+        // Verify that it was incremental (B not recompiled).
+        outputs.recompiledClasses 'App', 'AppIncremental'
+    }
+
+    def "presence of non-incremental AP should force non-incremental build"() {
+        appWithBothProcessors()
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        succeeds 'app:compileJava'
+
+        then:
         file('app/build/generated-sources/AppIncremental.java').exists()
         file('app/build/generated-sources/AppNonIncremental.java').exists()
 
-
         when:
         // Trivial reformatting of the main source file.  Would normally be incremental.
-        file('app/src/main/java/App.java').text = "@Incremental @NonIncremental class App {}"
+        file('app/src/main/java/App.java').text = "@Incremental @NonIncremental class App { /*change*/ }"
         succeeds 'app:compileJava'
 
         then:
         skipped ':inc:compileJava'
         skipped ':noninc:compileJava'
 
-        //   - verify that it was NON-incremental, but that :app was rebuilt:
-        ///    - output should warn about nonIncapProcessor being non-incremental
-
-        // Other tests:
-        // when:
-        //   - change app/build.gradle to remove @NonIncremental annotationProcessor
-        //   - verify that the output says "all annotation processors are incremental"
-
-        // Add a test to verify correct behavior for Issue #105.
-
+        // Verify app was rebuilt non-incrementally.
+        outputs.recompiledClasses 'App', 'B', 'AppNonIncremental', 'AppIncremental'
     }
 
-    private void incapProject() {
+    def "deleting an annotation should delete its generated file"() {
+        appWithBothProcessors()
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file('app/src/main/java/App.java').text = "@Incremental class App { /*removed annotation*/ }"
+        succeeds 'app:compileJava'
+
+        then:
+        outputs.deletedClasses 'AppNonIncremental'
+    }
+
+    private void createBothProcessors() {
         file('settings.gradle') << "include 'inc'\n"
         new IncrementalAnnotationProcessorFixture().writeLibraryTo(file('inc'))
         file('settings.gradle') << "include 'noninc'\n"
         new NonIncrementalAnnotationProcessorFixture().writeLibraryTo(file('noninc'))
-        appWithIncap()
     }
 
-    private void appWithIncap() {
+    private void appWithBothProcessors() {
+        incrementalBuild()
+
+        subproject('app') {
+            'build.gradle'("""
+                ${buildDotGradleSansDeps()}
+                dependencies {
+                  compile project(':inc')
+                  compile project(':noninc')
+                  annotationProcessor project(':inc')
+                  annotationProcessor project(':noninc')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'App.java'("@Incremental @NonIncremental class App {}")
+                        'B.java'("class B {}")
+                    }
+                }
+            }
+        }
+    }
+
+    private void appWithIncapProcessorOnly() {
+        incrementalBuild()
+
+        subproject('app') {
+            'build.gradle'("""
+                ${buildDotGradleSansDeps()}
+                dependencies {
+                  compile project(':inc')
+                  annotationProcessor project(':inc')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'App.java'("@Incremental class App {}")
+                        'B.java'("class B {}")
+                    }
+                }
+            }
+        }
+    }
+
+    private String buildDotGradleSansDeps() {
+        """
+        apply plugin: 'java'
+
+        configurations {
+          annotationProcessor
+        }
+
+        repositories {
+          maven {
+            url 'https://dl.bintray.com/incap/incap'
+          }
+        }
+
+        compileJava {
+          // Use forking to work around javac's jar cache.
+          // (But comment this out to debug the integration test.)
+          //options.fork = true
+          options.annotationProcessorPath = configurations.annotationProcessor
+          options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+        }
+        """
+    }
+
+    private void incrementalBuild() {
         file('build.gradle') << """
             allprojects {
                 tasks.withType(JavaCompile) {
@@ -82,51 +174,8 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-
-        subproject('app') {
-            'build.gradle'("""
-                apply plugin: 'java'
-
-                configurations {
-                  annotationProcessor
-                }
-
-                repositories {
-                  maven {
-                    url 'https://dl.bintray.com/incap/incap'
-                  }
-                }
-
-                dependencies {
-                  compile project(':inc')
-                  compile project(':noninc')
-                  annotationProcessor project(':inc')
-                  annotationProcessor project(':noninc')
-                }
-
-                compileJava {
-                  // Use forking to work around javac's jar cache.
-                  // (But comment this out to debug the integration test.)
-                  //options.fork = true
-                  options.annotationProcessorPath = configurations.annotationProcessor
-                  options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
-                }
-            """)
-            src {
-                main {
-                    java {
-                        'App.java'("""
-                           @Incremental
-                           @NonIncremental
-                           class App { }
-                         """)
-                    }
-                }
-            }
-        }
     }
 
-    // TODO:  This is copied from CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest.groovy.
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)

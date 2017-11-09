@@ -25,10 +25,12 @@ import org.gradle.test.fixtures.file.TestFile
  */
 class IncrementalAnnotationProcessorFixture {
 
+    final String INCAP_VERSION = 'org.gradle.incap:incap-ap-client:0.0.4'
+
     String annotationFileName = 'src/main/java/Incremental.java'
     String processorClassName = 'src/main/java/IncapProcessor.java'
-    String serviceFileName = 'src/main/resoures/META-INF/services/javax.annotation.processing.Processor'
-    String incapTagFileName = 'src/main/resoures/META-INF/incap'
+    String serviceFileName = 'src/main/resources/META-INF/services/javax.annotation.processing.Processor'
+    String incapTagFileName = 'src/main/resources/META-INF/incap'
 
     def writeLibraryTo(TestFile projectDir) {
         writeBuildFile(projectDir)
@@ -49,7 +51,7 @@ class IncrementalAnnotationProcessorFixture {
         }
 
         dependencies {
-          api 'org.gradle.incap:incap-ap-client:0.0.4'
+          api '$INCAP_VERSION'
         }
         """
     }

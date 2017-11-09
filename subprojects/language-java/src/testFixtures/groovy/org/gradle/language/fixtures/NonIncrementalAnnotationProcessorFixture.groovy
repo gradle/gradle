@@ -27,7 +27,7 @@ class NonIncrementalAnnotationProcessorFixture {
 
     String annotationFileName = 'src/main/java/NonIncremental.java'
     String processorClassName = 'src/main/java/NonIncapProcessor.java'
-    String serviceFileName = 'src/main/resources/META-INF/javax.annotation.processing.Processor'
+    String serviceFileName = 'src/main/resources/META-INF/services/javax.annotation.processing.Processor'
 
     def writeLibraryTo(TestFile projectDir) {
         projectDir.file('build.gradle').text = "apply plugin: 'java-library'"
