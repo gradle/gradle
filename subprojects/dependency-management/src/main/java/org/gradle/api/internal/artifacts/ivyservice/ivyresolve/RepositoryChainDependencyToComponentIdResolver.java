@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
@@ -53,19 +55,31 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
             VersionConstraint raw = module.getVersionConstraint();
-            ResolvedVersionConstraint resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
-            VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
-            if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(dependency, preferredSelector, result);
+            if (StringUtils.isEmpty(raw.getPreferredVersion())) {
+                resolveWithMissingVersionFailure(result, module);
             } else {
-                String version = raw.getPreferredVersion();
-                DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
-                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, version);
-                result.resolved(id, mvId);
+                maybeResolveWithResolvedVersionConstraint(dependency, targetModuleId, result, module, raw);
             }
-            if (result.hasResult()) {
-                result.setResolvedVersionConstraint(resolvedVersionConstraint);
-            }
+        }
+    }
+
+    private void resolveWithMissingVersionFailure(BuildableComponentIdResolveResult result, ModuleComponentSelector module) {
+        result.failed(new ModuleVersionResolveException(module, "No version specified for " + module.getGroup() + ":" + module.getModule()));
+    }
+
+    private void maybeResolveWithResolvedVersionConstraint(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result, ModuleComponentSelector module, VersionConstraint raw) {
+        ResolvedVersionConstraint resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
+        VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
+        if (preferredSelector.isDynamic()) {
+            dynamicRevisionResolver.resolve(dependency, preferredSelector, result);
+        } else {
+            String version = raw.getPreferredVersion();
+            DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
+            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, version);
+            result.resolved(id, mvId);
+        }
+        if (result.hasResult()) {
+            result.setResolvedVersionConstraint(resolvedVersionConstraint);
         }
     }
 
