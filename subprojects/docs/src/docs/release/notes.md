@@ -196,6 +196,7 @@ We would like to thank the following community members for making contributions 
 
 - [Lucas Smaira](https://github.com/lsmaira) - Support parametrized Tooling model builders (gradle/gradle#2729)
 - [Kyle Moore](https://github.com/DPUkyle) - Updated Gosu plugin to fix API breakage (gradle/gradle#3115)
+- [Kyle Moore](https://github.com/DPUkyle) - Filter non-file URLs when getting classpath from `ClassLoader` (gradle/gradle#3224)
 - [Jaci Brunning](https://github.com/JacisNonsense) - Support for overriding target platforms on Gcc toolchains (gradle/gradle#3124)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
