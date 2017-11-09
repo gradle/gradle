@@ -48,9 +48,9 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
-import org.gradle.nativeplatform.test.xctest.SwiftTestExecutable;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
-import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftTestExecutable;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
@@ -113,7 +113,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, SwiftXCTestSuite testSuite) {
         TaskContainer tasks = project.getTasks();
-        final SwiftTestExecutable binary = testSuite.getTestExecutable();
+        final SwiftXCTestBinary binary = testSuite.getTestExecutable();
         final Names names = Names.of(binary.getName());
         SwiftCompile compile = (SwiftCompile) tasks.getByName(names.getCompileTaskName("swift"));
         final AbstractLinkTask link;
@@ -144,10 +144,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             InstallXCTestBundle install = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            install.getBundleBinaryFile().set(binary.getExecutableFile());
+            install.getBundleBinaryFile().set(binary.getExecutableTestFile());
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
-            ((DefaultSwiftTestExecutable)binary).getInstallDirectory().set(install.getInstallDirectory());
-            ((DefaultSwiftTestExecutable)binary).getRunScriptFile().set(install.getRunScriptFile());
+            ((DefaultSwiftXCTestBinary)binary).getInstallDirectory().set(install.getInstallDirectory());
+            ((DefaultSwiftXCTestBinary)binary).getRunScriptFile().set(install.getRunScriptFile());
         } else {
             link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
 
@@ -155,10 +155,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             install.setPlatform(currentPlatform);
             install.setToolChain(toolChain);
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
-            install.getSourceFile().set(binary.getExecutableFile());
+            install.getSourceFile().set(binary.getExecutableTestFile());
             install.lib(binary.getRuntimeLibraries());
-            ((DefaultSwiftTestExecutable)binary).getInstallDirectory().set(install.getInstallDirectory());
-            ((DefaultSwiftTestExecutable)binary).getRunScriptFile().set(install.getRunScriptFile());
+            ((DefaultSwiftXCTestBinary)binary).getInstallDirectory().set(install.getInstallDirectory());
+            ((DefaultSwiftXCTestBinary)binary).getRunScriptFile().set(install.getRunScriptFile());
         }
 
         link.source(binary.getObjects());
@@ -175,7 +175,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         link.setToolChain(toolChain);
         link.setDebuggable(binary.isDebuggable());
 
-        ((DefaultSwiftTestExecutable)binary).getExecutableFile().set(link.getBinaryFile());
+        ((DefaultSwiftXCTestBinary)binary).getExecutableTestFile().set(link.getBinaryFile());
     }
 
     private static Task createTestingTask(final Project project, SwiftXCTestSuite testSuite) {
@@ -183,7 +183,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         final XcTest testTask = tasks.create("xcTest", XcTest.class);
 
-        SwiftTestExecutable binary = testSuite.getDevelopmentBinary();
+        SwiftXCTestBinary binary = testSuite.getDevelopmentBinary();
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
         testTask.getRunScriptFile().set(binary.getRunScriptFile());
         testTask.getWorkingDirectory().set(binary.getInstallDirectory());
@@ -225,7 +225,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
                 // Connect test suite with tested component
-                ((DefaultSwiftXCTestSuite)testSuite).setTestedComponent(testedComponent);
+                ((DefaultSwiftXCTestSuite)testSuite).getTestedComponent().set(testedComponent);
 
                 // Configure test suite compile task from tested component compile task
                 SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");

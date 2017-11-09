@@ -25,17 +25,17 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.nativeplatform.test.xctest.SwiftTestExecutable;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftTestExecutable extends DefaultSwiftBinary implements SwiftTestExecutable {
+public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
 
     @Inject
-    public DefaultSwiftTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
@@ -43,7 +43,7 @@ public class DefaultSwiftTestExecutable extends DefaultSwiftBinary implements Sw
     }
 
     @Override
-    public RegularFileProperty getExecutableFile() {
+    public RegularFileProperty getExecutableTestFile() {
         return executableFile;
     }
 

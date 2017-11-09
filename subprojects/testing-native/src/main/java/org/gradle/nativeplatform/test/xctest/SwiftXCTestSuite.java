@@ -32,12 +32,12 @@ public interface SwiftXCTestSuite extends SwiftComponent {
      * For test suites, this is the test executable binary.
      */
     @Override
-    SwiftTestExecutable getDevelopmentBinary();
+    SwiftXCTestBinary getDevelopmentBinary();
 
     /**
      * Returns the executable that will be executed to run the tests.
      *
      * @since 4.4
      */
-    SwiftTestExecutable getTestExecutable();
+    SwiftXCTestBinary getTestExecutable();
 }

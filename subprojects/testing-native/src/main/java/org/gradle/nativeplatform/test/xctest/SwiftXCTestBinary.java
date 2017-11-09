@@ -23,18 +23,18 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftBinary;
 
 /**
- * An test executable built from Swift source.
+ * An test binary built from Swift source.
  *
  * @since 4.4
  */
 @Incubating
-public interface SwiftTestExecutable extends SwiftBinary {
+public interface SwiftXCTestBinary extends SwiftBinary {
     /**
-     * Returns the executable file for this binary.
+     * Returns the executable test file for this binary.
      *
      * @since 4.4
      */
-    Provider<RegularFile> getExecutableFile();
+    Provider<RegularFile> getExecutableTestFile();
 
     /**
      * Returns the installation directory for this binary.
