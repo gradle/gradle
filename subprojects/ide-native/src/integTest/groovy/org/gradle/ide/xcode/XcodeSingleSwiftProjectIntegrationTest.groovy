@@ -88,7 +88,6 @@ apply plugin: 'swift-library'
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can create xcode project for Swift executable with xctest"() {
         given:
         buildFile << """
@@ -121,7 +120,6 @@ apply plugin: 'xctest'
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can create xcode project for Swift library and xctest"() {
         given:
         buildFile << """
