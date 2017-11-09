@@ -27,8 +27,9 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
@@ -68,9 +69,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetadata clientModuleMetaData) {
         List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
-            // TODO:DAZ Address this cast
-            DependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getTargetConfiguration(), null, moduleDependency);
-            dependencies.add(new ModuleDependencyMetadataWrapper(dependencyMetadata));
+            ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(moduleDependency);
+            dependencies.add(dependencyMetadata);
         }
         clientModuleMetaData.setDependencies(dependencies);
     }
@@ -78,5 +78,27 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     private void setClientModuleArtifact(MutableModuleComponentResolveMetadata clientModuleMetaData) {
         ModuleComponentArtifactMetadata artifact = clientModuleMetaData.artifact("jar", "jar", null);
         clientModuleMetaData.setArtifactOverrides(ImmutableSet.of(artifact));
+    }
+
+    private ModuleDependencyMetadata createDependencyMetadata(ModuleDependency moduleDependency) {
+        LocalOriginDependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getTargetConfiguration(), null, moduleDependency);
+        if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
+            return new ClientModuleDependencyMetadataWrapper((DslOriginDependencyMetadata) dependencyMetadata);
+        }
+        return new ModuleDependencyMetadataWrapper(dependencyMetadata);
+    }
+
+    private static class ClientModuleDependencyMetadataWrapper extends ModuleDependencyMetadataWrapper implements DslOriginDependencyMetadata {
+        private final DslOriginDependencyMetadata delegate;
+
+        private ClientModuleDependencyMetadataWrapper(DslOriginDependencyMetadata delegate) {
+            super(delegate);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public ModuleDependency getSource() {
+            return delegate.getSource();
+        }
     }
 }
