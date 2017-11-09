@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
@@ -26,5 +25,5 @@ public interface DependencyToComponentIdResolver {
      *
      * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
      */
-    void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result);
+    void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result);
 }

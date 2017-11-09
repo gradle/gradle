@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -50,7 +50,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
@@ -61,8 +61,8 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, result);
             } else {
                 String version = raw.getPreferredVersion();
-                DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
-                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, version);
+                ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
+                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
                 result.resolved(id, mvId);
             }
             if (result.hasResult()) {
