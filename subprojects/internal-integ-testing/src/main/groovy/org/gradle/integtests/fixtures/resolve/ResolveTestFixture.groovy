@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assert
-
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -51,13 +51,13 @@ class ResolveTestFixture {
     /**
      * Injects the appropriate stuff into the build script.
      */
-    void prepare() {
+    void prepare(String existingScript = '') {
         def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
         buildFile << """
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
-
+$existingScript
 allprojects {
     tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
@@ -67,6 +67,10 @@ allprojects {
     }
 }
 """
+    }
+
+    def getResultFile() {
+        buildFile.parentFile.file("build/${config}.txt")
     }
 
     /**
@@ -82,7 +86,7 @@ allprojects {
             throw new IllegalArgumentException("No root node defined")
         }
 
-        def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
+        def configDetailsFile = getResultFile()
         def configDetails = configDetailsFile.text.readLines()
 
         def actualRoot = findLines(configDetails, 'root').first()
@@ -515,8 +519,11 @@ allprojects {
 }
 
 class GenerateGraphTask extends DefaultTask {
+    @Internal
     File outputFile
+    @Internal
     Configuration configuration
+    @Internal
     boolean buildArtifacts
 
     @TaskAction
