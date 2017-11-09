@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -40,7 +40,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -126,8 +125,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         throw new UnsupportedOperationException();
     }
 
-    private ModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
-        return moduleIdentifierFactory.module(requested.getGroup(), requested.getName());
+    private ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
+        return moduleIdentifierFactory.module(requested.getGroup(), requested.getModule());
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -147,8 +146,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             listModuleVersionsFromCache(dependency, result);
         }
 
-        private void listModuleVersionsFromCache(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            ModuleVersionSelector requested = dependency.getRequested();
+        private void listModuleVersionsFromCache(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+            ModuleComponentSelector requested = dependency.getSelector();
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
@@ -346,7 +345,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
+                    ModuleIdentifier moduleId = getCacheKey(dependency.getSelector());
                     Set<String> versionList = result.getVersions();
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;

@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.vcs;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -123,8 +124,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {
         // TODO: Only perform source dependency resolution when version == latest.integration for now
-        if (vcsMappingsInternal.hasRules() && dependency.getRequested().getVersionConstraint().getPreferredVersion().equals("latest.integration")) {
-            return vcsMappingFactory.create(dependency.getSelector(), dependency.getRequested());
+        if (vcsMappingsInternal.hasRules()
+                && dependency.getSelector() instanceof ModuleComponentSelector
+                && ((ModuleComponentSelector) dependency.getSelector()).getVersionConstraint().getPreferredVersion().equals("latest.integration")) {
+            return vcsMappingFactory.create(dependency.getSelector());
         }
         return null;
     }

@@ -52,7 +52,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + getRequested() + ", scope: " + scope + ", optional: " + isOptional();
+        return "dependency: " + getSelector() + ", scope: " + scope + ", optional: " + isOptional();
     }
 
     public MavenScope getScope() {

@@ -34,7 +34,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def localArtifactsCache = Mock(InMemoryArtifactsCache)
@@ -51,7 +51,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def repo = new InMemoryCachedModuleComponentRepository(caches, delegate)
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", new DefaultMutableVersionConstraint("1.0"))
-    def dep = Stub(ModuleDependencyMetadata) { getRequested() >> selector }
+    def dep = Stub(ModuleDependencyMetadata) { getSelector() >> selector }
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
 

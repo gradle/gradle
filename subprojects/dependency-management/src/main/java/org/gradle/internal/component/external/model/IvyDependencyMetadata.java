@@ -62,7 +62,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + getRequested() + ", confs: " + confs;
+        return "dependency: " + getSelector() + ", confs: " + confs;
     }
 
     @Override

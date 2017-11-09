@@ -17,8 +17,11 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,6 +32,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetadata {
+    private static final Transformer<String, String> VERSION_TRANSFORMER = new IvyVersionTransformer();
     private final ModuleComponentIdentifier id;
     private final String status;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
@@ -104,10 +109,13 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
      * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
      */
     private static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
-        String version = dependency.getRequested().getVersionConstraint().getPreferredVersion();
-        if (version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
-            String normalizedVersion = version.substring(1, version.length() - 1);
-            return dependency.withRequestedVersion(new DefaultImmutableVersionConstraint(normalizedVersion));
+        if (dependency.getSelector() instanceof ModuleComponentSelector) {
+            VersionConstraint versionConstraint = ((ModuleComponentSelector) dependency.getSelector()).getVersionConstraint();
+            DefaultImmutableVersionConstraint transformedConstraint =
+                new DefaultImmutableVersionConstraint(
+                    VERSION_TRANSFORMER.transform(versionConstraint.getPreferredVersion()),
+                    CollectionUtils.collect(versionConstraint.getRejectedVersions(), VERSION_TRANSFORMER));
+            return dependency.withRequestedVersion(transformedConstraint);
         }
         return dependency;
     }
@@ -155,5 +163,15 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     @Override
     public void addFiles(String configuration, LocalFileDependencyMetadata files) {
         // Ignore
+    }
+
+    private static class IvyVersionTransformer implements Transformer<String, String> {
+        @Override
+        public String transform(String version) {
+            if (version != null && version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
+                return version.substring(1, version.length() - 1);
+            }
+            return version;
+        }
     }
 }

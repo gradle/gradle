@@ -121,7 +121,7 @@ public class StartParameterResolutionOverride {
 
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            result.failed(new ModuleVersionResolveException(dependency.getRequested(), String.format("No cached version listing for %s available for offline mode.", dependency.getRequested())));
+            result.failed(new ModuleVersionResolveException(dependency.getSelector(), String.format("No cached version listing for %s available for offline mode.", dependency.getSelector())));
         }
 
         @Override

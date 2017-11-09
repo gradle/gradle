@@ -16,9 +16,8 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 public interface VcsMappingFactory {
-    VcsMappingInternal create(ComponentSelector selector, ModuleVersionSelector requested);
+    VcsMappingInternal create(ComponentSelector selector);
 }

@@ -83,9 +83,9 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
 
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            if (!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
+            if (!metaDataCache.supplyModuleVersions(dependency.getSelector(), result)) {
                 super.listModuleVersions(dependency, result);
-                metaDataCache.newModuleVersions(dependency.getRequested(), result);
+                metaDataCache.newModuleVersions(dependency.getSelector(), result);
             }
         }
 

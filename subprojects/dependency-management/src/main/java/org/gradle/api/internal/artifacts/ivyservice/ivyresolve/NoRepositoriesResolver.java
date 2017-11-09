@@ -66,7 +66,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Override
     public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
-        result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
+        result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector())));
     }
 
     @Override

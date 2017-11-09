@@ -21,8 +21,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -76,7 +76,7 @@ public class DynamicVersionResolver {
     }
 
     public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, BuildableComponentIdResolveResult result) {
-        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleComponentSelector requested = dependency.getSelector();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
@@ -102,7 +102,7 @@ public class DynamicVersionResolver {
         }
     }
 
-    private void notFound(BuildableComponentIdResolveResult result, ModuleVersionSelector requested, List<RepositoryResolveState> resolveStates) {
+    private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
         Set<String> unmatchedVersions = new LinkedHashSet<String>();
         Set<String> rejectedVersions = new LinkedHashSet<String>();
         for (RepositoryResolveState resolveState : resolveStates) {
@@ -306,13 +306,13 @@ public class DynamicVersionResolver {
         private boolean searchedRemotely;
         private final DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
 
-        public CandidateResult(DependencyMetadata dependencyMetadata, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector) {
+        public CandidateResult(ModuleDependencyMetadata dependencyMetadata, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector) {
             this.dependencyMetadata = dependencyMetadata;
             this.version = VersionParser.INSTANCE.transform(version);
             this.repository = repository;
             this.attemptCollector = attemptCollector;
-            ModuleVersionSelector requested = dependencyMetadata.getRequested();
-            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), version);
+            ModuleComponentSelector requested = dependencyMetadata.getSelector();
+            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getModule(), version);
         }
 
         @Override

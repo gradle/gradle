@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -210,7 +211,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return parsePomResource(parseContext, localResource, childProperties);
     }
 
-    private DependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
+    private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
         ModuleVersionSelector versionSelector = DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
         return new MavenDependencyMetadata(MavenScope.Compile, false, versionSelector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
     }
