@@ -1306,14 +1306,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private static class OperationDetails implements ResolveDependenciesBuildOperationType.Details {
 
-        final String configurationName;
+        final String configurationPath;
         final String configurationDescription;
         final String buildPath;
         final boolean configurationVisible;
         final boolean configurationTransitive;
 
         private OperationDetails(String configurationPath, String configurationDescription, String buildPath, boolean configurationVisible, boolean configurationTransitive) {
-            this.configurationName = configurationPath;
+            this.configurationPath = configurationPath;
             this.configurationDescription = configurationDescription;
             this.buildPath = buildPath;
             this.configurationVisible = configurationVisible;
@@ -1322,7 +1322,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public String getConfigurationPath() {
-            return null;
+            return configurationPath;
         }
 
         @Override

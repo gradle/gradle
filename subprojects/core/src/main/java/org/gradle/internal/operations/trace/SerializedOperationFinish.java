@@ -17,6 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.artifacts.configurations.ResolveDependenciesBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationFinishEvent;
@@ -50,9 +51,10 @@ class SerializedOperationFinish {
          * dependencyManagement to core.
          * Probably tracing should live somewhere else as this could be a recurring problem.
          * */
-        if (details.getClass().getSimpleName().equals("ResolveDependenciesBuildOperationType.Result")) {
+        if (details != null && ResolveDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
             Map<String, Object> map = new HashMap<String, Object>();
-            // TODO add valuable information here
+            ResolveDependenciesBuildOperationType.Result result = (ResolveDependenciesBuildOperationType.Result) details;
+            map.put("resolvedDependenciesCount", result.getRootComponent().getDependencies().size());
             return map;
         }
         return details;
