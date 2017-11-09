@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
@@ -48,8 +49,13 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         app.main.writeToProject(project)
     }
 
-    def 'compilation can be cached'() {
+    @Unroll
+    def 'compilation can be cached (#buildType, flagRequired: #flagRequired)'() {
         setupProject()
+
+        if (flagRequired) {
+            enableExperimentalNativeCaching()
+        }
 
         when:
         withBuildCache().run compileTask(buildType)
@@ -65,7 +71,15 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
 
         where:
-        buildType << [debug, release]
+        buildType | flagRequired
+        debug | true
+        release | false
+    }
+
+    private enableExperimentalNativeCaching() {
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.caching.native=true")
+        }
     }
 
     def "compilation task is relocatable for release"() {
@@ -103,22 +117,17 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
     }
 
-    def "compilation is not relocatable for debug"() {
-        def originalLocation = file('original-location')
-        def newLocation = file('new-location')
-        setupProject(originalLocation)
-        setupProject(newLocation)
+    def "compilation is not cacheable for debug without the experimental flag"() {
+        setupProject()
 
         when:
-        inDirectory(originalLocation)
         withBuildCache().run compileTask(debug)
 
         then:
         compileIsNotCached(debug)
 
         when:
-        executer.inDirectory(newLocation)
-        withBuildCache().run compileTask(debug)
+        withBuildCache().run 'clean', compileTask(debug)
 
         then:
         compileIsNotCached(debug)

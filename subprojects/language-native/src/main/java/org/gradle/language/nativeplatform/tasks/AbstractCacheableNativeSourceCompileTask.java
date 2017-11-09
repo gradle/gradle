@@ -20,9 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -55,35 +52,21 @@ public abstract class AbstractCacheableNativeSourceCompileTask extends AbstractN
                 return compilerVersion == null;
             }
         });
+        getOutputs().doNotCacheIf("Debug is enabled", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return isDebuggable() && !Boolean.getBoolean("org.gradle.caching.native");
+            }
+        });
     }
 
     /**
      * {@inheritDoc}
      */
-    @Internal
     @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return super.getSource();
-    }
-
-    /**
-     * Returns the source files to be compiled.
-     */
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @Optional
-    protected ConfigurableFileCollection getSourceRelative() {
-        return isDebuggable() ? null : getSource();
-    }
-
-    /**
-     * Returns the source files to be compiled.
-     */
-    @InputFiles
-    @PathSensitive(PathSensitivity.ABSOLUTE)
-    @Optional
-    protected ConfigurableFileCollection getSourceAbsolute() {
-        return isDebuggable() ? getSource() : null;
     }
 
 }
