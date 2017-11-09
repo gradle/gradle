@@ -51,12 +51,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canNestModules() throws IOException {
-        File buildFile = testFile("projectWithNestedModules.gradle");
-        usingBuildFile(buildFile).run();
-    }
-
-    @Test
     public void canHaveCycleInDependencyGraph() throws IOException {
         File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
         usingBuildFile(buildFile).run();
