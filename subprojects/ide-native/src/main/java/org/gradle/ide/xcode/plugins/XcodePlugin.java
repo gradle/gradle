@@ -66,7 +66,6 @@ import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
-import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -208,11 +207,8 @@ public class XcodePlugin extends IdePlugin {
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getGroups().getTests().from(sources);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
-        InstallXCTestBundle installXCTestBundle = (InstallXCTestBundle) project.getTasks().getByName("installTest");
-
         String targetName = component.getModule().get() + " " + toString(productType);
-        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), installXCTestBundle.getBundleDirectory(), installXCTestBundle.getBundleDirectory(), sources);
+        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), component.getDevelopmentBinary().getInstallDirectory(), component.getDevelopmentBinary().getInstallDirectory(), sources);
         target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
         xcode.getProject().addTarget(target);
     }

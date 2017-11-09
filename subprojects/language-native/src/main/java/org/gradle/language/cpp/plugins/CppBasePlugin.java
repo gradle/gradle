@@ -137,8 +137,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
                     install.setPlatform(link.getTargetPlatform());
                     install.setToolChain(link.getToolChain());
-                    install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
-                    install.setExecutable(link.getBinaryFile());
+                    install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
+                    install.getSourceFile().set(link.getBinaryFile());
                     install.lib(binary.getRuntimeLibraries());
 
                     ((DefaultCppExecutable) binary).getExecutableFile().set(link.getBinaryFile());

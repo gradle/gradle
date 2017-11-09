@@ -31,13 +31,6 @@ class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrati
         succeeds "tasks"
     }
 
-    def "does not create 'test' component lifecycle task"() {
-        def result = fails "test"
-
-        expect:
-        result.assertHasDescription("Task 'test' not found in root project '" + testDirectory.name + "'.")
-    }
-
     def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
         succeeds "check"
 

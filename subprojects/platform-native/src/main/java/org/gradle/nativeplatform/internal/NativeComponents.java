@@ -81,8 +81,8 @@ public class NativeComponents {
                 installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 installTask.setToolChain(executable.getToolChain());
                 installTask.setPlatform(binary.getTargetPlatform());
-                installTask.setExecutable(executable.getFile());
-                installTask.setDestinationDir(installation.getDirectory());
+                installTask.getSourceFile().set(executable.getFile());
+                installTask.getInstallDirectory().set(installation.getDirectory());
                 //TODO:HH wire binary libs via executable
                 installTask.lib(new BinaryLibs(binary) {
                     @Override
