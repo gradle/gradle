@@ -15,21 +15,10 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "conf")
-
-
-    def setup() {
-        settingsFile << "rootProject.name = 'test'"
-        resolve.prepare()
-        server.start()
-    }
-
+class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
 
     void "can declare a strict dependency onto an external component"() {
         given:
@@ -465,5 +454,4 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
         }
     }
-
 }
