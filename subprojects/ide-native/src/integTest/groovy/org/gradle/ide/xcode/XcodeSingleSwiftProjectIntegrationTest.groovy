@@ -19,6 +19,7 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -104,20 +105,22 @@ apply plugin: 'xctest'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
-        project.sources.assertHasChildren(app.main.files*.name)
-        project.tests.assertHasChildren(app.test.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+        if (OperatingSystem.current().isMacOsX()) {
+            def project = rootXcodeProject.projectFile
+            project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+            project.sources.assertHasChildren(app.main.files*.name)
+            project.tests.assertHasChildren(app.test.files*.name)
+            project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
-        project.targets.size() == 4
-        assertTargetIsTool(project.targets[0], 'App')
-        assertTargetIsUnitTest(project.targets[1], 'AppTest')
-        assertTargetIsIndexer(project.targets[2], 'App')
-        assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
+            project.targets.size() == 4
+            assertTargetIsTool(project.targets[0], 'App')
+            assertTargetIsUnitTest(project.targets[1], 'AppTest')
+            assertTargetIsIndexer(project.targets[2], 'App')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
 
-        project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+            project.products.children.size() == 1
+            project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+        }
     }
 
     def "can create xcode project for Swift library and xctest"() {
@@ -135,20 +138,22 @@ apply plugin: 'xctest'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
-        project.sources.assertHasChildren(lib.main.files*.name)
-        project.tests.assertHasChildren(lib.test.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+        if (OperatingSystem.current().isMacOsX()) {
+            def project = rootXcodeProject.projectFile
+            project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Tests'])
+            project.sources.assertHasChildren(lib.main.files*.name)
+            project.tests.assertHasChildren(lib.test.files*.name)
+            project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
-        project.targets.size() == 4
-        assertTargetIsDynamicLibrary(project.targets[0], 'App')
-        assertTargetIsUnitTest(project.targets[1], 'AppTest')
-        assertTargetIsIndexer(project.targets[2], 'App')
-        assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
+            project.targets.size() == 4
+            assertTargetIsDynamicLibrary(project.targets[0], 'App')
+            assertTargetIsUnitTest(project.targets[1], 'AppTest')
+            assertTargetIsIndexer(project.targets[2], 'App')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
 
-        project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+            project.products.children.size() == 1
+            project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+        }
     }
 
     @Requires(TestPrecondition.XCODE)
