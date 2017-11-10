@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     compile(project(":test-fixtures"))
-    compile("org.xmlunit:xmlunit-matchers:2.4.0")
+    compile("org.xmlunit:xmlunit-matchers:2.5.1")
 }
 
 val customInstallation by rootProject.tasks
