@@ -291,18 +291,17 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
-                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions,
-                                                                BuildOperationExecutor buildOperationExecutor) {
+                                                                BuildOperationExecutor buildOperationExecutor,
+                                                                ComponentSelectorConverter componentSelectorConverter) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
-            moduleIdentifierFactory,
-            moduleExclusions
-        );
+            moduleExclusions,
+            componentSelectorConverter);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {

@@ -16,19 +16,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 class DependencyState {
     private final DependencyMetadata dependencyMetadata;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ComponentSelectorConverter componentSelectorConverter;
 
     private ModuleIdentifier moduleIdentifier;
 
-    DependencyState(DependencyMetadata dependencyMetadata, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    DependencyState(DependencyMetadata dependencyMetadata, ComponentSelectorConverter componentSelectorConverter) {
         this.dependencyMetadata = dependencyMetadata;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.componentSelectorConverter = componentSelectorConverter;
     }
 
     public DependencyMetadata getDependencyMetadata() {
@@ -37,9 +36,7 @@ class DependencyState {
 
     public ModuleIdentifier getModuleIdentifier() {
         if (moduleIdentifier == null) {
-            // TODO:DAZ Include the ModuleIdentifier directly in the DependencyMetadata
-            ModuleVersionSelector requested = dependencyMetadata.getRequested();
-            moduleIdentifier = moduleIdentifierFactory.module(requested.getGroup(), requested.getName());
+            moduleIdentifier = componentSelectorConverter.getModule(dependencyMetadata.getSelector());
         }
         return moduleIdentifier;
     }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
+    private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector("", "unknown", "");
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final LocalComponentRegistry localComponentRegistry;
@@ -56,8 +57,10 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
             ProjectComponentSelector projectSelector = (ProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(projectSelector);
             LocalComponentMetadata projectComponent = localComponentRegistry.getComponent(projectId);
-            return DefaultModuleVersionSelector.newSelector(projectComponent.getId().getGroup(), projectComponent.getId().getName(), projectComponent.getId().getVersion());
+            if (projectComponent != null) {
+                return DefaultModuleVersionSelector.newSelector(projectComponent.getId().getGroup(), projectComponent.getId().getName(), projectComponent.getId().getVersion());
+            }
         }
-        throw new IllegalArgumentException("Cannot determine ModuleVersionSelector for " + selector);
+        return UNKNOWN_MODULE_VERSION_SELECTOR;
     }
 }
