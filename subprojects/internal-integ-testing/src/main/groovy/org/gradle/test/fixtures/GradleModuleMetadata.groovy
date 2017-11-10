@@ -63,7 +63,7 @@ class GradleModuleMetadata {
 
     Variant variant(String name) {
         def matches = variants.findAll { it.name == name }
-        assert matches.size() == 1
+        assert matches.size() == 1 : "Variant '$name' not found"
         return matches.first()
     }
 
