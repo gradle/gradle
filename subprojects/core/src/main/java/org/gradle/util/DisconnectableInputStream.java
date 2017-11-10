@@ -16,8 +16,6 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
@@ -31,7 +29,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * closed, all threads blocked reading from the stream will receive an end-of-stream.
  */
 public class DisconnectableInputStream extends BulkReadInputStream {
-    private final Logger logger = Logging.getLogger(getClass());
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final byte[] buffer;
@@ -119,7 +116,6 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                         }
                     }
                 } catch (InterruptedException e) {
-                    logger.warn("Interrupted input stream processing", e);
                     signalInputFinished();
                 } catch (Throwable throwable) {
                     signalInputFinished();
@@ -165,7 +161,6 @@ public class DisconnectableInputStream extends BulkReadInputStream {
             assert inputFinished;
             return -1;
         } catch (InterruptedException e) {
-            logger.warn("Interrupted input stream processing", e);
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             lock.unlock();
