@@ -21,4 +21,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 public interface ModuleDependencyMetadata extends DependencyMetadata {
     @Override
     ModuleComponentSelector getSelector();
+
+    String getDynamicConstraintVersion();
+
 }

@@ -111,6 +111,6 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
 
     @Override
     public String getDynamicConstraintVersion() {
-        return delegate.getDynamicConstraintVersion();
+        return getSelector().getVersionConstraint().getPreferredVersion();
     }
 }

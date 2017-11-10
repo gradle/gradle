@@ -133,4 +133,10 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     public List<Exclude> getExcludes(Collection<String> configurations) {
         return excludes;
     }
+
+    @Override
+    public String getDynamicConstraintVersion() {
+        return getSelector().getVersionConstraint().getPreferredVersion();
+    }
+
 }

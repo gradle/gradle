@@ -116,4 +116,10 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata impleme
     public boolean isOptional() {
         return false;
     }
+
+    @Override
+    public String getDynamicConstraintVersion() {
+        return getSelector().getVersionConstraint().getPreferredVersion();
+    }
+
 }

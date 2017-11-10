@@ -88,11 +88,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public String getDynamicConstraintVersion() {
-        return delegate.getDynamicConstraintVersion();
-    }
-
-    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }

@@ -157,9 +157,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
         writer.attribute("rev", requested.getVersionConstraint().getPreferredVersion());
-        if (dep.getDynamicConstraintVersion() != null && !dep.getDynamicConstraintVersion().equals(requested.getVersionConstraint().getPreferredVersion())) {
-            writer.attribute("revConstraint", dep.getDynamicConstraintVersion());
-        }
         if (dep.isForce()) {
             writer.attribute("force", "true");
         }

@@ -87,6 +87,4 @@ public interface DependencyMetadata {
 
     boolean isOptional();
 
-    String getDynamicConstraintVersion();
-
 }
