@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.plugins.SwiftExecutablePlugin
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
@@ -32,16 +33,14 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
 class XCTestConventionPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
 
-    def "adds extension with convention for source layout"() {
+    def "adds extension with convention for source layout and module name"() {
         given:
-        project.pluginManager.apply(SwiftLibraryPlugin)
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
@@ -49,35 +48,50 @@ class XCTestConventionPluginTest extends Specification {
 
         then:
         project.xctest instanceof SwiftXCTestSuite
+        project.xctest.module.get() == "TestAppTest"
         project.xctest.swiftSource.files == [src] as Set
     }
 
-    def "registers a component for the test suite"() {
-        given:
-        project.pluginManager.apply(SwiftLibraryPlugin)
-
+    def "sets tested component to main component when applying swift library plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.components.test == project.xctest
-        project.components."$developmentBinaryName" == project.xctest.developmentBinary
+        project.xctest.testedComponent.orNull == null
+
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        then:
+        project.xctest.testedComponent.orNull == project.library
     }
 
-    def "registers a component for the test suite when plugin is applied before"() {
+    def "sets tested component to swift executable when applying swift executable plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
-        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        then:
+        project.xctest.testedComponent.orNull == null
+
+        when:
+        project.pluginManager.apply(SwiftExecutablePlugin)
+
+        then:
+        project.xctest.testedComponent.orNull == project.executable
+    }
+
+    def "registers a component for the test suite"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
         project.components.test == project.xctest
-        project.components."$developmentBinaryName" == project.xctest.developmentBinary
+        project.components.testExecutable == project.xctest.developmentBinary
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
     def "adds compile, link and install tasks on macOS"() {
         given:
-        project.pluginManager.apply(SwiftLibraryPlugin)
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
@@ -106,10 +120,9 @@ class XCTestConventionPluginTest extends Specification {
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
-    @Requires(TestPrecondition.LINUX)
-    def "adds compile, link and install tasks on Linux"() {
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    def "adds compile, link and install tasks"() {
         given:
-        project.pluginManager.apply(SwiftLibraryPlugin)
         def src = projectDir.file("src/test/swift/test.swift").createFile()
 
         when:
@@ -139,9 +152,6 @@ class XCTestConventionPluginTest extends Specification {
     }
 
     def "output locations reflects changes to buildDir"() {
-        given:
-        project.pluginManager.apply(SwiftLibraryPlugin)
-
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.buildDir = project.file("output")
@@ -159,9 +169,5 @@ class XCTestConventionPluginTest extends Specification {
 
         def test = project.tasks.xcTest
         test.workingDirectory.get().asFile == projectDir.file("output/install/test")
-    }
-
-    private String getDevelopmentBinaryName() {
-        return "testExecutable"
     }
 }

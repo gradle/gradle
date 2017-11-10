@@ -22,12 +22,10 @@ public abstract class Names {
 
     public static Names of(String name) {
         // Assume that names that end with 'Bundle' represent the 'main' variant of the parent thing
-        if (name.equals("main") || name.equals("mainBundle")) {
+        if (name.equals("main")) {
             return new Main();
         }
-        if (name.endsWith("Bundle")) {
-            return new Other(name.substring(0, name.length() - 6));
-        } else if (name.endsWith("Executable")) {
+        if (name.endsWith("Executable")) {
             return new Other(name.substring(0, name.length() - 10));
         }
         return new Other(name);
