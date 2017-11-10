@@ -101,7 +101,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolution.getResolveRepositoryHandler().iterator(); it.hasNext(); ) {
+        for (Iterator<ArtifactRepository> it = resolution.getResolveRepositoryHandler().iterator(); it.hasNext();) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");
