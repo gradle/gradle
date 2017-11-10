@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 /**
  * A base runner for features hidden behind a flag, convenient for executing tests with the flag on or off.
+ * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiresFeatureEnabled}.
  */
 @CompileStatic
 abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
@@ -38,7 +39,9 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
     protected void createExecutions() {
         // Run the test once with early dependency forced and once without
         add(new FeatureExecution(true))
-        add(new FeatureExecution(false))
+        if (!target.annotations*.class.any { RequiresFeatureEnabled.isAssignableFrom(it) }) {
+            add(new FeatureExecution(false))
+        }
     }
 
     private class FeatureExecution extends AbstractMultiTestRunner.Execution {

@@ -17,11 +17,35 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.maven.DelegatingMavenModule
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.junit.runner.RunWith
 
-class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+@RunWith(GradleMetadataResolveRunner)
+abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
+    def getRepository() {
+        """
+            repositories {
+                maven { 
+                   url "${mavenHttpRepo.uri}"
+                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled()?'useGradleMetadata()':''}
+                }
+            }
+        """
+    }
+
+    MavenPublishedModule module(String group, String name, String version) {
+        def module = new MavenPublishedModule(mavenHttpRepo.module(group, name, version))
+        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+            module.withModuleMetadata()
+        }
+        module
+    }
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -29,4 +53,40 @@ class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDependencyRe
         server.start()
     }
 
+    static class MavenPublishedModule extends DelegatingMavenModule<MavenHttpModule> {
+        private final MavenHttpModule module
+
+        MavenPublishedModule(MavenHttpModule module) {
+            super(module)
+            this.module = module
+        }
+
+        void assertGetRootMetadata() {
+            if (GradleContextualExecuter.parallel) {
+                module.rootMetaData.allowGetOrHead()
+            } else {
+                module.rootMetaData.expectGet()
+            }
+        }
+
+        void assertGetMetadata() {
+            if (GradleContextualExecuter.parallel) {
+                module.allowAll()
+            } else {
+                module.pom.expectGet()
+                if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    module.moduleMetadata.expectGet()
+                }
+            }
+        }
+
+        void assertGetArtifact() {
+            if (GradleContextualExecuter.parallel) {
+                module.allowAll()
+            } else {
+                module.artifact.expectGet()
+            }
+        }
+
+    }
 }
