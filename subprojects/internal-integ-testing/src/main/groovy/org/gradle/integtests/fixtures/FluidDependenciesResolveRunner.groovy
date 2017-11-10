@@ -15,52 +15,23 @@
  */
 
 package org.gradle.integtests.fixtures
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
+
+import groovy.transform.CompileStatic
+
 /**
  * Runs tests with fluid dependencies enabled and disabled: when fluid dependencies are enabled, any configuration that
  * is a task input is resolved when constructing the task graph.
  * Test classes that use this runner will have tests run twice, with and without fluid dependencies enabled.
  */
-public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
+@CompileStatic
+class FluidDependenciesResolveRunner extends BehindFlagFeatureRunner {
     public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
 
-    public FluidDependenciesResolveRunner(Class<?> target) {
-        super(target)
-        // Ensure that the system property is propagated to forked Gradle executions
-        AbstractGradleExecuter.propagateSystemProperty(ASSUME_FLUID_DEPENDENCIES);
+    FluidDependenciesResolveRunner(Class<?> target) {
+        super(target, ASSUME_FLUID_DEPENDENCIES, "fluid dependencies")
     }
 
-    @Override
-    protected void createExecutions() {
-        // Run the test once with early dependency forced and once without
-        add(new ResolveDependencyGraphExecution(true))
-        add(new ResolveDependencyGraphExecution(false))
-    }
-
-    public static isFluid() {
+    static isFluid() {
         return System.getProperty(ASSUME_FLUID_DEPENDENCIES) == "true"
-    }
-
-    private class ResolveDependencyGraphExecution extends AbstractMultiTestRunner.Execution {
-        final boolean assumeFluidDependencies
-
-        public ResolveDependencyGraphExecution(boolean assumeFluidDependencies) {
-            this.assumeFluidDependencies = assumeFluidDependencies
-        }
-
-        @Override
-        protected String getDisplayName() {
-            return assumeFluidDependencies ? "with fluid dependencies" : "without fluid dependencies"
-        }
-
-        @Override
-        protected void before() {
-            System.setProperty(ASSUME_FLUID_DEPENDENCIES, String.valueOf(assumeFluidDependencies))
-        }
-
-        @Override
-        protected void after() {
-            System.properties.remove(ASSUME_FLUID_DEPENDENCIES)
-        }
     }
 }
