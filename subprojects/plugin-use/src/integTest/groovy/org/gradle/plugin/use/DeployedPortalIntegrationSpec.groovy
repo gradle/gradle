@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import static org.hamcrest.Matchers.startsWith
 
 //These tests depend on https://plugins.gradle.org
@@ -110,7 +109,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         failureDescriptionContains("""
             - Plugin Repositories (could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
               Searched in the following repositories:
-                Gradle Central Plugin Repository(${PLUGIN_PORTAL_DEFAULT_URL})
+                Gradle Central Plugin Repository
         """.stripIndent().trim())
     }
 
