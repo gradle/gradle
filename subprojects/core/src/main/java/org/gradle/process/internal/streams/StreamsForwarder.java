@@ -73,11 +73,7 @@ public class StreamsForwarder implements StreamsHandler {
 
             @Override
             public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
-                try {
-                    instr.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                instr.stopInternalProcessing();
             }
         });
     }
