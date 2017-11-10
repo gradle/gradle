@@ -33,7 +33,7 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
             repositories {
                 maven { 
                    url "${mavenHttpRepo.uri}"
-                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled()?'useGradleMetadata()':''}
+                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'useGradleMetadata()' : ''}
                 }
             }
         """
@@ -69,6 +69,12 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
             }
         }
 
+        void maybeGetMetadata() {
+            if (GradleContextualExecuter.parallel) {
+                module.allowAll()
+            }
+        }
+
         void assertGetMetadata() {
             if (GradleContextualExecuter.parallel) {
                 module.allowAll()
@@ -87,6 +93,10 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
                 module.artifact.expectGet()
             }
         }
+
+    }
+
+    private static class DependencyResolutionSpec {
 
     }
 }
