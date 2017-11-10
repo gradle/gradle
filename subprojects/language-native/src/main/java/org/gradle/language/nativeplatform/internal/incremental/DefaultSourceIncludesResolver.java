@@ -99,7 +99,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         void resolved(String rawInclude, File resolved) {
             File dependencyFile = resolved == null ? null : FileUtils.canonicalize(resolved);
-            dependencies.add(new ResolvedInclude(rawInclude, dependencyFile));
+            dependencies.add(ResolvedInclude.create(rawInclude, dependencyFile));
         }
 
         @Override

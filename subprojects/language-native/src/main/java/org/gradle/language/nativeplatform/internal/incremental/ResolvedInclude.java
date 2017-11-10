@@ -15,11 +15,21 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+
 import java.io.File;
 
 public class ResolvedInclude {
+
+    private static final Interner<ResolvedInclude> INTERNER = Interners.newWeakInterner();
+
     private final String include;
     private final File dependencyFile;
+
+    public static ResolvedInclude create(String include, File dependencyFile) {
+        return INTERNER.intern(new ResolvedInclude(include, dependencyFile));
+    }
 
     public ResolvedInclude(String include, File dependencyFile) {
         this.include = include;

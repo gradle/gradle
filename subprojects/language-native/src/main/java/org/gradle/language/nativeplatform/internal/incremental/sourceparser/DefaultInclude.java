@@ -16,13 +16,22 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 public class DefaultInclude implements Include {
+
+    private static final Interner<DefaultInclude> INTERNER = Interners.newWeakInterner();
+
     private final String value;
     private final boolean isImport;
     private final IncludeType type;
+
+    public static DefaultInclude create(String value, boolean isImport, IncludeType type) {
+        return INTERNER.intern(new DefaultInclude(value, isImport, type));
+    }
 
     public DefaultInclude(String value, boolean isImport, IncludeType type) {
         if (value == null) {
@@ -53,11 +62,11 @@ public class DefaultInclude implements Include {
 
     public static Include parse(String value, boolean isImport) {
         if (value.startsWith("<") && value.endsWith(">")) {
-            return new DefaultInclude(strip(value), isImport, IncludeType.SYSTEM);
+            return DefaultInclude.create(strip(value), isImport, IncludeType.SYSTEM);
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
-            return new DefaultInclude(strip(value), isImport, IncludeType.QUOTED);
+            return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
         } else {
-            return new DefaultInclude(value, isImport, IncludeType.MACRO);
+            return DefaultInclude.create(value, isImport, IncludeType.MACRO);
         }
     }
 
@@ -87,7 +96,7 @@ public class DefaultInclude implements Include {
         if (type != that.type) {
             return false;
         }
-        if (value != null ? !value.equals(that.value) : that.value != null) {
+        if (!value.equals(that.value)) {
             return false;
         }
 

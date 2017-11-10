@@ -136,7 +136,7 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
             if (decoder.readBoolean()) {
                 included = fileSerializer.read(decoder);
             }
-            return new ResolvedInclude(include, included);
+            return ResolvedInclude.create(include, included);
         }
 
         @Override
@@ -207,7 +207,7 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
             String value = stringSerializer.read(decoder);
             boolean isImport = booleanSerializer.read(decoder);
             IncludeType type = enumSerializer.read(decoder);
-            return new DefaultInclude(value, isImport, type);
+            return DefaultInclude.create(value, isImport, type);
         }
 
         @Override
