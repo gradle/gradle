@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -26,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface DependencyMetadata {
-    ModuleVersionSelector getRequested();
-
     /**
      * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
      * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.

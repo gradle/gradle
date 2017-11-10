@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -37,11 +36,6 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
 
     public ModuleDependencyMetadataWrapper(DependencyMetadata delegate) {
         this.delegate = delegate;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return delegate.getRequested();
     }
 
     @Override

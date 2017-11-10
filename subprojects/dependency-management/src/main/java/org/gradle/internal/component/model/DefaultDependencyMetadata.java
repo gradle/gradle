@@ -19,12 +19,10 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -57,11 +55,6 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
             result.add(artifact.getArtifactName());
         }
         return result;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return DefaultModuleVersionSelector.newSelector(selector);
     }
 
     @Override

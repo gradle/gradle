@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -49,11 +48,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public ModuleDependency getSource() {
         return source;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return delegate.getRequested();
     }
 
     @Override
