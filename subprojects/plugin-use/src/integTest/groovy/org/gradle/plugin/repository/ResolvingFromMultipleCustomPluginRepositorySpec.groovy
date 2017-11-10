@@ -168,12 +168,15 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
-
-- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
-- ${repoType}2(${repoB.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')"""
-        )
+        failure.assertHasDescription("""
+            Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
+            
+            - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            - Plugin Repositories (could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
+              Searched in the following repositories:
+                ${repoType}(${repoA.uri})
+                ${repoType}2(${repoB.uri})
+        """.stripIndent().trim())
 
         where:
         repoType << [IVY, MAVEN]
@@ -195,9 +198,11 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         then:
         failure.assertThatDescription(containsNormalizedString("""
-- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')
-- ${repoType}2(${repoB.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')"""
-        ))
+            - Plugin Repositories (could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2')
+              Searched in the following repositories:
+                ${repoType}(${repoA.uri})
+                ${repoType}2(${repoB.uri})
+        """.stripIndent().trim()))
 
         where:
         repoType << [IVY, MAVEN]

@@ -27,6 +27,8 @@ import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
+
 class ArtifactRepositoriesPluginResolverTest extends Specification {
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def repository = Mock(ArtifactRepositoryInternal) {
@@ -51,7 +53,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         resolver.resolve(request("plugin"), result)
 
         then:
-        1 * result.notFound("maven(url)", "plugin dependency must include a version number for this source")
+        1 * result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source")
     }
 
     def "fail pluginRequests with SNAPSHOT versions"() {
@@ -59,7 +61,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         resolver.resolve(request("plugin", "1.1-SNAPSHOT"), result)
 
         then:
-        1 * result.notFound("maven(url)", "snapshot plugin versions are not supported")
+        1 * result.notFound(SOURCE_NAME, "snapshot plugin versions are not supported")
     }
 
     def "fail pluginRequests with dynamic versions"() {
@@ -67,6 +69,6 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         resolver.resolve(request("plugin", "latest.revision"), result)
 
         then:
-        1 * result.notFound("maven(url)", "dynamic plugin versions are not supported")
+        1 * result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported")
     }
 }

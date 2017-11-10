@@ -45,6 +45,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -274,7 +275,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             sb.format("Plugin %s was not found in any of the following sources:%n", pluginRequest.getDisplayName());
 
             for (NotFound notFound : result.notFoundList) {
-                sb.format("%n- %s (%s)", notFound.source, notFound.detail);
+                sb.format("%n- %s (%s)", notFound.source, notFound.message);
+                if (notFound.detail != null) {
+                    sb.format("%n%s", TextUtil.indent(notFound.detail, "  "));
+                }
             }
 
             return sb.toString();
@@ -283,10 +287,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static class NotFound {
         private final String source;
+        private final String message;
         private final String detail;
 
-        private NotFound(String source, String detail) {
+        private NotFound(String source, String message, String detail) {
             this.source = source;
+            this.message = message;
             this.detail = detail;
         }
     }
@@ -300,10 +306,17 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             this.request = request;
         }
 
-        public void notFound(String sourceDescription, String notFoundDetail) {
-            notFoundList.add(new NotFound(sourceDescription, notFoundDetail));
+        @Override
+        public void notFound(String sourceDescription, String notFoundMessage) {
+            notFoundList.add(new NotFound(sourceDescription, notFoundMessage, null));
         }
 
+        @Override
+        public void notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
+            notFoundList.add(new NotFound(sourceDescription, notFoundMessage, notFoundDetail));
+        }
+
+        @Override
         public void found(String sourceDescription, PluginResolution pluginResolution) {
             found = pluginResolution;
         }
