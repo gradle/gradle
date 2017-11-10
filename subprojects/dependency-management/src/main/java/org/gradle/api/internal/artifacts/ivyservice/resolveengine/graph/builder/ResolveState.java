@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
@@ -47,7 +47,7 @@ class ResolveState {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>();
     private final Map<ResolvedConfigurationIdentifier, NodeState> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>();
-    private final Map<ModuleVersionSelector, SelectorState> selectors = new LinkedHashMap<ModuleVersionSelector, SelectorState>();
+    private final Map<ComponentSelector, SelectorState> selectors = new LinkedHashMap<ComponentSelector, SelectorState>();
     private final RootNode root;
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
@@ -129,7 +129,7 @@ class ResolveState {
     }
 
     public SelectorState getSelector(DependencyMetadata dependencyMetadata, ModuleIdentifier moduleIdentifier) {
-        ModuleVersionSelector requested = dependencyMetadata.getRequested();
+        ComponentSelector requested = dependencyMetadata.getSelector();
         SelectorState resolveState = selectors.get(requested);
         if (resolveState == null) {
             resolveState = new SelectorState(idGenerator.generateId(), dependencyMetadata, idResolver, this, moduleIdentifier);

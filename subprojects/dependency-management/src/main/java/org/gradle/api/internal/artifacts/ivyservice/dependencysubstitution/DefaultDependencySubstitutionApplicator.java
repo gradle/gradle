@@ -31,6 +31,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
     @Override
     public SubstitutionResult apply(DependencyMetadata dependency) {
         ComponentSelector selector = dependency.getSelector();
+        // TODO:DAZ Use the component identifier, and lookup a project to determine GAV
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
         try {
             rule.execute(details);

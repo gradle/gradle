@@ -153,6 +153,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     protected void printDependency(IvyModulePublishMetadata metadata, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
+        // TODO:DAZ Use the component identifier, and lookup a project to determine GAV
         ModuleVersionSelector requested = dep.getRequested();
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());

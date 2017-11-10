@@ -37,6 +37,7 @@ class DependencyState {
 
     public ModuleIdentifier getModuleIdentifier() {
         if (moduleIdentifier == null) {
+            // TODO:DAZ Include the ModuleIdentifier directly in the DependencyMetadata
             ModuleVersionSelector requested = dependencyMetadata.getRequested();
             moduleIdentifier = moduleIdentifierFactory.module(requested.getGroup(), requested.getName());
         }

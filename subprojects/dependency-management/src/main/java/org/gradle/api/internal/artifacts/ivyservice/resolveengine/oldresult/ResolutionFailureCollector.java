@@ -73,7 +73,11 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
         ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
         for (Map.Entry<ModuleVersionSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
             Collection<List<ComponentIdentifier>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root);
-            builder.add(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
+
+            ModuleVersionSelector key = entry.getKey();
+            // TODO:DAZ Use the component identifier, and lookup a project to determine GAV
+
+            builder.add(new DefaultUnresolvedDependency(key, entry.getValue().failure.withIncomingPaths(paths)));
         }
         return builder.build();
     }

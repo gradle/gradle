@@ -174,6 +174,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ModuleVersionSelector getRequestedModuleVersion() {
+        // TODO:DAZ Remove this
         return dependencyMetadata.getRequested();
     }
 
