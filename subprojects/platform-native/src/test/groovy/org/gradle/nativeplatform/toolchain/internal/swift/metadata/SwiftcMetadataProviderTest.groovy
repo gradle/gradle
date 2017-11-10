@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.swift
+package org.gradle.nativeplatform.toolchain.internal.swift.metadata
 
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
 
-class SwiftcVersionDeterminerTest extends Specification {
+class SwiftcMetadataProviderTest extends Specification {
 
     def execActionFactory = Mock(ExecActionFactory)
 
@@ -39,13 +39,13 @@ Target: x86_64-unknown-linux-gnu
         output(SWIFTC_OUTPUT_LINUX).versionString == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
     }
 
-    SwiftcVersionResult output(String output) {
+    SwiftcMetadata output(String output) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
-        new SwiftcVersionDeterminer(execActionFactory).getSwiftcMetaData(new File("swiftc"))
+        new SwiftcMetadataProvider(execActionFactory).getCompilerMetaData(new File("swiftc"), [])
     }
 
 }

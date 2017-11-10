@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.swift;
+package org.gradle.nativeplatform.toolchain.internal.swift.metadata;
 
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 
-public interface SwiftcVersionResult extends ToolSearchResult {
+public interface SwiftcMetadata extends CompilerMetadata {
     String getVersionString();
 }

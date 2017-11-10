@@ -14,10 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.swift;
+package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
-import java.io.File;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 
-public interface CompilerMetaDataProvider {
-    SwiftcVersionResult getSwiftcMetaData(File swiftc);
+public enum GccCompilerType implements CompilerType {
+    GCC("gcc", "GCC"),
+    CLANG("clang", "Clang");
+
+    private final String identifier;
+    private final String description;
+
+    GccCompilerType(String identifier, String description) {
+        this.identifier = identifier;
+        this.description = description;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }

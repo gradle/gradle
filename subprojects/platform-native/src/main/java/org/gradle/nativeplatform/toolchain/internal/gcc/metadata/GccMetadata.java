@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc.version;
+package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public interface GccVersionResult extends ToolSearchResult {
+public interface GccMetadata extends CompilerMetadata {
 
     ArchitectureInternal getDefaultArchitecture();
 

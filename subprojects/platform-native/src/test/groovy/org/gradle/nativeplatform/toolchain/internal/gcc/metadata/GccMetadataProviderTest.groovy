@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc.version
+package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
 import org.gradle.process.ExecResult
@@ -30,11 +30,11 @@ import spock.lang.Unroll
 
 import java.util.regex.Matcher
 
-import static org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider.CompilerType.CLANG
-import static org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider.CompilerType.GCC
+import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.CLANG
+import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.GCC
 
 @UsesNativeServices
-class GccVersionDeterminerTest extends Specification {
+class GccMetadataProviderTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     static def gcc4 = """#define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
@@ -158,11 +158,11 @@ End of search list.
         def execResult = Mock(ExecResult)
 
         and:
-        def determiner = GccVersionDeterminer.forGcc(execActionFactory)
+        def determiner = GccMetadataProvider.forGcc(execActionFactory)
         def binary = new File("g++")
 
         when:
-        def result = determiner.getGccMetaData(binary, [])
+        def result = determiner.getCompilerMetaData(binary, [])
 
         then:
         1 * execActionFactory.newExecAction() >> action
@@ -176,7 +176,7 @@ End of search list.
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine GCC version: failed to execute g++ -dM -E -v -.")
+        1 * visitor.node("Could not determine GCC metadata: failed to execute g++ -dM -E -v -.")
     }
 
     def "can scrape ok output for clang"() {
@@ -250,18 +250,18 @@ End of search list.
         paths.collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator)) }
     }
 
-    GccVersionResult output(String outputStr, CompilerMetaDataProvider.CompilerType compilerType = GCC) {
+    GccMetadata output(String outputStr, GccCompilerType compilerType = GCC) {
         output(outputStr, "", compilerType)
     }
 
-    GccVersionResult output(String output, String error, CompilerMetaDataProvider.CompilerType compilerType = GCC) {
+    GccMetadata output(String output, String error, GccCompilerType compilerType = GCC) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.setErrorOutput(_) >> { OutputStream errorstr -> errorstr << error; action }
         1 * action.execute() >> result
-        new GccVersionDeterminer(execActionFactory, compilerType).getGccMetaData(new File("g++"), [])
+        new GccMetadataProvider(execActionFactory, compilerType).getCompilerMetaData(new File("g++"), [])
     }
 
     Transformer transformer(constant) {
