@@ -288,6 +288,32 @@ task checkDeps {
         failure.assertHasCause("Could not find org:external:1.4.")
     }
 
+    void "fails if no version was found in the graph at all"() {
+        //mavenRepo - no requests expected
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org:external'
+}
+
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == []
+    }
+}
+"""
+
+        expect:
+        runAndFail("checkDeps")
+        failure.assertHasCause("No version specified for org:external")
+    }
+
     void "does not fail when evicted version does not exist"() {
         mavenRepo.module("org", "external", "1.4").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()

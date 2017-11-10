@@ -31,7 +31,7 @@ configurations { compile }
 dependencies {
     compile 'group:a:1.4'
     compile 'group:b:2.0'
-    compile 'group:c:'
+    compile 'group:c:0.1'
 }
 
 task check {
