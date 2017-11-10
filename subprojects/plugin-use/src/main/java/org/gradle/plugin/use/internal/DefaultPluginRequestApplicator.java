@@ -274,10 +274,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             sb.format("Plugin %s was not found in any of the following sources:%n", pluginRequest.getDisplayName());
 
             for (NotFound notFound : result.notFoundList) {
-                sb.format("%n- %s", notFound.source);
-                if (notFound.detail != null) {
-                    sb.format(" (%s)", notFound.detail);
-                }
+                sb.format("%n- %s (%s)", notFound.source, notFound.detail);
             }
 
             return sb.toString();

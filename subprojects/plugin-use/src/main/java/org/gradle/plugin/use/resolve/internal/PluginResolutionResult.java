@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import javax.annotation.Nullable;
-
 /**
  * A write only object that {@link PluginResolver} implementations receive and work with to communicate their results.
  * <p>
@@ -33,7 +31,7 @@ public interface PluginResolutionResult {
      * @param sourceDescription a description of the source of plugins, where the plugin requested could not be found
      * @param notFoundDetail detail on why the plugin couldn't be found (e.g. it might be available by a different version)
      */
-    void notFound(String sourceDescription, @Nullable String notFoundDetail);
+    void notFound(String sourceDescription, String notFoundDetail);
 
     /**
      * Record that the plugin was found in some source of plugins.
