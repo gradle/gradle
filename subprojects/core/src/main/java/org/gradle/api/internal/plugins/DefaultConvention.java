@@ -34,7 +34,6 @@ import org.gradle.util.ConfigureUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,12 +43,12 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
-    private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
 
+    private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
 
     /**
@@ -71,6 +70,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, Object> getPlugins() {
+        if (plugins == null) {
+            plugins = Maps.newLinkedHashMap();
+        }
         return plugins;
     }
 
@@ -98,6 +100,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
+        if (plugins == null) {
+            return null;
+        }
         List<T> values = new ArrayList<T>();
         for (Object object : plugins.values()) {
             if (type.isInstance(object)) {
@@ -247,6 +252,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             if (extensionsStorage.hasExtension(name)) {
                 return true;
             }
+            if (plugins == null) {
+                return false;
+            }
             for (Object object : plugins.values()) {
                 if (asDynamicObject(object).hasProperty(name)) {
                     return true;
@@ -258,10 +266,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         @Override
         public Map<String, Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
-            List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
-            Collections.reverse(reverseOrder);
-            for (Object object : reverseOrder) {
-                properties.putAll(asDynamicObject(object).getProperties());
+            if (plugins != null) {
+                List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
+                Collections.reverse(reverseOrder);
+                for (Object object : reverseOrder) {
+                    properties.putAll(asDynamicObject(object).getProperties());
+                }
             }
             properties.putAll(extensionsStorage.getAsMap());
             return properties;
@@ -272,6 +282,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             Object extension = extensionsStorage.findByName(name);
             if (extension != null) {
                 return DynamicInvokeResult.found(extension);
+            }
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
             }
             for (Object object : plugins.values()) {
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
@@ -290,6 +303,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         @Override
         public DynamicInvokeResult trySetProperty(String name, Object value) {
             checkExtensionIsNotReassigned(name);
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
+            }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
@@ -309,6 +325,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
+            }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
@@ -327,6 +346,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         public boolean hasMethod(String name, Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return true;
+            }
+            if (plugins == null) {
+                return false;
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object);
