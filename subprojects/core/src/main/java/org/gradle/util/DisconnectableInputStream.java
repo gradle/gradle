@@ -16,11 +16,12 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * closed, all threads blocked reading from the stream will receive an end-of-stream.
  */
 public class DisconnectableInputStream extends BulkReadInputStream {
+    private final Logger logger = Logging.getLogger(getClass());
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final byte[] buffer;
@@ -95,13 +97,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                             lock.unlock();
                         }
 
-                        int nread = 0;
-
-                        try {
-                            nread = source.read(buffer, pos, buffer.length - pos);
-                        } catch (InterruptedIOException e) {
-                            // ignore
-                        }
+                        int nread = source.read(buffer, pos, buffer.length - pos);
 
                         lock.lock();
                         try {
@@ -122,14 +118,11 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                             lock.unlock();
                         }
                     }
+                } catch (InterruptedException e) {
+                    logger.warn("Interrupted input stream processing", e);
+                    signalInputFinished();
                 } catch (Throwable throwable) {
-                    lock.lock();
-                    try {
-                        inputFinished = true;
-                        condition.signalAll();
-                    } finally {
-                        lock.unlock();
-                    }
+                    signalInputFinished();
                     throw UncheckedException.throwAsUncheckedException(throwable);
                 }
             }
@@ -138,8 +131,18 @@ public class DisconnectableInputStream extends BulkReadInputStream {
         executer.execute(consume);
     }
 
+    private void signalInputFinished() {
+        lock.lock();
+        try {
+            inputFinished = true;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
-    public int read(byte[] bytes, int pos, int count) throws IOException {
+    public int read(byte[] bytes, int pos, int count) {
         lock.lock();
         try {
             while (!inputFinished && !closed && readPos == writePos) {
@@ -162,10 +165,11 @@ public class DisconnectableInputStream extends BulkReadInputStream {
             assert inputFinished;
             return -1;
         } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            logger.warn("Interrupted input stream processing", e);
         } finally {
             lock.unlock();
         }
+        return -1;
     }
 
     /**
