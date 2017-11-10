@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def "can create xcode project for Swift executable"() {
@@ -232,6 +233,7 @@ apply plugin: 'swift-library'
         resultRelease.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
     }
 
+    @Ignore("xcodebuild fixture broken") // SLG
     @Requires(TestPrecondition.XCODE)
     def "can configure test only when xctest plugin is applied"() {
         useXcodebuildTool()
@@ -270,6 +272,7 @@ apply plugin: 'swift-library'
         resultDebugWithXCTest.assertOutputContains("** TEST SUCCEEDED **")
     }
 
+    @Ignore("xcodebuild fixture broken") // SLG
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
@@ -299,6 +302,7 @@ apply plugin: 'xctest'
         resultTestRunner.assertOutputContains("** TEST SUCCEEDED **")
     }
 
+    @Ignore("xcodebuild fixture broken") // SLG
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift executable from xcode"() {
         useXcodebuildTool()
