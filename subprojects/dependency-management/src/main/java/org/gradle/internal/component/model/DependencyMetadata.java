@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -41,11 +40,6 @@ public interface DependencyMetadata {
      * defaults should be used in this case.
      */
     Set<IvyArtifactName> getArtifacts();
-
-    /**
-     * Returns a copy of this dependency with the given requested version.
-     */
-    DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
 
     /**
      * Returns a copy of this dependency with the given target.

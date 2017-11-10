@@ -27,7 +27,6 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -39,7 +38,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -59,14 +57,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     private static VersionConstraint v(String version) {
         new DefaultMutableVersionConstraint(version)
-    }
-
-    def "returns this when same version requested"() {
-        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", v("12")), DefaultModuleVersionSelector.newSelector("a", "b", v("12")), "from", null, "to", [] as Set, [], false, false, true)
-
-        expect:
-        dep.withRequestedVersion(v("12")).is(dep)
-        dep.withTarget(DefaultModuleComponentSelector.newSelector("a", "b", v("12"))).is(dep)
     }
 
     def "returns this when same target requested"() {

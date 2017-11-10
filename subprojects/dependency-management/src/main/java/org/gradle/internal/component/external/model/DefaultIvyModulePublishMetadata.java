@@ -110,12 +110,14 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
      */
     private static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
         if (dependency.getSelector() instanceof ModuleComponentSelector) {
-            VersionConstraint versionConstraint = ((ModuleComponentSelector) dependency.getSelector()).getVersionConstraint();
+            ModuleComponentSelector selector = (ModuleComponentSelector) dependency.getSelector();
+            VersionConstraint versionConstraint = selector.getVersionConstraint();
             DefaultImmutableVersionConstraint transformedConstraint =
                 new DefaultImmutableVersionConstraint(
                     VERSION_TRANSFORMER.transform(versionConstraint.getPreferredVersion()),
                     CollectionUtils.collect(versionConstraint.getRejectedVersions(), VERSION_TRANSFORMER));
-            return dependency.withRequestedVersion(transformedConstraint);
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), transformedConstraint);
+            return dependency.withTarget(newSelector);
         }
         return dependency;
     }

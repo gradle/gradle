@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
@@ -175,16 +173,6 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     @Override
     public Set<IvyArtifactName> getArtifacts() {
         return artifactNames;
-    }
-
-    @Override
-    public LocalOriginDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(requested.getVersionConstraint())) {
-            return this;
-        }
-        ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
-        ComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(newRequested);
-        return copyWithTarget(newSelector, newRequested);
     }
 
     @Override

@@ -56,7 +56,9 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        return new ModuleDependencyMetadataWrapper(delegate.withRequestedVersion(requestedVersion));
+        ModuleComponentSelector selector = getSelector();
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 
     @Override

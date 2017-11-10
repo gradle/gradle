@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 
@@ -24,4 +25,8 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
 
     String getDynamicConstraintVersion();
 
+    /**
+     * Returns a copy of this dependency with the given requested version.
+     */
+    ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
 }

@@ -300,7 +300,7 @@ public class DynamicVersionResolver {
         private final ModuleComponentIdentifier identifier;
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
-        private final DependencyMetadata dependencyMetadata;
+        private final ModuleDependencyMetadata dependencyMetadata;
         private final Version version;
         private boolean searchedLocally;
         private boolean searchedRemotely;

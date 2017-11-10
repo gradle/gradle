@@ -56,7 +56,7 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
 
     @Override
     public DependencyMetadata setVersion(String version) {
-        ModuleDependencyMetadata dependencyMetadata = (ModuleDependencyMetadata) getOriginalMetadata().withRequestedVersion(new DefaultMutableVersionConstraint(version));
+        ModuleDependencyMetadata dependencyMetadata = getOriginalMetadata().withRequestedVersion(new DefaultMutableVersionConstraint(version));
         updateMetadata(dependencyMetadata);
         return this;
     }
