@@ -141,7 +141,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version), newVersionSelector(group, name, version)))
+        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version)), newVersionSelector(group, name, version))
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -43,7 +44,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -63,7 +63,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyGraphBuilderTest extends Specification {
@@ -1072,8 +1072,8 @@ class DependencyGraphBuilderTest extends Specification {
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         boolean optional = args.optional ?: false
-        ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, new DefaultMutableVersionConstraint(dependencyId.version))
-        ComponentSelector componentSelector = DefaultModuleComponentSelector.newSelector(selector)
+        ComponentSelector componentSelector = newSelector(dependencyId.group, dependencyId.name, new DefaultMutableVersionConstraint(dependencyId.version))
+        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(componentSelector)
         def excludeRules = []
         if (args.exclude) {
             ComponentResolveMetadata excluded = args.exclude
@@ -1099,9 +1099,9 @@ class DependencyGraphBuilderTest extends Specification {
     static class TestGraphVisitor implements DependencyGraphVisitor {
         def root
         def components = new LinkedHashSet()
-        final Map<ModuleVersionSelector, FailureDetails> failures = new LinkedHashMap<>()
+        final Map<ComponentSelector, FailureDetails> failures = new LinkedHashMap<>()
 
-        Set<ModuleVersionSelector> getUnresolvedDependencies() {
+        Set<ComponentSelector> getUnresolvedDependencies() {
             return failures.keySet()
         }
 
@@ -1123,10 +1123,10 @@ class DependencyGraphBuilderTest extends Specification {
         void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
-                    def breakage = failures.get(it.requestedModuleVersion)
+                    def breakage = failures.get(it.requested)
                     if (breakage == null) {
                         breakage = new FailureDetails(it.failure)
-                        failures.put(it.requestedModuleVersion, breakage)
+                        failures.put(it.requested, breakage)
                     }
                     breakage.requiredBy << it.from
                 }

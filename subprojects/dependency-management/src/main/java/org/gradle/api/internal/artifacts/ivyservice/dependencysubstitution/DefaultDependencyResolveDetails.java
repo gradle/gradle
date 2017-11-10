@@ -31,26 +31,28 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
 
     private final DependencySubstitutionInternal delegate;
+    private ModuleVersionSelector requested;
     private ModuleVersionSelector target;
 
-    public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate) {
+    public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate, ModuleVersionSelector requested) {
         this.delegate = delegate;
-        target = determineTarget(delegate);
+        this.requested = requested;
+        target = determineTarget(delegate, requested);
     }
 
-    private static ModuleVersionSelector determineTarget(DependencySubstitutionInternal delegate) {
+    private static ModuleVersionSelector determineTarget(DependencySubstitutionInternal delegate, ModuleVersionSelector requested) {
         // Temporary logic until we add DependencySubstitution back in
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) delegate.getTarget();
             return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersionConstraint());
         }
         // If the target is a project component, it must be unmodified from the requested
-        return delegate.getOldRequested();
+        return requested;
     }
 
     @Override
     public ModuleVersionSelector getRequested() {
-        return delegate.getOldRequested();
+        return requested;
     }
 
     @Override

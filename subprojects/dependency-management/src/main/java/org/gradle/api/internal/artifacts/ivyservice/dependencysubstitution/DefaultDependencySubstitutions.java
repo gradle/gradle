@@ -21,11 +21,13 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -112,8 +114,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule) {
-        addRule(new DependencyResolveDetailsWrapperAction(rule));
+    public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter) {
+        addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter));
         return this;
     }
 
@@ -233,14 +235,17 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution> {
         private final Action<? super DependencyResolveDetails> delegate;
+        private final ComponentSelectorConverter componentSelectorConverter;
 
-        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate) {
+        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate, ComponentSelectorConverter componentSelectorConverter) {
             this.delegate = delegate;
+            this.componentSelectorConverter = componentSelectorConverter;
         }
 
         @Override
         public void execute(DependencySubstitution substitution) {
-            DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution);
+            ModuleVersionSelector requested = componentSelectorConverter.getSelector(substitution.getRequested());
+            DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution, requested);
             delegate.execute(details);
         }
     }

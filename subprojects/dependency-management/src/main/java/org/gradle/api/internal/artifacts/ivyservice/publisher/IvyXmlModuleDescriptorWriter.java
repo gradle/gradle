@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
@@ -42,6 +43,12 @@ import java.util.Set;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
+
+    private final ComponentSelectorConverter componentSelectorConverter;
+
+    public IvyXmlModuleDescriptorWriter(ComponentSelectorConverter componentSelectorConverter) {
+        this.componentSelectorConverter = componentSelectorConverter;
+    }
 
     @Override
     public void write(IvyModulePublishMetadata module, File output) {
@@ -153,8 +160,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     protected void printDependency(IvyModulePublishMetadata metadata, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
-        // TODO:DAZ Use the component identifier, and lookup a project to determine GAV
-        ModuleVersionSelector requested = dep.getRequested();
+        ModuleVersionSelector requested = componentSelectorConverter.getSelector(dep.getSelector());
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
         writer.attribute("rev", requested.getVersionConstraint().getPreferredVersion());

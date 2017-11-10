@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
@@ -84,7 +85,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     def "allWithDependencyResolveDetails() wraps substitution in legacy format"() {
         given:
         def action = Mock(Action)
-        substitutions.allWithDependencyResolveDetails(action)
+        def componentSelectorConverter = Mock(ComponentSelectorConverter)
+        substitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
 
         def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
         def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
@@ -95,7 +97,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         then:
         _ * moduleDetails.target >> moduleTarget
-        _ * moduleDetails.oldRequested >> moduleOldRequested
+        _ * moduleDetails.requested >> moduleTarget
+        1 * componentSelectorConverter.getSelector(moduleTarget) >> moduleOldRequested
         1 * action.execute({ DependencyResolveDetailsInternal details ->
             details.requested == moduleOldRequested
         })
@@ -110,7 +113,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         then:
         _ * projectDetails.target >> projectTarget
-        _ * projectDetails.oldRequested >> projectOldRequested
+        _ * projectDetails.requested >> projectTarget
+        1 * componentSelectorConverter.getSelector(projectTarget) >> projectOldRequested
         1 * action.execute({ DependencyResolveDetailsInternal details ->
             details.requested == projectOldRequested
         })

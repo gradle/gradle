@@ -16,23 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultDependencySubstitutionSpec extends Specification {
     def componentSelector = Mock(ComponentSelector)
-    def moduleVersionSelector = Mock(ModuleVersionSelector)
-    def details = new DefaultDependencySubstitution(componentSelector, moduleVersionSelector)
+    def details = new DefaultDependencySubstitution(componentSelector)
 
     def "can override target and selection reason for project"() {
         when:
@@ -41,7 +39,6 @@ class DefaultDependencySubstitutionSpec extends Specification {
 
         then:
         details.requested == componentSelector
-        details.oldRequested == moduleVersionSelector
         details.target.group == "org"
         details.target.module == "foo"
         details.target.version == "3.0"

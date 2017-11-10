@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-public interface DependencySubstitutionInternal extends DependencySubstitution {
-    void useTarget(Object notation, ComponentSelectionReason selectionReason);
-
-    ComponentSelector getTarget();
-
-    ComponentSelectionReason getSelectionReason();
-
-    boolean isUpdated();
+/**
+ * Adapts the new `ComponentSelector` types to legacy types.
+ * Note that for `ProjectComponentSelector` this requires looking up the target project in order
+ * to determine the project coordinates.
+ */
+public interface ComponentSelectorConverter {
+    ModuleIdentifier getModule(ComponentSelector selector);
+    ModuleVersionSelector getSelector(ComponentSelector selector);
 }
