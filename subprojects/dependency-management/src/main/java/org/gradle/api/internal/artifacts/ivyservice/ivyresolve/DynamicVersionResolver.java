@@ -148,7 +148,6 @@ public class DynamicVersionResolver {
                 case Failed:
                     failures.add(request.resolvedVersionMetadata.getFailure());
                     if (isCriticalFailure(request.resolvedVersionMetadata.getFailure())) {
-                        // TODO:DAZ Consider re-throwing here
                         queue.clear();
                     }
                     break;

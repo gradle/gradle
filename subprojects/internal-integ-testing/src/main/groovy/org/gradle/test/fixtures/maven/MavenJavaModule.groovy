@@ -40,12 +40,6 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     }
 
     @Override
-    MavenPom getParsedPom() {
-        // TODO:DAZ Use of this method indicates tests where we validate the POM without checking module metadata
-        return super.getParsedPom()
-    }
-
-    @Override
     void assertPublished() {
         super.assertPublished()
 

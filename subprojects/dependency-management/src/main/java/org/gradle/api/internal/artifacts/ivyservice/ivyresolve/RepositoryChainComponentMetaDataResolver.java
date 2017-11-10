@@ -140,7 +140,6 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 case Failed:
                     failures.add(metaDataResolveResult.getFailure());
                     if (isCriticalFailure(metaDataResolveResult.getFailure())) {
-                        // TODO:DAZ Consider re-throwing here
                         queue.clear();
                     }
                     break;

@@ -117,7 +117,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        // TODO:DAZ Verify excludes in .module file
         javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
         assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))

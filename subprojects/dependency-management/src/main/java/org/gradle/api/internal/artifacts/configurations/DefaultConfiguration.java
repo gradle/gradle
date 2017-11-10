@@ -457,7 +457,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
-                // TODO:DAZ I'm not sure we can ever get into this state, now that we prevent modification of resolved configuration
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
