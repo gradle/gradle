@@ -145,7 +145,7 @@ End of search list.
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine GCC version: g++ produced unexpected output.")
+        1 * visitor.node("Could not determine GCC metadata: g++ produced unexpected output.")
 
         where:
         out << ["not sure about this", ""]
@@ -158,11 +158,11 @@ End of search list.
         def execResult = Mock(ExecResult)
 
         and:
-        def determiner = GccMetadataProvider.forGcc(execActionFactory)
+        def metadataProvider = GccMetadataProvider.forGcc(execActionFactory)
         def binary = new File("g++")
 
         when:
-        def result = determiner.getCompilerMetaData(binary, [])
+        def result = metadataProvider.getCompilerMetaData(binary, [])
 
         then:
         1 * execActionFactory.newExecAction() >> action

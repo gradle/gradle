@@ -72,7 +72,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
                     return new DefaultSwiftcMetadata(line);
                 }
             }
-            return new BrokenMetadata(String.format("Could not parse output of %s", swiftc.getName()));
+            return new BrokenMetadata(String.format("Could not determine %s metadata: %s produced unexpected output.", getCompilerType().getDescription(), swiftc.getName()));
         } catch (IOException e) {
             // Should not happen when reading from a StringReader
             throw new UncheckedIOException(e);

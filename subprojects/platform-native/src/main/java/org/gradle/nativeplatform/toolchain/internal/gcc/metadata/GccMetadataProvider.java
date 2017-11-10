@@ -130,7 +130,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             while ((line = reader.readLine()) != null) {
                 Matcher matcher = DEFINE_PATTERN.matcher(line);
                 if (!matcher.matches()) {
-                    throw new BrokenResultException(String.format("Could not determine %s version: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
+                    throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
                 }
                 defines.put(matcher.group(1), matcher.group(2));
             }
@@ -139,7 +139,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             throw new UncheckedIOException(e);
         }
         if (!defines.containsKey("__GNUC__")) {
-            throw new BrokenResultException(String.format("Could not determine %s version: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
+            throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
         }
         return defines;
     }
