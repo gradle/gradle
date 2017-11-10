@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
@@ -283,7 +282,6 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___Greeter_Release')
     }
 
-    @Ignore("xcodebuild fixture broken") // SLG
     def "can run tests for Swift library within multi-project from xcode"() {
         given:
         buildFile << """

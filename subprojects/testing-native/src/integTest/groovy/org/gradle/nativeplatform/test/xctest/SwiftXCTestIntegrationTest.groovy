@@ -298,7 +298,6 @@ apply plugin: 'swift-executable'
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift executable with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
@@ -319,7 +318,6 @@ apply plugin: 'swift-executable'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test features of a Swift executable using a single test source file"() {
         given:
         def app = new SwiftAppWithSingleXCTestSuite()
