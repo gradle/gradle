@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
@@ -95,7 +96,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         for (ArtifactRepository repository : resolution.getResolveRepositoryHandler()) {
-            result.notFound(repository.getDisplayName(), message);
+            result.notFound(((ArtifactRepositoryInternal) repository).getDisplayName(), message);
         }
     }
 

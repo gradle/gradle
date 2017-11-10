@@ -17,10 +17,10 @@
 package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class ArtifactRepositoriesPluginResolverTest extends Specification {
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
-    def repository = Mock(ArtifactRepository) {
+    def repository = Mock(ArtifactRepositoryInternal) {
         getDisplayName() >> "maven(url)"
     }
     def repositories = Mock(RepositoryHandler) {

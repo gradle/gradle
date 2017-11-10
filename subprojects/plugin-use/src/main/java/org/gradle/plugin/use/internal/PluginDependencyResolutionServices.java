@@ -15,12 +15,14 @@
  */
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 
@@ -84,12 +86,12 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         };
     }
 
-    private static class PluginArtifactRepository implements ArtifactRepository, ResolutionAwareRepository {
-        private final ArtifactRepository delegate;
+    private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ResolutionAwareRepository {
+        private final ArtifactRepositoryInternal delegate;
         private final ResolutionAwareRepository resolutionAwareDelegate;
 
         private PluginArtifactRepository(ArtifactRepository delegate) {
-            this.delegate = delegate;
+            this.delegate = (ArtifactRepositoryInternal) delegate;
             this.resolutionAwareDelegate = (ResolutionAwareRepository) delegate;
         }
 
@@ -105,12 +107,17 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
 
         @Override
         public String getDisplayName() {
-            return getName();
+            return delegate.getDisplayName();
         }
 
         @Override
         public ConfiguredModuleComponentRepository createResolver() {
             return resolutionAwareDelegate.createResolver();
+        }
+
+        @Override
+        public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
+            delegate.onAddToContainer(container);
         }
     }
 }
