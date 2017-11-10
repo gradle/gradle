@@ -26,6 +26,11 @@ useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ":diagnostics")
 useTestFixtures(project: ':platformBase')
 
+// jitpack seems to put incap test projects on the classpath,
+// which results in "no annotation processor claimed these" errors.
+// To get things compiling.
+compileJava.options.annotationProcessorPath = project.files()
+
 useClassycle()
 strictCompile()
 

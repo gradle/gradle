@@ -1,11 +1,20 @@
 // Compiler daemon
 sourceCompatibility = 1.6
 
+repositories {
+    maven {
+        url  "https://dl.bintray.com/incap/incap"
+    }
+}
+
 dependencies {
     compile libraries.groovy
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
+
+    // // INCAP!
+    compile 'org.gradle.incap:incap-build-client:0.0.2'
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
@@ -14,7 +23,6 @@ dependencies {
 // These public packages have classes that are tangled with the corresponding internal package.
 useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
 
-strictCompile()
 useTestFixtures()
 useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")

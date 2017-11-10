@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -24,12 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
-import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -58,6 +54,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 
 import javax.inject.Inject;
+import org.gradle.util.GFileUtils;
 
 /**
  * Compiles Java source files.
@@ -128,7 +125,9 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getStreamHasher(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath());
+            getFileOperations(), getStreamHasher(), getCachingFileHasher(), getPath(), createCompiler(spec),
+            source, compileCaches, (IncrementalTaskInputsInternal) inputs,
+            getServices().get(AnnotationProcessorDetector.class), spec, compileOptions);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }
@@ -192,7 +191,6 @@ public class JavaCompile extends AbstractCompile {
         performCompilation(spec, createCompiler(spec));
     }
 
-
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler(javaCompiler, getOutputs());
@@ -210,11 +208,15 @@ public class JavaCompile extends AbstractCompile {
 
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
+        File incrementalAnnotationProcessorWorkingDir
+            = new File(getProject().getBuildDir(), "intermediates/annotationProcessing");
+        GFileUtils.mkdirs(incrementalAnnotationProcessorWorkingDir);
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setIncrementalAnnotationProcessorWorkingDir(incrementalAnnotationProcessorWorkingDir);
         spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());

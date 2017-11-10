@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import java.util.Set;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorInfo;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
@@ -26,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapsho
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -39,22 +44,28 @@ public class IncrementalCompilerDecorator {
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
-    private final FileCollection annotationProcessorPath;
+    private final AnnotationProcessorDetector annotationProcessorDetector;
     private final IncrementalCompilationInitializer compilationInitializer;
+    private final JavaCompileSpec javaCompileSpec;
+    private final CompileOptions compileOptions;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
-                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath) {
+                                        CompilationSourceDirs sourceDirs, AnnotationProcessorDetector annotationProcessorDetector,
+                                        JavaCompileSpec javaCompileSpec, CompileOptions compileOptions) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
+
         this.staleClassDetecter = staleClassDetecter;
         this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
-        this.annotationProcessorPath = annotationProcessorPath;
+        this.annotationProcessorDetector = annotationProcessorDetector;
+        this.javaCompileSpec = javaCompileSpec;
+        this.compileOptions = compileOptions;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
@@ -71,8 +82,7 @@ public class IncrementalCompilerDecorator {
             LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }
-        if (!annotationProcessorPath.isEmpty()) {
-            LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
+        if (!allowIncrementalAnnotationProcessing()) {
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
@@ -82,5 +92,21 @@ public class IncrementalCompilerDecorator {
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
+    }
+
+    // Check whether there are any Annotation Processors on the classpath that are NOT
+    // incap-enabled (i.e. incremental).  If so, then we do not allow an incremental build.
+    // If there is no annotation processing at all, then we permit an incremental build.
+    private boolean allowIncrementalAnnotationProcessing() {
+        FileCollection classPath = new SimpleFileCollection(javaCompileSpec.getCompileClasspath());
+        Set<AnnotationProcessorInfo> processors = annotationProcessorDetector.getAnnotationProcessorInfo(compileOptions, classPath);
+        for (AnnotationProcessorInfo info : processors) {
+            if (info.isProcessor() && !info.isIncrementalEnabled()) {
+                LOG.info("{} - is not incremental.  The {} annotation processor does not support incremental builds.",
+                         displayName, info.getName());
+                return false;
+            }
+        }
+        return true;
     }
 }
