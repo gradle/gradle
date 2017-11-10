@@ -257,6 +257,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        foo15.maybeGetMetadata()
         foo17.assertGetMetadata()
         fails 'checkDeps'
 
@@ -302,6 +303,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        foo15.maybeGetMetadata()
         foo17.assertGetMetadata()
         fails 'checkDeps'
 
