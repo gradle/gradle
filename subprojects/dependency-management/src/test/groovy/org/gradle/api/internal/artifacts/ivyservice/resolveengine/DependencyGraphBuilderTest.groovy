@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ResolveException
@@ -547,7 +546,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def "does not include filtered dependencies"() {
         given:
-        def spec = { DependencyMetadata dep -> dep.requested.name != 'c' }
+        def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator)
 
         def a = revision('a')
@@ -1030,10 +1029,6 @@ class DependencyGraphBuilderTest extends Specification {
         def dependencyMetaData = dependsOn(args, from, to.id)
         0 * idResolver.resolve(dependencyMetaData, _)
         0 * metaDataResolver.resolve(to.componentId, _, _)
-    }
-
-    private ModuleIdentifier moduleId(DependencyMetadata dependencyMetaData) {
-        moduleIdentifierFactory.module(dependencyMetaData.requested.group, dependencyMetaData.requested.name)
     }
 
     def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {

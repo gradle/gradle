@@ -56,7 +56,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         then:
         copy != metadata
         copy.selector == expected
-        copy.requested == DefaultModuleVersionSelector.newSelector(expected)
     }
 
     def "returns this if new requested version is the same as current requested version"() {
@@ -76,7 +75,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
 
         then:
         copy != metadata
-        copy.requested == moduleVesionSelector
         copy.selector == selector
         copy.moduleConfigurations == metadata.moduleConfigurations
     }

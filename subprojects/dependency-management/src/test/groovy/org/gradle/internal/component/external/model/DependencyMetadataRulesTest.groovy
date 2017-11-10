@@ -143,7 +143,7 @@ class DependencyMetadataRulesTest extends Specification {
         metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].requested.version == "2.0"
+        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.version == "2.0"
 
         where:
         metadataType | metadataImplementation

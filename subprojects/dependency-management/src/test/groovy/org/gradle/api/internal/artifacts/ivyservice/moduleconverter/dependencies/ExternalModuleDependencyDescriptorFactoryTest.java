@@ -44,10 +44,11 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
         LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, dependency);
-        assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
-        assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
-        assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
-        assertThat(dependencyMetaData.getRequested().getVersionConstraint().getPreferredVersion(), equalTo(""));
+        ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
+        assertThat(selector.getGroup(), equalTo(""));
+        assertThat(selector.getModule(), equalTo("gradle-core"));
+        assertThat(selector.getVersion(), equalTo(""));
+        assertThat(selector.getVersionConstraint().getPreferredVersion(), equalTo(""));
     }
 
     @Test
@@ -57,13 +58,14 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
         setUpDependency(moduleDependency);
 
         LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, moduleDependency);
+        ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
         assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());
-        assertEquals(moduleDependency.getGroup(), dependencyMetaData.getRequested().getGroup());
-        assertEquals(moduleDependency.getName(), dependencyMetaData.getRequested().getName());
-        assertEquals(moduleDependency.getVersion(), dependencyMetaData.getRequested().getVersion());
-        assertEquals(moduleDependency.getVersionConstraint(), ((ModuleComponentSelector)dependencyMetaData.getSelector()).getVersionConstraint());
+        assertEquals(moduleDependency.getGroup(), selector.getGroup());
+        assertEquals(moduleDependency.getName(), selector.getModule());
+        assertEquals(moduleDependency.getVersion(), selector.getVersion());
+        assertEquals(moduleDependency.getVersionConstraint(), selector.getVersionConstraint());
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
     }
 }

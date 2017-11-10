@@ -40,9 +40,9 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "1.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
     }
 
     def "add via map id propagate to the underlying dependency list"() {
@@ -51,9 +51,9 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "1.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
     }
 
     def "add via string id with action is propagate to the underlying dependency list"() {
@@ -64,9 +64,9 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "1.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
     }
 
     def "add via map id with action propagate to the underlying dependency list"() {
@@ -77,9 +77,9 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "1.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
     }
 
     def "remove is propagated to the underlying dependency list"() {
@@ -103,12 +103,12 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 2
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "1.0"
-        dependenciesMetadata[1].requested.group == "org.gradle.test"
-        dependenciesMetadata[1].requested.name == "module1"
-        dependenciesMetadata[1].requested.version == "2.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
+        dependenciesMetadata[1].selector.group == "org.gradle.test"
+        dependenciesMetadata[1].selector.module == "module1"
+        dependenciesMetadata[1].selector.version == "2.0"
     }
 
     def "adapters for list items are created lazily"() {
@@ -165,9 +165,9 @@ class DependenciesMetadataAdapterTest extends Specification {
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].requested.group == "org.gradle.test"
-        dependenciesMetadata[0].requested.name == "module1"
-        dependenciesMetadata[0].requested.version == "2.0"
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "2.0"
     }
 
     private fillDependencyList(int size) {

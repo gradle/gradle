@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -55,7 +54,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());
         assertFalse(dependencyMetaData.isForce());
-        assertEquals(DefaultModuleVersionSelector.newSelector("someGroup", "test", new DefaultMutableVersionConstraint("someVersion")), dependencyMetaData.getRequested());
+        assertEquals(new DefaultProjectComponentSelector(":", ":"), dependencyMetaData.getSelector());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 

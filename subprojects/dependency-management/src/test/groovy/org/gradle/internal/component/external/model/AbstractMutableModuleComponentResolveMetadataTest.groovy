@@ -209,7 +209,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.configurations
 
         then:
-        metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
+        metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
 
         when:
         def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])
