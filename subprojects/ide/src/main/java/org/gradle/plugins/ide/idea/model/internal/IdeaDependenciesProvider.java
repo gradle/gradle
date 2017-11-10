@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.plugins.ide.idea.model.Dependency;
-import org.gradle.plugins.ide.idea.model.FilePath;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
+import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
@@ -31,11 +30,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class IdeaDependenciesProvider {
 
@@ -78,34 +73,128 @@ public class IdeaDependenciesProvider {
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
         Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Set<ModuleDependency> moduleDependencies = Sets.newLinkedHashSet();
+        Set<SingleEntryModuleLibrary> fileDependencies = Sets.newLinkedHashSet();
+
+
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            dependencies.addAll(getProjectDependencies(ideaModule, scope));
-            dependencies.addAll(getExternalDependencies(ideaModule, scope));
-            dependencies.addAll(getFileDependencies(ideaModule, scope));
+            moduleDependencies.addAll(getProjectDependencies(ideaModule, scope));
+            fileDependencies.addAll(getExternalDependencies(ideaModule, scope));
+            fileDependencies.addAll(getFileDependencies(ideaModule, scope));
         }
+
+        dependencies.addAll(optimizeDeps(moduleDependencies));
+        dependencies.addAll(optimizeDeps(fileDependencies, ideaModule));
         return dependencies;
     }
 
-    private Set<Dependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Collection<Dependency> optimizeDeps(Collection<ModuleDependency> deps) {
+        Set<Dependency> result = Sets.newLinkedHashSet();
+        Multimap<String, GeneratedIdeaScope> namesToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        for (ModuleDependency dep : deps) {
+            namesToScopes.put(dep.getName(), GeneratedIdeaScope.valueOf(dep.getScope()));
+        }
+
+        for (ModuleDependency dep : deps) {
+            String moduleName = dep.getName();
+            Collection<GeneratedIdeaScope> ideaScopes = namesToScopes.get(moduleName);
+            if (ideaScopes == null || ideaScopes.isEmpty()) {
+                continue;
+            }
+            boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
+            boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
+            boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
+
+            if (isProvided) {
+                ideaScopes.remove(GeneratedIdeaScope.TEST);
+            }
+
+            if (isRuntime && isProvided) {
+                ideaScopes.add(GeneratedIdeaScope.COMPILE);
+                isCompile = true;
+            }
+
+            if (isCompile) {
+                ideaScopes.remove(GeneratedIdeaScope.TEST);
+                ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
+                ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
+            }
+
+            for (GeneratedIdeaScope ideaScope : ideaScopes) {
+                result.add(new ModuleDependency(moduleName, ideaScope.name()));
+            }
+            namesToScopes.removeAll(moduleName);
+        }
+
+        return result;
+    }
+
+    private Collection<Dependency> optimizeDeps(Collection<SingleEntryModuleLibrary> deps, IdeaModule ideaModule) {
+        Set<Dependency> result = Sets.newLinkedHashSet();
+        Multimap<File, GeneratedIdeaScope> filesToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        for (SingleEntryModuleLibrary dep : deps) {
+            filesToScopes.put(dep.getLibraryFile(), GeneratedIdeaScope.valueOf(dep.getScope()));
+        }
+
+        for (SingleEntryModuleLibrary dep : deps) {
+            File libFile = dep.getLibraryFile();
+            Collection<GeneratedIdeaScope> ideaScopes = filesToScopes.get(libFile);
+            if (ideaScopes == null || ideaScopes.isEmpty()) {
+                continue;
+            }
+            boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
+            boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
+            boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
+
+            if (isProvided) {
+                ideaScopes.remove(GeneratedIdeaScope.TEST);
+            }
+
+            if (isRuntime && isProvided) {
+                ideaScopes.add(GeneratedIdeaScope.COMPILE);
+                isCompile = true;
+            }
+
+            if (isCompile) {
+                ideaScopes.remove(GeneratedIdeaScope.TEST);
+                ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
+                ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
+            }
+
+            for (GeneratedIdeaScope ideaScope : ideaScopes) {
+                SingleEntryModuleLibrary newDep = new SingleEntryModuleLibrary(toPath(ideaModule, libFile), ideaScope.name());
+                newDep.setJavadoc(dep.getJavadoc());
+                newDep.setSources(dep.getSources());
+                newDep.setModuleVersion(dep.getModuleVersion());
+                result.add(newDep);
+            }
+            filesToScopes.removeAll(libFile);
+        }
+
+        return result;
+    }
+
+
+    private Set<ModuleDependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
 
         Collection<IdeProjectDependency> extractedDependencies = dependenciesExtractor.extractProjectDependencies(ideaModule.getProject(), plusConfigurations, minusConfigurations);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Set<ModuleDependency> dependencies = Sets.newLinkedHashSet();
         for (IdeProjectDependency ideProjectDependency : extractedDependencies) {
             dependencies.add(moduleDependencyBuilder.create(ideProjectDependency, scope.name()));
         }
         return dependencies;
     }
 
-    private Set<Dependency> getExternalDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Set<SingleEntryModuleLibrary> getExternalDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         if (ideaModule.isOffline()) {
             return Collections.emptySet();
         }
 
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Set<SingleEntryModuleLibrary> dependencies = Sets.newLinkedHashSet();
         Collection<IdeExtendedRepoFileDependency> ideRepoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
             ideaModule.getProject().getDependencies(), plusConfigurations, minusConfigurations,
             ideaModule.isDownloadSources(), ideaModule.isDownloadJavadoc());
@@ -130,10 +219,10 @@ public class IdeaDependenciesProvider {
         return library;
     }
 
-    private Set<Dependency> getFileDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Set<SingleEntryModuleLibrary> getFileDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Set<SingleEntryModuleLibrary> dependencies = Sets.newLinkedHashSet();
         Collection<IdeLocalFileDependency> ideLocalFileDependencies = dependenciesExtractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations);
 
         for (IdeLocalFileDependency fileDependency : ideLocalFileDependencies) {
