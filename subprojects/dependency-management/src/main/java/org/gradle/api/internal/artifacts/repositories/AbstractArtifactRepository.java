@@ -38,4 +38,9 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         }
         this.name = name;
     }
+
+    @Override
+    public String getDisplayName() {
+        return getName();
+    }
 }

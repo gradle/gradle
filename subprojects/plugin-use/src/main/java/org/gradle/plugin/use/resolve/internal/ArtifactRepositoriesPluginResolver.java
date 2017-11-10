@@ -15,21 +15,25 @@
  */
 package org.gradle.plugin.use.resolve.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nonnull;
+import java.util.Iterator;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -37,9 +41,13 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
+    @VisibleForTesting
+    static final String SOURCE_NAME = "Plugin Repositories";
+
     public static ArtifactRepositoriesPluginResolver createWithDefaults(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        if (dependencyResolutionServices.getResolveRepositoryHandler().isEmpty()) {
-            dependencyResolutionServices.getResolveRepositoryHandler().gradlePluginPortal();
+        RepositoryHandler repositories = dependencyResolutionServices.getResolveRepositoryHandler();
+        if (repositories.isEmpty()) {
+            repositories.gradlePluginPortal();
         }
         return new ArtifactRepositoriesPluginResolver(dependencyResolutionServices, versionSelectorScheme);
     }
@@ -57,28 +65,28 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
         if (isNullOrEmpty(markerVersion)) {
-            handleNotFound(result, "plugin dependency must include a version number for this source");
+            result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
             return;
         }
 
         if (markerVersion.endsWith("-SNAPSHOT")) {
-            handleNotFound(result, "snapshot plugin versions are not supported");
+            result.notFound(SOURCE_NAME, "snapshot plugin versions are not supported");
             return;
         }
 
         if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
-            handleNotFound(result, "dynamic plugin versions are not supported");
+            result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported");
             return;
         }
 
         if (exists(markerDependency)) {
-            handleFound(pluginRequest, markerDependency, result);
+            handleFound(result, pluginRequest, markerDependency);
         } else {
-            handleNotFound(result, "Could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
+            handleNotFound(result, "could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
-    private void handleFound(final PluginRequestInternal pluginRequest, final Dependency markerDependency, PluginResolutionResult result) {
+    private void handleFound(PluginResolutionResult result, final PluginRequestInternal pluginRequest, final Dependency markerDependency) {
         result.found("Plugin Repositories", new PluginResolution() {
             @Override
             public PluginId getPluginId() {
@@ -92,9 +100,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     }
 
     private void handleNotFound(PluginResolutionResult result, String message) {
-        for (ArtifactRepository repository : resolution.getResolveRepositoryHandler()) {
-            result.notFound(repository.getName(), message);
+        StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
+        for (Iterator<ArtifactRepository> it = resolution.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+            detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
+            if (it.hasNext()) {
+                detail.append("\n");
+            }
         }
+        result.notFound(SOURCE_NAME, message, detail.toString());
     }
 
     /*

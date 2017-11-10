@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository, ComponentAwareRepository {
+    private final Transformer<String, MavenArtifactRepository> describer;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private Object url;
@@ -67,7 +69,25 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository) {
+        this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator,
+            artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
+            resourcesFileStore, fileResourceRepository);
+
+    }
+
+    public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
+                                          FileResolver fileResolver, RepositoryTransportFactory transportFactory,
+                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                                          Instantiator instantiator,
+                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                          ModuleMetadataParser metadataParser,
+                                          AuthenticationContainer authenticationContainer,
+                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                          FileStore<String> resourcesFileStore,
+                                          FileResourceRepository fileResourceRepository) {
         super(instantiator, authenticationContainer);
+        this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -77,6 +97,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return describer.transform(this);
     }
 
     public URI getUrl() {
@@ -166,5 +191,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
+    }
+
+    private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
+        @Override
+        public String transform(MavenArtifactRepository repository) {
+            URI url = repository.getUrl();
+            if (url == null) {
+                return repository.getName();
+            }
+            return repository.getName() + '(' + url + ')';
+        }
     }
 }
