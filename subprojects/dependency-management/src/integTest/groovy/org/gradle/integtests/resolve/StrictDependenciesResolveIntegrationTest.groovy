@@ -16,23 +16,20 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.RequiresFeatureEnabled
+
+@RequiresFeatureEnabled
 class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
-        def foo15 = mavenHttpRepo.module("org", "foo", '15').withModuleMetadata().publish()
-        def foo17 = mavenHttpRepo.module("org", "foo", '17').withModuleMetadata().publish()
-        def bar10 = mavenHttpRepo.module("org", "bar", "1.0")
+        def foo15 = module("org", "foo", '15').publish()
+        def foo17 = module("org", "foo", '17').publish()
+        def bar10 = module("org", "bar", "1.0")
             .dependsOn(foo15, rejects: [']15,)'])
-            .withModuleMetadata()
             .publish()
 
         buildFile << """
-            repositories {
-                maven { 
-                   url "${mavenHttpRepo.uri}" 
-                   useGradleMetadata()
-                }
-            }
+            $repository
 
             configurations {
                 conf
@@ -44,10 +41,8 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        foo17.pom.expectGet()
-        foo17.moduleMetadata.expectGet()
-        bar10.pom.expectGet()
-        bar10.moduleMetadata.expectGet()
+        foo17.assertGetMetadata()
+        bar10.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -57,22 +52,16 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
 
     void "should pass if strict version ranges overlap using external dependencies"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').withModuleMetadata().publish()
-        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').withModuleMetadata().publish()
-        def foo12 = mavenHttpRepo.module("org", "foo", '1.2').withModuleMetadata().publish()
-        def foo13 = mavenHttpRepo.module("org", "foo", '1.3').withModuleMetadata().publish()
-        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(mavenHttpRepo.module('org', 'foo', '[1.1,1.3]'), rejects: [']1.3,)'])
-            .withModuleMetadata()
+        def foo10 = module("org", "foo", '1.0').publish()
+        def foo11 = module("org", "foo", '1.1').publish()
+        def foo12 = module("org", "foo", '1.2').publish()
+        def foo13 = module("org", "foo", '1.3').publish()
+        def bar10 = module('org', 'bar', '1.0')
+            .dependsOn(module('org', 'foo', '[1.1,1.3]'), rejects: [']1.3,)'])
             .publish()
 
         buildFile << """
-            repositories {
-                maven { 
-                   url "${mavenHttpRepo.uri}"
-                   useGradleMetadata()
-                }
-            }
+            $repository
 
             configurations {
                 conf
@@ -83,48 +72,40 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
                 }
                 conf 'org:bar:1.0'
             }
-            
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.2.jar']
-                }
-            }                  
+                         
         """
 
         when:
         foo10.rootMetaData.expectGet()
-        foo12.pom.expectGet()
-        foo12.moduleMetadata.expectGet()
-        bar10.pom.expectGet()
-        bar10.moduleMetadata.expectGet()
-        foo13.pom.expectGet()
-        foo13.moduleMetadata.expectGet()
-        foo12.artifact.expectGet()
-        bar10.artifact.expectGet()
+        foo12.assertGetMetadata()
+        bar10.assertGetMetadata()
+        foo13.assertGetMetadata()
+        foo12.assertGetArtifact()
+        bar10.assertGetArtifact()
         run ':checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0,1.2]", "org:foo:1.2")
+                edge('org:bar:1.0', 'org:bar:1.0') {
+                    edge("org:foo:[1.1,1.3]", "org:foo:1.2")
+                }
+            }
+        }
     }
 
 
     def "should fail if 2 strict versions disagree (external)"() {
         given:
-        def foo15 = mavenHttpRepo.module("org", "foo", '15').withModuleMetadata().publish()
-        def foo17 = mavenHttpRepo.module("org", "foo", '17').withModuleMetadata().publish()
-        def bar10 = mavenHttpRepo.module("org", "bar", "1.0")
+        def foo15 = module("org", "foo", '15').publish()
+        def foo17 = module("org", "foo", '17').publish()
+        def bar10 = module("org", "bar", "1.0")
             .dependsOn(foo15, rejects: [']15,)'])
-            .withModuleMetadata()
             .publish()
 
         buildFile << """
-            repositories {
-                maven { 
-                   url "${mavenHttpRepo.uri}"
-                   useGradleMetadata()
-                }
-            }
+            $repository
 
             configurations {
                 conf
@@ -140,10 +121,8 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        foo17.pom.expectGet()
-        foo17.moduleMetadata.expectGet()
-        bar10.pom.expectGet()
-        bar10.moduleMetadata.expectGet()
+        foo17.assertGetMetadata()
+        bar10.assertGetMetadata()
         fails 'checkDeps'
 
         then:
