@@ -157,9 +157,7 @@ class AnnotationProcessorDetectionIntegrationTest extends AbstractIntegrationSpe
         }
 
         compileJava {
-          // Use forking to work around javac's jar cache.
-          // (But comment this out to debug the integration test.)
-          //options.fork = true
+          options.incrementalAnnotationProcessing = true
           options.annotationProcessorPath = configurations.annotationProcessor
           options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
         }

@@ -100,6 +100,9 @@ public class IncrementalCompilerDecorator {
     // incap-enabled (i.e. incremental).  If so, then we do not allow an incremental build.
     // If there is no annotation processing at all, then we permit an incremental build.
     private boolean allowIncrementalAnnotationProcessing() {
+        if (!compileOptions.isIncrementalAnnotationProcessing()) {
+            return false;
+        }
         FileCollection classPath = new SimpleFileCollection(javaCompileSpec.getCompileClasspath());
         Set<AnnotationProcessorInfo> cachedInfo = annotationProcessorDetector.getAnnotationProcessorInfo(compileOptions, classPath);
         if (annotationProcessorDetector.checkExplicitProcessorOption(compileOptions)) {

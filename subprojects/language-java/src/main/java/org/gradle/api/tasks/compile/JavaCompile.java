@@ -212,19 +212,21 @@ public class JavaCompile extends AbstractCompile {
 
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
-        File incrementalAnnotationProcessorWorkingDir
-            = new File(getProject().getBuildDir(), "intermediates/annotationProcessing");
-        GFileUtils.mkdirs(incrementalAnnotationProcessorWorkingDir);
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setIncrementalAnnotationProcessorWorkingDir(incrementalAnnotationProcessorWorkingDir);
         spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
+        if (compileOptions.isIncrementalAnnotationProcessing()) {
+            File incrementalAnnotationProcessorWorkingDir
+                    = new File(getProject().getBuildDir(), "intermediates/annotationProcessing");
+            GFileUtils.mkdirs(incrementalAnnotationProcessorWorkingDir);
+            spec.setIncrementalAnnotationProcessorWorkingDir(incrementalAnnotationProcessorWorkingDir);
+        }
         return spec;
     }
 

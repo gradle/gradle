@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -45,6 +46,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private boolean verbose;
     private boolean warnings;
     private File annotationProcessorGeneratedSourcesDirectory;
+    private boolean incrementalAnnotationProcessing;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
@@ -69,6 +71,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.verbose = compileOptions.isVerbose();
         this.warnings = compileOptions.isWarnings();
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
+        this.incrementalAnnotationProcessing = compileOptions.isIncrementalAnnotationProcessing();
     }
 
     public List<File> getSourcepath() {
@@ -181,5 +184,22 @@ public class MinimalJavaCompileOptions implements Serializable {
 
     public void setAnnotationProcessorGeneratedSourcesDirectory(File annotationProcessorGeneratedSourcesDirectory) {
         this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
+    }
+
+    /**
+     * Returns {@code true} if incremental annotation processing is enabled for this build.
+     * @since 4.4
+     */
+    @Incubating
+    public boolean isIncrementalAnnotationProcessing() {
+        return incrementalAnnotationProcessing;
+    }
+
+    /**
+     * Sets flag for enabling incremental annotation processing.
+     * @since 4.4
+     */
+    public void setIncrementalAnnotationProcessing(boolean enabled) {
+        incrementalAnnotationProcessing = enabled;
     }
 }

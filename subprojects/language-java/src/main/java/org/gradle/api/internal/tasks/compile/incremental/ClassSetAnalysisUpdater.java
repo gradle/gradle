@@ -72,7 +72,9 @@ public class ClassSetAnalysisUpdater {
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }
-        recordGeneratedTypeDependencies(analyzer, spec);
+        if (spec.getCompileOptions().isIncrementalAnnotationProcessing()) {
+            recordGeneratedTypeDependencies(analyzer, spec);
+        }
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());
