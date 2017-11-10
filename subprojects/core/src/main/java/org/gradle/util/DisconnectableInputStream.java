@@ -142,7 +142,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     }
 
     @Override
-    public int read(byte[] bytes, int pos, int count) {
+    public int read(byte[] bytes, int pos, int count) throws IOException {
         lock.lock();
         try {
             while (!inputFinished && !closed && readPos == writePos) {
@@ -166,10 +166,10 @@ public class DisconnectableInputStream extends BulkReadInputStream {
             return -1;
         } catch (InterruptedException e) {
             logger.warn("Interrupted input stream processing", e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             lock.unlock();
         }
-        return -1;
     }
 
     /**
