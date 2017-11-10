@@ -281,16 +281,12 @@ apply plugin: 'swift-executable'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    // TODO: Need to support _main symbol duplication
-    @Requires(TestPrecondition.MAC_OS_X)
     def "can test public and internal features of a Swift executable"() {
         given:
         def app = new SwiftAppWithXCTest()
         settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
 apply plugin: 'swift-executable'
-
-linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.name.equals("main.o") }
 """
         app.writeToProject(testDirectory)
 
@@ -318,7 +314,8 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", bundleOrInstallTask(), ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
+        assertMainSymbolIsAbsent(objectFiles(test, "build/obj/test"))
         test.assertTestCasesRan(testExecutionResult)
     }
 

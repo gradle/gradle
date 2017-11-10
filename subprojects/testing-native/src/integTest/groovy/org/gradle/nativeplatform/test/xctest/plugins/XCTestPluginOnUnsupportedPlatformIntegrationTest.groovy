@@ -26,11 +26,6 @@ class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrati
         buildFile << "apply plugin: 'xctest'"
     }
 
-    def "can execute tasks task when applying the plugin under OS other than macOS and Linux"() {
-        expect:
-        succeeds "tasks"
-    }
-
     def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
         succeeds "check"
 
