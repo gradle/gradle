@@ -287,8 +287,6 @@ apply plugin: 'swift-executable'
         settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
 apply plugin: 'swift-executable'
-
-linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.name.equals("main.o") }
 """
         app.writeToProject(testDirectory)
 
