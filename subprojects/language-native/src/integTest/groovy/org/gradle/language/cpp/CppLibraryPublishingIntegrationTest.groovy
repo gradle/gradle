@@ -16,11 +16,13 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.hamcrest.Matchers
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -473,6 +475,109 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/card_shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "private headers are not visible to consumer"() {
+        def lib = new CppLib()
+        def repoDir = file("repo")
+
+        given:
+        settingsFile << "rootProject.name = 'testlib'"
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url '${repoDir.toURI()}' } }
+            }
+"""
+        lib.writeToProject(testDirectory)
+
+        run('publish')
+
+        def consumer = file("consumer")
+        consumer.file("settings.gradle") << ''
+        consumer.file("src/main/cpp/main.cpp") << """
+#include "greeter_consts.h"
+"""
+        consumer.file("build.gradle") << """
+apply plugin: 'cpp-library'
+repositories { maven { url '${repoDir.toURI()}' } }
+dependencies { implementation 'some.group:testlib:1.2' }
+"""
+
+        when:
+        executer.inDirectory(consumer)
+        fails("compileDebugCpp")
+
+        then:
+        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+
+        when:
+        buildFile << """
+library.privateHeaders.from = []
+library.publicHeaders.from 'src/main/public', 'src/main/headers'
+"""
+        run('publish')
+
+        then:
+        executer.inDirectory(consumer)
+        succeeds("compileDebugCpp")
+    }
+
+    def "implementation dependencies are not visible to consumer"() {
+        def app = new CppAppWithLibraries()
+        def repoDir = file("repo")
+
+        given:
+        settingsFile << "include 'greeter', 'logger'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${repoDir.toURI()}' } }
+                }
+            }
+            project(':greeter') {
+                dependencies { implementation project(':logger') }
+            }
+"""
+        app.greeterLib.writeToProject(file('greeter'))
+        app.loggerLib.writeToProject(file('logger'))
+
+        run('publish')
+
+        def consumer = file("consumer")
+        consumer.file("settings.gradle") << ''
+        consumer.file("src/main/cpp/main.cpp") << """
+#include "logger.h"
+"""
+        consumer.file("build.gradle") << """
+apply plugin: 'cpp-library'
+repositories { maven { url '${repoDir.toURI()}' } }
+dependencies { implementation 'some.group:greeter:1.2' }
+"""
+
+        when:
+        executer.inDirectory(consumer)
+        fails("compileDebugCpp")
+
+        then:
+        failure.assertThatCause(Matchers.containsString("C++ compiler failed while compiling main.cpp."))
+
+        when:
+        buildFile.text = buildFile.text.replace("dependencies { implementation project(':logger')", "dependencies { api project(':logger')")
+        run('publish')
+
+        then:
+        executer.inDirectory(consumer)
+        succeeds("compileDebugCpp")
     }
 
     def "correct variant of published library is selected when resolving"() {
