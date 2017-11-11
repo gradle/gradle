@@ -1,0 +1,54 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[lazy_configuration]]
+== Lazy Configuration
+
+
+[[sec:lazy_properties]]
+=== Lazy properties
+
+[NOTE]
+====
+
+The provider API is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+
+====
+
+[[sec:creating_new_property_instances]]
+=== Creating new instances
+
+[[sec:working_with_files_in_lazy_properties]]
+=== Working with files
+
+[[sec:working_with_task_dependencies_in_lazy_properties]]
+=== Working with task dependencies
+
+[[sec:lazy_configuration_faqs]]
+=== FAQs
+
+[[sec:lazy_configuration_roadmap]]
+=== Future development
+
+[[sec:lazy_configuration_summary]]
+=== Summary
+
+.Lazy properties summary
+[width="100%",cols="3,^2,^2,10",options="header"]
+|=========================================================
+|Description |Read-only |Configurable |Factory
+
+|A file on disk (not to be confused with Java File API) |Provider<RegularFile> | RegularFileProperty | ObjectFactory#fileProperty() /
+Directory#file/DirectoryProperty#file
+|=========================================================
