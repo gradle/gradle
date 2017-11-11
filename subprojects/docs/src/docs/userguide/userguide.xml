@@ -78,11 +78,11 @@
     </part>
     <part>
         <title>Extending the build</title>
-        <xi:include href='../../../build/asciidoc/userguide/lazyConfiguration.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/customTasks.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/customPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
         <xi:include href='../../../build/asciidoc/userguide/organizeBuildLogic.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/lazyConfiguration.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/initscripts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/testKit.xml' />
     </part>
