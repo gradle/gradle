@@ -94,15 +94,36 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         return resolvedArtifacts
     }
 
-    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "") {
+    protected def resolveApiArtifacts(MavenModule module) {
+        doResolveArtifacts("""
+    dependencies {
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
+    }
+""", "useGradleMetadata()", "JAVA_API")
+    }
+
+    protected def resolveRuntimeArtifacts(MavenModule module) {
+        doResolveArtifacts("""
+    dependencies {
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
+    }
+""", "useGradleMetadata()", "JAVA_RUNTIME")
+    }
+
+    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "", def targetVariant = null) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
+        def attributes = targetVariant == null ?
+            "" :
+            """ 
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${targetVariant}))
+    }
+"""
         buildFile.text = """
             configurations {
                 resolve {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME))
-                    }
+                    ${attributes}
                 }
             }
             repositories {
