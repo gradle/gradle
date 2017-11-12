@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -43,6 +44,7 @@ class DefaultResolutionStrategySpec extends Specification {
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
+    def componentSelectorConverter = Mock(ComponentSelectorConverter)
     def vcsMappingsInternal = Mock(VcsMappingsInternal)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
@@ -50,7 +52,7 @@ class DefaultResolutionStrategySpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory, componentSelectorConverter)
 
     def "allows setting forced modules"() {
         expect:
@@ -111,7 +113,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.eachDependency(action)
 
         then:
-        1 * dependencySubstitutions.allWithDependencyResolveDetails(action)
+        1 * dependencySubstitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
     }
 
     def "provides dependency resolve rule with forced modules first and then user specified rules"() {

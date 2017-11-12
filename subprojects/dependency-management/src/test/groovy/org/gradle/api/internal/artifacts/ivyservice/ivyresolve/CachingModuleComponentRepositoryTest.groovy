@@ -27,11 +27,11 @@ import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
@@ -95,7 +95,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when module version listing can be determined locally"() {
-        def dependency = Mock(DependencyMetadata)
+        def dependency = Mock(ModuleDependencyMetadata)
         def result = new DefaultBuildableModuleVersionListingResolveResult()
 
         when:

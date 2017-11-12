@@ -18,17 +18,11 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
@@ -40,7 +34,6 @@ import java.util.Set;
 
 public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
-    private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final List<Exclude> excludes;
@@ -51,14 +44,13 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
 
     private final AttributeContainer moduleAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
+    public LocalComponentDependencyMetadata(ComponentSelector selector,
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
-        this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
         this.dependencyConfiguration = dependencyConfiguration;
@@ -71,12 +63,7 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
 
     @Override
     public String toString() {
-        return "dependency: " + requested + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return requested;
+        return "dependency: " + selector + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
     }
 
     @Override
@@ -178,35 +165,14 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     }
 
     @Override
-    public LocalOriginDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(requested.getVersionConstraint())) {
+    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
+        if (selector.equals(target)) {
             return this;
         }
-        ModuleVersionSelector newRequested = DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion);
-        ComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(newRequested);
-        return copyWithTarget(newSelector, newRequested);
+        return copyWithTarget(target);
     }
 
-    @Override
-    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
-        if (target instanceof ModuleComponentSelector) {
-            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
-            if (selector.equals(target) && requested.equals(requestedVersion)) {
-                return this;
-            }
-            return copyWithTarget(moduleTarget, requestedVersion);
-        } else if (target instanceof ProjectComponentSelector) {
-            if (target.equals(selector)) {
-                return this;
-            }
-            return copyWithTarget(target, requested);
-        } else {
-            throw new AssertionError("Invalid component selector type for substitution: " + target);
-        }
-    }
-
-    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
+        return new LocalComponentDependencyMetadata(selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 }

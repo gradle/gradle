@@ -17,10 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -36,8 +34,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -85,7 +83,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
+        List<ModuleDependencyMetadata> dependencies = mdBuilder.getDependencies();
         ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, cid, dependencies);
@@ -137,7 +135,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         + " is relocated to " + relocation
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");
-                ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(relocation.getGroup(), relocation.getName(), new DefaultMutableVersionConstraint(relocation.getVersion()));
+                ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(relocation.getGroup(), relocation.getName(), new DefaultMutableVersionConstraint(relocation.getVersion()));
                 mdBuilder.addDependencyForRelocation(selector);
             }
         } else {
@@ -210,9 +208,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return parsePomResource(parseContext, localResource, childProperties);
     }
 
-    private DependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
-        ModuleVersionSelector versionSelector = DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
-        return new MavenDependencyMetadata(MavenScope.Compile, false, versionSelector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
+    private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
+        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

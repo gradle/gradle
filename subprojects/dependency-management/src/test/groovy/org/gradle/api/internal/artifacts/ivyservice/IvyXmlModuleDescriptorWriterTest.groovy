@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata
@@ -37,7 +38,8 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
 
     private @Rule TestNameTestDirectoryProvider temporaryFolder;
     ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("org.test", "projectA", "1.0")
-    def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter()
+    ComponentSelectorConverter componentSelectorConverter = Mock(ComponentSelectorConverter)
+    def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter(componentSelectorConverter)
 
     def "can create ivy (unmodified) descriptor"() {
         when:
@@ -49,6 +51,8 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         addDependencyDescriptor(metadata, "Dep2")
         metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
 
+        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector("org.test", "Dep1", "1.0")
+        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector("org.test", "Dep2", "1.0")
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
         ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);
 
@@ -73,7 +77,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     def addDependencyDescriptor(BuildableIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
         def dep = new LocalComponentDependencyMetadata(
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
-            DefaultModuleVersionSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
             "default", null, "default", [] as Set, [], false, false, true)
         metadata.addDependency(dep)
     }

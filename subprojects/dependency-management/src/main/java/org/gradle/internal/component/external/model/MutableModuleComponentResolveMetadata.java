@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.reflect.Instantiator;
@@ -88,12 +87,12 @@ public interface MutableModuleComponentResolveMetadata {
     /**
      * Returns the dependency declarations of this component.
      */
-    List<? extends DependencyMetadata> getDependencies();
+    List<? extends ModuleDependencyMetadata> getDependencies();
 
     /**
      * Replaces the dependencies of this module version.
      */
-    void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
+    void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies);
 
     /**
      * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.

@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -54,7 +53,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            dependencies.add(new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint())));
+            dependencies.add(new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint())));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.dependencyMetadataRules = dependencyMetadataRules;

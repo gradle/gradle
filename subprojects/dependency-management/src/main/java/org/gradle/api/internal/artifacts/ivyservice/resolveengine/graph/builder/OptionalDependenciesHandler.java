@@ -17,10 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 
 import java.util.List;
@@ -34,19 +32,19 @@ import java.util.List;
  */
 public class OptionalDependenciesHandler {
     private final OptionalDependenciesState optionalDependencies;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
+    private final ComponentSelectorConverter componentSelectorConverter;
 
     private boolean started;
     private boolean isOptionalConfiguration;
     private List<PendingOptionalDependencies> noLongerOptional;
 
     public OptionalDependenciesHandler(OptionalDependenciesState optionalDependencies,
-                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                       ComponentSelectorConverter componentSelectorConverter,
                                        DependencySubstitutionApplicator dependencySubstitutionApplicator) {
 
         this.optionalDependencies = optionalDependencies;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.componentSelectorConverter = componentSelectorConverter;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
     }
 
@@ -54,11 +52,7 @@ public class OptionalDependenciesHandler {
         DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            ComponentSelector target = details.getTarget();
-            if (target instanceof ModuleComponentSelector) {
-                ModuleComponentSelector selector = (ModuleComponentSelector) target;
-                return moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
-            }
+            return componentSelectorConverter.getModule(details.getTarget());
         }
         return dependencyState.getModuleIdentifier();
     }

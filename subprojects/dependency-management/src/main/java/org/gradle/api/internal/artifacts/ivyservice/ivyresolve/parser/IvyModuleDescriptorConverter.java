@@ -28,8 +28,7 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -38,6 +37,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -104,7 +104,7 @@ public class IvyModuleDescriptorConverter {
 
     private void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
+        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
 
         ListMultimap<String, String> configMappings = ArrayListMultimap.create();
         for (Map.Entry<String, List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {

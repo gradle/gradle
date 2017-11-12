@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -29,7 +30,6 @@ import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -43,14 +43,14 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
-    private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
+    private final List<ModuleDependencyMetadata> configDependencies = Lists.newArrayList();
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
     private final List<String> hierarchy;
 
     private DependencyMetadataRules dependencyMetadataRules;
-    private List<DependencyMetadata> calculatedDependencies;
+    private List<ModuleDependencyMetadata> calculatedDependencies;
 
     DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.componentId = componentId;
@@ -140,8 +140,8 @@ abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
         return calculatedDependencies;
     }
 
-    void populateDependencies(Iterable<? extends DependencyMetadata> dependencies, DependencyMetadataRules dependencyMetadataRules) {
-        for (DependencyMetadata dependency : dependencies) {
+    void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, DependencyMetadataRules dependencyMetadataRules) {
+        for (ModuleDependencyMetadata dependency : dependencies) {
             if (include(dependency)) {
                 this.configDependencies.add(dependency);
             }

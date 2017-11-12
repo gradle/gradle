@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.component.external.model;
 
-package org.gradle.internal.resolve.resolver;
-
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
-public interface DependencyToComponentIdResolver {
+public interface ModuleDependencyMetadata extends DependencyMetadata {
+    @Override
+    ModuleComponentSelector getSelector();
+
+    String getDynamicConstraintVersion();
+
     /**
-     * Resolves the given dependency to a component instance. Failures should be attached to the result.
-     *
-     * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
+     * Returns a copy of this dependency with the given requested version.
      */
-    void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result);
+    ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
 }

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 
@@ -30,8 +29,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
 
     @Override
     public SubstitutionResult apply(DependencyMetadata dependency) {
-        ComponentSelector selector = dependency.getSelector();
-        DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
+        DependencySubstitutionInternal details = new DefaultDependencySubstitution(dependency.getSelector());
         try {
             rule.execute(details);
         } catch (Throwable e) {

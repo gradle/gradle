@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -48,7 +50,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
@@ -56,11 +58,11 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
             ResolvedVersionConstraint resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
             VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
             if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(dependency, preferredSelector, result);
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, result);
             } else {
                 String version = raw.getPreferredVersion();
-                DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
-                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(targetModuleId, version);
+                ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
+                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
                 result.resolved(id, mvId);
             }
             if (result.hasResult()) {
@@ -69,4 +71,14 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         }
     }
 
+    private ModuleDependencyMetadata toModuleDependencyMetadata(DependencyMetadata dependency) {
+        if (dependency instanceof ModuleDependencyMetadata) {
+            return (ModuleDependencyMetadata) dependency;
+        }
+        if (dependency.getSelector() instanceof ModuleComponentSelector) {
+            return new ModuleDependencyMetadataWrapper(dependency);
+        }
+        throw new IllegalArgumentException("Not a module dependency: " + dependency);
+
+    }
 }

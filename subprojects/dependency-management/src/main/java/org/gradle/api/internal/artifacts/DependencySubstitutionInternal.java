@@ -17,13 +17,10 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencySubstitution;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface DependencySubstitutionInternal extends DependencySubstitution {
-    ModuleVersionSelector getOldRequested();
-
     void useTarget(Object notation, ComponentSelectionReason selectionReason);
 
     ComponentSelector getTarget();

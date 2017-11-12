@@ -17,8 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata {
+public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final ModuleDependency source;
 
@@ -50,11 +48,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public ModuleDependency getSource() {
         return source;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return delegate.getRequested();
     }
 
     @Override
@@ -88,11 +81,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public String getDynamicConstraintVersion() {
-        return delegate.getDynamicConstraintVersion();
-    }
-
-    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }
@@ -120,11 +108,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public Set<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
-    }
-
-    @Override
-    public LocalOriginDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        return delegate.withRequestedVersion(requestedVersion);
     }
 
     @Override

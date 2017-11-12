@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -30,11 +30,11 @@ import java.util.Set;
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed;
 
 class InMemoryMetaDataCache {
-    private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = Maps.newConcurrentMap();
+    private final Map<ModuleComponentSelector, Set<String>> moduleVersionListing = Maps.newConcurrentMap();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = Maps.newConcurrentMap();
     private final Map<ModuleComponentIdentifier, MetadataFetchingCost> fetchingCosts = Maps.newConcurrentMap();
 
-    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
+    public boolean supplyModuleVersions(ModuleComponentSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
         if (versions == null) {
             return false;
@@ -43,7 +43,7 @@ class InMemoryMetaDataCache {
         return true;
     }
 
-    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
+    public void newModuleVersions(ModuleComponentSelector requested, BuildableModuleVersionListingResolveResult result) {
         if (result.getState() == Listed) {
             moduleVersionListing.put(requested, result.getVersions());
         }

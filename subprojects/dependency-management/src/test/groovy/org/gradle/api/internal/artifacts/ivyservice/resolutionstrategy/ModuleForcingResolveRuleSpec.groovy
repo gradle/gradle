@@ -79,17 +79,17 @@ class ModuleForcingResolveRuleSpec extends Specification {
         ], moduleIdentifierFactory).execute(details)
 
         then:
-        _ * details.getOldRequested() >> requested
+        _ * details.getRequested() >> requested
         0 * details._
 
         where:
         requested << [
-            newSelector("orgX", "module2", v("0.9")),
-            newSelector("org", "moduleX", v("2.9")),
-            newSelector("orgX", "module:with:colon", v("2.9")),
-            newSelector("org:with:colon", "moduleX", v("2.9")),
-            newSelector("org:with", "colon:module2", v("2.9")),
-            newSelector("org", "with:colon:module2", v("2.9")),
+            newComponentSelector("orgX", "module2", v("0.9")),
+            newComponentSelector("org", "moduleX", v("2.9")),
+            newComponentSelector("orgX", "module:with:colon", v("2.9")),
+            newComponentSelector("org:with:colon", "moduleX", v("2.9")),
+            newComponentSelector("org:with", "colon:module2", v("2.9")),
+            newComponentSelector("org", "with:colon:module2", v("2.9")),
         ]
     }
 
@@ -101,5 +101,9 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
         then:
         0 * details._
+    }
+
+    static newComponentSelector(String group, String name, VersionConstraint versionConstraint) {
+        DefaultModuleComponentSelector.newSelector(group, name, versionConstraint)
     }
 }

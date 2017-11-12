@@ -19,12 +19,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -39,6 +38,7 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
@@ -46,11 +46,11 @@ import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.hash.HashValue;
@@ -230,17 +230,17 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeDependencies(List<? extends DependencyMetadata> dependencies) throws IOException {
+        private void writeDependencies(List<? extends ModuleDependencyMetadata> dependencies) throws IOException {
             writeCount(dependencies.size());
-            for (DependencyMetadata dd : dependencies) {
+            for (ModuleDependencyMetadata dd : dependencies) {
                 writeDependency(dd);
             }
         }
 
-        private void writeDependency(DependencyMetadata dep) throws IOException {
-            ModuleVersionSelector selector = dep.getRequested();
+        private void writeDependency(ModuleDependencyMetadata dep) throws IOException {
+            ModuleComponentSelector selector = dep.getSelector();
             writeString(selector.getGroup());
-            writeString(selector.getName());
+            writeString(selector.getModule());
             writeVersionConstraint(selector.getVersionConstraint());
 
             if (dep instanceof IvyDependencyMetadata) {
@@ -362,7 +362,7 @@ public class ModuleMetadataSerializer {
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
-            List<DependencyMetadata> dependencies = readDependencies();
+            List<ModuleDependencyMetadata> dependencies = readDependencies();
             DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, dependencies);
             readSharedInfo(metadata);
             metadata.setSnapshotTimestamp(readNullableString());
@@ -417,7 +417,7 @@ public class ModuleMetadataSerializer {
             readInfoSection();
             Map<NamespaceId, String> extraAttributes = readExtraInfo();
             List<Configuration> configurations = readConfigurations();
-            List<DependencyMetadata> dependencies = readDependencies();
+            List<ModuleDependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
             List<Exclude> excludes = readAllExcludes();
             DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, configurations, dependencies, artifacts);
@@ -477,17 +477,17 @@ public class ModuleMetadataSerializer {
             return result;
         }
 
-        private List<DependencyMetadata> readDependencies() throws IOException {
+        private List<ModuleDependencyMetadata> readDependencies() throws IOException {
             int len = readCount();
-            List<DependencyMetadata> result = Lists.newArrayListWithCapacity(len);
+            List<ModuleDependencyMetadata> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
                 result.add(readDependency());
             }
             return result;
         }
 
-        private DependencyMetadata readDependency() throws IOException {
-            ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(readString(), readString(), readVersionConstraint());
+        private ModuleDependencyMetadata readDependency() throws IOException {
+            ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(readString(), readString(), readVersionConstraint());
 
             byte type = decoder.readByte();
             switch (type) {

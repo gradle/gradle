@@ -163,24 +163,27 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsInternal vcsMappingsInternal, ComponentIdentifierFactory componentIdentifierFactory,
-                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
+                                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
-                    configurationResolver,
-                    instantiator,
-                    domainObjectContext,
-                    listenerManager,
-                    metaDataProvider,
-                    projectAccessListener,
-                    projectFinder,
-                    metaDataBuilder,
-                    fileCollectionFactory,
-                    globalDependencyResolutionRules.getDependencySubstitutionRules(),
-                    vcsMappingsInternal,
-                    componentIdentifierFactory,
-                    buildOperationExecutor,
-                    taskResolverFor(domainObjectContext),
-                    attributesFactory, moduleIdentifierFactory
-                );
+                configurationResolver,
+                instantiator,
+                domainObjectContext,
+                listenerManager,
+                metaDataProvider,
+                projectAccessListener,
+                projectFinder,
+                metaDataBuilder,
+                fileCollectionFactory,
+                globalDependencyResolutionRules.getDependencySubstitutionRules(),
+                vcsMappingsInternal,
+                componentIdentifierFactory,
+                buildOperationExecutor,
+                taskResolverFor(domainObjectContext),
+                attributesFactory,
+                moduleIdentifierFactory,
+                componentSelectorConverter
+            );
         }
 
         private TaskResolver taskResolverFor(DomainObjectContext domainObjectContext) {
@@ -237,7 +240,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ImmutableAttributesFactory attributesFactory,
                                                        BuildOperationExecutor buildOperationExecutor,
                                                        ArtifactTypeRegistry artifactTypeRegistry,
-                                                       VersionSelectorScheme versionSelectorScheme) {
+                                                       VersionSelectorScheme versionSelectorScheme,
+                                                       ComponentSelectorConverter componentSelectorConverter) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -255,7 +259,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 attributesSchema),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
-                            artifactTypeRegistry, versionSelectorScheme),
+                            artifactTypeRegistry,
+                            versionSelectorScheme,
+                            componentSelectorConverter),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }
@@ -313,7 +319,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             IvyBackedArtifactPublisher publisher = new IvyBackedArtifactPublisher(
                 services.get(ConfigurationComponentMetaDataBuilder.class),
                 new DefaultIvyDependencyPublisher(),
-                new IvyXmlModuleDescriptorWriter()
+                new IvyXmlModuleDescriptorWriter(services.get(ComponentSelectorConverter.class))
             );
             return new IvyContextualArtifactPublisher(services.get(IvyContextManager.class), publisher);
         }

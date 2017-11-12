@@ -30,8 +30,8 @@ import org.gradle.internal.hash.HashValue
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
@@ -76,14 +76,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         then:
         deps.size() == 2
-        deps[0].requested == newSelector("org", "module", v("1.2"))
-        deps[1].requested == newSelector("org", "another", v("1.2"))
+        deps[0].selector == newSelector("org", "module", v("1.2"))
+        deps[1].selector == newSelector("org", "another", v("1.2"))
 
         and:
         def immutable = metadata.asImmutable()
         immutable.dependencies.size() == 2
-        immutable.dependencies[0].requested == newSelector("org", "module", v("1.2"))
-        immutable.dependencies[1].requested == newSelector("org", "another", v("1.2"))
+        immutable.dependencies[0].selector == newSelector("org", "module", v("1.2"))
+        immutable.dependencies[1].selector == newSelector("org", "another", v("1.2"))
         immutable.getConfiguration("compile").dependencies.size() == 1
         immutable.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
         immutable.getConfiguration("runtime").dependencies.size() == 2
@@ -93,14 +93,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         and:
         def copy = immutable.asMutable()
         copy.dependencies.size() == 2
-        copy.dependencies[0].requested == newSelector("org", "module", v("1.2"))
-        copy.dependencies[1].requested == newSelector("org", "another", v("1.2"))
+        copy.dependencies[0].selector == newSelector("org", "module", v("1.2"))
+        copy.dependencies[1].selector == newSelector("org", "another", v("1.2"))
 
         and:
         def immutable2 = copy.asImmutable()
         immutable2.dependencies.size() == 2
-        immutable2.dependencies[0].requested == newSelector("org", "module", v("1.2"))
-        immutable2.dependencies[1].requested == newSelector("org", "another", v("1.2"))
+        immutable2.dependencies[0].selector == newSelector("org", "module", v("1.2"))
+        immutable2.dependencies[1].selector == newSelector("org", "another", v("1.2"))
         immutable2.getConfiguration("compile").dependencies.size() == 1
         immutable2.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
         immutable2.getConfiguration("runtime").dependencies.size() == 2
@@ -209,7 +209,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.configurations
 
         then:
-        metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
+        metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
 
         when:
         def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])

@@ -174,7 +174,7 @@ class NodeState implements DependencyGraphNode {
         optionalDependenciesHandler.start(isOptionalConfiguration);
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
-                DependencyState dependencyState = new DependencyState(dependency, resolveState.getModuleIdentifierFactory());
+                DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }

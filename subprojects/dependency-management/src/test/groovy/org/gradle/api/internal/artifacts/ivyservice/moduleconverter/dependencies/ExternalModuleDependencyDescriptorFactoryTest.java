@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -43,11 +43,12 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, dependency);
-        assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
-        assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
-        assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
-        assertThat(dependencyMetaData.getRequested().getVersionConstraint().getPreferredVersion(), equalTo(""));
+        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, dependency);
+        ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
+        assertThat(selector.getGroup(), equalTo(""));
+        assertThat(selector.getModule(), equalTo("gradle-core"));
+        assertThat(selector.getVersion(), equalTo(""));
+        assertThat(selector.getVersionConstraint().getPreferredVersion(), equalTo(""));
     }
 
     @Test
@@ -56,14 +57,15 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, moduleDependency);
+        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, moduleDependency);
+        ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
         assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());
-        assertEquals(moduleDependency.getGroup(), dependencyMetaData.getRequested().getGroup());
-        assertEquals(moduleDependency.getName(), dependencyMetaData.getRequested().getName());
-        assertEquals(moduleDependency.getVersion(), dependencyMetaData.getRequested().getVersion());
-        assertEquals(moduleDependency.getVersionConstraint(), ((ModuleComponentSelector)dependencyMetaData.getSelector()).getVersionConstraint());
+        assertEquals(moduleDependency.getGroup(), selector.getGroup());
+        assertEquals(moduleDependency.getName(), selector.getModule());
+        assertEquals(moduleDependency.getVersion(), selector.getVersion());
+        assertEquals(moduleDependency.getVersionConstraint(), selector.getVersionConstraint());
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
     }
 }

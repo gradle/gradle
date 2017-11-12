@@ -33,7 +33,6 @@ class DependencySubstitutionResolverSpec extends Specification {
     def requested = DefaultModuleVersionSelector.newSelector("group", "module", "version")
     def selector = new DefaultModuleComponentSelector("group", "module", DefaultImmutableVersionConstraint.of("version"))
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def targetModuleId = moduleIdentifierFactory.module("group", "module")
     def dependency = Mock(DependencyMetadata) {
         getRequested() >> requested
         getSelector() >> selector
@@ -41,7 +40,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     def result = Mock(BuildableComponentIdResolveResult)
     def target = Mock(DependencyToComponentIdResolver)
     def rule = Mock(Action)
-    def resolver = new DependencySubstitutionResolver(target, new DefaultDependencySubstitutionApplicator(rule), moduleIdentifierFactory)
+    def resolver = new DependencySubstitutionResolver(target, new DefaultDependencySubstitutionApplicator(rule))
 
     def "passes through dependency when it does not match any rule"() {
         given:
@@ -49,10 +48,10 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, targetModuleId, result)
+        resolver.resolve(dependency, result)
 
         then:
-        1 * target.resolve(dependency, targetModuleId, result)
+        1 * target.resolve(dependency, result)
     }
 
     def "replaces dependency by rule"() {
@@ -64,11 +63,11 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, targetModuleId, result)
+        resolver.resolve(dependency, result)
 
         then:
         1 * dependency.withTarget(DefaultModuleComponentSelector.newSelector("group", "module", new DefaultMutableVersionConstraint("new"))) >> substitutedDependency
-        1 * target.resolve(substitutedDependency, _, result)
+        1 * target.resolve(substitutedDependency, result)
     }
 
     def "explosive rule yields failure result that provides context"() {
@@ -79,7 +78,7 @@ class DependencySubstitutionResolverSpec extends Specification {
         }
 
         when:
-        resolver.resolve(dependency, targetModuleId, result)
+        resolver.resolve(dependency, result)
 
         then:
         1 * result.failed(_) >> { ModuleVersionResolveException e ->

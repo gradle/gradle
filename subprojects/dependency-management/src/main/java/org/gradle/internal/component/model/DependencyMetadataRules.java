@@ -20,6 +20,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependenciesMetadataAdapter;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -46,7 +47,7 @@ public class DependencyMetadataRules {
         actions.add(action);
     }
 
-    public <T extends DependencyMetadata> List<T> execute(List<T> dependencies) {
+    public <T extends ModuleDependencyMetadata> List<T> execute(List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(dependencies);
         for (Action<DependenciesMetadata> dependenciesMetadataAction : actions) {
             dependenciesMetadataAction.execute(instantiator.newInstance(

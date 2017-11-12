@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -58,10 +59,12 @@ class DefaultConfigurationContainerTest extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
+    private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, new BasicDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory)
+            globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

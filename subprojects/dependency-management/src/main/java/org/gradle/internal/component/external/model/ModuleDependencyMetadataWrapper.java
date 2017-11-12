@@ -13,106 +13,100 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.component.external.model;
 
-package org.gradle.internal.component.model;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class GradleDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
-    private final ModuleComponentSelector selector;
+public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
+    private final DependencyMetadata delegate;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector) {
-        this.selector = selector;
+    public ModuleDependencyMetadataWrapper(DependencyMetadata delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
-        return ImmutableSet.of();
+        return delegate.getArtifacts(fromConfiguration, toConfiguration);
     }
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
-        return ImmutableSet.of();
+        return delegate.getArtifacts();
     }
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(selector.getVersionConstraint())) {
-            return this;
-        }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion));
+        ModuleComponentSelector selector = getSelector();
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
-        if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target);
-        }
-        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
+        return delegate.withTarget(target);
     }
 
     @Override
     public ModuleComponentSelector getSelector() {
-        return selector;
+        return (ModuleComponentSelector) delegate.getSelector();
     }
 
     @Override
     public List<Exclude> getExcludes() {
-        return ImmutableList.of();
+        return delegate.getExcludes();
     }
 
     @Override
     public List<Exclude> getExcludes(Collection<String> configurations) {
-        return ImmutableList.of();
+        return delegate.getExcludes(configurations);
     }
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+        return delegate.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
     }
 
     @Override
     public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of();
+        return delegate.getModuleConfigurations();
     }
 
     @Override
     public boolean isChanging() {
-        return false;
+        return delegate.isChanging();
     }
 
     @Override
     public boolean isTransitive() {
-        return true;
+        return delegate.isTransitive();
     }
 
     @Override
     public boolean isForce() {
-        return false;
+        return delegate.isForce();
     }
 
     @Override
     public boolean isOptional() {
-        return false;
+        return delegate.isOptional();
     }
 
     @Override
     public String getDynamicConstraintVersion() {
         return getSelector().getVersionConstraint().getPreferredVersion();
     }
-
 }

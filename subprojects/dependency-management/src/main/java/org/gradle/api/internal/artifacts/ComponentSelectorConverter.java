@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts;
 
-package org.gradle.vcs.internal;
-
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
-public class DefaultVcsMappingFactory implements VcsMappingFactory {
-    @Override
-    public VcsMappingInternal create(ComponentSelector selector) {
-        return new DefaultVcsMapping(selector);
-    }
+/**
+ * Adapts the new `ComponentSelector` types to legacy types.
+ * Note that for `ProjectComponentSelector` this requires looking up the target project in order
+ * to determine the project coordinates.
+ */
+public interface ComponentSelectorConverter {
+    ModuleIdentifier getModule(ComponentSelector selector);
+    ModuleVersionSelector getSelector(ComponentSelector selector);
 }

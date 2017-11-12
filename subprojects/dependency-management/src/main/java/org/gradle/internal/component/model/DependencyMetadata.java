@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -27,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface DependencyMetadata {
-    ModuleVersionSelector getRequested();
-
     /**
      * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
      * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
@@ -41,11 +37,6 @@ public interface DependencyMetadata {
      * defaults should be used in this case.
      */
     Set<IvyArtifactName> getArtifacts();
-
-    /**
-     * Returns a copy of this dependency with the given requested version.
-     */
-    DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
 
     /**
      * Returns a copy of this dependency with the given target.
@@ -86,7 +77,5 @@ public interface DependencyMetadata {
     boolean isForce();
 
     boolean isOptional();
-
-    String getDynamicConstraintVersion();
 
 }
