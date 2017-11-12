@@ -38,6 +38,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
+    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
+
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
@@ -106,7 +108,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
-        return new PreferJavaRuntimeVariant();
+        return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 
     /**
@@ -122,8 +124,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private static class PreferJavaRuntimeVariant extends EmptySchema {
         private static final NamedObjectInstantiator INSTANTIATOR = NamedObjectInstantiator.INSTANCE;
         private static final Usage JAVA_API = INSTANTIATOR.named(Usage.class, Usage.JAVA_API);
-        private static final Usage JAVA_RUNIME = INSTANTIATOR.named(Usage.class, Usage.JAVA_RUNTIME);
-        private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(JAVA_API, JAVA_RUNIME);
+        private static final Usage JAVA_RUNTIME = INSTANTIATOR.named(Usage.class, Usage.JAVA_RUNTIME);
+        private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(JAVA_API, JAVA_RUNTIME);
 
         @Override
         public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
@@ -132,7 +134,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
                     public void execute(MultipleCandidatesResult<Usage> details) {
                         if (details.getConsumerValue() == null) {
                             if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {
-                                details.closestMatch(JAVA_RUNIME);
+                                details.closestMatch(JAVA_RUNTIME);
                             }
                         }
                     }
