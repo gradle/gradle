@@ -41,7 +41,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     private static ModuleVersionSelector determineTarget(DependencySubstitutionInternal delegate, ModuleVersionSelector requested) {
-        // Temporary logic until we add DependencySubstitution back in
+        // The target may already be modified from the original requested
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) delegate.getTarget();
             return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersionConstraint());

@@ -18,7 +18,6 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -45,7 +44,7 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
 
     private final AttributeContainer moduleAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
+    public LocalComponentDependencyMetadata(ComponentSelector selector,
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
@@ -174,6 +173,6 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(selector, null, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+        return new LocalComponentDependencyMetadata(selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 }
