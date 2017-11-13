@@ -32,8 +32,8 @@ class GroupSpec {
         moduleSpec()
     }
 
-    void publish(MavenHttpRepository repository) {
-        modules.values()*.publish(repository)
+    void produce(MavenHttpRepository repository) {
+        modules.values()*.produce(repository)
     }
 
     void methodMissing(String name, args) {
