@@ -1,9 +1,8 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import model.CIBuildModel
 
-class SmokeTests(model: CIBuildModel) : BuildType({
+class SmokeTests(model: CIBuildModel) : BaseGradleBuildType({
     uuid = "${model.projectPrefix}SmokeTests"
     extId = uuid
     name = "Smoke Tests with 3rd Party Plugins - Java8 Linux"

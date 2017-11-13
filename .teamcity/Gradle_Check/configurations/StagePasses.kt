@@ -1,7 +1,6 @@
 package configurations
 
 import jetbrains.buildServer.configs.kotlin.v10.BuildStep
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
@@ -14,8 +13,8 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildType({
-    uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ","").replace("-","")}_Trigger"
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType({
+    uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-", "")}_Trigger"
     extId = uuid
     name = stage.name + " (Trigger)"
 
@@ -88,7 +87,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
 
     dependencies {
         if (prevStage != null) {
-            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ","").replace("-","")}_Trigger") {
+            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ", "").replace("-", "")}_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }

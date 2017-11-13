@@ -1,9 +1,8 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import model.CIBuildModel
 
-class SanityCheck(model: CIBuildModel) : BuildType({
+class SanityCheck(model: CIBuildModel) : BaseGradleBuildType({
     uuid = "${model.projectPrefix}SanityCheck"
     extId = uuid
     name = "Sanity Check"

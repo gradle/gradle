@@ -19,9 +19,9 @@ val gradleParameters: List<String> = asList(
         java7HomeLinux
 )
 
-val gradleBuildCacheParameters: List<String> = asList(
+fun gradleBuildCacheParameters(url: String): List<String> = asList(
         "--build-cache",
-        "-Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%"
+        "-Dgradle.cache.remote.url=$url -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%"
 )
 
 val m2CleanScriptLinux = """
@@ -88,7 +88,7 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", notQuick: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, subProject: String = "", notQuick: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)
 
     val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
@@ -98,7 +98,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = gradleParameterString + " " + (if (model.buildCacheActive) gradleBuildCacheParameters.joinToString(separator = " ") else "") + " " + extraParameters
+            gradleParams = gradleParameterString + " " + (if (model.buildCacheActive) gradleBuildCacheParameters(model.parentBuildCache).joinToString(separator = " ") else "") + " " + extraParameters
             useGradleWrapper = true
         }
     }

@@ -1,10 +1,9 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import model.CIBuildModel
 
-class Gradleception(model: CIBuildModel) : BuildType({
+class Gradleception(model: CIBuildModel) : BaseGradleBuildType({
     uuid = "${model.projectPrefix}Gradleception"
     extId = uuid
     name = "Gradleception - Java8 Linux"

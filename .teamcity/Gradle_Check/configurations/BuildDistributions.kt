@@ -1,9 +1,8 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v10.BuildType
 import model.CIBuildModel
 
-class BuildDistributions(model: CIBuildModel) : BuildType({
+class BuildDistributions(model: CIBuildModel) : BaseGradleBuildType({
     uuid = "${model.projectPrefix}BuildDistributions"
     extId = uuid
     name = "Build Distributions"
