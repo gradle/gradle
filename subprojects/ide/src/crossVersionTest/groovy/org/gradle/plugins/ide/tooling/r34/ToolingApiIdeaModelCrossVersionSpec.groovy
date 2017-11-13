@@ -122,18 +122,17 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def module = ideaProject.modules.find {it. name == 'root'}
 
         then:
-        module.dependencies.size() == 11
+        module.dependencies.size() == 9
+
         hasDependency(module, "a", "PROVIDED")
         hasDependency(module, "a", "RUNTIME")
-        hasDependency(module, "a", "TEST")
-        hasDependency(module, "f", "TEST")
         hasDependency(module, "b", "PROVIDED")
         hasDependency(module, "b", "RUNTIME")
-        hasDependency(module, "b", "TEST")
         hasDependency(module, "c", "RUNTIME")
         hasDependency(module, "c", "TEST")
         hasDependency(module, "e", "RUNTIME")
         hasDependency(module, "e", "TEST")
+        hasDependency(module, "f", "TEST")
     }
 
     def hasDependency(IdeaModule module, String name, String scope) {

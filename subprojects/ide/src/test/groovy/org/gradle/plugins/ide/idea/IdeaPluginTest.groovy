@@ -96,7 +96,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
                 PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
                 COMPILE: [plus: [], minus: []],
                 RUNTIME: [plus: [project.configurations.runtimeClasspath], minus: []],
-                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: []],
+                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: [project.configurations.compileClasspath]]
         ]
     }
 

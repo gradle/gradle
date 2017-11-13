@@ -391,42 +391,34 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void setupScopes(GenerateIdeaModule ideaModule) {
-        Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
-        for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, Lists.<Configuration>newArrayList());
-            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, Lists.<Configuration>newArrayList());
-            scopes.put(scope.name(), plusMinus);
-        }
 
         Project project = ideaModule.getProject();
-        ConfigurationContainer configurations = project.getConfigurations();
+        IdeaScopesConfig scopes = new IdeaScopesConfig(project.getConfigurations());
 
-        Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        provided.add(configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+        scopes.named(GeneratedIdeaScope.PROVIDED)
+            .plus(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
 
-        Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        runtime.add(configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        scopes.named(GeneratedIdeaScope.RUNTIME)
+            .plus(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
 
-        Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        test.add(configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME));
-        test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        scopes.named(GeneratedIdeaScope.TEST)
+            .plus(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
+            .plus(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .minus(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
 
-        ideaModule.getModule().setScopes(scopes);
+
+        ideaModule.getModule().setScopes(scopes.build());
     }
 
     private void configureIdeaModuleForWar(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
-                ConfigurationContainer configurations = project.getConfigurations();
-                Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                Collection<Configuration> providedPlus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-                providedPlus.add(providedRuntime);
-                Collection<Configuration> runtimeMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
-                runtimeMinus.add(providedRuntime);
-                Collection<Configuration> testMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
-                testMinus.add(providedRuntime);
+                IdeaScopesConfig scopes = new IdeaScopesConfig(ideaModule.getModule().getScopes(), project.getConfigurations());
+
+                scopes.named(GeneratedIdeaScope.PROVIDED).plus(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                scopes.named(GeneratedIdeaScope.RUNTIME).minus(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                scopes.named(GeneratedIdeaScope.TEST).minus(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
             }
         });
     }
@@ -529,4 +521,53 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
+    private static class IdeaScopesConfig {
+        private final Map<String, Map<String, Collection<Configuration>>> scopes;
+        private final ConfigurationContainer configurations;
+
+        public IdeaScopesConfig(Map<String, Map<String, Collection<Configuration>>> scopes, ConfigurationContainer configurations) {
+            this.scopes = scopes;
+            this.configurations = configurations;
+        }
+
+        public IdeaScopesConfig(ConfigurationContainer configurations) {
+            scopes = Maps.newLinkedHashMap();
+            for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
+                Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
+                plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, Lists.<Configuration>newArrayList());
+                plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, Lists.<Configuration>newArrayList());
+                scopes.put(scope.name(), plusMinus);
+            }
+            this.configurations = configurations;
+        }
+
+        public ScopeConfig named(GeneratedIdeaScope ideaScope) {
+            return new ScopeConfig(scopes.get(ideaScope.name()), configurations);
+        }
+
+        public Map<String, Map<String, Collection<Configuration>>> build() {
+            return scopes;
+        }
+    }
+
+    private static class ScopeConfig {
+
+        private final Map<String, Collection<Configuration>> includeConfigurationMap;
+        private final ConfigurationContainer configurations;
+
+        public ScopeConfig(Map<String, Collection<Configuration>> includeConfigurationMap, ConfigurationContainer configurations) {
+            this.includeConfigurationMap = includeConfigurationMap;
+            this.configurations = configurations;
+        }
+
+        public ScopeConfig plus(String configurationName) {
+            includeConfigurationMap.get(IdeaDependenciesProvider.SCOPE_PLUS).add(configurations.getByName(configurationName));
+            return this;
+        }
+
+        public ScopeConfig minus(String configurationName) {
+            includeConfigurationMap.get(IdeaDependenciesProvider.SCOPE_MINUS).add(configurations.getByName(configurationName));
+            return this;
+        }
+    }
 }
