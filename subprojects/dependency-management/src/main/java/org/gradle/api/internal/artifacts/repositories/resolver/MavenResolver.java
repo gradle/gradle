@@ -122,10 +122,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-        if (isIncomplete(moduleComponentIdentifier)) {
-            result.missing();
-            return;
-        }
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
@@ -143,10 +139,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         }
 
         resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
-    }
-
-    private boolean isIncomplete(ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getGroup().isEmpty() || moduleComponentIdentifier.getModule().isEmpty() || moduleComponentIdentifier.getVersion().isEmpty();
     }
 
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
@@ -218,7 +210,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
-        ExternalResourceName metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml");
+        M2ResourcePattern wholePattern = getWholePattern();
+        if (!wholePattern.isComplete(module)) {
+            //do not attempt to download maven-metadata.xml fo incomplete identifiers
+            return null;
+        }
+        ExternalResourceName metadataLocation = wholePattern.toModuleVersionPath(module).resolve("maven-metadata.xml");
         result.attempted(metadataLocation);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 

@@ -48,4 +48,14 @@ public interface ResourcePattern {
      * Returns the path for the given component.
      */
     ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier);
+
+    /**
+     * Checks if the given organisation and module values are sufficient to bind the [organisation] and [module] tokens in the pattern.
+     */
+    boolean isComplete(ModuleIdentifier moduleIdentifier);
+
+    /**
+     * Checks if the given organisation, module and revision values are sufficient to bind the [organisation], [module] and [revision] tokens in the pattern.
+     */
+    boolean isComplete(ModuleComponentIdentifier componentIdentifier);
 }

@@ -41,6 +41,9 @@ public class ChainedVersionLister implements VersionLister {
         }
         return new VersionPatternVisitor() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                if (!pattern.isComplete(module)) {
+                    return;
+                }
                 MissingResourceException failure = null;
                 for (VersionPatternVisitor list : visitors) {
                     try {
