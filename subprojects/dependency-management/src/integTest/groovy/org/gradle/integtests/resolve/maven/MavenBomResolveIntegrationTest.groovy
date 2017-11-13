@@ -25,9 +25,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     MavenModule bom
 
     def setup() {
-        //TODO these requests should not happen anymore with https://github.com/gradle/gradle/pull/3432
-        mavenHttpRepo.module('group', 'moduleA', '').missing()
-
         resolve.prepare()
         settingsFile << """
             rootProject.name = 'testproject'
@@ -124,7 +121,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         fails 'checkDep'
 
         then:
-        //TODO cause is expected to change with https://github.com/gradle/gradle/pull/3432
-        failure.assertHasCause "Could not find group:moduleA:." //"No version specified for group:moduleA"
+        failure.assertHasCause "Could not find group:moduleA:."
     }
 }
