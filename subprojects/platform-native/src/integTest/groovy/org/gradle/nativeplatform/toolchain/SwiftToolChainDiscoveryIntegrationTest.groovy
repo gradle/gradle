@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -36,7 +37,19 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
 
     def "toolchain is not available when swift executable is not found"() {
         when:
-        buildFile << """
+        // When using executer.withEnvironment and setting the PATH="" then gradle cannot launch since e.g. sh, sed are not found.
+        // When using the embedded executer, then setting the PATH="" from within the build script makes other tests fail since they are on the same JVM.
+        // So we use `withEnvironment` for the embedded executer and set the PATH from the build script for everything else.
+        if (GradleContextualExecuter.embedded) {
+            executer.withEnvironmentVars(PATH: "")
+        } else {
+            buildFile << """
+                import org.gradle.internal.nativeintegration.ProcessEnvironment
+                project.services.get(ProcessEnvironment).setEnvironmentVariable('PATH', '')
+            """
+        }
+
+        buildFile << """                           
             model {
                 toolChains {
                     ${toolChain.id} {
@@ -46,7 +59,6 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
             }
             apply plugin: 'swift-executable'
         """
-        executer.withEnvironmentVars(PATH: "")
 
         then:
         fails('assemble')
