@@ -52,7 +52,7 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, prefers 15, rejects ]15,)')
@@ -151,7 +151,7 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
