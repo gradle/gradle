@@ -13,7 +13,7 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(model, this, ":install", extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
+    applyDefaults(model, this, ":install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
         gradle {
             name = "BUILD_WITH_BUILT_GRADLE"
             tasks = "clean :install"
@@ -28,5 +28,5 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType({
             gradleParams = gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
         }
-    }, notQuick = true)
+    })
 })
