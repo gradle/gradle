@@ -57,7 +57,7 @@ class ModuleVersionSpec {
         dependsOn << coord
     }
 
-    void publish(MavenHttpRepository repository) {
+    void produce(MavenHttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
         def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
         if (gradleMetadataEnabled) {

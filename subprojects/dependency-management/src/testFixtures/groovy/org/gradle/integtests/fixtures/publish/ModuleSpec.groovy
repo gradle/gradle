@@ -36,8 +36,8 @@ class ModuleSpec {
         versionSpec()
     }
 
-    void publish(MavenHttpRepository repository) {
-        versions.values()*.publish(repository)
+    void produce(MavenHttpRepository repository) {
+        versions.values()*.produce(repository)
         if (expectGetMetatada) {
             repository.module(groupId, artifactId).rootMetaData.expectGet()
         }
