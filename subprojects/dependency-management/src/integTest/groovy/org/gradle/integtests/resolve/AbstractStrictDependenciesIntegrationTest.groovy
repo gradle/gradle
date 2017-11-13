@@ -48,7 +48,12 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
     void repository(@DelegatesTo(MavenRepositorySpec) Closure<Void> spec) {
         spec.delegate = repoSpec
         spec()
-        repoSpec.produce(mavenHttpRepo)
+    }
+
+    void repositoryInteractions(@DelegatesTo(MavenRepositorySpec) Closure<Void> spec) {
+        spec.delegate = repoSpec
+        spec()
+        repoSpec.build(mavenHttpRepo)
     }
 
 }

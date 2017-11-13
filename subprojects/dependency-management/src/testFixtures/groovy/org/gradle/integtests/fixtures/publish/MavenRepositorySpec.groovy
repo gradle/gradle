@@ -27,8 +27,8 @@ class MavenRepositorySpec {
         groupSpec()
     }
 
-    void produce(MavenHttpRepository repository) {
-        groups.values()*.produce(repository)
+    void build(MavenHttpRepository repository) {
+        groups.values()*.build(repository)
     }
 
     void methodMissing(String name, args) {

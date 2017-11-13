@@ -23,19 +23,12 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                   version('15')
-                   version('17') {
-                       expectGetMetadata()
-                   }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
-                        expectGetMetadata()
-                    }
-                }
+            'org:foo' {
+                '15'()
+                '17'()
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
             }
         }
 
@@ -52,6 +45,14 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
+        repositoryInteractions {
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
         fails ':checkDeps'
 
         then:
@@ -62,26 +63,14 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
     void "should pass if strict version ranges overlap using external dependencies"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    expectVersionListing()
-                    version('1.0')
-                    version('1.1')
-                    version('1.2') {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                    version('1.3') {
-                        expectGetMetadata()
-                    }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn(group:'org', artifact:'foo', version:'[1.1,1.3]', rejects:[']1.3,)'])
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '1.3'()
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '[1.1,1.3]', rejects: [']1.3,)'])
             }
         }
 
@@ -101,6 +90,22 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.3' {
+                    expectGetMetadata()
+                }
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         run ':checkDeps'
 
         then:
@@ -118,19 +123,10 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
     def "should fail if 2 strict versions disagree (external)"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    version('15')
-                    version('17') {
-                        expectGetMetadata()
-                    }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn(group:'org', artifact:'foo', version:'15', rejects:[']15,)'])
-                        expectGetMetadata()
-                    }
-                }
+            'org:foo:15'()
+            'org:foo:17'()
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
             }
         }
 
@@ -151,6 +147,15 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
+        repositoryInteractions {
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+
         fails ':checkDeps'
 
         then:

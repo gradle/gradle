@@ -22,14 +22,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     void "can declare a strict dependency onto an external component"() {
         given:
         repository {
-            group("org") {
-                module("foo") {
-                    version("1.0") {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
-            }
+            'org:foo:1.0'()
         }
 
         buildFile << """
@@ -48,6 +41,12 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         run ':checkDeps'
 
         then:
@@ -63,15 +62,10 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         given:
         repository {
             'org:foo' {
-                '1.0' {
-                    expectGetMetadata()
-                }
+                '1.0'()
                 '1.1'()
             }
-            'org:bar:1.0' {
-                dependsOn('org:foo:1.1')
-                expectGetMetadata()
-            }
+            'org:bar:1.0'()
         }
 
         buildFile << """
@@ -91,6 +85,17 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                '1.0' {
+                    expectGetMetadata()
+                }
+            }
+            'org:bar:1.0' {
+                dependsOn('org:foo:1.1')
+                expectGetMetadata()
+            }
+        }
         fails ':checkDeps'
 
         then:
@@ -101,21 +106,9 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     void "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    version('1.0') {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn 'org:foo:1.0'
-
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
+            'org:foo:1.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:1.0'
             }
         }
 
@@ -136,6 +129,16 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         run ':checkDeps'
 
         then:
@@ -152,21 +155,12 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     void "can upgrade a non-strict dependency"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    version '1.0'
-                    version('1.1') {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn('org:foo:1.0')
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn 'org:foo:1.0'
             }
         }
 
@@ -187,6 +181,16 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
+        repositoryInteractions {
+            'org:foo:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         run ':checkDeps'
 
         then:
@@ -203,28 +207,15 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     @Unroll
     void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
-        repository {
-            group('org') {
-                module('foo') {
-                    expectVersionListing()
-
-                    version '1.0'
-                    version '1.1'
-                    version('1.2') {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                    version('1.3') {
-                        expectGetMetadata()
-                    }
-                }
-                module('bar') {
-                    version('1.0') {
-                        dependsOn("org:foo:$transitiveDependencyVersion")
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                }
+        repositoryInteractions {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '1.3'()
+            }
+            'org:bar:1.0' {
+                dependsOn("org:foo:$transitiveDependencyVersion")
             }
         }
 
@@ -246,6 +237,22 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.3' {
+                    expectGetMetadata()
+                }
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
         run ':checkDeps'
 
         then:
@@ -268,12 +275,8 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
         given:
         repository {
-            'org:foo:15' {
-                maybeGetMetadata()
-            }
-            'org:foo:17' {
-                expectGetMetadata()
-            }
+            'org:foo:15'()
+            'org:foo:17'()
         }
 
         buildFile << """
@@ -304,6 +307,14 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        repositoryInteractions {
+            'org:foo:15' {
+                maybeGetMetadata()
+            }
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+        }
         fails ':checkDeps'
 
         then:
@@ -354,6 +365,16 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                '15' {
+                    maybeGetMetadata()
+                }
+                '17' {
+                    expectGetMetadata()
+                }
+            }
+        }
         fails ':checkDeps'
 
         then:
@@ -364,20 +385,10 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     def "should fail if 2 non overlapping strict versions ranges disagree"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    expectVersionListing()
-
-                    version('15')
-                    version('16') {
-                        expectGetMetadata()
-                    }
-                    version('17')
-                    version('18') {
-                        expectGetMetadata()
-                    }
-                }
-            }
+            'org:foo:15'()
+            'org:foo:16'()
+            'org:foo:17'()
+            'org:foo:18'()
         }
 
         buildFile << """
@@ -412,6 +423,17 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '16' {
+                    expectGetMetadata()
+                }
+                '18' {
+                    expectGetMetadata()
+                }
+            }
+        }
         fails ':checkDeps'
 
         then:
@@ -422,20 +444,11 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     void "should pass if strict version ranges overlap"() {
         given:
         repository {
-            group('org') {
-                module('foo') {
-                    expectVersionListing()
-
-                    version('1.0')
-                    version('1.1')
-                    version('1.2') {
-                        expectGetMetadata()
-                        expectGetArtifact()
-                    }
-                    version('1.3') {
-                        expectGetMetadata()
-                    }
-                }
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '1.3'()
             }
         }
 
@@ -472,6 +485,18 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.3' {
+                    expectGetMetadata()
+                }
+            }
+        }
         run ':checkDeps'
 
         then:
