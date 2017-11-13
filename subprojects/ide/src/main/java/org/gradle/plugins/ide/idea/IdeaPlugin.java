@@ -51,13 +51,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
-import org.gradle.plugins.ide.idea.model.IdeaModel;
-import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
-import org.gradle.plugins.ide.idea.model.IdeaProject;
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
-import org.gradle.plugins.ide.idea.model.PathFactory;
+import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
@@ -67,12 +61,7 @@ import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
@@ -289,7 +278,10 @@ public class IdeaPlugin extends IdePlugin {
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return Sets.newHashSet(project.getBuildDir(), project.file(".gradle"));
+                Set<File> defaultExcludes = Sets.newLinkedHashSet();
+                defaultExcludes.add(project.file(".gradle"));
+                defaultExcludes.add(project.getBuildDir());
+                return defaultExcludes;
             }
         });
 
