@@ -21,7 +21,16 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     void "can declare a strict dependency onto an external component"() {
         given:
-        def m = module("org", "foo", '1.0').publish()
+        repository {
+            group("org") {
+                module("foo") {
+                    version("1.0") {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -39,9 +48,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        m.assertGetMetadata()
-        m.assertGetArtifact()
-
         run 'checkDeps'
 
         then:
@@ -55,11 +61,22 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def foo11 = module("org", "foo", '1.1').publish()
-        def bar10 = module('org', 'bar', '1.0')
-            .dependsOn(foo11)
-            .publish()
+        repository {
+            'org' {
+                'foo' {
+                    '1.0' {
+                        expectGetMetadata()
+                    }
+                    '1.1'()
+                }
+                'bar' {
+                    '1.0' {
+                        dependsOn('org:foo:1.1')
+                        expectGetMetadata()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -78,8 +95,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        bar10.assertGetMetadata()
-        foo10.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -89,10 +104,24 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     void "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def bar10 = module('org', 'bar', '1.0')
-            .dependsOn(foo10)
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    version('1.0') {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn 'org:foo:1.0'
+
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -111,10 +140,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        bar10.assertGetMetadata()
-        foo10.assertGetMetadata()
-        bar10.assertGetArtifact()
-        foo10.assertGetArtifact()
         run 'checkDeps'
 
         then:
@@ -130,11 +155,24 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     void "can upgrade a non-strict dependency"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def foo11 = module("org", "foo", '1.1').publish()
-        def bar10 = module('org', 'bar', '1.0')
-            .dependsOn(foo10)
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    version '1.0'
+                    version('1.1') {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn('org:foo:1.0')
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -153,10 +191,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        foo11.assertGetMetadata()
-        bar10.assertGetMetadata()
-        bar10.assertGetArtifact()
-        foo11.assertGetArtifact()
         run 'checkDeps'
 
         then:
@@ -173,13 +207,30 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     @Unroll
     void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def foo11 = module("org", "foo", '1.1').publish()
-        def foo12 = module("org", "foo", '1.2').publish()
-        def foo13 = module("org", "foo", '1.3').publish()
-        def bar10 = module('org', 'bar', '1.0')
-            .dependsOn(module("org", "foo", transitiveDependencyVersion))
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    expectVersionListing()
+
+                    version '1.0'
+                    version '1.1'
+                    version('1.2') {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                    version('1.3') {
+                        expectGetMetadata()
+                    }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn("org:foo:$transitiveDependencyVersion")
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -199,12 +250,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        foo10.assertGetRootMetadata()
-        foo13.assertGetMetadata()
-        bar10.assertGetMetadata()
-        foo12.assertGetMetadata()
-        bar10.assertGetArtifact()
-        foo12.assertGetArtifact()
         run 'checkDeps'
 
         then:
@@ -226,8 +271,14 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
         given:
-        def foo15 = module("org", "foo", '15').publish()
-        def foo17 = module("org", "foo", '17').publish()
+        repository {
+            'org:foo:15' {
+                maybeGetMetadata()
+            }
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+        }
 
         buildFile << """
             $repository
@@ -257,8 +308,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo15.maybeGetMetadata()
-        foo17.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -268,8 +317,14 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     def "should fail if 2 strict versions disagree"() {
         given:
-        def foo15 = module("org", "foo", '15').publish()
-        def foo17 = module("org", "foo", '17').publish()
+        repository {
+            'org:foo:15' {
+                maybeGetMetadata()
+            }
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+        }
 
         buildFile << """
             $repository
@@ -303,8 +358,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo15.maybeGetMetadata()
-        foo17.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -314,10 +367,22 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     def "should fail if 2 non overlapping strict versions ranges disagree"() {
         given:
-        def foo15 = module("org", "foo", '15').publish()
-        def foo16 = module("org", "foo", '16').publish()
-        def foo17 = module("org", "foo", '17').publish()
-        def foo18 = module("org", "foo", '18').publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    expectVersionListing()
+
+                    version('15')
+                    version('16') {
+                        expectGetMetadata()
+                    }
+                    version('17')
+                    version('18') {
+                        expectGetMetadata()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -351,9 +416,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo15.assertGetRootMetadata()
-        foo16.assertGetMetadata()
-        foo18.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -363,10 +425,23 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
 
     void "should pass if strict version ranges overlap"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def foo11 = module("org", "foo", '1.1').publish()
-        def foo12 = module("org", "foo", '1.2').publish()
-        def foo13 = module("org", "foo", '1.3').publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    expectVersionListing()
+
+                    version('1.0')
+                    version('1.1')
+                    version('1.2') {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                    version('1.3') {
+                        expectGetMetadata()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -401,10 +476,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        foo10.assertGetRootMetadata()
-        foo12.assertGetMetadata()
-        foo13.assertGetMetadata()
-        foo12.assertGetArtifact()
         run ':checkDeps'
 
         then:

@@ -22,11 +22,22 @@ import org.gradle.integtests.fixtures.RequiresFeatureEnabled
 class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
-        def foo15 = module("org", "foo", '15').publish()
-        def foo17 = module("org", "foo", '17').publish()
-        def bar10 = module("org", "bar", "1.0")
-            .dependsOn(foo15, rejects: [']15,)'])
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                   version('15')
+                   version('17') {
+                       expectGetMetadata()
+                   }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
+                        expectGetMetadata()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -41,8 +52,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        foo17.assertGetMetadata()
-        bar10.assertGetMetadata()
         fails 'checkDeps'
 
         then:
@@ -52,13 +61,29 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
 
     void "should pass if strict version ranges overlap using external dependencies"() {
         given:
-        def foo10 = module("org", "foo", '1.0').publish()
-        def foo11 = module("org", "foo", '1.1').publish()
-        def foo12 = module("org", "foo", '1.2').publish()
-        def foo13 = module("org", "foo", '1.3').publish()
-        def bar10 = module('org', 'bar', '1.0')
-            .dependsOn(module('org', 'foo', '[1.1,1.3]'), rejects: [']1.3,)'])
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    expectVersionListing()
+                    version('1.0')
+                    version('1.1')
+                    version('1.2') {
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                    version('1.3') {
+                        expectGetMetadata()
+                    }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn(group:'org', artifact:'foo', version:'[1.1,1.3]', rejects:[']1.3,)'])
+                        expectGetMetadata()
+                        expectGetArtifact()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -76,12 +101,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        foo10.rootMetaData.expectGet()
-        foo12.assertGetMetadata()
-        bar10.assertGetMetadata()
-        foo13.assertGetMetadata()
-        foo12.assertGetArtifact()
-        bar10.assertGetArtifact()
         run ':checkDeps'
 
         then:
@@ -98,11 +117,22 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
 
     def "should fail if 2 strict versions disagree (external)"() {
         given:
-        def foo15 = module("org", "foo", '15').publish()
-        def foo17 = module("org", "foo", '17').publish()
-        def bar10 = module("org", "bar", "1.0")
-            .dependsOn(foo15, rejects: [']15,)'])
-            .publish()
+        repository {
+            group('org') {
+                module('foo') {
+                    version('15')
+                    version('17') {
+                        expectGetMetadata()
+                    }
+                }
+                module('bar') {
+                    version('1.0') {
+                        dependsOn(group:'org', artifact:'foo', version:'15', rejects:[']15,)'])
+                        expectGetMetadata()
+                    }
+                }
+            }
+        }
 
         buildFile << """
             $repository
@@ -121,8 +151,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         """
 
         when:
-        foo17.assertGetMetadata()
-        bar10.assertGetMetadata()
         fails 'checkDeps'
 
         then:
