@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.publish.MavenPublishedModule
 import org.gradle.integtests.fixtures.publish.MavenRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
@@ -38,14 +37,6 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
                 }
             }
         """
-    }
-
-    MavenPublishedModule module(String group, String name, String version) {
-        def module = new MavenPublishedModule(mavenHttpRepo.module(group, name, version))
-        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-            module.withModuleMetadata()
-        }
-        module
     }
 
     def setup() {
