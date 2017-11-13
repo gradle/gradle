@@ -35,6 +35,8 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
+    // Doesn't run on Java 9 since we are setting environment variables
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     def "toolchain is not available when swift executable is not found"() {
         when:
         // When using executer.withEnvironment and setting the PATH="" then gradle cannot launch since e.g. sh, sed are not found.
