@@ -6,7 +6,7 @@ import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
 import model.PerformanceTestType
 
-class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGradleBuildType({
+class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGradleBuildType(model, {
     uuid = type.asId(model)
     extId = uuid
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"

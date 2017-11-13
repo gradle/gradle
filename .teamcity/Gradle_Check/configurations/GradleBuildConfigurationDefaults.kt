@@ -98,7 +98,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = gradleParameterString + " " + (if (model.buildCacheActive) gradleBuildCacheParameters(model.parentBuildCache).joinToString(separator = " ") else "") + " " + extraParameters
+            gradleParams = "$gradleParameterString ${buildType.buildCacheParameters} $extraParameters"
             useGradleWrapper = true
         }
     }

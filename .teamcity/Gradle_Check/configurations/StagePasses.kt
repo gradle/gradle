@@ -13,7 +13,7 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType({
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-", "")}_Trigger"
     extId = uuid
     name = stage.name + " (Trigger)"

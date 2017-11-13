@@ -2,7 +2,7 @@ package configurations
 
 import model.CIBuildModel
 
-class SanityCheck(model: CIBuildModel) : BaseGradleBuildType({
+class SanityCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}SanityCheck"
     extId = uuid
     name = "Sanity Check"
@@ -23,4 +23,4 @@ class SanityCheck(model: CIBuildModel) : BaseGradleBuildType({
     artifactRules = """$artifactRules
         build/build-receipt.properties
     """.trimIndent()
-})
+}, usesParentBuildCache = true)

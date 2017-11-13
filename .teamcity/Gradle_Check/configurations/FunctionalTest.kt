@@ -5,7 +5,7 @@ import model.OS
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "") : BaseGradleBuildType({
+class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "") : BaseGradleBuildType(model, {
     uuid = testCoverage.asConfigurationId(model, subProject)
     extId = uuid
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""

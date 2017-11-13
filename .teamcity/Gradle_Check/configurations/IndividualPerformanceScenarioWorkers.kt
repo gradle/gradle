@@ -5,7 +5,7 @@ import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
 
-class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType({
+class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkersLinux"
     extId = uuid
     name = "Individual Performance Scenario Workers - Linux"

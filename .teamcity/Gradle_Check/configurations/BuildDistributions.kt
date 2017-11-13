@@ -2,7 +2,7 @@ package configurations
 
 import model.CIBuildModel
 
-class BuildDistributions(model: CIBuildModel) : BaseGradleBuildType({
+class BuildDistributions(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}BuildDistributions"
     extId = uuid
     name = "Build Distributions"
