@@ -48,7 +48,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        run 'checkDeps'
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -95,7 +95,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.0, rejects ]1.0,), prefers 1.1')
@@ -140,7 +140,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        run 'checkDeps'
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -191,7 +191,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        run 'checkDeps'
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -250,7 +250,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         """
 
         when:
-        run 'checkDeps'
+        run ':checkDeps'
 
         then:
         noExceptionThrown()
@@ -308,7 +308,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, prefers 15, rejects ]15,)')
@@ -358,7 +358,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
@@ -416,7 +416,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         settingsFile << "\ninclude 'other'"
 
         when:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers [15,16], rejects ]16,), prefers [17,18], rejects ]18,)')
