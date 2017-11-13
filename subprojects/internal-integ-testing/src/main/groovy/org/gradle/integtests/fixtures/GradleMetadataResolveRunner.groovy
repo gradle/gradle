@@ -22,7 +22,7 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
-    public final static String GRADLE_METADATA = "org.gradle.internal.resolution.gradleMetadata"
+    public final static String GRADLE_METADATA = "org.gradle.internal.resolution.testWithGradleMetadata"
 
     GradleMetadataResolveRunner(Class<?> target) {
         super(target, GRADLE_METADATA, "Gradle metadata")
