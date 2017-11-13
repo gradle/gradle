@@ -53,7 +53,7 @@ class MavenInstallationDownloader {
 
     private static File downloadMavenBinArchiveWithRetry(String mavenVersion) {
         def binArchiveUrls = [
-            new URL("http://repo1.maven.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
+            new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
             new URL(fetchPreferredUrl(mavenVersion))
         ]
 
