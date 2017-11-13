@@ -62,19 +62,15 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
         given:
         repository {
-            'org' {
-                'foo' {
-                    '1.0' {
-                        expectGetMetadata()
-                    }
-                    '1.1'()
+            'org:foo' {
+                '1.0' {
+                    expectGetMetadata()
                 }
-                'bar' {
-                    '1.0' {
-                        dependsOn('org:foo:1.1')
-                        expectGetMetadata()
-                    }
-                }
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn('org:foo:1.1')
+                expectGetMetadata()
             }
         }
 
