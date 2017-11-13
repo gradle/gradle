@@ -515,6 +515,14 @@ allprojects {
             reasons << 'composite build substitution'
             this
         }
+
+        /**
+         * Marks that this node was selected by the given reason
+         */
+        NodeBuilder byReason(String reason) {
+            reasons << reason
+            this
+        }
     }
 }
 
