@@ -195,18 +195,28 @@ enum class Trigger {
 }
 
 enum class SpecificBuild {
-    SanityCheck, BuildDistributions, Gradleception, SmokeTests;
-
-    fun create(model: CIBuildModel): BuildType {
-        if (this == SanityCheck) {
+    SanityCheck {
+        override fun create(model: CIBuildModel): BuildType {
             return SanityCheck(model)
         }
-        if (this == BuildDistributions) {
+    },
+    BuildDistributions {
+        override fun create(model: CIBuildModel): BuildType {
             return BuildDistributions(model)
         }
-        if (this == Gradleception) {
+
+    },
+    Gradleception {
+        override fun create(model: CIBuildModel): BuildType {
             return Gradleception(model)
         }
-        return SmokeTests(model)
-    }
+
+    },
+    SmokeTests {
+        override fun create(model: CIBuildModel): BuildType {
+            return SmokeTests(model)
+        }
+    };
+
+    abstract fun create(model: CIBuildModel): BuildType
 }
