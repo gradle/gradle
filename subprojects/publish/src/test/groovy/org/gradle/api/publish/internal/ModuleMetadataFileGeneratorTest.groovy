@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal
 
 import org.gradle.api.Named
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
@@ -177,9 +178,9 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def d1 = Stub(ModuleDependency)
         d1.group >> "g1"
         d1.name >> "m1"
-        d1.versionConstraint >> prefers("v1")
+        d1.version >> "v1"
 
-        def d2 = Stub(ModuleDependency)
+        def d2 = Stub(ExternalDependency)
         d2.group >> "g2"
         d2.name >> "m2"
         d2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])

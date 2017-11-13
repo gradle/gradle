@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,7 +33,6 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
@@ -68,11 +66,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public String getVersion() {
         return dependencyProject.getVersion().toString();
-    }
-
-    @Override
-    public VersionConstraint getVersionConstraint() {
-        return new ProjectDependencyVersion(dependencyProject);
     }
 
     @Override
@@ -186,40 +179,4 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
     }
 
-    private static class ProjectDependencyVersion implements VersionConstraint {
-        private final ProjectInternal dependencyProject;
-
-        private ProjectDependencyVersion(ProjectInternal dependencyProject) {
-            this.dependencyProject = dependencyProject;
-        }
-
-        @Override
-        public String getPreferredVersion() {
-            return dependencyProject.getVersion().toString();
-        }
-
-        @Override
-        public List<String> getRejectedVersions() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ProjectDependencyVersion that = (ProjectDependencyVersion) o;
-
-            return dependencyProject.equals(that.dependencyProject);
-        }
-
-        @Override
-        public int hashCode() {
-            return dependencyProject.hashCode();
-        }
-    }
 }

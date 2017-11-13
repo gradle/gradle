@@ -117,7 +117,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.group == dependency.group
         assert copiedDependency.name == dependency.name
         assert copiedDependency.version == dependency.version
-        assert copiedDependency.versionConstraint == dependency.versionConstraint
         assert copiedDependency.targetConfiguration == dependency.targetConfiguration
         assert copiedDependency.transitive == dependency.transitive
         assert copiedDependency.artifacts == dependency.artifacts

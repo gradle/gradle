@@ -18,8 +18,10 @@ package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -328,7 +330,13 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(moduleDependency.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(moduleDependency.getName());
-            writeVersionConstraint(moduleDependency.getVersionConstraint(), jsonWriter);
+            VersionConstraint vc;
+            if (moduleDependency instanceof ModuleVersionSelector) {
+                vc = ((ExternalDependency) moduleDependency).getVersionConstraint();
+            } else {
+                vc = DefaultImmutableVersionConstraint.of(moduleDependency.getVersion());
+            }
+            writeVersionConstraint(vc, jsonWriter);
         }
         jsonWriter.endObject();
     }
