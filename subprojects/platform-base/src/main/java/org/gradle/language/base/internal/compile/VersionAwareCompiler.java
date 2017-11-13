@@ -26,8 +26,12 @@ public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> 
     private final Compiler<T> compiler;
 
     public VersionAwareCompiler(Compiler<T> compiler, String type, VersionNumber version) {
+        this(compiler, new DefaultCompilerVersion(type, version));
+    }
+
+    public VersionAwareCompiler(Compiler<T> compiler, CompilerVersion version) {
         this.compiler = compiler;
-        this.compilerVersion = new DefaultCompilerVersion(type, version);
+        this.compilerVersion = version;
     }
 
     @Override
