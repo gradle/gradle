@@ -187,7 +187,6 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-        addJvmClasspathRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         /*
          * Without this the compiler won't work with JDK 9.
          * See the discussion here:
