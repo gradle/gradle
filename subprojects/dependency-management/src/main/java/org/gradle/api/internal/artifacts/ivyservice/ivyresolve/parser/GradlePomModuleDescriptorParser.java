@@ -51,6 +51,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
+
 /**
  * This based on a copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, but now heavily refactored.
  */
@@ -75,6 +77,10 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
     public String toString() {
         return "gradle pom parser";
+    }
+
+    private boolean isBom(PomReader pomReader) {
+        return pomReader.getDependencies().isEmpty() && !pomReader.getDependencyMgt().isEmpty() && POM_PACKAGING.equals(pomReader.getPackaging());
     }
 
     protected MutableMavenModuleResolveMetadata doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
@@ -124,12 +130,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parsePomForId(parserSettings, DefaultModuleComponentIdentifier.newId(relocation), Maps.<String, String>newHashMap());
-
-                Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
-                for (PomDependencyData pomDependencyData : pomDependencyDataList) {
-                    mdBuilder.addDependency(pomDependencyData);
-                }
-
+                addDependencies(mdBuilder, relocatedModule);
             } else {
                 LOGGER.info(mdBuilder.getComponentIdentifier()
                         + " is relocated to " + relocation
@@ -140,7 +141,16 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             }
         } else {
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
+            addDependencies(mdBuilder, pomReader);
+        }
+    }
 
+    private void addDependencies(GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) {
+        if (isBom(pomReader)) {
+            for (PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
+                mdBuilder.addOptionalDependency(dependencyMgt);
+            }
+        } else {
             for (PomDependencyData dependency : pomReader.getDependencies().values()) {
                 mdBuilder.addDependency(dependency);
             }

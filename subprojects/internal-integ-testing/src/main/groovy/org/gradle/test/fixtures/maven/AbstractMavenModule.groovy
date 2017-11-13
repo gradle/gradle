@@ -65,6 +65,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     String getPath() {
+        if (!version) {
+            return moduleRootPath
+        }
         return "${moduleRootPath}/${version}"
     }
 
