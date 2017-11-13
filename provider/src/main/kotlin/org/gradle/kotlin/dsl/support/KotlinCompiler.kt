@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.JavaVersion
+
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -192,7 +194,9 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: It
          * See the discussion here:
          * https://youtrack.jetbrains.com/issue/KT-20167
          */
-        put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
+        if (JavaVersion.current().isJava9Compatible) {
+            put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
+        }
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
