@@ -65,7 +65,9 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
                 '1.0'()
                 '1.1'()
             }
-            'org:bar:1.0'()
+            'org:bar:1.0' {
+                dependsOn('org:foo:1.1')
+            }
         }
 
         buildFile << """
@@ -92,7 +94,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
                 }
             }
             'org:bar:1.0' {
-                dependsOn('org:foo:1.1')
                 expectGetMetadata()
             }
         }
@@ -207,7 +208,7 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
     @Unroll
     void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
-        repositoryInteractions {
+        repository {
             'org:foo' {
                 '1.0'()
                 '1.1'()
