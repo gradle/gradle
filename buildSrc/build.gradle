@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply plugin: 'groovy'
-apply plugin: 'idea'
-apply plugin: 'eclipse'
+plugins {
+    id("groovy")
+    id("idea")
+    id("eclipse")
+}
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
