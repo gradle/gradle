@@ -107,7 +107,7 @@ public class IncrementalCompileFilesFactory {
             CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludes()));
 
             for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
-                if (resolvedInclude.isMaybeMacro()) {
+                if (resolvedInclude.isUnknown()) {
                     sourceFilesUseMacroIncludes = true;
                 }
                 if (!resolvedInclude.isUnknown()) {
