@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl;
 import org.gradle.buildinit.plugins.internal.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
@@ -40,6 +41,7 @@ import java.util.List;
  */
 public class InitBuild extends DefaultTask {
     private String type;
+    private String buildScriptsDsl;
     private String testFramework;
 
     @Internal
@@ -53,6 +55,17 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getType() {
         return !Strings.isNullOrEmpty(type) ? type : getProject().file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+    }
+
+    /**
+     * The desired DSL of build scripts to create, defaults to 'groovy'.
+     *
+     * This property can be set via command-line option '--build-scripts-dsl'.
+     */
+    @Optional
+    @Input
+    public String getBuildScriptsDsl() {
+        return !Strings.isNullOrEmpty(buildScriptsDsl) ? buildScriptsDsl : BuildInitBuildScriptDsl.GROOVY.getId();
     }
 
     /**
@@ -77,6 +90,7 @@ public class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         final String type = getType();
+        BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(getBuildScriptsDsl());
         BuildInitTestFramework testFramework = BuildInitTestFramework.fromName(getTestFramework());
         final ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         if (!projectLayoutRegistry.supports(type)) {
@@ -90,6 +104,9 @@ public class InitBuild extends DefaultTask {
         }
 
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
+        if (!initDescriptor.supports(dsl)) {
+            throw new GradleException("The requested build scripts DSL '" + dsl.getId() + "' is not supported in '" + type + "' setup type");
+        }
         if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }
@@ -108,7 +125,18 @@ public class InitBuild extends DefaultTask {
         return getProjectLayoutRegistry().getSupportedTypes();
     }
 
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 1)
+    @Option(option = "build-scripts-dsl", description = "Set alternative build scripts DSL to be used.", order = 1)
+    public void setBuildScriptsDsl(String buildScriptsDsl) {
+        this.buildScriptsDsl = buildScriptsDsl;
+    }
+
+    @OptionValues("build-scripts-dsl")
+    @SuppressWarnings("unused")
+    public List<String> getAvailableBuildScriptDSLs() {
+        return BuildInitBuildScriptDsl.listSupported();
+    }
+
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 2)
     public void setTestFramework(String testFramework) {
         this.testFramework = testFramework;
     }

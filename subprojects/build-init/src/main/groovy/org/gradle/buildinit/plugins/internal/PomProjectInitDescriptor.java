@@ -51,6 +51,11 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
+        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+    }
+
+    @Override
     public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }

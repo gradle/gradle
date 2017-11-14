@@ -192,6 +192,10 @@ include 'child'
                      pom
                      scala-library
 
+     --build-scripts-dsl     Set alternative build scripts DSL to be used.
+                             Available values are:
+                                  groovy
+
      --test-framework     Set alternative test framework to be used.
                           Available values are:
                                spock
