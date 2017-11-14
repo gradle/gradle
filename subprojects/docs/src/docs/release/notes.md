@@ -60,8 +60,7 @@ This could avoid potential vulnerabilities.
 ### Visual Studio 2017 Support
 
 It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
-With this release, Gradle will also begin discovering Visual Studio installations using the [vswhere utility](https://github.com/Microsoft/vswhere)
-from Microsoft if it's available.  
+  Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).   
 
 ### Embedded Ant version upgraded to Ant 1.9.9
 
