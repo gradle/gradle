@@ -96,6 +96,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         install.assertInstalled()
         install.exec().out == app.alternateOutput
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
     def "recompiles library and relinks executable after library source file change"() {
@@ -122,6 +128,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         install.assertInstalled()
         install.exec().out == app.alternateLibraryOutput
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
     def "recompiles binary when header file changes"() {
@@ -147,6 +159,26 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             skipped linkTaskDebug(LIBRARY)
             skipped linkTaskDebug(APP), installApp
         }
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "does not recompile binary when unused header file changes"() {
+        given:
+        run installApp
+        maybeWait()
+
+        when:
+        file("app/src/main/headers/ignoreme.h") << "broken!"
+
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -172,6 +204,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             skipped linkTaskDebug(LIBRARY)
             skipped linkTaskDebug(APP), installApp
         }
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
     def "recompiles binary when header file with relative path changes"() {
@@ -206,9 +244,45 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         headerFile.text = """
             NOT A VALID HEADER FILE
         """
+
         then:
         fails installApp
+
         and:
         executedAndNotSkipped compileTasksDebug(APP)
+    }
+
+    def "recompiles binary when source file uses macro include and any header changes"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+                #define HELLO "hello.h"
+                #include HELLO
+                #include <iostream>
+    
+                int main () {
+                  std::cout << "hello" << std::endl;
+                  return 0;
+                }
+            """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        executer.withArgument("-i")
+        succeeds installApp
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+        output.contains("Cannot determine changed state of included 'HELLO' in source file 'main.cpp'. Assuming changed.")
     }
 }

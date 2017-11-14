@@ -248,6 +248,12 @@ model {
         and:
         outputs.recompiledFile sourceFile
 
+        and:
+        succeeds "mainExecutable"
+
+        and:
+        skipped compileTask
+
         when: "Header that is NOT included is changed"
         notIncluded << """
             // Dummy header file
@@ -260,6 +266,12 @@ model {
 
         and:
         outputs.recompiledFile sourceFile
+
+        and:
+        succeeds "mainExecutable"
+
+        and:
+        skipped compileTask
     }
 
     def "source is not recompiled when preprocessor removed header is changed"() {
