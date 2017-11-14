@@ -1,0 +1,13 @@
+class Greeting extends DefaultTask {
+    final Property<String> message = project.objects.property(String)
+    final Provider<String> fullMessage = project.provider { message.get() + " from Gradle" }
+
+    @TaskAction
+    void printMessage() {
+        logger.quiet(fullMessage.get())
+    }
+}
+
+task greeting(type: Greeting) {
+    message = 'Hi'
+}

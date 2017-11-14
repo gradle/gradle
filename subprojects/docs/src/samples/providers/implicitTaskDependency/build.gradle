@@ -1,0 +1,27 @@
+class ProducerTask extends DefaultTask {
+    final RegularFileProperty outputFile = newOutputFile()
+
+    @TaskAction
+    void produce() {
+        outputFile.get().asFile.text = 'Hello, World!'
+    }
+}
+
+class ConsumerTask extends DefaultTask {
+    final RegularFileProperty inputFile = newInputFile()
+
+    @TaskAction
+    void consume() {
+        logger.quiet inputFile.get().asFile.text
+    }
+}
+
+task producer(type: ProducerTask)
+task consumer(type: ConsumerTask)
+
+// Wire both task together
+consumer.inputFile = producer.outputFile
+
+// Set values lazily
+producer.outputFile = layout.buildDirectory.file('file.txt')
+buildDir = 'output'

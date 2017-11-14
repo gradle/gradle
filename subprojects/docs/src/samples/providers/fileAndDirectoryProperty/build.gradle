@@ -1,0 +1,19 @@
+class FooExtension {
+    final DirectoryProperty someDirectory
+    final RegularFileProperty someFile
+    final ConfigurableFileCollection someFiles
+
+    FooExtension(Project project) {
+        someDirectory = project.objects.directoryProperty()
+        someFile = project.objects.fileProperty()
+        someFiles = project.files()
+    }
+}
+
+project.extensions.create('foo', FooExtension, project)
+
+foo {
+    someDirectory = project.layout.projectDirectory.dir('some-directory')
+    someFile = project.layout.buildDirectory.file('some-file')
+    someFiles.from project.files(someDirectory, someFile)
+}
