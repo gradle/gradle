@@ -15,7 +15,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
         ""
     } + testCoverage.testType.name + "Test"
     val quickTest = testCoverage.testType == TestType.quick
-    applyDefaults(model, this, testTask, notQuick = !quickTest, runsOnWindows = testCoverage.os == OS.windows,
+    applyDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
             timeout = if (quickTest) 60 else 180)
 
     params {

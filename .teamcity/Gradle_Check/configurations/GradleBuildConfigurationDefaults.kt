@@ -4,8 +4,8 @@ import jetbrains.buildServer.configs.kotlin.v10.*
 import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
-import model.RemoteBuildCache
 import model.CIBuildModel
+import model.OS
 import java.util.Arrays.asList
 
 private val java7HomeLinux = "-Djava7.home=%linux.jdk.for.gradle.compile%"
@@ -20,6 +20,7 @@ val gradleParameters: List<String> = asList(
         java7HomeLinux
 )
 
+// TODO: Does this work on macOS?
 val m2CleanScriptLinux = """
     REPO=/home/%env.USER%/.m2/repository
     if [ -e ${'$'}REPO ] ; then
@@ -40,7 +41,7 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
-fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         build/report-* => .
         buildSrc/build/report-* => .
@@ -55,7 +56,7 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
     }
 
     buildType.requirements {
-        contains("teamcity.agent.jvm.os.name", if (runsOnWindows) "Windows" else "Linux")
+        contains("teamcity.agent.jvm.os.name", os.agentRequirement)
     }
 
     buildType.failureConditions {
@@ -84,10 +85,16 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
-    applyDefaultSettings(buildType, runsOnWindows, timeout)
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+    applyDefaultSettings(buildType, os, timeout)
 
-    val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
+    val java7HomeParameter = when (os) {
+        OS.windows -> java7Windows
+        OS.linux -> java7HomeLinux
+        // We only have Java 8 on macOS
+        OS.macos -> "-Djava7.home=%macos.java8.oracle.64bit%"
+    }
+
     val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7HomeLinux, java7HomeParameter)
 
     buildType.steps {
@@ -110,7 +117,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = if (runsOnWindows) m2CleanScriptWindows else m2CleanScriptLinux
+            scriptContent = if (os == OS.windows) m2CleanScriptWindows else m2CleanScriptLinux
         }
         gradle {
             name = "VERIFY_TEST_FILES_CLEANUP"
@@ -118,7 +125,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             gradleParams = gradleParameterString
             useGradleWrapper = true
         }
-        if (runsOnWindows) {
+        if (os == OS.windows) {
             gradle {
                 name = "KILL_PROCESSES_STARTED_BY_GRADLE"
                 executionMode = BuildStep.ExecutionMode.ALWAYS

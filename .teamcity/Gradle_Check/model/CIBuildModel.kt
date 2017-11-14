@@ -48,7 +48,8 @@ data class CIBuildModel (
                             TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
+                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
@@ -183,8 +184,8 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
     }
 }
 
-enum class OS {
-    linux, windows
+enum class OS(val agentRequirement: String, val subset: List<String> = emptyList()) {
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("languageNative", "platformNative", "testingNative", "ideNative"))
 }
 
 enum class JvmVersion {
