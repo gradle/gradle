@@ -45,6 +45,10 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
         server.start()
     }
 
+    def cleanup() {
+        server.stop()
+    }
+
     void repository(@DelegatesTo(MavenRepositorySpec) Closure<Void> spec) {
         spec.delegate = repoSpec
         spec()
