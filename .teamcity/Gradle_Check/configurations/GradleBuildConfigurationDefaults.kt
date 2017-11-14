@@ -4,6 +4,7 @@ import jetbrains.buildServer.configs.kotlin.v10.*
 import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
+import model.RemoteBuildCache
 import model.CIBuildModel
 import java.util.Arrays.asList
 
@@ -17,11 +18,6 @@ val gradleParameters: List<String> = asList(
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
         java7HomeLinux
-)
-
-fun gradleBuildCacheParameters(url: String): List<String> = asList(
-        "--build-cache",
-        "-Dgradle.cache.remote.url=$url -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%"
 )
 
 val m2CleanScriptLinux = """
@@ -98,7 +94,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = "$gradleParameterString ${buildType.buildCacheParameters} $extraParameters"
+            gradleParams = (listOf(gradleParameterString) + buildType.buildCache.gradleParameters() + listOf(extraParameters)).joinToString(separator = " ")
             useGradleWrapper = true
         }
     }

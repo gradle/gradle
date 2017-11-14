@@ -1,11 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.v10.Project
-import model.CIBuildModel
-import model.JvmVersion
-import model.OS
-import model.SpecificBuild
-import model.Stage
-import model.TestCoverage
-import model.TestType
+import model.*
 import org.junit.Test
 import projects.RootProject
 import java.io.File
@@ -64,7 +58,8 @@ class CIConfigIntegrationTests {
     fun canDeactivateBuildCacheAndAdjustCIModel() {
         val m = CIBuildModel(
                 projectPrefix = "Gradle_BuildCacheDeactivated_",
-                buildCacheActive = false,
+                parentBuildCache = NoBuildCache,
+                childBuildCache = NoBuildCache,
                 stages = listOf(
                         Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
                             specificBuilds = listOf(

@@ -2,14 +2,7 @@ package Gradle_BuildCacheDeactivated
 
 import jetbrains.buildServer.configs.kotlin.v10.project
 import jetbrains.buildServer.configs.kotlin.v10.version
-import model.CIBuildModel
-import model.JvmVersion
-import model.OS
-import model.SpecificBuild
-import model.Stage
-import model.TestCoverage
-import model.TestType
-import model.Trigger
+import model.*
 import projects.RootProject
 
 /*
@@ -39,8 +32,8 @@ val buildModel = CIBuildModel(
         masterAndReleaseBranches = listOf("master"),
         tagBuilds = false,
         buildCacheActive = true,
-        parentBuildCache = "%gradle.cache.parent.remote.url%",
-        childBuildCache = "%gradle.cache.child.remote.url%",
+        parentBuildCache = RemoteBuildCache("%gradle.cache.parent.url%", "%gradle.cache.parent.username%", "%gradle.cache.parent.password%"),
+        childBuildCache = RemoteBuildCache("%gradle.cache.child.url%", "%gradle.cache.child.username%", "%gradle.cache.child.password%"),
         publishStatusToGitHub = false,
         stages = listOf(
                 Stage("Quick Feedback", "Checks and functional tests (embedded executer)",

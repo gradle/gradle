@@ -13,8 +13,8 @@ data class CIBuildModel (
         val buildCacheActive: Boolean = true,
         val publishStatusToGitHub: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
-        val parentBuildCache: String = "%gradle.cache.remote.url%",
-        val childBuildCache: String = "%gradle.cache.remote.url%",
+        val parentBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
+        val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val stages: List<Stage> = listOf(
             Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(
@@ -143,6 +143,22 @@ data class CIBuildModel (
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
+    }
+}
+
+interface BuildCache {
+    fun gradleParameters(): List<String>
+}
+
+data class RemoteBuildCache(val url: String, val username: String = "%gradle.cache.remote.username%", val password: String = "%gradle.cache.remote.password%") : BuildCache {
+    override fun gradleParameters(): List<String> {
+        return listOf("--build-cache", "-Dgradle.cache.remote.url=$url", "-Dgradle.cache.remote.username=$username", "-Dgradle.cache.remote.password=$password")
+    }
+}
+
+object NoBuildCache : BuildCache {
+    override fun gradleParameters(): List<String> {
+        return emptyList()
     }
 }
 
