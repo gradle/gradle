@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,10 +131,18 @@ public class BuildScriptBuilder {
                         writer.println(" */");
 
                         // Plugins
-                        for (Map.Entry<String, String> entry : plugins.entrySet()) {
+                        if (!plugins.isEmpty()) {
                             writer.println();
-                            writer.println("// " + entry.getValue());
-                            writer.println("apply plugin: '" + entry.getKey() + "'");
+                            writer.println("plugins {");
+                            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
+                                Map.Entry<String, String> entry = it.next();
+                                writer.println("    // " + entry.getValue());
+                                writer.println("    id '" + entry.getKey() + "'");
+                                if(it.hasNext()) {
+                                    writer.println();
+                                }
+                            }
+                            writer.println("}");
                         }
 
                         // Dependencies and repositories

@@ -92,11 +92,16 @@ subprojects {
                 if (module.groupId != allProjects[0].groupId) {
                     group = "group = '${module.groupId}'"
                 }
-                String moduleBuild = "${group}\n"
-                if (warPack) {
-                    moduleBuild += """apply plugin: 'war'
+                String moduleBuild = ""
+                if(warPack) {
+                    moduleBuild +="""plugins {
+    id 'war'
+}
 
 """
+                }
+                moduleBuild += "${group}\n"
+                if (warPack) {
                     if (dependentWars.any { project ->
                         project.groupId.text() == module.groupId.text() &&
                                 project.artifactId.text() == id
@@ -129,8 +134,10 @@ subprojects {
             }
             //TODO deployment
         } else {//simple
-            build = """apply plugin: 'java'
-apply plugin: 'maven'
+            build = """plugins {
+    id 'java'
+    id 'maven'
+}
 
 ${getArtifactData(this.effectivePom)}
 
