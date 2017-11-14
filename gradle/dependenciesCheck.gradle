@@ -25,10 +25,16 @@ buildscript {
     }
 }
 
-allprojects {
+configure(projectsIncludedInDistribution()) {
     apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
 
     dependencyCheck {
-        failBuildOnCVSS = 6 // 10 is the maximum
+        failBuildOnCVSS = 8 // 10 is the maximum
+        skipConfigurations = ['jmh']
     }
+}
+
+def projectsIncludedInDistribution() {
+    def excluded = [':buildScanPerformance', ':distributions', ':docs', ':integTest', ':internalIntegTesting', ':internalPerformanceTesting', ':internalTesting', ':performance', ':smokeTest', ':soak']
+    subprojects.findAll { prj -> !excluded.contains(prj.path) }
 }
