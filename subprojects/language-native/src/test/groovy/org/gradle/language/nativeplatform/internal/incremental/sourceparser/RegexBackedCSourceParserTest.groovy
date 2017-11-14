@@ -16,6 +16,8 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import org.gradle.language.nativeplatform.internal.Include
+import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.Macro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,27 +36,27 @@ class RegexBackedCSourceParserTest extends Specification {
         temporaryFolder.testDirectory
     }
 
-    def getParsedSource() {
+    IncludeDirectives getParsedSource() {
         parser.parseSource(sourceFile)
     }
 
-    def getIncludes() {
+    List<Include> getIncludes() {
         return parsedSource.includesOnly
     }
 
-    def getImports() {
+    List<Include> getImports() {
         return parsedSource.includesAndImports - parsedSource.includesOnly
     }
 
-    def getFound() {
+    List<String> getFound() {
         return parsedSource.includesAndImports.collect { it.value }
     }
-    
+
     def noIncludes() {
         assert includes == []
         true
     }
-    
+
     def noImports() {
         assert imports == []
         true
@@ -66,6 +68,14 @@ class RegexBackedCSourceParserTest extends Specification {
 
     Include include(String value, boolean isImport = false) {
         return DefaultInclude.parse(value, isImport)
+    }
+
+    Macro macro(String name, String value) {
+        return new DefaultMacro(name, value)
+    }
+
+    List<Macro> getMacros() {
+        return parsedSource.macros
     }
 
     def "parses file with no includes"() {
@@ -109,7 +119,7 @@ class RegexBackedCSourceParserTest extends Specification {
 
         then:
         includes == ['<test.h>'].collect { include(it) }
-        
+
         and:
         noImports()
     }
@@ -149,7 +159,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
         then:
         includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED'].collect { include(it) }
-        
+
         and:
         noImports()
     }
@@ -175,7 +185,7 @@ class RegexBackedCSourceParserTest extends Specification {
 
         then:
         imports == ['<test.h>'].collect { include(it, true) }
-        
+
         and:
         noIncludes()
     }
@@ -465,5 +475,56 @@ st3"
 
         then:
         includes == ['"test1"', '"test2"', '"test3"'].collect { include(it) }
+    }
+
+    def "finds object-like macro definition"() {
+        when:
+        sourceFile << """
+#define SOME_STRING abc
+"""
+
+        then:
+        macros == [macro('SOME_STRING', 'abc')]
+    }
+
+    def "finds object-like macro definition with no body"() {
+        when:
+        sourceFile << """
+#define SOME_STRING
+"""
+
+        then:
+        macros == [macro('SOME_STRING', '')]
+    }
+
+    def "finds object-like macro definition with empty body"() {
+        when:
+        sourceFile << """
+#define SOME_STRING    // ignore
+"""
+
+        then:
+        macros == [macro('SOME_STRING', '')]
+    }
+
+    def "finds multiple object-like macro definitions"() {
+        when:
+        sourceFile << """
+#ifdef THING
+#define SOME_STRING abc
+#else
+#define SOME_STRING xyz
+#endif
+#define OTHER "1234"
+#define EMPTY
+"""
+
+        then:
+        macros == [
+            macro('SOME_STRING', 'abc'),
+            macro('SOME_STRING', 'xyz'),
+            macro('OTHER', '"1234"'),
+            macro('EMPTY', '')
+        ]
     }
 }

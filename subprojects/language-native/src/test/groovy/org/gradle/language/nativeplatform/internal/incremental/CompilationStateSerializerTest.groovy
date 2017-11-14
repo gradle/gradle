@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
@@ -82,7 +83,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
     }
 
     private DefaultIncludeDirectives createSourceIncludes(String... strings) {
-        return new DefaultIncludeDirectives(strings.collect { DefaultInclude.parse(it, false) })
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(strings.collect { DefaultInclude.parse(it, false) }), ImmutableList.of())
     }
 
     private CompilationFileState compilationFileState(HashCode hash, IncludeDirectives includeDirectives, Collection<ResolvedInclude> resolvedIncludes) {

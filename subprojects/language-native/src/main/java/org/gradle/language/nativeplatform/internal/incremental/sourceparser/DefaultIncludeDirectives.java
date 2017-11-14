@@ -20,15 +20,18 @@ import org.gradle.api.specs.Spec;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
+import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableList<Include> allIncludes;
+    private final ImmutableList<Macro> macros;
 
-    public DefaultIncludeDirectives(List<Include> allIncludes) {
-        this.allIncludes = ImmutableList.copyOf(allIncludes);
+    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros) {
+        this.allIncludes = allIncludes;
+        this.macros = macros;
     }
 
     @Override
@@ -77,6 +80,16 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     }
 
     @Override
+    public List<Macro> getMacros() {
+        return macros;
+    }
+
+    @Override
+    public IncludeDirectives discardImports() {
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(getIncludesOnly()), macros);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -90,12 +103,15 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
         if (!allIncludes.equals(that.allIncludes)) {
             return false;
         }
+        if (!macros.equals(that.macros)) {
+            return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return allIncludes.hashCode();
+        return allIncludes.hashCode() ^ macros.hashCode();
     }
 }

@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
@@ -31,6 +32,7 @@ import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
+import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
 
@@ -172,7 +174,7 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
 
         @Override
         public IncludeDirectives read(Decoder decoder) throws Exception {
-            return new DefaultIncludeDirectives(includeListSerializer.read(decoder));
+            return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.<Macro>of());
         }
 
         @Override

@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ImmutableList
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.Hashing
@@ -93,7 +94,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Set<ResolvedInclude> deps) {
-        return new DefaultIncludeDirectives(deps.collect { '<' + it.file.name + '>' })
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { '<' + it.file.name + '>' }), ImmutableList.of())
     }
 
     def added(TestFile sourceFile) {
@@ -374,7 +375,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def "discovers if macro includes have been used"() {
         given:
-        def includes = new DefaultIncludeDirectives([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)])
+        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of())
 
         when:
         def result = incrementalCompileProcessor.processSourceFiles([source1])
