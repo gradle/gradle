@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -30,11 +29,9 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import spock.lang.Specification
 
 class DependencySubstitutionResolverSpec extends Specification {
-    def requested = DefaultModuleVersionSelector.newSelector("group", "module", "version")
     def selector = new DefaultModuleComponentSelector("group", "module", DefaultImmutableVersionConstraint.of("version"))
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def dependency = Mock(DependencyMetadata) {
-        getRequested() >> requested
         getSelector() >> selector
     }
     def result = Mock(BuildableComponentIdResolveResult)
