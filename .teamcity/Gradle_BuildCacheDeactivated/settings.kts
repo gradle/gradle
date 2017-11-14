@@ -42,6 +42,7 @@ val buildModel = CIBuildModel(
                         functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
                 Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+                        trigger = Trigger.eachCommit,
                         functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
