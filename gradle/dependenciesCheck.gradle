@@ -25,4 +25,6 @@ buildscript {
     }
 }
 
-apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
+allprojects {
+    apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
+}
