@@ -71,8 +71,8 @@ public class IdeaDependenciesProvider {
         return outputLocations;
     }
 
-    private Set<Dependency> getDependencies(IdeaModule ideaModule) {
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
+    private Set<Dependency> getDependencies(final IdeaModule ideaModule) {
+        final Set<Dependency> dependencies = Sets.newLinkedHashSet();
         Set<ModuleDependency> moduleDependencies = Sets.newLinkedHashSet();
         Set<SingleEntryModuleLibrary> fileDependencies = Sets.newLinkedHashSet();
 
@@ -83,96 +83,55 @@ public class IdeaDependenciesProvider {
             fileDependencies.addAll(getFileDependencies(ideaModule, scope));
         }
 
-        dependencies.addAll(optimizeDeps(moduleDependencies));
-        dependencies.addAll(optimizeDeps(fileDependencies, ideaModule));
+        dependencies.addAll(optimizeDeps(moduleDependencies, new ModuleDependencyOptimizationHelper()));
+        dependencies.addAll(optimizeDeps(fileDependencies, new SingleEntryModuleLibraryOptimizationHelper(ideaModule)));
         return dependencies;
     }
 
-    private Collection<Dependency> optimizeDeps(Collection<ModuleDependency> deps) {
-        Set<Dependency> result = Sets.newLinkedHashSet();
-        Multimap<String, GeneratedIdeaScope> namesToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-        for (ModuleDependency dep : deps) {
-            namesToScopes.put(dep.getName(), GeneratedIdeaScope.valueOf(dep.getScope()));
+    private <T extends Dependency, K> Collection<T> optimizeDeps(Collection<T> deps, OptimizationHelper<T, K> helper) {
+        Set<T> result = Sets.newLinkedHashSet();
+        Multimap<K, GeneratedIdeaScope> keysToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+        for (T dep : deps) {
+            keysToScopes.put(helper.getKey(dep), GeneratedIdeaScope.valueOf(dep.getScope()));
         }
 
-        for (ModuleDependency dep : deps) {
-            String moduleName = dep.getName();
-            Collection<GeneratedIdeaScope> ideaScopes = namesToScopes.get(moduleName);
+        for (T dep : deps) {
+            K key = helper.getKey(dep);
+            Collection<GeneratedIdeaScope> ideaScopes = keysToScopes.get(key);
             if (ideaScopes == null || ideaScopes.isEmpty()) {
                 continue;
             }
-            boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
-            boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
-            boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
-
-            if (isProvided) {
-                ideaScopes.remove(GeneratedIdeaScope.TEST);
+            optimizeScopes(ideaScopes);
+            for (GeneratedIdeaScope newScope : ideaScopes) {
+                result.add(helper.clone(dep, newScope));
             }
-
-            if (isRuntime && isProvided) {
-                ideaScopes.add(GeneratedIdeaScope.COMPILE);
-                isCompile = true;
-            }
-
-            if (isCompile) {
-                ideaScopes.remove(GeneratedIdeaScope.TEST);
-                ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
-                ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
-            }
-
-            for (GeneratedIdeaScope ideaScope : ideaScopes) {
-                result.add(new ModuleDependency(moduleName, ideaScope.name()));
-            }
-            namesToScopes.removeAll(moduleName);
+            keysToScopes.removeAll(key);
         }
 
         return result;
     }
 
-    private Collection<Dependency> optimizeDeps(Collection<SingleEntryModuleLibrary> deps, IdeaModule ideaModule) {
-        Set<Dependency> result = Sets.newLinkedHashSet();
-        Multimap<File, GeneratedIdeaScope> filesToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-        for (SingleEntryModuleLibrary dep : deps) {
-            filesToScopes.put(dep.getLibraryFile(), GeneratedIdeaScope.valueOf(dep.getScope()));
+    private void optimizeScopes(Collection<GeneratedIdeaScope> ideaScopes) {
+        boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
+        boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
+        boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
+
+        if (isProvided) {
+            ideaScopes.remove(GeneratedIdeaScope.TEST);
         }
 
-        for (SingleEntryModuleLibrary dep : deps) {
-            File libFile = dep.getLibraryFile();
-            Collection<GeneratedIdeaScope> ideaScopes = filesToScopes.get(libFile);
-            if (ideaScopes == null || ideaScopes.isEmpty()) {
-                continue;
-            }
-            boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
-            boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
-            boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
-
-            if (isProvided) {
-                ideaScopes.remove(GeneratedIdeaScope.TEST);
-            }
-
-            if (isRuntime && isProvided) {
-                ideaScopes.add(GeneratedIdeaScope.COMPILE);
-                isCompile = true;
-            }
-
-            if (isCompile) {
-                ideaScopes.remove(GeneratedIdeaScope.TEST);
-                ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
-                ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
-            }
-
-            for (GeneratedIdeaScope ideaScope : ideaScopes) {
-                SingleEntryModuleLibrary newDep = new SingleEntryModuleLibrary(toPath(ideaModule, libFile), ideaScope.name());
-                newDep.setJavadoc(dep.getJavadoc());
-                newDep.setSources(dep.getSources());
-                newDep.setModuleVersion(dep.getModuleVersion());
-                result.add(newDep);
-            }
-            filesToScopes.removeAll(libFile);
+        if (isRuntime && isProvided) {
+            ideaScopes.add(GeneratedIdeaScope.COMPILE);
+            isCompile = true;
         }
 
-        return result;
+        if (isCompile) {
+            ideaScopes.remove(GeneratedIdeaScope.TEST);
+            ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
+            ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
+        }
     }
+
 
 
     private Set<ModuleDependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
@@ -271,5 +230,45 @@ public class IdeaDependenciesProvider {
 
     private FilePath toPath(IdeaModule ideaModule, File file) {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
+    }
+
+
+    private interface OptimizationHelper<T, K> {
+        K getKey(T dependency);
+        T clone(T original, GeneratedIdeaScope newIdeaScope);
+    }
+
+    private static class ModuleDependencyOptimizationHelper implements IdeaDependenciesProvider.OptimizationHelper<ModuleDependency, String> {
+        @Override
+        public String getKey(ModuleDependency dependency) {
+            return dependency.getName();
+        }
+
+        @Override
+        public ModuleDependency clone(ModuleDependency original, GeneratedIdeaScope newIdeaScope) {
+            return new ModuleDependency(original.getName(), newIdeaScope.name());
+        }
+    }
+
+    private class SingleEntryModuleLibraryOptimizationHelper implements IdeaDependenciesProvider.OptimizationHelper<SingleEntryModuleLibrary, File> {
+        private final IdeaModule ideaModule;
+
+        public SingleEntryModuleLibraryOptimizationHelper(IdeaModule ideaModule) {
+            this.ideaModule = ideaModule;
+        }
+
+        @Override
+        public File getKey(SingleEntryModuleLibrary dependency) {
+            return dependency.getLibraryFile();
+        }
+
+        @Override
+        public SingleEntryModuleLibrary clone(SingleEntryModuleLibrary original, GeneratedIdeaScope newIdeaScope) {
+            SingleEntryModuleLibrary newDep = new SingleEntryModuleLibrary(toPath(ideaModule, original.getLibraryFile()), newIdeaScope.name());
+            newDep.setJavadoc(original.getJavadoc());
+            newDep.setSources(original.getSources());
+            newDep.setModuleVersion(original.getModuleVersion());
+            return newDep;
+        }
     }
 }

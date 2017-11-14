@@ -21,5 +21,7 @@ import groovy.util.Node;
  * Represents a dependency of an IDEA module.
  */
 public interface Dependency {
+    String getScope();
+
     void addToNode(Node parentNode);
 }
