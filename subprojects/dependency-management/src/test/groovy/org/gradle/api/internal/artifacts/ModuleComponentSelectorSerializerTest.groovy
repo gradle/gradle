@@ -20,10 +20,10 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class ModuleVersionSelectorSerializerTest extends SerializerSpec {
-    private serializer = new ModuleVersionSelectorSerializer()
+class ModuleComponentSelectorSerializerTest extends SerializerSpec {
+    private serializer = new ModuleComponentSelectorSerializer()
 
     @Unroll
     def "serializes"() {

@@ -19,13 +19,12 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -38,7 +37,6 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
@@ -71,6 +69,7 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_MAVEN = 2;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
+    private static final ModuleComponentSelectorSerializer COMPONENT_SELECTOR_SERIALIZER = new ModuleComponentSelectorSerializer();
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
 
@@ -128,18 +127,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantDependencies(List<? extends ComponentVariant.Dependency> dependencies) throws IOException {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
-                encoder.writeString(dependency.getGroup());
-                encoder.writeString(dependency.getModule());
-                writeVersionConstraint(dependency.getVersionConstraint());
-            }
-        }
-
-        private void writeVersionConstraint(VersionConstraint versionConstraint) throws IOException {
-            encoder.writeString(versionConstraint.getPreferredVersion());
-            List<String> rejectedVersions = versionConstraint.getRejectedVersions();
-            encoder.writeSmallInt(rejectedVersions.size());
-            for (String rejectedVersion : rejectedVersions) {
-                encoder.writeString(rejectedVersion);
+                COMPONENT_SELECTOR_SERIALIZER.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
             }
         }
 
@@ -239,9 +227,7 @@ public class ModuleMetadataSerializer {
 
         private void writeDependency(ModuleDependencyMetadata dep) throws IOException {
             ModuleComponentSelector selector = dep.getSelector();
-            writeString(selector.getGroup());
-            writeString(selector.getModule());
-            writeVersionConstraint(selector.getVersionConstraint());
+            COMPONENT_SELECTOR_SERIALIZER.write(encoder, selector);
 
             if (dep instanceof IvyDependencyMetadata) {
                 IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dep;
@@ -402,7 +388,8 @@ public class ModuleMetadataSerializer {
         private void readVariantDependencies(MutableComponentVariant variant) throws IOException {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
-                variant.addDependency(decoder.readString(), decoder.readString(), readVersionConstraint());
+                ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
             }
         }
 
@@ -487,7 +474,7 @@ public class ModuleMetadataSerializer {
         }
 
         private ModuleDependencyMetadata readDependency() throws IOException {
-            ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(readString(), readString(), readVersionConstraint());
+            ModuleComponentSelector requested = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
 
             byte type = decoder.readByte();
             switch (type) {
@@ -510,16 +497,6 @@ public class ModuleMetadataSerializer {
                 default:
                     throw new IllegalArgumentException("Unexpected dependency type found.");
             }
-        }
-
-        VersionConstraint readVersionConstraint() throws IOException {
-            String prefers = decoder.readString();
-            int rejectCount = decoder.readSmallInt();
-            List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
-            for (int i = 0; i < rejectCount; i++) {
-                rejects.add(decoder.readString());
-            }
-            return new DefaultImmutableVersionConstraint(prefers, rejects);
         }
 
         private SetMultimap<String, String> readDependencyConfigurationMapping() throws IOException {

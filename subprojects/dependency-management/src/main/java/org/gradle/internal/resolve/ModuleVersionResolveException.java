@@ -53,7 +53,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, String message) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersionConstraint()), message);
+        this(DefaultModuleComponentSelector.newSelector(selector), message);
     }
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String message) {
@@ -73,11 +73,11 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersionConstraint()), cause);
+        this(DefaultModuleComponentSelector.newSelector(selector), cause);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getName(), selector.getVersionConstraint()), causes);
+        this(DefaultModuleComponentSelector.newSelector(selector), causes);
     }
 
     /**

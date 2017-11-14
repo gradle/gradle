@@ -126,7 +126,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             String id = pluginRequest.getId().getId();
             return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
         } else {
-            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersionConstraint().getPreferredVersion());
+            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
         }
     }
 

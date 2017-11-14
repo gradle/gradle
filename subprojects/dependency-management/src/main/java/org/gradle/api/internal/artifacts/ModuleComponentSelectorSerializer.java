@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -27,17 +27,17 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
 
-public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersionSelector> {
-    public ModuleVersionSelector read(Decoder decoder) throws IOException {
+public class ModuleComponentSelectorSerializer implements Serializer<ModuleComponentSelector> {
+    public ModuleComponentSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
         return newSelector(group, name, versionConstraint);
     }
 
-    private VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
+    public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
         String preferred = decoder.readString();
         int cpt = decoder.readSmallInt();
         List<String> rejects = Lists.newArrayListWithCapacity(cpt);
@@ -47,13 +47,19 @@ public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersion
         return new DefaultImmutableVersionConstraint(preferred, rejects);
     }
 
-    public void write(Encoder encoder, ModuleVersionSelector value) throws IOException {
+    public void write(Encoder encoder, ModuleComponentSelector value) throws IOException {
         encoder.writeString(value.getGroup());
-        encoder.writeString(value.getName());
+        encoder.writeString(value.getModule());
         writeVersionConstraint(encoder, value.getVersionConstraint());
     }
 
-    private void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
+    public void write(Encoder encoder, String group, String module, VersionConstraint version) throws IOException {
+        encoder.writeString(group);
+        encoder.writeString(module);
+        writeVersionConstraint(encoder, version);
+    }
+
+    public void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
         encoder.writeString(cst.getPreferredVersion());
         List<String> rejectedVersions = cst.getRejectedVersions();
         encoder.writeSmallInt(rejectedVersions.size());
