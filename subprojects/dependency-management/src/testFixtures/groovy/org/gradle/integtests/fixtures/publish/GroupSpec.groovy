@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.publish
 
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.HttpRepository
 
 class GroupSpec {
     private final String groupId
@@ -32,7 +32,7 @@ class GroupSpec {
         moduleSpec()
     }
 
-    void build(MavenHttpRepository repository) {
+    void build(HttpRepository repository) {
         modules.values()*.build(repository)
     }
 

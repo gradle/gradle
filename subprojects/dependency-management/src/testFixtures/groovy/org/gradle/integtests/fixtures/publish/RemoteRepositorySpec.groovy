@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures.publish
 
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.HttpRepository
 
-class MavenRepositorySpec {
+class RemoteRepositorySpec {
     final Map<String, GroupSpec> groups = [:].withDefault { new GroupSpec(it) }
 
     void group(String group, @DelegatesTo(value=GroupSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> groupSpec) {
@@ -27,7 +27,7 @@ class MavenRepositorySpec {
         groupSpec()
     }
 
-    void build(MavenHttpRepository repository) {
+    void build(HttpRepository repository) {
         groups.values()*.build(repository)
     }
 

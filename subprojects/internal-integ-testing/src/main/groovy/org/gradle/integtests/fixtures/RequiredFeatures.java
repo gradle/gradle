@@ -22,10 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the test runner should only create execution if the feature is enabled.
+ * Indicates that the test runner should only create execution if the nested features are enabled.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface RequiresFeatureEnabled {
+public @interface RequiredFeatures {
+    RequiredFeature[] value();
 }

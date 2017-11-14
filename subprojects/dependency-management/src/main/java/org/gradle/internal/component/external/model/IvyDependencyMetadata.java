@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
@@ -101,6 +102,15 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
+            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
+            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
+            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
+            // - or the target is a component from a Ivy repo as we can assume this is well behaved
+            if (!consumerAttributes.isEmpty() || targetComponent instanceof IvyModuleResolveMetadata) {
+                return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            }
+        }
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
         boolean matched = false;

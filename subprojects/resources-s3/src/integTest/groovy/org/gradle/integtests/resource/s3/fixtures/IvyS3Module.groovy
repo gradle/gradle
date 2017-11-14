@@ -16,44 +16,23 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
-import org.gradle.test.fixtures.Module
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyDescriptor
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.ivy.IvyFileModule
-import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
+import org.gradle.test.fixtures.server.http.DelegatingIvyModule
 
-class IvyS3Module implements RemoteIvyModule {
+class IvyS3Module extends DelegatingIvyModule<IvyS3Module> implements RemoteIvyModule {
     IvyFileModule backingModule
     String bucket
     S3Server server
     String repositoryPath
 
     IvyS3Module(S3Server server, IvyFileModule backingModule, String repositoryPath, String bucket) {
+        super(backingModule)
         this.bucket = bucket
         this.server = server
         this.backingModule = backingModule
         this.repositoryPath = repositoryPath
-    }
-
-    @Override
-    void assertPublished() {
-        backingModule.assertPublished()
-    }
-
-    @Override
-    void assertArtifactsPublished(String... names) {
-        backingModule.assertArtifactsPublished(names)
-    }
-
-    @Override
-    void assertPublishedAsJavaModule() {
-        backingModule.assertPublishedAsJavaModule()
-    }
-
-    @Override
-    String getOrganisation() {
-        return backingModule.getOrganisation()
     }
 
     @Override
@@ -67,112 +46,7 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
-    String getGroup() {
-        return backingModule.group
-    }
-
-    @Override
-    String getModule() {
-        return backingModule.module
-    }
-
-    @Override
-    String getVersion() {
-        return backingModule.version
-    }
-
-    @Override
-    String getRevision() {
-        return backingModule.revision
-    }
-
-    @Override
-    TestFile getIvyFile() {
-        return backingModule.ivyFile
-    }
-
-    @Override
-    TestFile getJarFile() {
-        return backingModule.jarFile
-    }
-
-    @Override
-    IvyModule withNoMetaData() {
-        return backingModule.withNoMetaData()
-    }
-
-    @Override
-    IvyModule withStatus(String status) {
-        return backingModule.withStatus(status)
-    }
-
-    @Override
-    IvyModule dependsOn(String organisation, String module, String revision) {
-        return backingModule.dependsOn(organisation, module, revision)
-    }
-
-    @Override
-    IvyModule extendsFrom(Map<String, ?> attributes) {
-        return backingModule.extendsFrom(attributes)
-    }
-
-    @Override
-    IvyModule dependsOn(Map<String, ?> attributes) {
-        return backingModule.dependsOn(attributes)
-    }
-
-    @Override
-    IvyModule dependsOn(Map<String, ?> attributes, Module module) {
-        return backingModule.dependsOn(attributes, module)
-    }
-
-    @Override
-    IvyModule dependsOn(Module module) {
-        return backingModule.dependsOn(module)
-    }
-
-    @Override
-    IvyModule artifact(Map<String, ?> options) {
-        return backingModule.artifact(options)
-    }
-
-    @Override
-    IvyModule undeclaredArtifact(Map<String, ?> options) {
-        return backingModule.undeclaredArtifact(options)
-    }
-
-    @Override
-    IvyModule withXml(Closure action) {
-        return backingModule.withXml(action)
-    }
-
-    @Override
-    IvyModule configuration(String name) {
-        return backingModule.configuration(name)
-    }
-
-    @Override
-    IvyModule configuration(Map<String, ?> options, String name) {
-        return backingModule.configuration(options, name)
-    }
-
-    @Override
-    IvyModule publishWithChangedContent() {
-        return backingModule.publishWithChangedContent()
-    }
-
-    @Override
-    IvyModule publish() {
-        return backingModule.publish()
-    }
-
-    @Override
-    IvyDescriptor getParsedIvy() {
-        return backingModule.getParsedIvy()
-    }
-
-    @Override
-    void assertIvyAndJarFilePublished() {
-        backingModule.assertIvyAndJarFilePublished()
+    ModuleArtifact getModuleMetadata() {
+        return new S3Artifact(server, moduleMetadataFile, repositoryPath, bucket)
     }
 }

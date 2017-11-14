@@ -36,6 +36,8 @@ public interface IvyModule extends Module {
 
     TestFile getJarFile();
 
+    TestFile getModuleMetadataFile();
+
     /**
      * Don't publish an ivy.xml for this module.
      */

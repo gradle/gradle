@@ -23,12 +23,17 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
     public final static String GRADLE_METADATA = "org.gradle.internal.resolution.testWithGradleMetadata"
+    public final static String REPOSITORY_TYPE = "org.gradle.internal.resolution.testRepositoryType"
 
     GradleMetadataResolveRunner(Class<?> target) {
-        super(target, GRADLE_METADATA, "Gradle metadata")
+        super(target, [(GRADLE_METADATA): booleanFeature("Gradle metadata"), (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')])
     }
 
     static isGradleMetadataEnabled() {
         System.getProperty(GRADLE_METADATA) == "true"
+    }
+
+    static useIvy() {
+        System.getProperty(REPOSITORY_TYPE) == "ivy"
     }
 }

@@ -38,7 +38,6 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String packaging
     int publishCount = 1
     private boolean hasPom = true
-    private boolean hasModuleMetadata
     private final List<VariantMetadata> variants = [new VariantMetadata("default")]
     private final List dependencies = []
     private final List artifacts = []
@@ -83,12 +82,6 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     TestFile getArtifactFile(Map options = [:]) {
         return getArtifact(options).file
-    }
-
-    @Override
-    MavenModule withModuleMetadata() {
-        hasModuleMetadata = true
-        return this
     }
 
     @Override
@@ -553,6 +546,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     protected abstract boolean publishesMetaDataFile()
+
+    @Override
+    MavenModule withModuleMetadata() {
+        super.withModuleMetadata()
+    }
 
     static class VariantMetadata {
         String name
