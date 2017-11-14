@@ -87,7 +87,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         def resolvedArtifacts = doResolveArtifacts(dependencies)
 
         if (resolveModuleMetadata) {
-            def moduleArtifacts = doResolveArtifacts(dependencies, "useGradleMetadata()")
+            def moduleArtifacts = doResolveArtifacts(dependencies, true)
             assert resolvedArtifacts == moduleArtifacts
         }
 
@@ -99,7 +99,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""", "useGradleMetadata()", "JAVA_API")
+""", true, "JAVA_API")
     }
 
     protected def resolveRuntimeArtifacts(MavenModule module) {
@@ -107,10 +107,10 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""", "useGradleMetadata()", "JAVA_RUNTIME")
+""", true, "JAVA_RUNTIME")
     }
 
-    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "", def targetVariant = null) {
+    protected def doResolveArtifacts(def dependencies, def useGradleMetadata = false, def targetVariant = null) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         def attributes = targetVariant == null ?
@@ -129,7 +129,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             repositories {
                 maven { 
                     url "${mavenRepo.uri}"
-                     ${maybeUseGradleMetadata}
                 }
                 ${mavenCentralRepositoryDefinition()}
             }
@@ -142,6 +141,11 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
 """
 
+        if (useGradleMetadata) {
+            buildFile << """
+                gradle.experimentalFeatures.enableAll()
+"""
+        }
         run "resolveArtifacts"
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()
