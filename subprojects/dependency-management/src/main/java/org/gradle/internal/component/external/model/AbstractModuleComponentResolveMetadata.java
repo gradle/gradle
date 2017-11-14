@@ -24,7 +24,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
@@ -47,7 +46,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     // This should live in a decorator rather than here
     @Nullable
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
-    private final List<? extends DependencyMetadata> dependencies;
+    private final List<? extends ModuleDependencyMetadata> dependencies;
     private final HashValue contentHash;
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
@@ -155,7 +154,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
         return dependencies;
     }
 

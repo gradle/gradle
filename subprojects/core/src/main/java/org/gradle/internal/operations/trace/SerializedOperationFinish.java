@@ -17,12 +17,12 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.artifacts.configurations.ResolveDependenciesBuildOperationType;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationFinishEvent;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 class SerializedOperationFinish {
@@ -44,14 +44,13 @@ class SerializedOperationFinish {
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
     }
 
-    private Object transform(Object details) {
-        if (details != null && ResolveDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
-            Map<String, Object> map = new HashMap<String, Object>();
-            ResolveDependenciesBuildOperationType.Result result = (ResolveDependenciesBuildOperationType.Result) details;
-            map.put("resolvedDependenciesCount", result.getRootComponent().getDependencies().size());
-            return map;
+    private Object transform(Object result) {
+        if (result instanceof ResolveConfigurationDependenciesBuildOperationType.Result) {
+            ResolveConfigurationDependenciesBuildOperationType.Result cast = (ResolveConfigurationDependenciesBuildOperationType.Result) result;
+            return Collections.singletonMap("resolvedDependenciesCount", cast.getRootComponent().getDependencies().size());
         }
-        return details;
+
+        return result;
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

@@ -19,9 +19,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
 class ClasspathUtilTest extends Specification {
-    private static final URL JAR_URL = new URL('jar:file:/home/duke/duke.jar!/')
+    private static final URL JAR_URL = new URL('jar:file:home/duke/duke.jar!/')
     private static final URL HTTP_URL = new URL('http://www.foo.com/bar/')
-    private static final URL FILE_URL = new URL('file:/home/duke/duke.jar')
+    private static final URL FILE_URL = new File('home/duke/duke.jar').toURI().toURL()
     def factory = new DefaultClassLoaderFactory()
 
     def "filters non-file URLs from classpath"() {

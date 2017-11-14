@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -59,16 +57,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public ModuleVersionSelector getRequested() {
-        return delegate.getRequested();
-    }
-
-    @Override
-    public DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target.equals(selector)) {
             return this;
@@ -99,11 +87,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     @Override
     public Set<String> getModuleConfigurations() {
         return delegate.getModuleConfigurations();
-    }
-
-    @Override
-    public String getDynamicConstraintVersion() {
-        return delegate.getDynamicConstraintVersion();
     }
 
     @Override

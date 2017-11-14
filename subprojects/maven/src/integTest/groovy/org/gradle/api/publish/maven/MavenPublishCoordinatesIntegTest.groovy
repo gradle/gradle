@@ -73,7 +73,6 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
     def "can produce multiple separate publications for single project"() {
         given:
         def module = mavenRepo.module('org.custom', 'custom', '2.2').withModuleMetadata()
-        // TODO:DAZ We don't yet produce module metadata when publishing without a component
         def apiModule = mavenRepo.module('org.custom', 'custom-api', '2')
 
         and:

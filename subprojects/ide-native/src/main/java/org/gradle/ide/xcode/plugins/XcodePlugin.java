@@ -485,13 +485,7 @@ public class XcodePlugin extends IdePlugin {
                 @Override
                 public void execute(Sync task) {
                     task.from(target.getDebugOutputFile());
-                    // TODO: Path?
-                    task.into(project.provider(new Callable<File>() {
-                        @Override
-                        public File call() throws Exception {
-                            return new File(builtProductsPath, target.getDebugOutputFile().get().getAsFile().getName());
-                        }
-                    }));
+                    task.into(builtProductsPath);
                 }
             });
             bridgeTask.dependsOn(syncTask);

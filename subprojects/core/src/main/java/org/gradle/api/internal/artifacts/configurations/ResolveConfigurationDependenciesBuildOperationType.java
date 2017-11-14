@@ -23,57 +23,32 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import javax.annotation.Nullable;
 
 /**
- * Details about a dependency resolution.
+ * Resolution of a configuration's dependencies.
  *
  * @since 4.4
  */
-@UsedByScanPlugin
-public final class ResolveDependenciesBuildOperationType implements BuildOperationType<ResolveDependenciesBuildOperationType.Details, ResolveDependenciesBuildOperationType.Result> {
+public final class ResolveConfigurationDependenciesBuildOperationType implements BuildOperationType<ResolveConfigurationDependenciesBuildOperationType.Details, ResolveConfigurationDependenciesBuildOperationType.Result> {
 
-    /**
-     * Details about a resolved configuration.
-     * @since 4.4
-     * */
     @UsedByScanPlugin
     public interface Details {
-        /**
-         * The path of the resolved configuration
-         * */
+
         String getConfigurationPath();
 
-        /**
-         * The description of the resolved configuration
-         * */
         @Nullable
         String getConfigurationDescription();
 
-        /**
-         * The path of the build of the resolved configuration
-         * */
         String getBuildPath();
 
-        /**
-         * Flag indicating if resolved configuration is visible
-         * */
         boolean isConfigurationVisible();
 
-        /**
-         * Flag indicating if resolved configuration is transitive
-         * */
         boolean isConfigurationTransitive();
+
     }
 
-    /**
-     * The result of a dependency resolution for a configuration.
-     * @since 4.4
-     * */
     @UsedByScanPlugin
     public interface Result {
 
-        /**
-         * The root component of the
-         * resolution result.
-         * */
         ResolvedComponentResult getRootComponent();
+
     }
 }

@@ -15,30 +15,19 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "conf")
-
-
-    def setup() {
-        settingsFile << "rootProject.name = 'test'"
-        resolve.prepare()
-        server.start()
-    }
-
+class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
 
     void "can declare a strict dependency onto an external component"() {
         given:
-        def m = mavenHttpRepo.module("org", "foo", '1.0').publish()
+        repository {
+            'org:foo:1.0'()
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -52,9 +41,13 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        m.pom.expectGet()
-        m.artifact.expectGet()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -67,16 +60,19 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
-        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(foo11)
-            .publish()
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn('org:foo:1.1')
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -91,9 +87,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        bar10.pom.expectGet()
-        foo10.pom.expectGet()
-        fails 'checkDeps'
+        repositoryInteractions {
+            'org:foo' {
+                '1.0' {
+                    expectGetMetadata()
+                }
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.0, rejects ]1.0,), prefers 1.1')
@@ -102,15 +106,16 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     void "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
-        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(foo10)
-            .publish()
+        repository {
+            'org:foo:1.0'()
+            'org:bar:1.0' {
+                dependsOn 'org:foo:1.0'
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -125,11 +130,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        bar10.pom.expectGet()
-        foo10.pom.expectGet()
-        bar10.artifact.expectGet()
-        foo10.artifact.expectGet()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -144,16 +155,19 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     void "can upgrade a non-strict dependency"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
-        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(foo10)
-            .publish()
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn 'org:foo:1.0'
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -168,11 +182,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        foo11.pom.expectGet()
-        bar10.pom.expectGet()
-        bar10.artifact.expectGet()
-        foo11.artifact.expectGet()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org:foo:1.1' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
 
         then:
         resolve.expectGraph {
@@ -188,18 +208,21 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
     @Unroll
     void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
-        def foo12 = mavenHttpRepo.module("org", "foo", '1.2').publish()
-        def foo13 = mavenHttpRepo.module("org", "foo", '1.3').publish()
-        def bar10 = mavenHttpRepo.module('org', 'bar', '1.0')
-            .dependsOn(mavenHttpRepo.module("org", "foo", transitiveDependencyVersion))
-            .publish()
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '1.3'()
+            }
+            'org:bar:1.0' {
+                dependsOn("org:foo:$transitiveDependencyVersion")
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -215,13 +238,23 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        foo10.rootMetaData.expectGet()
-        foo13.pom.expectGet()
-        bar10.pom.expectGet()
-        foo12.pom.expectGet()
-        bar10.artifact.expectGet()
-        foo12.artifact.expectGet()
-        run 'checkDeps'
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.3' {
+                    expectGetMetadata()
+                }
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
 
         then:
         noExceptionThrown()
@@ -242,13 +275,14 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
         given:
-        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
-        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
+        repository {
+            'org:foo:15'()
+            'org:foo:17'()
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -258,9 +292,8 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }                       
         """
         file("other/build.gradle") << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -275,13 +308,15 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        if (GradleContextualExecuter.parallel) {
-            foo15.allowAll()
-            foo17.allowAll()
-        } else {
-            foo17.pom.expectGet()
+        repositoryInteractions {
+            'org:foo:15' {
+                maybeGetMetadata()
+            }
+            'org:foo:17' {
+                expectGetMetadata()
+            }
         }
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, prefers 15, rejects ]15,)')
@@ -290,13 +325,18 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     def "should fail if 2 strict versions disagree"() {
         given:
-        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
-        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
+        repository {
+            'org:foo:15' {
+                maybeGetMetadata()
+            }
+            'org:foo:17' {
+                expectGetMetadata()
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -310,9 +350,8 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }                       
         """
         file("other/build.gradle") << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -327,13 +366,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        if (GradleContextualExecuter.parallel) {
-            foo15.allowAll()
-            foo17.allowAll()
-        } else {
-            foo17.pom.expectGet()
+        repositoryInteractions {
+            'org:foo' {
+                '15' {
+                    maybeGetMetadata()
+                }
+                '17' {
+                    expectGetMetadata()
+                }
+            }
         }
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
@@ -342,15 +385,16 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     def "should fail if 2 non overlapping strict versions ranges disagree"() {
         given:
-        def foo15 = mavenHttpRepo.module("org", "foo", '15').publish()
-        def foo16 = mavenHttpRepo.module("org", "foo", '16').publish()
-        def foo17 = mavenHttpRepo.module("org", "foo", '17').publish()
-        def foo18 = mavenHttpRepo.module("org", "foo", '18').publish()
+        repository {
+            'org:foo:15'()
+            'org:foo:16'()
+            'org:foo:17'()
+            'org:foo:18'()
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -364,9 +408,8 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }                       
         """
         file("other/build.gradle") << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -381,17 +424,18 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        if (GradleContextualExecuter.parallel) {
-            foo15.rootMetaData.allowGetOrHead()
-            foo15.allowAll()
-            foo16.allowAll()
-            foo18.allowAll()
-        } else {
-            foo15.rootMetaData.expectGet()
-            foo16.pom.expectGet()
-            foo18.pom.expectGet()
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '16' {
+                    expectGetMetadata()
+                }
+                '18' {
+                    expectGetMetadata()
+                }
+            }
         }
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers [15,16], rejects ]16,), prefers [17,18], rejects ]18,)')
@@ -400,15 +444,18 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
 
     void "should pass if strict version ranges overlap"() {
         given:
-        def foo10 = mavenHttpRepo.module("org", "foo", '1.0').publish()
-        def foo11 = mavenHttpRepo.module("org", "foo", '1.1').publish()
-        def foo12 = mavenHttpRepo.module("org", "foo", '1.2').publish()
-        def foo13 = mavenHttpRepo.module("org", "foo", '1.3').publish()
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '1.3'()
+            }
+        }
 
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -423,9 +470,8 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
                                   
         """
         file("other/build.gradle") << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
+            $repository
+
             configurations {
                 conf
             }
@@ -440,16 +486,17 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
         settingsFile << "\ninclude 'other'"
 
         when:
-        if (GradleContextualExecuter.parallel) {
-            foo10.rootMetaData.allowGetOrHead()
-            foo10.allowAll()
-            foo12.allowAll()
-            foo13.allowAll()
-        } else {
-            foo10.rootMetaData.expectGet()
-            foo12.pom.expectGet()
-            foo13.pom.expectGet()
-            foo12.artifact.expectGet()
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.3' {
+                    expectGetMetadata()
+                }
+            }
         }
         run ':checkDeps'
 
@@ -465,5 +512,4 @@ class StrictDependenciesIntegrationTest extends AbstractHttpDependencyResolution
             }
         }
     }
-
 }

@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 public interface IvyDependencyDescriptorFactory {
-    DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency);
+    LocalOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency);
 
     boolean canConvert(ModuleDependency dependency);
 }

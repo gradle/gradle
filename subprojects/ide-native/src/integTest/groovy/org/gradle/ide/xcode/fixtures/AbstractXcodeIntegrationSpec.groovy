@@ -130,11 +130,10 @@ Actual: ${actual[key]}
         '''
     }
 
-    void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
+    void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {
         target.assertIsUnitTest()
         assert target.productName == expectedProductName
         assert target.name == "$expectedProductName XCTestBundle"
-        assert target.productReference.path == xctest("build/install/test/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildConfigurationList.buildConfigurations.every {

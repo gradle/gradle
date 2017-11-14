@@ -431,4 +431,43 @@ task listJars {
 
         errorOutput.contains('Response 304: Not Modified has no content!')
     }
+
+    def "does not query Maven repository for modules without a group, name or version"() {
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations { compile }
+            dependencies { 
+                compile ':name1:1.0' 
+                compile ':name2:[1.0, 2.0]' 
+                compile ':name3:1.0-SNAPSHOT'
+                compile 'group1::1.0' 
+                compile 'group2::[1.0, 2.0]' 
+                compile 'group3::1.0-SNAPSHOT'
+                compile 'group:name'
+            }
+            task resolve {
+                doLast {
+                    assert configurations.compile.resolve()
+                }
+            }
+        """
+
+        when:
+        fails 'resolve'
+
+        then:
+
+        errorOutput.contains('Could not find :name1:1.0.')
+        errorOutput.contains('Could not find any matches for :name2:[1.0, 2.0] as no versions of :name2 are available.')
+        errorOutput.contains('Could not find :name3:1.0-SNAPSHOT.')
+        errorOutput.contains('Could not find group1::1.0.')
+        errorOutput.contains('Could not find any matches for group2::[1.0, 2.0] as no versions of group2: are available.')
+        errorOutput.contains('Could not find group3::1.0-SNAPSHOT.')
+        errorOutput.contains('Could not find group:name:.')
+    }
 }

@@ -32,7 +32,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyMetadataRulesTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
@@ -142,7 +142,7 @@ class DependencyMetadataRulesTest extends Specification {
         metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].requested.version == "2.0"
+        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.version == "2.0"
 
         where:
         metadataType | metadataImplementation
@@ -162,7 +162,7 @@ class DependencyMetadataRulesTest extends Specification {
         metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies.collect { it.requested } == [ newSelector("org.test", "added", "1.0") ]
+        selectTargetConfigurationMetadata(metadataImplementation).dependencies.collect { it.selector } == [ newSelector("org.test", "added", "1.0") ]
 
         where:
         metadataType | metadataImplementation
@@ -207,10 +207,9 @@ class DependencyMetadataRulesTest extends Specification {
 
     private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
         def consumerIdentifier = new DefaultModuleVersionIdentifier("org.test", "consumer", "1.0")
-        def componentSelector = DefaultModuleComponentSelector.newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def selector = newSelector(consumerIdentifier.group, consumerIdentifier.name, consumerIdentifier.version)
+        def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumerResolveMetadata = new DefaultMutableMavenModuleResolveMetadata(consumerIdentifier, DefaultModuleComponentIdentifier.newId(consumerIdentifier)).asImmutable()
-        def consumer = new LocalComponentDependencyMetadata(componentSelector, selector, "default", attributes, null, [] as Set, [], false, false, true)
+        def consumer = new LocalComponentDependencyMetadata(componentSelector, "default", attributes, null, [] as Set, [], false, false, true)
 
         consumer.selectConfigurations(attributes, consumerResolveMetadata, consumerResolveMetadata.getConfiguration("default"), targetComponent.asImmutable(), schema)[0]
     }

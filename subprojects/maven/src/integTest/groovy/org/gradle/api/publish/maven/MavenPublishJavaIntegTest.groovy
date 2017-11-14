@@ -43,6 +43,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
+        resolveApiArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
+        resolveRuntimeArtifacts(javaLibrary) == ["publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies"() {
@@ -74,6 +76,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
+        resolveApiArtifacts(javaLibrary) == ["foo-1.0.jar", "publishTest-1.9.jar"]
+        resolveRuntimeArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"]
     }
 
     def "can publish java-library with dependencies and excludes"() {
@@ -117,7 +121,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        // TODO:DAZ Verify excludes in .module file
         javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
         assert javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
@@ -130,6 +133,62 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             "camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar",
             "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar",
             "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+    }
+
+    def "can publish java-library with strict dependencies"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:2.5.6"
+                implementation("commons-collections:commons-collections") {
+                    version { strictly '3.2.2' }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
+
+        def apiVariant = javaLibrary.parsedModuleMetadata.variant('api')
+        apiVariant.dependencies.size() == 1
+        apiVariant.dependencies[0].group == 'org.springframework'
+        apiVariant.dependencies[0].module == 'spring-core'
+        apiVariant.dependencies[0].version == '2.5.6'
+        apiVariant.dependencies[0].rejectsVersion == []
+
+        def runtimeVariant = javaLibrary.parsedModuleMetadata.variant('runtime')
+        runtimeVariant.dependencies.size() == 2
+        runtimeVariant.dependencies[0].group == 'commons-collections'
+        runtimeVariant.dependencies[0].module == 'commons-collections'
+        runtimeVariant.dependencies[0].version == '3.2.2'
+        runtimeVariant.dependencies[0].rejectsVersion == [']3.2.2,)']
+        runtimeVariant.dependencies[1].group == 'org.springframework'
+        runtimeVariant.dependencies[1].module == 'spring-core'
+        runtimeVariant.dependencies[1].version == '2.5.6'
+        runtimeVariant.dependencies[1].rejectsVersion == []
+
+        and:
+        resolveArtifacts(javaLibrary) == [
+            'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
     }
 
     def "can publish java-library with attached artifacts"() {

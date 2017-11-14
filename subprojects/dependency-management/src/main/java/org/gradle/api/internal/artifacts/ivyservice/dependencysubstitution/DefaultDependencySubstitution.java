@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
@@ -26,24 +25,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelector requested;
-    private final ModuleVersionSelector oldRequested;
     private ComponentSelectionReason selectionReason;
     private ComponentSelector target;
 
-    public DefaultDependencySubstitution(ComponentSelector requested, ModuleVersionSelector oldRequested) {
+    public DefaultDependencySubstitution(ComponentSelector requested) {
         this.requested = requested;
         this.target = requested;
-        this.oldRequested = oldRequested;
     }
 
     @Override
     public ComponentSelector getRequested() {
         return requested;
-    }
-
-    @Override
-    public ModuleVersionSelector getOldRequested() {
-        return oldRequested;
     }
 
     @Override

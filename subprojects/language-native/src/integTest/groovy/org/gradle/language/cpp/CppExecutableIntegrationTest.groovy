@@ -481,6 +481,50 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
+    def "honors changes to library output locations"() {
+        settingsFile << "include 'app', 'lib1', 'lib2'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':lib1')
+                }
+            }
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                linkDebug.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                if (linkDebug.importLibrary.present) {
+                    linkDebug.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
+                }
+            }
+"""
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(compileAndLinkTasks([':lib1', ':lib2', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
+
+        file("lib2/build/shared/lib1_debug.dll").assertIsFile()
+        if (toolChain.visualCpp) {
+            file("lib2/build/import/lib1_import.lib").assertIsFile()
+        }
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/lib1").file.assertExists()
+        file("app/build/install/main/debug/lib/lib1_debug.dll").assertIsFile()
+    }
+
     def "honors changes to library public header location"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()

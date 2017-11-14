@@ -40,6 +40,9 @@ public class MavenVersionLister implements VersionLister {
             final Set<ExternalResourceName> searched = new HashSet<ExternalResourceName>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                if (isIncomplete(module)) {
+                    return;
+                }
                 ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
                 if (!searched.add(metadataLocation)) {
                     return;
@@ -51,5 +54,9 @@ public class MavenVersionLister implements VersionLister {
                 }
             }
         };
+    }
+
+    private boolean isIncomplete(ModuleIdentifier module) {
+        return module.getGroup().isEmpty() || module.getName().isEmpty();
     }
 }

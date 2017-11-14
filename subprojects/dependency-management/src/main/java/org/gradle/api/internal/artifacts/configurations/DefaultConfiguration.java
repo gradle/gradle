@@ -457,7 +457,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
-                // TODO:DAZ I'm not sure we can ever get into this state, now that we prevent modification of resolved configuration
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
@@ -482,7 +481,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
-                context.setResult(new ResolveDependenciesBuildOperationType.Result() {
+                context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
                     @Override
                     public ResolvedComponentResult getRootComponent() {
                         return incoming.getResolutionResult().getRoot();
@@ -495,19 +494,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 String displayName = "Resolve dependencies of " + identityPath;
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new OperationDetails(DefaultConfiguration.this.getPath(),
-                        DefaultConfiguration.this.getDescription(),
-                        getBuildPath(),
-                        DefaultConfiguration.this.isVisible(),
-                        DefaultConfiguration.this.isTransitive())
-                    );
-            }
-
-            private String getBuildPath() {
-                String buildPath = TextUtil.minus(DefaultConfiguration.this.getIdentityPath().getPath(), DefaultConfiguration.this.getPath());
-                return buildPath.isEmpty() ? ":" : buildPath;
+                    .details(new OperationDetails());
             }
         });
+    }
+
+    private String calculateBuildPath() {
+        String buildPath = TextUtil.minus(getIdentityPath().getPath(), getPath());
+        return buildPath.isEmpty() ? ":" : buildPath;
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {
@@ -1310,45 +1304,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class OperationDetails implements ResolveDependenciesBuildOperationType.Details {
-
-        final String configurationPath;
-        final String configurationDescription;
-        final String buildPath;
-        final boolean configurationVisible;
-        final boolean configurationTransitive;
-
-        private OperationDetails(String configurationPath, String configurationDescription, String buildPath, boolean configurationVisible, boolean configurationTransitive) {
-            this.configurationPath = configurationPath;
-            this.configurationDescription = configurationDescription;
-            this.buildPath = buildPath;
-            this.configurationVisible = configurationVisible;
-            this.configurationTransitive = configurationTransitive;
-        }
+    private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
 
         @Override
         public String getConfigurationPath() {
-            return configurationPath;
+            return getPath();
         }
 
         @Override
         public String getConfigurationDescription() {
-            return configurationDescription;
+            return getDescription();
         }
 
         @Override
         public String getBuildPath() {
-            return buildPath;
+            return calculateBuildPath();
         }
 
         @Override
         public boolean isConfigurationVisible() {
-            return configurationVisible;
+            return isVisible();
         }
 
         @Override
         public boolean isConfigurationTransitive() {
-            return configurationTransitive;
+            return isTransitive();
         }
     }
 }

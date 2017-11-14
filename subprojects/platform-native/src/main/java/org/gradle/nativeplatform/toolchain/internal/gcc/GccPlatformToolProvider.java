@@ -42,8 +42,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompil
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
@@ -59,10 +59,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final boolean useCommandFile;
     private final WorkerLeaseService workerLeaseService;
-    private final CompilerMetaDataProvider.CompilerType compilerType;
-    private final GccVersionResult gccVersionResult;
+    private final CompilerType compilerType;
+    private final GccMetadata gccMetadata;
 
-    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerMetaDataProvider.CompilerType compilerType, GccVersionResult gccVersionResult) {
+    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerType compilerType, GccMetadata gccMetadata) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
@@ -71,7 +71,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
         this.compilerType = compilerType;
-        this.gccVersionResult = gccVersionResult;
+        this.gccMetadata = gccMetadata;
     }
 
     @Override
@@ -91,7 +91,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
-        return new VersionAwareCompiler<T>(compiler, compilerType.getIdentifier(), gccVersionResult.getVersion());
+        return new VersionAwareCompiler<T>(compiler, compilerType.getIdentifier(), gccMetadata.getVersion());
     }
 
     @Override
@@ -183,6 +183,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
 
     @Override
     public List<File> getSystemIncludes() {
-        return gccVersionResult.getSystemIncludes();
+        return gccMetadata.getSystemIncludes();
     }
 }

@@ -30,7 +30,7 @@ public class EmptySchema implements AttributesSchemaInternal {
     private final DoNothingCompatibilityRule compatibilityRule = new DoNothingCompatibilityRule();
     private final DoNothingDisambiguationRule disambiguationRule = new DoNothingDisambiguationRule();
 
-    private EmptySchema() {
+    protected EmptySchema() {
     }
 
     @Override

@@ -323,7 +323,7 @@ apply plugin: 'xctest'
             .succeeds(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
+        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
         resultTestRunner.assertOutputContains("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
         resultTestRunner.assertOutputContains("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")

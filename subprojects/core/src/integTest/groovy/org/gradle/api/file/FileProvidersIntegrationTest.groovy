@@ -487,4 +487,40 @@ task useDirProvider {
         then:
         result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
     }
+
+    def "can use @Optional on properties with type Property"() {
+        given:
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Optional @InputFile
+    Property<RegularFile> inFile = newInputFile()
+    
+    @Optional @InputDirectory
+    Property<Directory> inDir = newInputDirectory()
+    
+    @Optional @OutputFile
+    Property<RegularFile> outFile = newOutputFile()
+    
+    @Optional @OutputDirectory
+    Property<Directory> outDir = newOutputDirectory()
+    
+    @TaskAction
+    def go() { }
+}
+
+    task doNothing(type: SomeTask)
+"""
+
+        when:
+        run("doNothing")
+
+        then:
+        result.assertTasksNotSkipped(":doNothing")
+
+        when:
+        run("doNothing")
+
+        then:
+        result.assertTasksSkipped(":doNothing")
+    }
 }

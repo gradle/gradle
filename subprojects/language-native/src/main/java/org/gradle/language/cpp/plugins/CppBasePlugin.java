@@ -23,9 +23,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.ComponentAwareRepository;
-import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
@@ -155,7 +153,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     // TODO - need to set soname
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
-                        public String call() throws Exception {
+                        public String call() {
                             return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
@@ -164,17 +162,20 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+                    Provider<RegularFile> linkFile = link.getBinaryFile();
+                    if (toolProvider.producesImportLibrary()) {
+                        Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getImportLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
+                            }
+                        }));
+                        link.getImportLibrary().set(importLibrary);
+                        linkFile = link.getImportLibrary();
+                    }
 
-                    // TODO: Wire this in properly with LinkSharedLibrary
-                    RegularFileProperty linktimeFile = project.getServices().get(TaskFileVarFactory.class).newOutputFile(link);
-                    linktimeFile.set(buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return toolProvider.getSharedLibraryLinkFileName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    })));
-                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linktimeFile);
+                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
+                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linkFile);
                 }
             }
 

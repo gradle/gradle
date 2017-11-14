@@ -17,28 +17,20 @@
 package org.gradle.vcs.internal;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.vcs.VersionControlSpec;
 
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;
-    private final ModuleVersionSelector oldRequested;
     private VersionControlSpec versionControlSpec;
 
-    public DefaultVcsMapping(ComponentSelector requested, ModuleVersionSelector oldRequested) {
+    public DefaultVcsMapping(ComponentSelector requested) {
         this.requested = requested;
-        this.oldRequested = oldRequested;
     }
 
     @Override
     public ComponentSelector getRequested() {
         return requested;
-    }
-
-    @Override
-    public ModuleVersionSelector getOldRequested() {
-        return oldRequested;
     }
 
     @Override

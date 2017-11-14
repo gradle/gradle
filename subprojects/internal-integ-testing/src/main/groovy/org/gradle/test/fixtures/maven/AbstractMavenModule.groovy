@@ -65,6 +65,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     String getPath() {
+        if (!version) {
+            return moduleRootPath
+        }
         return "${moduleRootPath}/${version}"
     }
 
@@ -122,7 +125,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule dependsOn(Map<String, ?> attributes, Module target) {
-        this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version, type: attributes.type, scope: attributes.scope, classifier: attributes.classifier, optional: attributes.optional, exclusions: attributes.exclusions]
+        this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version, type: attributes.type, scope: attributes.scope, classifier: attributes.classifier, optional: attributes.optional, exclusions: attributes.exclusions, rejects: attributes.rejects]
         return this
     }
 
@@ -403,7 +406,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         "dependencies": [
 """
             value << dependencies.collect { d ->
-                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": \"$d.version\" }\n"
+                def rejects = d.rejects?", \"rejects\": [${d.rejects.collect { "\"$it\""}.join(',')}]":""
+                def versionConstraint = "{ \"prefers\": \"${d.version}\"$rejects }"
+                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": $versionConstraint }\n"
             }.join(",\n")
             value << """                        ]
                     }${i.hasNext() ? ',' : ''}"""

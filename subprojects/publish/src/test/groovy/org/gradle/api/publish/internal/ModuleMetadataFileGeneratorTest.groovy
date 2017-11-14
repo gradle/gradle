@@ -17,9 +17,11 @@
 package org.gradle.api.publish.internal
 
 import org.gradle.api.Named
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -35,6 +37,21 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ModuleMetadataFileGeneratorTest extends Specification {
+
+    VersionConstraint prefers(String version) {
+        Mock(VersionConstraint) {
+            getPreferredVersion() >> version
+            getRejectedVersions() >> []
+        }
+    }
+
+    VersionConstraint prefersAndRejects(String version, List<String> rejects) {
+        Mock(VersionConstraint) {
+            getPreferredVersion() >> version
+            getRejectedVersions() >> rejects
+        }
+    }
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def buildId = UniqueId.generate()
@@ -163,10 +180,10 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d1.name >> "m1"
         d1.version >> "v1"
 
-        def d2 = Stub(ModuleDependency)
+        def d2 = Stub(ExternalDependency)
         d2.group >> "g2"
         d2.name >> "m2"
-        d2.version >> "v2"
+        d2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -206,7 +223,10 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "group": "g1",
           "module": "m1",
-          "version": "v1"
+          "version": {
+            "prefers": "v1",
+            "rejects": []
+          }
         }
       ]
     },
@@ -219,7 +239,13 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         {
           "group": "g2",
           "module": "m2",
-          "version": "v2"
+          "version": {
+            "prefers": "v2",
+            "rejects": [
+              "v3",
+              "v4"
+            ]
+          }
         }
       ]
     }

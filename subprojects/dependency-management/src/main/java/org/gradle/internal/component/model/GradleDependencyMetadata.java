@@ -18,31 +18,25 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class GradleDependencyMetadata extends AbstractDependencyMetadata {
-    private final ModuleVersionSelector requested;
+public class GradleDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
+    private final ModuleComponentSelector selector;
 
-    public GradleDependencyMetadata(ModuleVersionSelector requested) {
-        this.requested = requested;
-    }
-
-    @Override
-    public ModuleVersionSelector getRequested() {
-        return requested;
+    public GradleDependencyMetadata(ModuleComponentSelector selector) {
+        this.selector = selector;
     }
 
     @Override
@@ -56,25 +50,24 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(requested.getVersionConstraint())) {
+    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(requested.getGroup(), requested.getName(), requestedVersion));
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion));
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            ModuleComponentSelector selector = (ModuleComponentSelector) target;
-            return new GradleDependencyMetadata(DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint()));
+            return new GradleDependencyMetadata((ModuleComponentSelector) target);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
 
     @Override
-    public ComponentSelector getSelector() {
-        return DefaultModuleComponentSelector.newSelector(requested);
+    public ModuleComponentSelector getSelector() {
+        return selector;
     }
 
     @Override
@@ -116,4 +109,10 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata {
     public boolean isOptional() {
         return false;
     }
+
+    @Override
+    public String getDynamicConstraintVersion() {
+        return getSelector().getVersionConstraint().getPreferredVersion();
+    }
+
 }

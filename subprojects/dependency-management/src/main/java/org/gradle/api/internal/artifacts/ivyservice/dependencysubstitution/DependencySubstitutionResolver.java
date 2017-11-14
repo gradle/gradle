@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -26,15 +24,13 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
     private final DependencySubstitutionApplicator applicator;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, DependencySubstitutionApplicator applicator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, DependencySubstitutionApplicator applicator) {
         this.resolver = resolver;
         this.applicator = applicator;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public void resolve(DependencyMetadata dependency, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         DependencySubstitutionApplicator.SubstitutionResult application = applicator.apply(dependency);
         if (application.hasFailure()) {
             result.failed(new ModuleVersionResolveException(dependency.getSelector(), application.getFailure()));
@@ -43,10 +39,10 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
         DependencySubstitutionInternal details = application.getResult();
         if (details.isUpdated()) {
             DependencyMetadata target = dependency.withTarget(details.getTarget());
-            resolver.resolve(target, moduleIdentifierFactory.module(target.getRequested().getGroup(), target.getRequested().getName()), result);
+            resolver.resolve(target, result);
             result.setSelectionReason(details.getSelectionReason());
             return;
         }
-        resolver.resolve(dependency, targetModuleId, result);
+        resolver.resolve(dependency, result);
     }
 }

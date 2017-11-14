@@ -64,6 +64,50 @@ task listJars {
         then:
         succeeds('listJars')
     }
+    public void "can resolve nested Client Module"() {
+        given:
+        def repo = mavenHttpRepo("repo")
+        def projectA = repo.module('test', 'projectA', '1.2').publish()
+        def projectB = repo.module('test', 'projectB', '1.5').publish()
+        def projectC = repo.module('test', 'projectC', '2.0').publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repo.uri}" }
+}
+configurations { compile }
+dependencies {
+    compile module('test:projectA:1.2') {
+        module('test:projectB:1.5') {
+            dependencies('test:projectC:2.0')
+        }
+    }
+}
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-2.0.jar']
+    }
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
+        projectC.pom.expectGet()
+        projectC.artifact.expectGet()
+
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('listJars')
+    }
 
     def "client module dependency ignores published artifact listing and resolves single jar file"() {
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')

@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
 class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
@@ -50,8 +50,8 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     }
 
     def "adds ModuleDependency instances from configuration"() {
-        def dependencyDescriptor1 = Mock(DslOriginDependencyMetadata)
-        def dependencyDescriptor2 = Mock(DslOriginDependencyMetadata)
+        def dependencyDescriptor1 = Mock(LocalOriginDependencyMetadata)
+        def dependencyDescriptor2 = Mock(LocalOriginDependencyMetadata)
         def dependency1 = Mock(ModuleDependency)
         def dependency2 = Mock(ModuleDependency)
 

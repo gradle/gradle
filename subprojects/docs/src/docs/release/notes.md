@@ -28,14 +28,6 @@ Gradle now suppoprts version range in parent elements of POM, which was introduc
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Support for Maven optional dependencies
-
-Gradle will now [take Maven optional dependencies into account](https://github.com/gradle/gradle/pull/3129) during dependency resolution. 
-Before, optional dependencies were not included in the dependency graph.
-As of Gradle 4.4, optional dependencies will participate in dependency resolution as soon as another dependency on the same module is found in the graph.
-For example, if a transitive dependency on `foo:bar:1.1` is optional, but another path in the dependency graph brings `foo:bar:1.0` (not optional), then Gradle will resolve to `foo:bar:1.1`.
-Previous releases would resolve to `foo:bar:1.0`. However, if no "hard" dependency is found on the optional module, then it will **not** be included, as previous Gradle versions did.
-
 ### Eclipse plugin separates output folders
 
 The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
@@ -68,8 +60,7 @@ This could avoid potential vulnerabilities.
 ### Visual Studio 2017 Support
 
 It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
-With this release, Gradle will also begin discovering Visual Studio installations using the [vswhere utility](https://github.com/Microsoft/vswhere)
-from Microsoft if it's available.  
+  Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).   
 
 ### Embedded Ant version upgraded to Ant 1.9.9
 
@@ -114,7 +105,11 @@ The Gradle Plugin Portal repository can now be added to build scripts. This is p
 repositories {
     gradlePluginPortal()
 }
-``` 
+```
+
+### Use of canonical URL for `mavenCentral()` repository URL
+
+In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCentral()` was pointing to `https://repo1.maven.org/maven2/`. Sonatype recommends using the canonical URL `https://repo.maven.apache.org/maven2/` instead. This version of Gradle makes the switch to `repo.maven.apache.org` when using the `mavenCentral()` API.
 
 ## Promoted features
 
@@ -146,11 +141,6 @@ Since then Gradle optimized its up-to-date checking for project dependencies whi
 -->
 
 ## Potential breaking changes
-
-### Maven optional dependencies may lead to different dependency resolution result
-
-Supporting optional dependencies means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
-Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those. Alternatively, you can compare the output of the `dependencyInsight` task executed with a pre-4.4 version of Gradle and the one produced by Gradle 4.4.
 
 ### Change to the `Test` task structure
 
@@ -198,6 +188,7 @@ We would like to thank the following community members for making contributions 
 - [Kyle Moore](https://github.com/DPUkyle) - Updated Gosu plugin to fix API breakage (gradle/gradle#3115)
 - [Kyle Moore](https://github.com/DPUkyle) - Filter non-file URLs when getting classpath from `ClassLoader` (gradle/gradle#3224)
 - [Jaci Brunning](https://github.com/JacisNonsense) - Support for overriding target platforms on Gcc toolchains (gradle/gradle#3124)
+- [Joel Vasallo](https://github.com/jvasallo) - Use canonical URL for Maven Central repository shortcut method (gradle/gradle#3464)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

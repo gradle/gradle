@@ -291,18 +291,17 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
-                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions,
-                                                                BuildOperationExecutor buildOperationExecutor) {
+                                                                BuildOperationExecutor buildOperationExecutor,
+                                                                ComponentSelectorConverter componentSelectorConverter) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
-            moduleIdentifierFactory,
-            moduleExclusions
-        );
+            moduleExclusions,
+            componentSelectorConverter);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
@@ -323,6 +322,10 @@ class DependencyManagementBuildScopeServices {
 
     ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
         return new ProjectDependencyResolver(localComponentRegistry, componentIdentifierFactory);
+    }
+
+    ComponentSelectorConverter createModuleVersionSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
+        return new DefaultComponentSelectorConverter(moduleIdentifierFactory, componentIdentifierFactory, localComponentRegistry);
     }
 
     private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {

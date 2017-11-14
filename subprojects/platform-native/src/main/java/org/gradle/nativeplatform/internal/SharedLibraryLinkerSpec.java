@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal;
 
+import java.io.File;
+
 public interface SharedLibraryLinkerSpec extends LinkerSpec {
     String getInstallName();
 
-    void setInstallName(String path);
+    File getImportLibrary();
 }

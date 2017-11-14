@@ -21,9 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -36,10 +35,11 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -80,7 +80,7 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
-    private List<DependencyMetadata> dependencies = Lists.newArrayList();
+    private List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private String status;
@@ -93,7 +93,7 @@ public class GradlePomModuleDescriptorBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public List<DependencyMetadata> getDependencies() {
+    public List<ModuleDependencyMetadata> getDependencies() {
         return dependencies;
     }
 
@@ -119,6 +119,14 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(PomDependencyData dep) {
+        doAddDependency(dep, dep.isOptional());
+    }
+
+    public void addOptionalDependency(PomDependencyMgt dep) {
+        doAddDependency(dep, true);
+    }
+
+    private void doAddDependency(PomDependencyMgt dep, boolean optional) {
         String scopeString = dep.getScope();
         if (scopeString == null || scopeString.length() == 0) {
             scopeString = getDefaultScope(dep);
@@ -134,16 +142,14 @@ public class GradlePomModuleDescriptorBuilder {
 
         String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
-        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), new DefaultImmutableVersionConstraint(mappedVersion));
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), new DefaultImmutableVersionConstraint(mappedVersion));
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
         if (selector.getGroup().equals(componentIdentifier.getGroup())
-            && selector.getName().equals(componentIdentifier.getModule())) {
+            && selector.getModule().equals(componentIdentifier.getModule())) {
             return;
         }
-
-        boolean optional = dep.isOptional();
 
         List<Artifact> artifacts = Lists.newArrayList();
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -160,7 +166,7 @@ public class GradlePomModuleDescriptorBuilder {
             // compared to how m2 behave with classifiers
             String optionalizedScope = optional ? "optional" : scope.toString().toLowerCase();
 
-            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
+            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getModule(), type, ext, classifier);
             artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
         }
 
@@ -251,7 +257,7 @@ public class GradlePomModuleDescriptorBuilder {
      * @param dependency Dependency
      * @return Resolved dependency version
      */
-    private String determineVersion(PomDependencyData dependency) {
+    private String determineVersion(PomDependencyMgt dependency) {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
@@ -262,13 +268,13 @@ public class GradlePomModuleDescriptorBuilder {
         return version;
     }
 
-    public void addDependencyForRelocation(ModuleVersionSelector selector) {
+    public void addDependencyForRelocation(ModuleComponentSelector selector) {
 
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         if (selector.getGroup().equals(componentIdentifier.getGroup())
-            && selector.getName().equals(componentIdentifier.getModule())) {
+            && selector.getModule().equals(componentIdentifier.getModule())) {
             return;
         }
 
@@ -284,7 +290,7 @@ public class GradlePomModuleDescriptorBuilder {
         dependencies.add(new IvyDependencyMetadata(selector, confMappings));
     }
 
-    private String getDefaultVersion(PomDependencyData dep) {
+    private String getDefaultVersion(PomDependencyMgt dep) {
         PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         if (pomDependencyMgt != null) {
             return pomDependencyMgt.getVersion();
@@ -292,7 +298,7 @@ public class GradlePomModuleDescriptorBuilder {
         return null;
     }
 
-    private String getDefaultScope(PomDependencyData dep) {
+    private String getDefaultScope(PomDependencyMgt dep) {
         PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         String result = null;
         if (pomDependencyMgt != null) {
@@ -304,7 +310,7 @@ public class GradlePomModuleDescriptorBuilder {
         return result;
     }
 
-    private List<ModuleIdentifier> getDependencyMgtExclusions(PomDependencyData dep) {
+    private List<ModuleIdentifier> getDependencyMgtExclusions(PomDependencyMgt dep) {
         PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         if (pomDependencyMgt != null) {
             return pomDependencyMgt.getExcludedModules();
@@ -313,7 +319,7 @@ public class GradlePomModuleDescriptorBuilder {
         return Collections.emptyList();
     }
 
-    private PomDependencyMgt findDependencyDefault(PomDependencyData dependency) {
+    private PomDependencyMgt findDependencyDefault(PomDependencyMgt dependency) {
         return pomReader.findDependencyDefaults(dependency.getId());
     }
 }

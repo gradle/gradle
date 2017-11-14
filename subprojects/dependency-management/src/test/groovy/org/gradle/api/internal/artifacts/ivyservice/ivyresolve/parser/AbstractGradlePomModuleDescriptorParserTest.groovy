@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -82,8 +82,8 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         DefaultModuleComponentIdentifier.newId(group, name, version)
     }
 
-    protected static ModuleVersionSelector moduleId(String group, String name, String version) {
-        DefaultModuleVersionSelector.newSelector(group, name, new DefaultMutableVersionConstraint(version))
+    protected static ModuleComponentSelector moduleId(String group, String name, String version) {
+        DefaultModuleComponentSelector.newSelector(group, name, new DefaultMutableVersionConstraint(version))
     }
 
     protected ArtifactRevisionId artifactId(ModuleRevisionId moduleId, String name, String type, String ext) {

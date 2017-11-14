@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
@@ -53,7 +52,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private List<? extends DependencyMetadata> dependencies;
+    private List<? extends ModuleDependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
     private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
@@ -61,7 +60,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DependencyMetadata> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
         this.componentId = componentIdentifier;
         this.id = id;
         this.dependencies = dependencies;
@@ -248,12 +247,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public List<? extends ModuleDependencyMetadata> getDependencies() {
         return dependencies;
     }
 
     @Override
-    public void setDependencies(Iterable<? extends DependencyMetadata> dependencies) {
+    public void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
         this.dependencies = ImmutableList.copyOf(dependencies);
         resetConfigurations();
     }

@@ -65,4 +65,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     public static ImmutableVersionConstraint of(String preferredVersion) {
         return new DefaultImmutableVersionConstraint(preferredVersion);
     }
+
+    public static ImmutableVersionConstraint of(String preferredVersion, List<String> rejects) {
+        return new DefaultImmutableVersionConstraint(preferredVersion, rejects);
+    }
 }

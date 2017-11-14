@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -43,7 +42,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -63,7 +61,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyGraphBuilderTest extends Specification {
@@ -93,6 +91,11 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
     def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(Mock(Action))
+    def componentSelectorConverter = Mock(ComponentSelectorConverter) {
+        getModule(_) >> { ComponentSelector selector ->
+            DefaultModuleIdentifier.newId(selector.group, selector.module)
+        }
+    }
 
     DependencyGraphBuilder builder
 
@@ -101,7 +104,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -547,8 +550,8 @@ class DependencyGraphBuilderTest extends Specification {
 
     def "does not include filtered dependencies"() {
         given:
-        def spec = { DependencyMetadata dep -> dep.requested.name != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator)
+        def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter)
 
         def a = revision('a')
         def b = revision('b')
@@ -1028,12 +1031,8 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.id)
-        0 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _)
+        0 * idResolver.resolve(dependencyMetaData, _)
         0 * metaDataResolver.resolve(to.componentId, _, _)
-    }
-
-    private ModuleIdentifier moduleId(DependencyMetadata dependencyMetaData) {
-        moduleIdentifierFactory.module(dependencyMetaData.requested.group, dependencyMetaData.requested.name)
     }
 
     def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
@@ -1062,7 +1061,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], def from, String to) {
         def dependencyMetaData = dependsOn(args, from, newId("group", to, "1.0"))
-        1 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _) >> { DependencyMetadata dep, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetadata dep, BuildableComponentIdResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", new DefaultMutableVersionConstraint("c")), "broken"))
         }
     }
@@ -1072,14 +1071,13 @@ class DependencyGraphBuilderTest extends Specification {
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         boolean optional = args.optional ?: false
-        ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, new DefaultMutableVersionConstraint(dependencyId.version))
-        ComponentSelector componentSelector = DefaultModuleComponentSelector.newSelector(selector)
+        ComponentSelector componentSelector = newSelector(dependencyId.group, dependencyId.name, new DefaultMutableVersionConstraint(dependencyId.version))
         def excludeRules = []
         if (args.exclude) {
             ComponentResolveMetadata excluded = args.exclude
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.id.group, excluded.id.name))
         }
-        def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector, selector, "default", null, "default", [] as Set<IvyArtifactName>,
+        def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector, "default", null, "default", [] as Set<IvyArtifactName>,
             excludeRules, force, false, transitive)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
@@ -1087,7 +1085,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def selectorResolvesTo(DependencyMetadata dependencyMetaData, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
-        1 * idResolver.resolve(dependencyMetaData, moduleId(dependencyMetaData), _) >> { DependencyMetadata dep, ModuleIdentifier targetModuleId, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, _) >> { DependencyMetadata dep, BuildableComponentIdResolveResult result ->
             result.resolved(id, mvId)
         }
     }
@@ -1099,9 +1097,9 @@ class DependencyGraphBuilderTest extends Specification {
     static class TestGraphVisitor implements DependencyGraphVisitor {
         def root
         def components = new LinkedHashSet()
-        final Map<ModuleVersionSelector, FailureDetails> failures = new LinkedHashMap<>()
+        final Map<ComponentSelector, FailureDetails> failures = new LinkedHashMap<>()
 
-        Set<ModuleVersionSelector> getUnresolvedDependencies() {
+        Set<ComponentSelector> getUnresolvedDependencies() {
             return failures.keySet()
         }
 
@@ -1123,10 +1121,10 @@ class DependencyGraphBuilderTest extends Specification {
         void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
-                    def breakage = failures.get(it.requestedModuleVersion)
+                    def breakage = failures.get(it.requested)
                     if (breakage == null) {
                         breakage = new FailureDetails(it.failure)
-                        failures.put(it.requestedModuleVersion, breakage)
+                        failures.put(it.requested, breakage)
                     }
                     breakage.requiredBy << it.from
                 }

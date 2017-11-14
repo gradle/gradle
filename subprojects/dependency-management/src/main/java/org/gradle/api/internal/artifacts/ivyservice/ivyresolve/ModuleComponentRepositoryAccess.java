@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -42,7 +42,7 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves the given dependency to a list of module versions.
      */
-    void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result);
+    void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result);
 
     /**
      * Resolves the metadata for a module component.

@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.DeferredUtil;
@@ -97,12 +98,12 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         return new PropertyValue() {
             @Override
             public Object getValue() {
-                return value;
+                return value instanceof Provider ? ((Provider<?>) value).getOrNull() : value;
             }
 
             @Override
             public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context, TaskValidationContext.Severity severity) {
-                Object unpacked = DeferredUtil.unpack(value);
+                Object unpacked = DeferredUtil.unpack(getValue());
                 if (unpacked == null) {
                     if (!optional) {
                         context.recordValidationMessage(severity, String.format("No value has been specified for property '%s'.", propertyName));

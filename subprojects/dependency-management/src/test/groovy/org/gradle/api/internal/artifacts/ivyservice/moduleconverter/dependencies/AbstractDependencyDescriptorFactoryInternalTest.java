@@ -28,10 +28,10 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -87,7 +87,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
                 setTransitive(true);
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(DslOriginDependencyMetadata dependencyMetadata) {
+    protected void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata) {
         assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludes().get(0));
         assertThat(dependencyMetadata.getModuleConfiguration(), equalTo(TEST_CONF));
         assertThat(dependencyMetadata.getDependencyConfiguration(), equalTo(TEST_DEP_CONF));

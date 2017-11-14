@@ -85,7 +85,9 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
-- `version`: The version selector of the dependency. Has the same meaning as in the Gradle DSL.
+- `version`: The version constraint of the dependency. Has the same meaning as in the Gradle DSL. A version constraint consists of:
+   - `prefers`: The preferred version for this dependency
+   - `rejects`: An array of rejected versions for this dependency. Can be omitted.
 
 ### `files` value
 
@@ -129,7 +131,7 @@ This value must contain an array with zero or more elements. Each element must b
                 }
             ],
             "dependencies": [
-                { "group": "some.group", "module": "other-lib", "version": "3.4" }
+                { "group": "some.group", "module": "other-lib", "version": { "prefers": "3.4" } }
             ]
         },
         {
@@ -147,7 +149,7 @@ This value must contain an array with zero or more elements. Each element must b
                 }
             ],
             "dependencies": [
-                { "group": "some.group", "module": "other-lib", "version": "3.4" }
+                { "group": "some.group", "module": "other-lib", "version": { "prefers": "3.4", "rejects": ["3.4.1"] } }
             ]
         }
     ]

@@ -20,7 +20,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {

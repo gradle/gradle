@@ -18,8 +18,6 @@ package org.gradle.jvm.internal.resolve
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -76,7 +74,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     LocalLibraryDependencyResolver resolver
     DependencyMetadata metadata
     LibraryComponentSelector selector
-    ModuleVersionSelector requested
     JavaPlatform platform
 
     def setup() {
@@ -103,8 +100,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, new DefaultLocalLibraryResolver(), variantSelector, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetadata)
         selector = Mock(LibraryComponentSelector)
-        requested = Mock(ModuleVersionSelector)
-        metadata.requested >> requested
         metadata.selector >> selector
     }
 
@@ -121,8 +116,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
     @Unroll("Resolution for library #lib on project #projectPath completes")
     def "can resolve the library defined in a project"() {
         given:
-        requested.group >> projectPath
-        requested.name >> lib
         selector.projectPath >> projectPath
         selector.libraryName >> lib
         mockLibraries(rootProject, rootProjectComponents)
@@ -136,7 +129,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def result = new DefaultBuildableComponentIdResolveResult()
 
         when:
-        resolver.resolve(metadata, Mock(ModuleIdentifier), result)
+        resolver.resolve(metadata, result)
 
         then:
         result.hasResult()

@@ -18,44 +18,46 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
 
 public class DependencyMetadataAdapter implements DependencyMetadata {
-    private final List<org.gradle.internal.component.model.DependencyMetadata> container;
+    private final List<ModuleDependencyMetadata> container;
     private final int originalIndex;
 
-    public DependencyMetadataAdapter(List<org.gradle.internal.component.model.DependencyMetadata> container, int originalIndex) {
+    public DependencyMetadataAdapter(List<ModuleDependencyMetadata> container, int originalIndex) {
         this.container = container;
         this.originalIndex = originalIndex;
     }
 
-    private org.gradle.internal.component.model.DependencyMetadata getOriginalMetadata() {
+    private ModuleDependencyMetadata getOriginalMetadata() {
         return container.get(originalIndex);
     }
 
-    private void updateMetadata(org.gradle.internal.component.model.DependencyMetadata modifiedMetadata) {
+    private void updateMetadata(ModuleDependencyMetadata modifiedMetadata) {
         container.set(originalIndex, modifiedMetadata);
     }
 
     @Override
     public String getGroup() {
-        return getOriginalMetadata().getRequested().getGroup();
+        return getOriginalMetadata().getSelector().getGroup();
     }
 
     @Override
     public String getName() {
-        return getOriginalMetadata().getRequested().getName();
+        return getOriginalMetadata().getSelector().getModule();
     }
 
     @Override
     public String getVersion() {
-        return getOriginalMetadata().getRequested().getVersion();
+        return getOriginalMetadata().getSelector().getVersion();
     }
 
     @Override
     public DependencyMetadata setVersion(String version) {
-        updateMetadata(getOriginalMetadata().withRequestedVersion(new DefaultMutableVersionConstraint(version)));
+        ModuleDependencyMetadata dependencyMetadata = getOriginalMetadata().withRequestedVersion(new DefaultMutableVersionConstraint(version));
+        updateMetadata(dependencyMetadata);
         return this;
     }
 }

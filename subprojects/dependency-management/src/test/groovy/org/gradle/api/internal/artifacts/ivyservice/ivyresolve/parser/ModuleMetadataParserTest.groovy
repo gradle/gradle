@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.Transformer
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.MutableComponentVariant
@@ -29,6 +30,14 @@ import spock.lang.Specification
 
 class ModuleMetadataParserTest extends Specification {
     def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE)
+
+    VersionConstraint prefers(String version) {
+        DefaultImmutableVersionConstraint.of(version)
+    }
+
+    VersionConstraint prefersAndRejects(String version, List<String> rejects) {
+        DefaultImmutableVersionConstraint.of(version, rejects)
+    }
 
     def "parses minimal metadata resource"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
@@ -69,7 +78,7 @@ class ModuleMetadataParserTest extends Specification {
                 "name": "api",
                 "attributes": { "usage": "compile" },
                 "files": [ { "name": "a.zip", "url": "a.zop" } ],
-                "dependencies": [ { "group": "g1", "module": "m1", "version": "v1" } ]
+                "dependencies": [ { "group": "g1", "module": "m1", "version": { "prefers": "v1" } } ]
             }
         ]
     }
@@ -78,7 +87,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
-        1 * variant.addDependency("g1", "m1", new DefaultMutableVersionConstraint("v1"))
+        1 * variant.addDependency("g1", "m1", prefers("v1"))
         0 * _
     }
 
@@ -163,15 +172,17 @@ class ModuleMetadataParserTest extends Specification {
             {
                 "name": "api",
                 "dependencies": [ 
-                    { "group": "g1", "module": "m1", "version": "v1" },
-                    { "version": "v2", "group": "g2", "module": "m2" }
+                    { "group": "g1", "module": "m1", "version": { "prefers": "v1" } },
+                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" }
                 ],
                 "attributes": { "usage": "compile" }
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencies": [ 
-                    { "module": "m3", "group": "g3", "version": "v3" }
+                    { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
+                    { "module": "m4", "version": { "prefers": "v4", "rejects": ["v5"] }, "group": "g4"},
+                    { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"}
                 ],
                 "name": "runtime"
             }
@@ -181,10 +192,12 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", new DefaultMutableVersionConstraint("v1"))
-        1 * variant1.addDependency("g2", "m2", new DefaultMutableVersionConstraint("v2"))
+        1 * variant1.addDependency("g1", "m1", prefers("v1"))
+        1 * variant1.addDependency("g2", "m2", prefers("v2"))
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", new DefaultMutableVersionConstraint("v3"))
+        1 * variant2.addDependency("g3", "m3", prefers("v3"))
+        1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]))
+        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]))
         0 * _
     }
 
@@ -276,9 +289,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", new DefaultMutableVersionConstraint("v1"))
+        1 * variant1.addDependency("g1", "m1", prefers("v1"))
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", new DefaultMutableVersionConstraint("v2"))
+        1 * variant2.addDependency("g2", "m2", prefers("v2"))
         0 * _
     }
 
@@ -382,7 +395,7 @@ class ModuleMetadataParserTest extends Specification {
                 "dependencies": [{
                     "group": "g",
                     "module": "m",
-                    "version": "v",
+                    "version": { "prefers": "v" },
                     "otherString": "string",
                     "otherNumber": 123,
                     "otherBoolean": true,
@@ -397,7 +410,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes()) >> variant
-        1 * variant.addDependency("g", "m", new DefaultMutableVersionConstraint("v"))
+        1 * variant.addDependency("g", "m", prefers("v"))
         0 * metadata._
     }
 

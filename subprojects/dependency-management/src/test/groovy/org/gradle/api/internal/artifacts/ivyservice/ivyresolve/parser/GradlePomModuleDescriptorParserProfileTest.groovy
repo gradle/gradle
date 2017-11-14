@@ -96,7 +96,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         then:
         metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dependency = single(metadata.dependencies)
-        dependency.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dependency.selector == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
     }
 
@@ -155,7 +155,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -222,15 +222,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -283,7 +283,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         def exclude = single(dep.excludes)
         exclude.moduleId == moduleIdentifierFactory.module('group-three', 'artifact-three')
@@ -348,7 +348,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -418,15 +418,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -488,14 +488,14 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'imported' }, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -533,7 +533,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         then:
         metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dep)
     }
 
@@ -586,7 +586,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -647,15 +647,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -732,15 +732,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.3')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.3')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -801,14 +801,14 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'imported' }, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -889,7 +889,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         then:
         metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -951,7 +951,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1020,15 +1020,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1083,7 +1083,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         hasDefaultDependencyArtifact(dep)
         def excludeRule = single(dep.excludes)
@@ -1150,7 +1150,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1222,15 +1222,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1294,14 +1294,14 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'imported' }, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1341,7 +1341,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         then:
         metadata.componentId == componentId('group-one', 'artifact-one', 'version-one')
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1397,7 +1397,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.selector == moduleId('group-two', 'artifact-two', 'version-two')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1460,15 +1460,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1547,15 +1547,15 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
-        parseContext.getMetaDataArtifact({ it.requested.name == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.3')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.3')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1618,14 +1618,14 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'imported' }, MAVEN_POM) >> asResource(imported)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
 
         then:
         def dep = single(metadata.dependencies)
-        dep.requested == moduleId('group-two', 'artifact-two', '1.2')
+        dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
     }
@@ -1702,7 +1702,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.requested.name == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
 
         when:
         def metaData = parseMetaData()

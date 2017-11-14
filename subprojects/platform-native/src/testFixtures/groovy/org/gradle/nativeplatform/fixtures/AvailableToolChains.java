@@ -30,8 +30,8 @@ import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
-import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
@@ -168,14 +168,14 @@ public class AvailableToolChains {
     }
 
     static private List<ToolChainCandidate> findGccs() {
-        GccVersionDeterminer versionDeterminer = GccVersionDeterminer.forGcc(TestFiles.execActionFactory());
+        GccMetadataProvider versionDeterminer = GccMetadataProvider.forGcc(TestFiles.execActionFactory());
 
         Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
             for (File candidate : gppCandidates) {
-                GccVersionResult version = versionDeterminer.getGccMetaData(candidate, Collections.<String>emptyList());
+                GccMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
                     InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
                     if (!candidate.equals(firstInPath)) {

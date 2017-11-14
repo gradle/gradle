@@ -118,6 +118,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version));
     }
 
+    public static ModuleComponentSelector newSelector(String group, String name, String version) {
+        return new DefaultModuleComponentSelector(group, name, DefaultImmutableVersionConstraint.of(version));
+    }
+
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
         return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersionConstraint()));
     }
