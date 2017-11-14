@@ -10,11 +10,11 @@ data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
         val rootProjectName: String = "Check",
         val tagBuilds: Boolean = true,
-        val buildCacheActive: Boolean = true,
         val publishStatusToGitHub: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val parentBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
+        val buildScanTags: List<String> = emptyList(),
         val stages: List<Stage> = listOf(
             Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(

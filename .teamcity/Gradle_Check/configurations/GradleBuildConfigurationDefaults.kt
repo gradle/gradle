@@ -94,7 +94,12 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = (listOf(gradleParameterString) + buildType.buildCache.gradleParameters() + listOf(extraParameters)).joinToString(separator = " ")
+            gradleParams = (
+                    listOf(gradleParameterString) +
+                            buildType.buildCache.gradleParameters() +
+                            listOf(extraParameters) +
+                            model.buildScanTags.map { """"-Dscan.tag.$it"""" }
+                    ).joinToString(separator = " ")
             useGradleWrapper = true
         }
     }

@@ -31,10 +31,10 @@ val buildModel = CIBuildModel(
         rootProjectName = "Parent Child build cache pipeline",
         masterAndReleaseBranches = listOf("master"),
         tagBuilds = false,
-        buildCacheActive = true,
         parentBuildCache = RemoteBuildCache("%gradle.cache.parent.url%", "%gradle.cache.parent.username%", "%gradle.cache.parent.password%"),
         childBuildCache = RemoteBuildCache("%gradle.cache.child.url%", "%gradle.cache.child.username%", "%gradle.cache.child.password%"),
         publishStatusToGitHub = false,
+        buildScanTags = listOf("BuildCacheDeactivated"),
         stages = listOf(
                 Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                         specificBuilds = listOf(
