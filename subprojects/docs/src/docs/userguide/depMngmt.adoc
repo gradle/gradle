@@ -516,7 +516,7 @@ There are several different types of repositories you can declare:
 [[sub:maven_central]]
 ==== Maven central repository
 
-To add the central Maven 2 repository (https://repo1.maven.org/maven2[]) simply add this to your build script:
+To add the central Maven 2 repository (https://repo.maven.apache.org/maven2[]) simply add this to your build script:
 
 ++++
 <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
@@ -1394,7 +1394,7 @@ For more details, take a look at the API documentation for api:org.gradle.api.ar
 [[sec:strategies_of_transitive_dependency_management]]
 === Strategies for transitive dependency management
 
-Many projects rely on the https://repo1.maven.org/maven2[Maven Central repository]. This is not without problems.
+Many projects rely on the https://repo.maven.apache.org/maven2[Maven Central repository]. This is not without problems.
 
 * The Maven Central repository can be down or can be slow to respond.
 * The POM files of many popular projects specify dependencies or other configuration that are just plain wrong (for instance, the POM file of the “`commons-httpclient-3.0`” module declares JUnit as a runtime dependency).
