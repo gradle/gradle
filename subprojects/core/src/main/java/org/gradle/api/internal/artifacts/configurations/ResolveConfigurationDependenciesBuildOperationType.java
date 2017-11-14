@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  *
  * @since 4.4
  */
-public final class ResolveDependenciesBuildOperationType implements BuildOperationType<ResolveDependenciesBuildOperationType.Details, ResolveDependenciesBuildOperationType.Result> {
+public final class ResolveConfigurationDependenciesBuildOperationType implements BuildOperationType<ResolveConfigurationDependenciesBuildOperationType.Details, ResolveConfigurationDependenciesBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {

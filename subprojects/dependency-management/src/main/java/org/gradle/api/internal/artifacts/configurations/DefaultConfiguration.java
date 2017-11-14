@@ -481,7 +481,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
-                context.setResult(new ResolveDependenciesBuildOperationType.Result() {
+                context.setResult(new ResolveConfigurationDependenciesBuildOperationType.Result() {
                     @Override
                     public ResolvedComponentResult getRootComponent() {
                         return incoming.getResolutionResult().getRoot();
@@ -1309,7 +1309,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class OperationDetails implements ResolveDependenciesBuildOperationType.Details {
+    private static class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
 
         final String configurationPath;
         final String configurationDescription;

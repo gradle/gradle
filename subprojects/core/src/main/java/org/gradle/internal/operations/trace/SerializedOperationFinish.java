@@ -17,7 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.artifacts.configurations.ResolveDependenciesBuildOperationType;
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationFinishEvent;
@@ -45,9 +45,9 @@ class SerializedOperationFinish {
     }
 
     private Object transform(Object details) {
-        if (details != null && ResolveDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
+        if (details != null && ResolveConfigurationDependenciesBuildOperationType.Result.class.isAssignableFrom(details.getClass())) {
             Map<String, Object> map = new HashMap<String, Object>();
-            ResolveDependenciesBuildOperationType.Result result = (ResolveDependenciesBuildOperationType.Result) details;
+            ResolveConfigurationDependenciesBuildOperationType.Result result = (ResolveConfigurationDependenciesBuildOperationType.Result) details;
             map.put("resolvedDependenciesCount", result.getRootComponent().getDependencies().size());
             return map;
         }

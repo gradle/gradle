@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.api.internal.artifacts.configurations.ResolveDependenciesBuildOperationType
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
@@ -60,7 +60,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         fails "resolve"
 
         then:
-        def op = operations.first(ResolveDependenciesBuildOperationType)
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationPath == ":compile"
         op.details.buildPath == ":"
         op.details.configurationDescription ==~ /Dependencies for source set 'main'.*/
@@ -120,7 +120,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         run "resolve"
 
         then:
-        def resolveOperations = operations.all(ResolveDependenciesBuildOperationType)
+        def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         resolveOperations.size() == 2
         resolveOperations[0].details.configurationPath == ":compile"
         resolveOperations[0].details.buildPath == ":"
@@ -159,7 +159,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         run "resolve"
 
         then:
-        def op = operations.first(ResolveDependenciesBuildOperationType)
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationPath == ":detachedConfiguration1"
         op.details.buildPath == ":"
         op.details.configurationDescription == null
