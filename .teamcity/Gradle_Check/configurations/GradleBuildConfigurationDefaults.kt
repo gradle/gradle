@@ -9,7 +9,7 @@ import model.CIBuildModel
 import java.util.Arrays.asList
 
 private val java7HomeLinux = "-Djava7.home=%linux.jdk.for.gradle.compile%"
-private val java7Windows = "${'"'}-Djava7.home=%windows.java7.oracle.64bit%${'"'}"
+private val java7Windows = """"-Djava7.home=%windows.java7.oracle.64bit%""""
 
 val gradleParameters: List<String> = asList(
         "-PmaxParallelForks=%maxParallelForks%",
