@@ -20,50 +20,96 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 /**
  * A base runner for features hidden behind a flag, convenient for executing tests with the flag on or off.
- * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiresFeatureEnabled}.
+ * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiredFeatures}.
  */
 @CompileStatic
 abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
-    final String systemProperty
-    final String featureDescription
+    final Map<String, Feature> features
 
-    BehindFlagFeatureRunner(Class<?> target, String systemProperty, String featureDescription) {
+    BehindFlagFeatureRunner(Class<?> target, Map<String, Feature> features) {
         super(target)
-        // Ensure that the system property is propagated to forked Gradle executions
-        AbstractGradleExecuter.propagateSystemProperty(systemProperty)
-        this.systemProperty = systemProperty
-        this.featureDescription = featureDescription
+        features.each { systemProperty, description ->
+            // Ensure that the system property is propagated to forked Gradle executions
+            AbstractGradleExecuter.propagateSystemProperty(systemProperty)
+        }
+        this.features = features
+    }
+
+    Map<String, String> requiredFeatures() {
+        def required = [:]
+        target.annotations.findAll {
+            RequiredFeatures.isAssignableFrom(it.getClass())
+        }.each {
+            RequiredFeatures requires = (RequiredFeatures) it
+            requires.value().each { RequiredFeature feat ->
+                required[feat.feature()] = feat.value()
+            }
+        }
+
+        required
     }
 
     @Override
     protected void createExecutions() {
-        // Run the test once with early dependency forced and once without
-        add(new FeatureExecution(true))
-        if (!target.annotations*.class.any { RequiresFeatureEnabled.isAssignableFrom(it) }) {
-            add(new FeatureExecution(false))
+        def requiredFeatures = requiredFeatures()
+        def allFeatures = features.values()
+        def combinations = allFeatures.collect { it.displayNames.keySet() }.combinations()
+        combinations.each {
+            Map<String, String> executionValues = [:]
+            Iterator<String> iter = it.iterator()
+            boolean skip = false
+            features.keySet().each { String key ->
+                executionValues[key] = iter.next()
+                if (requiredFeatures.containsKey(key) && executionValues[key] != requiredFeatures[key]) {
+                    skip = true
+                }
+            }
+            if (!skip) {
+                add(new FeatureExecution(features, executionValues))
+            }
         }
     }
 
-    private class FeatureExecution extends AbstractMultiTestRunner.Execution {
-        final boolean featureEnabled
+    private static class FeatureExecution extends AbstractMultiTestRunner.Execution {
+        final Map<String, Feature> features
+        final Map<String, String> featureValues
 
-        public FeatureExecution(boolean featureEnabled) {
-            this.featureEnabled = featureEnabled
+        FeatureExecution(Map<String, Feature> features, Map<String, String> featureValues) {
+            this.features = features
+            this.featureValues = featureValues
         }
 
         @Override
         protected String getDisplayName() {
-            return featureEnabled ? "with ${featureDescription}" : "without ${featureDescription}"
+            featureValues.collect { sysProp, value ->
+                "${features[sysProp].displayNames[value]}"
+            }.join(", ")
         }
 
         @Override
         protected void before() {
-            System.setProperty(systemProperty, String.valueOf(featureEnabled))
+            featureValues.each { sysProp, value ->
+                System.setProperty(sysProp, value)
+            }
         }
 
         @Override
         protected void after() {
-            System.properties.remove(systemProperty)
+            featureValues.each { sysProp, value ->
+                System.properties.remove(sysProp)
+            }
         }
+    }
+
+    static class Feature {
+        final Map<String, String> displayNames
+
+        Feature(Map<String, String> displayNames) {
+            this.displayNames = displayNames
+        }
+    }
+
+    static Feature booleanFeature(String name) {
+        new Feature(['true': "with $name".toString(), 'false': "without $name".toString()])
     }
 }

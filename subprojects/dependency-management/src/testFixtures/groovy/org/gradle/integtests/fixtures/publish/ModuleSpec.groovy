@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.fixtures.publish
 
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.HttpRepository
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.maven.MavenModule
 
 class ModuleSpec {
     private final String groupId
@@ -36,10 +38,15 @@ class ModuleSpec {
         versionSpec()
     }
 
-    void build(MavenHttpRepository repository) {
+    void build(HttpRepository repository) {
         versions.values()*.build(repository)
         if (expectGetMetatada) {
-            repository.module(groupId, artifactId).rootMetaData.expectGet()
+            def module = repository.module(groupId, artifactId)
+            if (module instanceof MavenModule) {
+                module.rootMetaData.expectGet()
+            } else if (module instanceof IvyModule) {
+                repository.directoryList(module.organisation, module.module).expectGet()
+            }
         }
     }
 

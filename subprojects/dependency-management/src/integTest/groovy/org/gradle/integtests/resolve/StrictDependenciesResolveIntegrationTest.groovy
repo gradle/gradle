@@ -16,9 +16,12 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.RequiresFeatureEnabled
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
 
-@RequiresFeatureEnabled
+@RequiredFeatures(
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+)
 class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
@@ -163,3 +166,5 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
 
     }
 }
+
+import org.gradle.integtests.fixtures.RequiredFeatures

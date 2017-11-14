@@ -113,11 +113,26 @@ class IvyResolverTest extends Specification {
         newId("group", "name", "")  | "[organization]/[module]-([revision])"
     }
 
-    private IvyResolver resolver(String ivyPattern = null) {
+
+    def "resolvers are differentiated by useGradleMetadata flag"() {
+        given:
+        def resolver1 = resolver()
+        def resolver2 = resolver(null, true)
+
+        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+
+        expect:
+        resolver1.id != resolver2.id
+    }
+
+    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false) {
         def transport = Stub(RepositoryTransport)
         transport.resourceAccessor >> externalResourceAccessor
 
-        new IvyResolver("repo", transport, Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Stub(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository)).with {
+        new IvyResolver("repo", transport, Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Stub(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository), null, useGradleMetadata).with {
             if (ivyPattern) {
                 it.addDescriptorLocation(URI.create(""), ivyPattern)
             }

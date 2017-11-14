@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * Meta-data for a component resolved from an Ivy repository.
  */
-public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata {
+public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata, ComponentVariantResolveMetadata {
     /**
      * {@inheritDoc}
      */

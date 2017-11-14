@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.publish.MavenRepositorySpec
+import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 
@@ -27,9 +27,13 @@ import org.junit.runner.RunWith
 abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
-    private final MavenRepositorySpec repoSpec = new MavenRepositorySpec()
+    private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
 
-    def getRepository() {
+    boolean useIvy() {
+        GradleMetadataResolveRunner.useIvy()
+    }
+
+    private String getMavenRepository() {
         """
             repositories {
                 maven { 
@@ -37,6 +41,21 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
                 }
             }
         """
+    }
+
+    private String getIvyRepository() {
+        """
+            repositories {
+                ivy { 
+                   url "${ivyHttpRepo.uri}"
+                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'useGradleMetadata()' : ''}
+                }
+            }
+        """
+    }
+
+    def getRepository() {
+        useIvy()?ivyRepository:mavenRepository
     }
 
     def setup() {
@@ -53,15 +72,15 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
         server.stop()
     }
 
-    void repository(@DelegatesTo(MavenRepositorySpec) Closure<Void> spec) {
+    void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
         spec.delegate = repoSpec
         spec()
     }
 
-    void repositoryInteractions(@DelegatesTo(MavenRepositorySpec) Closure<Void> spec) {
+    void repositoryInteractions(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
         spec.delegate = repoSpec
         spec()
-        repoSpec.build(mavenHttpRepo)
+        repoSpec.build(useIvy()?ivyHttpRepo:mavenHttpRepo)
     }
 
 }

@@ -37,6 +37,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
+    final List<VariantMetadata> variants = [new VariantMetadata("default")]
     String branch = null
     String status = "integration"
     boolean noMetaData
@@ -183,6 +184,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return moduleArtifact([name: "ivy", type: "ivy", ext: "xml"], ivyPattern)
     }
 
+    @Override
+    ModuleArtifact getModuleMetadata() {
+        moduleArtifact(name: module, type: 'module', ext: "module")
+    }
+
     TestFile getIvyFile() {
         return ivy.file
     }
@@ -194,6 +200,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     TestFile getJarFile() {
         return jar.file
+    }
+
+    @Override
+    TestFile getModuleMetadataFile() {
+        return moduleMetadata.file
     }
 
     TestFile file(Map<String, ?> options) {
@@ -250,6 +261,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 writer << "${artifactFile.name} : $artifactContent"
             }
         }
+
+        if (hasModuleMetadata) {
+            publishModuleMetadata()
+        }
+
         if (noMetaData) {
             return this
         }
@@ -260,6 +276,44 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
         return this
     }
+
+    private void publishModuleMetadata() {
+        moduleDir.createDir()
+        def file = moduleDir.file("$module-${revision}.module")
+        def artifact = moduleArtifact([:])
+        def value = new StringBuilder()
+        value << """
+            { 
+                "formatVersion": "0.2", 
+                "builtBy": { "gradle": { } },
+                "variants": ["""
+        for (Iterator<VariantMetadata> i = variants.iterator(); i.hasNext(); ) {
+            def variant = i.next()
+            value << """
+                    { 
+                        "name": "$variant.name",
+                        "attributes": { ${variant.attributes.entrySet().collect { "\"$it.key\": \"$it.value\"" }.join(", ")} },
+                        "files": [
+                            { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
+                        ],
+                        "dependencies": [
+"""
+            value << dependencies.collect { d ->
+                def rejects = d.rejects?", \"rejects\": [${d.rejects.collect { "\"$it\""}.join(',')}]":""
+                def versionConstraint = "{ \"prefers\": \"${d.revision}\"$rejects }"
+                "                            { \"group\": \"$d.organisation\", \"module\": \"$d.module\", \"version\": $versionConstraint }\n"
+            }.join(",\n")
+            value << """                        ]
+                    }${i.hasNext() ? ',' : ''}"""
+        }
+        value << """                        
+                ]
+            }
+        """
+
+        file.text = value.toString()
+    }
+
 
     private writeTo(Writer ivyFileWriter) {
         ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
@@ -385,5 +439,15 @@ ivyFileWriter << '</ivy-module>'
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
         parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
+    }
+
+    static class VariantMetadata {
+        String name
+        Map<String, String> attributes
+
+        VariantMetadata(String name, Map<String, String> attributes = [:]) {
+            this.name = name
+            this.attributes = attributes
+        }
     }
 }

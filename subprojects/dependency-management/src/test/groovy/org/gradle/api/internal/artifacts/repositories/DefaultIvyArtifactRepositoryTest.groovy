@@ -21,11 +21,14 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
@@ -47,8 +50,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    final ModuleMetadataParser moduleMetadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), Mock(NamedObjectInstantiator))
 
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository))
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser)
 
     def "default values"() {
         expect:

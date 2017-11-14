@@ -91,11 +91,6 @@ interface MavenModule extends Module {
      */
     ModuleArtifact getPom()
 
-    /**
-     * Returns the Gradle module metadata file of this module
-     */
-    ModuleArtifact getModuleMetadata()
-
     TestFile getPomFile()
 
     /**

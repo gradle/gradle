@@ -19,6 +19,7 @@ import spock.lang.Unroll
 
 class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
 
+    @Unroll
     void "can declare a strict dependency onto an external component"() {
         given:
         repository {
@@ -55,7 +56,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
                 module("org:foo:1.0")
             }
         }
-
     }
 
     void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
