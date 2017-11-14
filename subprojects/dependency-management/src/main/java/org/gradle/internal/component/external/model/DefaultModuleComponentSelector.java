@@ -123,6 +123,6 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersionConstraint()));
+        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), DefaultImmutableVersionConstraint.of(selector.getVersion()));
     }
 }

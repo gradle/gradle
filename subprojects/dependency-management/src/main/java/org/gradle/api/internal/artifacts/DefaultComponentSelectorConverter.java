@@ -50,8 +50,7 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
     @Override
     public ModuleVersionSelector getSelector(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
-            ModuleComponentSelector module = (ModuleComponentSelector) selector;
-            return DefaultModuleVersionSelector.newSelector(module.getGroup(), module.getModule(), module.getVersionConstraint());
+            return DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
         }
         if (selector instanceof ProjectComponentSelector) {
             ProjectComponentSelector projectSelector = (ProjectComponentSelector) selector;

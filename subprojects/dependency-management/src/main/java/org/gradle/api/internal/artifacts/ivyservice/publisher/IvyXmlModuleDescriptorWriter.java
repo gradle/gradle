@@ -163,7 +163,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         ModuleVersionSelector requested = componentSelectorConverter.getSelector(dep.getSelector());
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
-        writer.attribute("rev", requested.getVersionConstraint().getPreferredVersion());
+        writer.attribute("rev", requested.getVersion());
         if (dep.isForce()) {
             writer.attribute("force", "true");
         }

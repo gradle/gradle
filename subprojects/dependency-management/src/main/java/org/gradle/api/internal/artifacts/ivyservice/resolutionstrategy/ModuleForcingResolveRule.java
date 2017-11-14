@@ -42,7 +42,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {
-                this.forcedModules.put(moduleIdentifierFactory.module(module.getGroup(), module.getName()), module.getVersionConstraint().getPreferredVersion());
+                this.forcedModules.put(moduleIdentifierFactory.module(module.getGroup(), module.getName()), module.getVersion());
             }
         } else {
             this.forcedModules = null;
