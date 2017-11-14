@@ -31,7 +31,7 @@ public class DefaultTask extends AbstractTask {
      * Creates a new output directory property for this task.
      *
      * @return The property.
-     * @since 4.1
+     * @since 4.4
      */
     @Incubating
     protected DirectoryProperty newOutputDirectory() {
@@ -42,7 +42,7 @@ public class DefaultTask extends AbstractTask {
      * Creates a new output file property for this task.
      *
      * @return The property.
-     * @since 4.1
+     * @since 4.4
      */
     @Incubating
     protected RegularFileProperty newOutputFile() {
@@ -53,7 +53,7 @@ public class DefaultTask extends AbstractTask {
      * Creates a new input file property for this task.
      *
      * @return The property.
-     * @since 4.1
+     * @since 4.4
      */
     @Incubating
     protected RegularFileProperty newInputFile() {
@@ -64,7 +64,7 @@ public class DefaultTask extends AbstractTask {
      * Creates a new input directory property for this task.
      *
      * @return The property.
-     * @since 4.3
+     * @since 4.4
      */
     @Incubating
     protected DirectoryProperty newInputDirectory() {
