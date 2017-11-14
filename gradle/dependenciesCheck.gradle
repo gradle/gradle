@@ -35,6 +35,6 @@ configure(projectsIncludedInDistribution()) {
 }
 
 def projectsIncludedInDistribution() {
-    def excluded = [':buildScanPerformance', ':distributions', ':docs', ':integTest', ':internalIntegTesting', ':internalPerformanceTesting', ':internalTesting', ':performance', ':smokeTest', ':soak']
+    def excluded = [':buildScanPerformance', ':distributions', ':docs', ':integTest', ':internalAndroidPerformanceTesting', ':internalIntegTesting', ':internalPerformanceTesting', ':internalTesting', ':performance', ':runtimeApiInfo', ':smokeTest', ':soak']
     subprojects.findAll { prj -> !excluded.contains(prj.path) }
 }
