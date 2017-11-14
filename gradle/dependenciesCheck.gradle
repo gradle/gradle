@@ -27,4 +27,8 @@ buildscript {
 
 allprojects {
     apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
+
+    dependencyCheck {
+        failBuildOnCVSS = 6 // 10 is the maximum
+    }
 }
