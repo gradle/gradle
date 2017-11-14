@@ -29,7 +29,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.publishModuleMetadata")
+                withArgument("-Dorg.gradle.internal.experimentalFeatures.publishModuleMetadata")
             }
         }
     }

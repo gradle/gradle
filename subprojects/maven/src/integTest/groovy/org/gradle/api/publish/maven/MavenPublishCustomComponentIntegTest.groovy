@@ -41,6 +41,36 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         publishedModule.parsedModuleMetadata.variants.isEmpty()
     }
 
+    def "can enable module metadata publishing via init script"() {
+        // Don't enable via system property
+        disableModuleMetadataPublishing()
+
+        // Instead enable via DSL
+        file("init.gradle") << """
+            gradle.experimentalFeatures.enableAll()
+"""
+
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from new MySoftwareComponent()
+                    }
+                }
+            }
+""")
+
+
+        when:
+        executer.withArguments("-I", "init.gradle")
+        run "publish"
+
+        then:
+        publishedModule.assertPublished()
+        publishedModule.parsedPom.scopes.isEmpty()
+        publishedModule.parsedModuleMetadata.variants.isEmpty()
+    }
+
     def "can publish custom component with usages"() {
         createBuildScripts("""
             publishing {

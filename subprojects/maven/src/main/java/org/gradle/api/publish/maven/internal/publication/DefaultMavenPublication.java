@@ -30,8 +30,10 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -91,6 +93,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final ExperimentalFeatures experimentalFeatures;
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
@@ -98,13 +101,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public DefaultMavenPublication(
         String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
-        ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
+        ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+        ExperimentalFeatures experimentalFeatures
     ) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     public String getName() {
@@ -320,6 +325,19 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void publishWithOriginalFileName() {
         this.isPublishWithOriginalFileName = true;
+    }
+
+    @Override
+    public boolean canPublishModuleMetadata() {
+        if (getComponent() == null) {
+            // Cannot yet publish module metadata without component
+            return false;
+        }
+        if (getComponent() instanceof ComponentWithVariants) {
+            // Always publish `ComponentWithVariants`
+            return true;
+        }
+        return experimentalFeatures.isEnabled("publishModuleMetadata");
     }
 
     @Override

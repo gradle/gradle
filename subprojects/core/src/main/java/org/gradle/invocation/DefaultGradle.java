@@ -27,6 +27,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -144,6 +145,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             throw new IllegalStateException("Identity path already set");
         }
         identityPath = path;
+    }
+
+    @Override
+    public ExperimentalFeatures getExperimentalFeatures() {
+        return services.get(ExperimentalFeatures.class);
     }
 
     @Override
