@@ -159,7 +159,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             // Should not happen reading from a StringReader
             throw new UncheckedIOException(e);
         }
-        if (!defines.containsKey("__GNUC__")) {
+        if (!defines.containsKey("__GNUC__") && !defines.containsKey("__clang__")) {
             throw new BrokenResultException(String.format("Could not determine %s metadata: %s produced unexpected output.", compilerType.getDescription(), gccBinary.getName()));
         }
         return defines;
