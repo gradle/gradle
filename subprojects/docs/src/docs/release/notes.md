@@ -28,35 +28,6 @@ Gradle now suppoprts version range in parent elements of POM, which was introduc
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Support for Maven optional dependencies
-
-Gradle will now [take Maven optional dependencies into account](https://github.com/gradle/gradle/pull/3129) during dependency resolution. 
-Before, optional dependencies were not included in the dependency graph.
-As of Gradle 4.4, optional dependencies will participate in dependency resolution as soon as another dependency on the same module is found in the graph.
-For example, if a transitive dependency on `foo:bar:1.1` is optional, but another path in the dependency graph brings `foo:bar:1.0` (not optional), then Gradle will resolve to `foo:bar:1.1`.
-Previous releases would resolve to `foo:bar:1.0`. However, if no "hard" dependency is found on the optional module, then it will **not** be included, as previous Gradle versions did.
-
-### Support for importing Maven Bill of Materials (BOMs)
-
-Gradle now supports the import of BOMs by declaring them as dependencies. This allows declaring dependencies without versions and using a BOM to derive a set of compatible versions. 
-For example, you can now setup a spring boot project like this:
-
-```
-dependencies {
-    implementaion "org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE" //BOM import
-
-    implementation "org.springframework.boot:spring-boot"
-    implementation "org.springframework.boot:spring-boot-autoconfigure"
-
-    testImplementation "junit:junit"
-    testImplementation "org.springframework:spring-test"
-    testImplementation "org.springframework.boot:spring-boot-test"
-    testImplementation "org.springframework.boot:spring-boot-test-autoconfigure"
-}
-```
-
-Published dependencies to BOMs are also honored.
-
 ### Eclipse plugin separates output folders
 
 The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
@@ -171,11 +142,6 @@ Since then Gradle optimized its up-to-date checking for project dependencies whi
 -->
 
 ## Potential breaking changes
-
-### Maven optional dependencies and BOM support may lead to different dependency resolution result
-
-Supporting optional dependencies and BOM imports means that depending on the shape of your dependency graph, you may now have a different dependency resolution result after upgrading to Gradle 4.4.
-Should you see any problem, [build scans](https://scans.gradle.com) can help you debug those. Alternatively, you can compare the output of the `dependencyInsight` task executed with a pre-4.4 version of Gradle and the one produced by Gradle 4.4.
 
 ### Change to the `Test` task structure
 
