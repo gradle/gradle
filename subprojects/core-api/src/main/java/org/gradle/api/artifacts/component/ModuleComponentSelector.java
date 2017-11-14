@@ -44,9 +44,7 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * The version of the module to select the component from.
      *
      * @return Module version
-     * @deprecated Use {@link #getVersionConstraint()} instead
      */
-    @Deprecated
     String getVersion();
 
     /**
