@@ -195,6 +195,7 @@ include 'child'
      --build-scripts-dsl     Set alternative build scripts DSL to be used.
                              Available values are:
                                   groovy
+                                  kotlin
 
      --test-framework     Set alternative test framework to be used.
                           Available values are:

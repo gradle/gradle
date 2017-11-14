@@ -23,7 +23,8 @@ import java.util.List;
 
 public enum BuildInitBuildScriptDsl {
 
-    GROOVY;
+    GROOVY,
+    KOTLIN;
 
     public static BuildInitBuildScriptDsl fromName(@Nullable String name) {
         if (name == null) {
