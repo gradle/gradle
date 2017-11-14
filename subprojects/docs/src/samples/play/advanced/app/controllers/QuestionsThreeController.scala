@@ -2,11 +2,14 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import play.api.i18n._
 import play.api.data._
 import play.api.data.Forms._
 import models.Person
 
-object QuestionsThreeController extends Controller {
+import javax.inject._
+
+class QuestionsThreeController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
     val personForm = Form(
         mapping(
             "name" -> nonEmptyText,

@@ -10,6 +10,7 @@ model {
     components {
         play {
             platform play: '2.5.18', scala: '2.11'
+            injectedRoutesGenerator = true
         }
     }
 }
