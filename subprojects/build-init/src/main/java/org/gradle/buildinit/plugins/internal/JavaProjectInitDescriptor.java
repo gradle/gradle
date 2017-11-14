@@ -106,6 +106,11 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 
     @Override
+    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
+        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+    }
+
+    @Override
     public boolean supports(BuildInitTestFramework testFramework) {
         return testFramework == SPOCK || testFramework == TESTNG;
     }
