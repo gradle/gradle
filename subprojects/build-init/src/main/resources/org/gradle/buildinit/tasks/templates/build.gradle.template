@@ -7,8 +7,10 @@
  */
 
 /*
-// Apply the java plugin to add support for Java
-apply plugin: 'java'
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+}
 
 // In this section you declare where to find the dependencies of your project
 repositories {
