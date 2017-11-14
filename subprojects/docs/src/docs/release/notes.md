@@ -135,7 +135,11 @@ The Gradle Plugin Portal repository can now be added to build scripts. This is p
 repositories {
     gradlePluginPortal()
 }
-``` 
+```
+
+### Use of canonical URL for `mavenCentral()` repository URL
+
+In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCentral()` was pointing to `https://repo1.maven.org/maven2/`. Sonatype recommends using the canonical URL `https://repo.maven.apache.org/maven2/` instead. This version of Gradle makes the switch to `repo.maven.apache.org` when using the `mavenCentral()` API.
 
 ## Promoted features
 
@@ -219,6 +223,7 @@ We would like to thank the following community members for making contributions 
 - [Kyle Moore](https://github.com/DPUkyle) - Updated Gosu plugin to fix API breakage (gradle/gradle#3115)
 - [Kyle Moore](https://github.com/DPUkyle) - Filter non-file URLs when getting classpath from `ClassLoader` (gradle/gradle#3224)
 - [Jaci Brunning](https://github.com/JacisNonsense) - Support for overriding target platforms on Gcc toolchains (gradle/gradle#3124)
+- [Joel Vasallo](https://github.com/jvasallo) - Use canonical URL for Maven Central repository shortcut method (gradle/gradle#3464)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
