@@ -16,12 +16,58 @@
 
 package org.gradle.api;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
  */
 @NoConventionMapping
 public class DefaultTask extends AbstractTask {
+    /**
+     * Creates a new output directory property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected DirectoryProperty newOutputDirectory() {
+        return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
+    }
+
+    /**
+     * Creates a new output file property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected RegularFileProperty newOutputFile() {
+        return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
+    }
+
+    /**
+     * Creates a new input file property for this task.
+     *
+     * @return The property.
+     * @since 4.1
+     */
+    @Incubating
+    protected RegularFileProperty newInputFile() {
+        return getServices().get(TaskFileVarFactory.class).newInputFile(this);
+    }
+
+    /**
+     * Creates a new input directory property for this task.
+     *
+     * @return The property.
+     * @since 4.3
+     */
+    @Incubating
+    protected DirectoryProperty newInputDirectory() {
+        return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
+    }
 }
