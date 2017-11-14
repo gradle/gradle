@@ -22,7 +22,7 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
     static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker"
     static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum"
     static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount"
-    static final int DEFAULT_RANGE_SIZE = 50
+    static final int DEFAULT_RANGE_SIZE = 100
     private static FixedAvailablePortAllocator instance
     final int workerId
     final int agentNum
