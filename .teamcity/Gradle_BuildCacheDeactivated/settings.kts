@@ -36,12 +36,13 @@ val buildModel = CIBuildModel(
         childBuildCache = RemoteBuildCache("%gradle.cache.child.url%", "%gradle.cache.child.username%", "%gradle.cache.child.password%"),
         publishStatusToGitHub = false,
         stages = listOf(
-                Stage("Quick Feedback", "Checks and functional tests (embedded executer)",
-                        trigger = Trigger.eachCommit,
+                Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                         specificBuilds = listOf(
                                 SpecificBuild.SanityCheck),
                         functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
+                                TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+                Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+                        functionalTests = listOf(
                                 TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
 )
