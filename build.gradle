@@ -24,7 +24,7 @@ archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
+        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll", "dependencyCheckAnalyze"
         projectProperties ignoreIncomingBuildReceipt: true
     }
 
