@@ -30,10 +30,10 @@ class GradleDependencyMetadataRulesIntegrationTest extends DependencyMetadataRul
     @Override
     String getRepoDeclaration() {
         """
+            gradle.experimentalFeatures.enableAll()
             repositories {
                 maven {
                     url "$repo.uri"
-                    useGradleMetadata()
                 }
             }
         """

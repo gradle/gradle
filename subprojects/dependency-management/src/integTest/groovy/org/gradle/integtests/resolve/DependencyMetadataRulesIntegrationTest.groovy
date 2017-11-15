@@ -303,10 +303,10 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
         def mavenGradleRepo = new MavenFileRepository(file("maven-gradle-repo"))
         buildFile << """
+            gradle.experimentalFeatures.enableAll()
             repositories {
                 maven {
                     url "$mavenGradleRepo.uri"
-                    useGradleMetadata()
                 }
             }
         """

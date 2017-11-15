@@ -24,6 +24,11 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
     def setup() {
         resolve.prepare()
+        settingsFile << """
+            rootProject.name = 'test'
+            gradle.experimentalFeatures.enableAll()
+"""
+
     }
 
     def "uses the module metadata when present and pom is not present"() {
@@ -35,7 +40,6 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -104,7 +108,6 @@ dependencies {
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -170,7 +173,6 @@ task checkRelease {
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -225,7 +227,6 @@ task checkRelease {
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { 
@@ -277,7 +278,6 @@ task checkDebug {
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { 
@@ -357,12 +357,10 @@ task checkDebug {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)

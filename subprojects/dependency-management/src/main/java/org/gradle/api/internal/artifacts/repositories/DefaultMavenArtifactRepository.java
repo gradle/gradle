@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMeta
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -45,7 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository, ComponentAwareRepository {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final Transformer<String, MavenArtifactRepository> describer;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
@@ -139,11 +138,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     public void setArtifactUrls(Iterable<?> urls) {
         additionalUrls = Lists.newArrayList(urls);
-    }
-
-    @Override
-    public void useGradleMetadata() {
-        experimentalFeatures.enableAll();
     }
 
     protected boolean isPreferGradleMetadata() {
