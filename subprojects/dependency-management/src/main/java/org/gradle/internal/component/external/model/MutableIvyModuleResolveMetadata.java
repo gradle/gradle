@@ -21,13 +21,12 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata, ComponentVariantResolveMetadata {
     /**
      * {@inheritDoc}
      */
@@ -62,8 +61,4 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
     String getBranch();
 
     void setBranch(@Nullable String branch);
-
-    ImmutableList<? extends ComponentVariant> getVariants();
-
-    ImmutableList<? extends ConfigurationMetadata> getVariantsForTraversal();
 }

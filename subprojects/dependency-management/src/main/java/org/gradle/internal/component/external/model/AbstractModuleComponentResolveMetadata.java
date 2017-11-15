@@ -29,7 +29,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -132,8 +131,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return Collections.emptyList();
+    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        return ImmutableList.of();
     }
 
     @Override

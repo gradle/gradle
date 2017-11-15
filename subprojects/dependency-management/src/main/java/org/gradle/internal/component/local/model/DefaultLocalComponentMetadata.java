@@ -63,7 +63,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ComponentIdentifier componentIdentifier;
     private final String status;
     private final AttributesSchemaInternal attributesSchema;
-    private List<ConfigurationMetadata> consumableConfigurations;
+    private ImmutableList<ConfigurationMetadata> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal attributesSchema) {
         this.id = id;
@@ -231,14 +231,15 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public synchronized List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+    public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
-            consumableConfigurations = Lists.newArrayListWithExpectedSize(allConfigurations.size());
+            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
             for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {
                 if (metadata.isCanBeConsumed() && !metadata.getAttributes().isEmpty()) {
-                    consumableConfigurations.add(metadata);
+                    builder.add(metadata);
                 }
             }
+            consumableConfigurations = builder.build();
         }
         return consumableConfigurations;
     }

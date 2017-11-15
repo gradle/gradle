@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -100,7 +101,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getVariantsForGraphTraversal() >> [toFooConfig, toBarConfig]
+            getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
         attributesSchema.attribute(Attribute.of('key', String))
@@ -210,7 +211,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getVariantsForGraphTraversal() >> [toFooConfig, toBarConfig]
+            getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
             getComponentId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
@@ -282,7 +283,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getVariantsForGraphTraversal() >> [toFooConfig, toBarConfig]
+            getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
             getComponentId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
@@ -414,7 +415,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getVariantsForGraphTraversal() >> [toFooConfig, toBarConfig]
+            getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())

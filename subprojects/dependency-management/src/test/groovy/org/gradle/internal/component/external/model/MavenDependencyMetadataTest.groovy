@@ -31,6 +31,7 @@
  */
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -113,7 +114,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
-        toComponent.variantsForGraphTraversal >> [toMaster]
+        toComponent.variantsForGraphTraversal >> ImmutableList.of(toMaster)
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
         def attrs = TestUtil.attributesFactory().of(Attribute.of(String), "value").asImmutable()
         def matcher = Stub(AttributeMatcher)

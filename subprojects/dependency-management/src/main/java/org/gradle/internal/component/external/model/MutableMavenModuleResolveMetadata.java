@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import javax.annotation.Nullable;
 
-public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata, ComponentVariantResolveMetadata {
     /**
      * {@inheritDoc}
      */

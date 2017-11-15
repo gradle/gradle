@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -79,7 +80,7 @@ public interface ComponentResolveMetadata {
      *
      * <p>Note: currently, {@link ConfigurationMetadata} is used to represent these variants. This is to help with migration. The set of objects returned by this method may or may not be the same as those returned by {@link #getConfigurationNames()}.</p>
      */
-    List<? extends ConfigurationMetadata> getVariantsForGraphTraversal();
+    ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal();
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

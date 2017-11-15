@@ -31,7 +31,7 @@ import java.util.List;
  *
  * <p>Implementations of this type should be immutable and thread safe.</p>
  */
-public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata {
+public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata, ComponentVariantResolveMetadata {
     /**
      * {@inheritDoc}
      */
