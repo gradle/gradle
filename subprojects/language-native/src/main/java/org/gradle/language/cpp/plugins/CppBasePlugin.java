@@ -23,7 +23,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
@@ -75,12 +74,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final ProviderFactory providers = project.getProviders();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getRepositories().withType(ComponentAwareRepository.class, new Action<ComponentAwareRepository>() {
-            @Override
-            public void execute(ComponentAwareRepository componentAwareRepository) {
-                componentAwareRepository.useGradleMetadata();
-            }
-        });
+        project.getGradle().getExperimentalFeatures().enable();
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {

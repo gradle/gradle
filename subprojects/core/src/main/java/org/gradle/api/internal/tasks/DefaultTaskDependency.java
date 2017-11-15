@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -107,7 +108,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
             } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer)dependency).visitDependencies(context);
+                ((TaskDependencyContainer) dependency).visitDependencies(context);
+            } else if (dependency instanceof Provider) {
+                List<String> formats = new ArrayList<String>();
+                formats.add("A RegularFileProperty");
+                formats.add("A DirectoryProperty");
+                throw new UnsupportedNotationException(dependency, String.format("Cannot convert Provider %s to a task.", dependency), null, formats);
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
@@ -117,7 +123,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
-                formats.add("A Provider instance");
+                formats.add("A RegularFileProperty or DirectoryProperty instance");
                 formats.add("A Closure instance that returns any of the above types");
                 formats.add("A Callable instance that returns any of the above types");
                 formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");

@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
@@ -29,7 +30,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.publishModuleMetadata")
+                withArgument("-Dorg.gradle.internal.experimentalFeatures")
             }
         }
     }
@@ -87,7 +88,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         def resolvedArtifacts = doResolveArtifacts(dependencies)
 
         if (resolveModuleMetadata) {
-            def moduleArtifacts = doResolveArtifacts(dependencies, "useGradleMetadata()")
+            def moduleArtifacts = doResolveArtifacts(dependencies, true)
             assert resolvedArtifacts == moduleArtifacts
         }
 
@@ -99,7 +100,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""", "useGradleMetadata()", "JAVA_API")
+""", true, "JAVA_API")
     }
 
     protected def resolveRuntimeArtifacts(MavenModule module) {
@@ -107,12 +108,21 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""", "useGradleMetadata()", "JAVA_RUNTIME")
+""", true, "JAVA_RUNTIME")
     }
 
-    protected def doResolveArtifacts(def dependencies, def maybeUseGradleMetadata = "", def targetVariant = null) {
+    protected def doResolveArtifacts(def dependencies, def useGradleMetadata = false, def targetVariant = null) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
+        if (useGradleMetadata) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        } else {
+            executer.beforeExecute {
+                // Remove the experimental flag set earlier...
+                // TODO:DAZ Remove this once we support excludes and we can have a single flag to enable publish/resolve
+                withArguments()
+            }
+        }
         def attributes = targetVariant == null ?
             "" :
             """ 
@@ -129,7 +139,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             repositories {
                 maven { 
                     url "${mavenRepo.uri}"
-                     ${maybeUseGradleMetadata}
                 }
                 ${mavenCentralRepositoryDefinition()}
             }

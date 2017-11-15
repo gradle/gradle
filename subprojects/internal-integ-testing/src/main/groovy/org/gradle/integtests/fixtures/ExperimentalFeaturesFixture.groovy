@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.component;
+package org.gradle.integtests.fixtures
 
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-
-/**
- * Allows opt-in to using the Gradle metadata, if present, in preference over the native repository metadata.
- * This is intended to go away once the metadata is stable-ish and can be switched on by default.
- */
-public interface ComponentAwareRepository extends ArtifactRepository {
-    void useGradleMetadata();
+class ExperimentalFeaturesFixture {
+    static void enable(File file) {
+        file << """
+            gradle.experimentalFeatures.enable()
+"""
+    }
 }

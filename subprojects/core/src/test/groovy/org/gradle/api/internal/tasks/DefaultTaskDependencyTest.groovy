@@ -15,201 +15,214 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import spock.lang.Specification
 
 import java.util.concurrent.Callable
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.WrapUtil
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.gradle.util.Matchers.isEmpty
-import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.gradle.api.GradleException
 
-@RunWith (JMock.class)
-public class DefaultTaskDependencyTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final TaskResolver resolver = context.mock(TaskResolver.class)
-    private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver);
-    private Task task;
-    private Task otherTask;
+public class DefaultTaskDependencyTest extends Specification {
+    private final TaskResolver resolver = Mock(TaskResolver.class)
+    private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver)
+    private Task task
+    private Task otherTask
 
-    @Before
-    public void setUp() throws Exception {
-        task = context.mock(Task.class, "task");
-        otherTask = context.mock(Task.class, "otherTask");
+    def setup() {
+        task = Mock(Task)
+        otherTask = Mock(Task)
     }
 
-    @Test
-    public void hasNoDependenciesByDefault() {
-        assertThat(dependency.getDependencies(task), equalTo(WrapUtil.toSet()));
+    def "has no dependencies by default"() {
+        expect:
+        dependency.getDependencies(task) == emptySet()
     }
 
-    @Test
-    public void canDependOnACharSequence() {
+    def "can depend on char sequence"() {
         def input = new StringBuilder("other")
-        dependency.add(input);
 
-        context.checking({
-            one(resolver).resolveTask("other");
-            will(returnValue(otherTask));
-        })
+        given:
+        1 * resolver.resolveTask("other") >> otherTask
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        when:
+        dependency.add(input)
+
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void canDependOnATaskInstance() {
-        dependency.add(otherTask);
+    def "can depend on a task instance"() {
+        when:
+        dependency.add(otherTask)
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task)== toSet(otherTask)
     }
 
-    @Test
-    public void canDependOnATaskDependency() {
-        final TaskDependency otherDependency = context.mock(TaskDependency.class);
+    def "can depend on a task dependency"() {
+        def otherDependency = Mock(TaskDependency)
+
+        given:
+        1 * otherDependency.getDependencies(task) >> toSet(otherTask)
+
+        when:
         dependency.add(otherDependency);
 
-        context.checking({
-            one(otherDependency).getDependencies(task);
-            will(returnValue(toSet(otherTask)));
-        });
-
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void canDependOnAClosure() {
+    def "can depend on a closure"() {
+        when:
         dependency.add({Task suppliedTask ->
-            assertThat(suppliedTask, sameInstance(task))
+            assert suppliedTask == task
             otherTask
         })
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void closureCanReturnNull() {
+    def "can depend on a closure that returns null"() {
+        when:
         dependency.add({ null })
 
-        assertThat(dependency.getDependencies(task), isEmpty());
+        then:
+        dependency.getDependencies(task) == emptySet()
     }
 
-    @Test
-    public void canDependOnABuildable() {
-        Buildable buildable = context.mock(Buildable)
-        TaskDependency otherDependency = context.mock(TaskDependency)
+    def "can depend on a buildable"() {
+        Buildable buildable = Mock(Buildable)
+        TaskDependency otherDependency = Mock(TaskDependency)
 
+        given:
+        1 * buildable.getBuildDependencies() >> otherDependency
+        1 * otherDependency.getDependencies(task) >> toSet(otherTask)
+
+        when:
         dependency.add(buildable)
 
-        context.checking {
-            one(buildable).getBuildDependencies()
-            will(returnValue(otherDependency))
-            one(otherDependency).getDependencies(task)
-            will(returnValue(toSet(otherTask)))
-        }
-
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void canDependOnAnIterable() {
+    def "can depend on an iterable"() {
         List tasks = [otherTask]
         Iterable iterable = { tasks.iterator() } as Iterable
 
+        when:
         dependency.add(iterable)
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @org.junit.Test
-    public void canDependOnACallable() {
-        Callable callable = context.mock(Callable)
+    def "can depend on a callable"() {
+        Callable callable = Mock(Callable)
 
+        given:
+        1 * callable.call() >> otherTask
+
+        when:
         dependency.add(callable)
 
-        context.checking {
-            one(callable).call()
-            will(returnValue(otherTask))
-        }
-        
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @org.junit.Test
-    public void callableCanReturnNull() {
-        Callable callable = context.mock(Callable)
+    def "can depend on a callable that returns null"() {
+        Callable callable = Mock(Callable)
 
+        given:
+        1 * callable.call() >> null
+
+        when:
         dependency.add(callable)
 
-        context.checking {
-            one(callable).call()
-            will(returnValue(null))
-        }
-
-        assertThat(dependency.getDependencies(task), isEmpty());
+        then:
+        dependency.getDependencies(task) == emptySet()
     }
 
-    @Test
-    public void failsForOtherTypes() {
-        dependency.add(12)
+    def "can depend on a task dependency container"() {
+        TaskDependencyContainer dep = Mock(TaskDependencyContainer)
 
-        try {
-            dependency.getDependencies(task)
-            fail()
-        } catch (GradleException e) {
-            assertThat(e.cause, instanceOf(UnsupportedNotationException))
-            assertThat(e.cause.message, startsWith("Cannot convert 12 to a task." as String))
-        }
-    }
+        given:
+        1 * dep.visitDependencies(_) >> { args -> args[0].add(otherTask) }
 
-    @Test
-    public void failsForCharSequencesWhenNoResolverProvided() {
-        StringBuffer dep = new StringBuffer("task")
-
-        DefaultTaskDependency dependency = new DefaultTaskDependency()
+        when:
         dependency.add(dep)
 
-        try {
-            dependency.getDependencies(task)
-            fail()
-        } catch (GradleException e) {
-            assertThat(e.cause, instanceOf(UnsupportedNotationException))
-            assertThat(e.cause.message, startsWith("Cannot convert $dep to a task." as String))
-        }
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void flattensCollections() {
-        dependency.add(toList(otherTask));
+    def "fails for other types"() {
+        when:
+        dependency.add(12)
+        dependency.getDependencies(task)
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        def e = thrown(GradleException)
+        e.cause instanceof UnsupportedNotationException
+        e.cause.message.startsWith "Cannot convert 12 to a task."
     }
 
-    @Test
-    public void flattensMaps() {
+    def "fails for char sequence when no resolver provided"() {
+        DefaultTaskDependency dependency = new DefaultTaskDependency()
+        StringBuffer dep = new StringBuffer("task")
+
+        when:
+        dependency.add(dep)
+        dependency.getDependencies(task)
+
+        then:
+        def e = thrown(GradleException)
+        e.cause instanceof UnsupportedNotationException
+        e.cause.message.startsWith "Cannot convert $dep to a task."
+    }
+
+    def "produces sensible error when a provider is of the wrong type"() {
+        Provider provider = Mock(Provider)
+
+        when:
+        dependency.add(provider)
+        dependency.getDependencies(task)
+
+        then:
+        def e = thrown(GradleException)
+        e.cause instanceof UnsupportedNotationException
+        e.cause.message.startsWith "Cannot convert Provider $provider to a task."
+    }
+
+    def "flattens collections"() {
+        when:
+        dependency.add(toSet(otherTask))
+
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
+    }
+
+    def "flattens maps"() {
+        when:
         dependency.add([key: otherTask])
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void flattensArrays() {
+    def "flattens arrays"() {
+        when:
         dependency.add([[otherTask] as Task[]])
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    @Test
-    public void canNestIterablesAndMapsAndClosuresAndCallables() {
+    def "can nest iterables and maps and closures and callables"() {
         Map nestedMap = [task: otherTask]
         Iterable nestedCollection = [nestedMap]
         Callable nestedCallable = {nestedCollection} as Callable
@@ -219,8 +232,15 @@ public class DefaultTaskDependencyTest {
         Object[] array = [closure] as Object[]
         Map map = [key: array]
         Callable callable = {map} as Callable
+
+        when:
         dependency.add(callable)
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
+    }
+
+    static emptySet() {
+        return [] as Set
     }
 }

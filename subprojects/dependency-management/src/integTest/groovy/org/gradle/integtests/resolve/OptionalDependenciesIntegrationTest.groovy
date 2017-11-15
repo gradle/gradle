@@ -16,8 +16,56 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 
 class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        ExperimentalFeaturesFixture.enable(settingsFile)
+        settingsFile << "rootProject.name = 'test'"
+    }
+
+    void "optional dependency is ignored when feature not enabled"() {
+        given:
+        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
+        def foo11 = mavenRepo.module("org", "foo", '1.1').publish()
+
+        mavenRepo.module("org", "root1", "1.0")
+            .dependsOn(foo11, optional:true)
+            .publish()
+        mavenRepo.module("org", "root2", "1.0")
+            .dependsOn(foo10)
+            .publish()
+
+        // Do not enable feature
+        settingsFile.text = """
+            rootProject.name = 'test'
+"""
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:root1:1.0'
+                conf 'org:root2:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.0.jar', 'root1-1.0.jar', 'root2-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
 
     void "optional dependency is included into the result of resolution when a hard dependency is also added"() {
         given:

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.publish.MavenRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -33,7 +34,6 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
             repositories {
                 maven { 
                    url "${mavenHttpRepo.uri}"
-                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'useGradleMetadata()' : ''}
                 }
             }
         """
@@ -41,6 +41,10 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
+        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
+
         resolve.prepare()
         server.start()
     }
