@@ -4,8 +4,8 @@ class FooExtension {
     final ConfigurableFileCollection someFiles
 
     FooExtension(Project project) {
-        someDirectory = project.objects.directoryProperty()
-        someFile = project.objects.fileProperty()
+        someDirectory = project.layout.directoryProperty()
+        someFile = project.layout.fileProperty()
         someFiles = project.files()
     }
 }
