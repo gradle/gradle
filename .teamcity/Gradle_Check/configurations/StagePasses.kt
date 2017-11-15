@@ -71,7 +71,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = m2CleanScriptLinux
+            scriptContent = m2CleanScriptUnixLike
         }
         if (model.tagBuilds) {
             gradle {

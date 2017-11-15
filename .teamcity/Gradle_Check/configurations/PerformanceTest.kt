@@ -44,7 +44,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = m2CleanScriptLinux
+            scriptContent = m2CleanScriptUnixLike
         }
         if (model.tagBuilds) {
             gradle {

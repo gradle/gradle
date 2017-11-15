@@ -47,7 +47,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = m2CleanScriptLinux
+            scriptContent = m2CleanScriptUnixLike
         }
     }
 

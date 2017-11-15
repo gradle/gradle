@@ -4,12 +4,16 @@ import jetbrains.buildServer.configs.kotlin.v10.*
 import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
-import model.RemoteBuildCache
 import model.CIBuildModel
+import model.OS
 import java.util.Arrays.asList
 
-private val java7HomeLinux = "-Djava7.home=%linux.jdk.for.gradle.compile%"
-private val java7Windows = """"-Djava7.home=%windows.java7.oracle.64bit%""""
+private val java7Homes = hashMapOf(
+        OS.windows to """"-Djava7.home=%windows.java7.oracle.64bit%"""",
+        OS.linux to "-Djava7.home=%linux.jdk.for.gradle.compile%",
+        // We only have Java 8 on macOS
+        OS.macos to "-Djava7.home=%macos.java8.oracle.64bit%"
+)
 
 val gradleParameters: List<String> = asList(
         "-PmaxParallelForks=%maxParallelForks%",
@@ -17,11 +21,11 @@ val gradleParameters: List<String> = asList(
         "--daemon",
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
-        java7HomeLinux
+        java7Homes[OS.linux]!!
 )
 
-val m2CleanScriptLinux = """
-    REPO=/home/%env.USER%/.m2/repository
+val m2CleanScriptUnixLike = """
+    REPO=%teamcity.agent.jvm.user.home%/.m2/repository
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
@@ -40,7 +44,7 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
-fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         build/report-* => .
         buildSrc/build/report-* => .
@@ -55,7 +59,7 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
     }
 
     buildType.requirements {
-        contains("teamcity.agent.jvm.os.name", if (runsOnWindows) "Windows" else "Linux")
+        contains("teamcity.agent.jvm.os.name", os.agentRequirement)
     }
 
     buildType.failureConditions {
@@ -84,11 +88,11 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
-    applyDefaultSettings(buildType, runsOnWindows, timeout)
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+    applyDefaultSettings(buildType, os, timeout)
 
-    val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
-    val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7HomeLinux, java7HomeParameter)
+    val java7HomeParameter = java7Homes[os]!!
+    val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7Homes[OS.linux]!!, java7HomeParameter)
 
     buildType.steps {
         gradle {
@@ -110,7 +114,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = if (runsOnWindows) m2CleanScriptWindows else m2CleanScriptLinux
+            scriptContent = if (os == OS.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
         }
         gradle {
             name = "VERIFY_TEST_FILES_CLEANUP"
@@ -118,7 +122,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             gradleParams = gradleParameterString
             useGradleWrapper = true
         }
-        if (runsOnWindows) {
+        if (os == OS.windows) {
             gradle {
                 name = "KILL_PROCESSES_STARTED_BY_GRADLE"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
