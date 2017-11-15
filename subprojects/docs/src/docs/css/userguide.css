@@ -3,8 +3,7 @@
  */
 
 .toc dl, .list-of-examples dl {
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-left: 0;
 }
 
 .book .toc > dl > dt {
