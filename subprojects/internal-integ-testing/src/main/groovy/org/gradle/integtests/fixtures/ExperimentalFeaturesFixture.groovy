@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.file.TestFile
-
 class ExperimentalFeaturesFixture {
-    static void enable(TestFile file) {
+    static void enable(File file) {
         file << """
             gradle.experimentalFeatures.enable()
 """
