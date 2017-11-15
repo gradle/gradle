@@ -33,11 +33,12 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(scriptDsl, testFramework);
+        String buildScriptFilename = scriptDsl.fileNameFor("build");
         templateOperationFactory.newTemplateOperation()
-            .withTemplate("build.gradle.template")
-            .withTarget("build.gradle")
+            .withTemplate(buildScriptFilename + ".template")
+            .withTarget(buildScriptFilename)
             .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
             .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
             .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
@@ -46,7 +47,7 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
 
     @Override
     public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY || buildScriptLanguage == BuildInitBuildScriptDsl.KOTLIN;
     }
 
     @Override

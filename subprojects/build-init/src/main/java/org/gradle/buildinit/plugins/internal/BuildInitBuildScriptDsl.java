@@ -16,6 +16,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.tasks.wrapper.Wrapper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -23,8 +24,16 @@ import java.util.List;
 
 public enum BuildInitBuildScriptDsl {
 
-    GROOVY,
-    KOTLIN;
+    GROOVY(".gradle", Wrapper.DistributionType.BIN),
+    KOTLIN(".gradle.kts", Wrapper.DistributionType.ALL);
+
+    private final String fileExtension;
+    private final Wrapper.DistributionType wrapperDistributionType;
+
+    BuildInitBuildScriptDsl(String fileExtension, Wrapper.DistributionType wrapperDistributionType) {
+        this.fileExtension = fileExtension;
+        this.wrapperDistributionType = wrapperDistributionType;
+    }
 
     public static BuildInitBuildScriptDsl fromName(@Nullable String name) {
         if (name == null) {
@@ -48,5 +57,13 @@ public enum BuildInitBuildScriptDsl {
 
     public String getId() {
         return name().toLowerCase();
+    }
+
+    public Wrapper.DistributionType getWrapperDistributionType() {
+        return wrapperDistributionType;
+    }
+
+    public String fileNameFor(String filenameWithoutExtension) {
+        return filenameWithoutExtension + fileExtension;
     }
 }

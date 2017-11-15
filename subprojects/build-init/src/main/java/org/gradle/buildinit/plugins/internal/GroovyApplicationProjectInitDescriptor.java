@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -27,8 +28,14 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
     @Override
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .plugin("Apply the application plugin to add support for building an application", "application")
-            .configuration("Define the main class for the application", "mainClassName = 'App'");
+            .plugin(
+                "Apply the application plugin to add support for building an application",
+                "application")
+            .configuration(
+                "Define the main class for the application",
+                ImmutableMap.of(
+                    BuildInitBuildScriptDsl.GROOVY, "mainClassName = 'App'",
+                    BuildInitBuildScriptDsl.KOTLIN, "application.mainClassName = \"App\""));
     }
 
     @Override

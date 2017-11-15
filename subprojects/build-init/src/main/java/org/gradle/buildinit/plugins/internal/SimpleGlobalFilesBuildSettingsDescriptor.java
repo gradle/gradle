@@ -30,10 +30,11 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
+    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
+        String settingsScriptFilename = scriptDsl.fileNameFor("settings");
         templateOperationBuilder.newTemplateOperation()
-            .withTemplate("settings.gradle.template")
-            .withTarget("settings.gradle")
+            .withTemplate(settingsScriptFilename + ".template")
+            .withTarget(settingsScriptFilename)
             .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
             .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
             .create().generate();
@@ -41,7 +42,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
 
     @Override
     public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY || buildScriptLanguage == BuildInitBuildScriptDsl.KOTLIN;
     }
 
     @Override

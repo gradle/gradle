@@ -21,12 +21,13 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl.GROOVY
 
 class BuildScriptBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def outputFile = tmpDir.file("build.gradle")
-    def builder = new BuildScriptBuilder(outputFile)
+    def builder = new BuildScriptBuilder(GROOVY, outputFile)
 
     def "generates basic build script"() {
         when:

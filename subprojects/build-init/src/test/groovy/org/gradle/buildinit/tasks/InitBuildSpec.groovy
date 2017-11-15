@@ -17,7 +17,6 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
@@ -27,6 +26,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
 
@@ -63,19 +63,19 @@ class InitBuildSpec extends Specification {
     def "delegates task action to referenced setupDescriptor"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.supports(BuildInitBuildScriptDsl.GROOVY) >> true
+        projectSetupDescriptor.supports(GROOVY) >> true
 
         when:
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(NONE)
+        1 * projectSetupDescriptor.generate(GROOVY, NONE)
     }
 
     def "should delegate to setup descriptor with specified type and modifier"() {
         given:
         supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
-        projectSetupDescriptor.supports(BuildInitBuildScriptDsl.GROOVY) >> true
+        projectSetupDescriptor.supports(GROOVY) >> true
         projectSetupDescriptor.supports(SPOCK) >> true
         init.type = "java-library"
         init.testFramework = "spock"
@@ -84,7 +84,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(SPOCK)
+        1 * projectSetupDescriptor.generate(GROOVY, SPOCK)
     }
 
     def "should throw exception if requested test framework is not supported"() {
@@ -103,7 +103,7 @@ class InitBuildSpec extends Specification {
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.supports(BuildInitBuildScriptDsl.GROOVY) >> true
+        projectSetupDescriptor.supports(GROOVY) >> true
         projectSetupDescriptor.supports(SPOCK) >> false
         init.testFramework = "spock"
 

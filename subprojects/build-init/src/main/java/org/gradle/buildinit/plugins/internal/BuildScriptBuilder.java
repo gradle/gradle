@@ -36,12 +36,14 @@ import java.util.Map;
  */
 public class BuildScriptBuilder {
     private final File target;
+    private final BuildInitBuildScriptDsl dsl;
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final Map<String, String> plugins = new LinkedHashMap<String, String>();
     private final List<ConfigSpec> config = new ArrayList<ConfigSpec>();
 
-    public BuildScriptBuilder(File target) {
+    public BuildScriptBuilder(BuildInitBuildScriptDsl dsl, File target) {
+        this.dsl = dsl;
         this.target = target;
     }
 
@@ -112,6 +114,14 @@ public class BuildScriptBuilder {
         return this;
     }
 
+    /**
+     * Adds some arbitrary configuration to the _end_ of the build script.
+     */
+    public BuildScriptBuilder configuration(String comment, Map<BuildInitBuildScriptDsl, String> config) {
+        this.config.add(new ConfigSpec(comment, Splitter.on("\n").splitToList(config.get(dsl))));
+        return this;
+    }
+
     public TemplateOperation create() {
         return new TemplateOperation() {
             @Override
@@ -137,8 +147,15 @@ public class BuildScriptBuilder {
                             for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
                                 Map.Entry<String, String> entry = it.next();
                                 writer.println("    // " + entry.getValue());
-                                writer.println("    id '" + entry.getKey() + "'");
-                                if(it.hasNext()) {
+                                switch (dsl) {
+                                    case KOTLIN:
+                                        writer.println("    id(\"" + entry.getKey() + "\")");
+                                        break;
+                                    case GROOVY:
+                                    default:
+                                        writer.println("    id '" + entry.getKey() + "'");
+                                }
+                                if (it.hasNext()) {
                                     writer.println();
                                 }
                             }
@@ -166,7 +183,14 @@ public class BuildScriptBuilder {
                                     }
                                     writer.println("    // " + depSpec.comment);
                                     for (String dep : depSpec.deps) {
-                                        writer.println("    " + config + " '" + dep + "'");
+                                        switch (dsl) {
+                                            case KOTLIN:
+                                                writer.println("    " + config + "(\"" + dep + "\")");
+                                                break;
+                                            case GROOVY:
+                                            default:
+                                                writer.println("    " + config + " '" + dep + "'");
+                                        }
                                     }
                                 }
                             }
