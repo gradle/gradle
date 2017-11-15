@@ -17,7 +17,10 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 
 public interface ComponentVariantResolveMetadata {
     ImmutableList<? extends ComponentVariant> getVariants();
+
+    ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal();
 }

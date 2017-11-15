@@ -19,28 +19,18 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,9 +43,6 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
-
-    private final Map<String, MutableVariantImpl> mutableVariants = Maps.newHashMap();
-    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     /**
      * Creates default metadata for an Ivy module version with no ivy.xml descriptor.
@@ -181,156 +168,4 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         return new DefaultIvyModuleResolveMetadata(this);
     }
 
-    @Override
-    public MutableComponentVariant addVariant(final String variantName, ImmutableAttributes attributes) {
-        MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
-        mutableVariants.put(variantName, variant);
-        return variant;
-    }
-
-    @Override
-    public ImmutableList<? extends ComponentVariant> getVariants() {
-        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<ComponentVariant>();
-        for (MutableVariantImpl variant : mutableVariants.values()) {
-            builder.add(new ImmutableVariantImpl(getComponentId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.files)));
-        }
-        return builder.build();
-    }
-
-    @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForTraversal() {
-        if (graphVariants == null) {
-            ImmutableList<? extends ComponentVariant> variants = getVariants();
-            if (variants.isEmpty()) {
-                graphVariants = ImmutableList.of();
-            } else {
-                List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
-                for (ComponentVariant variant : variants) {
-                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
-                }
-                graphVariants = ImmutableList.copyOf(configurations);
-            }
-        }
-        return graphVariants;
-    }
-
-    private static class MutableVariantImpl implements MutableComponentVariant {
-        private final String name;
-        private final ImmutableAttributes attributes;
-        private final List<DependencyImpl> dependencies = new ArrayList<DependencyImpl>();
-        private final List<FileImpl> files = new ArrayList<FileImpl>();
-
-        MutableVariantImpl(String name, ImmutableAttributes attributes) {
-            this.name = name;
-            this.attributes = attributes;
-        }
-
-        @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint));
-        }
-
-        @Override
-        public void addFile(String name, String uri) {
-            files.add(new FileImpl(name, uri));
-        }
-    }
-
-    private static class FileImpl implements ComponentVariant.File {
-        private final String name;
-        private final String uri;
-
-        FileImpl(String name, String uri) {
-            this.name = name;
-            this.uri = uri;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String getUri() {
-            return uri;
-        }
-    }
-
-    private static class DependencyImpl implements ComponentVariant.Dependency {
-        private final String group;
-        private final String module;
-        private final VersionConstraint versionConstraint;
-
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint) {
-            this.group = group;
-            this.module = module;
-            this.versionConstraint = versionConstraint;
-        }
-
-        @Override
-        public String getGroup() {
-            return group;
-        }
-
-        @Override
-        public String getModule() {
-            return module;
-        }
-
-        @Override
-        public VersionConstraint getVersionConstraint() {
-            return versionConstraint;
-        }
-    }
-
-    private static class ImmutableVariantImpl implements ComponentVariant, VariantMetadata {
-        private final ModuleComponentIdentifier componentId;
-        private final String name;
-        private final ImmutableAttributes attributes;
-        private final ImmutableList<DependencyImpl> dependencies;
-        private final ImmutableList<FileImpl> files;
-
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<FileImpl> files) {
-            this.componentId = componentId;
-            this.name = name;
-            this.attributes = attributes;
-            this.dependencies = dependencies;
-            this.files = files;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public DisplayName asDescribable() {
-            return Describables.of(componentId, "variant", name);
-        }
-
-        @Override
-        public ImmutableAttributes getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ImmutableList<? extends Dependency> getDependencies() {
-            return dependencies;
-        }
-
-        @Override
-        public ImmutableList<? extends File> getFiles() {
-            return files;
-        }
-
-        @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
-            for (ComponentVariant.File file : files) {
-                artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
-            }
-            return artifacts;
-        }
-
-    }
 }

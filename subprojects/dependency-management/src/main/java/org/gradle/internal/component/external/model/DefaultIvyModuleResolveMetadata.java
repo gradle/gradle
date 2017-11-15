@@ -24,8 +24,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.util.List;
-
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<Artifact> artifacts;
@@ -43,7 +41,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.excludes = metadata.getExcludes();
         this.extraAttributes = metadata.getExtraAttributes();
         this.variants = metadata.getVariants();
-        this.graphVariants = metadata.getVariantsForTraversal();
+        this.graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
@@ -96,7 +94,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return graphVariants;
     }
 }
