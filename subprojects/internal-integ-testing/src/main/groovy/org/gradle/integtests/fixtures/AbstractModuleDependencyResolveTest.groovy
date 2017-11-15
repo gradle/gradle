@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 
 @RunWith(GradleMetadataResolveRunner)
-abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependencyResolutionTest {
     final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
     private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
@@ -48,7 +45,6 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
             repositories {
                 ivy { 
                    url "${ivyHttpRepo.uri}"
-                   ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'useGradleMetadata()' : ''}
                 }
             }
         """
@@ -66,6 +62,13 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
 
         resolve.prepare()
         server.start()
+        buildFile << """
+            $repository
+
+            configurations {
+                conf
+            }
+        """
     }
 
     def cleanup() {

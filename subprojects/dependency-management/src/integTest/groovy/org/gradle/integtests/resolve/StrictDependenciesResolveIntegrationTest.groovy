@@ -16,13 +16,16 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.AbstractModuleDependencyResolveTest
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+
+import org.gradle.integtests.fixtures.RequiredFeatures
 
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
+class StrictDependenciesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
         repository {
@@ -36,11 +39,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:foo:17'
                 conf 'org:bar:1.0'
@@ -78,11 +76,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version { strictly '[1.0,1.2]' }
@@ -134,11 +127,6 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -166,5 +154,3 @@ class StrictDependenciesResolveIntegrationTest extends AbstractStrictDependencie
 
     }
 }
-
-import org.gradle.integtests.fixtures.RequiredFeatures
