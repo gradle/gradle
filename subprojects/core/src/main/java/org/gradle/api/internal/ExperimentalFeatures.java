@@ -19,10 +19,8 @@ public class ExperimentalFeatures {
     private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
     private boolean enabled;
 
-    public boolean isEnabled(String featureName) {
-        return enabled
-            || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null
-            || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES + "." + featureName) != null;
+    public boolean isEnabled() {
+        return enabled || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
     }
 
     public void enable() {

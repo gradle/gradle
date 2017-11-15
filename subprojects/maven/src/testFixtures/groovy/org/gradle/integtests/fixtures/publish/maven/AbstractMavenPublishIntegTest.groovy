@@ -30,7 +30,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     def setup() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.experimentalFeatures.publishModuleMetadata")
+                withArgument("-Dorg.gradle.internal.experimentalFeatures")
             }
         }
     }
@@ -116,6 +116,12 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         settingsFile.text = "rootProject.name = 'resolve'"
         if (useGradleMetadata) {
             ExperimentalFeaturesFixture.enable(settingsFile)
+        } else {
+            executer.beforeExecute {
+                // Remove the experimental flag set earlier...
+                // TODO:DAZ Remove this once we support excludes and we can have a single flag to enable publish/resolve
+                withArguments()
+            }
         }
         def attributes = targetVariant == null ?
             "" :

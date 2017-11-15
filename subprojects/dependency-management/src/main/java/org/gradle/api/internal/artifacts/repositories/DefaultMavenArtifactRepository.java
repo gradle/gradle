@@ -141,7 +141,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     protected boolean isPreferGradleMetadata() {
-        return experimentalFeatures.isEnabled("consumeModuleMetadata");
+        return experimentalFeatures.isEnabled();
     }
 
     public ModuleVersionPublisher createPublisher() {

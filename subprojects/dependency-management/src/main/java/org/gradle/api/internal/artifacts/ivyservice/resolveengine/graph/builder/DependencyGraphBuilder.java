@@ -124,7 +124,7 @@ public class DependencyGraphBuilder {
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
         final OptionalDependenciesHandler optionalDependenciesHandler;
-        if (experimentalFeatures.isEnabled("optionalDependencies")) {
+        if (experimentalFeatures.isEnabled()) {
             optionalDependenciesHandler = new DefaultOptionalDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
         } else {
             optionalDependenciesHandler = OptionalDependenciesHandler.IGNORE;

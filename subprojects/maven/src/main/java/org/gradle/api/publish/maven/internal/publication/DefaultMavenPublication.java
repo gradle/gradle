@@ -337,7 +337,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return experimentalFeatures.isEnabled("publishModuleMetadata");
+        return experimentalFeatures.isEnabled();
     }
 
     @Override
