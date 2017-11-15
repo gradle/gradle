@@ -19,6 +19,9 @@ import com.google.common.collect.Sets;
 import org.gradle.internal.FileUtils;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.IncludeType;
+import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,12 +41,35 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     @Override
-    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes) {
+    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> included) {
         BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
-        searchForDependencies(prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), resolvedSourceIncludes);
-        searchForDependencies(includePaths, includes.getSystemIncludes(), resolvedSourceIncludes);
-        if (!includes.getMacroIncludes().isEmpty()) {
-            resolvedSourceIncludes.resolved(includes.getMacroIncludes().get(0).getValue(), null);
+        List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+        for (Include include : includes.getIncludesAndImports()) {
+            if (include.getType() == IncludeType.SYSTEM) {
+                searchForDependency(includePaths, include.getValue(), resolvedSourceIncludes);
+            } else if (include.getType() == IncludeType.QUOTED) {
+                searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
+            } else if (include.getType() == IncludeType.MACRO) {
+                boolean found = false;
+                for (IncludeDirectives includeDirectives : included) {
+                    for (Macro macro : includeDirectives.getMacros()) {
+                        if (include.getValue().equals(macro.getName())) {
+                            Include expandedInclude = DefaultInclude.parse(macro.getValue(), include.isImport());
+                            if (expandedInclude.getType() == IncludeType.QUOTED) {
+                                searchForDependency(quotedSearchPath, expandedInclude.getValue(), resolvedSourceIncludes);
+                            } else {
+                                // TODO - keep expanding
+                                // TODO - handle system includes, which also need to be expanded when the value of a macro
+                                resolvedSourceIncludes.resolved(include.getValue(), null);
+                            }
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) {
+                    resolvedSourceIncludes.resolved(include.getValue(), null);
+                }
+            }
         }
 
         return resolvedSourceIncludes;
@@ -54,12 +80,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         quotedSearchPath.add(sourceFile.getParentFile());
         quotedSearchPath.addAll(includePaths);
         return quotedSearchPath;
-    }
-
-    private void searchForDependencies(List<File> searchPath, List<Include> includes, BuildableResolvedSourceIncludes dependencies) {
-        for (Include include : includes) {
-            searchForDependency(searchPath, include.getValue(), dependencies);
-        }
     }
 
     private void searchForDependency(List<File> searchPath, String include, BuildableResolvedSourceIncludes dependencies) {

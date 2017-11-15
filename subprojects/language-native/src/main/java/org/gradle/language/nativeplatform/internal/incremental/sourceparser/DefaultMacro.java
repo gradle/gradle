@@ -28,6 +28,11 @@ public class DefaultMacro implements Macro {
     }
 
     @Override
+    public String toString() {
+        return "{" + name + "->" + value + "}";
+    }
+
+    @Override
     public String getName() {
         return name;
     }

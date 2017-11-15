@@ -15,12 +15,10 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -35,11 +33,12 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro;
 
 import java.io.File;
 import java.util.Set;
 
-public class CompilationStateSerializer extends AbstractSerializer<CompilationState> {
+public class CompilationStateSerializer implements Serializer<CompilationState> {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
     private final Serializer<File> fileSerializer;
     private final SetSerializer<File> fileSetSerializer;
@@ -65,24 +64,7 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
         stateMapSerializer.write(encoder, value.getFileStates());
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-
-        CompilationStateSerializer rhs = (CompilationStateSerializer) obj;
-        return Objects.equal(fileSerializer, rhs.fileSerializer)
-            && Objects.equal(fileSetSerializer, rhs.fileSetSerializer)
-            && Objects.equal(stateMapSerializer, rhs.stateMapSerializer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(super.hashCode(), fileSerializer, fileSetSerializer, stateMapSerializer);
-    }
-
-    private static class CompilationFileStateSerializer extends AbstractSerializer<CompilationFileState> {
+    private static class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
         private final Serializer<Set<File>> resolveIncludesSerializer;
         private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
@@ -105,57 +87,25 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
             sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            CompilationFileStateSerializer rhs = (CompilationFileStateSerializer) obj;
-            return Objects.equal(hashSerializer, rhs.hashSerializer)
-                && Objects.equal(resolveIncludesSerializer, rhs.resolveIncludesSerializer)
-                && Objects.equal(sourceIncludesSerializer, rhs.sourceIncludesSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), hashSerializer, resolveIncludesSerializer, sourceIncludesSerializer);
-        }
     }
 
-    private static class SourceIncludesSerializer extends AbstractSerializer<IncludeDirectives> {
-        private final Serializer<Include> includeSerializer = new IncludeSerializer();
-        private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(includeSerializer);
+    private static class SourceIncludesSerializer implements Serializer<IncludeDirectives> {
+        private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer());
+        private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer());
 
         @Override
         public IncludeDirectives read(Decoder decoder) throws Exception {
-            return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.<Macro>of());
+            return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)));
         }
 
         @Override
         public void write(Encoder encoder, IncludeDirectives value) throws Exception {
             includeListSerializer.write(encoder, value.getIncludesAndImports());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            SourceIncludesSerializer rhs = (SourceIncludesSerializer) obj;
-            return Objects.equal(includeSerializer, rhs.includeSerializer)
-                && Objects.equal(includeListSerializer, rhs.includeListSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), includeSerializer, includeListSerializer);
+            macroListSerializer.write(encoder, value.getMacros());
         }
     }
 
-    private static class IncludeSerializer extends AbstractSerializer<Include> {
+    private static class IncludeSerializer implements Serializer<Include> {
         private final Serializer<String> stringSerializer = SERIALIZER_FACTORY.getSerializerFor(String.class);
         private final Serializer<Boolean> booleanSerializer = SERIALIZER_FACTORY.getSerializerFor(Boolean.class);
         private final Serializer<IncludeType> enumSerializer = SERIALIZER_FACTORY.getSerializerFor(IncludeType.class);
@@ -174,22 +124,20 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
             booleanSerializer.write(encoder, value.isImport());
             enumSerializer.write(encoder, value.getType());
         }
+    }
 
+    private static class MacroSerializer implements Serializer<Macro> {
         @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            IncludeSerializer rhs = (IncludeSerializer) obj;
-            return Objects.equal(stringSerializer, rhs.stringSerializer)
-                && Objects.equal(booleanSerializer, rhs.booleanSerializer)
-                && Objects.equal(enumSerializer, rhs.enumSerializer);
+        public Macro read(Decoder decoder) throws Exception {
+            String name = decoder.readString();
+            String value = decoder.readString();
+            return new DefaultMacro(name, value);
         }
 
         @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), stringSerializer, booleanSerializer, enumSerializer);
+        public void write(Encoder encoder, Macro value) throws Exception {
+            encoder.writeString(value.getName());
+            encoder.writeString(value.getValue());
         }
     }
 }

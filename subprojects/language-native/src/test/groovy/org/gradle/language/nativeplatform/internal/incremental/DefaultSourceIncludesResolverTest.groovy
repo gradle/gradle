@@ -16,7 +16,9 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -30,16 +32,20 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def quotedIncludes = []
     def systemIncludes = []
     def macroIncludes = []
-    def includesParser = Mock(SourceIncludesParser)
     def includes
+    def included
+    def macros = []
     def includePaths = [ ]
 
     def setup() {
         includes = Mock(IncludeDirectives)
-        includesParser.parseIncludes(sourceFile) >> includes
-        includes.getQuotedIncludes() >> { quotedIncludes.collect { include(it) } }
-        includes.getSystemIncludes() >> { systemIncludes.collect { include(it) } }
-        includes.getMacroIncludes() >> { macroIncludes.collect { include(it) } }
+        includes.getIncludesAndImports() >> {
+            quotedIncludes.collect { new DefaultInclude(it, false, IncludeType.QUOTED) } +
+            systemIncludes.collect { new DefaultInclude(it, false, IncludeType.SYSTEM) } +
+            macroIncludes.collect { new DefaultInclude(it, false, IncludeType.MACRO) }
+        }
+        included = Mock(IncludeDirectives)
+        included.getMacros() >> macros
     }
 
     protected TestFile getSourceFile() {
@@ -47,11 +53,11 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getResolvedIncludes() as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes, [included]).getResolvedIncludes() as List
     }
 
     def getCandidates() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getCheckedLocations() as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes, [included]).getCheckedLocations() as List
     }
 
     def "handles source file with no includes"() {
@@ -152,15 +158,89 @@ class DefaultSourceIncludesResolverTest extends Specification {
                                   sourceDirectory.file("other.h"), otherHeader ]
     }
 
-    def "includes unknown source dependency for first macro include"() {
+    def "resolves macro include"() {
+        when:
+        def includeDir = testDirectory.file("include")
+        def includeFile = includeDir.createFile("test.h")
+        includePaths << includeDir
+
+        macros << new DefaultMacro("TEST", '"test.h"')
+        macros << new DefaultMacro("IGNORE", 'broken')
+        macroIncludes << "TEST"
+
+        then:
+        dependencies == deps(includeFile)
+    }
+
+    def "resolves macro include once for each definition of the macro"() {
+        when:
+        def includeDir = testDirectory.file("include")
+        def includeFile1 = includeDir.createFile("test1.h")
+        def includeFile2 = includeDir.createFile("test2.h")
+        includePaths << includeDir
+
+        macros << new DefaultMacro("TEST", '"test1.h"')
+        macros << new DefaultMacro("IGNORE", 'broken')
+        macros << new DefaultMacro("TEST", '"test2.h"')
+        macroIncludes << "TEST"
+
+        then:
+        dependencies == deps(includeFile1, includeFile2)
+    }
+
+    def "marks macro include as unresolved when value is not a string constant"() {
+        when:
+        macros << new DefaultMacro("TEST", 'OTHER')
+        macros << new DefaultMacro("TEST", '<test2.h>')
+        macros << new DefaultMacro("TEST", '')
+        macros << new DefaultMacro("TEST", 'thing(12)')
+        macroIncludes << "TEST"
+
+        then:
+        dependencies.size() == 1
+        dependencies[0].unknown
+    }
+
+    def "marks macro include as unresolved when any value is not a string constant"() {
+        when:
+        def includeDir = testDirectory.file("include")
+        def includeFile = includeDir.createFile("test.h")
+        includePaths << includeDir
+
+        macros << new DefaultMacro("TEST", '"test.h"')
+        macros << new DefaultMacro("IGNORE", 'broken')
+        macros << new DefaultMacro("TEST", 'UNKNOWN')
+        macroIncludes << "TEST"
+
+        then:
+        dependencies.size() == 2
+        dependencies[0].file == includeFile
+        dependencies[1].unknown
+    }
+
+    def "marks macro include as unresolved when there are no definitions of the macro"() {
+        when:
+        macroIncludes << "TEST"
+
+        then:
+        dependencies.size() == 1
+        dependencies[0].unknown
+    }
+
+    def "includes unknown source dependency for each unresolvable macro include"() {
         when:
         macroIncludes << 'DEFINE_1' << 'DEFINE_2'
 
         then:
-        dependencies.size() == 1
+        dependencies.size() == 2
         with (dependencies[0]) {
             unknown
             include == 'DEFINE_1'
+            file == null
+        }
+        with (dependencies[1]) {
+            unknown
+            include == 'DEFINE_2'
             file == null
         }
     }

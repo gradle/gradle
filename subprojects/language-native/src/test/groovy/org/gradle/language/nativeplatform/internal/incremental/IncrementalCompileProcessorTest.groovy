@@ -84,13 +84,13 @@ class IncrementalCompileProcessorTest extends Specification {
     def parse(TestFile sourceFile) {
         final Set<File> deps = graph[sourceFile]
         IncludeDirectives includes = includes(deps)
-        1 * includesParser.parseIncludes(sourceFile) >> includes
+        _ * includesParser.parseIncludes(sourceFile) >> includes
     }
 
     def resolve(TestFile sourceFile) {
         Set<File> deps = graph[sourceFile]
         IncludeDirectives includes = includes(deps)
-        1 * dependencyParser.resolveIncludes(sourceFile, includes) >> resolveDeps(deps)
+        _ * dependencyParser.resolveIncludes(sourceFile, includes, _) >> resolveDeps(deps)
     }
 
     private static IncludeDirectives includes(Collection<File> deps) {

@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.transform.NotYetImplemented
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -232,6 +233,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
     def "header file referenced using relative path is considered an input"() {
         given:
+        def unused = file("app/src/main/headers/ignore1.h") << "broken!"
         file("app/src/main/cpp/main.cpp").text = """
             #include "../not_included/hello.h"
 
@@ -273,6 +275,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
 
         when:
+        unused << "broken again"
         succeeds installApp
 
         then:
@@ -280,11 +283,57 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
     }
 
-    def "considers all header files as inputs when macro include is used"() {
+    def "header file referenced using simple macro is considered an input"() {
         when:
+        def unused = file("app/src/main/headers/ignore1.h") << "broken!"
+
+        def headerFile = file("app/src/main/headers/hello.h") << """
+            #define MESSAGE "one"
+        """
 
         file("app/src/main/cpp/main.cpp").text = """
             #define HELLO "hello.h"
+            #include HELLO
+            #include <iostream>
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "one\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        headerFile.text = headerFile.text.replace('one', 'two')
+        succeeds installApp
+
+        then:
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        unused << "more broken"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "considers all header files as inputs when complex macro include is used"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #define _HELLO "hello.h"
+            #define HELLO _HELLO
             #include HELLO
             #include <iostream>
 
@@ -439,6 +488,83 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executedAndNotSkipped compileTasksDebug(APP)
 
         when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    @NotYetImplemented
+    def "can reference multiple header files using macros"() {
+        def header1 = file("app/src/main/headers/hello1.h")
+        def header2 = file("app/src/main/headers/hello2.h")
+        def unused = file("app/src/main/headers/ignoreme.h")
+
+        when:
+        file("app/src/main/headers/hello.h") << """
+            #if 0
+            #include "def1.h"
+            #else
+            #include "def2.h"
+            #endif
+            #include HEADER
+        """
+        file("app/src/main/headers/def1.h") << """
+            #define HEADER "hello1.h"
+        """
+        file("app/src/main/headers/def2.h") << """
+            #define HEADER "hello2.h"
+        """
+        header1 << """
+            #define MESSAGE "one"
+        """
+        header2 << """
+            #define MESSAGE "two"
+        """
+        unused << "broken"
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include <iostream>
+            #include "hello.h"
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header2 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header1 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        unused << "more broken"
         succeeds installApp
 
         then:

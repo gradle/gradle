@@ -26,9 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class IncrementalCompileFilesFactory {
@@ -59,52 +58,59 @@ public class IncrementalCompileFilesFactory {
 
         private final BuildableCompilationState current = new BuildableCompilationState();
 
-        private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> discoveredInputs = Sets.newHashSet();
         private final Set<File> existingHeaders = Sets.newHashSet();
 
         private boolean sourceFilesUseMacroIncludes;
 
-        public DefaultIncrementalCompileFiles(CompilationState previousCompileState) {
+        DefaultIncrementalCompileFiles(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
         }
 
         @Override
         public void processSource(File sourceFile) {
             current.addSourceInput(sourceFile);
-            if (checkChangedAndUpdateState(sourceFile) || !previous.getSourceInputs().contains(sourceFile)) {
+            if (visitSourceFile(sourceFile)) {
                 toRecompile.add(sourceFile);
             }
         }
 
-        public boolean checkChangedAndUpdateState(File file) {
-            boolean changed = false;
+        private boolean visitSourceFile(File sourceFile) {
+            List<IncludeDirectives> included = new ArrayList<IncludeDirectives>();
+            Set<File> visited = new HashSet<File>();
+            return visitFile(sourceFile, included, visited);
+        }
 
-            if (processed.containsKey(file)) {
-                return processed.get(file);
+        private boolean visitFile(File file, List<IncludeDirectives> included, Set<File> visited) {
+            if (!visited.add(file)) {
+                // A cycle, treat as unchanged here
+                return false;
             }
-
-            if (!file.exists()) {
+            if (!file.isFile()) {
                 return true;
             }
 
-            // Assume unchanged if we recurse to the same file due to dependency cycle
-            processed.put(file, false);
-
+            boolean changed = false;
             CompilationFileState previousState = previous.getState(file);
             HashCode newHash = hasher.hash(file);
-
             IncludeDirectives includeDirectives;
-            if (!sameHash(previousState, newHash)) {
-                changed = true;
-                includeDirectives = sourceIncludesParser.parseIncludes(file);
-            } else {
+            if (sameHash(previousState, newHash)) {
                 includeDirectives = previousState.getIncludeDirectives();
+            } else {
+                changed = true;
+                // TODO - parse file once only
+                includeDirectives = sourceIncludesParser.parseIncludes(file);
             }
-            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, includeDirectives);
+
+            included.add(includeDirectives);
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, included);
+            // TODO - collect the resolved files only in the source file
             CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludeFiles()));
 
+            // TODO - when file has no macro includes directly or indirectly, remember the result and skip visiting it for other source files
+            current.setState(file, newState);
+            discoveredInputs.addAll(resolutionResult.getCheckedLocations());
             for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
                 if (resolvedInclude.isUnknown()) {
                     sourceFilesUseMacroIncludes = true;
@@ -113,26 +119,21 @@ public class IncrementalCompileFilesFactory {
                     existingHeaders.add(resolvedInclude.getFile());
                 }
             }
-            discoveredInputs.addAll(resolutionResult.getCheckedLocations());
 
             // Compare the previous resolved includes with resolving now.
             if (!sameResolved(previousState, newState)) {
                 changed = true;
             }
 
-            current.setState(file, newState);
-
             for (ResolvedInclude dep : resolutionResult.getResolvedIncludes()) {
                 if (dep.isUnknown()) {
                     LOGGER.info("Cannot determine changed state of included '{}' in source file '{}'. Assuming changed.", dep.getInclude(), file.getName());
                     changed = true;
                 } else {
-                    boolean depChanged = checkChangedAndUpdateState(dep.getFile());
+                    boolean depChanged = visitFile(dep.getFile(), included, visited);
                     changed = changed || depChanged;
                 }
             }
-
-            processed.put(file, changed);
 
             return changed;
         }
@@ -143,10 +144,6 @@ public class IncrementalCompileFilesFactory {
 
         private boolean sameResolved(CompilationFileState previousState, CompilationFileState newState) {
             return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
-        }
-
-        private SourceIncludesResolver.ResolvedSourceIncludes resolveIncludes(File file, IncludeDirectives includeDirectives) {
-            return sourceIncludesResolver.resolveIncludes(file, includeDirectives);
         }
 
         @Override

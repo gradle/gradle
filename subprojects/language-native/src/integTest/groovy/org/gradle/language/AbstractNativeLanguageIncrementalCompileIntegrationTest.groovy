@@ -223,12 +223,13 @@ model {
 
     }
 
-    def "source is always recompiled if it includes header via macro"() {
+    def "source is always recompiled if it includes header via complex macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
-            #define MY_HEADER "${otherHeaderFile.name}"
+            #define HEADER(X) #X
+            #define MY_HEADER HEADER(${otherHeaderFile.name})
             #include MY_HEADER
 """
 
