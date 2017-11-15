@@ -66,7 +66,7 @@
     font-size: 100%;
 }
 
-.note p:first-child {
+.note p:first-child, .tip p:first-child {
     margin-top: 0;
 }
 
@@ -75,34 +75,24 @@
 }
 
 .note, .tip {
-    padding: 1em 1.2em;
-    margin-bottom: 1em;
+    border-left: 1px solid #ddddd8;
+    color: rgba(0,0,0,0.6);
+    margin: 0 0 1.5em 1.25em;
+    padding-left: 1.125em;
+    padding-right: 1.25em;
 }
 
-.note {
-    background: #ebf4f7;
-    border: solid #c3d9e6 1px;
+.note p:first-child:before {
+    content: "Note: ";
+    font-weight: bold;
 }
 
-.note .title {
-    color: #5283a1;
-    margin-left: 0px;
+.tip p:first-child:before {
+    content: "Tip: ";
+    font-weight: bold;
 }
 
-.tip {
-    background: #FAF7F5;
-    border: solid #e2d2c9 1px;
-    float: right;
-    clear: right;
-    margin-left: 2em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    max-width: 30%;
-    width: 30%;
-}
-
-.tip .title {
-    color: #80614D;
+.note .title, .tip .title {
     margin-left: 0px;
 }
 
@@ -111,8 +101,7 @@
 .tip h3, .note h3,
 .tip h4, .note h4,
 .tip h5, .note h5,
-.tip h6, .note h6
-{
+.tip h6, .note h6 {
    margin-top: 0;
 }
 

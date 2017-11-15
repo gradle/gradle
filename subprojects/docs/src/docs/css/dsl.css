@@ -50,6 +50,10 @@ table .caution {
     color: #02303A;
 }
 
+.sidebar a .code {
+    background-color: transparent;
+}
+
 .sidebar ul {
     padding-left: 0;
     padding-right: 0;

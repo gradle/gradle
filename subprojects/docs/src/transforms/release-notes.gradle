@@ -170,12 +170,6 @@ transformDocument {
     body().prepend("<h1>Gradle Release Notes</h1>")
 }
 
-// Add the footer
-transformDocument {
-    def footer = body().append("<section class='footer'/>").children().last()
-    footer.html("Gradle @version@ Release Notes<br />")
-}
-
 // Syntax highlighting
 transformDocument {
     body().select("code").each { code ->
