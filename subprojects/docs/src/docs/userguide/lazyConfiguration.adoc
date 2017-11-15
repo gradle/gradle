@@ -23,7 +23,7 @@ As a build grows in complexity, knowing when and where a particular value is con
 [NOTE]
 ====
 
-The provider API is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Provider API is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -37,50 +37,58 @@ Gradle represents lazy properties with two interfaces:
 * api:org.gradle.api.provider.Provider[] are properties that can only be queried and cannot be changed.
 ** Properties with these types are read-only.
 ** The method api:org.gradle.api.provider.Provider#get()[] returns the current value of the property.
-** A Provider can be created by the factory method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[].
+** A `Provider` can be created by the factory method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[].
 * api:org.gradle.api.provider.Property[] are properties that can be queried and overwritten.
 ** Properties with these types are configurable.
-** Property implements the Provider interface.
+** `Property` implements the `Provider` interface.
 ** The method api:org.gradle.api.provider.Property#set(T)[] provides a value for the property, overwriting whatever value may have been present.
-** A Property can be created by the factory method api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[].
+** A `Property` can be created by the factory method api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[].
 
-Neither of these types or their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
+Neither of these types nor their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
 
 Lazy properties are intended to be passed around and only evaluated when required (usually, during the execution phase). For more information about the Gradle build phases, please see <<sec:build_phases>>.
 
 The following demonstrates a task with a read-only property and a configurable property:
 
 ++++
-<sample id="usePropertyAndProvider" dir="providers/propertyAndProvider" title="Using read-only and configurable property">
+<sample id="usePropertyAndProvider" dir="providers/propertyAndProvider" title="Using a read-only and configurable property">
     <sourcefile file="build.gradle"/>
+    <output args="greeting"/>
 </sample>
 ++++
 
 The `Greeting` task has a `Property<String>` for the mutable part of the message and a `Provider` for the modified, read-only, message.
 
+[NOTE]
+====
+
+Note that Groovy Gradle DSL will generate setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
+
+====
+
 [[sec:why_new_types]]
 === Why new types?
-The Provider API is a public implementation of a feature Gradle has had internally for a long time--convention mapping. The new types are faster, more understandable and better instrumented than the internal convention mapping mechanism. It also allows for more consistent build logic since it allows a plugin or task to express what it wants without worrying about when.
+The Provider API is a public implementation of a feature Gradle has had internally for a long time--convention mapping. Provider types are faster, more understandable and better instrumented than the internal convention mapping mechanisms. The Provider API also enables more consistent build logic since it allows a plugin or task to express the relationship between properties without worrying about when particular values are determined.
 
-[[sec: creating_property_provider]]
-===Creating a Property or Provider
+[[sec:creating_property_provider]]
+=== Creating a Property or Provider
 
-Since provider types are not intended for implementation by build script or plugin authors, how do you create new one? Gradle provide various factory APIs to create new instance of both api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.Property[]:
+If provider types are not intended to be implemented directly by build script or plugin authors, how do you create new one? Gradle provides various factory APIs to create new instances of both api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.Property[]:
 
-- api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[] instantiates a new api:org.gradle.api.provider.Property[]. An instance of the ObjectFactory can be reference from the api:org.gradle.api.Project#getObjects()[] or by injecting ObjectFactory through a constructor or method.
-- api:org.gradle.api.provider.ProviderFactory#provider(java.util.concurrent.Callable)[] instantiates a new api:org.gradle.api.provider.Provider[]. A handy method is available at api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. If a api:org.gradle.api.Project[] instance isn’t available, you can inject api:org.gradle.api.providers.ProviderFactory through a constructor or method.
+- api:org.gradle.api.provider.ProviderFactory#provider(java.util.concurrent.Callable)[] instantiates a new `Provider`. A handy method is available at api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. If a api:org.gradle.api.Project[] instance isn’t available, you can inject api:org.gradle.api.provider.ProviderFactory[] through a constructor or method.
+- api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[] instantiates a new `Property`. An instance of the api:org.gradle.api.model.ObjectFactory[] can be referenced from api:org.gradle.api.Project#getObjects()[] or by injecting ObjectFactory through a constructor or method.
 
 [NOTE]
 ====
 
-The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
+api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider from a `groovy.lang.Closure`. When writing a plugin with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
 
 ====
 
 [[sec:working_with_files_in_lazy_properties]]
 === Working with files and Providers
 
-In <<working_with_files>>, we introduced four collection types for File-like objects:
+In <<working_with_files>>, we introduced four collection types for `File`-like objects:
 
 .Collection of files recap
 [width="100%",cols="2,2", options="header"]
@@ -96,37 +104,40 @@ In <<working_with_files>>, we introduced four collection types for File-like obj
 
 |=========================================================
 
-All of these types are also considered Provider types.
+All of these types are also considered `Provider` types.
 
-In this section, we are going to introduce more strongly typed models for a api:org.gradle.api.file.FileSystemLocation[]: api:org.gradle.api.file.Directory[] and api:org.gradle.api.file.RegularFile[]. These types shouldn't be confused with the standard Java File type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file). Gradle provides two specialized api:org.gradle.api.provider.Property[] subtypes for dealing with these types: api:org.gradle.api.file.RegularFileProperty[] and api:org.gradle.api.file.DirectoryProperty[]. As with any api:org.gradle.api.provider.Property[], ObjectFactory[] has methods to create these: api:org.gradle.api.file.ProjectLayout#fileProperty()[] and api:org.gradle.api.file.ProjectLayout#directoryProperty()[].
+In this section, we are going to introduce more strongly typed models for a api:org.gradle.api.file.FileSystemLocation[]: api:org.gradle.api.file.Directory[] and api:org.gradle.api.file.RegularFile[]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[java.io.File] type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file). 
 
-A api:org.gradle.api.file.DirectoryProperty[] can also be used to create lazily evaluated Providers for `Directory` and `RegularFile` via api:org.gradle.api.file.DirectoryProperty#dir(java.lang.String)[] and api:org.gradle.api.file.DirectoryProperty#file(java.lang.String)[] respectively. These methods create paths that are relative to location set for the original api:org.gradle.api.file.DirectoryProperty[].
+Gradle provides two specialized `Property` subtypes for dealing with these types: api:org.gradle.api.file.RegularFileProperty[] and api:org.gradle.api.file.DirectoryProperty[]. api:org.gradle.api.file.ProjectLayout[] has methods to create these: api:org.gradle.api.file.ProjectLayout#fileProperty()[] and api:org.gradle.api.file.ProjectLayout#directoryProperty()[].
+
+A `DirectoryProperty` can also be used to create a lazily evaluated `Provider` for a `Directory` and `RegularFile` via api:org.gradle.api.file.DirectoryProperty#dir(java.lang.String)[] and api:org.gradle.api.file.DirectoryProperty#file(java.lang.String)[] respectively. These methods create paths that are relative to the location set for the original `DirectoryProperty`.
 
 ++++
 <sample id="workingWithFiles" dir="providers/fileAndDirectoryProperty" title="Using file and directory property">
     <sourcefile file="build.gradle"/>
+    <output args="print"/>
 </sample>
 ++++
 
-The previous example shows how providers are used inside an extension. Lazy values for the well known build directory (api:org.gradle.api.Project#getBuildDir()[]) and project directory (api:org.gradle.api.Project#getProjectDir()[]) can be accessed through api:org.gradle.api.Project#getLayout()[] with api:org.gradle.api.file.ProjectLayout#getBuildDirectory()[] and api:org.gradle.api.file.ProjectLayout#getProjectDirectory()[] respectively. Note that Gradle inject setter methods for each property getter methods. These setter methods allow you to configure the property value using the assign operator for convenience.
+This example shows how `Provider` types can be used inside an extension. Lazy values for api:org.gradle.api.Project#getBuildDir()[] and api:org.gradle.api.Project#getProjectDir()[] can be accessed through api:org.gradle.api.Project#getLayout()[] with api:org.gradle.api.file.ProjectLayout#getBuildDirectory()[] and api:org.gradle.api.file.ProjectLayout#getProjectDirectory()[]. 
 
 [[sec:working_with_task_dependencies_in_lazy_properties]]
 === Working with task dependencies and Providers
 
-Often you will have several tasks that depend on each other. This usually means that one task processes outputs of another task as an input. For these outputs and inputs, we need to know their locations on the file system and appropriate configure each task to know where to look. This can be cumbersome if any of these values are configurable by a user or contributed by multiple plugins.
+Many builds have several tasks that depend on each other. This usually means that one task processes the outputs of another task as an input. For these outputs and inputs, we need to know their locations on the file system and appropriately configure each task to know where to look. This can be cumbersome if any of these values are configurable by a user or configured by multiple plugins.
 
-To make this easier, Gradle offers convenient APIs for defining files or folders as task inputs and outputs in a descriptive way. As an example consider the following plugin with compile, package and install tasks which are wired via inputs and outputs:
+To make this easier, Gradle offers convenient APIs for defining files or directories as task inputs and outputs in a descriptive way. As an example consider the following plugin with a producer and consumer task, which are wired together via inputs and outputs:
 
 ++++
 <sample id="implicitTaskDependency" dir="providers/implicitTaskDependency" title="Implicit task dependency">
     <sourcefile file="build.gradle"/>
+    <output args="consumer"/>
 </sample>
 ++++
 
-In the example above, the task output and input are connected before any concrete files system location is defined. This is possible because file locations are described by using providers that are created via api:org.gradle.api.DefaultTask#newOutputFile()[] and api:org.gradle.api.DefaultTask#newInputFile()[]. The providers are a complete replacement for setters and overloads. This way the files are only actually resolved when they are needed during execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
+In the example above, the task output and input are connected before any location is defined. This is possible because the input and output properties use the `Provider` API. The output property is created with api:org.gradle.api.DefaultTask#newOutputFile()[] and the input property is created with api:org.gradle.api.DefaultTask#newInputFile()[]. Values are only resolved when they are needed during execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
 
-Another thing to note is the absence of api:org.gradle.api.Task#dependsOn(java.lang.Object...)[] invocation. Properties created via `newOutputFile()` and `newOutputDirectory()` bring some knowledge about which task is generating them and thus using them as task input will implicitly link tasks together.
-
+Another thing to note is the absence of any explicit task dependency. Properties created via `newOutputFile()` and `newOutputDirectory()` bring knowledge about which task is generating them, so using them as task input will implicitly link tasks together.
 
 [[sec:lazy_configuration_faqs]]
 === FAQs
@@ -149,7 +160,7 @@ Another thing to note is the absence of api:org.gradle.api.Task#dependsOn(java.l
 [[sec:lazy_configuration_roadmap]]
 === Future development
 
-The provider API is <<feature_lifecycle,incubating>>. Please open issues https://github.com/gradle/gradle/issues/new[gradle/gradle] to report bugs or to submit use cases for new features.
+The Provider API is <<feature_lifecycle,incubating>>. Please create new issues at https://github.com/gradle/gradle/issues/new[gradle/gradle] to report bugs or to submit use cases for new features.
 
 [[sec:lazy_configuration_reference]]
 === Provider API Quick Reference
@@ -159,7 +170,7 @@ The provider API is <<feature_lifecycle,incubating>>. Please open issues https:/
 |=========================================================
 |Description |Read-only |Configurable |Factory
 
-|A file on disk (not to be confused with Java File API)
+|A file on disk
 |api:org.gradle.api.provider.Provider[]<api:org.gradle.api.file.RegularFile[]>
 |api:org.gradle.api.file.RegularFileProperty[]
 |* api:org.gradle.api.file.ProjectLayout#fileProperty()[]

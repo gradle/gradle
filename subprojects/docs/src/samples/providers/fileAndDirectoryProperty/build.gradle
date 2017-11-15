@@ -17,3 +17,15 @@ foo {
     someFile = project.layout.buildDirectory.file('some-file')
     someFiles.from project.files(someDirectory, someFile)
 }
+
+task print {
+    doLast {
+        def someDirectory = project.foo.someDirectory.get().asFile
+        logger.lifecycle("foo.someDirectory = " + someDirectory)
+        logger.lifecycle("foo.someFiles contains someDirectory? " + project.foo.someFiles.contains(someDirectory))
+
+        def someFile = project.foo.someFile.get().asFile
+        logger.lifecycle("foo.someFile = " + someFile)
+        logger.lifecycle("foo.someFiles contains someFile? " + project.foo.someFiles.contains(someFile))
+    }
+}
