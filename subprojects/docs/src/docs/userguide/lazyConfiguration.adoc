@@ -142,19 +142,20 @@ Another thing to note is the absence of any explicit task dependency. Properties
 [[sec:working_with_collection]]
 === Working with collection Providers
 
-In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.providers.ListProperty[]. You can create a new `Property` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] by specifying the elements class type.
+In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.provider.ListProperty[]. You can create a new `Property` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] by specifying the elements class type.
 
-This type of property allows you to overwrite the entire list with api:org.gradle.api.providers.ListProperty#set[] or add new elements through the various `add` methods:
-* api:org.gradle.api.providers.ListProperty#add(T)[]: Add a single concrete element to the list
-* api:org.gradle.api.providers.ListProperty#add(org.gradle.api.providers.Provider<T>)[]: Add a lazily evaluated element to the list
-* api:org.gradle.api.providers.ListProperty#addAll(org.gradle.api.providers.Provider<java.lang.List<T>>)[]: Add a lazily evaluated list of elements to the list
+This type of property allows you to overwrite the entire list with api:org.gradle.api.provider.Property#set(org.gradle.api.provider.Provider)[] or add new elements through the various `add` methods:
 
-Just like every `Provider`, the list is evaluated when api:org.gradle.api.providers.Provider#get()[] is called. The following example show the api:org.gradle.api.providers.ListProperty[] in action:
+* api:org.gradle.api.provider.ListProperty#add(T)[]: Add a single concrete element to the list
+* api:org.gradle.api.provider.ListProperty#add(org.gradle.api.provider.Provider)[]: Add a lazily evaluated element to the list
+* api:org.gradle.api.provider.ListProperty#addAll(org.gradle.api.provider.Provider)[]: Add a lazily evaluated list of elements to the list
+
+Just like every `Provider`, the list is evaluated when api:org.gradle.api.provider.Provider#get()[] is called. The following example show the api:org.gradle.api.provider.ListProperty[] in action:
 
 ++++
 <sample id="listProperty" dir="providers/listProperty" title="List property">
     <sourcefile file="build.gradle"/>
-    <output args="consumer"/>
+    <output args="print"/>
 </sample>
 ++++
 
