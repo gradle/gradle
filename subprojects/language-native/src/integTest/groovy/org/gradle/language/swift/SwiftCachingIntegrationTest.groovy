@@ -58,18 +58,19 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     def 'compilation can be cached'() {
         setupProject()
+        def allCompileTasks = ['', ':hello', ':log'].collect { compileTask(it, buildType) } as String[]
 
         when:
         withBuildCache().run compileTask(buildType)
 
         then:
-        compileIsNotCached(buildType)
+        executedAndNotSkipped allCompileTasks
 
         when:
         withBuildCache().run 'clean', installTask(buildType)
 
         then:
-        compileIsCached(buildType)
+        skipped allCompileTasks
         installation(installDir(buildType)).exec().out == app.expectedOutput
 
         where:
@@ -80,6 +81,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
     def "compilation task is relocatable (#buildType)"() {
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
+        def allCompileTasks = ['', ':hello', ':log'].collect { compileTask(it, buildType) } as String[]
         setupProject(originalLocation)
         setupProject(newLocation)
 
@@ -88,7 +90,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         withBuildCache().run compileTask(buildType)
 
         then:
-        compileIsNotCached(buildType)
+        executedAndNotSkipped allCompileTasks
 
         when:
         originalLocation.deleteDir()
@@ -100,7 +102,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         withBuildCache().run compileTask(buildType), installTask(buildType)
 
         then:
-        compileIsCached(buildType, newLocation)
+        skipped allCompileTasks
         installation(installDir(newLocation, buildType)).exec().out == app.expectedOutput
 
         where:
@@ -120,7 +122,8 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         withBuildCache().run compileTask(buildType), installTask(buildType)
 
         then:
-        compileIsNotCached(buildType)
+        executedAndNotSkipped compileTask(buildType)
+        executedAndNotSkipped upstreamCompileTasks
 
         when:
         originalLocation.deleteDir()
@@ -130,14 +133,14 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         withBuildCache().succeeds upstreamCompileTasks
 
         then:
-        skipped(upstreamCompileTasks)
+        skipped upstreamCompileTasks
 
         when:
         run compileTask(buildType), installTask(buildType)
 
         then:
-        skipped(upstreamCompileTasks)
-        compileIsNotCached(buildType)
+        skipped upstreamCompileTasks
+        executedAndNotSkipped compileTask(buildType)
         installation(installDir(newLocation, buildType)).exec().out == app.expectedOutput
 
         where:
@@ -146,18 +149,6 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     TestFile installDir(TestFile projectDir = testDirectory, buildType) {
         projectDir.file("build/install/main/${buildType.toLowerCase()}")
-    }
-
-    void compileIsCached(String buildType, projectDir = temporaryFolder.testDirectory) {
-        skipped compileTask(buildType)
-        // checking the object file only works in `temporaryFolder.testDirectory` since the base class has a hard coded reference to it
-        if (projectDir == temporaryFolder.testDirectory) {
-            objectFileFor(projectDir.file("src/main/${app.main.sourceFile.path}/${app.main.sourceFile.name}"), "build/obj/main/${buildType.toLowerCase()}").assertExists()
-        }
-    }
-
-    void compileIsNotCached(String buildType) {
-        executedAndNotSkipped compileTask(buildType)
     }
 
     String compileTask(String project = '', String buildType) {
