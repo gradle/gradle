@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
-class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegrationTest {
+class StrictDependenciesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll
     void "can declare a strict dependency onto an external component"() {
@@ -27,11 +28,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo:1.0') {
                    version {
@@ -71,11 +67,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -114,11 +105,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -166,11 +152,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -221,11 +202,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -281,11 +257,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo:17')
                 conf project(path: 'other', configuration: 'conf')
@@ -335,11 +306,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -393,11 +359,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
@@ -454,11 +415,6 @@ class StrictDependenciesIntegrationTest extends AbstractStrictDependenciesIntegr
         }
 
         buildFile << """
-            $repository
-
-            configurations {
-                conf
-            }
             dependencies {
                 conf('org:foo') {
                     version {
