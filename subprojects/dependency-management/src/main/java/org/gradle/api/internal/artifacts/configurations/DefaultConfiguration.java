@@ -101,6 +101,7 @@ import org.gradle.util.Path;
 import org.gradle.util.TextUtil;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -120,6 +121,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
+    private final boolean isScriptConfiguration;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
@@ -189,7 +191,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder) {
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                                boolean isScriptConfiguration) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -208,8 +211,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
-
+        this.isScriptConfiguration = isScriptConfiguration;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
@@ -644,7 +648,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
-            rootComponentMetadataBuilder);
+            rootComponentMetadataBuilder, isScriptConfiguration);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1307,8 +1311,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
 
         @Override
-        public String getConfigurationPath() {
-            return getPath();
+        public String getConfigurationName() {
+            return getName();
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            if (isScriptConfiguration) {
+                return null;
+            } else {
+                return getPath().substring(0, getPath().length() - getName().length());
+            }
+        }
+
+        @Override
+        public boolean isScriptConfiguration() {
+            return isScriptConfiguration;
         }
 
         @Override

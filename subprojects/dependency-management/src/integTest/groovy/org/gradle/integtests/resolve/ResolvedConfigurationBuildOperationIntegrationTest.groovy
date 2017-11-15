@@ -61,8 +61,10 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationPath == ":compile"
+        op.details.configurationName == "compile"
+        op.details.projectPath == ":"
         op.details.buildPath == ":"
+        op.details.scriptConfiguration == false
         op.details.configurationDescription ==~ /Dependencies for source set 'main'.*/
         op.details.configurationVisible == false
         op.details.configurationTransitive == true
@@ -75,22 +77,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         def m1 = mavenHttpRepo.module('org.foo', 'app-dep').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
 
-        file("my-composite-app/src/main/java/App.java") << "public class App {}"
-        file("my-composite-app/build.gradle") << """
-            group = "org.foo"
-            version = '1.0'
-
-            apply plugin: "java"
-            repositories {
-                maven { url '${mavenHttpRepo.uri}' }
-            }
-            
-            dependencies {
-                compile 'org.foo:app-dep:1.0'
-            }
-        """
-
-        file("my-composite-app/settings.gradle") << "rootProject.name = 'my-composite-app'"
+        setupComposite()
         buildFile << """                
             allprojects {
                 apply plugin: "java"
@@ -108,10 +95,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
                 into "build/resolved"
             }
         """
-        settingsFile << """
-        rootProject.name='root'
-        includeBuild 'my-composite-app'
-        """
+
 
         m1.allowAll()
         m2.allowAll()
@@ -119,18 +103,23 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         when:
         run "resolve"
 
-        then:
+        then: "configuration of composite are exposed"
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         resolveOperations.size() == 2
-        resolveOperations[0].details.configurationPath == ":compile"
+        resolveOperations[0].details.configurationName == "compile"
+        resolveOperations[0].details.projectPath == ":"
         resolveOperations[0].details.buildPath == ":"
+        resolveOperations[0].details.scriptConfiguration == false
         resolveOperations[0].details.configurationDescription ==~ /Dependencies for source set 'main'.*/
         resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 2
 
-        resolveOperations[1].details.configurationPath == ":compileClasspath"
+        and: "classpath configuration is exposed"
+        resolveOperations[1].details.configurationName == "compileClasspath"
+        resolveOperations[1].details.projectPath == ":"
         resolveOperations[1].details.buildPath == ":my-composite-app"
+        resolveOperations[1].details.scriptConfiguration == false
         resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
         resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
@@ -160,13 +149,85 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationPath == ":detachedConfiguration1"
+        op.details.configurationName == "detachedConfiguration1"
+        op.details.projectPath == ":"
+        op.details.scriptConfiguration == false
         op.details.buildPath == ":"
         op.details.configurationDescription == null
         op.details.configurationVisible == true
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 1
+    }
+
+    def "script classpath dependencies are exposed"() {
+        setup:
+        def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
+        setupComposite()
+        buildFile << """                
+            buildscript {
+                repositories {
+                    maven { url '${mavenHttpRepo.uri}' }
+                }
+                dependencies {
+                    classpath 'org.foo:root-dep:1.0'
+                    classpath 'org.foo:my-composite-app:1.0'
+                }
+            }
+            
+            apply plugin: "java"
+        """
+
+
+        m1.allowAll()
+
+        when:
+        run "buildEnvironment"
+
+        then:
+        def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+        resolveOperations.size() == 2
+        resolveOperations[0].details.configurationName == "compileClasspath"
+        resolveOperations[0].details.projectPath == ":"
+        resolveOperations[0].details.buildPath == ":my-composite-app"
+        resolveOperations[0].details.scriptConfiguration == false
+        resolveOperations[0].details.configurationDescription == "Compile classpath for source set 'main'."
+        resolveOperations[0].details.configurationVisible == false
+        resolveOperations[0].details.configurationTransitive == true
+        resolveOperations[0].result.resolvedDependenciesCount == 1
+
+        resolveOperations[1].details.configurationName == "classpath"
+        resolveOperations[1].details.projectPath == null
+        resolveOperations[1].details.buildPath == ":"
+        resolveOperations[1].details.scriptConfiguration == true
+        resolveOperations[1].details.configurationDescription == null
+        resolveOperations[1].details.configurationVisible == true
+        resolveOperations[1].details.configurationTransitive == true
+        resolveOperations[1].result.resolvedDependenciesCount == 2
+    }
+
+    private void setupComposite() {
+        file("my-composite-app/src/main/java/App.java") << "public class App {}"
+        file("my-composite-app/build.gradle") << """
+            group = "org.foo"
+            version = '1.0'
+
+            apply plugin: "java"
+            repositories {
+                maven { url '${mavenHttpRepo.uri}' }
+            }
+            
+            dependencies {
+                compile 'org.foo:app-dep:1.0'
+            }
+        """
+        file("my-composite-app/settings.gradle") << "rootProject.name = 'my-composite-app'"
+
+        settingsFile << """
+        rootProject.name='root'
+        includeBuild 'my-composite-app'
+        """
+        mavenHttpRepo.module('org.foo', 'app-dep').publish().allowAll()
     }
 
 }

@@ -581,6 +581,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public boolean isScriptContext() {
+        return false;
+    }
+
+    @Override
     public String relativeProjectPath(String path) {
         return this.path.relativePath(path);
     }

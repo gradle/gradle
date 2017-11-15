@@ -105,7 +105,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder);
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder, context.isScriptContext());
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -135,7 +135,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
             context.identityPath(name), context.projectPath(name), name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), context.isScriptContext());
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
