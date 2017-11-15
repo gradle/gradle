@@ -28,13 +28,19 @@ import java.util.Map;
 
 abstract class AbstractResourcePattern implements ResourcePattern {
     private final ExternalResourceName pattern;
+    private final boolean revisionIsOptional;
+    private final boolean organisationIsOptional;
 
     public AbstractResourcePattern(String pattern) {
         this.pattern = new ExternalResourceName(pattern);
+        this.revisionIsOptional = isOptionalToken(IvyPatternHelper.REVISION_KEY);
+        this.organisationIsOptional = isOptionalToken(IvyPatternHelper.ORGANISATION_KEY, IvyPatternHelper.ORGANISATION_KEY2);
     }
 
     public AbstractResourcePattern(URI baseUri, String pattern) {
         this.pattern = new ExternalResourceName(baseUri, pattern);
+        this.revisionIsOptional = isOptionalToken(IvyPatternHelper.REVISION_KEY);
+        this.organisationIsOptional = isOptionalToken(IvyPatternHelper.ORGANISATION_KEY, IvyPatternHelper.ORGANISATION_KEY2);
     }
 
     public String getPattern() {
@@ -83,5 +89,44 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
         attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
         return attributes;
+    }
+
+    @Override
+    public boolean isComplete(ModuleIdentifier moduleIdentifier) {
+        return !moduleIdentifier.getName().isEmpty()
+            && (!moduleIdentifier.getGroup().isEmpty() || organisationIsOptional);
+    }
+
+    @Override
+    public boolean isComplete(ModuleComponentIdentifier componentIdentifier) {
+        return !componentIdentifier.getModule().isEmpty()
+            && (!componentIdentifier.getGroup().isEmpty() || organisationIsOptional)
+            && (!componentIdentifier.getVersion().isEmpty() || revisionIsOptional);
+    }
+
+    private boolean isOptionalToken(String... tokenVariants) {
+        String patternString = pattern.getPath();
+        int tokenIndex = -1;
+        for (String token : tokenVariants) {
+            tokenIndex = patternString.indexOf("[" + token + "]");
+            if (tokenIndex != -1) {
+                break;
+            }
+        }
+        if (tokenIndex == -1) {
+            return true;
+        }
+
+        String patternBeforeToken = patternString.substring(0, tokenIndex);
+        int optionalOpen = 0;
+        for (int i = 0; i < patternBeforeToken.length(); i++) {
+            char nextChar = patternBeforeToken.charAt(i);
+            if (nextChar == '(') {
+                optionalOpen++;
+            } else if (nextChar == ')') {
+                optionalOpen = Math.max(0, optionalOpen - 1);
+            }
+        }
+        return optionalOpen > 0;
     }
 }

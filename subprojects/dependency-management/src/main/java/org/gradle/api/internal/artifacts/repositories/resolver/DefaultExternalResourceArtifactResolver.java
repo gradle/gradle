@@ -73,6 +73,9 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
+            if (isIncomplete(resourcePattern, artifact)) {
+                continue;
+            }
             ExternalResourceName location = resourcePattern.getLocation(artifact);
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
@@ -98,6 +101,9 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private LocallyAvailableExternalResource downloadByUrl(List<ResourcePattern> patternList, final UrlBackedArtifactMetadata artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
+            if (isIncomplete(resourcePattern, artifact)) {
+                continue;
+            }
             ExternalResourceName moduleDir = resourcePattern.toModuleVersionPath(artifact.getComponentId());
             ExternalResourceName location = moduleDir.resolve(artifact.getRelativeUrl());
             result.attempted(location);
@@ -121,6 +127,9 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private LocallyAvailableExternalResource downloadByCoords(List<ResourcePattern> patternList, final ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
+            if (isIncomplete(resourcePattern, artifact)) {
+                continue;
+            }
             ExternalResourceName location = resourcePattern.getLocation(artifact);
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
@@ -139,5 +148,9 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             }
         }
         return null;
+    }
+
+    private boolean isIncomplete(ResourcePattern resourcePattern, ModuleComponentArtifactMetadata artifact) {
+        return !resourcePattern.isComplete(artifact.getId().getComponentIdentifier());
     }
 }

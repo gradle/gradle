@@ -63,7 +63,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                        FileResourceRepository fileResourceRepository) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository);
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
