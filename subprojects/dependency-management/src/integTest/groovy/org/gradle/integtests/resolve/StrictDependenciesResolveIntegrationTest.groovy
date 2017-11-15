@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractModuleDependencyResolveTest
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 

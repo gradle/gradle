@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 class StrictDependenciesIntegrationTest extends AbstractModuleDependencyResolveTest {
