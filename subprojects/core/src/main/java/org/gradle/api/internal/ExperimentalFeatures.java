@@ -18,16 +18,21 @@ package org.gradle.api.internal;
 public class ExperimentalFeatures {
     private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
     private boolean enabled;
+    private boolean locked;
 
     public ExperimentalFeatures() {
         enabled = System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
     }
 
-    public void enable() {
+    public synchronized void enable() {
+        if (locked && !enabled) {
+            throw new IllegalStateException("Cannot enable experimental features after state has been checked. Enable via settings or init script.");
+        }
         enabled = true;
     }
 
-    public boolean isEnabled() {
+    public synchronized boolean isEnabled() {
+        locked = true;
         return enabled;
     }
 }
