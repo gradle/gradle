@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Transformer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -26,7 +25,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.AttributeMatcher;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,16 +76,7 @@ public class VariantAttributeMatchingCache {
             }
             for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
-                Transformer<List<File>, File> transformer = new Transformer<List<File>, File>() {
-                    @Override
-                    public List<File> transform(File file) {
-                        List<File> result = new ArrayList<File>();
-                        for (File intermediate : inputVariant.transformer.transform(file)) {
-                            result.addAll(candidate.getArtifactTransform().transform(intermediate));
-                        }
-                        return result;
-                    }
-                };
+                ArtifactTransformer transformer = new ChainedTransformer(inputVariant.transformer, candidate.getArtifactTransform());
                 result.matched(variantAttributes, transformer, inputVariant.depth + 1);
             }
         }
@@ -117,4 +106,5 @@ public class VariantAttributeMatchingCache {
         private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
         private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
     }
+
 }

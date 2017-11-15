@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +31,7 @@ public class ConsumerVariantMatchResult {
         result.matches.addAll(this.matches);
     }
 
-    public void matched(ImmutableAttributes output, Transformer<List<File>, File> transform, int depth) {
+    public void matched(ImmutableAttributes output, ArtifactTransformer transform, int depth) {
         // Collect only the shortest paths
         if (minDepth == 0) {
             minDepth = depth;
@@ -56,10 +54,10 @@ public class ConsumerVariantMatchResult {
 
     public static class ConsumerVariant {
         final AttributeContainerInternal attributes;
-        final Transformer<List<File>, File> transformer;
+        final ArtifactTransformer transformer;
         final int depth;
 
-        public ConsumerVariant(AttributeContainerInternal attributes, Transformer<List<File>, File> transformer, int depth) {
+        public ConsumerVariant(AttributeContainerInternal attributes, ArtifactTransformer transformer, int depth) {
             this.attributes = attributes;
             this.transformer = transformer;
             this.depth = depth;
