@@ -1,3 +1,6 @@
+.titlepage h1 {
+    margin-top: 0;
+}
 
 .caution {
   font-size: 15px;
@@ -43,6 +46,10 @@ table .caution {
     left: 14.6em;
 }
 
+.sidebar a {
+    color: #02303A;
+}
+
 .sidebar ul {
     padding-left: 0;
     padding-right: 0;
@@ -74,10 +81,6 @@ table .caution {
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
     border-radius: 2px;
-}
-
-.sidebar ul.sections {
-    padding-left: 1em;
 }
 
 .segmentedlist {

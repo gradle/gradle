@@ -66,8 +66,12 @@
     font-size: 100%;
 }
 
+.note p:first-child {
+    margin-top: 0;
+}
+
 .note > :last-child, .tip > :last-child, .examplelocation > :last-child {
-    margin-bottom: 0px
+    margin-bottom: 0;
 }
 
 .note, .tip {
