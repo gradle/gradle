@@ -66,12 +66,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             This operation represents the work of analyzing the inputs.
             Therefore, it should encompass all of the file IO and compute necessary to do this.
             This effectively happens in the first call to context.getTaskArtifactState().getStates().
-            If build caching is enabled, this is the first time that this will be called so it effectively
+            If build caching is enabled or the build scan plugin is applied, this is the first time that this will be called so it effectively
             encapsulates this work.
 
-            If build cache isn't enabled, this executer isn't in the mix and therefore the work of hashing
+            If build cache isn't enabled and the build scan plugin is not applied,
+            this executer isn't in the mix and therefore the work of hashing
             the inputs will happen later in the executer chain, and therefore they aren't wrapped in an operation.
-            We avoid adding this executer if build caching is not enabled due to concerns of performance impact
+            We avoid adding this executer due to concerns of performance impact.
 
             So, later, we either need always have this executer in the mix or make the input hashing
             an explicit step that always happens earlier and wrap it.

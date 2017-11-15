@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Represents the computation of the task artifact state and the task output caching state.
  *
- * This operation is executed only when the build cache is enabled.
+ * This operation is executed only when the build cache is enabled or when the build scan plugin is applied.
  * Must occur as a child of {@link org.gradle.internal.execution.ExecuteTaskBuildOperationType}.
  *
  * @since 4.0
