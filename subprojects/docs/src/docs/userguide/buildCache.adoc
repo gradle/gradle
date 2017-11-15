@@ -168,10 +168,8 @@ Caching is then enabled for api:org.gradle.language.c.tasks.CCompile[] and api:o
 [NOTE]
 ====
 Caching native tasks is experimental.
-Some inputs to the compilation tasks are not tracked yet, which can cause false cache hits:
 
-* The compiler type and version, thus object files produced by different compilers will be treated as identical.
-* System headers, thus object files produced with different versions of system libraries will be treated as identical.
+C/C++ compilers embed absolute paths to sources into object files, so you may not be able to debug object files which have been loaded from the cache.
 ====
 
 [[sec:task_output_caching_non_cacheable_tasks]]
