@@ -23,14 +23,20 @@ import java.util.Set;
 public interface SourceIncludesResolver {
     interface ResolvedSourceIncludes {
         /**
-         * Each include directive resolved to a file.
+         * The result of resolving each include directive, possibly unsuccessfully.
          */
         Set<ResolvedInclude> getResolvedIncludes();
+
+        /**
+         * Each include directive successfully resolved to a file.
+         */
+        Set<File> getResolvedIncludeFiles();
 
         /**
          * Every file path searched as part of resolution.
          */
         Set<File> getCheckedLocations();
     }
+
     ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes);
 }

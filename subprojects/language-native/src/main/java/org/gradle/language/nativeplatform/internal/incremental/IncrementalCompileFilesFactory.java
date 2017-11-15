@@ -103,8 +103,7 @@ public class IncrementalCompileFilesFactory {
                 includeDirectives = previousState.getIncludeDirectives();
             }
             SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, includeDirectives);
-
-            CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludes()));
+            CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludeFiles()));
 
             for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
                 if (resolvedInclude.isUnknown()) {
@@ -123,7 +122,7 @@ public class IncrementalCompileFilesFactory {
 
             current.setState(file, newState);
 
-            for (ResolvedInclude dep : newState.getResolvedIncludes()) {
+            for (ResolvedInclude dep : resolutionResult.getResolvedIncludes()) {
                 if (dep.isUnknown()) {
                     LOGGER.info("Cannot determine changed state of included '{}' in source file '{}'. Assuming changed.", dep.getInclude(), file.getName());
                     changed = true;

@@ -84,17 +84,17 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
 
     private static class CompilationFileStateSerializer extends AbstractSerializer<CompilationFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
-        private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer;
+        private final Serializer<Set<File>> resolveIncludesSerializer;
         private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
 
         private CompilationFileStateSerializer(Serializer<File> fileSerializer) {
-            this.resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer(fileSerializer));
+            this.resolveIncludesSerializer = new SetSerializer<File>(fileSerializer);
         }
 
         @Override
         public CompilationFileState read(Decoder decoder) throws Exception {
             HashCode hash = hashSerializer.read(decoder);
-            ImmutableSet<ResolvedInclude> resolvedIncludes = ImmutableSet.copyOf(resolveIncludesSerializer.read(decoder));
+            ImmutableSet<File> resolvedIncludes = ImmutableSet.copyOf(resolveIncludesSerializer.read(decoder));
             IncludeDirectives includeDirectives = sourceIncludesSerializer.read(decoder);
             return new CompilationFileState(hash, includeDirectives, resolvedIncludes);
         }
@@ -121,50 +121,6 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
         @Override
         public int hashCode() {
             return Objects.hashCode(super.hashCode(), hashSerializer, resolveIncludesSerializer, sourceIncludesSerializer);
-        }
-    }
-
-    private static class ResolvedIncludeSerializer extends AbstractSerializer<ResolvedInclude> {
-        private final Serializer<File> fileSerializer;
-
-        private ResolvedIncludeSerializer(Serializer<File> fileSerializer) {
-            this.fileSerializer = fileSerializer;
-        }
-
-        @Override
-        public ResolvedInclude read(Decoder decoder) throws Exception {
-            String include = decoder.readString();
-            File included = null;
-            if (decoder.readBoolean()) {
-                included = fileSerializer.read(decoder);
-            }
-            return ResolvedInclude.create(include, included);
-        }
-
-        @Override
-        public void write(Encoder encoder, ResolvedInclude value) throws Exception {
-            encoder.writeString(value.getInclude());
-            if (value.getFile() == null) {
-                encoder.writeBoolean(false);
-            } else {
-                encoder.writeBoolean(true);
-                fileSerializer.write(encoder, value.getFile());
-            }
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            ResolvedIncludeSerializer rhs = (ResolvedIncludeSerializer) obj;
-            return Objects.equal(fileSerializer, rhs.fileSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), fileSerializer);
         }
     }
 
@@ -209,7 +165,7 @@ public class CompilationStateSerializer extends AbstractSerializer<CompilationSt
             String value = stringSerializer.read(decoder);
             boolean isImport = booleanSerializer.read(decoder);
             IncludeType type = enumSerializer.read(decoder);
-            return DefaultInclude.create(value, isImport, type);
+            return new DefaultInclude(value, isImport, type);
         }
 
         @Override

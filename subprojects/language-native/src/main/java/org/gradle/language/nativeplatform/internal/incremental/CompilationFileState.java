@@ -19,15 +19,17 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
+import java.io.File;
+
 /**
  * Immutable snapshot of the state of a source or header file.
  */
 public class CompilationFileState {
     private final HashCode hash;
     private final IncludeDirectives includeDirectives;
-    private final ImmutableSet<ResolvedInclude> resolvedIncludes;
+    private final ImmutableSet<File> resolvedIncludes;
 
-    public CompilationFileState(HashCode hash, IncludeDirectives includeDirectives, ImmutableSet<ResolvedInclude> resolvedIncludes) {
+    public CompilationFileState(HashCode hash, IncludeDirectives includeDirectives, ImmutableSet<File> resolvedIncludes) {
         this.hash = hash;
         this.includeDirectives = includeDirectives;
         this.resolvedIncludes = resolvedIncludes;
@@ -41,7 +43,10 @@ public class CompilationFileState {
         return includeDirectives;
     }
 
-    public ImmutableSet<ResolvedInclude> getResolvedIncludes() {
+    /**
+     * The set of successfully resolved include files.
+     */
+    public ImmutableSet<File> getResolvedIncludes() {
         return resolvedIncludes;
     }
 }

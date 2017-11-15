@@ -126,7 +126,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    def "does not recompile when fallback mechanism is used and there are empty directories"() {
+    def "does not recompile when fallback mechanism is used and empty directory added to include directory"() {
         given:
         file("src/main/headers/empty/directory").mkdirs()
         sourceFile << """

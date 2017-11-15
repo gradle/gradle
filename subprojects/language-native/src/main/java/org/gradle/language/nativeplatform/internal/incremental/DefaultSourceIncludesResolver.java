@@ -23,6 +23,7 @@ import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -105,6 +106,17 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         @Override
         public Set<ResolvedInclude> getResolvedIncludes() {
             return dependencies;
+        }
+
+        @Override
+        public Set<File> getResolvedIncludeFiles() {
+            Set<File> files = new LinkedHashSet<File>(dependencies.size());
+            for (ResolvedInclude dependency : dependencies) {
+                if (!dependency.isUnknown()) {
+                    files.add(dependency.getFile());
+                }
+            }
+            return files;
         }
 
         @Override

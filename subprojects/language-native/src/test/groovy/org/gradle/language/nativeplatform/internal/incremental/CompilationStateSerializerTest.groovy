@@ -58,7 +58,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
         fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), createSourceIncludes(), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), createSourceIncludes("<system>", '"quoted"', "MACRO"), [resolvedInclude("ONE"), resolvedInclude("TWO")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), createSourceIncludes("<system>", '"quoted"', "MACRO"), [new File("ONE"), new File("TWO")])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState([], fileStates)
 
@@ -79,14 +79,14 @@ class CompilationStateSerializerTest extends SerializerSpec {
         otherCompileState.includeDirectives.systemIncludes.collect { it.value } == ["system"]
         otherCompileState.includeDirectives.quotedIncludes.collect { it.value } == ["quoted"]
         otherCompileState.includeDirectives.macroIncludes.collect { it.value } == ["MACRO"]
-        otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
+        otherCompileState.resolvedIncludes == [new File("ONE"), new File("TWO")] as Set
     }
 
     private DefaultIncludeDirectives createSourceIncludes(String... strings) {
         return new DefaultIncludeDirectives(ImmutableList.copyOf(strings.collect { DefaultInclude.parse(it, false) }), ImmutableList.of())
     }
 
-    private CompilationFileState compilationFileState(HashCode hash, IncludeDirectives includeDirectives, Collection<ResolvedInclude> resolvedIncludes) {
+    private CompilationFileState compilationFileState(HashCode hash, IncludeDirectives includeDirectives, Collection<File> resolvedIncludes) {
         return new CompilationFileState(hash, includeDirectives, ImmutableSet.copyOf(resolvedIncludes))
     }
 

@@ -84,7 +84,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     private IncrementalCompileFilesFactory createIncrementalCompileFilesFactory(T spec) {
         DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(spec.getIncludeRoots()));
+        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(spec.getIncludeRoots());
         return new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
     }
 
