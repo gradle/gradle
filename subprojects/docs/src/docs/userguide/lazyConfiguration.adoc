@@ -142,7 +142,7 @@ Another thing to note is the absence of any explicit task dependency. Properties
 [[sec:working_with_collection]]
 === Working with collection Providers
 
-In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.provider.ListProperty[]. You can create a new `Property` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] by specifying the elements class type.
+In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.provider.ListProperty[]. You can create a new `ListProperty` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] and specifying the element's type.
 
 This type of property allows you to overwrite the entire list with api:org.gradle.api.provider.Property#set(org.gradle.api.provider.Provider)[] or add new elements through the various `add` methods:
 
