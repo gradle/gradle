@@ -16,7 +16,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 public interface ProjectInitDescriptor {
-    void generate(BuildInitTestFramework testFramework);
+    void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework);
 
     boolean supports(BuildInitBuildScriptDsl buildScriptLanguage);
 

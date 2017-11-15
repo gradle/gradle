@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
-public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor{
+public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     private final DocumentationRegistry documentationRegistry;
 
@@ -30,8 +30,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(scriptDsl, testFramework);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -39,7 +39,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build")))
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
@@ -61,7 +61,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY || buildScriptLanguage == BuildInitBuildScriptDsl.KOTLIN;
     }
 
     @Override

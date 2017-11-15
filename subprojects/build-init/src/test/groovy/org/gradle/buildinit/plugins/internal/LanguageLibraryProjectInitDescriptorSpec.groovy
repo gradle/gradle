@@ -81,7 +81,7 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
-        void generate(BuildInitTestFramework testFramework) {
+        void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
 
         }
 

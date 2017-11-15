@@ -111,7 +111,7 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }
 
-        initDescriptor.generate(testFramework);
+        initDescriptor.generate(dsl, testFramework);
     }
 
     @Option(option = "type", description = "Set type of build to create.", order = 0)
