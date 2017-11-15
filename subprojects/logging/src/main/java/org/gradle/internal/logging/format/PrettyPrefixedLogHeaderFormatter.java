@@ -29,7 +29,7 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
         final String message = header != null ? header : description;
         if (message != null) {
             // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(eol(), header(message, failed), status(status, failed), eol());
+            return Lists.newArrayList(header(message, failed), status(status, failed), eol());
         } else {
             return Collections.emptyList();
         }
