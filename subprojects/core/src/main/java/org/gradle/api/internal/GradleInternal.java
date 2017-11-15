@@ -127,4 +127,5 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     void setIdentityPath(Path path);
 
+    ExperimentalFeatures getExperimentalFeatures();
 }

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -26,18 +27,20 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
     def setup() {
         resolve.prepare()
         server.start()
+
+        ExperimentalFeaturesFixture.enable(settingsFile)
+        settingsFile << "rootProject.name = 'test'"
+
     }
 
     def "downloads and caches the module metadata when present"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -92,12 +95,10 @@ dependencies {
         def m = mavenHttpRepo.module("test", "a", "1.2").publish()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -152,12 +153,10 @@ dependencies {
         def m = mavenHttpRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -242,12 +241,11 @@ dependencies {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
+         "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -326,12 +324,10 @@ task checkRelease {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -410,12 +406,10 @@ task checkRelease {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { 
@@ -485,12 +479,10 @@ task checkDebug {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { 
@@ -595,12 +587,10 @@ task checkDebug {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -670,12 +660,10 @@ task checkRelease {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 
@@ -731,12 +719,10 @@ task checkRelease {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -783,12 +769,10 @@ Required by:
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -830,12 +814,10 @@ dependencies {
         m.moduleMetadata.file.text = 'not-really-json'
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -873,12 +855,10 @@ dependencies {
         m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace("0.2", "123.67")
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }
@@ -936,12 +916,10 @@ dependencies {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
         url = '${mavenHttpRepo.uri}' 
-        useGradleMetadata() // internal opt-in for now
     }
 }
 configurations { compile }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
@@ -293,7 +294,8 @@ class DependencyManagementBuildScopeServices {
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
-                                                                ComponentSelectorConverter componentSelectorConverter) {
+                                                                ComponentSelectorConverter componentSelectorConverter,
+                                                                ExperimentalFeatures experimentalFeatures) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -301,7 +303,8 @@ class DependencyManagementBuildScopeServices {
             dependencyDescriptorFactory,
             versionComparator,
             moduleExclusions,
-            componentSelectorConverter);
+            componentSelectorConverter,
+            experimentalFeatures);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {

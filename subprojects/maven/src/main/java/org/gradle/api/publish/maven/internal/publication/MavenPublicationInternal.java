@@ -51,5 +51,6 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      */
     void publishWithOriginalFileName();
 
+    boolean canPublishModuleMetadata();
 }
 

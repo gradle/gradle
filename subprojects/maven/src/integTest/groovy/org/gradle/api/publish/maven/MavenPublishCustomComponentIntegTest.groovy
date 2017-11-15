@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
@@ -33,6 +34,34 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
 """)
 
         when:
+        run "publish"
+
+        then:
+        publishedModule.assertPublished()
+        publishedModule.parsedPom.scopes.isEmpty()
+        publishedModule.parsedModuleMetadata.variants.isEmpty()
+    }
+
+    def "can enable module metadata publishing via init script"() {
+        // Don't enable via system property
+        disableModuleMetadataPublishing()
+
+        // Instead enable via DSL
+        ExperimentalFeaturesFixture.enable(file("init.gradle"))
+
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from new MySoftwareComponent()
+                    }
+                }
+            }
+""")
+
+
+        when:
+        executer.withArguments("-I", "init.gradle")
         run "publish"
 
         then:

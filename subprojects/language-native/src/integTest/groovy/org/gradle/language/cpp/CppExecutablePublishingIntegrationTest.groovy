@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -26,12 +27,11 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
     def setup() {
         when:
-        consumer.file("settings.gradle") << '// empty'
+        ExperimentalFeaturesFixture.enable(consumer.file("settings.gradle"))
         consumer.file("build.gradle") << """
             repositories {
                 maven { 
                     url '${repo.uri}' 
-                    useGradleMetadata()
                 }
             }
             configurations {

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -137,7 +138,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ImmutableAttributesFactory attributesFactory,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                           InstantiatorFactory instantiatorFactory,
-                                                          FileResourceRepository fileResourceRepository) {
+                                                          FileResourceRepository fileResourceRepository,
+                                                          ExperimentalFeatures experimentalFeatures) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -151,7 +153,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ivyContextManager,
                 moduleIdentifierFactory,
                 instantiatorFactory,
-                fileResourceRepository
+                fileResourceRepository,
+                experimentalFeatures
             );
         }
 

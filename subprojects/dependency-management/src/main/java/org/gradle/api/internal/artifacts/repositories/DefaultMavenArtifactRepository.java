@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMeta
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -44,7 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository, ComponentAwareRepository {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final Transformer<String, MavenArtifactRepository> describer;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
@@ -57,7 +57,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
-    private boolean preferGradleMetadata;
+    private final ExperimentalFeatures experimentalFeatures;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -68,10 +68,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
-                                          FileResourceRepository fileResourceRepository) {
+                                          FileResourceRepository fileResourceRepository,
+                                          ExperimentalFeatures experimentalFeatures) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository);
+            resourcesFileStore, fileResourceRepository, experimentalFeatures);
 
     }
 
@@ -85,7 +86,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
-                                          FileResourceRepository fileResourceRepository) {
+                                          FileResourceRepository fileResourceRepository,
+                                          ExperimentalFeatures experimentalFeatures) {
         super(instantiator, authenticationContainer);
         this.describer = describer;
         this.fileResolver = fileResolver;
@@ -97,6 +99,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     @Override
@@ -137,13 +140,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = Lists.newArrayList(urls);
     }
 
-    @Override
-    public void useGradleMetadata() {
-        preferGradleMetadata = true;
-    }
-
     protected boolean isPreferGradleMetadata() {
-        return preferGradleMetadata;
+        return experimentalFeatures.isEnabled();
     }
 
     public ModuleVersionPublisher createPublisher() {

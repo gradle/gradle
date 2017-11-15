@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
@@ -248,5 +249,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
+    }
+
+    ExperimentalFeatures createExperimentalFeatures() {
+        return new ExperimentalFeatures();
     }
 }
