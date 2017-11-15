@@ -27,4 +27,10 @@ public interface DomainObjectContext {
      * Returns a path for the item with the given name that is unique within the current build.
      */
     Path projectPath(String name);
+
+    /**
+     * Returns wheather the context is a script
+     * */
+    boolean isScriptContext();
+
 }

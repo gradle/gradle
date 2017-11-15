@@ -86,6 +86,7 @@ import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.util.Path;
 
 import java.io.File;
 
@@ -210,9 +211,31 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             get(FileResolver.class),
             get(DependencyMetaDataProvider.class),
             get(ScriptClassPathResolver.class));
-        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
+        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
+    private class ScriptScopedContext implements DomainObjectContext {
+        private final DomainObjectContext delegate;
+
+        public ScriptScopedContext(DomainObjectContext delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Path identityPath(String name) {
+            return delegate.identityPath(name);
+        }
+
+        @Override
+        public Path projectPath(String name) {
+            return delegate.projectPath(name);
+        }
+
+        @Override
+        public boolean isScriptContext() {
+            return true;
+        }
+    }
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new ProjectBackedModuleMetaDataProvider();
     }

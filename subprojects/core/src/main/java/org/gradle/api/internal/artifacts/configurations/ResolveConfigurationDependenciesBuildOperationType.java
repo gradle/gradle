@@ -32,7 +32,12 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
     @UsedByScanPlugin
     public interface Details {
 
-        String getConfigurationPath();
+        String getConfigurationName();
+
+        @Nullable
+        String getProjectPath();
+
+        boolean isScriptConfiguration();
 
         @Nullable
         String getConfigurationDescription();

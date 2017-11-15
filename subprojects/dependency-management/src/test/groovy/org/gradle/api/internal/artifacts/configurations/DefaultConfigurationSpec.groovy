@@ -1614,7 +1614,7 @@ All Artifacts:
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {

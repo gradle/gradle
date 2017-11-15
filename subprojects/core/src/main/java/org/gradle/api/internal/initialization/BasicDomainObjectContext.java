@@ -29,4 +29,9 @@ public class BasicDomainObjectContext implements DomainObjectContext {
     public Path projectPath(String name) {
         return Path.path(name);
     }
+
+    @Override
+    public boolean isScriptContext() {
+        return true;
+    }
 }
