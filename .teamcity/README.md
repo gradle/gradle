@@ -12,12 +12,7 @@
   - Checkout the [teamcity-versioned-settings](https://github.com/gradle/gradle/tree/teamcity-versioned-settings) branch locally
   - The configurations are stored in the `.teamcity` folder and [tests](https://blog.jetbrains.com/teamcity/2017/02/kotlin-configuration-scripts-testing-configuration-scripts) in the `.teamcityTest` folder
   - Open the `.teamcity` folder in IDEA
-  - Add the `.teamcityTest` folder by adding the following snippet to `Gradle_Check_dsl.iml`
-      ```
-      <content url="file://$MODULE_DIR$/../.teamcityTest">
-        <sourceFolder url="file://$MODULE_DIR$/../.teamcityTest/Gradle_Check_Tests" isTestSource="true" />
-      </content>
-      ```
+  - Revert the changes made by IDEA to  `Gradle_Check_dsl.iml`
   - The main pipeline configuration can be found and modified in [CIBuildModel.kt](https://github.com/gradle/gradle/blob/teamcity-versioned-settings/.teamcity/Gradle_Check/model/CIBuildModel.kt)
   - After modifying, make sure that the configuration can be processed by running `CIConfigIntegrationTests`
   - Commit and push the changes
