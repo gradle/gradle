@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -43,7 +44,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.component.ComponentAwareRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -59,7 +59,7 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository, ComponentAwareRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final static Factory<ComponentMetadataSupplier> NO_METADATA_SUPPLIER = new Factory<ComponentMetadataSupplier>() {
         @Override
         public ComponentMetadataSupplier create() {
@@ -85,8 +85,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private Object[] componentMetadataSupplierParams;
     private final FileResourceRepository fileResourceRepository;
     private final ModuleMetadataParser moduleMetadataParser;
-
-    private boolean useGradleMetadata;
+    private final ExperimentalFeatures experimentalFeatures;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -96,7 +95,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         InstantiatorFactory instantiatorFactory,
-                                        FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser) {
+                                        FileResourceRepository fileResourceRepository,
+                                        ModuleMetadataParser moduleMetadataParser,
+                                        ExperimentalFeatures experimentalFeatures) {
         super(instantiatorFactory.decorate(), authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -112,6 +113,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiatorFactory.decorate();
         this.ivyContextManager = ivyContextManager;
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     @Override
@@ -155,7 +157,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private IvyResolver createResolver(RepositoryTransport transport) {
         Instantiator instantiator = createDependencyInjectingInstantiator(transport);
-        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplierFactory(instantiator), fileResourceRepository, moduleMetadataParser, useGradleMetadata);
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplierFactory(instantiator), fileResourceRepository, moduleMetadataParser, experimentalFeatures.isEnabled());
     }
 
     /**
@@ -189,11 +191,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                 return instantiator.newInstance(componentMetadataSupplierClass, componentMetadataSupplierParams);
             }
         };
-    }
-
-    @Override
-    public void useGradleMetadata() {
-        useGradleMetadata = true;
     }
 
     public URI getUrl() {

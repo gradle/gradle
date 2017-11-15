@@ -156,6 +156,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
     }
 
+    // TODO:DAZ Pull this up
     @Nullable
     @Override
     protected MutableMavenModuleResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {

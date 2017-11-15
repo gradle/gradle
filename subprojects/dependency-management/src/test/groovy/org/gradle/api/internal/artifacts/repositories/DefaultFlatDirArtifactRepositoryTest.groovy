@@ -44,7 +44,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final ModuleMetadataParser metadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), Mock(NamedObjectInstantiator))
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository), metadataParser, false)
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository), metadataParser)
 
     def "creates a repository with multiple root directories"() {
         given:
