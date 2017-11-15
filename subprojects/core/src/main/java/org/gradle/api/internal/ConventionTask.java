@@ -24,25 +24,24 @@ import org.gradle.api.tasks.Internal;
 import java.util.concurrent.Callable;
 
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
-    private final ConventionMapping conventionMapping;
-
-    protected ConventionTask() {
-        conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
-    }
+    private ConventionMapping conventionMapping;
 
     public Task conventionMapping(String property, Callable<?> mapping) {
-        conventionMapping.map(property, mapping);
+        getConventionMapping().map(property, mapping);
         return this;
     }
 
     public Task conventionMapping(String property, Closure mapping) {
-        conventionMapping.map(property, mapping);
+        getConventionMapping().map(property, mapping);
         return this;
     }
 
     @Override
     @Internal
     public ConventionMapping getConventionMapping() {
+        if (conventionMapping == null) {
+            conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
+        }
         return conventionMapping;
     }
 }

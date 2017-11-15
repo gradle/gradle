@@ -59,7 +59,6 @@ import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor;
-import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -242,12 +241,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {
-        return new DependencyAutoWireTaskFactory(
-            new AnnotationProcessingTaskFactory(
-                taskClassInfoStore,
-                new TaskFactory(
-                    get(ClassGenerator.class))
-            )
+        return new AnnotationProcessingTaskFactory(
+            taskClassInfoStore,
+            new TaskFactory(
+                get(ClassGenerator.class))
         );
     }
 
