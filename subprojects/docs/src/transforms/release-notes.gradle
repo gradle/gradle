@@ -211,7 +211,7 @@ transformDocument {
 // Wrap the page in a text container to get the margins
 transformDocument {
     def bodyContent = body().children().remove()
-    body().prepend("<div class='text-container'/>")
+    body().prepend("<div class='container'/>")
     body().children()[0].html(bodyContent.outerHtml())
 }
 

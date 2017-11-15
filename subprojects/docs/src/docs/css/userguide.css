@@ -13,8 +13,7 @@
 
 .book .toc > dl > dt > .part {
     display: inline-block;
-    font-size: 1.4em;
-    font-variant: small-caps;
+    font-size: 1.25em;
     margin-top: 0.6em;
     margin-bottom: 0.3em;
 }
@@ -28,21 +27,16 @@
 }
 
 div.toc p { /* Is "Table Of Contents" header */
-    font-size: 28px;
-    color: #007042;
+    font-size: 1.5em;
     margin-bottom: 0.5em;
-}
-
-div.toc p b {
-    font-weight: normal;
 }
 
 .chapter > .toc {
     margin-bottom: 1em;
 }
 
-.chapter > .toc > dl {
-    margin-left: 1.5em;
+.toc a {
+    color: #02303A;
 }
 
 /*
@@ -55,9 +49,9 @@ div.toc p b {
 
 .navfooter {
     margin-top: 3em;
-    padding-top: 1em;
+    padding: 1em 0;
     width: 100%;
-    border-top: solid #d0d0d0 0.4em;
+    border-top: 1px solid #d0d0d0;
 }
 
 .navbar {
@@ -82,14 +76,6 @@ div.toc p b {
 
 .titlepage .author {
     color: #666666;
-}
-
-.titlepage .copyright {
-    color: #a2a2a2;
-}
-
-.titlepage .legalnotice {
-    color: #a2a2a2;
 }
 
 .titlepage p {
