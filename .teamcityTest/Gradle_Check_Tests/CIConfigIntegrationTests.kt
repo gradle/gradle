@@ -21,11 +21,11 @@ class CIConfigIntegrationTests {
     fun macOSBuildsSubset() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val releaseAccept = p.subProjects.find { it.name.contains("Release Accept") }
-        val macOS = releaseAccept?.subProjects?.find { it.name.contains("Macos") }
+        val releaseAccept = p.subProjects.find { it.name.contains("Release Accept") }!!
+        val macOS = releaseAccept.subProjects.find { it.name.contains("Macos") }!!
 
-        assertEquals(OS.macos.subset.size, macOS?.buildTypes?.size)
-        macOS?.buildTypes?.forEach { buildType ->
+        assertEquals(OS.macos.subset.size, macOS.buildTypes.size)
+        macOS.buildTypes.forEach { buildType ->
             assertTrue(OS.macos.subset.any { subproject ->
                 buildType.name.endsWith("($subproject)")
             })
