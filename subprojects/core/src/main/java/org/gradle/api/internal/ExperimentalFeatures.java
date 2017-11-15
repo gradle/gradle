@@ -15,22 +15,31 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Sets;
+
+import java.util.Set;
+
 public class ExperimentalFeatures {
     private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
-    boolean enabled;
+    private final Set<String> enabledFeatures = Sets.newHashSet();
+    boolean allEnabled;
 
     public boolean isEnabled() {
-        return enabled
+        return allEnabled
             || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
     }
 
     public boolean isEnabled(String featureName) {
-        return enabled
-            || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null
+        return isEnabled()
+            || enabledFeatures.contains(featureName)
             || System.getProperty(ENABLE_EXPERIMENTAL_FEATURES + "." + featureName) != null;
     }
 
     public void enableAll() {
-        enabled = true;
+        allEnabled = true;
+    }
+
+    public void enable(String featureName) {
+        enabledFeatures.add(featureName);
     }
 }

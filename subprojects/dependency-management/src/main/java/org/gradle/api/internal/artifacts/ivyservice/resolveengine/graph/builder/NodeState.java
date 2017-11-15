@@ -171,14 +171,14 @@ class NodeState implements DependencyGraphNode {
 
     protected void visitDependencies(ModuleExclusion resolutionFilter, OptionalDependenciesHandler optionalDependenciesHandler, Collection<EdgeState> resultingOutgoingEdges) {
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        optionalDependenciesHandler.start(isOptionalConfiguration);
+        OptionalDependenciesHandler.Visitor optionalDepsVisitor =  optionalDependenciesHandler.start(isOptionalConfiguration);
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
-                if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependencyState)) {
+                if (!optionalDepsVisitor.maybeAddAsOptionalDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
                     resultingOutgoingEdges.add(dependencyEdge);
@@ -187,7 +187,7 @@ class NodeState implements DependencyGraphNode {
             previousTraversalExclusions = resolutionFilter;
         } finally {
             // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
-            optionalDependenciesHandler.complete();
+            optionalDepsVisitor.complete();
         }
     }
 

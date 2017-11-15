@@ -28,6 +28,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.prepare()
         settingsFile << """
             rootProject.name = 'testproject'
+            gradle.experimentalFeatures.enable('optionalDependencies')
         """
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
