@@ -24,50 +24,73 @@ class ToolingParameterProxyTest extends Specification {
 
     def "returns parameter valid when well defined"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(ValidParameter)
+        ToolingParameterProxy.validateParameter(ValidParameter)
 
         then:
-        assert isValid
+        noExceptionThrown()
     }
 
     def "returns parameter invalid when not a getter or setter"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter1)
+        ToolingParameterProxy.validateParameter(InvalidParameter1)
 
         then:
-        assert !isValid
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter1 is not a valid parameter type. Method notASetterOrGetter is neither a setter nor a getter."
     }
 
     def "returns parameter invalid when setter not correct"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter2)
+        ToolingParameterProxy.validateParameter(InvalidParameter2)
 
         then:
-        assert !isValid
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter2 is not a valid parameter type. Method setValue is neither a setter nor a getter."
     }
 
     def "returns parameter invalid when setter and getter have different types"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter3)
+        ToolingParameterProxy.validateParameter(InvalidParameter3)
 
         then:
-        assert !isValid
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter3 is not a valid parameter type. Setter and getter for property value have non corresponding types."
     }
 
     def "returns parameter invalid when no getter for setter"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter4)
+        ToolingParameterProxy.validateParameter(InvalidParameter4)
 
         then:
-        assert !isValid
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter4 is not a valid parameter type. It contains a different number of getters and setters."
     }
 
     def "returns parameter invalid when no setter for getter"() {
         when:
-        boolean isValid = ToolingParameterProxy.isValid(InvalidParameter5)
+        ToolingParameterProxy.validateParameter(InvalidParameter5)
 
         then:
-        assert !isValid
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter5 is not a valid parameter type. It contains a different number of getters and setters."
+    }
+
+    def "returns parameter invalid when it is not an interface"() {
+        when:
+        ToolingParameterProxy.validateParameter(InvalidParameter6)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter6 is not a valid parameter type. It must be an interface."
+    }
+
+    def "returns parameter invalid when more than one getter for property"() {
+        when:
+        ToolingParameterProxy.validateParameter(InvalidParameter7)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter7 is not a valid parameter type. More than one getter for property value was found."
     }
 
     def "getter gets what setter sets"() {
@@ -114,5 +137,21 @@ class ToolingParameterProxyTest extends Specification {
 
     interface InvalidParameter5 {
         String getValue()
+    }
+
+    class InvalidParameter6 {
+        String value
+        String getValue() {
+            return value
+        }
+        void setValue(String value) {
+            this.value = value
+        }
+    }
+
+    interface InvalidParameter7 {
+        boolean getValue()
+        boolean isValue()
+        void setValue(boolean value)
     }
 }

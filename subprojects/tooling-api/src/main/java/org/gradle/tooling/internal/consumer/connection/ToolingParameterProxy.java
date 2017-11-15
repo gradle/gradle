@@ -41,9 +41,9 @@ public class ToolingParameterProxy implements InvocationHandler {
     /**
      * Check if the given interface can be instantiated by this proxy.
      */
-    static boolean isValid(Class<?> clazz) {
+    static void validateParameter(Class<?> clazz) {
         if (!clazz.isInterface()) {
-            return false;
+            throwParameterValidationError(clazz, "It must be an interface.");
         }
 
         Map<String, Class<?>> setters = new HashMap<String, Class<?>>();
@@ -53,31 +53,31 @@ public class ToolingParameterProxy implements InvocationHandler {
             if (isGetter(method)) {
                 String property = getPropertyName(method.getName());
                 if (getters.containsKey(property)) {
-                    return false;
+                    throwParameterValidationError(clazz, String.format("More than one getter for property %s was found.", property));
                 }
                 getters.put(property, method.getReturnType());
             } else if (isSetter(method)) {
                 String property = getPropertyName(method.getName());
                 if (setters.containsKey(property)) {
-                    return false;
+                    throwParameterValidationError(clazz, String.format("More than one setter for property %s was found.", property));
                 }
                 setters.put(property, method.getParameterTypes()[0]);
             } else {
-                return false;
+                throwParameterValidationError(clazz, String.format("Method %s is neither a setter nor a getter.", method.getName()));
             }
         }
 
         if (setters.size() != getters.size()) {
-            return false;
+            throwParameterValidationError(clazz, "It contains a different number of getters and setters.");
         }
 
         for (String property : setters.keySet()) {
-            if (!getters.containsKey(property) || !setters.get(property).equals(getters.get(property))) {
-                return false;
+            if (!getters.containsKey(property)) {
+                throwParameterValidationError(clazz, String.format("A setter for property %s was found but no getter.", property));
+            } else if (!setters.get(property).equals(getters.get(property))) {
+                throwParameterValidationError(clazz, String.format("Setter and getter for property %s have non corresponding types.", property));
             }
         }
-
-        return true;
     }
 
     private static boolean isGetter(Method method) {
@@ -108,5 +108,9 @@ public class ToolingParameterProxy implements InvocationHandler {
     private static String getPropertyName(String methodName, String prefix) {
         String property = methodName.replaceFirst(prefix, "");
         return Character.toLowerCase(property.charAt(0)) + property.substring(1);
+    }
+
+    private static void throwParameterValidationError(Class<?> clazz, String cause) {
+        throw new IllegalArgumentException(String.format("%s is not a valid parameter type. %s", clazz.getName(), cause));
     }
 }
