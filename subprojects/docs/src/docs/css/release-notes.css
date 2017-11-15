@@ -1,10 +1,14 @@
+.table-of-contents a {
+  color: #02303A;
+}
+
 ul li {
-    list-style-type: none;
+  list-style-type: none;
 }
 ul li:before {
-    content: '\00276F';
-    padding-right: 5px;
-    margin-left: -20px;
+  content: '\00276F';
+  padding-right: 5px;
+  margin-left: -20px;
 }
 
 img.logo {
