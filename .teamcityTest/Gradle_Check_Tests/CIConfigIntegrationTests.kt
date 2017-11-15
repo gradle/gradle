@@ -1,4 +1,5 @@
 
+import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.*
 import org.junit.Test
@@ -49,6 +50,9 @@ class CIConfigIntegrationTests {
                 var functionalTestCount = 0
                 stage.functionalTests.forEach { testCoverage ->
                     m.subProjects.forEach { subProject ->
+                        if (shouldBeSkipped(subProject, testCoverage)) {
+                            return@forEach
+                        }
                         if (subProject.unitTests && testCoverage.testType.unitTests) {
                             functionalTestCount++
                         } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {

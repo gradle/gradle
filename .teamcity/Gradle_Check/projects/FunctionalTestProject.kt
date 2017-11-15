@@ -1,6 +1,7 @@
 package projects
 
 import configurations.FunctionalTest
+import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.TestCoverage
@@ -11,10 +12,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig : TestCoverage) : Pr
     this.name = testConfig.asName()
 
     model.subProjects.forEach { subProject ->
-        // TODO: Hacky. We should really be running all the subprojects on macOS
-        // But we're restricting this to just a subset of projects for now
-        // since we only have a small pool of macOS agents
-        if (testConfig.os.subset.isNotEmpty() && !testConfig.os.subset.contains(subProject.name)) {
+        if (shouldBeSkipped(subProject, testConfig)) {
             return@forEach
         }
         if (subProject.unitTests && testConfig.testType.unitTests) {

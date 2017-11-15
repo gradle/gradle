@@ -5,7 +5,9 @@ import jetbrains.buildServer.configs.kotlin.v10.buildFeatures.commitStatusPublis
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v10.buildSteps.script
 import model.CIBuildModel
+import model.GradleSubproject
 import model.OS
+import model.TestCoverage
 import java.util.Arrays.asList
 
 private val java7Homes = hashMapOf(
@@ -14,6 +16,13 @@ private val java7Homes = hashMapOf(
         // We only have Java 8 on macOS
         OS.macos to "-Djava7.home=%macos.java8.oracle.64bit%"
 )
+
+fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage) : Boolean {
+    // TODO: Hacky. We should really be running all the subprojects on macOS
+    // But we're restricting this to just a subset of projects for now
+    // since we only have a small pool of macOS agents
+    return testConfig.os.subset.isNotEmpty() && !testConfig.os.subset.contains(subProject.name)
+}
 
 val gradleParameters: List<String> = asList(
         "-PmaxParallelForks=%maxParallelForks%",

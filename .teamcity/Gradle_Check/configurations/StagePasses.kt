@@ -110,6 +110,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
                 model.subProjects.forEach { subProject ->
+                    if (shouldBeSkipped(subProject, testCoverage)) {
+                        return@forEach
+                    }
                     if (subProject.unitTests && testCoverage.testType.unitTests) {
                         dependency(testCoverage.asConfigurationId(model, subProject.name)) { snapshot {} }
                     } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
