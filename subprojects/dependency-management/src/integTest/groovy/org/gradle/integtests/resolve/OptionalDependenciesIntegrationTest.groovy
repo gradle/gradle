@@ -22,7 +22,7 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-            gradle.experimentalFeatures.enable('optionalDependencies')
+            gradle.experimentalFeatures.enable()
 """
     }
 

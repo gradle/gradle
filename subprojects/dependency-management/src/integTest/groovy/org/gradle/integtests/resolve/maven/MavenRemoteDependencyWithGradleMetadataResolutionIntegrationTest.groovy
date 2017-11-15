@@ -29,7 +29,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
         settingsFile << """
             rootProject.name = 'test'
-            gradle.experimentalFeatures.enableAll()
+            gradle.experimentalFeatures.enable()
 """
 
         settingsFile << ""

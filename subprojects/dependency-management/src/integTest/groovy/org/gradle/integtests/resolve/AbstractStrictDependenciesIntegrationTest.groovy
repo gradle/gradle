@@ -30,7 +30,7 @@ abstract class AbstractStrictDependenciesIntegrationTest extends AbstractHttpDep
 
     def getRepository() {
         """
-            ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'gradle.experimentalFeatures.enableAll()' : ''}
+            ${GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'gradle.experimentalFeatures.enable()' : ''}
             repositories {
                 maven { 
                    url "${mavenHttpRepo.uri}"

@@ -26,7 +26,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.prepare()
         settingsFile << """
             rootProject.name = 'test'
-            gradle.experimentalFeatures.enableAll()
+            gradle.experimentalFeatures.enable()
 """
 
     }

@@ -47,7 +47,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
 
         // Instead enable via DSL
         file("init.gradle") << """
-            gradle.experimentalFeatures.enableAll()
+            gradle.experimentalFeatures.enable()
 """
 
         createBuildScripts("""

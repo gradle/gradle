@@ -74,7 +74,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final ProviderFactory providers = project.getProviders();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        project.getGradle().getExperimentalFeatures().enableAll();
+        project.getGradle().getExperimentalFeatures().enable();
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {

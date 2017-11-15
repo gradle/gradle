@@ -26,12 +26,13 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
     def setup() {
         when:
-        consumer.file("settings.gradle") << '// empty'
+        consumer.file("settings.gradle") << """
+            gradle.experimentalFeatures.enable()
+"""
         consumer.file("build.gradle") << """
             repositories {
                 maven { 
                     url '${repo.uri}' 
-                    useGradleMetadata()
                 }
             }
             configurations {

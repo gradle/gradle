@@ -143,7 +143,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
         if (useGradleMetadata) {
             buildFile << """
-                gradle.experimentalFeatures.enableAll()
+                gradle.experimentalFeatures.enable()
 """
         }
         run "resolveArtifacts"
