@@ -17,6 +17,7 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class GroovyInteroperabilityTest {
@@ -29,6 +30,13 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
+    fun `can use closure with single nullable argument call`() {
+        var passedIntoClosure : Any? = "Something non null"
+        closureOf<Any?> { passedIntoClosure = this }.call(null)
+        assertNull(passedIntoClosure)
+    }
+
+    @Test
     fun `can use closure with delegate call`() {
         val list = arrayListOf<Int>()
         delegateClosureOf<MutableList<Int>> { add(42) }.apply {
@@ -36,6 +44,15 @@ class GroovyInteroperabilityTest {
             call()
         }
         assertEquals(42, list.first())
+    }
+    @Test
+    fun `can use closure with a null delegate call`() {
+        var passedIntoClosure : Any? = "Something non null"
+        delegateClosureOf<Any?> { passedIntoClosure = this }.apply {
+            delegate = null
+            call()
+        }
+        assertNull(passedIntoClosure)
     }
 
     @Test
@@ -49,6 +66,15 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
+    fun `can adapt parameterless null returning function using KotlinClosure0`() {
+        fun closure(function: () -> String?) = KotlinClosure0(function)
+
+        assertEquals(
+            null,
+            closure { null }.call())
+    }
+
+    @Test
     fun `can adapt unary function using KotlinClosure1`() {
 
         fun closure(function: String.() -> String) = KotlinClosure1(function)
@@ -59,6 +85,15 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
+    fun `can adapt unary null receiving function using KotlinClosure1`() {
+        fun closure(function: String?.() -> String?) = KotlinClosure1(function)
+
+        assertEquals(
+            null,
+            closure { null }.call(null))
+    }
+
+    @Test
     fun `can adapt binary function using KotlinClosure2`() {
 
         fun closure(function: (String, String) -> String) = KotlinClosure2(function)
@@ -66,6 +101,16 @@ class GroovyInteroperabilityTest {
         assertEquals(
             "foobar",
             closure { x, y -> x + y }.call("foo", "bar"))
+    }
+
+    @Test
+    fun `can adapt binary null receiving function using KotlinClosure2`() {
+
+        fun closure(function: (String?, String?) -> String?) = KotlinClosure2(function)
+
+        assertEquals(
+            null,
+            closure { _, _ -> null }.call(null, null))
     }
 
     @Test
