@@ -62,6 +62,12 @@ This could avoid potential vulnerabilities.
 It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
   Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).   
 
+### C/C++ incremental build improvements
+
+C/C++ compilation now takes the compiler version and system headers into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+Before Gradle 4.4 changing the compiler version did not make the compilation task out of date, even though different compiler versions may produce different outputs.
+Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
+
 ### Embedded Ant version upgraded to Ant 1.9.9
 
 Gradle now embeds [Ant 1.9.9](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.9.html). Previous releases used Ant 1.9.6.
