@@ -106,7 +106,7 @@ In <<working_with_files>>, we introduced four collection types for `File`-like o
 
 All of these types are also considered `Provider` types.
 
-In this section, we are going to introduce more strongly typed models for a api:org.gradle.api.file.FileSystemLocation[]: api:org.gradle.api.file.Directory[] and api:org.gradle.api.file.RegularFile[]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[java.io.File] type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file). 
+In this section, we are going to introduce more strongly typed models for a api:org.gradle.api.file.FileSystemLocation[]: api:org.gradle.api.file.Directory[] and api:org.gradle.api.file.RegularFile[]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[java.io.File] type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file).
 
 Gradle provides two specialized `Property` subtypes for dealing with these types: api:org.gradle.api.file.RegularFileProperty[] and api:org.gradle.api.file.DirectoryProperty[]. api:org.gradle.api.file.ProjectLayout[] has methods to create these: api:org.gradle.api.file.ProjectLayout#fileProperty()[] and api:org.gradle.api.file.ProjectLayout#directoryProperty()[].
 
@@ -119,7 +119,7 @@ A `DirectoryProperty` can also be used to create a lazily evaluated `Provider` f
 </sample>
 ++++
 
-This example shows how `Provider` types can be used inside an extension. Lazy values for api:org.gradle.api.Project#getBuildDir()[] and api:org.gradle.api.Project#getProjectDir()[] can be accessed through api:org.gradle.api.Project#getLayout()[] with api:org.gradle.api.file.ProjectLayout#getBuildDirectory()[] and api:org.gradle.api.file.ProjectLayout#getProjectDirectory()[]. 
+This example shows how `Provider` types can be used inside an extension. Lazy values for api:org.gradle.api.Project#getBuildDir()[] and api:org.gradle.api.Project#getProjectDir()[] can be accessed through api:org.gradle.api.Project#getLayout()[] with api:org.gradle.api.file.ProjectLayout#getBuildDirectory()[] and api:org.gradle.api.file.ProjectLayout#getProjectDirectory()[].
 
 [[sec:working_with_task_dependencies_in_lazy_properties]]
 === Working with task dependencies and Providers
@@ -138,6 +138,25 @@ To make this easier, Gradle offers convenient APIs for defining files or directo
 In the example above, the task output and input are connected before any location is defined. This is possible because the input and output properties use the `Provider` API. The output property is created with api:org.gradle.api.DefaultTask#newOutputFile()[] and the input property is created with api:org.gradle.api.DefaultTask#newInputFile()[]. Values are only resolved when they are needed during execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
 
 Another thing to note is the absence of any explicit task dependency. Properties created via `newOutputFile()` and `newOutputDirectory()` bring knowledge about which task is generating them, so using them as task input will implicitly link tasks together.
+
+[[sec:working_with_collection]]
+=== Working with collection Providers
+
+In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.providers.ListProperty[]. You can create a new `Property` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] by specifying the elements class type.
+
+This type of property allows you to overwrite the entire list with api:org.gradle.api.providers.ListProperty#set[] or add new elements through the various `add` methods:
+* api:org.gradle.api.providers.ListProperty#add(T)[]: Add a single concrete element to the list
+* api:org.gradle.api.providers.ListProperty#add(org.gradle.api.providers.Provider<T>)[]: Add a lazily evaluated element to the list
+* api:org.gradle.api.providers.ListProperty#addAll(org.gradle.api.providers.Provider<java.lang.List<T>>)[]: Add a lazily evaluated list of elements to the list
+
+Just like every `Provider`, the list is evaluated when api:org.gradle.api.providers.Provider#get()[] is called. The following example show the api:org.gradle.api.providers.ListProperty[] in action:
+
+++++
+<sample id="listProperty" dir="providers/listProperty" title="List property">
+    <sourcefile file="build.gradle"/>
+    <output args="consumer"/>
+</sample>
+++++
 
 [[sec:lazy_configuration_faqs]]
 === FAQs
