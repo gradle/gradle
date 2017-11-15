@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
@@ -296,6 +297,8 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
     def "attribute matching is used to select a variant of the dependency's target if the dependency was added by a rule"() {
         given:
+        ExperimentalFeaturesFixture.enable(settingsFile)
+
         setupCustomVariantsForModule(moduleB).publish()
         moduleA.dependsOn(moduleB).publish()
         repo.module("org.test", "moduleC").allowAll()
@@ -303,7 +306,6 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
         def mavenGradleRepo = new MavenFileRepository(file("maven-gradle-repo"))
         buildFile << """
-            gradle.experimentalFeatures.enable()
             repositories {
                 maven {
                     url "$mavenGradleRepo.uri"

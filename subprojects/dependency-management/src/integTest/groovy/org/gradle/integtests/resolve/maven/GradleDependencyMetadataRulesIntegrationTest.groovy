@@ -16,12 +16,18 @@
 
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.resolve.DependencyMetadataRulesIntegrationTest
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class GradleDependencyMetadataRulesIntegrationTest extends DependencyMetadataRulesIntegrationTest {
+
+    def setup() {
+        ExperimentalFeaturesFixture.enable(settingsFile)
+    }
+
     @Override
     MavenHttpRepository getRepo() {
         mavenHttpRepo
@@ -30,7 +36,6 @@ class GradleDependencyMetadataRulesIntegrationTest extends DependencyMetadataRul
     @Override
     String getRepoDeclaration() {
         """
-            gradle.experimentalFeatures.enable()
             repositories {
                 maven {
                     url "$repo.uri"

@@ -16,14 +16,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 
 class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        settingsFile << """
-            rootProject.name = 'test'
-            gradle.experimentalFeatures.enable()
-"""
+        ExperimentalFeaturesFixture.enable(settingsFile)
+        settingsFile << "rootProject.name = 'test'"
     }
 
     void "optional dependency is ignored when feature not enabled"() {

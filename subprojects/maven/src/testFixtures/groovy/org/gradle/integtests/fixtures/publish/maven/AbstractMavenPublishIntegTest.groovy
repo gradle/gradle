@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
@@ -113,6 +114,9 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     protected def doResolveArtifacts(def dependencies, def useGradleMetadata = false, def targetVariant = null) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
+        if (useGradleMetadata) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
         def attributes = targetVariant == null ?
             "" :
             """ 
@@ -141,11 +145,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
 """
 
-        if (useGradleMetadata) {
-            buildFile << """
-                gradle.experimentalFeatures.enable()
-"""
-        }
         run "resolveArtifacts"
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()

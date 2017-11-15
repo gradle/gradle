@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractDependencyResolutionTest {
@@ -24,18 +25,14 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
     def setup() {
         resolve.prepare()
-        settingsFile << """
-            rootProject.name = 'test'
-            gradle.experimentalFeatures.enable()
-"""
-
+        ExperimentalFeaturesFixture.enable(settingsFile)
+        settingsFile << "rootProject.name = 'test'"
     }
 
     def "uses the module metadata when present and pom is not present"() {
         mavenRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
@@ -103,7 +100,6 @@ dependencies {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
@@ -168,7 +164,6 @@ task checkRelease {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
@@ -222,7 +217,6 @@ task checkRelease {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 
@@ -273,7 +267,6 @@ task checkDebug {
 """
 
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
 repositories {
     maven { 

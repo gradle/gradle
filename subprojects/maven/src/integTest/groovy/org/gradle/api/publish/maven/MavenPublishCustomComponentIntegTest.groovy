@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
@@ -46,9 +47,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         disableModuleMetadataPublishing()
 
         // Instead enable via DSL
-        file("init.gradle") << """
-            gradle.experimentalFeatures.enable()
-"""
+        ExperimentalFeaturesFixture.enable(file("init.gradle"))
 
         createBuildScripts("""
             publishing {
