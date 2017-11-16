@@ -310,9 +310,9 @@ The remote build cache can be configured by specifying the type of build cache t
 ==== Built-in local build cache
 
 The built-in local build cache, api:org.gradle.caching.local.DirectoryBuildCache[], uses a directory to store build cache artifacts.
-You can configure the directory the local build cache uses to store the build outputs.
-By default, it resides in the Gradle user home directory.
-Gradle will periodically clean-up the local cache directory to keep it under a configurable target size.
+By default, this directory resides in the Gradle user home directory, but its location is configurable.
+
+Gradle will periodically clean-up the local cache directory to reduce it to a configurable target size.
 This means that the local build cache directory may temporarily grow over the target size until the next clean-up is scheduled.
 
 For more details on the configuration options refer to the DSL documentation of api:org.gradle.caching.local.DirectoryBuildCache[].
@@ -328,7 +328,7 @@ Here is an example of the configuration.
 [[sec:build_cache_configure_remote]]
 ==== Remote HTTP build cache
 
-Gradle supports connecting to a remote build cache backend via HTTP.
+Gradle has built-in support for connecting to a remote build cache backend via HTTP.
 For more details on what the protocol looks like see api:org.gradle.caching.http.HttpBuildCache[].
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
