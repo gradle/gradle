@@ -1612,9 +1612,11 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+        ConfigurationUseSite useSite = Mock()
+        _ * useSite.getProjectPath() >> Path.path(path)
+        new DefaultConfiguration(Path.path(path), useSite, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Mock(ConfigurationUseSite))
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -149,7 +149,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final Path identityPath;
     // These fields are not covered by mutation lock
-    private final Path path;
     private final String name;
     private final DefaultConfigurationPublications outgoing;
 
@@ -178,7 +177,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final DisplayName displayName;
 
-    public DefaultConfiguration(final Path identityPath, Path path, String name,
+    public DefaultConfiguration(final Path identityPath, ConfigurationUseSite configurationUseSite, String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -191,10 +190,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
-                                ConfigurationUseSite configurationUseSite) {
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder
+                                ) {
         this.identityPath = identityPath;
-        this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -644,11 +642,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
         Path newIdentityPath = identityPath.getParent().child(newName);
-        Path newPath = path.getParent().child(newName);
+        SimpleConfigurationUseSite configurationUseSiteCopy = new SimpleConfigurationUseSite(this.configurationUseSite.getProjectPath().getParent().child(newName), this.configurationUseSite.isScript());
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, configurationUseSiteCopy, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, configurationUseSite);
+            rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -716,7 +714,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getPath() {
-        return path.getPath();
+        Path projectPath = configurationUseSite.getProjectPath();
+        return projectPath == null ? null : projectPath.getPath();
     }
 
     @Override
@@ -1027,12 +1026,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getPath() {
-            return path.getPath();
+            return configurationUseSite.getProjectPath().getPath();
         }
 
         @Override
         public String toString() {
-            return "dependencies '" + path + "'";
+            return "dependencies '" + configurationUseSite.getProjectPath() + "'";
         }
 
         public FileCollection getFiles() {
@@ -1318,7 +1317,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Nullable
         @Override
         public String getProjectPath() {
-            return configurationUseSite.getProjectPath();
+            if(isScriptConfiguration()) {
+                return null;
+            } else {
+                Path projectPath = configurationUseSite.getProjectPath().getParent();
+                return projectPath == null ? null : projectPath.getPath();
+            }
         }
 
         @Override
@@ -1344,6 +1348,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public boolean isConfigurationTransitive() {
             return isTransitive();
+        }
+    }
+
+    private static class SimpleConfigurationUseSite implements ConfigurationUseSite {
+        private final Path projectPath;
+        private final boolean isScript;
+
+        public SimpleConfigurationUseSite(Path projectPath, boolean isScript) {
+            this.projectPath = projectPath;
+            this.isScript = isScript;
+        }
+
+        @Override
+        public Path getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public boolean isScript() {
+            return isScript;
         }
     }
 }
