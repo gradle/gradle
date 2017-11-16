@@ -86,8 +86,8 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
             throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parametrized model request.");
         }
 
-        if (parameterType != null && !ToolingParameterProxy.isValid(parameterType)) {
-            throw new IllegalArgumentException(parameterType.getName() + " is not a valid parameter type. Parameter types need to be interfaces with only getters and setters.");
+        if (parameterType != null) {
+            ToolingParameterProxy.validateParameter(parameterType);
         }
     }
 

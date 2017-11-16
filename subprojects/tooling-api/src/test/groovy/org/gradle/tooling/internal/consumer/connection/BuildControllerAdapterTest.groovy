@@ -198,7 +198,7 @@ class BuildControllerAdapterTest extends Specification {
 
         then:
         IllegalArgumentException e1 = thrown()
-        e1.message == "org.gradle.tooling.internal.consumer.connection.BuildControllerAdapterTest\$InvalidParameter is not a valid parameter type. Parameter types need to be interfaces with only getters and setters."
+        e1.message == "org.gradle.tooling.internal.consumer.connection.BuildControllerAdapterTest\$InvalidParameter is not a valid parameter type. It must be an interface."
     }
 
     interface ValidParameter {

@@ -168,10 +168,8 @@ Caching is then enabled for api:org.gradle.language.c.tasks.CCompile[] and api:o
 [NOTE]
 ====
 Caching native tasks is experimental.
-Some inputs to the compilation tasks are not tracked yet, which can cause false cache hits:
 
-* The compiler type and version, thus object files produced by different compilers will be treated as identical.
-* System headers, thus object files produced with different versions of system libraries will be treated as identical.
+C/C++ compilers embed absolute paths to sources into object files, so you may not be able to debug object files which have been loaded from the cache.
 ====
 
 [[sec:task_output_caching_non_cacheable_tasks]]
@@ -306,16 +304,45 @@ Gradle pushes build outputs to any build cache that is enabled and has api:org.g
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
 The local build cache is pre-configured to be a api:org.gradle.caching.local.DirectoryBuildCache[] and enabled by default.
-The `DirectoryBuildCache` will periodically clean-up the local cache directory to keep it under a configurable target size.
 The remote build cache can be configured by specifying the type of build cache to connect to (api:org.gradle.caching.configuration.BuildCacheConfiguration#remote(java.lang.Class)[]).
 
-Gradle supports connecting to a remote build cache backend via HTTP. This can be configured in `settings.gradle`.
+[[sec:build_cache_configure_local]]
+==== Built-in local build cache
+
+The built-in local build cache, api:org.gradle.caching.local.DirectoryBuildCache[], uses a directory to store build cache artifacts.
+By default, this directory resides in the Gradle user home directory, but its location is configurable.
+
+Gradle will periodically clean-up the local cache directory to reduce it to a configurable target size.
+This means that the local build cache directory may temporarily grow over the target size until the next clean-up is scheduled.
+
+For more details on the configuration options refer to the DSL documentation of api:org.gradle.caching.local.DirectoryBuildCache[].
+Here is an example of the configuration.
+
+++++
+<sample id="directoryBuildCacheConfiguration" dir="buildCache/configure-built-in-caches" title="Configure the local cache">
+    <sourcefile file="settings.gradle" snippet="configure-directory-build-cache"/>
+</sample>
+++++
+
+
+[[sec:build_cache_configure_remote]]
+==== Remote HTTP build cache
+
+Gradle has built-in support for connecting to a remote build cache backend via HTTP.
 For more details on what the protocol looks like see api:org.gradle.caching.http.HttpBuildCache[].
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
 ++++
 <sample id="httpBuildCache" dir="buildCache/http-build-cache" title="Pull from HttpBuildCache">
     <sourcefile file="settings.gradle" snippet="http-build-cache"/>
+</sample>
+++++
+
+You can configure the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access the build cache server as shown in the following example.
+
+++++
+<sample id="httpBuildCacheConfiguration" dir="buildCache/configure-built-in-caches" title="Configure remote HTTP cache">
+    <sourcefile file="settings.gradle" snippet="configure-http-build-cache"/>
 </sample>
 ++++
 
@@ -334,6 +361,8 @@ In that case, set api:org.gradle.caching.http.HttpBuildCache#isAllowUntrustedSer
 This is a convenient workaround, but you shouldn’t use it as a long-term solution.
 ====
 
+[[sec:build_cache_configure_use_cases]]
+==== Configuration use cases
 
 The recommended use case for the build cache is that your continuous integration server populates the remote build cache with clean builds while developers pull
 from the remote build cache and push to a local build cache. The configuration would then look as follows.
@@ -352,15 +381,6 @@ This can be achieved by applying the same script to `buildSrc/settings.gradle` a
     <sourcefile file="settings.gradle" snippet="configure-build-src-build-cache"/>
     <sourcefile file="buildSrc/settings.gradle" snippet="configure-build-src-build-cache"/>
     <sourcefile file="gradle/buildCacheSettings.gradle" snippet="configure-build-src-build-cache"/>
-</sample>
-++++
-
-You can configure the directory the api:org.gradle.caching.local.DirectoryBuildCache[] uses to store the build outputs and
-the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access the build cache server as shown in the following example.
-
-++++
-<sample id="directoryAndHttpBuildCacheConfiguration" dir="buildCache/configure-built-in-caches" title="Configure built-in build caches">
-    <sourcefile file="settings.gradle" snippet="configure-built-in-build-caches"/>
 </sample>
 ++++
 
