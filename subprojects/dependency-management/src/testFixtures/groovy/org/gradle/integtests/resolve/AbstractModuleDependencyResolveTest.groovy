@@ -35,6 +35,11 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String getRootProjectName() { 'test' }
 
+    void resetExpectations() {
+        server.resetExpectations()
+        repoSpec.nextStep()
+    }
+
     private String getMavenRepository() {
         """
             repositories {
@@ -85,9 +90,14 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     void repositoryInteractions(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
-        spec.delegate = repoSpec
-        spec()
-        repoSpec.build(useIvy() ? ivyHttpRepo : mavenHttpRepo)
+        RemoteRepositorySpec.DEFINES_INTERACTIONS.set(true)
+        try {
+            spec.delegate = repoSpec
+            spec()
+            repoSpec.build(useIvy() ? ivyHttpRepo : mavenHttpRepo)
+        } finally {
+            RemoteRepositorySpec.DEFINES_INTERACTIONS.set(false)
+        }
     }
 
 }

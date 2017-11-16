@@ -296,12 +296,8 @@ class StrictDependenciesIntegrationTest extends AbstractModuleDependencyResolveT
     def "should fail if 2 strict versions disagree"() {
         given:
         repository {
-            'org:foo:15' {
-                maybeGetMetadata()
-            }
-            'org:foo:17' {
-                expectGetMetadata()
-            }
+            'org:foo:15'()
+            'org:foo:17'()
         }
 
         buildFile << """

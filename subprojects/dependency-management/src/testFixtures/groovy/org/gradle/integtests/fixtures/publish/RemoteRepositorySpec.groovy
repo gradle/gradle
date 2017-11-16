@@ -19,7 +19,18 @@ package org.gradle.integtests.fixtures.publish
 import org.gradle.test.fixtures.HttpRepository
 
 class RemoteRepositorySpec {
+    public static final ThreadLocal<Boolean> DEFINES_INTERACTIONS = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            false
+        }
+    }
+
     final Map<String, GroupSpec> groups = [:].withDefault { new GroupSpec(it) }
+
+    void nextStep() {
+        groups.clear()
+    }
 
     void group(String group, @DelegatesTo(value=GroupSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> groupSpec) {
         groupSpec.delegate = groups[group]

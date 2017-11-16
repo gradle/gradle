@@ -27,16 +27,28 @@ class ModuleVersionSpec {
     private final String groupId
     private final String artifactId
     private final String version
+    private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
     private final List<Closure<?>> withModule = []
-    private Expectation expectGetMetadata = Expectation.NONE
-    private List<?> expectGetArtifact = []
+    private List<Expectation> expectGetMetadata = [Expectation.NONE]
+    private List<ArtifactExpectation> expectGetArtifact = []
 
     enum Expectation {
         GET,
+        HEAD,
         MAYBE,
         NONE
+    }
+
+    static class ArtifactExpectation {
+        final Expectation type
+        final Object spec
+
+        ArtifactExpectation(Expectation type, Object spec) {
+            this.type = type
+            this.spec = spec
+        }
     }
 
     ModuleVersionSpec(String group, String module, String version) {
@@ -46,19 +58,31 @@ class ModuleVersionSpec {
     }
 
     void expectGetMetadata() {
-        expectGetMetadata = Expectation.GET
+        expectGetMetadata << Expectation.GET
+    }
+
+    void expectHeadMetadata() {
+        expectGetMetadata << Expectation.HEAD
     }
 
     void expectGetArtifact(String artifact = '') {
-        expectGetArtifact << artifact
+        expectGetArtifact << new ArtifactExpectation(Expectation.GET, artifact)
     }
 
     void expectGetArtifact(Map<String, String> artifact) {
-        expectGetArtifact << artifact
+        expectGetArtifact << new ArtifactExpectation(Expectation.GET, artifact)
+    }
+
+    void expectHeadArtifact(String artifact = '') {
+        expectGetArtifact << new ArtifactExpectation(Expectation.HEAD, artifact)
+    }
+
+    void expectHeadArtifact(Map<String, String> artifact) {
+        expectGetArtifact << new ArtifactExpectation(Expectation.HEAD, artifact)
     }
 
     void maybeGetMetadata() {
-        expectGetMetadata = Expectation.MAYBE
+        expectGetMetadata << Expectation.MAYBE
     }
 
     void dependsOn(coord) {
@@ -75,43 +99,68 @@ class ModuleVersionSpec {
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
         }
-        switch (expectGetMetadata) {
-            case Expectation.NONE:
-                break;
-            case Expectation.MAYBE:
-                if (GradleContextualExecuter.parallel) {
+        expectGetMetadata.each {
+            switch (it) {
+                case Expectation.NONE:
+                    break;
+                case Expectation.MAYBE:
+                    if (GradleContextualExecuter.parallel) {
+                        if (module instanceof MavenModule) {
+                            module.pom.allowGetOrHead()
+                        } else if (module instanceof IvyModule) {
+                            module.ivy.allowGetOrHead()
+                        }
+                        if (gradleMetadataEnabled) {
+                            module.moduleMetadata.allowGetOrHead()
+                        }
+                    }
+                    break
+                case Expectation.HEAD:
                     if (module instanceof MavenModule) {
-                        module.pom.allowGetOrHead()
+                        module.pom.expectHead()
                     } else if (module instanceof IvyModule) {
-                        module.ivy.allowGetOrHead()
+                        module.ivy.expectHead()
                     }
                     if (gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
+                        module.moduleMetadata.expectHead()
                     }
-                }
-                break
-            default:
-                if (module instanceof MavenModule) {
-                    module.pom.expectGet()
-                } else if (module instanceof IvyModule) {
-                    module.ivy.expectGet()
-                }
-                if (gradleMetadataEnabled) {
-                    module.moduleMetadata.expectGet()
-                }
+                    break
+                default:
+                    if (module instanceof MavenModule) {
+                        module.pom.expectGet()
+                    } else if (module instanceof IvyModule) {
+                        module.ivy.expectGet()
+                    }
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.expectGet()
+                    }
+            }
         }
 
-
         if (expectGetArtifact) {
-            expectGetArtifact.each { artifact ->
-                if (artifact) {
+            expectGetArtifact.each { ArtifactExpectation expectation ->
+                def artifact
+                if (expectation.spec) {
                     if (module instanceof MavenModule) {
-                        module.getArtifact(artifact).expectGet()
+                        artifact = module.getArtifact(expectation.spec)
                     } else if (module instanceof IvyModule) {
-                        module.artifact(artifact).expectGet()
+                        artifact = module.artifact(expectation.spec)
                     }
                 } else {
-                    module.artifact.expectGet()
+                    artifact = module.artifact
+                }
+                switch (expectation.type) {
+                    case Expectation.GET:
+                        artifact.expectGet()
+                        break
+                    case Expectation.HEAD:
+                        artifact.expectHead()
+                        break
+                    case Expectation.MAYBE:
+                        artifact.allowGetOrHead()
+                        break
+                    case Expectation.NONE:
+                        break
                 }
             }
         }
@@ -134,7 +183,10 @@ class ModuleVersionSpec {
                 spec()
             }
         }
-        module.publish()
+        if (mustPublish) {
+            // do not publish modules created during a `repositoryInteractions { ... }` block
+            module.publish()
+        }
     }
 
 }
