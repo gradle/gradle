@@ -31,6 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
@@ -140,6 +141,16 @@ public class Depend extends DefaultTask {
             includePaths = builder.build();
         }
         return includePaths;
+    }
+
+    /**
+     * Returns the set of directory where the compiler should search for header files.
+     *
+     * @since 4.4
+     */
+    @Internal("tracked through getIncludePaths()")
+    public ConfigurableFileCollection getIncludes() {
+        return includes;
     }
 
     /**
