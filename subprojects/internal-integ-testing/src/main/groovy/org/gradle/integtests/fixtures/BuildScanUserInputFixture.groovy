@@ -63,16 +63,14 @@ final class BuildScanUserInputFixture {
         "$ANSWER_PREFIX $answer"
     }
 
-    static void writeToStdIn(GradleHandle gradleHandle, input) {
+    static void writeToStdInAndClose(GradleHandle gradleHandle, input) {
         gradleHandle.stdinPipe.write(input)
-        writeLineSeparatorToStdIn(gradleHandle)
+        writeLineSeparatorToStdInAndClose(gradleHandle)
     }
 
-    private static void writeLineSeparatorToStdIn(GradleHandle gradleHandle) {
+    private static void writeLineSeparatorToStdInAndClose(GradleHandle gradleHandle) {
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-    }
-
-    static void closeStdIn(GradleHandle gradleHandle) {
+        gradleHandle.stdinPipe.flush()
         gradleHandle.stdinPipe.close()
     }
 
