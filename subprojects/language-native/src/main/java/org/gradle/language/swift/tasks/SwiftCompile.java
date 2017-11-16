@@ -23,6 +23,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -59,6 +60,7 @@ import java.util.Map;
  * @since 4.1
  */
 @Incubating
+@CacheableTask
 public class SwiftCompile extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
@@ -233,6 +235,7 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.4
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     public ConfigurableFileCollection getModules() {
         return modules;
     }
