@@ -35,15 +35,18 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         this.features = features
     }
 
+    static void extractRequiredFeatures(RequiredFeatures requires, Map<String, String> required) {
+        requires.value().each { RequiredFeature feat ->
+            required[feat.feature()] = feat.value()
+        }
+    }
+
     Map<String, String> requiredFeatures() {
         def required = [:]
         target.annotations.findAll {
             RequiredFeatures.isAssignableFrom(it.getClass())
         }.each {
-            RequiredFeatures requires = (RequiredFeatures) it
-            requires.value().each { RequiredFeature feat ->
-                required[feat.feature()] = feat.value()
-            }
+            extractRequiredFeatures((RequiredFeatures) it, required)
         }
 
         required
@@ -98,6 +101,22 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
             featureValues.each { sysProp, value ->
                 System.properties.remove(sysProp)
             }
+        }
+
+        @Override
+        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+            def requiredFeatures = testDetails.getAnnotation(RequiredFeatures)
+            def enabled = true
+            if (requiredFeatures) {
+                Map<String, String> required = [:]
+                extractRequiredFeatures(requiredFeatures, required)
+                required.each { sysProp, value ->
+                    if (featureValues[sysProp] != value) {
+                        enabled = false
+                    }
+                }
+            }
+            return enabled
         }
     }
 
