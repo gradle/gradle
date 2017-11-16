@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.util.Path;
 import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
@@ -50,6 +51,7 @@ import java.util.Set;
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
+    private static final Object SCRIPT_CONFIGURATION_USE_SITE = new DefaultConfigurationUseSite(null, true);
 
     private final ConfigurationResolver resolver;
     private final Instantiator instantiator;
@@ -103,11 +105,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
+        Path projectPath = context.projectPath(name);
+        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), projectPath, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder);
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder, configurationSite(projectPath.getParent(), context.isScriptContext()));
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
+    }
+
+    private Object configurationSite(Path projectPath, boolean scriptContext) {
+        if (scriptContext) {
+            return SCRIPT_CONFIGURATION_USE_SITE;
+        } else {
+            return new DefaultConfigurationUseSite(projectPath, scriptContext);
+        }
     }
 
     public Set<? extends ConfigurationInternal> getAll() {
@@ -132,10 +143,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
+        Path projectPath = context.projectPath(name);
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
-            context.identityPath(name), context.projectPath(name), name, detachedConfigurationsProvider, resolver,
+            context.identityPath(name), projectPath, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), configurationSite(projectPath.getParent(), context.isScriptContext()));
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
@@ -145,8 +158,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     /**
-     * Build a formatted representation of all Configurations in this ConfigurationContainer.
-     * Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
+     * Build a formatted representation of all Configurations in this ConfigurationContainer. Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
      */
     public String dump() {
         StringBuilder reply = new StringBuilder();
@@ -158,5 +170,25 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
 
         return reply.toString();
+    }
+
+    private static class DefaultConfigurationUseSite implements ConfigurationUseSite {
+        private final Path projectPath;
+        private final boolean isScript;
+
+        public DefaultConfigurationUseSite(Path projectPath, boolean isScript) {
+            this.projectPath = projectPath;
+            this.isScript = isScript;
+        }
+
+        @Override
+        public String getProjectPath() {
+            return projectPath == null ? null : projectPath.getPath();
+        }
+
+        @Override
+        public boolean isScript() {
+            return isScript;
+        }
     }
 }

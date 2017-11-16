@@ -101,6 +101,7 @@ import org.gradle.util.Path;
 import org.gradle.util.TextUtil;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -171,6 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
+    private final ConfigurationUseSite configurationUseSite;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
@@ -189,7 +191,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder) {
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                                ConfigurationUseSite configurationUseSite) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -207,9 +210,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.artifactNotationParser = artifactNotationParser;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
+        this.configurationUseSite = configurationUseSite;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
-
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
@@ -644,7 +648,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
-            rootComponentMetadataBuilder);
+            rootComponentMetadataBuilder, configurationUseSite);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1307,8 +1311,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private class OperationDetails implements ResolveConfigurationDependenciesBuildOperationType.Details {
 
         @Override
-        public String getConfigurationPath() {
-            return getPath();
+        public String getConfigurationName() {
+            return getName();
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return configurationUseSite.getProjectPath();
+        }
+
+        @Override
+        public boolean isScriptConfiguration() {
+            return configurationUseSite.isScript();
         }
 
         @Override

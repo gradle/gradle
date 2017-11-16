@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization;
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.util.Path;
-
-public class BasicDomainObjectContext implements DomainObjectContext {
-    @Override
-    public Path identityPath(String name) {
-        return Path.path(name);
-    }
-
-    @Override
-    public Path projectPath(String name) {
-        return Path.path(name);
-    }
-
-    @Override
-    public boolean isScriptContext() {
-        return true;
-    }
+interface ConfigurationUseSite {
+    String getProjectPath(); // project path if owned by project
+    boolean isScript();
 }
