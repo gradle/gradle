@@ -26,9 +26,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
+import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
@@ -74,6 +76,7 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -90,6 +93,7 @@ import java.util.Map;
  * @since 4.4
  */
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
+    protected final DefaultTestFilter filter;
     private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -111,6 +115,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
+
+        filter = instantiator.newInstance(DefaultTestFilter.class);
     }
 
     @Inject
@@ -409,6 +415,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @TaskAction
     public void executeTests() {
+        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
+            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
+        }
+
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
@@ -464,6 +474,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
+    protected abstract String createNoMatchingTestErrorMessage();
 
     private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
@@ -492,6 +503,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             CompositeStoppable.stoppable(testResultsProvider).stop();
             testReporter = null;
         }
+    }
+
+    /**
+     * Sets the test name patterns to be included in execution.
+     * Classes or method names are supported, wildcard '*' is supported.
+     * For more information see the user guide chapter on testing.
+     *
+     * For more information on supported patterns see {@link TestFilter}
+     */
+    @Incubating
+    public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
+        filter.setCommandLineIncludePatterns(testNamePattern);
+        return this;
     }
 
     /**
@@ -545,5 +569,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } else {
             throw new GradleException(message);
         }
+    }
+
+    /**
+     * Allows filtering tests for execution.
+     *
+     * @return filter object
+     * @since 1.10
+     */
+    @Nested
+    protected TestFilter getFilter() {
+        return filter;
     }
 }

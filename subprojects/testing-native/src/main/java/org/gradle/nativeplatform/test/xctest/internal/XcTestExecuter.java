@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
@@ -38,6 +40,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Set;
 
 public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
@@ -70,7 +73,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         File workingDir = testTestExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
-        Runnable detector = new XcTestDetector(processor);
+        Runnable detector = new XcTestDetector(processor, testTestExecutionSpec.getTestFilter().getCommandLineIncludePatterns());
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
@@ -78,16 +81,39 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     private static class XcTestDetector implements Runnable {
+        private static final Logger LOGGER = Logging.getLogger(XcTestDetector.class);
         private final TestClassProcessor testClassProcessor;
+        private final Set<String> testNamePatterns;
 
-        XcTestDetector(TestClassProcessor testClassProcessor) {
+        XcTestDetector(TestClassProcessor testClassProcessor, Set<String> testNamePatterns) {
             this.testClassProcessor = testClassProcessor;
+            this.testNamePatterns = testNamePatterns;
         }
 
         @Override
         public void run() {
-            TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
-            testClassProcessor.processTestClass(testClass);
+            if (testNamePatterns.isEmpty()) {
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
+                testClassProcessor.processTestClass(testClass);
+            } else if (hasWildcardInTestNamePatterns()) {
+                LOGGER.warn("Test pattern containing '*' is not supported with XCTest, reverting to running all tests");
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
+                testClassProcessor.processTestClass(testClass);
+            } else {
+                for (String testName : testNamePatterns) {
+                    TestClassRunInfo testClass = new DefaultTestClassRunInfo(testName);
+                    testClassProcessor.processTestClass(testClass);
+                }
+            }
+        }
+
+        private boolean hasWildcardInTestNamePatterns() {
+            for (String testName : testNamePatterns) {
+                if (testName.contains("*")) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -119,6 +145,9 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private ExecHandle executeTest(String testName) {
+            if (!testName.equals("All")) {
+                execHandleBuilder.args(testName);
+            }
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
             TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);

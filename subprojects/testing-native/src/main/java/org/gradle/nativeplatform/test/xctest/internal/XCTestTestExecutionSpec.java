@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 
 import java.io.File;
 
@@ -24,11 +25,13 @@ public class XCTestTestExecutionSpec implements TestExecutionSpec {
     private final File workingDir;
     private final File runScript;
     private final String path;
+    private final DefaultTestFilter testFilter;
 
-    public XCTestTestExecutionSpec(File workingDir, File runScript, String path) {
+    public XCTestTestExecutionSpec(File workingDir, File runScript, String path, DefaultTestFilter testFilter) {
         this.workingDir = workingDir;
         this.runScript = runScript;
         this.path = path;
+        this.testFilter = testFilter;
     }
 
     public File getWorkingDir() {
@@ -41,5 +44,9 @@ public class XCTestTestExecutionSpec implements TestExecutionSpec {
 
     public String getPath() {
         return path;
+    }
+
+    public DefaultTestFilter getTestFilter() {
+        return testFilter;
     }
 }
