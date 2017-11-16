@@ -2,7 +2,7 @@ afterEvaluate {
     task validateTaskProperties(type: org.gradle.plugin.devel.tasks.ValidateTaskProperties) { validator ->
         validator.dependsOn sourceSets.main.output
         validator.classes = sourceSets.main.output.classesDirs
-        validator.classpath = sourceSets.main.compileClasspath
+        validator.classpath = sourceSets.main.runtimeClasspath
         validator.outputFile = "$buildDir/reports/task-properties/report.txt"
         validator.failOnWarning = true
     }
