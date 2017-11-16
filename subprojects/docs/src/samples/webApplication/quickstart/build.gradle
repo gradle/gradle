@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'org.akhikhl.gretty:gretty:1.4.2'
+        classpath 'org.akhikhl.gretty:gretty:2.0.0'
     }
 }
 apply plugin: 'org.akhikhl.gretty'
