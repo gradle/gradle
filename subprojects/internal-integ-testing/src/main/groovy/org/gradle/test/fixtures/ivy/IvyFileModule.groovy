@@ -265,12 +265,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             }
         }
 
-        if (hasModuleMetadata) {
-            publishModuleMetadata()
-        }
 
         if (noMetaData) {
             return this
+        }
+
+        if (hasModuleMetadata) {
+            publishModuleMetadata()
         }
 
         publish(ivyFile) { Writer writer ->
