@@ -100,7 +100,7 @@ public class Groovydoc extends SourceTask {
                 getClasspath(), getProject());
     }
 
-    @Nullable @Internal
+    @Nullable
     private String getPathToOverview() {
         TextResource overview = getOverviewText();
         if (overview!=null) {

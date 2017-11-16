@@ -183,7 +183,6 @@ public class Javadoc extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
-    @Internal
     private JavaPlatform getPlatform() {
         return DefaultJavaPlatform.current();
     }
