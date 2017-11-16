@@ -7,7 +7,7 @@
 }
 
 .itemizedlist li p {
-    margin: 0;
+    margin-bottom: 0.625em;
 }
 
 .example, .figure, .table {
@@ -112,15 +112,15 @@
 /*
  * Code highlighting
  */
-.hl-string, .hl-number, .hl-value { color: #83C283; }
+.hl-string, .hl-number, .hl-value { color: #d14; }
 
-.hl-keyword { color: #DDC498 }
+.hl-keyword { color: #963; }
 
-.hl-comment, .hl-doccomment { color: #AFAFAF; }
+.hl-comment, .hl-doccomment { color: #998; }
 
-.hl-annotation { color: #DDDD97; }
+.hl-annotation { color: #007; }
 
-.hl-directive { color: white !important; }
+.hl-directive { color: #555; }
 
 a.link {
     white-space: nowrap;
