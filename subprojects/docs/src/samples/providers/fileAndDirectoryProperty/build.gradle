@@ -21,11 +21,11 @@ foo {
 task print {
     doLast {
         def someDirectory = project.foo.someDirectory.get().asFile
-        logger.lifecycle("foo.someDirectory = " + someDirectory)
-        logger.lifecycle("foo.someFiles contains someDirectory? " + project.foo.someFiles.contains(someDirectory))
+        logger.quiet("foo.someDirectory = " + someDirectory)
+        logger.quiet("foo.someFiles contains someDirectory? " + project.foo.someFiles.contains(someDirectory))
 
         def someFile = project.foo.someFile.get().asFile
-        logger.lifecycle("foo.someFile = " + someFile)
-        logger.lifecycle("foo.someFiles contains someFile? " + project.foo.someFiles.contains(someFile))
+        logger.quiet("foo.someFile = " + someFile)
+        logger.quiet("foo.someFiles contains someFile? " + project.foo.someFiles.contains(someFile))
     }
 }

@@ -8,7 +8,7 @@ class Producer extends DefaultTask {
         String message = 'Hello, World!'
         def output = outputFile.get().asFile
         output.text = message
-        logger.lifecycle("Wrote '${message}' to ${output}")
+        logger.quiet("Wrote '${message}' to ${output}")
     }
 }
 
@@ -20,7 +20,7 @@ class Consumer extends DefaultTask {
     void consume() {
         def input = inputFile.get().asFile
         def message = input.text
-        logger.lifecycle("Read '${message}' from ${input}")
+        logger.quiet("Read '${message}' from ${input}")
     }
 }
 
@@ -34,6 +34,6 @@ consumer.inputFile = producer.outputFile
 // Note that the consumer does not need to be changed again.
 producer.outputFile = layout.buildDirectory.file('file.txt')
 
-// Change the base output directory. 
+// Change the base output directory.
 // Note that this automatically changes producer.outputFile and consumer.inputFile
 buildDir = 'output'

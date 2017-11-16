@@ -9,7 +9,7 @@ class Greeting extends DefaultTask {
 
     @TaskAction
     void printMessage() {
-        logger.lifecycle(fullMessage.get())
+        logger.quiet(fullMessage.get())
     }
 }
 
