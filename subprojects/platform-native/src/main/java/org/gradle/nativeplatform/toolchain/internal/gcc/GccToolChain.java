@@ -44,6 +44,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     @Override
     protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccMetadata versionResult) {
-        platformToolChain.setCanUseCommandFile(versionResult.getVersion().getMajor() >= 4);
+        platformToolChain.setCanUseCommandFile(versionResult.getVersionNumber().getMajor() >= 4);
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.DefaultCompilerVersion;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -91,7 +92,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
-        return new VersionAwareCompiler<T>(compiler, compilerType.getIdentifier(), gccMetadata.getVersion());
+        return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(compilerType.getIdentifier(), gccMetadata.getVersion()));
     }
 
     @Override

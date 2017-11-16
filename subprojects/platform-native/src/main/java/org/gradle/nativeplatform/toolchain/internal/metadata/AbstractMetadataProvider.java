@@ -93,6 +93,11 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
         }
+
+        @Override
+        public String getVersion() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public static class BrokenResultException extends RuntimeException {

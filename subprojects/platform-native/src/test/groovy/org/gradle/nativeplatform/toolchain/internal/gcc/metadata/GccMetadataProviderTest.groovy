@@ -74,13 +74,25 @@ class GccMetadataProviderTest extends Specification {
 #define __clang_version__ "5.0 (clang-500.2.79)"
 """
 
-    private static String gccVerboseOutput(includes) {
+    static def clangOnLinux = """#define __GNUC_MINOR__ 2
+#define __GNUC_MINOR__ 2
+#define __GNUC_PATCHLEVEL__ 1
+#define __GNUC__ 4
+#define __VERSION__ "4.2.1 Compatible Ubuntu Clang 3.6.0 (tags/RELEASE_360/final)"
+#define __clang__ 1
+#define __clang_major__ 3
+#define __clang_minor__ 6
+#define __clang_patchlevel__ 0
+#define __clang_version__ "3.6.0 (tags/RELEASE_360/final)
+"""
+
+    private static String gccVerboseOutput(String versionNumber = '4.2.1', List<String> includes = []) {
         """Using built-in specs.
 COLLECT_GCC=gcc
 Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.8.4-2ubuntu1~14.04.3' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu ${versionNumber}-2ubuntu1~14.04.3' --with-bugurl=file:///usr/share/doc/gcc-4.8/README.Bugs --enable-languages=c,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3)
+gcc version ${versionNumber} (Ubuntu ${versionNumber}-2ubuntu1~14.04.3)
 COLLECT_GCC_OPTIONS='-E' '-v' '-mtune=generic' '-march=x86-64'
  /usr/lib/gcc/x86_64-linux-gnu/4.8/cc1 -E -quiet -v -imultiarch x86_64-linux-gnu - -mtune=generic -march=x86-64 -fstack-protector -Wformat -Wformat-security
 ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
@@ -92,13 +104,14 @@ End of search list.
 """
     }
 
-    private static String clangVerboseOutput(includes, frameworks) {
-        """Apple LLVM version 9.0.0 (clang-900.0.38)
+    private static String clangVerboseOutput(String version = '5.0', includes = [], frameworks = []) {
+        def versionWithoutDots = version.replaceAll(/\./, '')
+        """Apple LLVM version ${version} (clang-${versionWithoutDots}0.0.38)
 Target: x86_64-apple-darwin16.7.0
 Thread model: posix
 InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
  "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx10.12.0 -E -fcolor-diagnostics -dM -o - -x c -
-clang -cc1 version 9.0.0 (clang-900.0.38) default target x86_64-apple-darwin16.7.0
+clang -cc1 version ${version}.0 (clang-${versionWithoutDots}0.0.38) default target x86_64-apple-darwin16.7.0
 #include "..." search starts here:
 #include <...> search starts here:
 ${includes.collect { " ${it}" }.join('\n') }
@@ -109,15 +122,52 @@ End of search list.
 """
     }
 
+    private static String clangOnLinuxVerboseOutput = """Ubuntu clang version 3.6.0-2ubuntu1~trusty1 (tags/RELEASE_360/final) (based on LLVM 3.6.0)
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+Found candidate GCC installation: /usr/bin/../lib/gcc/i686-linux-gnu/4.8
+Found candidate GCC installation: /usr/bin/../lib/gcc/i686-linux-gnu/4.8.4
+Found candidate GCC installation: /usr/bin/../lib/gcc/i686-linux-gnu/4.9
+Found candidate GCC installation: /usr/bin/../lib/gcc/i686-linux-gnu/4.9.3
+Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/4.8
+Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/4.8.4
+Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/4.9
+Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/4.9.3
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/4.8
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/4.8.4
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/4.9
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/4.9.3
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/4.8
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/4.8.4
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/4.9
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/4.9.3
+Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/4.8
+Candidate multilib: .;@m64
+Candidate multilib: 32;@m32
+Candidate multilib: x32;@mx32
+Selected multilib: .;@m64
+ "/usr/lib/llvm-3.6/bin/clang" -cc1 -triple x86_64-pc-linux-gnu -E -disable-free -disable-llvm-verifier -main-file-name - -mrelocation-model static -mthread-model posix -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -munwind-tables -fuse-init-array -target-cpu x86-64 -target-linker-version 2.24 -v -dwarf-column-info -resource-dir /usr/lib/llvm-3.6/bin/../lib/clang/3.6.0 -internal-isystem /usr/local/include -internal-isystem /usr/lib/llvm-3.6/bin/../lib/clang/3.6.0/include -internal-externc-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/4.8/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir /home/vmadmin -ferror-limit 19 -fmessage-length 173 -mstackrealign -fobjc-runtime=gcc -fdiagnostics-show-option -fcolor-diagnostics -dM -o - -x c -
+clang -cc1 version 3.6.0 based upon LLVM 3.6.0 default target x86_64-pc-linux-gnu
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/include
+ /usr/lib/llvm-3.6/bin/../lib/clang/3.6.0/include
+ /usr/bin/../lib/gcc/x86_64-linux-gnu/4.8/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+End of search list.
+"""
+
     @Unroll
-    "can scrape version from output of GCC #version"() {
+    "can scrape version number from output of GCC #versionNumber"() {
         expect:
-        def result = output(gcc)
+        def result = output(gcc, gccVerboseOutput(versionNumber.toString()))
         result.available
-        result.version == VersionNumber.parse(version)
+        result.versionNumber == VersionNumber.parse(versionNumber)
 
         where:
-        gcc          | version
+        gcc          | versionNumber
         gccMajorOnly | "3.0.0"
         gccNoMinor   | "3.0.4"
         gcc3         | "3.3.4"
@@ -125,12 +175,20 @@ End of search list.
     }
 
     @Unroll
+    "can scrape version from output of GCC"() {
+        expect:
+        def result = output(gcc4, gccVerboseOutput('4.2.1', []))
+        result.available
+        result.version == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
+    }
+
+    @Unroll
     "can scrape architecture from GCC output"() {
         expect:
-        def x86 = output(gccX86)
+        def x86 = output(gccX86, gccVerboseOutput())
         x86.defaultArchitecture.isI386()
 
-        def amd64 = output(gccAmd64)
+        def amd64 = output(gccAmd64, gccVerboseOutput())
         amd64.defaultArchitecture.isAmd64()
     }
 
@@ -149,6 +207,20 @@ End of search list.
 
         where:
         out << ["not sure about this", ""]
+    }
+
+    def "yields broken result when version number in stdout and stderr do not match up"() {
+        def visitor = Mock(TreeVisitor)
+
+        expect:
+        def result = output(gcc4, gccVerboseOutput('4.8'))
+        !result.available
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("Could not determine GCC metadata: could not find version in output of g++.")
     }
 
     def "handles failure to execute g++"() {
@@ -181,9 +253,15 @@ End of search list.
 
     def "can scrape ok output for clang"() {
         expect:
-        def result = output clang, CLANG
+        def result = output stdin, stderr, CLANG
         result.available
-        result.version == VersionNumber.parse("5.0.0")
+        result.versionNumber == VersionNumber.parse(versionNumber)
+        result.version == version
+
+        where:
+        stdin        | stderr                    | versionNumber | version
+        clang        | clangVerboseOutput()      | "5.0.0"       | 'Apple LLVM version 5.0 (clang-500.0.38)'
+        clangOnLinux | clangOnLinuxVerboseOutput | '3.6.0'       | 'Ubuntu clang version 3.6.0-2ubuntu1~trusty1 (tags/RELEASE_360/final) (based on LLVM 3.6.0)'
     }
 
     def "detects clang pretending to be gcc"() {
@@ -217,7 +295,7 @@ End of search list.
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
-        def result = output gcc4, gccVerboseOutput(includes), GCC
+        def result = output gcc4, gccVerboseOutput('4.2.1', includes), GCC
         result.systemIncludes*.path == includes
     }
 
@@ -229,7 +307,7 @@ End of search list.
         ])
         def frameworks = correctPathSeparators(['/System/Library/Frameworks', '/Library/Frameworks'])
         expect:
-        def result = output clang, clangVerboseOutput(includes, frameworks), CLANG
+        def result = output clang, clangVerboseOutput('5.0', includes, frameworks), CLANG
         result.systemIncludes*.path == includes
     }
 
@@ -242,7 +320,7 @@ End of search list.
         ]
         def frameworkDirs = ['/System/Library/Frameworks', '/Library/Frameworks']
         expect:
-        def result = output gcc4, gccVerboseOutput(includes + frameworkDirs), GCC
+        def result = output gcc4, gccVerboseOutput('4.2.1', includes + frameworkDirs), GCC
         result.systemIncludes*.path == includes
     }
 

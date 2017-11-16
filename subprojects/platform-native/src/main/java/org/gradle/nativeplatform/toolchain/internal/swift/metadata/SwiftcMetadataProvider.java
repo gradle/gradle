@@ -85,11 +85,6 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             super(message);
         }
 
-        @Override
-        public String getVersionString() {
-            throw new UnsupportedOperationException();
-        }
-
     }
 
     private class DefaultSwiftcMetadata implements SwiftcMetadata {
@@ -99,7 +94,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             this.versionString = versionString;
         }
 
-        public String getVersionString() {
+        public String getVersion() {
             return versionString;
         }
 

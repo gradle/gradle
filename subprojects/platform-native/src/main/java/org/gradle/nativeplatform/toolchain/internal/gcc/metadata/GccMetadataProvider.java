@@ -42,7 +42,7 @@ import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompi
 import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompilerType.GCC;
 
 /**
- * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number and default architecture by running with -dM -E and scraping the output.
+ * Given a File pointing to an (existing) gcc/g++/clang/clang++ binary, extracts the version number and default architecture by running with -dM -E -v and scraping the output.
  */
 public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
@@ -82,11 +82,32 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     @Override
     protected GccMetadata parseCompilerOutput(String output, String error, File gccBinary) {
         Map<String, String> defines = parseDefines(output, gccBinary);
-        VersionNumber versionNumber = determineVersion(defines, gccBinary);
+        VersionNumber scrapedVersionNumber = determineVersion(defines, gccBinary);
         ArchitectureInternal architecture = determineArchitecture(defines);
+        String scrapedVersionNumberString = determineVersionNumberString(error, scrapedVersionNumber, gccBinary);
         ImmutableList<File> systemIncludes = determineSystemIncludes(error);
 
-        return new DefaultGccMetadata(versionNumber, architecture, systemIncludes);
+        return new DefaultGccMetadata(scrapedVersionNumber, scrapedVersionNumberString, architecture, systemIncludes);
+    }
+
+    private String determineVersionNumberString(String error, VersionNumber versionNumber, File gccBinary) {
+        BufferedReader reader = new BufferedReader(new StringReader(error));
+        String majorMinorOnly = versionNumber.getMajor() + "." + versionNumber.getMinor();
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(majorMinorOnly)
+                    && line.contains(" version ")
+                    && line.contains(compilerType.getIdentifier())
+                    && !line.contains(" default target ")) {
+                    return line;
+                }
+            }
+        } catch (IOException e) {
+            // Should not happen reading from a StringReader
+            throw new UncheckedIOException(e);
+        }
+        throw new BrokenResultException(String.format("Could not determine %s metadata: could not find version in output of %s.", compilerType.getDescription(), gccBinary));
     }
 
     private ImmutableList<File> determineSystemIncludes(String error) {
@@ -197,19 +218,21 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     }
 
     private static class DefaultGccMetadata implements GccMetadata {
-        private final VersionNumber scrapedVersion;
+        private final VersionNumber scrapedVersionNumber;
+        private final String scrapedVersion;
         private final ArchitectureInternal architecture;
         private final ImmutableList<File> systemIncludes;
 
-        public DefaultGccMetadata(VersionNumber scrapedVersion, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
+        public DefaultGccMetadata(VersionNumber scrapedVersionNumber, String scrapedVersion, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
+            this.scrapedVersionNumber = scrapedVersionNumber;
             this.scrapedVersion = scrapedVersion;
             this.architecture = architecture;
             this.systemIncludes = systemIncludes;
         }
 
         @Override
-        public VersionNumber getVersion() {
-            return scrapedVersion;
+        public VersionNumber getVersionNumber() {
+            return scrapedVersionNumber;
         }
 
         @Override
@@ -230,17 +253,21 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
+
+        @Override
+        public String getVersion() {
+            return scrapedVersion;
+        }
     }
 
-    public static class BrokenResult implements GccMetadata {
-        private final String message;
+    public static class BrokenResult extends AbstractBrokenMetadata implements GccMetadata {
 
         public BrokenResult(String message) {
-            this.message = message;
+            super(message);
         }
 
         @Override
-        public VersionNumber getVersion() {
+        public VersionNumber getVersionNumber() {
             throw new UnsupportedOperationException();
         }
 
@@ -254,14 +281,5 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             throw new UnsupportedOperationException();
         }
 
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
     }
 }

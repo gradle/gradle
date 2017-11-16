@@ -27,7 +27,7 @@ public interface GccMetadata extends CompilerMetadata {
 
     ArchitectureInternal getDefaultArchitecture();
 
-    VersionNumber getVersion();
+    VersionNumber getVersionNumber();
 
     ImmutableList<File> getSystemIncludes();
 

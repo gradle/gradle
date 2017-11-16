@@ -36,8 +36,8 @@ Target: x86_64-unknown-linux-gnu
 
     def "can scrape version from output of swiftc"() {
         expect:
-        output(SWIFTC_OUTPUT_MAC_OS).versionString == 'Apple Swift version 4.0.2 (swiftlang-900.0.69.2 clang-900.0.38)'
-        output(SWIFTC_OUTPUT_LINUX).versionString == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
+        output(SWIFTC_OUTPUT_MAC_OS).version == 'Apple Swift version 4.0.2 (swiftlang-900.0.69.2 clang-900.0.38)'
+        output(SWIFTC_OUTPUT_LINUX).version == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
     }
 
     def "handles output that cannot be parsed"() {

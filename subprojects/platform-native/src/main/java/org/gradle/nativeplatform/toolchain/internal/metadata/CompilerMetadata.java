@@ -19,4 +19,5 @@ package org.gradle.nativeplatform.toolchain.internal.metadata;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 public interface CompilerMetadata extends ToolSearchResult {
+    String getVersion();
 }

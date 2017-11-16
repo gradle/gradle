@@ -177,7 +177,7 @@ public class AvailableToolChains {
             for (File candidate : gppCandidates) {
                 GccMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
-                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersionNumber());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first g++ in the path, needs the path variable updated
                         gcc.inPath(candidate.getParentFile());
