@@ -18,7 +18,9 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @RequiredFeatures([
@@ -28,6 +30,7 @@ import spock.lang.Issue
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
 ]
 )
+@IgnoreIf({ GradleContextualExecuter.parallel })
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Issue("GRADLE-2502")
