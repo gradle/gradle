@@ -8,20 +8,18 @@ Gradle now supports version ranges in parent elements of a POM, which was introd
 
 > Parent elements can now use bounded ranges in the version specification. You can now consistently use ranges for all intra-project dependencies, of which parents are a special case but still considered a dependency of projects that inherit from them. The following is now permissible:
 
-```
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>[3.0,4.0)</version>
-  </parent>
-  <groupId>org.apache.maven.its.mng2199</groupId>
-  <artifactId>valid</artifactId>
-  <version>1</version>
-  <packaging>pom</packaging>
-</project>
-```
+    <project>
+      <modelVersion>4.0.0</modelVersion>
+      <parent>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>[3.0,4.0)</version>
+      </parent>
+      <groupId>org.apache.maven.its.mng2199</groupId>
+      <artifactId>valid</artifactId>
+      <version>1</version>
+      <packaging>pom</packaging>
+    </project>
 
 
 <!--
@@ -76,42 +74,39 @@ Gradle now embeds [Ant 1.9.9](https://archive.apache.org/dist/ant/RELEASE-NOTES-
 
 Plugin repositories declared in a settings script can now have custom names:
 
-```
-// settings.gradle
-pluginManagement {
-    repositories {
-        maven {
-            name = "My Custom Plugin Repository"
-            url = "https://..."
+
+    // settings.gradle
+    pluginManagement {
+        repositories {
+            maven {
+                name = "My Custom Plugin Repository"
+                url = "https://..."
+            }
         }
     }
-}
-```
 
 Explicit notation for common repositories can now be used in settings scripts:
 
-```
-// settings.gradle
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        jcenter()
-        google()
-        mavenCentral()
+
+    // settings.gradle
+    pluginManagement {
+        repositories {
+            gradlePluginPortal()
+            jcenter()
+            google()
+            mavenCentral()
+        }
     }
-}
-```
 
 Plugin resolution now takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Before that change, it was required that all transitive dependencies of a given plugin were present in the same repository as the plugin. It's not anymore. 
 
 The Gradle Plugin Portal repository can now be added to build scripts. This is particularly useful for `buildSrc` or binary plugin builds:
 
-```
-// build.gradle
-repositories {
-    gradlePluginPortal()
-}
-```
+
+    // build.gradle
+    repositories {
+        gradlePluginPortal()
+    }
 
 ### Use of canonical URL for `mavenCentral()` repository URL
 
