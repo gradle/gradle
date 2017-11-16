@@ -52,13 +52,7 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
     }
 
     public ExternalResourceName toModulePath(ModuleIdentifier module) {
-        ImmutableMap<String, String> attributes = ImmutableMap.of(
-            "organisation", module.getGroup(),
-            "module", module.getName(),
-            "artifact", module.getName()
-        );
-        ExternalResourceName resolve = getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
-        return resolve;
+        throw new UnsupportedOperationException();
     }
 
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
@@ -74,9 +68,12 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     protected String getPathWithoutArtifactPart() {
         String path = getBase().getPath();
-        int i = path.lastIndexOf("/[artifact]");
+        int i = path.lastIndexOf('/');
+        if (i>0) {
+            i = path.indexOf("/[artifact]", i);
+        }
         if (i<0) {
-            throw new UnsupportedOperationException("Cannot locate module version for standard Ivy layout.");
+            throw new UnsupportedOperationException("Cannot locate module version for non standard Ivy layout.");
         }
         return path.substring(0, i);
     }
