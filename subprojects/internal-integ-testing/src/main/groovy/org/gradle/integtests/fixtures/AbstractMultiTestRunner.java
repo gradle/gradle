@@ -183,7 +183,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             }
 
             for (Description disabledTest : disabledTests) {
-                nested.fireTestStarted(disabledTest);
                 nested.fireTestIgnored(disabledTest);
             }
         }
