@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
@@ -62,13 +61,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata> {
+public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata> {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
-    private final ModuleMetadataParser metadataParser;
-    private final boolean preferGradleMetadata;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
@@ -86,16 +83,17 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          FileResourceRepository fileResourceRepository,
                          boolean preferGradleMetadata) {
         super(name, transport.isLocal(),
-                transport.getRepository(),
-                transport.getResourceAccessor(),
-                new ChainedVersionLister(new MavenVersionLister(cacheAwareExternalResourceAccessor, resourcesFileStore), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder,
-                artifactFileStore,
-                moduleIdentifierFactory,
-                fileResourceRepository);
+            transport.getRepository(),
+            transport.getResourceAccessor(),
+            new ChainedVersionLister(new MavenVersionLister(cacheAwareExternalResourceAccessor, resourcesFileStore), new ResourceVersionLister(transport.getRepository())),
+            locallyAvailableResourceFinder,
+            artifactFileStore,
+            moduleIdentifierFactory,
+            fileResourceRepository,
+            preferGradleMetadata,
+            metadataParser,
+            moduleIdentifierFactory);
         this.pomParser = pomParser;
-        this.metadataParser = metadataParser;
-        this.preferGradleMetadata = preferGradleMetadata;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -109,7 +107,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected void appendId(BuildCacheHasher hasher) {
-        hasher.putBoolean(preferGradleMetadata);
+        hasher.putBoolean(isUseGradleMetadata());
     }
 
     @Override
@@ -156,23 +154,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
     }
 
-    // TODO:DAZ Pull this up
-    @Nullable
     @Override
-    protected MutableMavenModuleResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        MutableMavenModuleResolveMetadata metadata = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
-        if (preferGradleMetadata) {
-            LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module")), result);
-            if (resource != null) {
-                // Use default empty metadata when the POM isn't present
-                if (metadata == null) {
-                    ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-                    metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier);
-                }
-                metadataParser.parse(resource, metadata);
-            }
-        }
-        return metadata;
+    MutableMavenModuleResolveMetadata metadata(ModuleVersionIdentifier id, ModuleComponentIdentifier cid) {
+        return new DefaultMutableMavenModuleResolveMetadata(id, cid);
     }
 
     @Override
@@ -338,8 +322,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
         return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-                moduleComponentIdentifier.getModule(),
-                moduleComponentIdentifier.getVersion(),
-                uniqueSnapshotVersion.getTimestamp());
+            moduleComponentIdentifier.getModule(),
+            moduleComponentIdentifier.getVersion(),
+            uniqueSnapshotVersion.getTimestamp());
     }
 }
