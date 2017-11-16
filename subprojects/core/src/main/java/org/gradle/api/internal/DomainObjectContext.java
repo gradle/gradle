@@ -29,7 +29,7 @@ public interface DomainObjectContext {
     Path projectPath(String name);
 
     /**
-     * Returns wheather the context is a script
+     * Returns whether the context is a script
      * */
     boolean isScriptContext();
 
