@@ -98,17 +98,13 @@ h4, h5, h6 {
 
 p {
     font-size: 1.0625rem;
+    line-height: 1.6;
     margin-bottom: 1.25rem;
     text-rendering: optimizeLegibility;
 }
 
 strong {
     color: #303030;
-}
-
-ul, ol, dl {
-    line-height: 1.6;
-    margin-top: 0;
 }
 
 dt {
@@ -130,6 +126,7 @@ hr {
 
 ul, ol, dl {
     list-style-position: outside;
+    line-height: 1.6;
     margin: 0 0 1.25rem 1.5em;
     padding: 0;
 }
@@ -256,7 +253,7 @@ code, pre {
 }
 
 *:not(pre) > code {
-    font-size: 0.9375em;
+    font-size: 0.9375rem;
     letter-spacing: 0;
     padding: 0.1em 0.5ex;
     text-rendering: optimizeSpeed;
@@ -277,6 +274,10 @@ pre code {
     line-height: 1.45;
     font-size: 100%;
     padding: 0;
+}
+
+a code {
+    color: #02303A;
 }
 
 pre.code, pre.programlisting, pre.screen, pre.tt {
