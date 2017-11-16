@@ -19,12 +19,13 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Unroll
 
 class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "resolved dependencies are exposed via build operation"() {
+    def "resolved configurations are exposed via build operation"() {
         setup:
         buildFile << """                
             allprojects {
@@ -72,7 +73,41 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         op.result.resolvedDependenciesCount == 4
     }
 
-    def "resolved dependencies in composite builds are exposed via build operation"() {
+    def "resolved detached configurations are exposed"() {
+        setup:
+        buildFile << """                
+        repositories {
+            maven { url '${mavenHttpRepo.uri}' }
+        }
+        
+        task resolve {
+            doLast {
+                project.configurations.detachedConfiguration(dependencies.create('org.foo:dep:1.0')).files
+            }
+        }
+        """
+        def m1 = mavenHttpRepo.module('org.foo', 'dep').publish()
+
+
+        m1.allowAll()
+
+        when:
+        run "resolve"
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        op.details.configurationName == "detachedConfiguration1"
+        op.details.projectPath == ":"
+        op.details.scriptConfiguration == false
+        op.details.buildPath == ":"
+        op.details.configurationDescription == null
+        op.details.configurationVisible == true
+        op.details.configurationTransitive == true
+
+        op.result.resolvedDependenciesCount == 1
+    }
+
+    def "resolved configurations in composite builds are exposed via build operation"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'app-dep').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
@@ -126,41 +161,7 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
-    def "resolved dependencies from detached configurations are exposed"() {
-        setup:
-        buildFile << """                
-        repositories {
-            maven { url '${mavenHttpRepo.uri}' }
-        }
-        
-        task resolve {
-            doLast {
-                project.configurations.detachedConfiguration(dependencies.create('org.foo:dep:1.0')).files
-            }
-        }
-        """
-        def m1 = mavenHttpRepo.module('org.foo', 'dep').publish()
-
-
-        m1.allowAll()
-
-        when:
-        run "resolve"
-
-        then:
-        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        op.details.configurationName == "detachedConfiguration1"
-        op.details.projectPath == ":"
-        op.details.scriptConfiguration == false
-        op.details.buildPath == ":"
-        op.details.configurationDescription == null
-        op.details.configurationVisible == true
-        op.details.configurationTransitive == true
-
-        op.result.resolvedDependenciesCount == 1
-    }
-
-    def "script classpath dependencies are exposed"() {
+    def "resolved configurations of composite builds as build dependencies are exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
         setupComposite()
@@ -204,6 +205,60 @@ class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDep
         resolveOperations[1].details.configurationVisible == true
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 2
+    }
+
+    @Unroll
+    def "#scriptType script classpath configurations are exposed"() {
+        setup:
+        def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
+
+        def initScript = file('init.gradle')
+        initScript << ''
+        executer.usingInitScript(initScript)
+
+        file('scriptPlugin.gradle') << '''
+        task foo
+        '''
+
+        buildFile << '''
+        apply from: 'scriptPlugin.gradle'
+        '''
+
+        file(scriptFileName) << """                
+            $scriptBlock {
+                repositories {
+                    maven { url '${mavenHttpRepo.uri}' }
+                }
+                dependencies {
+                    classpath 'org.foo:root-dep:1.0'
+                }
+            }
+
+        """
+
+        m1.allowAll()
+        when:
+        run "foo"
+
+        then:
+        def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+        resolveOperations.size() == 1
+        resolveOperations[0].details.buildPath == ":"
+        resolveOperations[0].details.configurationName == "classpath"
+        resolveOperations[0].details.projectPath == null
+        resolveOperations[0].details.scriptConfiguration == true
+        resolveOperations[0].details.configurationDescription == null
+        resolveOperations[0].details.configurationVisible == true
+        resolveOperations[0].details.configurationTransitive == true
+        resolveOperations[0].result.resolvedDependenciesCount == 1
+
+        where:
+        scriptType      | scriptBlock   | scriptFileName
+        "project build" | 'buildscript' | getDefaultBuildFileName()
+        "script plugin" | 'buildscript' | "scriptPlugin.gradle"
+        "settings"      | 'buildscript' | 'settings.gradle'
+        "init"          | 'initscript'  | 'init.gradle'
+
     }
 
     private void setupComposite() {
