@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Provider API documentation
+
+In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

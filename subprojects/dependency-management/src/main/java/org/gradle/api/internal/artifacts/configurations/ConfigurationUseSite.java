@@ -16,7 +16,17 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.util.Path;
+
 interface ConfigurationUseSite {
-    String getProjectPath(); // project path if owned by project
+    /**
+     * project path if owned by project
+     * */
+    Path getProjectPath();
+
+    /**
+     * flag indicating the configuration is linked
+     * to a gradle script classpath
+     * */
     boolean isScript();
 }

@@ -1,0 +1,19 @@
+class Greeting extends DefaultTask {
+    // Configurable by the user
+    @Input
+    final Property<String> message = project.objects.property(String)
+
+    // Read-only property
+    @Internal
+    final Provider<String> fullMessage = project.provider { message.get() + " from Gradle" }
+
+    @TaskAction
+    void printMessage() {
+        logger.quiet(fullMessage.get())
+    }
+}
+
+task greeting(type: Greeting) {
+    // Note that this is effectively calling Property.set()
+    message = 'Hi'
+}

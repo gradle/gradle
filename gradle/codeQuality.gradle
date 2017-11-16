@@ -1,11 +1,18 @@
 apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
 
-plugins.withType(JavaBasePlugin) {
+def validateTaskPropertiesForConfiguration(Configuration configuration) {
     // Apply to all projects depending on :core
-    configurations.compile.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
+    configuration.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
         project.apply from: "$rootDir/gradle/taskProperties.gradle"
     }
+}
+
+plugins.withType(JavaBasePlugin) {
+    validateTaskPropertiesForConfiguration(configurations.compile)
+}
+plugins.withType(JavaLibraryPlugin) {
+    validateTaskPropertiesForConfiguration(configurations.api)
 }
 
 def codeQualityConfigDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

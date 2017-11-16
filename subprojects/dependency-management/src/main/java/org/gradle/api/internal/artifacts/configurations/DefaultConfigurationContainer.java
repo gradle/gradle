@@ -51,7 +51,6 @@ import java.util.Set;
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
-    private static final Object SCRIPT_CONFIGURATION_USE_SITE = new DefaultConfigurationUseSite(null, true);
 
     private final ConfigurationResolver resolver;
     private final Instantiator instantiator;
@@ -105,20 +104,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        Path projectPath = context.projectPath(name);
-        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), projectPath, name, this, resolver,
+        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), new DefaultConfigurationUseSite(name, context), name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
-            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder, configurationSite(projectPath.getParent(), context.isScriptContext()));
+            fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
-    }
-
-    private Object configurationSite(Path projectPath, boolean scriptContext) {
-        if (scriptContext) {
-            return SCRIPT_CONFIGURATION_USE_SITE;
-        } else {
-            return new DefaultConfigurationUseSite(projectPath, scriptContext);
-        }
     }
 
     public Set<? extends ConfigurationInternal> getAll() {
@@ -143,12 +133,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        Path projectPath = context.projectPath(name);
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
-            context.identityPath(name), projectPath, name, detachedConfigurationsProvider, resolver,
+            context.identityPath(name), new DefaultConfigurationUseSite(name, context), name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
-            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), configurationSite(projectPath.getParent(), context.isScriptContext()));
+            rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
@@ -173,22 +162,26 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     private static class DefaultConfigurationUseSite implements ConfigurationUseSite {
-        private final Path projectPath;
-        private final boolean isScript;
+        private final String configurationName;
+        private final DomainObjectContext context;
+        private Path projectPath;
 
-        public DefaultConfigurationUseSite(Path projectPath, boolean isScript) {
-            this.projectPath = projectPath;
-            this.isScript = isScript;
+        public DefaultConfigurationUseSite(String configurationName, DomainObjectContext context) {
+            this.configurationName = configurationName;
+            this.context = context;
         }
 
         @Override
-        public String getProjectPath() {
-            return projectPath == null ? null : projectPath.getPath();
+        public Path getProjectPath() {
+            if(projectPath == null){
+                projectPath = context.projectPath(configurationName);
+            }
+            return projectPath;
         }
 
         @Override
         public boolean isScript() {
-            return isScript;
+            return context.isScriptContext();
         }
     }
 }
