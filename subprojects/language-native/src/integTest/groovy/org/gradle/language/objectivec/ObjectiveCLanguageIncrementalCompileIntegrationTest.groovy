@@ -104,7 +104,8 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
-            #define MY_HEADER "${otherHeaderFile.name}"
+            #define _MY_HEADER "${otherHeaderFile.name}"
+            #define MY_HEADER _MY_HEADER
             #import MY_HEADER
 """
 
