@@ -105,9 +105,9 @@ The following demonstrates the usage of the type for mapping an extension proper
 
 ++++
 <sample id="mapExtensionPropertiesToTaskProperties" dir="userguide/tasks/mapExtensionPropertiesToTaskProperties" includeLocation="true" title="Mapping extension properties to task properties">
-            <sourcefile file="build.gradle"/>
-            <output args="-q hello"/>
-        </sample>
+    <sourcefile file="build.gradle"/>
+    <output args="-q hello"/>
+</sample>
 ++++
 
 The example above uses instances of api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.Property[]. The main difference between these two interfaces is attributed to mutability. A api:org.gradle.api.provider.Provider[] is immutable and can be created with the method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. api:org.gradle.api.provider.Property[] extends the interface api:org.gradle.api.provider.Provider[], represents a mutable value and can be created with the method api:org.gradle.api.Project#property(java.lang.Class)[]. Please note that the provider types are not intended for implementation by build script or plugin authors.
@@ -115,10 +115,34 @@ The example above uses instances of api:org.gradle.api.provider.Provider[] and a
 [NOTE]
 ====
 
-The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
+The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take care of the rest.
 
 ====
 
+
+[[sec:connecting_output_and_input_files_or_folders_of_different_tasks]]
+=== Connecting output and input files or folders of different tasks
+
+Often you will have several tasks in your plugin that depend on each other. This usually means that one task processes outputs of another task as input.
+For these outputs and inputs we need to define locations in the files systems at some point. In <<sec:working_with_files_in_custom_tasks_and_plugins>> we used the plain
+Java File API for this and <<sec:mapping_extension_properties_to_task_properties>> showed how providers are used to evaluate such task properties lazily.
+
+To combine these, Gradle offers convenient APIs for defining files or folders as task inputs and outputs in a descriptive way (i.e. to evaluate them at
+execution time). As an example consider the following plugin with `compile`, `package` and `install` tasks which are wired via inputs and outputs:
+
+++++
+<sample id="descriptiveInputsAndOutputs" dir="userguide/tasks/descriptiveInputsAndOutputs" includeLocation="true" title="Descriptive input and output file declarations">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+In the example above, the task outputs and inputs are connected before any concrete files system location is defined. This is possible because file locations
+are described by using providers that are created using `newOutputFile()` and `newOutputDirectory()` for outputs as well as `newInputFile()` and `files()` for inputs.
+Note how the corresponding setters work with providers instead of setting concrete file locations. This way the files are only actually resolved when they are
+needed during execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
+
+When configuring the locations, `project.layout.buildDirectory` is used as entry point, which is another provider. This places all files relative to the project's build directory location -
+independent of if and when the build directory is changed during build configuration.
 
 [[sec:custom_plugins_standalone_project]]
 === A standalone project
@@ -127,8 +151,8 @@ Now we will move our plugin to a standalone project, so we can publish it and sh
 
 ++++
 <sample id="customPluginStandalone" dir="customPlugin/plugin" title="A build for a custom plugin" includeLocation="true">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="use-plugin"/>
+</sample>
 ++++
 
 So how does Gradle find the api:org.gradle.api.Plugin[] implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
