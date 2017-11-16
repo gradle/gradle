@@ -254,8 +254,15 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         and:
+        resolveArtifacts(javaLibrary, false) == [
+            'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+
+        when:
+        resolveModuleMetadata = false
+
+        then: "constraints are not published to POM files"
         resolveArtifacts(javaLibrary) == [
-            //TODO should be commons-logging-1.2, once resolving works
             'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
         ]
     }

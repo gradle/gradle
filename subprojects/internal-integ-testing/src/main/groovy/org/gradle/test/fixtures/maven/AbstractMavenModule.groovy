@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadata
@@ -386,8 +387,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 new VariantMetadata(
                     v.name,
                     v.attributes,
-                    dependencies.collect { d ->
+                    dependencies.findAll { !it.optional }.collect { d ->
                         new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, d.exclusions)
+                    },
+                    dependencies.findAll { it.optional }.collect { d ->
+                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects)
                     },
                     [getArtifact([:])]
                 )

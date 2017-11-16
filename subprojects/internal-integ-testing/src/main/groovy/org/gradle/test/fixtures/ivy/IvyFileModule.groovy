@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadata
@@ -340,8 +341,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 new VariantMetadata(
                     v.name,
                     v.attributes,
-                    dependencies.collect { d ->
+                    dependencies.findAll { d -> !d.optional }.collect { d ->
                         new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
+                    },
+                    dependencies.findAll { d -> d.optional }.collect { d ->
+                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )
@@ -399,7 +403,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             }
         }
         builder.dependencies {
-            dependencies.each { dep ->
+            dependencies.findAll { dep -> !dep.optional }.each { dep ->
                 def depAttrs = [org: dep.organisation, name: dep.module, rev: dep.revision]
                 if (dep.conf) {
                     depAttrs.conf = dep.conf

@@ -42,12 +42,12 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 """)
     }
 
-    protected def resolveArtifacts(MavenModule module) {
+    protected def resolveArtifacts(MavenModule module, boolean expectSameResultWithModuleMetadata = true) {
         resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""")
+""", expectSameResultWithModuleMetadata)
     }
 
     protected def resolveArtifacts(MavenModule module, Map... additionalArtifacts) {
@@ -74,12 +74,16 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         resolveArtifacts(dependencies)
     }
 
-    protected def resolveArtifacts(String dependencies) {
+    protected def resolveArtifacts(String dependencies, boolean expectSameResultWithModuleMetadata = true) {
         def resolvedArtifacts = doResolveArtifacts(dependencies)
 
         if (resolveModuleMetadata) {
             def moduleArtifacts = doResolveArtifacts(dependencies, true)
-            assert resolvedArtifacts == moduleArtifacts
+            if (expectSameResultWithModuleMetadata) {
+                assert resolvedArtifacts == moduleArtifacts
+            } else {
+                return moduleArtifacts
+            }
         }
 
         return resolvedArtifacts

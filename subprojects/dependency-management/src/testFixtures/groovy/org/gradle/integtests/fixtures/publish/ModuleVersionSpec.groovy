@@ -30,6 +30,7 @@ class ModuleVersionSpec {
     private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
+    private final List<Object> constraints = []
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
@@ -85,6 +86,10 @@ class ModuleVersionSpec {
 
     void dependsOn(coord) {
         dependsOn << coord
+    }
+
+    void constraint(coord) {
+        constraints << coord
     }
 
     void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
@@ -187,6 +192,19 @@ class ModuleVersionSpec {
                     module.dependsOn(it, other)
                 } else {
                     module.dependsOn(it)
+                }
+            }
+        }
+        if (constraints) {
+            constraints.each {
+                if (it instanceof CharSequence) {
+                    def args = it.split(':') as List
+                    module.dependsOn(repository.module(*args), optional: true)
+                } else if (it instanceof Map) {
+                    def other = repository.module(it.group, it.artifact, it.version)
+                    module.dependsOn(it, other, optional: true)
+                } else {
+                    module.dependsOn(it, optional: true)
                 }
             }
         }

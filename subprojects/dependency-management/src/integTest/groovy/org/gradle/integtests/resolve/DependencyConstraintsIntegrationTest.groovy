@@ -19,8 +19,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 /**
- * This is a variation of {@link OptionalDependenciesIntegrationTest} that tests dependency constraints
- * declared in the build script (instead of published optional dependencies)
+ * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
+ * declared in the build script (instead of published)
  */
 class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
     private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")

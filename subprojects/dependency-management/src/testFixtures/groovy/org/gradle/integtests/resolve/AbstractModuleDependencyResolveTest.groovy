@@ -33,6 +33,10 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         GradleMetadataResolveRunner.useIvy()
     }
 
+    boolean isGradleMetadataEnabled() {
+        GradleMetadataResolveRunner.isGradleMetadataEnabled()
+    }
+
     String getRootProjectName() { 'test' }
 
     void resetExpectations(boolean expectFailure = false) {
