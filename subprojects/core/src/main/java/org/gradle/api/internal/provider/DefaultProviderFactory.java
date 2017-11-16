@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
@@ -34,6 +35,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public <T> PropertyState<T> property(Class<T> valueType) {
+        DeprecationLogger.nagUserOfReplacedMethod("property(Class)", "ObjectFactory.property(Class)");
         return propertyNoNag(valueType);
     }
 

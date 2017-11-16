@@ -17,7 +17,6 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Issue
 import spock.lang.Unroll
 
 import static PropertyStateProjectUnderTest.Language
@@ -27,9 +26,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
     private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 
-    @Issue("https://github.com/gradle/gradle/issues/3474")
     @Unroll
-    def "does not receive deprecation warning when using #expr"() {
+    def "receives deprecation warning when using #expr"() {
         given:
         buildFile << """
 PropertyState<String> p = $expr
@@ -37,8 +35,12 @@ p.set("123")
 p.get()
 """
 
-        expect:
-        succeeds()
+        when:
+        executer.expectDeprecationWarning()
+        run()
+
+        then:
+        output.contains("The property(Class) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the ObjectFactory.property(Class) method instead.")
 
         where:
         expr                         | _
