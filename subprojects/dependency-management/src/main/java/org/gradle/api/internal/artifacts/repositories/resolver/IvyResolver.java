@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
@@ -43,41 +42,35 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 
-public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
+public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
-    private final ModuleMetadataParser moduleMetadataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
-    private final boolean useGradleMetadata;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                        boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                        FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser, boolean useGradleMetadata) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository);
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, moduleIdentifierFactory);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
-        this.moduleMetadataParser = moduleMetadataParser;
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
-        this.useGradleMetadata = useGradleMetadata;
     }
 
     @Override
@@ -88,7 +81,12 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     protected void appendId(BuildCacheHasher hasher) {
         hasher.putBoolean(isM2compatible());
-        hasher.putBoolean(useGradleMetadata);
+        hasher.putBoolean(isUseGradleMetadata());
+    }
+
+    @Override
+    MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
     }
 
     @Override
@@ -160,24 +158,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         MutableIvyModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
         checkMetadataConsistency(moduleComponentIdentifier, metaData);
         return metaData;
-    }
-
-    @Nullable
-    @Override
-    protected MutableIvyModuleResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        MutableIvyModuleResolveMetadata metadata = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
-        if (useGradleMetadata) {
-            LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module")), result);
-            if (resource != null) {
-                // Use default empty metadata when the Ivy file isn't present
-                if (metadata == null) {
-                    ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-                    metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
-                }
-                moduleMetadataParser.parse(resource, metadata);
-            }
-        }
-        return metadata;
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
