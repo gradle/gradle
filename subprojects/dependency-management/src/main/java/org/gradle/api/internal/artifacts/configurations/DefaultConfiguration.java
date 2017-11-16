@@ -121,7 +121,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private final boolean isScriptConfiguration;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
@@ -173,6 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
+    private final ConfigurationUseSite configurationUseSite;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
@@ -192,7 +192,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
-                                boolean isScriptConfiguration) {
+                                ConfigurationUseSite configurationUseSite) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -210,8 +210,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.artifactNotationParser = artifactNotationParser;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
+        this.configurationUseSite = configurationUseSite;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
-        this.isScriptConfiguration = isScriptConfiguration;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -648,7 +648,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, isScriptConfiguration);
+            rootComponentMetadataBuilder, configurationUseSite);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1318,16 +1318,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Nullable
         @Override
         public String getProjectPath() {
-            if (isScriptConfiguration) {
-                return null;
-            } else {
-                return getPath().substring(0, getPath().length() - getName().length());
-            }
+            return configurationUseSite.getProjectPath();
         }
 
         @Override
         public boolean isScriptConfiguration() {
-            return isScriptConfiguration;
+            return configurationUseSite.isScript();
         }
 
         @Override
