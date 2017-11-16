@@ -117,6 +117,10 @@ repositories {
 
 In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCentral()` was pointing to `https://repo1.maven.org/maven2/`. Sonatype recommends using the canonical URL `https://repo.maven.apache.org/maven2/` instead. This version of Gradle makes the switch to `repo.maven.apache.org` when using the `mavenCentral()` API.
 
+### Provider API documentation
+
+In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
