@@ -32,10 +32,10 @@ class IncrementalCompileProcessorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def includesParser = Mock(SourceIncludesParser)
-    def dependencyParser = Mock(SourceIncludesResolver)
+    def dependencyResolver = Mock(SourceIncludesResolver)
     def hasher = Stub(FileHasher)
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyParser, hasher))
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, hasher))
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -82,15 +82,17 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def parse(TestFile sourceFile) {
-        final Set<File> deps = graph[sourceFile]
-        IncludeDirectives includes = includes(deps)
-        _ * includesParser.parseIncludes(sourceFile) >> includes
+        _ * includesParser.parseIncludes(sourceFile) >> {
+            def deps = graph[sourceFile]
+            return includes(deps)
+        }
     }
 
     def resolve(TestFile sourceFile) {
-        Set<File> deps = graph[sourceFile]
-        IncludeDirectives includes = includes(deps)
-        _ * dependencyParser.resolveIncludes(sourceFile, includes, _) >> resolveDeps(deps)
+        _ * dependencyResolver.resolveIncludes(sourceFile, _, _) >> {
+            def deps = graph[sourceFile]
+            resolveDeps(deps)
+        }
     }
 
     private static IncludeDirectives includes(Collection<File> deps) {
@@ -248,8 +250,8 @@ class IncrementalCompileProcessorTest extends Specification {
         resolve(dep3)
         parse(dep5)
         resolve(dep5)
-
-        1 * dependencyParser.resolveIncludes(source2, includes([dep3, dep4])) >> resolveDeps([dep3, dep5])
+        graph[source2] = [dep3, dep5]
+        resolve(source2)
 
         then:
         with (state) {
@@ -381,10 +383,9 @@ class IncrementalCompileProcessorTest extends Specification {
 
         then:
         1 * includesParser.parseIncludes(source1) >> includes
-        1 * dependencyParser.resolveIncludes(source1, includes) >> unresolved()
+        1 * dependencyResolver.resolveIncludes(source1, includes, _) >> unresolved()
 
         result.macroIncludeUsedInSources
-
     }
 
     def checkCompile(Map<String, List<File>> args) {

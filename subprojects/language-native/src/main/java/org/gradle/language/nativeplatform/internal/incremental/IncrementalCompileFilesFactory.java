@@ -79,7 +79,7 @@ public class IncrementalCompileFilesFactory {
         private boolean visitSourceFile(File sourceFile) {
             List<IncludeDirectives> included = new ArrayList<IncludeDirectives>();
             Set<File> visited = new HashSet<File>();
-            return visitFile(sourceFile, included, visited);
+            return visitFile(sourceFile, included, visited) || !previous.getSourceInputs().contains(sourceFile);
         }
 
         private boolean visitFile(File file, List<IncludeDirectives> included, Set<File> visited) {
