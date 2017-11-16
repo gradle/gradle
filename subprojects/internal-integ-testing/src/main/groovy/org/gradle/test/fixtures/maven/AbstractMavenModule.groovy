@@ -23,6 +23,9 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencySpec
+import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
+import org.gradle.test.fixtures.gradle.VariantMetadata
 
 import java.text.SimpleDateFormat
 
@@ -378,40 +381,20 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     private void publishModuleMetadata() {
-        moduleDir.createDir()
-        def file = moduleDir.file("$artifactId-${publishArtifactVersion}.module")
-        def artifact = getArtifact([:])
-        def value = new StringBuilder()
-        value << """
-            { 
-                "formatVersion": "0.2", 
-                "builtBy": { "gradle": { } },
-                "variants": ["""
-        for (Iterator<VariantMetadata> i = variants.iterator(); i.hasNext(); ) {
-            def variant = i.next()
-            value << """
-                    { 
-                        "name": "$variant.name",
-                        "attributes": { ${variant.attributes.entrySet().collect { "\"$it.key\": \"$it.value\"" }.join(", ")} },
-                        "files": [
-                            { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
-                        ],
-                        "dependencies": [
-"""
-            value << dependencies.collect { d ->
-                def rejects = d.rejects?", \"rejects\": [${d.rejects.collect { "\"$it\""}.join(',')}]":""
-                def versionConstraint = "{ \"prefers\": \"${d.version}\"$rejects }"
-                "                            { \"group\": \"$d.groupId\", \"module\": \"$d.artifactId\", \"version\": $versionConstraint }\n"
-            }.join(",\n")
-            value << """                        ]
-                    }${i.hasNext() ? ',' : ''}"""
-        }
-        value << """                        
-                ]
+        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
+            variants.collect { v ->
+                new VariantMetadata(
+                    v.name,
+                    v.attributes,
+                    dependencies.collect { d ->
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects)
+                    },
+                    [getArtifact([:]), *artifacts.collect { getArtifact(it) }]
+                )
             }
-        """
+        )
 
-        file.text = value.toString()
+        adapter.publishTo(moduleDir)
     }
 
     @Override
@@ -552,13 +535,4 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         super.withModuleMetadata()
     }
 
-    static class VariantMetadata {
-        String name
-        Map<String, String> attributes
-
-        VariantMetadata(String name, Map<String, String> attributes = [:]) {
-            this.name = name
-            this.attributes = attributes
-        }
-    }
 }

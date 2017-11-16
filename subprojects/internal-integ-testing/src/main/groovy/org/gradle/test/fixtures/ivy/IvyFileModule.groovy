@@ -22,6 +22,9 @@ import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencySpec
+import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
+import org.gradle.test.fixtures.gradle.VariantMetadata
 
 class IvyFileModule extends AbstractModule implements IvyModule {
     final String ivyPattern
@@ -278,40 +281,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     private void publishModuleMetadata() {
-        moduleDir.createDir()
-        def file = moduleDir.file("$module-${revision}.module")
-        def artifact = moduleArtifact([:])
-        def value = new StringBuilder()
-        value << """
-            { 
-                "formatVersion": "0.2", 
-                "builtBy": { "gradle": { } },
-                "variants": ["""
-        for (Iterator<VariantMetadata> i = variants.iterator(); i.hasNext(); ) {
-            def variant = i.next()
-            value << """
-                    { 
-                        "name": "$variant.name",
-                        "attributes": { ${variant.attributes.entrySet().collect { "\"$it.key\": \"$it.value\"" }.join(", ")} },
-                        "files": [
-                            { "name": "${artifact.file.name}", "url": "${artifact.file.name}" }
-                        ],
-                        "dependencies": [
-"""
-            value << dependencies.collect { d ->
-                def rejects = d.rejects?", \"rejects\": [${d.rejects.collect { "\"$it\""}.join(',')}]":""
-                def versionConstraint = "{ \"prefers\": \"${d.revision}\"$rejects }"
-                "                            { \"group\": \"$d.organisation\", \"module\": \"$d.module\", \"version\": $versionConstraint }\n"
-            }.join(",\n")
-            value << """                        ]
-                    }${i.hasNext() ? ',' : ''}"""
-        }
-        value << """                        
-                ]
+        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision,
+            variants.collect { v ->
+                new VariantMetadata(
+                    v.name,
+                    v.attributes,
+                    dependencies.collect { d ->
+                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects)
+                    },
+                    artifacts.collect { moduleArtifact(it) }
+                )
             }
-        """
+        )
 
-        file.text = value.toString()
+        adapter.publishTo(moduleDir)
     }
 
 
@@ -441,13 +424,4 @@ ivyFileWriter << '</ivy-module>'
         parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
     }
 
-    static class VariantMetadata {
-        String name
-        Map<String, String> attributes
-
-        VariantMetadata(String name, Map<String, String> attributes = [:]) {
-            this.name = name
-            this.attributes = attributes
-        }
-    }
 }
