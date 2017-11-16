@@ -16,18 +16,13 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
 
 class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
-    private static final String PLAIN_CONSOLE = 'plain'
-    private static final String RICH_CONSOLE = 'rich'
+    private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
 
     def setup() {
         file('buildSrc/src/main/java/BuildScanPlugin.java') << buildScanPlugin()
@@ -35,94 +30,43 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
     }
 
     @Unroll
-    def "can ask for license acceptance in interactive build without daemon and #description console"() {
+    def "can ask for license acceptance in interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withConsoleOutput(consoleOutput)
+        withDaemon(daemon)
+        withRichConsole(richConsole)
 
         when:
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
-        expectRenderedPromptAndAnswer(gradleHandle, true)
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(true))
 
         where:
-        consoleOutput       | description
-        ConsoleOutput.Plain | PLAIN_CONSOLE
-        ConsoleOutput.Rich  | RICH_CONSOLE
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
     }
 
-    @Ignore("flaky test - sometimes fails with java.io.IOException: Write end dead or Pipe closed")
     @Unroll
-    def "can ask for license acceptance in interactive build with daemon and #description console"() {
+    def "use of ctrl-d when asking for license acceptance returns null [daemon enabled: #daemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withConsoleOutput(consoleOutput)
-        withDaemon()
+        withDaemon(daemon)
+        withRichConsole(richConsole)
 
         when:
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, EOF)
         gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
-        expectRenderedPromptAndAnswer(gradleHandle, true)
-
-        cleanup:
-        daemons.daemon.kill()
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(null))
 
         where:
-        consoleOutput       | description
-        ConsoleOutput.Plain | PLAIN_CONSOLE
-        ConsoleOutput.Rich  | RICH_CONSOLE
-    }
-
-    @Unroll
-    def "use of ctrl-d when asking for license acceptance returns null without daemon and #description console"() {
-        given:
-        interactiveExecution()
-        withConsoleOutput(consoleOutput)
-
-        when:
-        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
-
-        then:
-        gradleHandle.cancelWithEOT().waitForFinish()
-        expectRenderedPromptAndAnswer(gradleHandle, null)
-
-        where:
-        consoleOutput       | description
-        ConsoleOutput.Plain | PLAIN_CONSOLE
-        ConsoleOutput.Rich  | RICH_CONSOLE
-    }
-
-    @Ignore("flaky test - sometimes fails with java.io.IOException: Write end dead or Pipe closed")
-    @Unroll
-    def "use of ctrl-d when asking for license acceptance returns null with daemon and #description console"() {
-        given:
-        interactiveExecution()
-        withConsoleOutput(consoleOutput)
-        withDaemon()
-
-        when:
-        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
-
-        then:
-        gradleHandle.cancelWithEOT().waitForFinish()
-        closeStdIn(gradleHandle)
-        expectRenderedPromptAndAnswer(gradleHandle, null)
-
-        cleanup:
-        daemons.daemon.kill()
-
-        where:
-        consoleOutput       | description
-        ConsoleOutput.Plain | PLAIN_CONSOLE
-        ConsoleOutput.Rich  | RICH_CONSOLE
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
     }
 
     @Unroll
@@ -134,15 +78,16 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, stdin)
+        writeToStdInAndClose(gradleHandle, stdin)
         gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
-        expectRenderedPromptAndAnswer(gradleHandle, accepted)
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(accepted))
 
         where:
         input    | stdin     | accepted
         YES      | YES.bytes | true
         NO       | NO.bytes  | false
+        'ctrl-d' | EOF       | null
     }
 
     def "can ask for license acceptance when build is executed in parallel"() {
@@ -161,10 +106,10 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
         def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
-        expectRenderedPromptAndAnswer(gradleHandle, true)
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(true))
     }
 
     def "does not request user input prompt for non-interactive console"() {
@@ -173,10 +118,7 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
 
         then:
         gradleHandle.waitForFinish()
-        expectNoPromptAndNullAnswer(gradleHandle)
-    }
-
-    private DaemonsFixture getDaemons() {
-        new DaemonLogsAnalyzer(executer.daemonBaseDir)
+        !gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(null))
     }
 }

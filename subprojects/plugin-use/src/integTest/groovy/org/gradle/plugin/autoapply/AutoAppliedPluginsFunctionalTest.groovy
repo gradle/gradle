@@ -66,9 +66,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
@@ -85,9 +84,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, NO.bytes)
+        writeToStdInAndClose(gradleHandle, NO.bytes)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
@@ -107,9 +105,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
+        writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
@@ -133,9 +130,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
+        writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         !result.output.contains(BUILD_SCAN_WARNING)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)

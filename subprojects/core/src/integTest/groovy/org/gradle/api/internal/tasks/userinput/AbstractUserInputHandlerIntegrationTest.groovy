@@ -25,12 +25,16 @@ class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         executer.withStdinPipe().withForceInteractive(true)
     }
 
-    protected void withDaemon() {
-        executer.requireDaemon().requireIsolatedDaemons()
+    protected void withDaemon(boolean enabled) {
+        if (enabled) {
+            executer.requireDaemon().requireIsolatedDaemons()
+        }
     }
 
-    protected void withConsoleOutput(ConsoleOutput consoleOutput) {
-        executer.withConsole(consoleOutput)
+    protected void withRichConsole(boolean enabled) {
+        if (enabled) {
+            executer.withConsole(ConsoleOutput.Rich)
+        }
     }
 
     protected void withParallel() {
