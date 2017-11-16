@@ -71,13 +71,19 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         VcsMappingInternal vcsMappingInternal = getVcsMapping(dependency);
 
         if (vcsMappingInternal != null) {
+            // Safe to cast because if it weren't a ModuleComponentSelector, vcsMappingInternal would be null.
+            ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
             vcsMappingsInternal.getVcsMappingRule().execute(vcsMappingInternal);
 
             // TODO: Need failure handling, e.g., cannot clone repository
             if (vcsMappingInternal.hasRepository()) {
                 VersionControlSpec spec = vcsMappingInternal.getRepository();
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
-                VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem);
+                VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersion());
+                if (selectedVersion == null) {
+                    result.failed(new ModuleVersionResolveException(depSelector, spec.getDisplayName() + " does not contain a version matching " + depSelector.getVersion()));
+                    return;
+                }
                 File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
 
                 //TODO: Allow user to provide settings script in VcsMapping
@@ -115,17 +121,20 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         return versionControlSystem.populate(versionDirectory, selectedVersion, spec);
     }
 
-    private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem) {
+    private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, String version) {
         // TODO: Select version based on requested version and tags
         Set<VersionRef> versions = versionControlSystem.getAvailableVersions(spec);
-        return versions.iterator().next();
+        for (VersionRef candidate : versions) {
+            if (candidate.getVersion().equals(version)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {
-        // TODO: Only perform source dependency resolution when version == latest.integration for now
         if (vcsMappingsInternal.hasRules()
-                && dependency.getSelector() instanceof ModuleComponentSelector
-                && ((ModuleComponentSelector) dependency.getSelector()).getVersionConstraint().getPreferredVersion().equals("latest.integration")) {
+                && dependency.getSelector() instanceof ModuleComponentSelector) {
             return vcsMappingFactory.create(dependency.getSelector());
         }
         return null;

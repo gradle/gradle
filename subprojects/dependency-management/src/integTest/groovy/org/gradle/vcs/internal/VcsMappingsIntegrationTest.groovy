@@ -40,24 +40,6 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoCheckedOut()
     }
 
-    def "only use source repositories when version matches latest.integration"() {
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
-                        }
-                    }
-                }
-            }
-        """
-        buildFile.text = buildFile.text.replace("latest.integration", "1.0")
-        expect:
-        fails("assemble")
-        assertRepoNotCheckedOut("dep")
-    }
-
     def 'emits sensible error when bad code is in vcsMappings block'() {
         settingsFile << """
             sourceControl {

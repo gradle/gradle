@@ -106,7 +106,65 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Git repo is cloned
         def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
         gitCheckout.file('.git').assertExists()
+    }
 
+    def 'can resolve specific version'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+
+        buildFile.text = buildFile.text.replace('latest.integration', '1.3.0')
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+    }
+
+    def 'missing version error makes sense'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+
+        buildFile.text = buildFile.text.replace('latest.integration', '1.4.0')
+
+        when:
+        fails('assemble')
+
+        then:
+        failureCauseContains("does not contain a version matching 1.4.0")
     }
 
     // TODO: Use HTTP hosting for git repo

@@ -71,7 +71,13 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
         Set<VersionRef> versions = Sets.newHashSet();
         for (Ref ref : refs) {
-            versions.add(GitVersionRef.from(ref));
+            GitVersionRef gitRef = GitVersionRef.from(ref);
+            versions.add(gitRef);
+            // The HEAD reference in a Git Repository is a logical choice if the user is looking
+            // for the 'latest.integration' version of a dependency.
+            if (gitRef.getVersion().equals("HEAD")) {
+                versions.add(GitVersionRef.from("latest.integration", gitRef.getCanonicalId()));
+            }
         }
         return versions;
     }
