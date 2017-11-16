@@ -30,7 +30,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "3.4"
-        runner.targetVersions = ["4.4-20171016130954+0000"]
+        runner.targetVersions = ["4.5-20171114235929+0000"]
 
         when:
         def result = runner.run()
@@ -41,8 +41,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         where:
         testProject         | memory | parallel | warmUpRuns | runs | tasks
         'k9AndroidBuild'    | '512m' | false    | null       | null | 'help'
+        'k9AndroidBuild'    | '512m' | false    | null       | null | 'assembleDebug'
         'k9AndroidBuild'    | '512m' | false    | null       | null | 'clean k9mail:assembleDebug'
         'largeAndroidBuild' | '2g'   | true     | null       | null | 'help'
+        'largeAndroidBuild' | '2g'   | true     | null       | null | 'assembleDebug'
         'largeAndroidBuild' | '2g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
     }
 }

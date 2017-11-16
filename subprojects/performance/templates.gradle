@@ -296,12 +296,12 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
 // === Android ===
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'gradle'
+    branch = 'android-30'
 }
 
 task largeAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'gradle'
+    branch = 'android-30'
 }
 
 task excludeRuleMergingBuild(type: RemoteProject) {
