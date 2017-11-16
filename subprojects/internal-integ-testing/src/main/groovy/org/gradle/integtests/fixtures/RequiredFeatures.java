@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * Indicates that the test runner should only create execution if the nested features are enabled.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface RequiredFeatures {
     RequiredFeature[] value();

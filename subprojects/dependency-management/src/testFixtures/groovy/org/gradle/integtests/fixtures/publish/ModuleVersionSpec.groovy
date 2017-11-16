@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.publish
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
@@ -28,8 +29,9 @@ class ModuleVersionSpec {
     private final String version
 
     private final List<Object> dependsOn = []
+    private final List<Closure<?>> withModule = []
     private Expectation expectGetMetadata = Expectation.NONE
-    private boolean expectGetArtifact
+    private List<?> expectGetArtifact = []
 
     enum Expectation {
         GET,
@@ -47,8 +49,12 @@ class ModuleVersionSpec {
         expectGetMetadata = Expectation.GET
     }
 
-    void expectGetArtifact() {
-        expectGetArtifact = true
+    void expectGetArtifact(String artifact = '') {
+        expectGetArtifact << artifact
+    }
+
+    void expectGetArtifact(Map<String, String> artifact) {
+        expectGetArtifact << artifact
     }
 
     void maybeGetMetadata() {
@@ -57,6 +63,10 @@ class ModuleVersionSpec {
 
     void dependsOn(coord) {
         dependsOn << coord
+    }
+
+    void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
+        withModule << spec
     }
 
     void build(HttpRepository repository) {
@@ -93,7 +103,17 @@ class ModuleVersionSpec {
 
 
         if (expectGetArtifact) {
-            module.artifact.expectGet()
+            expectGetArtifact.each { artifact ->
+                if (artifact) {
+                    if (module instanceof MavenModule) {
+                        module.getArtifact(artifact).expectGet()
+                    } else if (module instanceof IvyModule) {
+                        module.artifact(artifact).expectGet()
+                    }
+                } else {
+                    module.artifact.expectGet()
+                }
+            }
         }
         if (dependsOn) {
             dependsOn.each {
@@ -106,6 +126,12 @@ class ModuleVersionSpec {
                 } else {
                     module.dependsOn(it)
                 }
+            }
+        }
+        if (withModule) {
+            withModule.each { spec ->
+                spec.delegate = module
+                spec()
             }
         }
         module.publish()
