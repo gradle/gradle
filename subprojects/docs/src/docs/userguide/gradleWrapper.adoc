@@ -15,91 +15,222 @@
 [[gradle_wrapper]]
 == The Gradle Wrapper
 
-Most tools require installation on your computer before you can use them. If the installation is easy, you may think that’s fine. But it can be an unnecessary burden on the users of the build. Equally importantly, will the user install the right version of the tool for the build? What if they’re building an old version of the software?
+The recommended way to execute any Gradle build is with the help of the Gradle Wrapper (in short just “Wrapper”). The Wrapper is a feature that makes is extremely easy to bootstrap a Gradle project. Upon invocation, it can _automatically download, unpack and install the Gradle runtime with a predefined version_ and use it to execute the build. As a result, developers can get up and running with a Gradle project in no-time without having to follow manual installation processes saving your company time and money.
 
-The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both these problems and is the preferred way of starting a Gradle build.
+**In a nutshell you gain the following benefits:**
 
+- Standardizes a project on a given Gradle version, leading to more reliable and robust builds.
+- Provisioning a new Gradle version to different stakeholders and execution environment (e.g. IDEs or Continuous Integration servers) is as simple as changing a properties file.
 
-[[using_wrapper_scripts]]
-=== Executing a build with the Wrapper
+**So how does it work? For a user there are typically three different workflows:**
 
-If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project:
+- You set up a new Gradle project and want to <<sec:adding_wrapper,add the Wrapper>> to it.
+- You want to <<sec:executing_wrapper,run a project with the Wrapper>> that already provides it.
+- You want to <<sec:upgrading_wrapper,upgrade the Wrapper>> to a new version of Gradle.
 
-* `./gradlew <task>` (on Unix-like platforms such as Linux and macOS)
-* `gradlew <task>` (on Windows using the gradlew.bat batch file)
+The following sections explain each of these use cases in more detail.
 
-Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
+[[sec:project_wrapper_enabled]]
+=== Is my project Wrapper-enabled?
 
-[TIP]
-.IDEs
-====
+How do you know that a project already uses the Wrapper? The Wrapper consists of a set of files checked into version control together with your project source code. To illustrate the expected Wrapper files let’s have a look at the following project layout:
 
-When importing a Gradle project via its wrapper, your IDE may ask to use the Gradle 'all' distribution. This is perfectly fine and helps the IDE provide code completion for the build files.
+----
+.
+├── build.gradle
+├── settings.gradle
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+└── gradlew.bat
+----
 
-====
+You can find a new `gradle` directory and two script files alongside the typical `build.gradle` and `settings.gradle` file:
 
-Not only does this mean that you don’t have to manually install Gradle yourself, but you are also sure to use the version of Gradle that the build is designed for. This makes your historical builds more reliable. Just use the appropriate syntax from above whenever you see a command line starting with `gradle ...` in the user guide, on Stack Overflow, in articles or wherever.
+.Generated Wrapper files
+[options="header"]
+|===
+|File(s)                     |Description
+|`gradle-wrapper.jar`        |The Wrapper JAR file containing code for downloading the Gradle distribution.
+|`gradle-wrapper.properties` |A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version.
+|`gradlew`, `gradlew.bat`    | A shell script and a Windows batch script for executing the build with the Wrapper.
+|===
 
-For completeness sake, and to ensure you don’t delete any important files, here are the files and directories in a Gradle project that make up the Wrapper:
+If you happen to find those files in your project then you are all set. You can go ahead and <<sec:executing_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to generate them.
 
-* `gradlew` (Unix Shell script)
-* `gradlew.bat` (Windows batch file)
-* `gradle/wrapper/gradle-wrapper.jar` (Wrapper JAR)
-* `gradle/wrapper/gradle-wrapper.properties` (Wrapper properties)
+[[sec:adding_wrapper]]
+=== Adding a Wrapper to a project
 
+Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation>>. Thankfully, generating the initial Wrapper files is a one-time process.
 
-If you’re wondering where the Gradle distributions are stored, you’ll find them in your user home directory under `$USER_HOME/.gradle/wrapper/dists`.
-
-[[sec:wrapper_generation]]
-=== Adding the Wrapper to a project
-
-The Wrapper is something you _should_ check into version control. By distributing the Wrapper with your project, anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the version of Gradle that the build was designed to work with. Of course, this is also great for http://en.wikipedia.org/wiki/Continuous_integration[continuous integration] servers (i.e. servers that regularly build your project) as it requires no configuration on the server.
-
-You install the Wrapper into your project by running the `wrapper` task. (This task is always available, even if you don't add it to your build). To specify a Gradle version use `--gradle-version` on the command-line. By default, the Wrapper will use a `bin` distribution. This is the smallest Gradle distribution. Some tools, like Android Studio and Intellij IDEA, provide additional context information when used with the `all` distribution. You may select a different Gradle distribution type by using `--distribution-type`. You can also set the URL to download Gradle from directly via `--gradle-distribution-url`. If no version or distribution URL is specified, the Wrapper will be configured to use the gradle version the `wrapper` task is executed with. So if you run the `wrapper` task with Gradle 2.4, then the Wrapper configuration will default to version 2.4.
+Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when running the command `gradle tasks`. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
 
 ++++
 <sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the Wrapper task">
-    <output args="wrapper --gradle-version 2.0"/>
+    <output args="wrapper"/>
 </sample>
 ++++
 
-The Wrapper can be further customized by adding and configuring a api:org.gradle.api.tasks.wrapper.Wrapper[] task in your build script, and then executing it.
+IMPORTANT: To make the Wrapper files available to other developers and execution environments you’ll need to check them into version control. Adding the JAR file to version control is expected. Some organization do not allow projects to submit binary files to version control. At the moment there are no alternative options to the approach.
+
+The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, encodes important information about the Gradle distribution.
+
+.The generated distribution URL
+====
+[source,properties]
+.`gradle-wrapper.properties`
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-4.3.1-bin.zip
+----
+====
+
+The server URL used to download the Gradle distribution from.
+The type of Gradle distribution. By default that’s the `-bin` distribution containing only the runtime but no sample code and documentation.
+The Gradle version used for executing the build. By default the `wrapper` task picks the exact same Gradle version that was used to generate the Wrapper files.
+
+All of those aspects are configurable at the time of generating the Wrapper files with the help of command line options.
+
+.Wrapper command line options
+[options="header"]
+|===
+|Command Line Option         |Description
+|`--gradle-version`          | The Gradle version used for downloading and executing the Wrapper.
+|`--distribution-type`       |The Gradle distribution type used for the Wrapper. Available options are `bin` and `all`. The default value is `bin`.
+|`--gradle-distribution-url` |The full URL pointing to Gradle distribution ZIP file. Using this option makes `--gradle-version` and `--distribution-type` obsolete as the URL already contains this information. This option is extremely valuable if you want to host the Gradle distribution inside your company’s network.
+|===
+
+To illustrate the use of the command line options let’s assume the following use case. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
 ++++
-<sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
-    <sourcefile file="build.gradle"/>
+<sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Providing options to Wrapper task">
+    <output args="wrapper --gradle-version 4.0 --distribution-type all"/>
 </sample>
 ++++
 
-After such an execution you find the following new or updated files in your project directory (in case the default configuration of the Wrapper task is used).
+As a result you can find the desired information in the Wrapper properties file.
+
+.The generated distribution URL
+====
+[source,properties]
+.`gradle-wrapper.properties`
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-4.0-all.zip
+----
+====
+
+[[sec:executing_wrapper]]
+=== Executing the build with the Wrapper
+
+It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operation system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
+
+.Executing the build with the Wrapper batch file
+====
+[source,shell]
+----
+> gradlew.bat build
+Downloading https://services.gradle.org/distributions/gradle-4.0-all.zip
+.....................................................................................
+Unzipping C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-4.0-all.zip to C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-al\ac27o8rbd0ic8ih41or9l32mv
+Set executable permissions for: C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-4.0\bin\gradle
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+BUILD SUCCESSFUL in 12s
+1 actionable task: 1 executed
+----
+====
+
+In case the Gradle distribution is not available on the machine, the Wrapper will download it and store in the local file system. Any subsequent build invocation is going to reuse the existing local distribution as long as the metadata in the Gradle properties doesn't change.
+
+[[sec:upgrading_wrapper]]
+=== Upgrading an existing Wrapper
+
+Long-running projects will want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements. One way to upgrade the Gradle version is manually change the `distributionUrl` property in the Wrapper property file. The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in section <<sec:adding_wrapper,“Adding a Wrapper to a project”>>. Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project. As usual you’d commit the changes to the Wrapper files to version control.
+
+The following console outputs demonstrate the Wrapper upgrade process from Gradle version 4.0 to 4.2.1.
+
+.Checking the version of the existing Wrapper
+====
+[source,shell]
+----
+$ ./gradlew -v
+
+------------------------------------------------------------
+Gradle 4.0
+------------------------------------------------------------
+
+Build time:   2017-06-14 15:11:08 UTC
+Revision:     316546a5fcb4e2dfe1d6aa0b73a4e09e8cecb5a5
+
+Groovy:       2.4.11
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_60 (Oracle Corporation 25.60-b23)
+OS:           Mac OS X 10.13.1 x86_64
+----
+====
+
+.Upgrading the Wrapper version
+====
+[source,shell]
+----
+$ ./gradlew wrapper --gradle-version 4.2.1
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+BUILD SUCCESSFUL in 4s
+1 actionable task: 1 executed
+----
+====
+
+.Checking the Wrapper version after upgrading
+====
+[source,shell]
+----
+./gradlew -v
+Downloading https://services.gradle.org/distributions/gradle-4.2.1-bin.zip
+...................................................................
+Unzipping /Users/bmuschko/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju/gradle-4.2.1-bin.zip to /Users/bmuschko/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju
+Set executable permissions for: /Users/bmuschko/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju/gradle-4.2.1/bin/gradle
+
+------------------------------------------------------------
+Gradle 4.2.1
+------------------------------------------------------------
+
+Build time:   2017-10-02 15:36:21 UTC
+Revision:     a88ebd6be7840c2e59ae4782eb0f27fbe3405ddf
+
+Groovy:       2.4.12
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_60 (Oracle Corporation 25.60-b23)
+OS:           Mac OS X 10.13.1 x86_64
+----
+====
+
+[[customizing_wrapper]]
+=== Customizing the Wrapper
+
+Most users of Gradle are happy with the default runtime behavior of the Wrapper. However, organizational policies, security constraints or personal preferences might require you to dive deeper into customizing the Wrapper. Thankfully, the built-in `wrapper` task exposes numerous options to bend the runtime behavior to your needs. Most configuration options are exposed by the underlying task type api:org.gradle.api.tasks.wrapper.Wrapper[].
+
+Let’s assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper. You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
 ++++
-<sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
-    <layout after="wrapper">
-        gradlew
-        gradlew.bat
-        gradle/wrapper/gradle-wrapper.jar
-        gradle/wrapper/gradle-wrapper.properties
-    </layout>
+<sample id="wrapperCustomized" dir="userguide/wrapper/customized-task" title="Customizing the Wrapper task">
+    <sourcefile file="build.gradle" snippet="customized-wrapper-task"/>
 </sample>
 ++++
 
-All of these files _should_ be submitted to your version control system. This only needs to be done once. After these files have been added to the project, the project should then be built with the added `gradlew` command. The `gradlew` command can be used _exactly_ the same way as the `gradle` command.
+With the configuration in place running `./gradlew wrapper --gradle-version 4.1` is good enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.
 
-If you want to switch to a new version of Gradle you don't need to rerun the `wrapper` task. It is good enough to change the respective entry in the `gradle-wrapper.properties` file, but if you want to take advantage of new functionality in the Gradle wrapper, then you would need to regenerate the wrapper files.
+.The generated distribution URL
+====
+[source,properties]
+.`gradle-wrapper.properties`
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-4.1-all.zip
+----
+====
 
-[[sec:configuration]]
-=== Configuration
-
-If you run Gradle with `gradlew`, the Wrapper checks if a Gradle distribution for the Wrapper is available. If so, it delegates to the `gradle` command of this distribution with all the arguments passed originally to the `gradlew` command. If it didn't find a Gradle distribution, it will download it first.
-
-When you configure the `Wrapper` task, you can specify the Gradle version you wish to use. The `gradlew` command will download the appropriate distribution from the Gradle repository. Alternatively, you can specify the download URL of the Gradle distribution. The `gradlew` command will use this URL to download the distribution. If you specified neither a Gradle version nor download URL, the `gradlew` command will download whichever version of Gradle was used to generate the Wrapper files.
-
-For the details on how to configure the Wrapper, see the api:org.gradle.api.tasks.wrapper.Wrapper[] class in the API documentation.
-
-If you don't want any download to happen when your project is built via `gradlew`, simply add the Gradle distribution zip to your version control at the location specified by your Wrapper configuration. A relative URL is supported - you can specify a distribution file relative to the location of `gradle-wrapper.properties` file.
-
-If you build via the Wrapper, any existing Gradle distribution installed on the machine is ignored.
+Please check out the API documentation for more detail descriptions of the available configuration options. You can also find various samples for configuring the Wrapper in the Gradle distribution.
 
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
@@ -177,8 +308,3 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 
 ----
 ====
-
-[[sec:unix_file_permissions]]
-=== Unix file permissions
-
-The Wrapper task adds appropriate file permissions to allow the execution of the `gradlew` *NIX command. Subversion preserves this file permission. We are not sure how other version control systems deal with this. What should always work is to execute “`sh gradlew`”.
