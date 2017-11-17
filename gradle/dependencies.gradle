@@ -19,7 +19,7 @@ ext {
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.12.3'
+versions.gradle_kotlin_dsl = '0.13.1'
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
