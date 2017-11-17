@@ -19,6 +19,8 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.test.fixtures.file.TestFile
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
@@ -154,7 +156,7 @@ Actual: ${actual[key]}
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/xcode/release").absolutePath
     }
 
     void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
@@ -168,7 +170,7 @@ Actual: ${actual[key]}
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/release").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/xcode/release").absolutePath
     }
 
     void assertUnitTestBuildSettings(Map<String, String> buildSettings) {
@@ -193,5 +195,10 @@ Actual: ${actual[key]}
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == swiftIncludes
+    }
+
+    void assertHasDebugSymbolsForSources(TestFile binary, SourceElement sourceElement) {
+        def fixture = new NativeBinaryFixture(binary, null)
+        assert fixture.binaryInfo.hasDebugSymbolsFor(sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name })
     }
 }
