@@ -94,8 +94,12 @@ public class AvailableToolChains {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
+            } else if (OperatingSystem.current().isMacOsX()) {
+                compilers.add(findClang());
+                compilers.addAll(findGccs(false));
+                compilers.add(findSwiftc());
             } else {
-                compilers.addAll(findGccs());
+                compilers.addAll(findGccs(true));
                 compilers.add(findClang());
                 compilers.add(findSwiftc());
             }
@@ -167,7 +171,7 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private List<ToolChainCandidate> findGccs() {
+    static private List<ToolChainCandidate> findGccs(boolean mustFind) {
         GccMetadataProvider versionDeterminer = GccMetadataProvider.forGcc(TestFiles.execActionFactory());
 
         Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
@@ -186,7 +190,7 @@ public class AvailableToolChains {
                 }
             }
         }
-        if (toolChains.isEmpty()) {
+        if (mustFind && toolChains.isEmpty()) {
             toolChains.add(new UnavailableToolChain("gcc"));
         }
 
