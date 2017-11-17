@@ -68,13 +68,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
-        DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder();
+        DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
+            .withAuthenticationSettings(authentications)
+            .followRedirects(false);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();
         } else {
             builder.withSslContextFactory(sslContextFactory);
         }
-        builder.withAuthenticationSettings(authentications);
         HttpClientHelper httpClientHelper = new HttpClientHelper(builder.build());
 
         describer.type("HTTP")

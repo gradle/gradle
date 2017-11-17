@@ -36,6 +36,8 @@ public class DefaultHttpSettings implements HttpSettings {
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
+    private final boolean followRedirects;
+
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
     private HttpTimeoutSettings timeoutSettings;
@@ -44,7 +46,8 @@ public class DefaultHttpSettings implements HttpSettings {
         return new Builder();
     }
 
-    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+    private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier, boolean followRedirects) {
+        this.followRedirects = followRedirects;
         Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
         Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
         Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
@@ -79,6 +82,11 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
+    public boolean isFollowRedirects() {
+        return followRedirects;
+    }
+
+    @Override
     public Collection<Authentication> getAuthenticationSettings() {
         return authenticationSettings;
     }
@@ -97,6 +105,7 @@ public class DefaultHttpSettings implements HttpSettings {
         private Collection<Authentication> authenticationSettings;
         private SslContextFactory sslContextFactory;
         private HostnameVerifier hostnameVerifier;
+        private boolean followRedirects = true;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
             this.authenticationSettings = authenticationSettings;
@@ -115,8 +124,13 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
+        public Builder followRedirects(boolean followRedirects) {
+            this.followRedirects = followRedirects;
+            return this;
+        }
+
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, followRedirects);
         }
     }
 
