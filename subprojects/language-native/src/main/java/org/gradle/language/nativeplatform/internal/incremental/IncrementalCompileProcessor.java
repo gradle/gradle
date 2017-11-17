@@ -31,13 +31,11 @@ public class IncrementalCompileProcessor {
 
     public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
         CompilationState previousCompileState = previousCompileStateCache.get();
-        final IncrementalCompileFiles result = incrementalCompileFilesFactory.filesFor(previousCompileState);
-
+        IncementalCompileSourceProcessor processor = incrementalCompileFilesFactory.filesFor(previousCompileState);
         for (File sourceFile : sourceFiles) {
-            result.processSource(sourceFile);
+            processor.processSource(sourceFile);
         }
-
-        return new DefaultIncrementalCompilation(result.getCurrent(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs(), result.getExistingHeaders(), result.isSourceFilesUseMacroIncludes());
+        return processor.getResult();
     }
 
 }

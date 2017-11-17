@@ -17,7 +17,6 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
@@ -26,17 +25,13 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
 
 @NonNullApi
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -66,7 +61,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
 
-        spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
+        spec.setSourceFileIncludeDirectives(compilation.getSourceFileIncludeDirectives());
 
         handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
 
@@ -91,15 +86,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
         ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getTask().getName(), spec.getIncludeRoots(), compilation);
         discoveredInputRecorder.newInputs(headerDependencies);
-    }
-
-    private Map<File, IncludeDirectives> mapIncludes(Collection<File> files, final CompilationState compilationState) {
-        return CollectionUtils.collectMapValues(files, new Transformer<IncludeDirectives, File>() {
-            @Override
-            public IncludeDirectives transform(File file) {
-                return compilationState.getState(file).getIncludeDirectives();
-            }
-        });
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {

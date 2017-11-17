@@ -29,7 +29,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class IncrementalCompileFilesFactory {
@@ -45,29 +47,26 @@ public class IncrementalCompileFilesFactory {
         this.snapshotter = snapshotter;
     }
 
-    public IncrementalCompileFiles filesFor(CompilationState previousCompileState) {
-        return new DefaultIncrementalCompileFiles(previousCompileState);
+    public IncementalCompileSourceProcessor filesFor(CompilationState previousCompileState) {
+        return new DefaultIncementalCompileSourceProcessor(previousCompileState);
     }
 
-    private class DefaultIncrementalCompileFiles implements IncrementalCompileFiles {
-
+    private class DefaultIncementalCompileSourceProcessor implements IncementalCompileSourceProcessor {
         private final CompilationState previous;
-
-        @Override
-        public CompilationState getCurrent() {
-            return current.snapshot();
-        }
-
         private final BuildableCompilationState current = new BuildableCompilationState();
-
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> discoveredInputs = Sets.newHashSet();
         private final Set<File> existingHeaders = Sets.newHashSet();
-
+        private final Map<File, IncludeDirectives> includeDirectivesMap = new LinkedHashMap<File, IncludeDirectives>();
         private boolean sourceFilesUseMacroIncludes;
 
-        DefaultIncrementalCompileFiles(CompilationState previousCompileState) {
+        DefaultIncementalCompileSourceProcessor(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
+        }
+
+        @Override
+        public IncrementalCompilation getResult() {
+            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), discoveredInputs, existingHeaders, sourceFilesUseMacroIncludes, includeDirectivesMap);
         }
 
         @Override
@@ -102,6 +101,8 @@ public class IncrementalCompileFilesFactory {
                 changed = true;
             }
             includeDirectives = sourceIncludesParser.parseIncludes(file);
+            // TODO - collect this only for modified source files
+            includeDirectivesMap.put(file, includeDirectives);
 
             included.add(includeDirectives);
             SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, included);
@@ -146,13 +147,7 @@ public class IncrementalCompileFilesFactory {
             return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
         }
 
-        @Override
-        public List<File> getModifiedSources() {
-            return toRecompile;
-        }
-
-        @Override
-        public List<File> getRemovedSources() {
+        private List<File> getRemovedSources() {
             List<File> removed = new ArrayList<File>();
             for (File previousSource : previous.getSourceInputs()) {
                 if (!current.getSourceInputs().contains(previousSource)) {
@@ -160,21 +155,6 @@ public class IncrementalCompileFilesFactory {
                 }
             }
             return removed;
-        }
-
-        @Override
-        public Set<File> getDiscoveredInputs() {
-            return discoveredInputs;
-        }
-
-        @Override
-        public Set<File> getExistingHeaders() {
-            return existingHeaders;
-        }
-
-        @Override
-        public boolean isSourceFilesUseMacroIncludes() {
-            return sourceFilesUseMacroIncludes;
         }
     }
 
