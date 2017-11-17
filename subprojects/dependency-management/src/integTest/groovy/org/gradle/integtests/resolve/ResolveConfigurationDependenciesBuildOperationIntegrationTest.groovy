@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import spock.lang.Unroll
 
-class ResolvedConfigurationBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
