@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.http;
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
@@ -39,18 +40,14 @@ public class DefaultHttpSettings implements HttpSettings {
     private HttpProxySettings secureProxySettings;
     private HttpTimeoutSettings timeoutSettings;
 
-    public static DefaultHttpSettings allowUntrustedSslConnections(Collection<Authentication> authenticationSettings) {
-        return new DefaultHttpSettings(authenticationSettings, ALL_TRUSTING_SSL_CONTEXT_FACTORY, ALL_TRUSTING_HOSTNAME_VERIFIER);
-    }
-
-    public DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory) {
-        this(authenticationSettings, sslContextFactory, new DefaultHostnameVerifier(null));
+    public static Builder builder() {
+        return new Builder();
     }
 
     private DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        if (authenticationSettings == null) {
-            throw new IllegalArgumentException("Authentication settings cannot be null.");
-        }
+        Preconditions.checkNotNull(authenticationSettings, "authenticationSettings");
+        Preconditions.checkNotNull(sslContextFactory, "sslContextFactory");
+        Preconditions.checkNotNull(hostnameVerifier, "hostnameVerifier");
 
         this.authenticationSettings = authenticationSettings;
         this.sslContextFactory = sslContextFactory;
@@ -94,6 +91,33 @@ public class DefaultHttpSettings implements HttpSettings {
     @Override
     public HostnameVerifier getHostnameVerifier() {
         return hostnameVerifier;
+    }
+
+    public static class Builder {
+        private Collection<Authentication> authenticationSettings;
+        private SslContextFactory sslContextFactory;
+        private HostnameVerifier hostnameVerifier;
+
+        public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
+            this.authenticationSettings = authenticationSettings;
+            return this;
+        }
+
+        public Builder withSslContextFactory(SslContextFactory sslContextFactory) {
+            this.sslContextFactory = sslContextFactory;
+            this.hostnameVerifier = new DefaultHostnameVerifier(null);
+            return this;
+        }
+
+        public Builder allowUntrustedConnections() {
+            this.sslContextFactory = ALL_TRUSTING_SSL_CONTEXT_FACTORY;
+            this.hostnameVerifier = ALL_TRUSTING_HOSTNAME_VERIFIER;
+            return this;
+        }
+
+        public HttpSettings build() {
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier);
+        }
     }
 
     private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
