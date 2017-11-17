@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -70,6 +71,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
+    private ImmutableAttributes attributes;
 
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
@@ -229,6 +231,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     @Override
     public void setSource(ModuleSource source) {
         this.moduleSource = source;
+    }
+
+    public void setAttributes(ImmutableAttributes attributes) {
+        this.attributes = attributes;
+        // map the "status" attribute to the "status" field
+        if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
+            setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
+        }
     }
 
     @Override

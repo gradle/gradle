@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.PublicationContainer;
@@ -66,15 +67,18 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
 
     @Inject
     public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory) {
+                            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+                            ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
     public void apply(final Project project) {
@@ -146,7 +150,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
-                    name, instantiator, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory
+                    name, instantiator, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory
             );
         }
     }

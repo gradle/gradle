@@ -43,10 +43,33 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final List<VariantMetadata> variants = [new VariantMetadata("default")]
     String branch = null
     String status = "integration"
-    boolean noMetaData
+    MetadataPublish metadataPublish = MetadataPublish.ALL
+
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
     private final String modulePath
+
+    enum MetadataPublish {
+        ALL(true, true),
+        IVY(true, false),
+        GRADLE(false, true),
+        NONE(false, false)
+
+        private final boolean ivy
+        private final boolean gradle
+        MetadataPublish(boolean ivy, boolean gradle) {
+            this.ivy = ivy
+            this.gradle = gradle
+        }
+
+        boolean publishIvy() {
+            ivy
+        }
+
+        boolean publishGradle() {
+            gradle
+        }
+    }
 
     IvyFileModule(String ivyPattern, String artifactPattern, String modulePath, TestFile moduleDir, String organisation, String module, String revision, boolean m2Compatible) {
         this.modulePath = modulePath
@@ -165,7 +188,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule withNoMetaData() {
-        noMetaData = true
+        metadataPublish = MetadataPublish.NONE
+        return this
+    }
+
+    @Override
+    IvyModule withNoIvyMetaData() {
+        metadataPublish = MetadataPublish.GRADLE
         return this
     }
 
@@ -266,16 +295,18 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
 
 
-        if (noMetaData) {
+        if (metadataPublish == MetadataPublish.NONE) {
             return this
         }
 
-        if (hasModuleMetadata) {
+        if (hasModuleMetadata && metadataPublish.publishGradle()) {
             publishModuleMetadata()
         }
 
-        publish(ivyFile) { Writer writer ->
-            transformer.transform(writer, { writeTo(it) } as Action)
+        if (metadataPublish.publishIvy()) {
+            publish(ivyFile) { Writer writer ->
+                transformer.transform(writer, { writeTo(it) } as Action)
+            }
         }
 
         return this
@@ -292,7 +323,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )
-            }
+            },
+            ['org.gradle.status': status]
         )
 
         adapter.publishTo(moduleDir)

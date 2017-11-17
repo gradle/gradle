@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.publish
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
@@ -93,6 +92,12 @@ class ModuleVersionSpec {
         withModule << spec
     }
 
+    void allowAll() {
+        withModule {
+            delegate.allowAll()
+        }
+    }
+
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
         def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
@@ -104,15 +109,13 @@ class ModuleVersionSpec {
                 case Expectation.NONE:
                     break;
                 case Expectation.MAYBE:
-                    if (GradleContextualExecuter.parallel) {
-                        if (module instanceof MavenModule) {
-                            module.pom.allowGetOrHead()
-                        } else if (module instanceof IvyModule) {
-                            module.ivy.allowGetOrHead()
-                        }
-                        if (gradleMetadataEnabled) {
-                            module.moduleMetadata.allowGetOrHead()
-                        }
+                    if (module instanceof MavenModule) {
+                        module.pom.allowGetOrHead()
+                    } else if (module instanceof IvyModule) {
+                        module.ivy.allowGetOrHead()
+                    }
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
                     }
                     break
                 case Expectation.HEAD:

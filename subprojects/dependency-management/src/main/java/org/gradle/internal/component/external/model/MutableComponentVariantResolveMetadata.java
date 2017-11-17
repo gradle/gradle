@@ -23,4 +23,11 @@ public interface MutableComponentVariantResolveMetadata {
      * Adds a variant to this module.
      */
     MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
+
+    /**
+     * Sets the attributes of this module. Attributes <i>may</i> be mapped to legacy properties (like status)
+     *
+     * @param attributes the component attributes
+     */
+    void setAttributes(ImmutableAttributes attributes);
 }
