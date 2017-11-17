@@ -33,11 +33,11 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
-    private final Map<File, Map<String, Boolean>> includeRoots;
+    private final Map<File, Map<String, Candidate>> includeRoots;
 
     public DefaultSourceIncludesResolver(List<File> includePaths) {
         this.includePaths = includePaths;
-        this.includeRoots = new HashMap<File, Map<String, Boolean>>();
+        this.includeRoots = new HashMap<File, Map<String, Candidate>>();
     }
 
     @Override
@@ -61,13 +61,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                             } else {
                                 // TODO - keep expanding
                                 // TODO - handle system includes, which also need to be expanded when the value of a macro
-                                resolvedSourceIncludes.resolved(include.getValue(), null);
+                                resolvedSourceIncludes.resolved(new ResolvedInclude(include.getValue(), null));
                             }
                         }
                     }
                 }
                 if (!found) {
-                    resolvedSourceIncludes.resolved(include.getValue(), null);
+                    resolvedSourceIncludes.resolved(new ResolvedInclude(include.getValue(), null));
                 }
             }
         }
@@ -84,29 +84,68 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
     private void searchForDependency(List<File> searchPath, String include, BuildableResolvedSourceIncludes dependencies) {
         for (File searchDir : searchPath) {
-            File candidate = new File(searchDir, include);
-
-            Map<String, Boolean> searchedIncludes = includeRoots.get(searchDir);
+            Map<String, Candidate> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, Boolean>();
+                searchedIncludes = new HashMap<String, Candidate>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
-            dependencies.searched(candidate);
-            if (searchedIncludes.containsKey(include)) {
-                if (searchedIncludes.get(include)) {
-                    dependencies.resolved(include, candidate);
+
+            Candidate candidate = searchedIncludes.get(include);
+            if (candidate != null) {
+                if (candidate.applyTo(dependencies)) {
                     return;
                 }
                 continue;
             }
 
-            boolean found = candidate.isFile();
-            searchedIncludes.put(include, found);
+            File candidateFile = new File(searchDir, include);
+            if (candidateFile.isFile()) {
+                candidate = new ResolvedIncludeFile(include, candidateFile);
+            } else {
+                candidate = new MissingIncludeFile(candidateFile);
+            }
+            searchedIncludes.put(include, candidate);
 
-            if (found) {
-                dependencies.resolved(include, candidate);
+            if (candidate.applyTo(dependencies)) {
                 return;
             }
+        }
+    }
+
+    private interface Candidate {
+        /**
+         * @return true when this candidate exists.
+         */
+        boolean applyTo(BuildableResolvedSourceIncludes includes);
+    }
+
+    private static class ResolvedIncludeFile implements Candidate {
+        private final ResolvedInclude resolvedInclude;
+
+        ResolvedIncludeFile(String include, File file) {
+            file = FileUtils.canonicalize(file);
+            this.resolvedInclude = new ResolvedInclude(include, file);
+        }
+
+        @Override
+        public boolean applyTo(BuildableResolvedSourceIncludes includes) {
+            includes.searched(resolvedInclude.getFile());
+            includes.resolved(resolvedInclude);
+            return true;
+        }
+    }
+
+    private static class MissingIncludeFile implements Candidate {
+        private final File file;
+
+        MissingIncludeFile(File file) {
+            this.file = FileUtils.canonicalize(file);
+        }
+
+        @Override
+        public boolean applyTo(BuildableResolvedSourceIncludes includes) {
+            includes.searched(file);
+            return false;
         }
     }
 
@@ -118,9 +157,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             candidates.add(candidate);
         }
 
-        void resolved(String rawInclude, File resolved) {
-            File dependencyFile = resolved == null ? null : FileUtils.canonicalize(resolved);
-            dependencies.add(ResolvedInclude.create(rawInclude, dependencyFile));
+        void resolved(ResolvedInclude include) {
+            dependencies.add(include);
         }
 
         @Override
