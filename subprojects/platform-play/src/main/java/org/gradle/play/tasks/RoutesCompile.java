@@ -107,7 +107,6 @@ public class RoutesCompile extends SourceTask {
         new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
-    @Internal
     private Compiler<RoutesCompileSpec> getCompiler() {
         ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
         return select.newCompiler(RoutesCompileSpec.class);

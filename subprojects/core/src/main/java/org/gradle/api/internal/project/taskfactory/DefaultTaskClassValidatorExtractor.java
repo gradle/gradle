@@ -50,6 +50,7 @@ import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
@@ -185,6 +186,9 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
     private Iterable<Annotation> mergeDeclaredAnnotations(TaskPropertyActionContext propertyContext, Method method, Field field) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
+        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
+            propertyContext.validationMessage("is private and annotated with an input or output annotation");
+        }
         if (field == null) {
             return methodAnnotations;
         }
@@ -283,7 +287,9 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
             return propertyContext.createProperty();
         } else {
-            propertyContext.validationMessage("is not annotated with an input or output annotation");
+            if (!Modifier.isPrivate(propertyContext.method.getModifiers())) {
+                propertyContext.validationMessage("is not annotated with an input or output annotation");
+            }
             return null;
         }
     }

@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -154,7 +153,6 @@ public class TwirlCompile extends SourceTask {
         }
     }
 
-    @Internal
     private Compiler<TwirlCompileSpec> getCompiler() {
         ToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(platform);
         return toolProvider.newCompiler(TwirlCompileSpec.class);
