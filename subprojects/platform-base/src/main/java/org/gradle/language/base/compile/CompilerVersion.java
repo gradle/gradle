@@ -19,9 +19,6 @@ package org.gradle.language.base.compile;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-
-import javax.annotation.Nullable;
 
 /**
  * Version of a compiler.
@@ -40,21 +37,13 @@ public interface CompilerVersion {
 
     /**
      * Returns the vendor of the compiler.
-     *
-     * Returns <code>null</code> if the version is unknown.
      */
     @Input
-    @Nullable
-    @Optional
     String getVendor();
 
     /**
      * Returns the version of the compiler.
-     *
-     * Returns <code>null</code> if the version is unknown.
      */
     @Input
-    @Nullable
-    @Optional
     String getVersion();
 }
