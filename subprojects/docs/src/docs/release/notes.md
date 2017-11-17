@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 4.4.
 
 First and foremost, this release of Gradle features some exciting improvements for IDE users:
 
- * Faster sync times are possible when IDEs take advantage of new [parametrized tooling model builders](#parametrized-tooling-model-builders) in the Gradle Tooling API.
+ * Faster sync times are possible when IDEs take advantage of new [parametrized tooling model builders](#parametrized-tooling-model-builders-for-faster-ide-sync) in the Gradle Tooling API.
  * The `eclipse` plugin now provides separate output folders. This removes test dependencies from the runtime classpath in Eclipse and should make developing applications with STS and [Buildship](http://eclipse.org/buildship) much more pleasant.
  * [Visual Studio 2017 is now supported](#visual-studio-2017-support). Please read details about `vswhere` and [VS toolchain discovery changes](#changes-to-visual-studio-toolchain-discovery) if you plan to use Gradle with VS 2017.
 
@@ -16,7 +16,7 @@ Previous versions of Gradle required that all transitive dependencies of a given
 
 Gradle now supports version ranges in parent elements of a POM. See an example [below](#support-version-ranges-in-parent-elements).
 
-Last but not least, [several 3rd party dependencies](#security-upgrade-of-third-party-dependencies) including Ant were updated to their latest versions containing security and other bug fixes.
+Last but not least, [several 3rd party dependencies](#upgrade-of-third-party-dependencies) including Ant were updated to their latest versions containing security and other bug fixes.
 
 ## New and noteworthy
 
