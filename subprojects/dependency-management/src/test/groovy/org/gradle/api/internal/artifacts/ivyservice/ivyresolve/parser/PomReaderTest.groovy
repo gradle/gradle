@@ -860,7 +860,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <packaging>\${packaging.type}</packaging>
+    <packaging>\${package.type}</packaging>
 
     <properties>
         <!-- missing property for package.type --> 
@@ -873,7 +873,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.groupId == 'group-one'
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
-        !pomReader.properties.containsKey('packaging.type')
+        !pomReader.properties.containsKey('package.type')
         pomReader.packaging == ''
     }
 }

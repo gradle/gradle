@@ -45,7 +45,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
@@ -695,8 +700,7 @@ public class PomReader implements PomParent {
         if (val == null) {
             return null;
         } else {
-            Set<String> fallbackForMissingProperties = Collections.singleton("packaging.type"); // because of #3065
-            IvyVariableContainer variableContainer = new IvyVariableContainerWithFallback(effectiveProperties, "", fallbackForMissingProperties);
+            IvyVariableContainer variableContainer = new IvyVariableContainerWithFallback(effectiveProperties, "");
             return IvyPatternHelper.substituteVariables(val, variableContainer).trim();
         }
     }
