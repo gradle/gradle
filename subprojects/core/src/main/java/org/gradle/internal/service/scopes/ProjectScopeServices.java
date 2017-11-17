@@ -232,10 +232,21 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         }
 
         @Override
-        public boolean isScriptContext() {
+        public Path getProjectPath() {
+            return delegate.getProjectPath();
+        }
+
+        @Override
+        public Path getBuildPath() {
+            return delegate.getBuildPath();
+        }
+
+        @Override
+        public boolean isScript() {
             return true;
         }
     }
+
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new ProjectBackedModuleMetaDataProvider();
     }

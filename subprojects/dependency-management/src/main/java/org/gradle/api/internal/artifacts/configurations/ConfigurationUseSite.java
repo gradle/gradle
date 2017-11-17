@@ -18,15 +18,46 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.util.Path;
 
-interface ConfigurationUseSite {
-    /**
-     * project path if owned by project
-     * */
-    Path getProjectPath();
+import javax.annotation.Nullable;
+
+final class ConfigurationUseSite {
+
+    private static final ConfigurationUseSite SCRIPT = new ConfigurationUseSite(null, true);
+    private static final ConfigurationUseSite UNKNOWN = new ConfigurationUseSite(null, false);
+
+    private final Path projectPath;
+    private final boolean isScript;
+
+    private ConfigurationUseSite(Path projectPath, boolean isScript) {
+        this.projectPath = projectPath;
+        this.isScript = isScript;
+    }
 
     /**
-     * flag indicating the configuration is linked
-     * to a gradle script classpath
-     * */
-    boolean isScript();
+     * The path to the project that owns this configuration, if owned by a project.
+     */
+    @Nullable
+    public Path getProjectPath() {
+        return projectPath;
+    }
+
+    /**
+     * Whether the configuration is part of a scripts set (e.g. buildscript.configurations)
+     */
+    public boolean isScript() {
+        return isScript;
+    }
+
+    public static ConfigurationUseSite script() {
+        return SCRIPT;
+    }
+
+    public static ConfigurationUseSite unknown() {
+        return UNKNOWN;
+    }
+
+    public static ConfigurationUseSite project(Path projectPath) {
+        return new ConfigurationUseSite(projectPath, false);
+    }
+
 }

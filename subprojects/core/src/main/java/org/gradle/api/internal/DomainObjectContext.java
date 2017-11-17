@@ -17,20 +17,39 @@ package org.gradle.api.internal;
 
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
+/**
+ * Represents a position in the tree of builds/projects.
+ */
 public interface DomainObjectContext {
+
     /**
-     * Returns a path for the item with the given name that is unique within the current Gradle invocation.
+     * Creates a path from the root of the build tree to the current context + name.
      */
     Path identityPath(String name);
 
     /**
-     * Returns a path for the item with the given name that is unique within the current build.
+     * Creates a path from the root of the project tree to the current context + name.
      */
     Path projectPath(String name);
 
     /**
-     * Returns whether the context is a script
-     * */
-    boolean isScriptContext();
+     * If this context represents a project, its path.
+     */
+    @Nullable
+    Path getProjectPath();
+
+    /**
+     * The path to the build that is associated with this object.
+     */
+    Path getBuildPath();
+
+    /**
+     * Whether the context is a script.
+     *
+     * Some objects are associated with a script, that is associated with a domain object.
+     */
+    boolean isScript();
 
 }

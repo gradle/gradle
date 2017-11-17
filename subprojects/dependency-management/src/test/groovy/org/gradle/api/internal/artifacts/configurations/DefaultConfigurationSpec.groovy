@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -87,9 +88,9 @@ class DefaultConfigurationSpec extends Specification {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
     }
 
-    def void defaultValues() {
+    void defaultValues() {
         when:
-        def configuration = conf("name", "path")
+        def configuration = conf("name", "project")
 
         then:
         configuration.name == "name"
@@ -98,7 +99,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.transitive
         configuration.description == null
         configuration.state == UNRESOLVED
-        configuration.displayName == "configuration 'path'"
+        configuration.displayName == "configuration ':project:name'"
         configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
         configuration.canBeResolved
@@ -107,12 +108,12 @@ class DefaultConfigurationSpec extends Specification {
 
     def hasUsefulDisplayName() {
         when:
-        def configuration = conf("name", "path")
+        def configuration = conf("name", "project", "build")
 
         then:
-        configuration.displayName == "configuration 'path'"
-        configuration.toString() == "configuration 'path'"
-        configuration.incoming.toString() == "dependencies 'path'"
+        configuration.displayName == "configuration ':build:project:name'"
+        configuration.toString() == "configuration ':build:project:name'"
+        configuration.incoming.toString() == "dependencies ':build:project:name'"
     }
 
     def "set description, visibility and transitivity"() {
@@ -450,7 +451,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l     ->  files.each { visitor.visitFile(null, null, it) } }
+            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l -> files.each { visitor.visitFile(null, null, it) } }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -533,7 +534,7 @@ class DefaultConfigurationSpec extends Specification {
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _ , _, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
         _ * selectedArtifactSet.collectBuildDependencies(_) >> { BuildDependenciesVisitor visitor -> visitor.visitDependency(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -847,11 +848,11 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {
-        def config = conf("conf", ":path")
+        def config = conf("conf", ":project")
 
         expect:
         config.incoming.name == "conf"
-        config.incoming.path == ":path"
+        config.incoming.path == ":project:conf"
     }
 
     def "incoming dependencies set contains immediate dependencies"() {
@@ -1446,7 +1447,7 @@ class DefaultConfigurationSpec extends Specification {
         def flavor = Attribute.of('flavor', Flavor)
 
         when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free') )
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
         conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
 
         then:
@@ -1460,7 +1461,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
 
         when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'paid') )
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'paid'))
 
         then:
         conf.attributes.getAttribute(flavor).name == 'paid'
@@ -1472,7 +1473,7 @@ class DefaultConfigurationSpec extends Specification {
         def runtimePlatform = Attribute.of('runtimePlatform', Platform)
 
         when:
-        conf.getAttributes().attribute(targetPlatform, Platform.JAVA6 )
+        conf.getAttributes().attribute(targetPlatform, Platform.JAVA6)
         conf.getAttributes().attribute(runtimePlatform, Platform.JAVA7)
 
         then:
@@ -1611,10 +1612,36 @@ All Artifacts:
         new DefaultExternalModuleDependency(group, name, version);
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        ConfigurationUseSite useSite = Mock()
-        _ * useSite.getProjectPath() >> Path.path(path)
-        new DefaultConfiguration(Path.path(path), useSite, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {
+        def domainObjectContext = new DomainObjectContext() {
+            @Override
+            Path identityPath(String name) {
+                getBuildPath().append(getProjectPath()).child(name)
+            }
+
+            @Override
+            Path projectPath(String name) {
+                getProjectPath().child(name)
+            }
+
+            @Override
+            Path getProjectPath() {
+                Path.ROOT.append(Path.path(projectPath))
+            }
+
+            @Override
+            Path getBuildPath() {
+                Path.ROOT.append(Path.path(buildPath))
+            }
+
+            @Override
+            boolean isScript() {
+                return false
+            }
+        }
+        def useSite = ConfigurationUseSite.project(domainObjectContext.projectPath)
+
+        new DefaultConfiguration(domainObjectContext, useSite, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
             new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
@@ -1640,13 +1667,17 @@ All Artifacts:
     }
 
     interface Flavor extends Named {}
+
     static class FlavorImpl implements Flavor, Serializable {
         String name
     }
+
     interface BuildType extends Named {}
+
     static class BuildTypeImpl implements BuildType, Serializable {
         String name
     }
+
     enum Platform {
         JAVA6,
         JAVA7

@@ -19,7 +19,13 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.util.Path;
 
-public class BasicDomainObjectContext implements DomainObjectContext {
+public class RootScriptDomainObjectContext implements DomainObjectContext {
+
+    public static final DomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
+
+    private RootScriptDomainObjectContext() {
+    }
+
     @Override
     public Path identityPath(String name) {
         return Path.path(name);
@@ -31,7 +37,17 @@ public class BasicDomainObjectContext implements DomainObjectContext {
     }
 
     @Override
-    public boolean isScriptContext() {
+    public Path getProjectPath() {
+        return null;
+    }
+
+    @Override
+    public Path getBuildPath() {
+        return Path.ROOT;
+    }
+
+    @Override
+    public boolean isScript() {
         return true;
     }
 }
