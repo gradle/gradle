@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
@@ -29,27 +28,20 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration, Transformer<List<File>, File> {
+class UserCodeBackedTransformer implements VariantTransformRegistry.Registration, ArtifactTransformer {
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
-    private final Class<? extends ArtifactTransform> implementation;
     private final HashCode inputsHash;
     private final TransformedFileCache transformedFileCache;
-    private final BiFunction<List<File>, File, File> transformer;
+    private final TransformArtifactsAction transformer;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
-        this.from = from.asImmutable();
-        this.to = to.asImmutable();
-        this.implementation = implementation;
-        this.transformedFileCache = transformedFileCache;
-
+    public static UserCodeBackedTransformer create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
@@ -63,9 +55,17 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         }
 
         paramsSnapshot.appendToHasher(hasher);
-        inputsHash = hasher.hash();
 
-        this.transformer = new ArtifactTransformBackedTransformer(implementation, paramsSnapshot, instantiator);
+        TransformArtifactsAction transformer = new TransformArtifactsAction(implementation, paramsSnapshot, instantiator);
+        return new UserCodeBackedTransformer(from, to, transformer, hasher.hash(), transformedFileCache);
+    }
+
+    private UserCodeBackedTransformer(ImmutableAttributes from, ImmutableAttributes to, TransformArtifactsAction transformer, HashCode inputHash, TransformedFileCache cache) {
+        this.from = from;
+        this.to = to;
+        this.transformer = transformer;
+        this.inputsHash = inputHash;
+        this.transformedFileCache = cache;
     }
 
     public AttributeContainerInternal getFrom() {
@@ -76,7 +76,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         return to;
     }
 
-    public Transformer<List<File>, File> getArtifactTransform() {
+    public ArtifactTransformer getArtifactTransform() {
         return this;
     }
 
@@ -86,7 +86,17 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
             File absoluteFile = input.getAbsoluteFile();
             return transformedFileCache.getResult(absoluteFile, inputsHash, transformer);
         } catch (Throwable t) {
-            throw new ArtifactTransformException(input, to, implementation, t);
+            throw new ArtifactTransformException(input, to, transformer.getImplementationClass(), t);
         }
+    }
+
+    @Override
+    public boolean hasCachedResult(File input) {
+        return transformedFileCache.contains(input.getAbsoluteFile(), inputsHash);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return transformer.getDisplayName();
     }
 }

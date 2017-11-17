@@ -16,23 +16,24 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.util.BiFunction;
+import org.gradle.api.Describable;
 
 import java.io.File;
 import java.util.List;
 
-@ThreadSafe
-public interface TransformedFileCache {
-    /**
-     * Returns the result of applying the given transform to the given file.
-     *
-     * @param inputFile The file to transform
-     * @param inputsHash The hash of the other inputs of the transform, such as transform implementation and configuration, but excluding the input file.
-     * @param transformer The transformer to apply to produce the output, if not already available
-     */
-    List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer);
+/**
+ * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
+ */
+public interface ArtifactTransformer extends Describable {
 
-    boolean contains(File absoluteFile, HashCode inputsHash);
+    /*
+     * Transforms the given input file. May call the underlying user-provided transform or retrieve a cached value.
+     */
+    List<File> transform(File input);
+
+    /**
+     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(File)} will be fast.
+     */
+    boolean hasCachedResult(File input);
+
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Buildable
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -113,7 +112,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile4 = new File("out4.classes")
         def set = Stub(ResolvedVariantSet)
         def variants = [variant1, variant2] as Set
-        def transformer = Mock(Transformer)
+        def transformer = Mock(ArtifactTransformer)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
@@ -150,6 +149,8 @@ class DefaultArtifactTransformsTest extends Specification {
                 }
             }
         }
+        _ * transformer.hasCachedResult(_) >> false
+        _ * transformer.getDisplayName() >> "transform"
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
@@ -179,7 +180,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(_, _) >> []
 
         matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-                result.matched(to, Stub(Transformer), 1)
+                result.matched(to, Stub(ArtifactTransformer), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true)

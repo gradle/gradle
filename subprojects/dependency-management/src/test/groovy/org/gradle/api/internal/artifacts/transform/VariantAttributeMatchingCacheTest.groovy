@@ -226,9 +226,9 @@ class VariantAttributeMatchingCacheTest extends Specification {
         def c5 = attributes().attribute(a1, "5")
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, { })
+        def reg1 = registration(c1, c3, {})
         def reg2 = registration(c2, c4, transform1)
-        def reg3 = registration(c3, c4, { })
+        def reg3 = registration(c3, c4, {})
         def reg4 = registration(c4, c5, transform2)
 
         given:
@@ -332,7 +332,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.artifactTransform >> transformer
+        reg.artifactTransform >> Stub(ArtifactTransformer) {
+            transform(_) >> { File file ->
+                transformer.transform(file)
+            }
+        }
         reg
     }
 }
