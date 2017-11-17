@@ -40,7 +40,7 @@ public class ForwardClientInput implements DaemonCommandAction {
         final PipedOutputStream inputSource = new PipedOutputStream();
         final PipedInputStream replacementStdin;
         try {
-            replacementStdin = new CloseAwareInputStream(inputSource);
+            replacementStdin = new EndOnClosedInputStream(inputSource);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -85,10 +85,10 @@ public class ForwardClientInput implements DaemonCommandAction {
         }
     }
 
-    private static class CloseAwareInputStream extends PipedInputStream {
+    private static class EndOnClosedInputStream extends PipedInputStream {
         private volatile boolean closed;
 
-        public CloseAwareInputStream(PipedOutputStream src) throws IOException {
+        private EndOnClosedInputStream(PipedOutputStream src) throws IOException {
             super(src);
         }
 
