@@ -15,29 +15,33 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 public interface SourceIncludesResolver {
-    interface ResolvedSourceIncludes {
+    interface IncludeResolutionResult {
         /**
-         * The result of resolving each include directive, possibly unsuccessfully.
+         * Returns true if the include files could be completely resolved. If false, there were additional include files but they could not be resolved.
+         *
+         * Note that {@link #getFiles()} may contain some files even if this method returns false. This means that the include was partially resolved.
          */
-        Set<ResolvedInclude> getResolvedIncludes();
+        boolean isComplete();
 
-        /**
-         * Each include directive successfully resolved to a file.
-         */
-        Set<File> getResolvedIncludeFiles();
+        String getInclude();
+
+        List<File> getFiles();
 
         /**
          * Every file path searched as part of resolution.
          */
-        Set<File> getCheckedLocations();
+        List<File> getCheckedLocations();
     }
 
-    ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> visibleIncludeDirectives);
+    /**
+     * Resolves the given include directive to zero or more include files.
+     */
+    IncludeResolutionResult resolveInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives);
 }

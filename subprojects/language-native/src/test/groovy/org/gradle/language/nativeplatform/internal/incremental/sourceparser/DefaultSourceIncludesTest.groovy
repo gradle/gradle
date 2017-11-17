@@ -34,6 +34,6 @@ class DefaultSourceIncludesTest extends Specification {
 
     def "order is preserved" () {
         expect:
-        sourceIncludes.includesAndImports.collect { it.value } == [ "quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
+        sourceIncludes.all.collect { it.value } == ["quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
     }
 }

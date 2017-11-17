@@ -24,7 +24,7 @@ public interface IncludeDirectives {
     List<Include> getQuotedIncludes();
     List<Include> getSystemIncludes();
     List<Include> getMacroIncludes();
-    List<Include> getIncludesAndImports();
+    List<Include> getAll();
     List<Include> getIncludesOnly();
     List<Macro> getMacros();
 

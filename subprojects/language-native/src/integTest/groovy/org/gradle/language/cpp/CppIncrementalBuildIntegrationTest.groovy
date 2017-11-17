@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import groovy.transform.NotYetImplemented
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -494,8 +493,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
     }
 
-    @NotYetImplemented
-    def "can reference multiple header files using macros"() {
+    def "source file can reference multiple header files using macros"() {
         def header1 = file("app/src/main/headers/hello1.h")
         def header2 = file("app/src/main/headers/hello2.h")
         def unused = file("app/src/main/headers/ignoreme.h")

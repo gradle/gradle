@@ -97,7 +97,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def resolve(TestFile sourceFile) {
-        _ * dependencyResolver.resolveIncludes(sourceFile, _, _) >> {
+        _ * dependencyResolver.resolveInclude(sourceFile, _, _) >> {
             def deps = graph[sourceFile]
             resolveDeps(deps)
         }
@@ -391,7 +391,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         then:
         1 * includesParser.parseIncludes(source1) >> includes
-        1 * dependencyResolver.resolveIncludes(source1, includes, _) >> unresolved()
+        1 * dependencyResolver.resolveInclude(source1, _, _) >> unresolved()
 
         result.macroIncludeUsedInSources
     }
@@ -426,16 +426,19 @@ class IncrementalCompileProcessorTest extends Specification {
         tmpDir.createFile(name) << "initial text"
     }
 
-    SourceIncludesResolver.ResolvedSourceIncludes resolveDeps(Collection<File> deps) {
-        SourceIncludesResolver.ResolvedSourceIncludes includes = Stub(SourceIncludesResolver.ResolvedSourceIncludes)
-        _ * includes.resolvedIncludeFiles >> (deps as Set)
-        _ * includes.resolvedIncludes >> (deps.collect { new ResolvedInclude(it.name, it) } as Set)
+    SourceIncludesResolver.IncludeResolutionResult resolveDeps(Collection<File> deps) {
+        SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
+        _ * includes.complete >> true
+        _ * includes.files >> (deps as List)
+        _ * includes.checkedLocations >> (deps as List)
         return includes
     }
 
-    SourceIncludesResolver.ResolvedSourceIncludes unresolved() {
-        SourceIncludesResolver.ResolvedSourceIncludes includes = Stub(SourceIncludesResolver.ResolvedSourceIncludes)
-        _ * includes.resolvedIncludes >> ([new ResolvedInclude("THING", null)] as Set)
+    SourceIncludesResolver.IncludeResolutionResult unresolved() {
+        SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
+        _ * includes.complete >> false
+        _ * includes.checkedLocations >> []
+        _ * includes.files >> []
         return includes
     }
 

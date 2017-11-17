@@ -45,11 +45,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     List<Include> getImports() {
-        return parsedSource.includesAndImports - parsedSource.includesOnly
+        return parsedSource.all - parsedSource.includesOnly
     }
 
     List<String> getFound() {
-        return parsedSource.includesAndImports.collect { it.value }
+        return parsedSource.all.collect { it.value }
     }
 
     def noIncludes() {

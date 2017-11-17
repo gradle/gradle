@@ -65,7 +65,7 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     }
 
     @Override
-    public List<Include> getIncludesAndImports() {
+    public List<Include> getAll() {
         return allIncludes;
     }
 

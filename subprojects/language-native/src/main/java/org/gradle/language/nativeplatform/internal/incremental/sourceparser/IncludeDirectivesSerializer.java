@@ -38,7 +38,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     @Override
     public void write(Encoder encoder, IncludeDirectives value) throws Exception {
-        includeListSerializer.write(encoder, value.getIncludesAndImports());
+        includeListSerializer.write(encoder, value.getAll());
         macroListSerializer.write(encoder, value.getMacros());
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.Sets;
 import org.gradle.internal.FileUtils;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -26,10 +25,8 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Defa
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
@@ -41,34 +38,33 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     @Override
-    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> visibleIncludeDirectives) {
-        BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
-        List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-        for (Include include : includes.getIncludesAndImports()) {
-            if (include.getType() == IncludeType.SYSTEM) {
-                searchForDependency(includePaths, include.getValue(), resolvedSourceIncludes);
-            } else if (include.getType() == IncludeType.QUOTED) {
-                searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
-            } else if (include.getType() == IncludeType.MACRO) {
-                boolean found = false;
-                for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
-                    for (Macro macro : includeDirectives.getMacros()) {
-                        if (include.getValue().equals(macro.getName())) {
-                            found = true;
-                            Include expandedInclude = DefaultInclude.parse(macro.getValue(), include.isImport());
-                            if (expandedInclude.getType() == IncludeType.QUOTED) {
-                                searchForDependency(quotedSearchPath, expandedInclude.getValue(), resolvedSourceIncludes);
-                            } else {
-                                // TODO - keep expanding
-                                // TODO - handle system includes, which also need to be expanded when the value of a macro
-                                resolvedSourceIncludes.resolved(new ResolvedInclude(include.getValue(), null));
-                            }
+    public IncludeResolutionResult resolveInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives) {
+        BuildableResult resolvedSourceIncludes = new BuildableResult(include.getValue());
+        if (include.getType() == IncludeType.SYSTEM) {
+            searchForDependency(includePaths, include.getValue(), resolvedSourceIncludes);
+        } else if (include.getType() == IncludeType.QUOTED) {
+            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+            searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
+        } else if (include.getType() == IncludeType.MACRO) {
+            boolean found = false;
+            for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
+                for (Macro macro : includeDirectives.getMacros()) {
+                    if (include.getValue().equals(macro.getName())) {
+                        found = true;
+                        Include expandedInclude = DefaultInclude.parse(macro.getValue(), include.isImport());
+                        if (expandedInclude.getType() == IncludeType.QUOTED) {
+                            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+                            searchForDependency(quotedSearchPath, expandedInclude.getValue(), resolvedSourceIncludes);
+                        } else {
+                            // TODO - keep expanding
+                            // TODO - handle system includes, which also need to be expanded when the value of a macro
+                            resolvedSourceIncludes.unresolved();
                         }
                     }
                 }
-                if (!found) {
-                    resolvedSourceIncludes.resolved(new ResolvedInclude(include.getValue(), null));
-                }
+            }
+            if (!found) {
+                resolvedSourceIncludes.unresolved();
             }
         }
 
@@ -82,7 +78,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return quotedSearchPath;
     }
 
-    private void searchForDependency(List<File> searchPath, String include, BuildableResolvedSourceIncludes dependencies) {
+    private void searchForDependency(List<File> searchPath, String include, BuildableResult dependencies) {
         for (File searchDir : searchPath) {
             Map<String, Candidate> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
@@ -116,21 +112,22 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         /**
          * @return true when this candidate exists.
          */
-        boolean applyTo(BuildableResolvedSourceIncludes includes);
+        boolean applyTo(BuildableResult includes);
     }
 
     private static class ResolvedIncludeFile implements Candidate {
-        private final ResolvedInclude resolvedInclude;
+        private final String include;
+        private final File file;
 
         ResolvedIncludeFile(String include, File file) {
-            file = FileUtils.canonicalize(file);
-            this.resolvedInclude = new ResolvedInclude(include, file);
+            this.include = include;
+            this.file = FileUtils.canonicalize(file);
         }
 
         @Override
-        public boolean applyTo(BuildableResolvedSourceIncludes includes) {
-            includes.searched(resolvedInclude.getFile());
-            includes.resolved(resolvedInclude);
+        public boolean applyTo(BuildableResult includes) {
+            includes.searched(file);
+            includes.resolved(file);
             return true;
         }
     }
@@ -143,42 +140,51 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public boolean applyTo(BuildableResolvedSourceIncludes includes) {
+        public boolean applyTo(BuildableResult includes) {
             includes.searched(file);
             return false;
         }
     }
 
-    private static class BuildableResolvedSourceIncludes implements ResolvedSourceIncludes {
-        private final Set<ResolvedInclude> dependencies = Sets.newLinkedHashSet();
-        private final Set<File> candidates = Sets.newLinkedHashSet();
+    private static class BuildableResult implements IncludeResolutionResult {
+        private final List<File> files = new ArrayList<File>();
+        private final List<File> candidates = new ArrayList<File>();
+        private final String include;
+        private boolean missing;
+
+        BuildableResult(String include) {
+            this.include = include;
+        }
 
         void searched(File candidate) {
             candidates.add(candidate);
         }
 
-        void resolved(ResolvedInclude include) {
-            dependencies.add(include);
+        void resolved(File file) {
+            files.add(file);
+        }
+
+        void unresolved() {
+            missing = true;
         }
 
         @Override
-        public Set<ResolvedInclude> getResolvedIncludes() {
-            return dependencies;
+        public String getInclude() {
+            return include;
         }
 
         @Override
-        public Set<File> getResolvedIncludeFiles() {
-            Set<File> files = new LinkedHashSet<File>(dependencies.size());
-            for (ResolvedInclude dependency : dependencies) {
-                if (!dependency.isUnknown()) {
-                    files.add(dependency.getFile());
-                }
-            }
+        public boolean isComplete() {
+            return !missing;
+        }
+
+        @Override
+        public List<File> getFiles() {
             return files;
         }
 
         @Override
-        public Set<File> getCheckedLocations() {
+        public List<File> getCheckedLocations() {
             return candidates;
         }
     }

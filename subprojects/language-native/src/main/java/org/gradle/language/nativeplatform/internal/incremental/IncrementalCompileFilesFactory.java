@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +82,13 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            SourceFileState previousState = previous.getState(sourceFile);
             FileSnapshot fileSnapshot = snapshotter.snapshotSelf(sourceFile);
+            if (fileSnapshot.getType() != FileType.RegularFile) {
+                // Skip things that aren't files
+                return false;
+            }
+
+            SourceFileState previousState = previous.getState(sourceFile);
             List<IncludeDirectives> includeDirectives = new ArrayList<IncludeDirectives>();
             List<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
             Set<File> visited = new HashSet<File>();
@@ -98,30 +104,26 @@ public class IncrementalCompileFilesFactory {
                 return FileVisitResult.Resolved;
             }
             FileSnapshot fileSnapshot = snapshotter.snapshotSelf(file);
-            if (fileSnapshot.getType() != FileType.RegularFile) {
-                // Skip things that aren't files
-                return FileVisitResult.Unresolved;
-            }
-
             HashCode newHash = fileSnapshot.getContent().getContentMd5();
             // TODO - cache this here
             IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
-            // TODO - collect this only for modified source files
             includeDirectivesMap.put(file, includeDirectives);
             includedFiles.add(new IncludeFileState(newHash, file));
             visibleIncludeDirectives.add(includeDirectives);
 
-            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, visibleIncludeDirectives);
-            discoveredInputs.addAll(resolutionResult.getCheckedLocations());
             FileVisitResult result = FileVisitResult.Resolved;
-            for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
-                if (resolvedInclude.isUnknown()) {
-                    LOGGER.info("Cannot locate header file for include '{}' in source file '{}'. Assuming changed.", resolvedInclude.getInclude(), file.getName());
+            for (Include include : includeDirectives.getAll()) {
+                // TODO - remember the result for an include file graph that did not reference any macros
+                SourceIncludesResolver.IncludeResolutionResult resolutionResult = sourceIncludesResolver.resolveInclude(file, include, visibleIncludeDirectives);
+                discoveredInputs.addAll(resolutionResult.getCheckedLocations());
+                if (!resolutionResult.isComplete()) {
+                    LOGGER.info("Cannot locate header file for include '{}' in source file '{}'. Assuming changed.", resolutionResult.getInclude(), file.getName());
                     result = FileVisitResult.Unresolved;
                     sourceFilesUseMacroIncludes = true;
-                } else {
-                    existingHeaders.add(resolvedInclude.getFile());
-                    FileVisitResult headerResult = visitFile(resolvedInclude.getFile(), includedFiles, visibleIncludeDirectives, visited);
+                }
+                for (File includeFile : resolutionResult.getFiles()) {
+                    existingHeaders.add(includeFile);
+                    FileVisitResult headerResult = visitFile(includeFile, includedFiles, visibleIncludeDirectives, visited);
                     if (headerResult != FileVisitResult.Resolved) {
                         result = headerResult;
                     }
