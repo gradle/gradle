@@ -104,7 +104,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                         withVariant("$variantToTest") {
                             withDependencies {
                                 add($dependency) {
-                                    it.version = '1.0'
+                                    it.version { strictly '1.0' }
                                 }
                             }
                         }
@@ -126,7 +126,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
         where:
         notation | dependency
-        "string" | "'org.test:moduleB:1.0'"
+        "string" | "'org.test:moduleB'"
         "map"    | "group: 'org.test', name: 'moduleB'"
     }
 
@@ -141,7 +141,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                     all {
                         withVariant("$variantToTest") {
                             withDependencies {
-                                removeAll { it.version == '1.0' }
+                                removeAll { it.versionConstraint.preferredVersion == '1.0' }
                             }
                         }
                     }
@@ -213,7 +213,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                         withVariant("$variantToTest") { 
                             withDependencies {
                                 it.each {
-                                    it.version = '1.0'
+                                    it.version { prefer = '1.0' }
                                 }
                             }
                         }
@@ -404,5 +404,34 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
         then:
         succeeds 'dependencies'
+    }
+
+    def "can make a dependency strict"() {
+        given:
+        moduleB = repo.module("org.test", "moduleB", "1.1").allowAll().publish()
+        moduleA.dependsOn(moduleB).publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+ 
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") {
+                            withDependencies { dependencies ->
+                                dependencies.findAll { it.name == 'moduleB' }.each {
+                                    it.version { strictly '1.0' }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        fails 'checkDep'
+        failure.assertHasCause "Cannot find a version of 'org.test:moduleB' that satisfies the constraints: prefers 1.1, prefers 1.0, rejects ]1.0,)"
     }
 }

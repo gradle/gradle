@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -42,13 +43,16 @@ public interface DependencyMetadata {
     /**
      * Returns the version of the module that is targeted by this dependency,
      * which usually expresses what API level of the module you are compatible with.
+     *
+     * @since 4.5
      */
-    String getVersion();
+    VersionConstraint getVersionConstraint();
 
     /**
      * Adjust the version constraints of the dependency.
      *
-     * @param version version in string notation
+     * @param configureAction modify version details
+     * @since 4.5
      */
-    DependencyMetadata setVersion(String version);
+    DependencyMetadata version(Action<? super MutableVersionConstraint> configureAction);
 }
