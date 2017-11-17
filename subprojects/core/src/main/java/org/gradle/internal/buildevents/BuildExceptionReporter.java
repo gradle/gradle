@@ -18,6 +18,7 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -32,6 +33,7 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
@@ -213,7 +215,9 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
      * Does not take into consideration {@code buildScan.publishAlways()}. Right now Gradle does not have the information.
      */
     private boolean isBuildScanEnabled() {
-        return gradle != null && !gradle.getStartParameter().isNoBuildScan() && gradle.getStartParameter().isBuildScan();
+        boolean buildScanPluginApplied = ((GradleInternal) gradle).getServices().get(BuildScanPluginApplied.class).isBuildScanPluginApplied();
+        boolean buildScanStartParameterProvided = !gradle.getStartParameter().isNoBuildScan() && gradle.getStartParameter().isBuildScan();
+        return buildScanPluginApplied && buildScanStartParameterProvided;
     }
 
     private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
