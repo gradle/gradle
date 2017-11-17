@@ -64,10 +64,6 @@ C/C++ compilation now takes system headers and the compiler vendor and version i
 Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
 Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
 
-### Embedded Ant version upgraded to Ant 1.9.9
-
-Gradle now embeds [Ant 1.9.9](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.9.html). Previous releases used Ant 1.9.6.
-
 ### Plugin repositories enhancements
 
 Plugin repositories declared in a settings script can now have custom names:
