@@ -17,7 +17,6 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 
@@ -26,21 +25,15 @@ import java.io.File;
  */
 public class CompilationFileState {
     private final HashCode hash;
-    private final IncludeDirectives includeDirectives;
     private final ImmutableSet<File> resolvedIncludes;
 
-    public CompilationFileState(HashCode hash, IncludeDirectives includeDirectives, ImmutableSet<File> resolvedIncludes) {
+    public CompilationFileState(HashCode hash, ImmutableSet<File> resolvedIncludes) {
         this.hash = hash;
-        this.includeDirectives = includeDirectives;
         this.resolvedIncludes = resolvedIncludes;
     }
 
     public HashCode getHash() {
         return hash;
-    }
-
-    public IncludeDirectives getIncludeDirectives() {
-        return includeDirectives;
     }
 
     /**

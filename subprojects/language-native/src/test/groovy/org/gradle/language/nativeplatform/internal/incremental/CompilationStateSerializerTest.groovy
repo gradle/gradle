@@ -16,14 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 
 class CompilationStateSerializerTest extends SerializerSpec {
     private CompilationStateSerializer serializer = new CompilationStateSerializer()
@@ -55,10 +51,10 @@ class CompilationStateSerializerTest extends SerializerSpec {
         when:
         def fileEmpty = new File("empty")
         def fileStates = [:]
-        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), createSourceIncludes(), []))
+        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), createSourceIncludes("<system>", '"quoted"', "MACRO"), [new File("ONE"), new File("TWO")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), [new File("ONE"), new File("TWO")])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState([], fileStates)
 
@@ -69,25 +65,15 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash == HashCode.fromInt(0x12345678)
-        emptyCompileState.includeDirectives.macroIncludes.empty
-        emptyCompileState.includeDirectives.quotedIncludes.empty
-        emptyCompileState.includeDirectives.systemIncludes.empty
         emptyCompileState.resolvedIncludes.empty
 
         def otherCompileState = newState.getState(fileTwo)
         otherCompileState.hash == HashCode.fromInt(0x23456789)
-        otherCompileState.includeDirectives.systemIncludes.collect { it.value } == ["system"]
-        otherCompileState.includeDirectives.quotedIncludes.collect { it.value } == ["quoted"]
-        otherCompileState.includeDirectives.macroIncludes.collect { it.value } == ["MACRO"]
         otherCompileState.resolvedIncludes == [new File("ONE"), new File("TWO")] as Set
     }
 
-    private DefaultIncludeDirectives createSourceIncludes(String... strings) {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(strings.collect { DefaultInclude.parse(it, false) }), ImmutableList.of())
-    }
-
-    private CompilationFileState compilationFileState(HashCode hash, IncludeDirectives includeDirectives, Collection<File> resolvedIncludes) {
-        return new CompilationFileState(hash, includeDirectives, ImmutableSet.copyOf(resolvedIncludes))
+    private CompilationFileState compilationFileState(HashCode hash, Collection<File> resolvedIncludes) {
+        return new CompilationFileState(hash, ImmutableSet.copyOf(resolvedIncludes))
     }
 
     private CompilationState compilationState(Collection<File> sourceFiles, Map<File, CompilationFileState> states) {

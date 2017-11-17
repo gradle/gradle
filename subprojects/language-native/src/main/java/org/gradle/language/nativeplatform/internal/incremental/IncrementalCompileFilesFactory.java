@@ -107,7 +107,7 @@ public class IncrementalCompileFilesFactory {
             included.add(includeDirectives);
             SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, included);
             // TODO - collect the resolved files only in the source file
-            CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludeFiles()));
+            CompilationFileState newState = new CompilationFileState(newHash, ImmutableSet.copyOf(resolutionResult.getResolvedIncludeFiles()));
 
             // TODO - when file has no macro includes directly or indirectly, remember the result and skip visiting it for other source files
             current.setState(file, newState);

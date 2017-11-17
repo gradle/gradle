@@ -25,8 +25,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer;
 
 import java.io.File;
 import java.util.Set;
@@ -57,7 +55,6 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     private static class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
         private final Serializer<Set<File>> resolveIncludesSerializer;
-        private final Serializer<IncludeDirectives> sourceIncludesSerializer = new IncludeDirectivesSerializer();
 
         private CompilationFileStateSerializer(Serializer<File> fileSerializer) {
             this.resolveIncludesSerializer = new SetSerializer<File>(fileSerializer);
@@ -67,15 +64,13 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         public CompilationFileState read(Decoder decoder) throws Exception {
             HashCode hash = hashSerializer.read(decoder);
             ImmutableSet<File> resolvedIncludes = ImmutableSet.copyOf(resolveIncludesSerializer.read(decoder));
-            IncludeDirectives includeDirectives = sourceIncludesSerializer.read(decoder);
-            return new CompilationFileState(hash, includeDirectives, resolvedIncludes);
+            return new CompilationFileState(hash, resolvedIncludes);
         }
 
         @Override
         public void write(Encoder encoder, CompilationFileState value) throws Exception {
             hashSerializer.write(encoder, value.getHash());
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
-            sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
         }
     }
 }
