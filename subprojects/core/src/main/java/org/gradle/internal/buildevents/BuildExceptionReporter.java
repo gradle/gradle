@@ -213,7 +213,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
      * Does not take into consideration {@code buildScan.publishAlways()}. Right now Gradle does not have the information.
      */
     private boolean isBuildScanEnabled() {
-        return !gradle.getStartParameter().isNoBuildScan() && gradle.getStartParameter().isBuildScan();
+        return gradle != null && !gradle.getStartParameter().isNoBuildScan() && gradle.getStartParameter().isBuildScan();
     }
 
     private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
