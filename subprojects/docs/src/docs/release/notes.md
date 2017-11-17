@@ -60,8 +60,8 @@ It is now possible to compile native applications with the Visual C++ toolchain 
 
 ### C/C++ incremental build improvements
 
-C/C++ compilation now takes the compiler version and system headers into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
-Before Gradle 4.4 changing the compiler version did not make the compilation task out of date, even though different compiler versions may produce different outputs.
+C/C++ compilation now takes system headers and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
 Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
 
 ### Embedded Ant version upgraded to Ant 1.9.9

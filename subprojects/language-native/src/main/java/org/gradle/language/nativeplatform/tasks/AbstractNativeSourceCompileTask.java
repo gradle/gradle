@@ -54,7 +54,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
             @Override
             public boolean isSatisfiedBy(Task element) {
                 CompilerVersion compilerVersion = getCompilerVersion();
-                return compilerVersion == null || compilerVersion.getVersion() == null;
+                return compilerVersion == null;
             }
         });
     }
