@@ -10,6 +10,8 @@ No discussion about IDE support for Gradle would be complete without mentioning 
 
 C and C++ developers will enjoy better [incremental builds and build cache support for C/C++](#c/c++-incremental-build-improvements) because this version of Gradle takes compiler version and system headers into account for up-to-date checks. 
 
+This version of Gradle fully supports the combination of Play 2.6 and Scala 2.12, with improvements and fixes to `runPlayBinary`, the distributed Play start script, and [other improvements](#improved-play-2.6-support).
+
 Previous versions of Gradle required that all transitive dependencies of a given plugin were present in the same repository as the plugin. Gradle 4.4 takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Learn about this and other plugin repository handling improvements [in the details](#plugin-repositories-enhancements). 
 
 Gradle now supports version ranges in parent elements of a POM. See an example [below](#support-version-ranges-in-parent-elements).
@@ -20,9 +22,45 @@ Last but not least, [several 3rd party dependencies](#security-upgrade-of-third-
 
 Here are the new features introduced in this Gradle release.
 
+### Parametrized tooling model builders for faster IDE sync
+
+The Tooling API now allows model builders to accept parameters from the tooling client. This is useful when there are multiple possible mappings from the Gradle project to the tooling model and the decision depends on some user-provided value.
+
+Android Studio, for instance, will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
+
+For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParametrizedToolingModelBuilder.html) of the new API.
+
+### Eclipse plugin separates output folders
+
+The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
+
+The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
+
+### Visual Studio 2017 Support
+
+It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
+  Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).
+  
+### C/C++ incremental build improvements
+
+C/C++ compilation now takes system headers and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+
+Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
+
+Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
+
+### Improved Play 2.6 support
+
+This version of Gradle improves the `runPlayBinary` task to work with Play 2.6.
+
+* The combination of Play 2.6 and Scala 2.12 should now have full support
+* Play's `dist` task fixes the generated start script
+
+You can read more in the improved [Play plugin user guide chapter](userguide/play_plugin.html). Special thanks to [Marcos Pereira](https://github.com/marcospereira) for extraordinary contributions here.
+
 ### Support version ranges in parent elements
 
-When resolving an external dependency from Maven repository, Gradle now supports version ranges in a `parent` element of a POM, which was introduced by [Maven 3.2.2](https://maven.apache.org/docs/3.2.2/release-notes.html). The following is now permissible:
+When resolving an external dependency from Maven repository, Gradle now supports version ranges in a `parent` element of a POM, which was introduced by Maven 3.2.2. The following is now permissible:
 
     <project>
       <modelVersion>4.0.0</modelVersion>
@@ -37,55 +75,9 @@ When resolving an external dependency from Maven repository, Gradle now supports
       <packaging>pom</packaging>
     </project>
 
-
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
-
-### Eclipse plugin separates output folders
-
-The `eclipse` plugin now defines separate output directories for each source folder. This ensures that main and test classes are compiled to different directories. 
-
-The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
-
-### Parametrized tooling model builders
-
-The Tooling API now allows model builders to accept parameters from the tooling client. This is useful when there are multiple possible mappings from the Gradle project to the tooling model and the decision depends on some user-provided value.
-Android Studio for instance will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
-
-For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParametrizedToolingModelBuilder.html) of the new API.
-
-### Security upgrade of third-party dependencies
-
-This version includes several upgrade of third-party dependency packages to fix the following security issues:
-
-- [CVE-2017-7525](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7525) (critical)
-- SONATYPE-2017-0359 (critical)
-- SONATYPE-2017-0355 (critical)
-- SONATYPE-2017-0398 (critical)
-- [CVE-2013-4002](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4002) (critical)
-- [CVE-2016-2510](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-2510) (severe)
-- SONATYPE-2016-0397 (severe)
-- [CVE-2009-2625](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-2625) (severe)
-- SONATYPE-2017-0348 (severe)
-
-This could avoid potential vulnerabilities.
-
-### Visual Studio 2017 Support
-
-It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
-  Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).   
-
-### C/C++ incremental build improvements
-
-C/C++ compilation now takes system headers and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
-Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
-Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
-
 ### Plugin repositories enhancements
 
-Plugin repositories declared in a settings script can now have custom names:
-
+#### Plugin repositories declared in a settings script can now have custom names
 
     // settings.gradle
     pluginManagement {
@@ -97,8 +89,7 @@ Plugin repositories declared in a settings script can now have custom names:
         }
     }
 
-Explicit notation for common repositories can now be used in settings scripts:
-
+#### Explicit notation for common repositories can now be used in settings scripts:
 
     // settings.gradle
     pluginManagement {
@@ -110,10 +101,13 @@ Explicit notation for common repositories can now be used in settings scripts:
         }
     }
 
-Plugin resolution now takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Before that change, it was required that all transitive dependencies of a given plugin were present in the same repository as the plugin. It's not anymore. 
+#### Gradle Plugin resolution changes
 
-The Gradle Plugin Portal repository can now be added to build scripts. This is particularly useful for `buildSrc` or binary plugin builds:
+Plugin resolution now takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Previous versions of Gradle required that all transitive dependencies of a given plugin were present in the same repository as the plugin.
 
+#### Build scripts can declare Gradle Plugin Portal
+
+Finally, the Gradle Plugin Portal repository can now be added to build scripts. This is particularly useful for `buildSrc` or binary plugin builds:
 
     // build.gradle
     repositories {
@@ -122,7 +116,7 @@ The Gradle Plugin Portal repository can now be added to build scripts. This is p
 
 ### Use of canonical URL for `mavenCentral()` repository URL
 
-In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCentral()` was pointing to `https://repo1.maven.org/maven2/`. Sonatype recommends using the canonical URL `https://repo.maven.apache.org/maven2/` instead. This version of Gradle makes the switch to `repo.maven.apache.org` when using the `mavenCentral()` API.
+In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCentral()` was pointing to `https://repo1.maven.org/maven2/`. Sonatype recommends using the canonical URL `https://repo.maven.apache.org/maven2/` instead. This version of Gradle makes the switch to `repo.maven.apache.org` when using the `mavenCentral()` API to avoid SSL errors due to [MVNCENTRAL-2870](https://issues.sonatype.org/browse/MVNCENTRAL-2870).
 
 ### Provider API documentation
 
@@ -130,9 +124,13 @@ In this release, the Gradle team added a new chapter in the user guide documenti
 
 ### Task validation disallows input/output annotations on private getters
 
-The `ValidateTaskProperties` task, added by the `java-gradle-plugin`, failed if private getters have not been annotated with input or output annotations.
-This required plugin authors to annotate private methods called `getXXX` with `@Internal`.
+The `ValidateTaskProperties` task, added by the `java-gradle-plugin`, failed if private getters have not been annotated with input or output annotations. This required plugin authors to annotate private methods called `getXXX` with `@Internal`.
+
 Starting with Gradle 4.4, the task warns about annotations on private getters instead, so plugin authors do not need to put any annotations on private methods.
+
+<!--
+IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
+Add-->
 
 ## Promoted features
 
@@ -185,6 +183,31 @@ means.  It will now consider a version found on the path only if a version is no
 the [vswhere](https://github.com/Microsoft/vswhere) utility (i.e. it will consider the path only as a last resort).  In order to 
 force a particular version of Visual Studio to be used, configure the [installation directory](dsl/org.gradle.nativeplatform.toolchain.VisualCpp.html#org.gradle.nativeplatform.toolchain.VisualCpp:installDir) on the Visual Studio toolchain.
 
+### Upgrade of third-party dependencies
+
+This version includes several upgrades of third-party dependencies:
+
+- `jackson`: `2.6.6` -> `2.8.9` 
+- `httpclient`: `4.4.1` -> `4.5.3` 
+- `plexus-utils`: `2.0.6` -> `2.1` 
+- `xercesImpl`: `2.9.1` -> `2.11.0` 
+- `bsh`: `2.0b4` -> `2.0b6` 
+- `bouncycastle`: `1.57` -> `1.58`
+
+to fix the following security issues:
+
+- [CVE-2017-7525](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-7525) (critical)
+- SONATYPE-2017-0359 (critical)
+- SONATYPE-2017-0355 (critical)
+- SONATYPE-2017-0398 (critical)
+- [CVE-2013-4002](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-4002) (critical)
+- [CVE-2016-2510](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-2510) (severe)
+- SONATYPE-2016-0397 (severe)
+- [CVE-2009-2625](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-2625) (severe)
+- SONATYPE-2017-0348 (severe)
+
+Gradle does not expose public APIs for these 3rd-party dependencies, but those who customize Gradle will want to be aware.
+
 ### Ant version upgraded to Ant 1.9.9
 
 Gradle has been upgraded to embed Ant 1.9.9 over Ant 1.9.6.
@@ -205,6 +228,7 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
+- [Marcos Pereira](https://github.com/marcospereira) — Several improvements to Play 2.6 and Scala 2.12 support (gradle/gradle#3018, gradle/gradle#3314 and gradle/gradle#3315)
 - [Lucas Smaira](https://github.com/lsmaira) - Support parametrized Tooling model builders (gradle/gradle#2729)
 - [Kyle Moore](https://github.com/DPUkyle) - Updated Gosu plugin to fix API breakage (gradle/gradle#3115)
 - [Kyle Moore](https://github.com/DPUkyle) - Filter non-file URLs when getting classpath from `ClassLoader` (gradle/gradle#3224)
