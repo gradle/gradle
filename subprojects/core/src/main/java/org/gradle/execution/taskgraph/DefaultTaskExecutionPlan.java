@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -58,7 +57,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
-import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -772,8 +770,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private String findFirstOverlap(Iterable<String> paths1, Iterable<String> paths2) {
         for (String path1 : paths1) {
             for (String path2 : paths2) {
-                if (pathsOverlap(path1, path2)) {
-                    return TextUtil.shorterOf(path1, path2);
+                String overLappedPath = getOverLappedPath(path1, path2);
+                if (overLappedPath != null) {
+                    return overLappedPath;
                 }
             }
         }
@@ -796,9 +795,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return canonicalizedPaths(canonicalizedFileCache, ((TaskDestroyablesInternal) task.getTask().getDestroyables()).getFiles());
     }
 
-    private boolean pathsOverlap(String firstPath, String secondPath) {
+    private String getOverLappedPath(String firstPath, String secondPath) {
         if (firstPath.equals(secondPath)) {
-            return true;
+            return firstPath;
+        }
+        if (firstPath.length() == secondPath.length()) {
+            return null;
         }
 
         String shorter;
@@ -810,7 +812,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             shorter = firstPath;
             longer = secondPath;
         }
-        return longer.startsWith(shorter + StandardSystemProperty.FILE_SEPARATOR.value());
+
+        boolean isOverlapping = longer.startsWith(shorter) && longer.charAt(shorter.length()) == File.separatorChar;
+        if (isOverlapping) {
+            return shorter;
+        } else {
+            return null;
+        }
     }
 
     private void recordTaskStarted(TaskInfo taskInfo) {
