@@ -185,8 +185,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
 }
 
 enum class OS(val agentRequirement: String, val subset: List<String> = emptyList()) {
-    // TODO: SLG, temporarily remove "languageNative", "testingNative" until I fix the agent configuration
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("platformNative", "ideNative"))
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("languageNative", "platformNative", "testingNative", "ideNative"))
 }
 
 enum class JvmVersion {
