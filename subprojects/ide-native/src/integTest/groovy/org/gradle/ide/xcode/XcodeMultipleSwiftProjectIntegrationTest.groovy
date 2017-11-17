@@ -86,7 +86,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseSwift', ':greeter:linkRelease',
+        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseSwift', ':greeter:linkRelease', ':greeter:extractSymbolsRelease', ':greeter:stripSymbolsRelease',
             ':app:compileReleaseSwift', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
@@ -155,7 +155,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         then:
         resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
-            ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
+            ':log:extractSymbolsRelease', ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
     }
 
     def "can clean xcode project with transitive dependencies"() {

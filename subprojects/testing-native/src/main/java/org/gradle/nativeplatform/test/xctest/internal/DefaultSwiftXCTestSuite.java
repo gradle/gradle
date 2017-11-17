@@ -38,7 +38,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     @Inject
     public DefaultSwiftXCTestSuite(String name, ProjectLayout projectLayout, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        this.testBinary = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, name + "Executable", projectLayout, objectFactory, getModule(), true, true, getSwiftSource(), configurations, getImplementationDependencies());
+        this.testBinary = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, name + "Executable", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies());
         this.testedComponent = objectFactory.property(SwiftComponent.class);
     }
 

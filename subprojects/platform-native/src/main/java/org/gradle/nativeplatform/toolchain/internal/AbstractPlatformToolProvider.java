@@ -22,6 +22,8 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativeplatform.internal.StripperSpec;
+import org.gradle.nativeplatform.internal.SymbolExtractorSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
@@ -126,6 +128,12 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         if (StaticLibraryArchiverSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createStaticLibraryArchiver());
         }
+        if (SymbolExtractorSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createSymbolExtractor());
+        }
+        if (StripperSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createStripper());
+        }
         throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
     }
 
@@ -180,6 +188,10 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     protected Compiler<?> createStaticLibraryArchiver() {
         throw unavailableTool("Static library archiver is not available");
     }
+
+    protected Compiler<?> createSymbolExtractor() { throw unavailableTool("Symbol extracter is not available"); }
+
+    protected Compiler<?> createStripper() { throw unavailableTool("Stripper is not available"); }
 
     @Override
     public String getObjectFileExtension() {

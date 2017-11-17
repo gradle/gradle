@@ -23,6 +23,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -117,6 +118,8 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private void addDefaultTools(DefaultSwiftcPlatformToolChain toolChain) {
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER));
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SYMBOL_EXTRACTOR));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STRIPPER));
     }
 
     @Override

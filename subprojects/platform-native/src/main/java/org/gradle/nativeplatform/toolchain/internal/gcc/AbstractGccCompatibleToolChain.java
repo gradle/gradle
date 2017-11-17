@@ -33,6 +33,7 @@ import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
@@ -212,6 +213,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVECPP_COMPILER, "g++"));
         toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVEC_COMPILER, "gcc"));
         toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.ASSEMBLER, "gcc"));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.getExecutableName()));
+        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.STRIPPER, "strip"));
     }
 
     protected void configureDefaultTools(DefaultGccPlatformToolChain toolChain) {

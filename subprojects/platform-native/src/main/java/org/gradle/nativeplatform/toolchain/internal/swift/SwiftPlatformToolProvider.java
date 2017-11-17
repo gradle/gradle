@@ -33,6 +33,9 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvoca
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.Stripper;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
@@ -79,6 +82,18 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         // TODO - OutputCleaningCompiler shouldn't be required
         OutputCleaningCompiler<SwiftCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return new VersionAwareCompiler<SwiftCompileSpec>(outputCleaningCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), VersionNumber.UNKNOWN));
+    }
+
+    @Override
+    protected Compiler<?> createSymbolExtractor() {
+        CommandLineToolConfigurationInternal symbolExtractor = (CommandLineToolConfigurationInternal) toolRegistry.getSymbolExtractor();
+        return new SymbolExtractor(buildOperationExecutor, commandLineTool(ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.getExecutableName()), context(symbolExtractor), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createStripper() {
+        CommandLineToolConfigurationInternal stripper = (CommandLineToolConfigurationInternal) toolRegistry.getStripper();
+        return new Stripper(buildOperationExecutor, commandLineTool(ToolType.STRIPPER, "strip"), context(stripper), workerLeaseService);
     }
 
     private CommandLineToolInvocationWorker commandLineTool(ToolType key, String exeName) {

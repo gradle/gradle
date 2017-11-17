@@ -27,7 +27,9 @@ public enum ToolType {
     ASSEMBLER("Assembler"),
     LINKER("Linker"),
     STATIC_LIB_ARCHIVER("Static library archiver"),
-    SWIFT_COMPILER("Swift compiler");
+    SWIFT_COMPILER("Swift compiler"),
+    SYMBOL_EXTRACTOR("Symbol extractor"),
+    STRIPPER("Stripper");
 
     private final String toolName;
 

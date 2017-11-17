@@ -106,4 +106,6 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
     public GccCommandLineToolConfigurationInternal getStaticLibArchiver() {
         return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }
+
+
 }

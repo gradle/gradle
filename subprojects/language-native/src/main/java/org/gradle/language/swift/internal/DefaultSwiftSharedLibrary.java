@@ -31,8 +31,8 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final RegularFileProperty runtimeFile;
 
     @Inject
-    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, module, debuggable, testable, source, configurations, implementation);
+    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation);
         this.runtimeFile = projectLayout.fileProperty();
     }
 

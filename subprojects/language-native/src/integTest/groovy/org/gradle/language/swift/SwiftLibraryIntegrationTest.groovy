@@ -273,7 +273,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         succeeds ":hello:linkRelease"
 
-        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":hello:compileReleaseSwift", ":hello:linkRelease")
+        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:extractSymbolsRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease")
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
     }

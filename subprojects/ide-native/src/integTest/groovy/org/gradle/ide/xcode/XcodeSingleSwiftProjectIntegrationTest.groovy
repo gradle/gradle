@@ -334,6 +334,8 @@ apply plugin: 'xctest'
     def "can build Swift application from xcode"() {
         useXcodebuildTool()
         def app = new SwiftApp()
+        def debugBinary = exe("build/exe/main/debug/App")
+        def releaseBinary = exe("build/exe/main/release/App")
 
         given:
         buildFile << """
@@ -341,10 +343,11 @@ apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
+        //executer.startLauncherInDebugger(true)
         succeeds("xcode")
 
         when:
-        exe("build/exe/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
@@ -353,10 +356,11 @@ apply plugin: 'swift-application'
         then:
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
-        exe("build/exe/main/debug/App").exec().out == app.expectedOutput
+        debugBinary.exec().out == app.expectedOutput
+        assertHasDebugSymbolsForSources(debugBinary, app)
 
         when:
-        exe("build/exe/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
@@ -366,7 +370,8 @@ apply plugin: 'swift-application'
         then:
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
-        exe("build/exe/main/release/App").exec().out == app.expectedOutput
+        releaseBinary.exec().out == app.expectedOutput
+        assertHasDebugSymbolsForSources(releaseBinary, app)
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -427,6 +432,8 @@ apply plugin: 'swift-application'
     def "can build Swift library from xcode"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
+        def debugBinary = sharedLib("build/lib/main/debug/App")
+        def releaseBinary = sharedLib("build/lib/main/release/App")
 
         given:
         buildFile << """
@@ -437,7 +444,7 @@ apply plugin: 'swift-library'
         succeeds("xcode")
 
         when:
-        sharedLib("build/lib/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
@@ -446,10 +453,11 @@ apply plugin: 'swift-library'
         then:
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
-        sharedLib("build/lib/main/debug/App").assertExists()
+        debugBinary.assertExists()
+        assertHasDebugSymbolsForSources(debugBinary, lib)
 
         when:
-        sharedLib("build/lib/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
@@ -459,7 +467,8 @@ apply plugin: 'swift-library'
         then:
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
-        sharedLib("build/lib/main/release/App").assertExists()
+        releaseBinary.assertExists()
+        assertHasDebugSymbolsForSources(debugBinary, lib)
     }
 
     def "adds new source files in the project"() {

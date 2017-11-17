@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain;
+package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.Incubating;
+import java.io.File;
 
-/**
- * Swiftc specific settings for the tools used to build for a particular platform.
- *
- * @since 4.1
- */
-@Incubating
-public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
-    CommandLineToolConfiguration getSwiftCompiler();
-    CommandLineToolConfiguration getLinker();
-    CommandLineToolConfiguration getSymbolExtractor();
-    CommandLineToolConfiguration getStripper();
+public interface StripperSpec extends BinaryToolSpec {
+    File getBinaryFile();
+
+    void setBinaryFile(File binaryFile);
+
+    File getOutputFile();
+
+    void setOutputFile(File outputFile);
 }

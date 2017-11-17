@@ -165,7 +165,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         expect:
         succeeds "installRelease"
-        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":installRelease")
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease")
 
         executable("build/exe/main/release/App").assertExists()
         executable("build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
@@ -464,7 +464,9 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         succeeds ":app:installRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":log:compileReleaseSwift", ":log:linkRelease", ":app:compileReleaseSwift", ":app:linkRelease", ":app:installRelease")
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease",
+            ":log:compileReleaseSwift", ":log:linkRelease", ":log:extractSymbolsRelease", ":log:stripSymbolsRelease",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease")
 
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
@@ -497,7 +499,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         expect:
         succeeds ":app:linkRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         sharedLibrary("hello/build/lib/main/release/Greeter").assertExists()
         executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput

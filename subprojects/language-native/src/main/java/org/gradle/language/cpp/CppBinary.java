@@ -35,6 +35,12 @@ public interface CppBinary extends SoftwareComponent {
     Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
     /**
+     * The dependency resolution attribute use to indicate whether a binary is optimized or not.
+     */
+    Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
+
+
+    /**
      * Returns the base name of the binary.
      */
     Provider<String> getBaseName();

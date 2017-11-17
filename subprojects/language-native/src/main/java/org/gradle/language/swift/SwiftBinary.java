@@ -39,6 +39,11 @@ public interface SwiftBinary extends SoftwareComponent {
     boolean isDebuggable();
 
     /**
+     * Returns true if this binary is optimized.
+     */
+    boolean isOptimized();
+
+    /**
      * Returns true if this binary has testing enabled.
      *
      * @since 4.4
