@@ -157,10 +157,8 @@ The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.ecl
 
 ### Removal of `@Incubating` methods
 
-- `org.gradle.nativeplatform.tasks.InstallExecutable.setDestinationDir(Provider<? extends Directory>)` was removed.
-    - Use `org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()` instead.
-- `org.gradle.nativeplatform.tasks.InstallExecutable.setExecutable(Provider<? extends RegularFile>)` was removed.
-    - Use `org.gradle.nativeplatform.tasks.InstallExecutable.getSourceFile()` instead.
+- `org.gradle.nativeplatform.tasks.InstallExecutable.setDestinationDir(Provider<? extends Directory>)` was removed. Use `org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()` instead.
+- `org.gradle.nativeplatform.tasks.InstallExecutable.setExecutable(Provider<? extends RegularFile>)` was removed. Use `org.gradle.nativeplatform.tasks.InstallExecutable.getSourceFile()` instead.
 
 ### Changes to Visual Studio toolchain discovery
 
