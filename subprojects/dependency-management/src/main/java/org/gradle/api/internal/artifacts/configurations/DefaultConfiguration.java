@@ -173,7 +173,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
-    private final ConfigurationUseSite useSite;
     private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
@@ -181,7 +180,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DisplayName displayName;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
-                                ConfigurationUseSite useSite,
                                 String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
@@ -215,7 +213,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
-        this.useSite = useSite;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
@@ -645,7 +642,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, useSite, newName,
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
             rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
@@ -1320,14 +1317,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (isScriptConfiguration()) {
                 return null;
             } else {
-                Path projectPath = useSite.getProjectPath();
+                Path projectPath = domainObjectContext.getProjectPath();
                 return projectPath == null ? null : projectPath.getPath();
             }
         }
 
         @Override
         public boolean isScriptConfiguration() {
-            return useSite.isScript();
+            return domainObjectContext.isScript();
         }
 
         @Override

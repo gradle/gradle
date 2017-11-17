@@ -1639,9 +1639,8 @@ All Artifacts:
                 return false
             }
         }
-        def useSite = ConfigurationUseSite.project(domainObjectContext.projectPath)
 
-        new DefaultConfiguration(domainObjectContext, useSite, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+        new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
             new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
