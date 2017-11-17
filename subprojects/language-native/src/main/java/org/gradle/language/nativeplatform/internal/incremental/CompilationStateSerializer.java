@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
@@ -23,32 +22,23 @@ import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
-import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.Macro;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer;
 
 import java.io.File;
 import java.util.Set;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
-    private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
-    private final Serializer<File> fileSerializer;
     private final SetSerializer<File> fileSetSerializer;
     private final MapSerializer<File, CompilationFileState> stateMapSerializer;
 
     public CompilationStateSerializer() {
-        fileSerializer = SERIALIZER_FACTORY.getSerializerFor(File.class);
+        Serializer<File> fileSerializer = new BaseSerializerFactory().getSerializerFor(File.class);
         fileSetSerializer = new SetSerializer<File>(fileSerializer);
-        stateMapSerializer = new MapSerializer<File, CompilationFileState>(fileSerializer,
-            new CompilationFileStateSerializer(fileSerializer));
+        stateMapSerializer = new MapSerializer<File, CompilationFileState>(fileSerializer, new CompilationFileStateSerializer(fileSerializer));
     }
 
     @Override
@@ -67,7 +57,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     private static class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
         private final Serializer<Set<File>> resolveIncludesSerializer;
-        private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
+        private final Serializer<IncludeDirectives> sourceIncludesSerializer = new IncludeDirectivesSerializer();
 
         private CompilationFileStateSerializer(Serializer<File> fileSerializer) {
             this.resolveIncludesSerializer = new SetSerializer<File>(fileSerializer);
@@ -86,58 +76,6 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             hashSerializer.write(encoder, value.getHash());
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
             sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
-        }
-    }
-
-    private static class SourceIncludesSerializer implements Serializer<IncludeDirectives> {
-        private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer());
-        private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer());
-
-        @Override
-        public IncludeDirectives read(Decoder decoder) throws Exception {
-            return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)));
-        }
-
-        @Override
-        public void write(Encoder encoder, IncludeDirectives value) throws Exception {
-            includeListSerializer.write(encoder, value.getIncludesAndImports());
-            macroListSerializer.write(encoder, value.getMacros());
-        }
-    }
-
-    private static class IncludeSerializer implements Serializer<Include> {
-        private final Serializer<String> stringSerializer = SERIALIZER_FACTORY.getSerializerFor(String.class);
-        private final Serializer<Boolean> booleanSerializer = SERIALIZER_FACTORY.getSerializerFor(Boolean.class);
-        private final Serializer<IncludeType> enumSerializer = SERIALIZER_FACTORY.getSerializerFor(IncludeType.class);
-
-        @Override
-        public Include read(Decoder decoder) throws Exception {
-            String value = stringSerializer.read(decoder);
-            boolean isImport = booleanSerializer.read(decoder);
-            IncludeType type = enumSerializer.read(decoder);
-            return new DefaultInclude(value, isImport, type);
-        }
-
-        @Override
-        public void write(Encoder encoder, Include value) throws Exception {
-            stringSerializer.write(encoder, value.getValue());
-            booleanSerializer.write(encoder, value.isImport());
-            enumSerializer.write(encoder, value.getType());
-        }
-    }
-
-    private static class MacroSerializer implements Serializer<Macro> {
-        @Override
-        public Macro read(Decoder decoder) throws Exception {
-            String name = decoder.readString();
-            String value = decoder.readString();
-            return new DefaultMacro(name, value);
-        }
-
-        @Override
-        public void write(Encoder encoder, Macro value) throws Exception {
-            encoder.writeString(value.getName());
-            encoder.writeString(value.getValue());
         }
     }
 }

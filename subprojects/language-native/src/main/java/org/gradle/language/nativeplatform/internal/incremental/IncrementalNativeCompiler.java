@@ -28,7 +28,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -46,16 +45,17 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final TaskInternal task;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
-    private final CSourceParser sourceParser = new RegexBackedCSourceParser();
+    private final CSourceParser sourceParser;
     private final HeaderDependenciesCollector headerDependenciesCollector;
 
-    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, HeaderDependenciesCollector headerDependenciesCollector) {
+    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, HeaderDependenciesCollector headerDependenciesCollector, CSourceParser sourceParser) {
         this.task = task;
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
         this.headerDependenciesCollector = headerDependenciesCollector;
+        this.sourceParser = sourceParser;
     }
 
     @Override

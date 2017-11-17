@@ -54,6 +54,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 for (IncludeDirectives includeDirectives : included) {
                     for (Macro macro : includeDirectives.getMacros()) {
                         if (include.getValue().equals(macro.getName())) {
+                            found = true;
                             Include expandedInclude = DefaultInclude.parse(macro.getValue(), include.isImport());
                             if (expandedInclude.getType() == IncludeType.QUOTED) {
                                 searchForDependency(quotedSearchPath, expandedInclude.getValue(), resolvedSourceIncludes);
@@ -62,7 +63,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                                 // TODO - handle system includes, which also need to be expanded when the value of a macro
                                 resolvedSourceIncludes.resolved(include.getValue(), null);
                             }
-                            found = true;
                         }
                     }
                 }

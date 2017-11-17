@@ -18,20 +18,23 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBuilder {
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
+    private final CSourceParser sourceParser;
 
-    public DefaultIncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory) {
+    public DefaultIncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
+        this.sourceParser = sourceParser;
     }
 
     @Override
     public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, HeaderDependenciesCollector headerDependenciesCollector) {
-        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, headerDependenciesCollector);
+        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, headerDependenciesCollector, sourceParser);
     }
 }

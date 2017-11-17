@@ -48,7 +48,6 @@ import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompil
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileFilesFactory;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompileProcessor;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -81,12 +80,12 @@ public class Depend extends DefaultTask {
     private final CompilationStateCacheFactory compilationStateCacheFactory;
 
     @Inject
-    public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory, CSourceParser sourceParser) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.includes = getProject().files();
         this.source = getProject().files();
-        this.sourceParser = new RegexBackedCSourceParser();
+        this.sourceParser = sourceParser;
         this.headerDependenciesFile = newOutputFile();
         ObjectFactory objectFactory = getProject().getObjects();
         this.importsAreIncludes = objectFactory.property(Boolean.class);

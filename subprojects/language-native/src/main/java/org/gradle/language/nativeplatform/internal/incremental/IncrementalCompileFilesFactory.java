@@ -95,13 +95,10 @@ public class IncrementalCompileFilesFactory {
             CompilationFileState previousState = previous.getState(file);
             HashCode newHash = hasher.hash(file);
             IncludeDirectives includeDirectives;
-            if (sameHash(previousState, newHash)) {
-                includeDirectives = previousState.getIncludeDirectives();
-            } else {
+            if (!sameHash(previousState, newHash)) {
                 changed = true;
-                // TODO - parse file once only
-                includeDirectives = sourceIncludesParser.parseIncludes(file);
             }
+            includeDirectives = sourceIncludesParser.parseIncludes(file);
 
             included.add(includeDirectives);
             SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, included);

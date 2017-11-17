@@ -94,10 +94,6 @@ class CompilationStateSerializerTest extends SerializerSpec {
         return new CompilationState(ImmutableSet.copyOf(sourceFiles), ImmutableMap.copyOf(states))
     }
 
-    private ResolvedInclude resolvedInclude(String value) {
-        return new ResolvedInclude(value, new File(value))
-    }
-
     private CompilationState serialized(CompilationState state) {
         serialize(state, serializer) as CompilationState
     }
