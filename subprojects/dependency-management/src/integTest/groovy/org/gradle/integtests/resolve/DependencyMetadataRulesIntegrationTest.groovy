@@ -213,7 +213,7 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                         withVariant("$variantToTest") { 
                             withDependencies {
                                 it.each {
-                                    it.version { prefer = '1.0' }
+                                    it.version { prefer '1.0' }
                                 }
                             }
                         }
