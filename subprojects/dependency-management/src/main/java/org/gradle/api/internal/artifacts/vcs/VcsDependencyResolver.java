@@ -81,7 +81,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
                 VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersion());
                 if (selectedVersion == null) {
-                    result.failed(new ModuleVersionResolveException(depSelector, spec.getDisplayName() + " does not contain a version matching " + depSelector.getVersion()));
+                    result.failed(new ModuleVersionResolveException(depSelector,
+                        "Could not resolve " + depSelector.toString() + ". " + spec.getDisplayName() + " does not contain a version matching " + depSelector.getVersion()));
                     return;
                 }
                 File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);

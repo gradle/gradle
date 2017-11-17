@@ -138,7 +138,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
     }
 
-    def 'missing version error makes sense'() {
+    def 'handle missing version by adding tag to git repository'() {
         given:
         settingsFile << """
             sourceControl {
@@ -165,6 +165,14 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         then:
         failureCauseContains("does not contain a version matching 1.4.0")
+
+        when:
+        javaFile.setText(javaFile.text.replace('interface', 'class'))
+        repo.commit('Switch it back to a class.', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.4.0')
+
+        then:
+        succeeds('assemble')
     }
 
     // TODO: Use HTTP hosting for git repo
