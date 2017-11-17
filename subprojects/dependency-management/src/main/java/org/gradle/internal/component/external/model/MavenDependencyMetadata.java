@@ -81,16 +81,11 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
-            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
-            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
-            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
-            // - or the target is a component from a Maven repo as we can assume this is well behaved
-            if (!consumerAttributes.isEmpty() || targetComponent instanceof MavenModuleResolveMetadata) {
-                return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
-            }
+        Set<ConfigurationMetadata> result = super.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
+        if (result != null) {
+            return result;
         }
-        Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
+        result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies

@@ -23,8 +23,11 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 
@@ -134,5 +137,18 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
     @Override
     public boolean isOptional() {
         return optional;
+    }
+
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
+            // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
+            // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
+            // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
+            // - or the target is a component from a Maven/Ivy repo as we can assume this is well behaved
+            if (!consumerAttributes.isEmpty() || targetComponent instanceof ModuleComponentResolveMetadata) {
+                return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            }
+        }
+        return null;
     }
 }
