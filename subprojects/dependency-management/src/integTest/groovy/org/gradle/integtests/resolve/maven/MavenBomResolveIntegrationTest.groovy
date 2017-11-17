@@ -77,7 +77,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 module("group:bom:1.0", {
                     module("group:moduleA:2.0")
                 }).noArtifacts()
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+                edge("group:moduleA:", "group:moduleA:2.0")
             }
         }
     }
@@ -103,7 +103,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                         module("group:moduleA:2.0")
                     }).noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+                edge("group:moduleA:", "group:moduleA:2.0")
             }
         }
     }
