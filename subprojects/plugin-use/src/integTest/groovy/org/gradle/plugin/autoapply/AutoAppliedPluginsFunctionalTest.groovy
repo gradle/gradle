@@ -145,6 +145,27 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/3516")
+    def "does not render build scan hint in build failure output if command line option was requested"() {
+        given:
+        withInteractiveConsole()
+        buildFile << failingBuildFile()
+
+        when:
+        def gradleHandle = startBuildWithBuildScanCommandLineOption()
+
+        then:
+        writeToStdIn(gradleHandle, YES.bytes)
+        def result = gradleHandle.waitForFailure()
+        closeStdIn(gradleHandle)
+        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
+        result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        !result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
+        !result.error.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+    }
+
     private void withInteractiveConsole() {
         executer.withStdinPipe().withForceInteractive(true)
     }
@@ -155,5 +176,15 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
     static String dummyBuildFile() {
         "task $DUMMY_TASK_NAME"
+    }
+
+    static String failingBuildFile() {
+        """
+            task $DUMMY_TASK_NAME {
+                doLast {
+                    throw new GradleException('something went wrong')
+                }
+            }
+        """
     }
 }
