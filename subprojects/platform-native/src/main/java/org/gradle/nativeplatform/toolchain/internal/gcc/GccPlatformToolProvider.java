@@ -92,7 +92,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler) {
-        return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(compilerType.getIdentifier(), gccMetadata.getVersion()));
+        return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(compilerType.getIdentifier(), gccMetadata.getVendor(), gccMetadata.getVersion()));
     }
 
     @Override

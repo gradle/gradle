@@ -164,7 +164,7 @@ End of search list.
         expect:
         def result = output(gcc, gccVerboseOutput(versionNumber.toString()))
         result.available
-        result.versionNumber == VersionNumber.parse(versionNumber)
+        result.version == VersionNumber.parse(versionNumber)
 
         where:
         gcc          | versionNumber
@@ -179,7 +179,7 @@ End of search list.
         expect:
         def result = output(gcc4, gccVerboseOutput('4.2.1', []))
         result.available
-        result.version == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
+        result.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
     }
 
     @Unroll
@@ -220,7 +220,7 @@ End of search list.
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not determine GCC metadata: could not find version in output of g++.")
+        1 * visitor.node("Could not determine GCC metadata: could not find vendor in output of g++.")
     }
 
     def "handles failure to execute g++"() {
@@ -255,13 +255,13 @@ End of search list.
         expect:
         def result = output stdin, stderr, CLANG
         result.available
-        result.versionNumber == VersionNumber.parse(versionNumber)
-        result.version == version
+        result.version == VersionNumber.parse(version)
+        result.vendor == vendor
 
         where:
-        stdin        | stderr                    | versionNumber | version
-        clang        | clangVerboseOutput()      | "5.0.0"       | 'Apple LLVM version 5.0 (clang-500.0.38)'
-        clangOnLinux | clangOnLinuxVerboseOutput | '3.6.0'       | 'Ubuntu clang version 3.6.0-2ubuntu1~trusty1 (tags/RELEASE_360/final) (based on LLVM 3.6.0)'
+        stdin        | stderr                    | version | vendor
+        clang        | clangVerboseOutput()      | "5.0.0" | 'Apple LLVM version 5.0 (clang-500.0.38)'
+        clangOnLinux | clangOnLinuxVerboseOutput | '3.6.0' | 'Ubuntu clang version 3.6.0-2ubuntu1~trusty1 (tags/RELEASE_360/final) (based on LLVM 3.6.0)'
     }
 
     def "detects clang pretending to be gcc"() {

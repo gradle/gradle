@@ -95,7 +95,7 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         }
 
         @Override
-        public String getVersion() {
+        public String getVendor() {
             throw new UnsupportedOperationException();
         }
     }

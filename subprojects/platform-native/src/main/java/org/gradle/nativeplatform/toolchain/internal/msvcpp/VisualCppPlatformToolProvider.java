@@ -120,7 +120,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     private <T extends NativeCompileSpec> VersionAwareCompiler<T> versionAwareCompiler(OutputCleaningCompiler<T> outputCleaningCompiler) {
-        return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, visualCpp.getVersion()));
+        return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, "Microsoft", visualCpp.getVersion()));
     }
 
     @Override

@@ -33,6 +33,22 @@ import javax.annotation.Nullable;
 public interface CompilerVersion {
 
     /**
+     * Returns the type of the compiler.
+     */
+    @Input
+    String getType();
+
+    /**
+     * Returns the vendor of the compiler.
+     *
+     * Returns <code>null</code> if the version is unknown.
+     */
+    @Input
+    @Nullable
+    @Optional
+    String getVendor();
+
+    /**
      * Returns the version of the compiler.
      *
      * Returns <code>null</code> if the version is unknown.
@@ -41,10 +57,4 @@ public interface CompilerVersion {
     @Nullable
     @Optional
     String getVersion();
-
-    /**
-     * Returns the type of the compiler.
-     */
-    @Input
-    String getType();
 }

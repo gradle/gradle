@@ -82,15 +82,15 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     @Override
     protected GccMetadata parseCompilerOutput(String output, String error, File gccBinary) {
         Map<String, String> defines = parseDefines(output, gccBinary);
-        VersionNumber scrapedVersionNumber = determineVersion(defines, gccBinary);
+        VersionNumber scrapedVersion = determineVersion(defines, gccBinary);
         ArchitectureInternal architecture = determineArchitecture(defines);
-        String scrapedVersionNumberString = determineVersionNumberString(error, scrapedVersionNumber, gccBinary);
+        String scrapedVendor = determineVendor(error, scrapedVersion, gccBinary);
         ImmutableList<File> systemIncludes = determineSystemIncludes(error);
 
-        return new DefaultGccMetadata(scrapedVersionNumber, scrapedVersionNumberString, architecture, systemIncludes);
+        return new DefaultGccMetadata(scrapedVersion, scrapedVendor, architecture, systemIncludes);
     }
 
-    private String determineVersionNumberString(String error, VersionNumber versionNumber, File gccBinary) {
+    private String determineVendor(String error, VersionNumber versionNumber, File gccBinary) {
         BufferedReader reader = new BufferedReader(new StringReader(error));
         String majorMinorOnly = versionNumber.getMajor() + "." + versionNumber.getMinor();
         String line;
@@ -107,7 +107,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             // Should not happen reading from a StringReader
             throw new UncheckedIOException(e);
         }
-        throw new BrokenResultException(String.format("Could not determine %s metadata: could not find version in output of %s.", compilerType.getDescription(), gccBinary));
+        throw new BrokenResultException(String.format("Could not determine %s metadata: could not find vendor in output of %s.", compilerType.getDescription(), gccBinary));
     }
 
     private ImmutableList<File> determineSystemIncludes(String error) {
@@ -218,21 +218,21 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     }
 
     private static class DefaultGccMetadata implements GccMetadata {
-        private final VersionNumber scrapedVersionNumber;
-        private final String scrapedVersion;
+        private final VersionNumber scrapedVersion;
+        private final String scrapedVendor;
         private final ArchitectureInternal architecture;
         private final ImmutableList<File> systemIncludes;
 
-        public DefaultGccMetadata(VersionNumber scrapedVersionNumber, String scrapedVersion, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
-            this.scrapedVersionNumber = scrapedVersionNumber;
+        public DefaultGccMetadata(VersionNumber scrapedVersion, String scrapedVendor, ArchitectureInternal architecture, ImmutableList<File> systemIncludes) {
             this.scrapedVersion = scrapedVersion;
+            this.scrapedVendor = scrapedVendor;
             this.architecture = architecture;
             this.systemIncludes = systemIncludes;
         }
 
         @Override
-        public VersionNumber getVersionNumber() {
-            return scrapedVersionNumber;
+        public VersionNumber getVersion() {
+            return scrapedVersion;
         }
 
         @Override
@@ -255,8 +255,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
 
         @Override
-        public String getVersion() {
-            return scrapedVersion;
+        public String getVendor() {
+            return scrapedVendor;
         }
     }
 
@@ -267,7 +267,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
 
         @Override
-        public VersionNumber getVersionNumber() {
+        public VersionNumber getVersion() {
             throw new UnsupportedOperationException();
         }
 
