@@ -1,3 +1,21 @@
+The Gradle team is pleased to announce Gradle 4.4.
+
+First and foremost, this release of Gradle features some exciting improvements for IDE users:
+
+ * Faster sync times are possible when IDEs take advantage of new [parametrized tooling model builders](#parametrized-tooling-model-builders) in the Gradle Tooling API.
+ * The `eclipse` plugin now provides separate output folders. This removes test dependencies from the runtime classpath in Eclipse and should make developing applications with STS and [Buildship](http://eclipse.org/buildship) much more pleasant.
+ * [Visual Studio 2017 is now supported](#visual-studio-2017-support). Please read details about `vswhere` and [VS toolchain discovery changes](#changes-to-visual-studio-toolchain-discovery) if you plan to use Gradle with VS 2017.
+
+No discussion about IDE support for Gradle would be complete without mentioning improvements to the Kotlin DSL. Version 0.13 is included in Gradle 4.4 and provides support for writing `settings.gradle.kts` files, build scripts written in Kotlin 1.1.60, improvements to `plugins {}` DSL use, and more! See the [Kotlin DSL 0.13 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.13.0) for more details.
+
+C and C++ developers will enjoy better [incremental builds and build cache support for C/C++](#c/c++-incremental-build-improvements) because this version of Gradle takes compiler version and system headers into account for up-to-date checks. 
+
+Previous versions of Gradle required that all transitive dependencies of a given plugin were present in the same repository as the plugin. Gradle 4.4 takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Learn about this and other plugin repository handling improvements [in the details](#plugin-repositories-enhancements). 
+
+Gradle now supports version ranges in parent elements of a POM. See an example [below](#support-version-ranges-in-parent-elements).
+
+Last but not least, [several 3rd party dependencies](#security-upgrade-of-third-party-dependencies) including Ant were updated to their latest versions containing security and other bug fixes.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -30,7 +48,7 @@ The `eclipse` plugin now defines separate output directories for each source fol
 
 The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
 
-### Parametrized tooling model builders.
+### Parametrized tooling model builders
 
 The Tooling API now allows model builders to accept parameters from the tooling client. This is useful when there are multiple possible mappings from the Gradle project to the tooling model and the decision depends on some user-provided value.
 Android Studio for instance will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
