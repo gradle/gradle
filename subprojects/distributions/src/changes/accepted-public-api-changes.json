@@ -186,6 +186,12 @@
             "acceptation": "Using default constructor"
         },
         {
+            "type": "org.gradle.language.nativeplatform.tasks.Depend",
+            "member": "Constructor org.gradle.language.nativeplatform.tasks.Depend(org.gradle.internal.hash.FileHasher,org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory,org.gradle.api.internal.file.collections.DirectoryFileTreeFactory,org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser)",
+            "acceptation": "Added parameter to injectable constructor"
+        }    ]
+        },
+        {
             "type": "org.gradle.api.publish.maven.plugins.MavenPublishPlugin",
             "member": "Constructor org.gradle.api.publish.maven.plugins.MavenPublishPlugin(org.gradle.internal.reflect.Instantiator,org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider,org.gradle.api.internal.file.FileResolver,org.gradle.api.publish.internal.ProjectDependencyPublicationResolver,org.gradle.api.internal.file.FileCollectionFactory,org.gradle.api.internal.ExperimentalFeatures)",
             "acceptation": "Change to constructor of incubating plugin"
