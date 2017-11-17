@@ -72,7 +72,39 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   "component": {
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  }
+}
+"""
+    }
+
+    def "writes file for component with attributes"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        when:
+        publication.attributes >> attributes(status: 'release', 'test': 'value')
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "0.2",
+  "component": {
+    "group": "group",
+    "module": "module",
+    "version": "1.2",
+    "attributes": {
+      "status": "release",
+      "test": "value"
+    }
   },
   "createdBy": {
     "gradle": {
@@ -126,7 +158,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   "component": {
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
   },
   "createdBy": {
     "gradle": {
@@ -205,7 +238,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   "component": {
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
   },
   "createdBy": {
     "gradle": {
@@ -279,7 +313,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   "component": {
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
   },
   "createdBy": {
     "gradle": {
@@ -337,7 +372,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
   "component": {
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
   },
   "createdBy": {
     "gradle": {
@@ -402,7 +438,8 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     "url": "../../module/1.2/module-1.2.module",
     "group": "group",
     "module": "module",
-    "version": "1.2"
+    "version": "1.2",
+    "attributes": {}
   },
   "createdBy": {
     "gradle": {

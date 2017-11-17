@@ -25,9 +25,7 @@ import spock.lang.Issue
 
 @RequiredFeatures([
     // this test is specific to Ivy
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
-    // Support for Gradle metadata is not yet implemented
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
 ]
 )
 @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -348,9 +346,12 @@ Searched in the following locations:
                 expectHeadMetadata()
                 withModule {
                     // todo: handle this properly in ModuleVersionSpec test fixture
-                    getArtifact(name:'ivy', ext:'xml.sha1').expectGet()
+                    getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        getArtifact(ext: 'module.sha1').allowGetOrHead()
+                    }
                 }
-                expectGetMetadata()
+                maybeGetMetadata()
             }
             'org.test:projectA:1.2' {
                 expectHeadMetadata()
@@ -529,6 +530,185 @@ Searched in the following locations:
             'org.test:projectA:1.1' {
                 expectHeadMetadata()
                 expectHeadArtifact()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
+            }
+        }
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    )
+    // this test is a variant of the previous one, where we don't publish ivy.xml files, but publish Gradle module files only
+    // it allows making sure that we actually read and write the "status" flag in Gradle metadata, because otherwise if the
+    // Ivy file is present, it will be taken from there first
+    void "latest.release selects highest version with release status using Gradle metadata only"() {
+        given:
+        buildFile << """
+  dependencies {
+      conf 'org.test:projectA:latest.release'
+  }
+  """
+        when:
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+        }
+        runAndFail 'checkDeps'
+
+        then:
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
+
+        when:
+        resetExpectations()
+        repository {
+            'org.test:projectA:2.0' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:2.0' {
+                allowAll()
+            }
+        }
+        runAndFail 'checkDeps'
+
+        then:
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+Searched in the following locations:
+'''
+
+        when:
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.3' {
+                withModule {
+                    withStatus 'integration'
+                    withNoIvyMetaData()
+                }
+            }
+            'org.test:projectA:1.2' {
+                withModule {
+                    withStatus 'milestone'
+                    withNoIvyMetaData()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:2.0' {
+                allowAll()
+            }
+            'org.test:projectA:1.3' {
+                allowAll()
+            }
+            'org.test:projectA:1.2' {
+                allowAll()
+            }
+        }
+        runAndFail 'checkDeps', '--refresh-dependencies'
+
+        then:
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+    1.3
+    1.2
+Searched in the following locations:
+'''
+
+        when:
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.1' {
+                withModule {
+                    withStatus 'release'
+                    withNoIvyMetaData()
+                }
+            }
+            'org.test:projectA:1.0' {
+                withModule {
+                    withStatus 'release'
+                    withNoIvyMetaData()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:2.0' {
+                allowAll()
+            }
+            'org.test:projectA:1.3' {
+                allowAll()
+            }
+            'org.test:projectA:1.2' {
+                allowAll()
+            }
+            'org.test:projectA:1.1' {
+                allowAll()
+            }
+        }
+        run 'checkDeps', '--refresh-dependencies'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
+            }
+        }
+
+        when:
+        resetExpectations()
+        repository {
+            'org.test:projectA:1.1.1' {
+                withModule {
+                    withStatus 'milestone'
+                    withNoIvyMetaData()
+                }
+            }
+            'org.test:projectA:1.1-beta2' {
+                withModule {
+                    withStatus 'integration'
+                    withNoIvyMetaData()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA' {
+                expectVersionListing()
+            }
+            'org.test:projectA:2.0' {
+                allowAll()
+            }
+            'org.test:projectA:1.3' {
+                allowAll()
+            }
+            'org.test:projectA:1.2' {
+                allowAll()
+            }
+            'org.test:projectA:1.1.1' {
+                allowAll()
+            }
+            'org.test:projectA:1.1' {
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -822,6 +1002,12 @@ dependencies {
                 expectGetMetadata()
                 expectGetArtifact()
             }
+            if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                // todo: is single version in range something we want to allow in Gradle metadata?
+                'org.test:projectB' {
+                    expectVersionListing()
+                }
+            }
             'org.test:projectB:2.0' {
                 expectGetMetadata()
                 expectGetArtifact()
@@ -833,7 +1019,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
-                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        edge("org.test:projectB:[2.0]", "org.test:projectB:2.0")
+                    } else {
+                        edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                    }
                 }
             }
         }

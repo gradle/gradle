@@ -30,10 +30,13 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -77,18 +80,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final DefaultIvyArtifactSet ivyArtifacts;
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
     private FileCollection descriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
-            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
-    ) {
+        String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
+        ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+        ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
+        this.immutableAttributesFactory = immutableAttributesFactory;
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
@@ -265,6 +270,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getOrganisation(), getModule(), getRevision());
+    }
+
+    @Override
+    public ImmutableAttributes getAttributes() {
+        return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, getDescriptor().getStatus());
     }
 
     @Override

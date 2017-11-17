@@ -98,6 +98,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
+    @Override
+    public IvyModule withNoIvyMetaData() {
+        backingModule.withNoIvyMetaData();
+        return t();
+    }
+
     public T withStatus(String status) {
         backingModule.withStatus(status);
         return t();

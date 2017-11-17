@@ -65,6 +65,23 @@ class ModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses component metadata attributes"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.2", 
+        "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "attributes": {"foo": "bar", "org.gradle.status": "release" } },
+        "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
+        0 * _
+    }
+
     def "parses content with variant"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
         def variant = Mock(MutableComponentVariant)

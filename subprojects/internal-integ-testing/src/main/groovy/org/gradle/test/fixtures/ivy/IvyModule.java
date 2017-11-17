@@ -39,9 +39,14 @@ public interface IvyModule extends Module {
     TestFile getModuleMetadataFile();
 
     /**
-     * Don't publish an ivy.xml for this module.
+     * Don't publish an ivy.xml / .module for this module.
      */
     IvyModule withNoMetaData();
+
+    /**
+     * Don't publish any ivy.xml for this module, but publish .module
+     */
+    IvyModule withNoIvyMetaData();
 
     IvyModule withStatus(String status);
 

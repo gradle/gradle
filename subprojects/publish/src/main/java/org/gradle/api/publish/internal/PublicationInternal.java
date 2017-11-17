@@ -17,6 +17,7 @@ package org.gradle.api.publish.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.Publication;
 
@@ -27,6 +28,9 @@ public interface PublicationInternal extends Publication {
     SoftwareComponentInternal getComponent();
 
     ModuleVersionIdentifier getCoordinates();
+
+    @Nullable
+    ImmutableAttributes getAttributes();
 
     /**
      * Specifies that this publication is just an alias for another one and should not

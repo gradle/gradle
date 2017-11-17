@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -86,12 +87,27 @@ public class ModuleMetadataParser {
     private void consumeTopLevelElements(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
-            if (name.equals("variants")) {
+            if ("variants".equals(name)) {
                 consumeVariants(reader, metadata);
+            } else if ("component".equals(name)) {
+                consumeComponent(reader, metadata);
             } else {
                 consumeAny(reader);
             }
         }
+    }
+
+    private void consumeComponent(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
+        reader.beginObject();
+        while (reader.peek() != END_OBJECT) {
+            String name = reader.nextName();
+            if ("attributes".equals(name)) {
+                metadata.setAttributes(consumeAttributes(reader));
+            } else {
+                consumeAny(reader);
+            }
+        }
+        reader.endObject();
     }
 
     private void consumeVariants(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
@@ -234,7 +250,10 @@ public class ModuleMetadataParser {
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String attrName = reader.nextName();
-            if (attrName.equals(Usage.USAGE_ATTRIBUTE.getName())) {
+            if (ProjectInternal.STATUS_ATTRIBUTE.getName().equals(attrName)) {
+                String attrValue = reader.nextString();
+                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), attrValue);
+            } else if (attrName.equals(Usage.USAGE_ATTRIBUTE.getName())) {
                 String attrValue = reader.nextString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Usage.class), instantiator.named(Usage.class, attrValue));
             } else if (reader.peek() == BOOLEAN) {
