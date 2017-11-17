@@ -114,6 +114,12 @@ In previous versions of Gradle the URL referred to by `RepositoryHandler.mavenCe
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
+### Task validation disallows input/output annotations on private getters
+
+The `ValidateTaskProperties` task, added by the `java-gradle-plugin`, failed if private getters have not been annotated with input or output annotations.
+This required plugin authors to annotate private methods called `getXXX` with `@Internal`.
+Starting with Gradle 4.4, the task warns about annotations on private getters instead, so plugin authors do not need to put any annotations on private methods.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
