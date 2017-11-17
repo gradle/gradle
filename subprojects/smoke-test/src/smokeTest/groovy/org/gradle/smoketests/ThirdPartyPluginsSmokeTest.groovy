@@ -154,7 +154,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${mavenCentralRepository()}
                 dependencies {
-                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.7.RELEASE')
+                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE')
                 }
             }
 
@@ -224,7 +224,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         def stopPort = portAllocator.assignPort()
         buildFile << """
             plugins {
-                id "com.bmuschko.tomcat" version "2.3"
+                id "com.bmuschko.tomcat" version "2.4.1"
             }
 
             ${mavenCentralRepository()}
@@ -278,8 +278,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'org.gosu-lang.gosu' version '0.3.5'
             }
-
-            apply plugin: 'org.gosu-lang.gosu'
 
             ${mavenCentralRepository()}
 
@@ -342,7 +340,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         GitRepository.init(testProjectDir.root)
         buildFile << """
             plugins {
-                id "org.ajoberstar.grgit" version "2.0.1"
+                id "org.ajoberstar.grgit" version "2.1.0"
             }
 
             def sourceFile = file("sourceFile")

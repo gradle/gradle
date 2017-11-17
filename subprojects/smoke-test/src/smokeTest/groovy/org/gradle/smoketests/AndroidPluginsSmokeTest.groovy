@@ -29,9 +29,9 @@ import spock.lang.Unroll
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     public static final ANDROID_BUILD_TOOLS_VERSION = '26.0.2'
-    public static final String STABLE_ANDROID_VERSION = '2.3.3'
-    public static final String EXPERIMENTAL_ANDROID_VERSION = '3.0.0-beta7'
-    public static final TESTED_ANDROID_PLUGIN_VERSIONS = [STABLE_ANDROID_VERSION, EXPERIMENTAL_ANDROID_VERSION]
+    public static final String STABLE_ANDROID_2x_VERSION = '2.3.3'
+    public static final String STABLE_ANDROID_3x_VERSION = '3.0.0'
+    public static final TESTED_ANDROID_PLUGIN_VERSIONS = [STABLE_ANDROID_2x_VERSION, STABLE_ANDROID_3x_VERSION]
 
     def setup() {
         assertAndroidHomeSet()
