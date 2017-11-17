@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.testing;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
@@ -25,6 +27,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -90,10 +93,13 @@ import java.util.Map;
  *
  * <p><b>Note:</b> This abstract class is not intended for implementation by build script or plugin authors.
  *
+ * @param <T> The concrete type of the class.
+ *
  * @since 4.4
  */
-public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
+public abstract class AbstractTestTask<T extends AbstractTestTask> extends ConventionTask implements VerificationTask {
     protected final DefaultTestFilter filter;
+    private final Class<T> taskType;
     private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -103,7 +109,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
 
-    public AbstractTestTask() {
+    public AbstractTestTask(Class<T> taskType) {
+        this.taskType = taskType;
+
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         ListenerManager listenerManager = getListenerManager();
@@ -474,7 +482,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    protected abstract String createNoMatchingTestErrorMessage();
+    private String  createNoMatchingTestErrorMessage() {
+        return "No tests found for given includes: "
+            + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
+    }
+
+    protected List<String> getNoMatchingTestErrorReasons() {
+        List<String> reasons = Lists.newArrayList();
+        if (!getFilter().getIncludePatterns().isEmpty()) {
+            reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
+        }
+        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
+            reasons.add(filter.getCommandLineIncludePatterns() + "(--tests filter)");
+        }
+        return reasons;
+    }
 
     private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
@@ -512,10 +534,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Incubating
-    public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
+    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    public T setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
-        return this;
+        return taskType.cast(this);
     }
 
     /**
@@ -577,8 +599,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return filter object
      * @since 1.10
      */
+    @Incubating
     @Nested
-    protected TestFilter getFilter() {
+    public TestFilter getFilter() {
         return filter;
     }
 }

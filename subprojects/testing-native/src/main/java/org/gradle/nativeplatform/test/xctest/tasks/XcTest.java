@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -32,9 +31,6 @@ import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -42,11 +38,14 @@ import java.util.Set;
  * @since 4.2
  */
 @Incubating
-public class XcTest extends AbstractTestTask {
+public class XcTest extends AbstractTestTask<XcTest> {
     private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
     private final DirectoryProperty testInstallDirectory = newInputDirectory();
     private final RegularFileProperty runScriptFile = newInputFile();
-    private final Set<String> testNamePatterns = new HashSet<String>();
+
+    public XcTest() {
+        super(XcTest.class);
+    }
 
     /**
      * {@inheritDoc}
@@ -107,24 +106,5 @@ public class XcTest extends AbstractTestTask {
             return null;
         }
         return runScriptFile;
-    }
-
-    /**
-     * Sets the test name patterns to be included in execution.
-     * Classes or method names are supported, wildcard '*' is not supported.
-     */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is not supported.")
-    public XcTest setTestNameIncludePatterns(List<String> testNamePattern) {
-        super.setTestNameIncludePatterns(testNamePattern);
-        return this;
-    }
-
-    @Override
-    protected String createNoMatchingTestErrorMessage() {
-        String msg = "No tests found for given includes: ";
-        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
-            msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
-        }
-        return msg;
     }
 }

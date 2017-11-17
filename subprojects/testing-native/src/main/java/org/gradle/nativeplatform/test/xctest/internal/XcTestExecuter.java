@@ -21,9 +21,8 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
@@ -39,8 +38,8 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
-import java.util.Set;
 
 public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
@@ -67,53 +66,35 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     @Override
-    public void execute(XCTestTestExecutionSpec testTestExecutionSpec, TestResultProcessor testResultProcessor) {
+    public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = testTestExecutionSpec.getRunScript();
-        File workingDir = testTestExecutionSpec.getWorkingDir();
+        File executable = testExecutionSpec.getRunScript();
+        File workingDir = testExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
-        Runnable detector = new XcTestDetector(processor, testTestExecutionSpec.getTestFilter().getCommandLineIncludePatterns());
+        DefaultTestFilter testFilter = testExecutionSpec.getTestFilter();
+        Runnable detector = new XcTestDetector(processor, new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testTestExecutionSpec.getPath(), "Gradle Test Run " + testTestExecutionSpec.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
     private static class XcTestDetector implements Runnable {
-        private static final Logger LOGGER = Logging.getLogger(XcTestDetector.class);
         private final TestClassProcessor testClassProcessor;
-        private final Set<String> testNamePatterns;
+        private final XCTestSelection testSelection;
 
-        XcTestDetector(TestClassProcessor testClassProcessor, Set<String> testNamePatterns) {
+        XcTestDetector(TestClassProcessor testClassProcessor, XCTestSelection testSelection) {
             this.testClassProcessor = testClassProcessor;
-            this.testNamePatterns = testNamePatterns;
+            this.testSelection = testSelection;
         }
 
         @Override
         public void run() {
-            if (testNamePatterns.isEmpty()) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
+            for (String includedTests : testSelection.getIncludedTests()) {
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
                 testClassProcessor.processTestClass(testClass);
-            } else if (hasWildcardInTestNamePatterns()) {
-                LOGGER.warn("Test pattern containing '*' is not supported with XCTest, reverting to running all tests");
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
-                testClassProcessor.processTestClass(testClass);
-            } else {
-                for (String testName : testNamePatterns) {
-                    TestClassRunInfo testClass = new DefaultTestClassRunInfo(testName);
-                    testClassProcessor.processTestClass(testClass);
-                }
             }
-        }
-
-        private boolean hasWildcardInTestNamePatterns() {
-            for (String testName : testNamePatterns) {
-                if (testName.contains("*")) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 
@@ -145,8 +126,8 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private ExecHandle executeTest(String testName) {
-            if (!testName.equals("All")) {
-                execHandleBuilder.args(testName);
+            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
+                execHandleBuilder.setArgs(Arrays.asList(testName));
             }
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);

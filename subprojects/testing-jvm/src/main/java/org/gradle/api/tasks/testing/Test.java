@@ -62,6 +62,7 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.SingleMessageLogger;
+import org.testng.collections.Lists;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -118,7 +119,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
+public class Test extends AbstractTestTask<Test> implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
 
     private final DefaultJavaForkOptions forkOptions;
 
@@ -132,6 +133,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
+        super(Test.class);
         patternSet = getFileResolver().getPatternSetFactory().create();
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
@@ -510,7 +512,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @TaskAction
     public void executeTests() {
-
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
@@ -537,21 +538,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Override
-    protected String createNoMatchingTestErrorMessage() {
-        String msg = "No tests found for given includes: ";
+    protected List<String> getNoMatchingTestErrorReasons() {
+        List<String> reasons = Lists.newArrayList();
         if (!getIncludes().isEmpty()) {
-            msg += getIncludes() + "(include rules) ";
+            reasons.add(getIncludes() + "(include rules)");
         }
         if (!getExcludes().isEmpty()) {
-            msg += getExcludes() + "(exclude rules) ";
+            reasons.add(getExcludes() + "(exclude rules)");
         }
-        if (!getFilter().getIncludePatterns().isEmpty()) {
-            msg += getFilter().getIncludePatterns() + "(filter.includeTestsMatching) ";
-        }
-        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
-            msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
-        }
-        return msg;
+        reasons.addAll(super.getNoMatchingTestErrorReasons());
+        return reasons;
     }
 
     /**
@@ -631,20 +627,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
-        return this;
-    }
-
-    /**
-     * Sets the test name patterns to be included in execution.
-     * Classes or method names are supported, wildcard '*' is supported.
-     * For more information see the user guide chapter on testing.
-     *
-     * For more information on supported patterns see {@link TestFilter}
-     */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
-    @Incubating
-    public Test setTestNameIncludePatterns(List<String> testNamePattern) {
-        super.setTestNameIncludePatterns(testNamePattern);
         return this;
     }
 
@@ -959,16 +941,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @InputFiles
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Incubating
-    @Internal
-    public TestFilter getFilter() {
-        return super.getFilter();
     }
 
     /**
