@@ -360,7 +360,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         and:
         executedAndNotSkipped compileTasksDebug(APP)
-        output.contains("Cannot determine changed state of included 'HELLO' in source file 'main.cpp'. Assuming changed.")
+        output.contains("Cannot locate header file for include 'HELLO' in source file 'main.cpp'. Assuming changed.")
         output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
 
         when:

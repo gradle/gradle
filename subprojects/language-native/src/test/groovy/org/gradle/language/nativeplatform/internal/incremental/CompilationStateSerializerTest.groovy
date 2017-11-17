@@ -16,8 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 
@@ -34,19 +34,6 @@ class CompilationStateSerializerTest extends SerializerSpec {
         }
     }
 
-    def "serializes source inputs"() {
-        when:
-        def fileOne = new File("one")
-        def fileTwo = new File("two")
-        def state = compilationState([fileOne, fileTwo], [:])
-
-        then:
-        with (serialized(state)) {
-            sourceInputs == [fileOne, fileTwo] as Set
-            fileStates.isEmpty()
-        }
-    }
-
     def "serializes file state"() {
         when:
         def fileEmpty = new File("empty")
@@ -56,11 +43,10 @@ class CompilationStateSerializerTest extends SerializerSpec {
         def fileTwo = new File("two")
         def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), [new File("ONE"), new File("TWO")])
         fileStates.put(fileTwo, stateTwo)
-        def state = compilationState([], fileStates)
+        def state = compilationState(fileStates)
 
         then:
         def newState = serialized(state)
-        newState.sourceInputs.empty
         newState.fileStates.size() == 2
 
         def emptyCompileState = newState.getState(fileEmpty)
@@ -69,15 +55,15 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def otherCompileState = newState.getState(fileTwo)
         otherCompileState.hash == HashCode.fromInt(0x23456789)
-        otherCompileState.resolvedIncludes == [new File("ONE"), new File("TWO")] as Set
+        otherCompileState.resolvedIncludes == stateTwo.resolvedIncludes
     }
 
-    private CompilationFileState compilationFileState(HashCode hash, Collection<File> resolvedIncludes) {
-        return new CompilationFileState(hash, ImmutableSet.copyOf(resolvedIncludes))
+    private SourceFileState compilationFileState(HashCode hash, Collection<File> resolvedIncludes) {
+        return new SourceFileState(hash, ImmutableList.copyOf(resolvedIncludes.collect { new IncludeFileState(HashCode.fromInt(123), it )}))
     }
 
-    private CompilationState compilationState(Collection<File> sourceFiles, Map<File, CompilationFileState> states) {
-        return new CompilationState(ImmutableSet.copyOf(sourceFiles), ImmutableMap.copyOf(states))
+    private CompilationState compilationState(Map<File, SourceFileState> states) {
+        return new CompilationState(ImmutableMap.copyOf(states))
     }
 
     private CompilationState serialized(CompilationState state) {

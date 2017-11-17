@@ -15,19 +15,17 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
-
 /**
- * Immutable snapshot of the state of a source or header file.
+ * Immutable snapshot of the state of a source file.
  */
-public class CompilationFileState {
+public class SourceFileState {
     private final HashCode hash;
-    private final ImmutableSet<File> resolvedIncludes;
+    private final ImmutableList<IncludeFileState> resolvedIncludes;
 
-    public CompilationFileState(HashCode hash, ImmutableSet<File> resolvedIncludes) {
+    public SourceFileState(HashCode hash, ImmutableList<IncludeFileState> resolvedIncludes) {
         this.hash = hash;
         this.resolvedIncludes = resolvedIncludes;
     }
@@ -37,9 +35,16 @@ public class CompilationFileState {
     }
 
     /**
-     * The set of successfully resolved include files.
+     * The set of successfully resolved include files, in the order included.
      */
-    public ImmutableSet<File> getResolvedIncludes() {
+    public ImmutableList<IncludeFileState> getResolvedIncludes() {
         return resolvedIncludes;
+    }
+
+    /**
+     * Returns true if this file or its set of includes has changed since the given snapshot.
+     */
+    public boolean hasChanged(SourceFileState previousState) {
+        return !hash.equals(previousState.hash) || !resolvedIncludes.equals(previousState.resolvedIncludes);
     }
 }

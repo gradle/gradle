@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
@@ -77,74 +77,58 @@ public class IncrementalCompileFilesFactory {
             }
         }
 
+        /**
+         * @return true if this source file requires recompilation, false otherwise.
+         */
         private boolean visitSourceFile(File sourceFile) {
-            List<IncludeDirectives> included = new ArrayList<IncludeDirectives>();
+            SourceFileState previousState = previous.getState(sourceFile);
+            FileSnapshot fileSnapshot = snapshotter.snapshotSelf(sourceFile);
+            List<IncludeDirectives> includeDirectives = new ArrayList<IncludeDirectives>();
+            List<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
             Set<File> visited = new HashSet<File>();
-            return visitFile(sourceFile, included, visited) || !previous.getSourceInputs().contains(sourceFile);
+            FileVisitResult result = visitFile(sourceFile, includedFiles, includeDirectives, visited);
+            SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableList.copyOf(includedFiles));
+            current.setState(sourceFile, newState);
+            return previousState == null || result == FileVisitResult.Unresolved || newState.hasChanged(previousState);
         }
 
-        private boolean visitFile(File file, List<IncludeDirectives> included, Set<File> visited) {
+        private FileVisitResult visitFile(File file, List<IncludeFileState> includedFiles, List<IncludeDirectives> visibleIncludeDirectives, Set<File> visited) {
             if (!visited.add(file)) {
-                // A cycle, treat as unchanged here
-                return false;
+                // A cycle, treat as resolved here
+                return FileVisitResult.Resolved;
             }
             FileSnapshot fileSnapshot = snapshotter.snapshotSelf(file);
             if (fileSnapshot.getType() != FileType.RegularFile) {
-                return true;
+                // Skip things that aren't files
+                return FileVisitResult.Unresolved;
             }
 
-            boolean changed = false;
-            CompilationFileState previousState = previous.getState(file);
-            IncludeDirectives includeDirectives;
             HashCode newHash = fileSnapshot.getContent().getContentMd5();
-            if (!sameHash(previousState, newHash)) {
-                changed = true;
-            }
-            includeDirectives = sourceIncludesParser.parseIncludes(file);
+            // TODO - cache this here
+            IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
             // TODO - collect this only for modified source files
             includeDirectivesMap.put(file, includeDirectives);
+            includedFiles.add(new IncludeFileState(newHash, file));
+            visibleIncludeDirectives.add(includeDirectives);
 
-            included.add(includeDirectives);
-            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, included);
-            // TODO - collect the resolved files only in the source file
-            CompilationFileState newState = new CompilationFileState(newHash, ImmutableSet.copyOf(resolutionResult.getResolvedIncludeFiles()));
-
-            // TODO - when file has no macro includes directly or indirectly, remember the result and skip visiting it for other source files
-            current.setState(file, newState);
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = sourceIncludesResolver.resolveIncludes(file, includeDirectives, visibleIncludeDirectives);
             discoveredInputs.addAll(resolutionResult.getCheckedLocations());
+            FileVisitResult result = FileVisitResult.Resolved;
             for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
                 if (resolvedInclude.isUnknown()) {
+                    LOGGER.info("Cannot locate header file for include '{}' in source file '{}'. Assuming changed.", resolvedInclude.getInclude(), file.getName());
+                    result = FileVisitResult.Unresolved;
                     sourceFilesUseMacroIncludes = true;
-                }
-                if (!resolvedInclude.isUnknown()) {
-                    existingHeaders.add(resolvedInclude.getFile());
-                }
-            }
-
-            // Compare the previous resolved includes with resolving now.
-            if (!sameResolved(previousState, newState)) {
-                changed = true;
-            }
-
-            for (ResolvedInclude dep : resolutionResult.getResolvedIncludes()) {
-                if (dep.isUnknown()) {
-                    LOGGER.info("Cannot determine changed state of included '{}' in source file '{}'. Assuming changed.", dep.getInclude(), file.getName());
-                    changed = true;
                 } else {
-                    boolean depChanged = visitFile(dep.getFile(), included, visited);
-                    changed = changed || depChanged;
+                    existingHeaders.add(resolvedInclude.getFile());
+                    FileVisitResult headerResult = visitFile(resolvedInclude.getFile(), includedFiles, visibleIncludeDirectives, visited);
+                    if (headerResult != FileVisitResult.Resolved) {
+                        result = headerResult;
+                    }
                 }
             }
 
-            return changed;
-        }
-
-        private boolean sameHash(CompilationFileState previousState, HashCode newHash) {
-            return previousState != null && newHash.equals(previousState.getHash());
-        }
-
-        private boolean sameResolved(CompilationFileState previousState, CompilationFileState newState) {
-            return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
+            return result;
         }
 
         private List<File> getRemovedSources() {
@@ -158,4 +142,8 @@ public class IncrementalCompileFilesFactory {
         }
     }
 
+    private enum FileVisitResult {
+        Resolved,
+        Unresolved
+    }
 }

@@ -15,62 +15,82 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SetSerializer;
 
 import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
-    private final SetSerializer<File> fileSetSerializer;
-    private final MapSerializer<File, CompilationFileState> stateMapSerializer;
+    private final MapSerializer<File, SourceFileState> stateMapSerializer;
 
     public CompilationStateSerializer() {
         Serializer<File> fileSerializer = new BaseSerializerFactory().getSerializerFor(File.class);
-        fileSetSerializer = new SetSerializer<File>(fileSerializer);
-        stateMapSerializer = new MapSerializer<File, CompilationFileState>(fileSerializer, new CompilationFileStateSerializer(fileSerializer));
+        stateMapSerializer = new MapSerializer<File, SourceFileState>(fileSerializer, new CompilationFileStateSerializer(fileSerializer));
     }
 
     @Override
     public CompilationState read(Decoder decoder) throws Exception {
-        ImmutableSet<File> sourceInputs = ImmutableSet.copyOf(fileSetSerializer.read(decoder));
-        ImmutableMap<File, CompilationFileState> fileStates = ImmutableMap.copyOf(stateMapSerializer.read(decoder));
-        return new CompilationState(sourceInputs, fileStates);
+        ImmutableMap<File, SourceFileState> fileStates = ImmutableMap.copyOf(stateMapSerializer.read(decoder));
+        return new CompilationState(fileStates);
     }
 
     @Override
     public void write(Encoder encoder, CompilationState value) throws Exception {
-        fileSetSerializer.write(encoder, value.getSourceInputs());
         stateMapSerializer.write(encoder, value.getFileStates());
     }
 
-    private static class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
+    private static class CompilationFileStateSerializer implements Serializer<SourceFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
-        private final Serializer<Set<File>> resolveIncludesSerializer;
+        private final Serializer<List<IncludeFileState>> resolveIncludesSerializer;
 
-        private CompilationFileStateSerializer(Serializer<File> fileSerializer) {
-            this.resolveIncludesSerializer = new SetSerializer<File>(fileSerializer);
+        private CompilationFileStateSerializer(final Serializer<File> fileSerializer) {
+            this.resolveIncludesSerializer = new ListSerializer<IncludeFileState>(new IncludeFileStateSerializer(hashSerializer, fileSerializer));
         }
 
         @Override
-        public CompilationFileState read(Decoder decoder) throws Exception {
+        public SourceFileState read(Decoder decoder) throws Exception {
             HashCode hash = hashSerializer.read(decoder);
-            ImmutableSet<File> resolvedIncludes = ImmutableSet.copyOf(resolveIncludesSerializer.read(decoder));
-            return new CompilationFileState(hash, resolvedIncludes);
+            ImmutableList<IncludeFileState> resolvedIncludes = ImmutableList.copyOf(resolveIncludesSerializer.read(decoder));
+            return new SourceFileState(hash, resolvedIncludes);
         }
 
         @Override
-        public void write(Encoder encoder, CompilationFileState value) throws Exception {
+        public void write(Encoder encoder, SourceFileState value) throws Exception {
             hashSerializer.write(encoder, value.getHash());
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
+        }
+
+    }
+
+    private static class IncludeFileStateSerializer implements Serializer<IncludeFileState> {
+        private final Serializer<HashCode> hashSerializer;
+        private final Serializer<File> fileSerializer;
+
+        public IncludeFileStateSerializer(Serializer<HashCode> hashSerializer, Serializer<File> fileSerializer) {
+            this.hashSerializer = hashSerializer;
+            this.fileSerializer = fileSerializer;
+        }
+
+        @Override
+        public IncludeFileState read(Decoder decoder) throws Exception {
+            HashCode hashCode = hashSerializer.read(decoder);
+            File file = fileSerializer.read(decoder);
+            return new IncludeFileState(hashCode, file);
+        }
+
+        @Override
+        public void write(Encoder encoder, IncludeFileState value) throws Exception {
+            hashSerializer.write(encoder, value.getHash());
+            fileSerializer.write(encoder, value.getIncludeFile());
         }
     }
 }

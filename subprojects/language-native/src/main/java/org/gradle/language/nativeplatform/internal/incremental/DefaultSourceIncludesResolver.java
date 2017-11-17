@@ -41,7 +41,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     @Override
-    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> included) {
+    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> visibleIncludeDirectives) {
         BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
         List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
         for (Include include : includes.getIncludesAndImports()) {
@@ -51,7 +51,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
             } else if (include.getType() == IncludeType.MACRO) {
                 boolean found = false;
-                for (IncludeDirectives includeDirectives : included) {
+                for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
                     for (Macro macro : includeDirectives.getMacros()) {
                         if (include.getValue().equals(macro.getName())) {
                             found = true;

@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
 import java.util.HashMap;
@@ -26,7 +25,7 @@ import java.util.Set;
 
 public class BuildableCompilationState {
     private final Set<File> sourceInputs = new LinkedHashSet<File>();
-    private final Map<File, CompilationFileState> fileStates = new HashMap<File, CompilationFileState>();
+    private final Map<File, SourceFileState> fileStates = new HashMap<File, SourceFileState>();
 
     public Set<File> getSourceInputs() {
         return sourceInputs;
@@ -36,11 +35,11 @@ public class BuildableCompilationState {
         sourceInputs.add(file);
     }
 
-    public void setState(File file, CompilationFileState compilationFileState) {
-        fileStates.put(file, compilationFileState);
+    public void setState(File file, SourceFileState sourceFileState) {
+        fileStates.put(file, sourceFileState);
     }
 
     public CompilationState snapshot() {
-        return new CompilationState(ImmutableSet.copyOf(sourceInputs), ImmutableMap.copyOf(fileStates));
+        return new CompilationState(ImmutableMap.copyOf(fileStates));
     }
 }

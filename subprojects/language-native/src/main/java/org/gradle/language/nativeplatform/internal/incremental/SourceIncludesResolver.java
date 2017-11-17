@@ -39,5 +39,5 @@ public interface SourceIncludesResolver {
         Set<File> getCheckedLocations();
     }
 
-    ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> included);
+    ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes, List<IncludeDirectives> visibleIncludeDirectives);
 }
