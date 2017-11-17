@@ -26,6 +26,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -37,7 +38,6 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationState;
 import org.gradle.language.nativeplatform.internal.incremental.CompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
@@ -76,12 +76,12 @@ public class Depend extends DefaultTask {
     private final RegularFileProperty headerDependenciesFile;
 
     private CSourceParser sourceParser;
-    private final FileHasher hasher;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
 
     @Inject
-    public Depend(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory, CSourceParser sourceParser) {
-        this.hasher = hasher;
+    public Depend(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory, CSourceParser sourceParser) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.includes = getProject().files();
         this.source = getProject().files();
@@ -125,7 +125,7 @@ public class Depend extends DefaultTask {
     private IncrementalCompileProcessor createIncrementalCompileProcessor(List<File> includeRoots, PersistentStateCache<CompilationState> compileStateCache) {
         DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes.getOrElse(false));
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots);
-        IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
+        IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
         return new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory);
     }
 

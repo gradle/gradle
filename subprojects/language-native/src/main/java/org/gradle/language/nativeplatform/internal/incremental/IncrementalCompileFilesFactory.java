@@ -18,7 +18,9 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
@@ -35,12 +37,12 @@ public class IncrementalCompileFilesFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileFilesFactory.class);
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileHasher hasher;
+    private final FileSystemSnapshotter snapshotter;
 
-    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileHasher hasher) {
+    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter snapshotter) {
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
-        this.hasher = hasher;
+        this.snapshotter = snapshotter;
     }
 
     public IncrementalCompileFiles filesFor(CompilationState previousCompileState) {
@@ -87,14 +89,15 @@ public class IncrementalCompileFilesFactory {
                 // A cycle, treat as unchanged here
                 return false;
             }
-            if (!file.isFile()) {
+            FileSnapshot fileSnapshot = snapshotter.snapshotSelf(file);
+            if (fileSnapshot.getType() != FileType.RegularFile) {
                 return true;
             }
 
             boolean changed = false;
             CompilationFileState previousState = previous.getState(file);
-            HashCode newHash = hasher.hash(file);
             IncludeDirectives includeDirectives;
+            HashCode newHash = fileSnapshot.getContent().getContentMd5();
             if (!sameHash(previousState, newHash)) {
                 changed = true;
             }

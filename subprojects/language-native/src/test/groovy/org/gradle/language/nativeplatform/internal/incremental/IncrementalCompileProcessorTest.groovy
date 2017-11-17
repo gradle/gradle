@@ -16,8 +16,11 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
+import org.gradle.api.internal.changedetection.state.MissingFileSnapshot
+import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.cache.PersistentStateCache
-import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
@@ -25,17 +28,19 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Defa
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class IncrementalCompileProcessorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = Mock(SourceIncludesResolver)
-    def hasher = Stub(FileHasher)
+    def fileSystemSnapshotter = Stub(FileSystemSnapshotter)
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, hasher))
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter))
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -49,8 +54,11 @@ class IncrementalCompileProcessorTest extends Specification {
     List<TestFile> modified = []
 
     def setup() {
-        hasher.hash(_) >> { File file ->
-            Hashing.sha1().hashBytes(file.bytes)
+        fileSystemSnapshotter.snapshotSelf(_) >> { File file ->
+            if (file.isFile()) {
+                return new RegularFileSnapshot(null, null, false, new FileHashSnapshot(Hashing.sha1().hashBytes(file.bytes)))
+            }
+            return new MissingFileSnapshot(null, null)
         }
 
         // S1 - D1 \
