@@ -554,6 +554,26 @@ Searched in the following locations:
   dependencies {
       conf 'org.test:projectA:latest.release'
   }
+  
+  configurations {
+      conf.resolutionStrategy.componentSelection.all { ComponentSelection s, ComponentMetadata d ->
+         if (d.status != 'release') { s.reject('nope') } 
+      }
+  }
+      
+  dependencies.components.all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+     def version = details.id.version
+     def expectedStatus = [
+        '2.0'        : 'integration',
+        '1.3'        : 'integration',
+        '1.2'        : 'milestone',
+        '1.1'        : 'release',
+        '1.1.1'      : 'milestone',
+        '1.1-beta-2' : 'integration',
+        '1.0'        : 'release',
+     ]
+     assert details.status == expectedStatus[version]
+  }
   """
         when:
         repositoryInteractions {
