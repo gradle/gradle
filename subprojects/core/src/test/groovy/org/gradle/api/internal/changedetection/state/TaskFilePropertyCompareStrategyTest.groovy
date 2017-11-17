@@ -156,6 +156,18 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
+    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, include added: #includeAdded)"() {
+        expect:
+        changes(UNORDERED, includeAdded,
+            ["two-new": snapshot("", 0x9876cafe), "one-new": snapshot("")],
+            ["one-old": snapshot(""), "two-old": snapshot("", 0xface1234)]
+        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
+
+        where:
+        includeAdded << [true, false]
+    }
+
+    @Unroll
     def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
