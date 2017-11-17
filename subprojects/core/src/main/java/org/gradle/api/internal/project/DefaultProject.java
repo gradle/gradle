@@ -576,12 +576,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public Path getBuildPath() {
+        return gradle.getIdentityPath();
+    }
+
+    @Override
     public Path projectPath(String name) {
         return path.child(name);
     }
 
     @Override
-    public boolean isScriptContext() {
+    public boolean isScript() {
         return false;
     }
 

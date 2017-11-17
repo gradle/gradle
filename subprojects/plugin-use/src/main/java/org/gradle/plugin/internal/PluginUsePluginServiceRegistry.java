@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.BasicDomainObjectContext;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -127,7 +127,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
                 public DependencyResolutionServices create() {
                     BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
                     FileResolver capableFileResolver = fileResolver.newResolver(buildLayout.getSettingsDir());
-                    return dependencyManagementServices.create(capableFileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), new BasicDomainObjectContext());
+                    return dependencyManagementServices.create(capableFileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE);
                 }
             };
         }

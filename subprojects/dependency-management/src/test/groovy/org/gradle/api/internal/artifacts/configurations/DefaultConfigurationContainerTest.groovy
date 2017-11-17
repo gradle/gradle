@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.BasicDomainObjectContext
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
@@ -61,7 +61,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-            resolver, instantiator, new BasicDomainObjectContext(),
+            resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
             immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter)
