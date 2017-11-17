@@ -15,50 +15,53 @@
  */
 
 package org.gradle.integtests.resolve.maven
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
-class MavenPomExcludeResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
-
-    def setup() {
-        settingsFile << "rootProject.name='test'"
-        resolve.prepare()
-    }
+@RequiredFeatures([
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+] )
+class MavenPomExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3243")
-    def "wildcard exclude of groupId and artifactId on a dependency does not include transitive dependencies"() {
+    def "wildcard exclude of group and module results in non-transitive dependency"() {
         given:
-        def notRequired = mavenHttpRepo.module("org.gradle", "bar", "2.0")
-        def childDep = mavenHttpRepo.module("com.company", "foo", "1.5")
-        childDep.dependsOn(notRequired)
-        childDep.publish()
-        def parentDep = mavenHttpRepo.module("groupA", "projectA", "1.2")
-        parentDep.dependsOn(childDep, exclusions: [[groupId: '*', artifactId: '*']])
-        parentDep.publish()
+        repository {
+            'g1:excluded1:2.0'()
+            'g1:m1:1.5' {
+                dependsOn('g1:excluded1:2.0')
+            }
+            'g1:m2:1.2' {
+                dependsOn(group:'g1', artifact:'m1', version:'1.5', exclusions: [[group: '*', module: '*']])
+            }
+        }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
-configurations { compile }
-dependencies { compile 'groupA:projectA:1.2' }
+dependencies {
+    conf "g1:m2:1.2"
+}
 """
 
         and:
-        parentDep.pom.expectGet()
-        parentDep.artifact.expectGet()
-        childDep.pom.expectGet()
-        childDep.artifact.expectGet()
+        repositoryInteractions {
+            'g1:m2:1.2' { expectResolve() }
+            'g1:m1:1.5' { expectResolve() }
+        }
 
         when:
-        run "checkDeps"
+        succeeds "checkDep"
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("groupA:projectA:1.2") {
-                    module("com.company:foo:1.5")
+                module("g1:m2:1.2") {
+                    module("g1:m1:1.5")
                 }
             }
         }
@@ -66,34 +69,33 @@ dependencies { compile 'groupA:projectA:1.2' }
 
     def "can exclude transitive dependencies"() {
         given:
-        def notRequired1 = mavenHttpRepo.module("org.gradle", "excluded1", "2.0")
-        def notRequired2 = mavenHttpRepo.module("org.gradle", "excluded2", "2.0")
-        def m1 = mavenHttpRepo.module("com.company", "m1", "1.5").publish()
-
-        def m2 = mavenHttpRepo.module("com.company", "m2", "1.5")
-            .dependsOn(notRequired1)
-            .dependsOn(notRequired2)
-            .dependsOn(m1)
-            .publish()
-
-        def parentDep = mavenHttpRepo.module("groupA", "projectA", "1.2")
-            .dependsOn(m2, exclusions: [[groupId: 'org.gradle', artifactId: 'excluded1'], [groupId: 'org.gradle', artifactId: 'excluded2']])
-            .publish()
+        repository {
+            'g1:excluded1:2.0'()
+            'g1:excluded2:2.0'()
+            'g1:m1:1.5'()
+            'g1:m2:1.5' {
+                dependsOn('g1:excluded1:2.0')
+                dependsOn('g1:excluded2:2.0')
+                dependsOn('g1:m1:1.5')
+            }
+            'g1:m3:1.2' {
+                dependsOn(group:'g1', artifact:'m2', version:'1.5',
+                    exclusions: [[group: 'g1', module: 'excluded1'],
+                                 [group: 'g1', module: 'excluded2']])
+            }
+        }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
-configurations { compile }
-dependencies { compile 'groupA:projectA:1.2' }
+dependencies { conf 'g1:m3:1.2' }
 """
 
         and:
-        parentDep.pom.expectGet()
-        parentDep.artifact.expectGet()
-        m1.pom.expectGet()
-        m1.artifact.expectGet()
-        m2.pom.expectGet()
-        m2.artifact.expectGet()
+        repositoryInteractions {
+            'g1:m3:1.2' { expectResolve() }
+            'g1:m2:1.5' { expectResolve() }
+            'g1:m1:1.5' { expectResolve() }
+        }
 
         when:
         run "checkDeps"
@@ -101,9 +103,9 @@ dependencies { compile 'groupA:projectA:1.2' }
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("groupA:projectA:1.2") {
-                    module("com.company:m2:1.5") {
-                        module("com.company:m1:1.5")
+                module("g1:m3:1.2") {
+                    module("g1:m2:1.5") {
+                        module("g1:m1:1.5")
                     }
                 }
             }

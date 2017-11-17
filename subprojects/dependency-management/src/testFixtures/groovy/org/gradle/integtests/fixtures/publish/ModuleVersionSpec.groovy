@@ -57,6 +57,11 @@ class ModuleVersionSpec {
         this.version = version
     }
 
+    void expectResolve() {
+        expectGetMetadata()
+        expectGetArtifact()
+    }
+
     void expectGetMetadata() {
         expectGetMetadata << Expectation.GET
     }
