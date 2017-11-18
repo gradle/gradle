@@ -38,6 +38,11 @@ public class IncludeFileState {
     }
 
     @Override
+    public String toString() {
+        return includeFile.toString();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;

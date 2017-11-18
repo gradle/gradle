@@ -24,13 +24,15 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,8 +60,9 @@ public class IncrementalCompileFilesFactory {
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> discoveredInputs = Sets.newHashSet();
         private final Set<File> existingHeaders = Sets.newHashSet();
-        private final Map<File, IncludeDirectives> includeDirectivesMap = new LinkedHashMap<File, IncludeDirectives>();
-        private boolean sourceFilesUseMacroIncludes;
+        private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
+        private final Map<File, FileVisitResult> filesWithNoMacroIncludes = new HashMap<File, FileVisitResult>();
+        private boolean hasUnresolvedHeaders;
 
         DefaultIncementalCompileSourceProcessor(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
@@ -67,7 +70,7 @@ public class IncrementalCompileFilesFactory {
 
         @Override
         public IncrementalCompilation getResult() {
-            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), discoveredInputs, existingHeaders, sourceFilesUseMacroIncludes, includeDirectivesMap);
+            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), discoveredInputs, existingHeaders, hasUnresolvedHeaders, includeDirectivesMap);
         }
 
         @Override
@@ -89,48 +92,68 @@ public class IncrementalCompileFilesFactory {
             }
 
             SourceFileState previousState = previous.getState(sourceFile);
-            List<IncludeDirectives> includeDirectives = new ArrayList<IncludeDirectives>();
-            List<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
-            Set<File> visited = new HashSet<File>();
-            FileVisitResult result = visitFile(sourceFile, includedFiles, includeDirectives, visited);
-            SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableList.copyOf(includedFiles));
+            FileVisitResult result = visitFile(sourceFile, new ArrayList<IncludeDirectives>(), new HashSet<File>());
+            SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableList.copyOf(result.includeFileStates));
             current.setState(sourceFile, newState);
-            return previousState == null || result == FileVisitResult.Unresolved || newState.hasChanged(previousState);
+            // Recompile this source file if:
+            // - we don't know how/whether it has been compiled before
+            // - the source or referenced include files contains include/import directives that cannot be resolved to an include file
+            // - the source file or sequence of included files have changed in some way (the order/set/cardinality of the files has changed or the content of any file has changed)
+            return previousState == null || result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes || newState.hasChanged(previousState);
         }
 
-        private FileVisitResult visitFile(File file, List<IncludeFileState> includedFiles, List<IncludeDirectives> visibleIncludeDirectives, Set<File> visited) {
+        private FileVisitResult visitFile(File file, List<IncludeDirectives> visibleIncludeDirectives, Set<File> visited) {
+            FileVisitResult previousResult = filesWithNoMacroIncludes.get(file);
+            if (previousResult != null) {
+                // A file that we can safely reuse the result for
+                visibleIncludeDirectives.addAll(previousResult.includeFileDirectives);
+                return previousResult;
+            }
+
             if (!visited.add(file)) {
                 // A cycle, treat as resolved here
-                return FileVisitResult.Resolved;
+                return new FileVisitResult();
             }
+
             FileSnapshot fileSnapshot = snapshotter.snapshotSelf(file);
             HashCode newHash = fileSnapshot.getContent().getContentMd5();
-            // TODO - cache this here
             IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
             includeDirectivesMap.put(file, includeDirectives);
-            includedFiles.add(new IncludeFileState(newHash, file));
+            List<IncludeFileState> includedFileStates = new ArrayList<IncludeFileState>();
+            List<IncludeDirectives> includedFileDirectives = new ArrayList<IncludeDirectives>();
+            includedFileStates.add(new IncludeFileState(newHash, file));
+            includedFileDirectives.add(includeDirectives);
             visibleIncludeDirectives.add(includeDirectives);
 
-            FileVisitResult result = FileVisitResult.Resolved;
+            IncludeFileResolutionResult result = IncludeFileResolutionResult.NoMacroIncludes;
             for (Include include : includeDirectives.getAll()) {
-                // TODO - remember the result for an include file graph that did not reference any macros
+                if (include.getType() == IncludeType.MACRO && result == IncludeFileResolutionResult.NoMacroIncludes) {
+                    result = IncludeFileResolutionResult.HasMacroIncludes;
+                }
                 SourceIncludesResolver.IncludeResolutionResult resolutionResult = sourceIncludesResolver.resolveInclude(file, include, visibleIncludeDirectives);
                 discoveredInputs.addAll(resolutionResult.getCheckedLocations());
                 if (!resolutionResult.isComplete()) {
                     LOGGER.info("Cannot locate header file for include '{}' in source file '{}'. Assuming changed.", resolutionResult.getInclude(), file.getName());
-                    result = FileVisitResult.Unresolved;
-                    sourceFilesUseMacroIncludes = true;
+                    result = IncludeFileResolutionResult.UnresolvedMacroIncludes;
+                    hasUnresolvedHeaders = true;
                 }
                 for (File includeFile : resolutionResult.getFiles()) {
                     existingHeaders.add(includeFile);
-                    FileVisitResult headerResult = visitFile(includeFile, includedFiles, visibleIncludeDirectives, visited);
-                    if (headerResult != FileVisitResult.Resolved) {
-                        result = headerResult;
+                    FileVisitResult includeVisitResult = visitFile(includeFile, visibleIncludeDirectives, visited);
+                    if (includeVisitResult.result.ordinal() > result.ordinal()) {
+                        result = includeVisitResult.result;
                     }
+                    includedFileStates.addAll(includeVisitResult.includeFileStates);
+                    includedFileDirectives.addAll(includeVisitResult.includeFileDirectives);
                 }
             }
 
-            return result;
+            FileVisitResult visitResult = new FileVisitResult(result, includedFileStates, includedFileDirectives);
+            if (result == IncludeFileResolutionResult.NoMacroIncludes) {
+                // No macro includes were seen in the include graph of this file, so the result can be reused if this file is seen again
+                filesWithNoMacroIncludes.put(file, visitResult);
+            }
+            return visitResult;
         }
 
         private List<File> getRemovedSources() {
@@ -144,8 +167,27 @@ public class IncrementalCompileFilesFactory {
         }
     }
 
-    private enum FileVisitResult {
-        Resolved,
-        Unresolved
+    private enum IncludeFileResolutionResult {
+        NoMacroIncludes,
+        HasMacroIncludes, // but all resolved ok
+        UnresolvedMacroIncludes
+    }
+
+    private static class FileVisitResult {
+        final IncludeFileResolutionResult result;
+        final List<IncludeFileState> includeFileStates;
+        final List<IncludeDirectives> includeFileDirectives;
+
+        FileVisitResult(IncludeFileResolutionResult result, List<IncludeFileState> includeFileStates, List<IncludeDirectives> includeFileDirectives) {
+            this.result = result;
+            this.includeFileStates = includeFileStates;
+            this.includeFileDirectives = includeFileDirectives;
+        }
+
+        FileVisitResult() {
+            result = IncludeFileResolutionResult.NoMacroIncludes;
+            includeFileStates = Collections.emptyList();
+            includeFileDirectives = Collections.emptyList();
+        }
     }
 }
