@@ -20,6 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 
+import static org.gradle.api.internal.tasks.TaskExecutionOutcome.*;
+
 public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean actionable = true;
@@ -27,6 +29,7 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
+    private Long timeSaved;
 
     public boolean getDidWork() {
         return didWork;
@@ -48,17 +51,33 @@ public class TaskStateInternal implements TaskState {
         return outcome;
     }
 
-    public void setOutcome(TaskExecutionOutcome outcome) {
-        assert this.outcome == null;
-        this.outcome = outcome;
+    public void recordExecuted() {
+        this.outcome = EXECUTED;
+    }
+
+    public void recordUpToDate() {
+        this.outcome = UP_TO_DATE;
+    }
+
+    public void recordNoSource() {
+        this.outcome = NO_SOURCE;
+    }
+
+    public void recordSkipped() {
+        this.outcome = SKIPPED;
+    }
+
+    public void recordFromCache(long timeSaved) {
+        this.outcome = FROM_CACHE;
+        this.timeSaved = timeSaved;
     }
 
     /**
      * Marks this task as executed with the given failure. This method can be called at most once.
      */
-    public void setOutcome(Throwable failure) {
+    public void recordFailure(Throwable failure) {
         assert this.failure == null;
-        this.outcome = TaskExecutionOutcome.EXECUTED;
+        this.outcome = EXECUTED;
         this.failure = failure;
     }
 
@@ -114,6 +133,13 @@ public class TaskStateInternal implements TaskState {
 
     public boolean isFromCache() {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
+    }
+
+    public long getTimeSaved() {
+        if (!isFromCache()) {
+            throw new IllegalStateException("Not loaded from cache");
+        }
+        return timeSaved;
     }
 
     public boolean isActionable() {

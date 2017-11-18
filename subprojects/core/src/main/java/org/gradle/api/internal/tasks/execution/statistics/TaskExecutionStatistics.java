@@ -21,14 +21,16 @@ public class TaskExecutionStatistics {
     private final int executedTasksCount;
     private final int fromCacheTaskCount;
     private final int upToDateTaskCount;
+    private final long timeSaved;
 
-    public TaskExecutionStatistics(int executedTasksCount, int fromCacheTaskCount, int upToDateTaskCount) {
+    public TaskExecutionStatistics(int executedTasksCount, int fromCacheTaskCount, int upToDateTaskCount, long timeSaved) {
         checkArgument(executedTasksCount >= 0, "executedTasksCount must be non-negative");
         checkArgument(fromCacheTaskCount >= 0, "fromCacheTaskCount must be non-negative");
         checkArgument(upToDateTaskCount >= 0, "upToDateTaskCount must be non-negative");
         this.executedTasksCount = executedTasksCount;
         this.fromCacheTaskCount = fromCacheTaskCount;
         this.upToDateTaskCount = upToDateTaskCount;
+        this.timeSaved = timeSaved;
     }
 
     public int getExecutedTasksCount() {
@@ -45,5 +47,9 @@ public class TaskExecutionStatistics {
 
     public int getTotalTaskCount() {
         return executedTasksCount + fromCacheTaskCount + upToDateTaskCount;
+    }
+
+    public long getTimeSaved() {
+        return timeSaved;
     }
 }

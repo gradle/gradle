@@ -22,7 +22,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.ScriptSource
@@ -73,7 +72,7 @@ public class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> false
-        1 * state.setOutcome(TaskExecutionOutcome.SKIPPED)
+        1 * state.recordSkipped()
         noMoreInteractions()
     }
 
@@ -87,7 +86,7 @@ public class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> { throw failure }
-        1 * state.setOutcome(_ as Throwable) >> { args -> thrownException = args[0] }
+        1 * state.recordFailure(_ as Throwable) >> { args -> thrownException = args[0] }
         noMoreInteractions()
 
         thrownException.message.startsWith('Could not evaluate onlyIf predicate for')

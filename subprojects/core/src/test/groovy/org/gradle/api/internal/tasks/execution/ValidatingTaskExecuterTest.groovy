@@ -64,7 +64,7 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * inputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
         1 * task.getOutputs() >> outputs
         1 * outputs.validate(_)
-        1 * state.setOutcome(!null as Throwable) >> {
+        1 * state.recordFailure(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
             assert failure.message == "A problem was found with the configuration of $task."
@@ -84,7 +84,7 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * inputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure1') }
         1 * task.getOutputs() >> outputs
         1 * outputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure2') }
-        1 * state.setOutcome(!null as Throwable) >> {
+        1 * state.recordFailure(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
             assert failure.message == "Some problems were found with the configuration of $task."

@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistic
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.time.TimeFormatting;
 
 public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsListener {
     private final StyledTextOutputFactory textOutputFactory;
@@ -38,7 +39,25 @@ public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsL
             printedDetail = formatDetail(textOutput, statistics.getFromCacheTaskCount(), "from cache", printedDetail);
             formatDetail(textOutput, statistics.getUpToDateTaskCount(), "up-to-date", printedDetail);
             textOutput.println();
+
+            if (statistics.getFromCacheTaskCount() > 0) {
+                long timeSaved = statistics.getTimeSaved();
+                if (timeSaved > 500) {
+                    textOutput.format("Using the build cache saved %s in this build", formatTime(timeSaved));
+                    textOutput.println();
+                } else if (timeSaved < -500) {
+                    textOutput.format("Without the build cache this build would have been %s faster", formatTime(-timeSaved));
+                    textOutput.println();
+                }
+            }
         }
+    }
+
+    private static String formatTime(long time) {
+        if (time < 1000) {
+            return ((double) time / 1000) + "s";
+        }
+        return TimeFormatting.formatDurationTerse(time);
     }
 
     private static boolean formatDetail(StyledTextOutput textOutput, int count, String title, boolean alreadyPrintedDetail) {

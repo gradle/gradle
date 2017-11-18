@@ -36,7 +36,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, state, context) >> {
-            state.setOutcome(TaskExecutionOutcome.EXECUTED)
+            state.recordExecuted()
         }
         0 * _
         state.outcome == TaskExecutionOutcome.EXECUTED

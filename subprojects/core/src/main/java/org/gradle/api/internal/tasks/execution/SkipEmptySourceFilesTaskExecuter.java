@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -58,7 +57,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
             Set<File> outputFiles = executionHistory.getOutputFiles();
             if (outputFiles.isEmpty()) {
-                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
+                state.recordNoSource();
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
                 boolean cleanupDirectories = executionHistory.getOverlappingOutputs() == null;
@@ -83,9 +82,9 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 }
                 if (deletedFiles) {
                     LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
-                    state.setOutcome(TaskExecutionOutcome.EXECUTED);
+                    state.recordExecuted();
                 } else {
-                    state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
+                    state.recordNoSource();
                 }
                 taskArtifactState.snapshotAfterTaskExecution(null);
             }

@@ -24,7 +24,6 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
@@ -78,10 +77,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
+        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId, 123L)
 
         then:
-        1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
+        1 * taskState.recordFromCache(_)
         1 * taskContext.setOriginBuildInvocationId(originId)
         0 * _
     }

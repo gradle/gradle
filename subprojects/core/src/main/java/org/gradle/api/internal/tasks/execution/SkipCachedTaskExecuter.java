@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -85,7 +84,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskState, clock)
                         );
                         if (originMetadata != null) {
-                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                            state.recordFromCache(originMetadata.getExecutionTime() - clock.getElapsedMillis());
                             context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
                             return;
                         }
