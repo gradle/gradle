@@ -81,11 +81,12 @@ section.footer {
   text-align: center;
 }
 
+/* Same as code highlighting values in docs.css */
 .java_keyword {
-  color: #DDC498;
+  color: #963;
 }
 .java_comment {
-  color: #AFAFAF;
+  color: #998;
 }
 .java_plain, .java_type {
 
@@ -94,10 +95,10 @@ section.footer {
 
 }
 .java_operator {
-  color: #C7B390;
+  color: #555;
 }
 .java_literal {
-  color: #83C283;
+  color: #d14;
 }
 
 /* TipTip CSS - Version 1.2 */
