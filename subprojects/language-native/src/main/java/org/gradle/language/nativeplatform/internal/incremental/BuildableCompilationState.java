@@ -19,27 +19,21 @@ import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class BuildableCompilationState {
-    private final Set<File> sourceInputs = new LinkedHashSet<File>();
-    private final Map<File, SourceFileState> fileStates = new HashMap<File, SourceFileState>();
+    private final Map<File, SourceFileState> sourceFileStates = new HashMap<File, SourceFileState>();
 
     public Set<File> getSourceInputs() {
-        return sourceInputs;
-    }
-
-    public void addSourceInput(File file) {
-        sourceInputs.add(file);
+        return sourceFileStates.keySet();
     }
 
     public void setState(File file, SourceFileState sourceFileState) {
-        fileStates.put(file, sourceFileState);
+        sourceFileStates.put(file, sourceFileState);
     }
 
     public CompilationState snapshot() {
-        return new CompilationState(ImmutableMap.copyOf(fileStates));
+        return new CompilationState(ImmutableMap.copyOf(sourceFileStates));
     }
 }

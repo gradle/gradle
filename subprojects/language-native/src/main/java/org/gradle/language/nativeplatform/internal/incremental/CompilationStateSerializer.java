@@ -15,82 +15,76 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.ListSerializer;
-import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
-    private final MapSerializer<File, SourceFileState> stateMapSerializer;
+    private final Serializer<File> fileSerializer;
+    private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
 
     public CompilationStateSerializer() {
-        Serializer<File> fileSerializer = new BaseSerializerFactory().getSerializerFor(File.class);
-        stateMapSerializer = new MapSerializer<File, SourceFileState>(fileSerializer, new CompilationFileStateSerializer(fileSerializer));
+        fileSerializer = new BaseSerializerFactory().getSerializerFor(File.class);
     }
 
     @Override
     public CompilationState read(Decoder decoder) throws Exception {
-        ImmutableMap<File, SourceFileState> fileStates = ImmutableMap.copyOf(stateMapSerializer.read(decoder));
-        return new CompilationState(fileStates);
+        // Deduplicates the include file states, as these are often shared between source files
+        Map<Integer, IncludeFileState> ids = new HashMap<Integer, IncludeFileState>();
+        int sourceFileCount = decoder.readSmallInt();
+        ImmutableMap.Builder<File, SourceFileState> builder = ImmutableMap.builder();
+        for (int i = 0; i < sourceFileCount; i++) {
+            File sourceFile = fileSerializer.read(decoder);
+            HashCode sourceHashCode = hashSerializer.read(decoder);
+            int includeFileCount = decoder.readSmallInt();
+            ImmutableSet.Builder<IncludeFileState> includeFileStateBuilder = ImmutableSet.builder();
+            for (int j = 0; j < includeFileCount; j++) {
+                int id = decoder.readSmallInt();
+                IncludeFileState includeFileState = ids.get(id);
+                if (includeFileState == null) {
+                    File includeFile = fileSerializer.read(decoder);
+                    HashCode includeHashCode = hashSerializer.read(decoder);
+                    includeFileState = new IncludeFileState(includeHashCode, includeFile);
+                    ids.put(id, includeFileState);
+                }
+                includeFileStateBuilder.add(includeFileState);
+            }
+            builder.put(sourceFile, new SourceFileState(sourceHashCode, includeFileStateBuilder.build()));
+        }
+        return new CompilationState(builder.build());
     }
 
     @Override
     public void write(Encoder encoder, CompilationState value) throws Exception {
-        stateMapSerializer.write(encoder, value.getFileStates());
-    }
-
-    private static class CompilationFileStateSerializer implements Serializer<SourceFileState> {
-        private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
-        private final Serializer<List<IncludeFileState>> resolveIncludesSerializer;
-
-        private CompilationFileStateSerializer(final Serializer<File> fileSerializer) {
-            this.resolveIncludesSerializer = new ListSerializer<IncludeFileState>(new IncludeFileStateSerializer(hashSerializer, fileSerializer));
-        }
-
-        @Override
-        public SourceFileState read(Decoder decoder) throws Exception {
-            HashCode hash = hashSerializer.read(decoder);
-            ImmutableList<IncludeFileState> resolvedIncludes = ImmutableList.copyOf(resolveIncludesSerializer.read(decoder));
-            return new SourceFileState(hash, resolvedIncludes);
-        }
-
-        @Override
-        public void write(Encoder encoder, SourceFileState value) throws Exception {
-            hashSerializer.write(encoder, value.getHash());
-            resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
-        }
-
-    }
-
-    private static class IncludeFileStateSerializer implements Serializer<IncludeFileState> {
-        private final Serializer<HashCode> hashSerializer;
-        private final Serializer<File> fileSerializer;
-
-        public IncludeFileStateSerializer(Serializer<HashCode> hashSerializer, Serializer<File> fileSerializer) {
-            this.hashSerializer = hashSerializer;
-            this.fileSerializer = fileSerializer;
-        }
-
-        @Override
-        public IncludeFileState read(Decoder decoder) throws Exception {
-            HashCode hashCode = hashSerializer.read(decoder);
-            File file = fileSerializer.read(decoder);
-            return new IncludeFileState(hashCode, file);
-        }
-
-        @Override
-        public void write(Encoder encoder, IncludeFileState value) throws Exception {
-            hashSerializer.write(encoder, value.getHash());
-            fileSerializer.write(encoder, value.getIncludeFile());
+        // Deduplicates the include file states, as these are often shared between source files
+        Map<File, Integer> ids = new HashMap<File, Integer>();
+        encoder.writeSmallInt(value.getFileStates().size());
+        for (Map.Entry<File, SourceFileState> entry : value.getFileStates().entrySet()) {
+            SourceFileState sourceFileState = entry.getValue();
+            fileSerializer.write(encoder, entry.getKey());
+            hashSerializer.write(encoder, sourceFileState.getHash());
+            encoder.writeSmallInt(sourceFileState.getResolvedIncludes().size());
+            for (IncludeFileState includeFileState : sourceFileState.getResolvedIncludes()) {
+                Integer id = ids.get(includeFileState.getIncludeFile());
+                if (id == null) {
+                    id = ids.size();
+                    ids.put(includeFileState.getIncludeFile(), id);
+                    encoder.writeSmallInt(id);
+                    fileSerializer.write(encoder, includeFileState.getIncludeFile());
+                    hashSerializer.write(encoder, includeFileState.getHash());
+                } else {
+                    encoder.writeSmallInt(id);
+                }
+            }
         }
     }
 }

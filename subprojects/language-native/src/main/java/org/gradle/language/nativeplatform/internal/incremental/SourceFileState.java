@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 
 /**
@@ -23,9 +23,9 @@ import org.gradle.internal.hash.HashCode;
  */
 public class SourceFileState {
     private final HashCode hash;
-    private final ImmutableList<IncludeFileState> resolvedIncludes;
+    private final ImmutableSet<IncludeFileState> resolvedIncludes;
 
-    public SourceFileState(HashCode hash, ImmutableList<IncludeFileState> resolvedIncludes) {
+    public SourceFileState(HashCode hash, ImmutableSet<IncludeFileState> resolvedIncludes) {
         this.hash = hash;
         this.resolvedIncludes = resolvedIncludes;
     }
@@ -37,7 +37,7 @@ public class SourceFileState {
     /**
      * The set of successfully resolved include files, in the order included.
      */
-    public ImmutableList<IncludeFileState> getResolvedIncludes() {
+    public ImmutableSet<IncludeFileState> getResolvedIncludes() {
         return resolvedIncludes;
     }
 
