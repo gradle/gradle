@@ -17,6 +17,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -1294,4 +1295,102 @@ task generate(type: TransformerTask) {
         then:
         succeeds('myTask')
     }
+
+    @ToBeImplemented("Private getters should be ignored")
+    def "private inputs can be overridden in subclass"() {
+        given:
+        buildFile << '''
+            class MyBaseTask extends DefaultTask {
+                @Input
+                private String getMyPrivateInput() { project.property('private') }
+                
+                @OutputFile
+                File getOutput() {
+                    new File('build/output.txt')
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    output.text = getMyPrivateInput()
+                }
+            }
+            
+            class MyTask extends MyBaseTask {
+                @Input
+                private String getMyPrivateInput() { 'only private' }
+            }
+            
+            task myTask(type: MyTask)
+        '''
+
+        when:
+        run 'myTask', '-Pprivate=first'
+
+        then:
+        def outputFile = file('build/output.txt')
+        outputFile.text == 'first'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        skipped ':myTask'
+        outputFile.text == 'first'
+
+        when:
+        outputFile.delete()
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        executedAndNotSkipped ':myTask'
+        outputFile.text == 'second'
+    }
+
+    @ToBeImplemented("Private getters should be ignored")
+    def "private inputs in superclass are respected"() {
+        given:
+        buildFile << '''
+            class MyBaseTask extends DefaultTask {
+                @Input
+                private String getMyPrivateInput() { project.property('private') }
+                
+                @OutputFile
+                File getOutput() {
+                    new File('build/output.txt')
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    output.text = getMyPrivateInput()
+                }
+            }
+            
+            class MyTask extends MyBaseTask {
+            }
+            
+            task myTask(type: MyTask)
+        '''
+
+        when:
+        run 'myTask', '-Pprivate=first'
+
+        then:
+        def outputFile = file('build/output.txt')
+        outputFile.text == 'first'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        executedAndNotSkipped ':myTask'
+        outputFile.text == 'second'
+
+        when:
+        run 'myTask', '-Pprivate=second'
+
+        then:
+        skipped ':myTask'
+        outputFile.text == 'second'
+    }
+
 }

@@ -18,16 +18,11 @@ package org.gradle.language.base.internal.compile;
 
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.compile.CompilerVersion;
-import org.gradle.util.VersionNumber;
 
 public class VersionAwareCompiler<T extends CompileSpec> implements Compiler<T> {
 
     private final CompilerVersion compilerVersion;
     private final Compiler<T> compiler;
-
-    public VersionAwareCompiler(Compiler<T> compiler, String type, VersionNumber version) {
-        this(compiler, new DefaultCompilerVersion(type, version));
-    }
 
     public VersionAwareCompiler(Compiler<T> compiler, CompilerVersion version) {
         this.compiler = compiler;

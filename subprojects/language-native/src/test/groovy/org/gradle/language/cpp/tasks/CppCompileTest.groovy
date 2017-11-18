@@ -60,8 +60,8 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
-        7 * toolChain.select(platform) >> platformToolChain
-        7 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
+        9 * toolChain.select(platform) >> platformToolChain
+        9 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
         pch.includeString >> "header"
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()

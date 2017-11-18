@@ -81,7 +81,6 @@ public class PublishToIvyRepository extends DefaultTask {
         this.publication = toPublicationInternal(publication);
     }
 
-    @Internal
     private IvyPublicationInternal getPublicationInternal() {
         return toPublicationInternal(getPublication());
     }

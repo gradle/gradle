@@ -19,5 +19,4 @@ package org.gradle.nativeplatform.toolchain.internal.swift.metadata;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 
 public interface SwiftcMetadata extends CompilerMetadata {
-    String getVersionString();
 }

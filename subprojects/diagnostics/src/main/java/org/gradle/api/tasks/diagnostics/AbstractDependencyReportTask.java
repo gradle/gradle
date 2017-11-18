@@ -67,7 +67,6 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
         }
     }
 
-    @Internal
     private Set<Configuration> getReportConfigurations() {
         return configurations != null ? configurations : getTaskConfigurations();
     }

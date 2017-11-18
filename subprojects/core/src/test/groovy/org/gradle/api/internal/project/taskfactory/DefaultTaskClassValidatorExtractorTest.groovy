@@ -306,6 +306,35 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         validator.validationMessages.empty
     }
 
+    class TaskWithAnnotationsOnPrivateProperties extends DefaultTask {
+        @Input
+        private String getInput() {
+            'Input'
+        }
+
+        @OutputFile
+        private File getOutputFile() {
+            null
+        }
+
+        private String getNotAnInput() {
+            'Not an input'
+        }
+    }
+
+    def "warns about annotations on private properties"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithAnnotationsOnPrivateProperties)
+
+        then:
+        validator.validationMessages*.toString() == [
+            "property 'input' is private and annotated with an input or output annotation",
+            "property 'outputFile' is private and annotated with an input or output annotation",
+        ]
+    }
+
     class TaskWithConflictingPropertyTypes extends DefaultTask {
         @InputFile
         @InputDirectory
