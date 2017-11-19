@@ -33,12 +33,17 @@ public class UnresolveableMacro implements Macro {
 
     @Override
     public IncludeType getType() {
-        return IncludeType.MACRO;
+        return IncludeType.OTHER;
     }
 
     @Override
     public String getValue() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + name + "->???}";
     }
 
     @Override

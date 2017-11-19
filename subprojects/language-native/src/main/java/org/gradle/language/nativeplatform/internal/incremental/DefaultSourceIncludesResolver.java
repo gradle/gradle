@@ -45,28 +45,35 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
             searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
         } else if (include.getType() == IncludeType.MACRO) {
-            boolean found = false;
-            for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
-                for (Macro macro : includeDirectives.getMacros()) {
-                    if (include.getValue().equals(macro.getName())) {
-                        found = true;
-                        if (macro.getType() == IncludeType.QUOTED) {
-                            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-                            searchForDependency(quotedSearchPath, macro.getValue(), resolvedSourceIncludes);
-                        } else {
-                            // TODO - keep expanding
-                            // TODO - handle system includes, which also need to be expanded when the value of a macro
-                            resolvedSourceIncludes.unresolved();
-                        }
-                    }
-                }
-            }
-            if (!found) {
-                resolvedSourceIncludes.unresolved();
-            }
+            resolveMacroInclude(sourceFile, visibleIncludeDirectives, include.getValue(), resolvedSourceIncludes);
+        } else {
+            resolvedSourceIncludes.unresolved();
         }
 
         return resolvedSourceIncludes;
+    }
+
+    private void resolveMacroInclude(File sourceFile, List<IncludeDirectives> visibleIncludeDirectives, String macroName, BuildableResult resolvedSourceIncludes) {
+        boolean found = false;
+        for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
+            for (Macro macro : includeDirectives.getMacros()) {
+                if (macroName.equals(macro.getName())) {
+                    found = true;
+                    if (macro.getType() == IncludeType.QUOTED) {
+                        List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+                        searchForDependency(quotedSearchPath, macro.getValue(), resolvedSourceIncludes);
+                    } else if (macro.getType() == IncludeType.MACRO) {
+                        resolveMacroInclude(sourceFile, visibleIncludeDirectives, macro.getValue(), resolvedSourceIncludes);
+                    } else {
+                        // TODO - handle system includes, which also need to be expanded when the value of a macro
+                        resolvedSourceIncludes.unresolved();
+                    }
+                }
+            }
+        }
+        if (!found) {
+            resolvedSourceIncludes.unresolved();
+        }
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {

@@ -21,10 +21,12 @@ import org.gradle.language.nativeplatform.internal.Macro;
 
 public class DefaultMacro implements Macro {
     private final String name;
+    private final IncludeType includeType;
     private final String value;
 
-    public DefaultMacro(String name, String value) {
+    public DefaultMacro(String name, IncludeType includeType, String value) {
         this.name = name;
+        this.includeType = includeType;
         this.value = value;
     }
 
@@ -45,7 +47,7 @@ public class DefaultMacro implements Macro {
 
     @Override
     public IncludeType getType() {
-        return IncludeType.QUOTED;
+        return includeType;
     }
 
     @Override

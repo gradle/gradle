@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -282,17 +283,26 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
     }
 
-    def "header file referenced using simple macro is considered an input"() {
+    @Unroll
+    def "header file referenced using simple macro #macro is considered an input"() {
         when:
         def unused = file("app/src/main/headers/ignore1.h") << "broken!"
+
+        file("app/src/main/headers/defs.h") << """
+            #define _HELLO_HEADER_2 "hello.h"
+            #define _HELLO_HEADER_1 _HELLO_HEADER_2
+            #define HELLO_HEADER _HELLO_HEADER_1 // some indirection
+        """
 
         def headerFile = file("app/src/main/headers/hello.h") << """
             #define MESSAGE "one"
         """
 
         file("app/src/main/cpp/main.cpp").text = """
-            #define HELLO "hello.h"
-            #include HELLO
+            #include "defs.h"
+            #define MACRO_USES_ANOTHER_MACRO HELLO_HEADER
+            #define MACRO_USES_STRING_CONSTANT "hello.h"
+            #include ${macro}
             #include <iostream>
 
             int main () {
@@ -316,8 +326,8 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         succeeds installApp
 
         then:
-        executable("app/build/exe/main/debug/app").exec().out == "two\n"
         executedAndNotSkipped compileTasksDebug(APP)
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
 
         when:
         unused << "more broken"
@@ -325,15 +335,17 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         then:
         nonSkippedTasks.empty
+
+        where:
+        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_ANOTHER_MACRO"]
     }
 
-    def "considers all header files as inputs when complex macro include is used"() {
+    @Unroll
+    def "considers all header files as inputs when complex macro include #include is used"() {
         when:
 
         file("app/src/main/cpp/main.cpp").text = """
-            #define _HELLO "hello.h"
-            #define HELLO _HELLO
-            #include HELLO
+            $text
             #include <iostream>
 
             int main () {
@@ -359,7 +371,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         and:
         executedAndNotSkipped compileTasksDebug(APP)
-        output.contains("Cannot locate header file for include 'HELLO' in source file 'main.cpp'. Assuming changed.")
+        output.contains("Cannot locate header file for include '${include}' in source file 'main.cpp'. Assuming changed.")
         output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
 
         when:
@@ -392,6 +404,40 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         then:
         nonSkippedTasks.empty
+
+        where:
+        include           | text
+        'HELLO'           | '''            
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        '''
+        '_HELLO(hello.h)' | '''
+            #define _HELLO(X) #X
+            #include _HELLO(hello.h)
+        '''
+        'MISSING' | '''
+            #ifdef MISSING
+            #include MISSING
+            #else
+            #include "hello.h"
+            #endif
+        '''
+        'GARBAGE' | '''
+            #if 0
+            #define GARBAGE a b c
+            #include GARBAGE
+            #else
+            #include "hello.h"
+            #endif
+        '''
+        'a b c' | '''
+            #if 0
+            #include a b c
+            #else
+            #include "hello.h"
+            #endif
+        '''
     }
 
     def "can have a cycle between header files"() {
@@ -493,9 +539,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
     }
 
-    def "source file can reference multiple header files using macros"() {
+    def "source file can reference multiple header files using the same macro"() {
         def header1 = file("app/src/main/headers/hello1.h")
         def header2 = file("app/src/main/headers/hello2.h")
+        def header3 = file("app/src/main/headers/hello3.h")
         def unused = file("app/src/main/headers/ignoreme.h")
 
         when:
@@ -511,13 +558,20 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define HEADER "hello1.h"
         """
         file("app/src/main/headers/def2.h") << """
-            #define HEADER "hello2.h"
+            #define _HEADER "hello2.h"
+            #ifndef _HEADER
+            #define _HEADER "hello3.h"
+            #endif
+            #define HEADER _HEADER
         """
         header1 << """
             #define MESSAGE "one"
         """
         header2 << """
             #define MESSAGE "two"
+        """
+        header3 << """
+            #define MESSAGE "three"
         """
         unused << "broken"
 
@@ -543,6 +597,19 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         when:
         header2 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header3 << """// some extra stuff"""
 
         then:
         succeeds installApp

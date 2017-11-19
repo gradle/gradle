@@ -28,8 +28,9 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
-    private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer());
-    private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer());
+    private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
+    private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer));
+    private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer(enumSerializer));
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
@@ -43,7 +44,11 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     }
 
     private static class IncludeSerializer implements Serializer<Include> {
-        private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
+        private final Serializer<IncludeType> enumSerializer;
+
+        private IncludeSerializer(Serializer<IncludeType> enumSerializer) {
+            this.enumSerializer = enumSerializer;
+        }
 
         @Override
         public Include read(Decoder decoder) throws Exception {
@@ -64,14 +69,20 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     private static class MacroSerializer implements Serializer<Macro> {
         private static final byte RESOLVED = (byte) 1;
         private static final byte UNRESOLVED = (byte) 2;
+        private final Serializer<IncludeType> enumSerializer;
+
+        MacroSerializer(Serializer<IncludeType> enumSerializer) {
+            this.enumSerializer = enumSerializer;
+        }
 
         @Override
         public Macro read(Decoder decoder) throws Exception {
             byte tag = decoder.readByte();
             if (tag == RESOLVED) {
                 String name = decoder.readString();
+                IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacro(name, value);
+                return new DefaultMacro(name, type, value);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 return new UnresolveableMacro(name);
@@ -85,6 +96,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             if (value instanceof DefaultMacro) {
                 encoder.writeByte(RESOLVED);
                 encoder.writeString(value.getName());
+                enumSerializer.write(encoder, value.getType());
                 encoder.writeString(value.getValue());
             } else if (value instanceof UnresolveableMacro) {
                 encoder.writeByte(UNRESOLVED);

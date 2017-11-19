@@ -65,9 +65,17 @@ public class DefaultInclude implements Include {
             return DefaultInclude.create(strip(value), isImport, IncludeType.SYSTEM);
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
             return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
-        } else {
-            return DefaultInclude.create(value, isImport, IncludeType.MACRO);
         }
+        if (value.isEmpty()) {
+            return DefaultInclude.create(value, isImport, IncludeType.OTHER);
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '$') {
+                return DefaultInclude.create(value, isImport, IncludeType.OTHER);
+            }
+        }
+        return DefaultInclude.create(value, isImport, IncludeType.MACRO);
     }
 
     private static String strip(String include) {

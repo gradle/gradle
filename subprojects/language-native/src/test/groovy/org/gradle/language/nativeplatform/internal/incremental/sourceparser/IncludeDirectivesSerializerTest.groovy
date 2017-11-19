@@ -39,8 +39,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
     }
 
     def "serializes macro directives"() {
-        def macro1 = new DefaultMacro("ONE", "one")
-        def macro2 = new DefaultMacro("TWO", "two")
+        def macro1 = new DefaultMacro("ONE", IncludeType.QUOTED,"one")
+        def macro2 = new DefaultMacro("TWO", IncludeType.MACRO, "two")
         def macro3 = new UnresolveableMacro("THREE")
         def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([]), ImmutableList.copyOf([macro1, macro2, macro3]))
 

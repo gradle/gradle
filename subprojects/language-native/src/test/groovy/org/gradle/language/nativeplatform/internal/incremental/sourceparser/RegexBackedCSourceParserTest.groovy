@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.Macro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -71,7 +72,8 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     Macro macro(String name, String value) {
-        return new DefaultMacro(name, value)
+        def include = DefaultInclude.parse(value, false)
+        return new DefaultMacro(name, include.type, include.value)
     }
 
     Macro unresolvedMacro(String name) {
@@ -139,17 +141,33 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
     }
 
-    def "finds defined include"() {
+    def "finds macro include"() {
         when:
         sourceFile << """
     #include DEFINED
 """
 
         then:
-        includes == ['DEFINED'].collect { include(it) }
+        includes == [new DefaultInclude('DEFINED', false, IncludeType.MACRO)]
 
         and:
         noImports()
+    }
+
+    def "finds other include"() {
+        when:
+        sourceFile << """
+    #include ${include}
+"""
+
+        then:
+        includes == [new DefaultInclude(include, false, IncludeType.OTHER)]
+
+        and:
+        noImports()
+
+        where:
+        include << ['DEFINED()', 'DEFINED(ABC)', 'not an include']
     }
 
     def "finds multiple includes"() {
@@ -160,9 +178,12 @@ class RegexBackedCSourceParserTest extends Specification {
     #include <system1>
     #include <system2>
     #include DEFINED
+    #include DEFINED()
+    #include DEFINED(ABC)
+    #include not an include
 """
         then:
-        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED'].collect { include(it) }
+        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED', 'DEFINED()', 'DEFINED(ABC)', 'not an include'].collect { include(it) }
 
         and:
         noImports()
@@ -432,12 +453,13 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import"]
     }
 
-    def "ignores badly formed directives"() {
+    def "considers anything that starts with directive and does not have an empty value as an include"() {
         when:
         sourceFile << """
 include
 #
 # include
+# include    // only white space
 # import
 
 void # include <thing>
@@ -445,6 +467,10 @@ void # include <thing>
 #import <
 
 # inklude <thing.h>
+# included
+# included "thing.h"
+# include_other
+# include_other <thing.h>
 
 #import thing.h
 #import thing.h"
@@ -460,8 +486,8 @@ void # include <thing>
 """
 
         then:
-        noIncludes()
-        noImports()
+        includes.size() == 3
+        imports.size() == 4
     }
 
     def "detects imports with line=continuation"() {
@@ -488,17 +514,33 @@ st3"
 """
 
         then:
-        macros == [macro('SOME_STRING', 'abc')]
+        macros == [macro('SOME_STRING', '"abc"')]
     }
 
-    def "finds object-like macro directive whose value is not a string constant"() {
+    def "finds object-like macro directive whose value is a macro reference"() {
         when:
         sourceFile << """
-#define SOME_STRING abc
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [macro('SOME_STRING', value)]
+
+        where:
+        value << ['a', '_a_123_', 'a$b']
+    }
+
+    def "finds object-like macro directive whose value is not a string constant or macro reference"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
 """
 
         then:
         macros == [unresolvedMacro('SOME_STRING')]
+
+        where:
+        value << ["one two three", "a++", "one(abc)", "-12"]
     }
 
     def "handles whitespace, comments and line continuation in a macro directive"() {
@@ -552,7 +594,7 @@ st3"
 #endif
 #define OTHER "1234"
 #define EMPTY
-#define UNKNOWN ABC
+#define UNKNOWN abc(123)
 """
 
         then:
