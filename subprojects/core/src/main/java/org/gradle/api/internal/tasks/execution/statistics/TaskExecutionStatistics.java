@@ -21,16 +21,16 @@ public class TaskExecutionStatistics {
     private final int executedTasksCount;
     private final int fromCacheTaskCount;
     private final int upToDateTaskCount;
-    private final long timeSaved;
+    private final long cacheTimeImpact;
 
-    public TaskExecutionStatistics(int executedTasksCount, int fromCacheTaskCount, int upToDateTaskCount, long timeSaved) {
+    public TaskExecutionStatistics(int executedTasksCount, int fromCacheTaskCount, int upToDateTaskCount, long cacheTimeImpact) {
         checkArgument(executedTasksCount >= 0, "executedTasksCount must be non-negative");
         checkArgument(fromCacheTaskCount >= 0, "fromCacheTaskCount must be non-negative");
         checkArgument(upToDateTaskCount >= 0, "upToDateTaskCount must be non-negative");
         this.executedTasksCount = executedTasksCount;
         this.fromCacheTaskCount = fromCacheTaskCount;
         this.upToDateTaskCount = upToDateTaskCount;
-        this.timeSaved = timeSaved;
+        this.cacheTimeImpact = cacheTimeImpact;
     }
 
     public int getExecutedTasksCount() {
@@ -49,7 +49,7 @@ public class TaskExecutionStatistics {
         return executedTasksCount + fromCacheTaskCount + upToDateTaskCount;
     }
 
-    public long getTimeSaved() {
-        return timeSaved;
+    public long getCacheTimeImpact() {
+        return cacheTimeImpact;
     }
 }

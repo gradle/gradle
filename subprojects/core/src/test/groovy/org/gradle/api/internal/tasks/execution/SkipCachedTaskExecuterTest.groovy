@@ -80,7 +80,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId, 123L)
 
         then:
-        1 * taskState.recordFromCache(_)
+        1 * taskState.recordLoadedFromCache(_)
         1 * taskContext.setOriginBuildInvocationId(originId)
         0 * _
     }
@@ -117,6 +117,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 
@@ -148,6 +149,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 
@@ -240,6 +242,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 

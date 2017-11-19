@@ -81,7 +81,7 @@ class TaskStateInternalTest extends Specification {
     }
 
     void canMarkTaskAsFromCache() {
-        state.recordFromCache(0L)
+        state.recordLoadedFromCache(0L)
 
         expect:
         state.executed

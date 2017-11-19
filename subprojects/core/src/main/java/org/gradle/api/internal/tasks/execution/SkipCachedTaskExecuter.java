@@ -84,9 +84,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskState, clock)
                         );
                         if (originMetadata != null) {
-                            state.recordFromCache(originMetadata.getExecutionTime() - clock.getElapsedMillis());
+                            state.recordLoadedFromCache(originMetadata.getExecutionTime() - clock.getElapsedMillis());
                             context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
                             return;
+                        } else {
+                            state.recordCacheMiss(clock.getElapsedMillis());
                         }
                     } catch (UnrecoverableTaskOutputUnpackingException e) {
                         // We didn't manage to recover from the unpacking error, there might be leftover
@@ -110,9 +112,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
                     try {
+                        Timer storeClock = Time.startTimer();
                         TaskArtifactState taskState = context.getTaskArtifactState();
                         Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, clock));
+                        state.recordStoredInCache(storeClock.getElapsedMillis());
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
                     }

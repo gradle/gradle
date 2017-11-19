@@ -71,34 +71,22 @@ class TaskExecutionStatisticsReporterTest extends Specification {
     }
 
     @Unroll
-    def "does not report time saved or wasted by caching if under #timeSaved"() {
+    def "reports cache impact of #cacheTimeImpact as:#expected"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(0, 2, 0, timeSaved))
+        reporter.buildFinished(new TaskExecutionStatistics(0, 2, 0, cacheTimeImpact))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}2 actionable tasks: 2 from cache\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}2 actionable tasks: 2 from cache$expected\n"
 
         where:
-        timeSaved << [0, 100, 499, -100, -499]
-    }
-
-    @Unroll
-    def "reports time saved or wasted by caching as: #expected"() {
-        when:
-        reporter.buildFinished(new TaskExecutionStatistics(0, 2, 0, timeSaved))
-
-        then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}2 actionable tasks: 2 from cache\n$expected\n"
-
-        where:
-        timeSaved | expected
-        750       | "Using the build cache saved 0.75s in this build"
-        1250      | "Using the build cache saved 1s in this build"
-        1750      | "Using the build cache saved 1s in this build"
-        62000     | "Using the build cache saved 1m 2s in this build"
-        -750      | "Without the build cache this build would have been 0.75s faster"
-        -1250     | "Without the build cache this build would have been 1s faster"
-        -1750     | "Without the build cache this build would have been 1s faster"
-        -62000    | "Without the build cache this build would have been 1m 2s faster"
+        cacheTimeImpact | expected
+        750             | ""
+        1250            | " (caching saved 1s)"
+        1750            | " (caching saved 1s)"
+        62000           | " (caching saved 1m 2s)"
+        -750            | ""
+        -1250           | " (caching took 1s)"
+        -1750           | " (caching took 1s)"
+        -62000          | " (caching took 1m 2s)"
     }
 }

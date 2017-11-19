@@ -29,7 +29,7 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
-    private Long timeSaved;
+    private long cacheTimeImpact;
 
     public boolean getDidWork() {
         return didWork;
@@ -67,9 +67,17 @@ public class TaskStateInternal implements TaskState {
         this.outcome = SKIPPED;
     }
 
-    public void recordFromCache(long timeSaved) {
+    public void recordLoadedFromCache(long timeSaved) {
         this.outcome = FROM_CACHE;
-        this.timeSaved = timeSaved;
+        this.cacheTimeImpact += timeSaved;
+    }
+
+    public void recordStoredInCache(long storeTime) {
+        this.cacheTimeImpact -= storeTime;
+    }
+
+    public void recordCacheMiss(long lookupTime) {
+        this.cacheTimeImpact -= lookupTime;
     }
 
     /**
@@ -135,11 +143,8 @@ public class TaskStateInternal implements TaskState {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
     }
 
-    public long getTimeSaved() {
-        if (!isFromCache()) {
-            throw new IllegalStateException("Not loaded from cache");
-        }
-        return timeSaved;
+    public long getCacheTimeImpact() {
+        return cacheTimeImpact;
     }
 
     public boolean isActionable() {
@@ -149,5 +154,4 @@ public class TaskStateInternal implements TaskState {
     public void setActionable(boolean actionable) {
         this.actionable = actionable;
     }
-
 }
