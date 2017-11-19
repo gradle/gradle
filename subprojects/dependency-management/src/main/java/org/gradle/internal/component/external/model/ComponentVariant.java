@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.internal.component.model.VariantMetadata;
 
+import java.util.List;
+
 /**
  * An _immutable_ view of the variant of a component.
  *
@@ -38,6 +40,8 @@ public interface ComponentVariant extends VariantMetadata {
         String getModule();
 
         VersionConstraint getVersionConstraint();
+
+        List<String> getExcludes();
     }
 
     interface File {

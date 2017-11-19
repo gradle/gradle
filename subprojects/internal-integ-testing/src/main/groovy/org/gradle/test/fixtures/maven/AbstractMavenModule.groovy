@@ -387,7 +387,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     dependencies.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects)
+                        List<String> exclusions = d.exclusions ? d.exclusions.collect { exc -> "${exc.group ?: '*'}:${exc.module ?: '*'}" } : []
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, exclusions)
                     },
                     [getArtifact([:])]
                 )

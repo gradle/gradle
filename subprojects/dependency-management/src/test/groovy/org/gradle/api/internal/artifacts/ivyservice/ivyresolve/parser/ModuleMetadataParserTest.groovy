@@ -104,7 +104,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
-        1 * variant.addDependency("g1", "m1", prefers("v1"))
+        1 * variant.addDependency("g1", "m1", prefers("v1"), [])
         0 * _
     }
 
@@ -209,12 +209,12 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", prefers("v1"))
-        1 * variant1.addDependency("g2", "m2", prefers("v2"))
+        1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
+        1 * variant1.addDependency("g2", "m2", prefers("v2"), [])
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", prefers("v3"))
-        1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]))
-        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]))
+        1 * variant2.addDependency("g3", "m3", prefers("v3"), [])
+        1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [])
+        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [])
         0 * _
     }
 
@@ -306,9 +306,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", prefers("v1"))
+        1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", prefers("v2"))
+        1 * variant2.addDependency("g2", "m2", prefers("v2"), [])
         0 * _
     }
 
@@ -427,7 +427,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes()) >> variant
-        1 * variant.addDependency("g", "m", prefers("v"))
+        1 * variant.addDependency("g", "m", prefers("v"), [])
         0 * metadata._
     }
 

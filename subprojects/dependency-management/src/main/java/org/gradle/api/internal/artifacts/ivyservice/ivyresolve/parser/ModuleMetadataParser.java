@@ -149,7 +149,7 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes);
         }
     }
 
@@ -171,7 +171,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version)));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), Collections.<String>emptyList()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -182,6 +182,7 @@ public class ModuleMetadataParser {
             String group = null;
             String module = null;
             VersionConstraint version = null;
+            List<String> excludes = Collections.emptyList();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -190,11 +191,13 @@ public class ModuleMetadataParser {
                     module = reader.nextString();
                 } else if (name.equals("version")) {
                     version = consumeVersion(reader);
+                } else if (name.equals("excludes")) {
+                    excludes = consumeExcludes(reader);
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version));
+            dependencies.add(new ModuleDependency(group, module, version, excludes));
             reader.endObject();
         }
         reader.endArray();
@@ -219,6 +222,16 @@ public class ModuleMetadataParser {
         }
         reader.endObject();
         return DefaultImmutableVersionConstraint.of(preferred, rejects);
+    }
+
+    private List<String> consumeExcludes(JsonReader reader) throws IOException {
+        List<String> excludes = Lists.newArrayList();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            excludes.add(reader.nextString());
+        }
+        reader.endArray();
+        return excludes;
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
@@ -286,11 +299,13 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
+        final List<String> excludes;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.excludes = excludes;
         }
     }
 }

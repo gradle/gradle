@@ -75,6 +75,9 @@ class GradleFileModuleAdapter {
                                 prefers d.prefers
                                 rejects d.rejects
                             }
+                            if (d.exclusions) {
+                                excludes d.exclusions
+                            }
                         }
                     })
                 }
@@ -83,6 +86,7 @@ class GradleFileModuleAdapter {
         file.withWriter('utf-8') {
             jsonBuilder.writeTo(it)
         }
+        println file.text
     }
 
 }

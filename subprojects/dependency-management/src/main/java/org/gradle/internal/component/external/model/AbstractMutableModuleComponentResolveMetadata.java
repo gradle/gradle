@@ -371,8 +371,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes));
         }
 
         @Override
@@ -409,11 +409,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         private final String group;
         private final String module;
         private final VersionConstraint versionConstraint;
+        private final List<String> excludes;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.excludes = excludes;
         }
 
         @Override
@@ -429,6 +431,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         @Override
         public VersionConstraint getVersionConstraint() {
             return versionConstraint;
+        }
+
+        @Override
+        public List<String> getExcludes() {
+            return excludes;
         }
     }
 

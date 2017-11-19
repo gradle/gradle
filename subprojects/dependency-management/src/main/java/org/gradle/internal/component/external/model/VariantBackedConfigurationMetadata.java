@@ -18,19 +18,26 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +60,16 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            dependencies.add(new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint())));
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
+            List<Exclude> excludes = CollectionUtils.collect(dependency.getExcludes(), new Transformer<Exclude, String>() {
+                @Override
+                public Exclude transform(String s) {
+                    String[] parts = s.split(":");
+                    ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(parts[0], parts[1]);
+                    return new DefaultExclude(moduleIdentifier);
+                }
+            });
+            dependencies.add(new GradleDependencyMetadata(selector, excludes));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.dependencyMetadataRules = dependencyMetadataRules;

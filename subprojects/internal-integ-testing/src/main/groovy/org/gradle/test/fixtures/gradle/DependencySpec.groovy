@@ -24,11 +24,13 @@ class DependencySpec {
     String module
     String prefers
     List<String> rejects
+    List<String> exclusions
 
-    DependencySpec(String g, String m, String version, List<String> r) {
+    DependencySpec(String g, String m, String version, List<String> r, List<String> e = []) {
         group = g
         module = m
         prefers = version
         rejects = r?:Collections.<String>emptyList()
+        exclusions = e
     }
 }

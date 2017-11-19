@@ -16,19 +16,11 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Issue
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
-@RequiredFeatures([
-    // TODO:DAZ add support for Gradle metadata
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-]
-)
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """

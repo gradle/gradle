@@ -58,6 +58,7 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -129,6 +130,7 @@ public class ModuleMetadataSerializer {
             for (ComponentVariant.Dependency dependency : dependencies) {
                 COMPONENT_SELECTOR_SERIALIZER.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
             }
+            // TODO:DAZ Need to serialize exclude rules
         }
 
         private void writeAttributes(AttributeContainer attributes) throws IOException {
@@ -390,7 +392,7 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), Collections.<String>emptyList());
             }
         }
 
