@@ -54,7 +54,7 @@ Changing system headers were not detected, either, so updating a system library 
 This version of Gradle improves the `runPlayBinary` task to work with Play 2.6.
 
 * The combination of Play 2.6 and Scala 2.12 should now have full support
-* Play's `dist` task fixes the generated start script
+* Play plugin's `dist` task fixes the generated start script
 
 You can read more in the improved [Play plugin user guide chapter](userguide/play_plugin.html). Special thanks to [Marcos Pereira](https://github.com/marcospereira) for extraordinary contributions here.
 
