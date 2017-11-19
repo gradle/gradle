@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.buildinit.plugins
 
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
 import static org.hamcrest.Matchers.not
 
-class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
+class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     final wrapper = new WrapperTestFixture(testDirectory)
-
-    @Override
-    String getMainTask() {
-        return "init"
-    }
 
     def "init shows up on tasks overview "() {
         when:
@@ -42,92 +38,146 @@ class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
         result.output.contains "init - Initializes a new Gradle build."
     }
 
-    def "creates a simple project when no pom file present and no type specified"() {
-        given:
-        assert !buildFile.exists()
-        assert !settingsFile.exists()
-
+    def "defaults to groovy build scripts"() {
         when:
         run 'init'
 
         then:
-        wrapper.generated()
-        buildFile.exists()
-        settingsFile.exists()
+        ScriptDslFixture.of(GROOVY, testDirectory).assertGradleFilesGenerated()
+    }
+
+    @Unroll
+    def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
+        when:
+        run 'init', '--build-script-dsl', scriptDsl.id
+
+        then:
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         expect:
         succeeds 'tasks'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "build file generation is skipped when build file already exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
-        buildFile.createFile()
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+
+        and:
+        existingDslFixture.buildFile.createFile()
 
         when:
-        run('init')
+        run('init', '--build-script-dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The build file '${existingDslFixture.buildFileName}' already exists. Skipping build initialization.")
 
         and:
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        existingScriptDsl | targetScriptDsl
+        GROOVY            | GROOVY
+        KOTLIN            | KOTLIN
+        GROOVY            | KOTLIN
+        KOTLIN            | GROOVY
     }
 
-    def "build file generation is skipped when settings file already exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
-        settingsFile.createFile()
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+
+        and:
+        existingDslFixture.settingsFile.createFile()
 
         when:
-        run('init')
+        run('init', '--build-script-dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The settings file '${existingDslFixture.settingsFileName}' already exists. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        existingScriptDsl | targetScriptDsl
+        GROOVY            | GROOVY
+        KOTLIN            | KOTLIN
+        GROOVY            | KOTLIN
+        KOTLIN            | GROOVY
     }
 
-    def "build file generation is skipped when custom build file exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
-        def customBuildScript = testDirectory.file("customBuild.gradle").createFile()
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+
+        and:
+        def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
 
         when:
         executer.usingBuildScript(customBuildScript)
-        run('init')
+        run('init', '--build-script-dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The build file '${customBuildScript.name}' already exists. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        existingScriptDsl | targetScriptDsl
+        GROOVY            | GROOVY
+        KOTLIN            | KOTLIN
+        GROOVY            | KOTLIN
+        KOTLIN            | GROOVY
     }
 
-    def "build file generation is skipped when part of a multi-project build with non-standard settings file location"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
-        def customSettings = testDirectory.file("customSettings.gradle")
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+
+        and:
+        def customSettings = existingDslFixture.scriptFile("customSettings")
         customSettings << """
-include 'child'
+include("child")
 """
 
         when:
         executer.usingSettingsFile(customSettings)
-        run('init')
+        run('init', '--build-script-dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
         result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        existingScriptDsl | targetScriptDsl
+        GROOVY            | GROOVY
+        KOTLIN            | KOTLIN
+        GROOVY            | KOTLIN
+        KOTLIN            | GROOVY
     }
 
     def "pom conversion is triggered when pom and no gradle file found"() {
@@ -158,6 +208,14 @@ include 'child'
 
         then:
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+    }
+
+    def "gives decent error message when triggered with unknown build-script-dsl"() {
+        when:
+        fails('init', '--build-script-dsl', 'some-unknown-dsl')
+
+        then:
+        failure.assertHasDescription("The requested build script DSL 'some-unknown-dsl' is not supported.")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -192,10 +250,10 @@ include 'child'
                      pom
                      scala-library
 
-     --build-scripts-dsl     Set alternative build scripts DSL to be used.
-                             Available values are:
-                                  groovy
-                                  kotlin
+     --build-script-dsl     Set alternative build script DSL to be used.
+                            Available values are:
+                                 groovy
+                                 kotlin
 
      --test-framework     Set alternative test framework to be used.
                           Available values are:

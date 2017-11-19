@@ -20,12 +20,14 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.GradleException;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,17 +37,10 @@ import java.util.Map;
  * Assembles the parts of a build script.
  */
 public class BuildScriptBuilder {
-    private final File target;
-    private final BuildInitBuildScriptDsl dsl;
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final Map<String, String> plugins = new LinkedHashMap<String, String>();
     private final List<ConfigSpec> config = new ArrayList<ConfigSpec>();
-
-    public BuildScriptBuilder(BuildInitBuildScriptDsl dsl, File target) {
-        this.dsl = dsl;
-        this.target = target;
-    }
 
     /**
      * Adds a comment to the header of the file.
@@ -57,6 +52,7 @@ public class BuildScriptBuilder {
 
     /**
      * Adds a plugin to be applied
+     *
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId) {
@@ -110,7 +106,7 @@ public class BuildScriptBuilder {
      * Adds some arbitrary configuration to the _end_ of the build script.
      */
     public BuildScriptBuilder configuration(String comment, String config) {
-        this.config.add(new ConfigSpec(comment, Splitter.on("\n").splitToList(config)));
+        this.config.add(new ConfigSpec(comment, config));
         return this;
     }
 
@@ -118,11 +114,11 @@ public class BuildScriptBuilder {
      * Adds some arbitrary configuration to the _end_ of the build script.
      */
     public BuildScriptBuilder configuration(String comment, Map<BuildInitBuildScriptDsl, String> config) {
-        this.config.add(new ConfigSpec(comment, Splitter.on("\n").splitToList(config.get(dsl))));
+        this.config.add(new ConfigSpec(comment, config));
         return this;
     }
 
-    public TemplateOperation create() {
+    public TemplateOperation create(final BuildInitBuildScriptDsl dsl, final File target) {
         return new TemplateOperation() {
             @Override
             public void generate() {
@@ -144,12 +140,12 @@ public class BuildScriptBuilder {
                         if (!plugins.isEmpty()) {
                             writer.println();
                             writer.println("plugins {");
-                            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
+                            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext(); ) {
                                 Map.Entry<String, String> entry = it.next();
                                 writer.println("    // " + entry.getValue());
                                 switch (dsl) {
                                     case KOTLIN:
-                                        writer.println("    id(\"" + entry.getKey() + "\")");
+                                        writer.println("    " + entry.getKey());
                                         break;
                                     case GROOVY:
                                     default:
@@ -200,7 +196,7 @@ public class BuildScriptBuilder {
                         for (ConfigSpec configSpec : config) {
                             writer.println();
                             writer.println("// " + configSpec.comment);
-                            for (String line : configSpec.configLines) {
+                            for (String line : configSpec.configLines.get(dsl)) {
                                 writer.println(line);
                             }
                         }
@@ -228,11 +224,23 @@ public class BuildScriptBuilder {
 
     private static class ConfigSpec {
         private final String comment;
-        private final List<String> configLines;
+        private final Map<BuildInitBuildScriptDsl, List<String>> configLines;
 
-        public ConfigSpec(String comment, List<String> configLines) {
+        ConfigSpec(String comment, String config) {
             this.comment = comment;
-            this.configLines = configLines;
+            this.configLines = new HashMap<BuildInitBuildScriptDsl, List<String>>();
+            List<String> lines = Splitter.on("\n").splitToList(config);
+            for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
+                this.configLines.put(scriptDsl, lines);
+            }
+        }
+
+        ConfigSpec(String comment, Map<BuildInitBuildScriptDsl, String> config) {
+            this.comment = comment;
+            this.configLines = new HashMap<BuildInitBuildScriptDsl, List<String>>();
+            for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
+                this.configLines.put(scriptDsl, Splitter.on("\n").splitToList(config.get(scriptDsl)));
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.wrapper.Wrapper;
-import org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 import org.gradle.buildinit.tasks.InitBuild;
 
 import java.io.File;
@@ -42,17 +42,20 @@ public class TaskConfiguration {
 
             @Override
             public String transform(Project project) {
-                if (project.file("build.gradle").exists()) {
-                    return "The build file 'build.gradle' already exists. Skipping build initialization.";
+                for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
+                    String buildFileName = scriptDsl.fileNameFor("build");
+                    if (project.file(buildFileName).exists()) {
+                        return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
+                    }
+                    String settingsFileName = scriptDsl.fileNameFor("settings");
+                    if (project.file(settingsFileName).exists()) {
+                        return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
+                    }
                 }
 
                 File buildFile = project.getBuildFile();
                 if (buildFile != null && buildFile.exists()) {
                     return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
-                }
-
-                if (project.file("settings.gradle").exists()) {
-                    return "The settings file 'settings.gradle' already exists. Skipping build initialization.";
                 }
 
                 if (project.getSubprojects().size() > 0) {
@@ -92,7 +95,7 @@ public class TaskConfiguration {
             public void execute(TaskExecutionGraph taskGraph) {
                 if (setupCanBeSkipped.transform(project) == null && taskGraph.hasTask(init)) {
                     Wrapper wrapper = (Wrapper) project.getTasks().getByName("wrapper");
-                    BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(init.getBuildScriptsDsl());
+                    BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(init.getBuildScriptDsl());
                     wrapper.setDistributionType(dsl.getWrapperDistributionType());
                 }
             }

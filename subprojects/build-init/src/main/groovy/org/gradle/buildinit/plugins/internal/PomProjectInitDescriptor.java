@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle;
 import org.gradle.buildinit.plugins.internal.maven.MavenConversionException;
 import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 

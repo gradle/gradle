@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-public interface ProjectInitDescriptor {
-    void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework);
-
-    boolean supports(BuildInitBuildScriptDsl scriptDsl);
-
-    boolean supports(BuildInitTestFramework testFramework);
+class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "init"
+    }
 }

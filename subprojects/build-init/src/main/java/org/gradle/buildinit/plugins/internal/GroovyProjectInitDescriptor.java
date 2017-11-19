@@ -18,6 +18,12 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -33,7 +39,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(scriptDsl, testFramework);
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(scriptDsl, fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -43,25 +49,26 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
             .testCompileDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(buildScriptBuilder);
-        buildScriptBuilder.create().generate();
+        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
 
         TemplateOperation groovySourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();
     }
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
+        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
     }
 
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == BuildInitTestFramework.SPOCK;
+        return testFramework == SPOCK;
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
 
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {}
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    }
 }

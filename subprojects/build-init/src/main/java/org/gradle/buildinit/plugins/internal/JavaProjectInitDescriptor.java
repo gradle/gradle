@@ -16,12 +16,17 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
 public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -45,14 +50,14 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(scriptDsl, testFramework);
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(scriptDsl, fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
-            .plugin("Apply the " + desc.pluginName +" plugin to add support for " + desc.projectType, desc.pluginName);
+            .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
-        buildScriptBuilder.create().generate();
+        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
 
         TemplateOperation javaSourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();
@@ -83,9 +88,16 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
                 break;
             case TESTNG:
                 buildScriptBuilder
-                    .dependency(getTestImplementationConfigurationName(), "Use TestNG framework, also requires calling test.useTestNG() below",
+                    .dependency(
+                        getTestImplementationConfigurationName(),
+                        "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
-                    .configuration("Use TestNG for unit tests", "test.useTestNG()");
+                    .configuration(
+                        "Use TestNG for unit tests",
+                        ImmutableMap.<BuildInitBuildScriptDsl, String>builder()
+                            .put(GROOVY, "test.useTestNG()")
+                            .put(KOTLIN, "val test by tasks.getting(Test::class)\ntest.useTestNG()")
+                            .build());
                 break;
             default:
                 buildScriptBuilder
@@ -106,8 +118,8 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
+        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
     }
 
     @Override

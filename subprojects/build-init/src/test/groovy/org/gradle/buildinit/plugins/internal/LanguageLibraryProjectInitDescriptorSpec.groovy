@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Specification
 
 class LanguageLibraryProjectInitDescriptorSpec extends Specification {
@@ -86,7 +88,7 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
-        boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
+        boolean supports(BuildInitBuildScriptDsl scriptDsl) {
             return true
         }
 
