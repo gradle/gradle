@@ -104,6 +104,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -170,6 +171,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_)
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -288,6 +290,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_)
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
