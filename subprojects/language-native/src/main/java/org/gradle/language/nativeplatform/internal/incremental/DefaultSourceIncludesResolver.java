@@ -29,11 +29,11 @@ import java.util.Map;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
-    private final Map<File, Map<String, Candidate>> includeRoots;
+    private final Map<File, Map<String, Boolean>> includeRoots;
 
     public DefaultSourceIncludesResolver(List<File> includePaths) {
         this.includePaths = includePaths;
-        this.includeRoots = new HashMap<File, Map<String, Candidate>>();
+        this.includeRoots = new HashMap<File, Map<String, Boolean>>();
     }
 
     @Override
@@ -85,69 +85,29 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
     private void searchForDependency(List<File> searchPath, String include, BuildableResult dependencies) {
         for (File searchDir : searchPath) {
-            Map<String, Candidate> searchedIncludes = includeRoots.get(searchDir);
+            File candidate = new File(searchDir, include);
+
+            Map<String, Boolean> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, Candidate>();
+                searchedIncludes = new HashMap<String, Boolean>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
-
-            Candidate candidate = searchedIncludes.get(include);
-            if (candidate != null) {
-                if (candidate.applyTo(dependencies)) {
+            dependencies.searched(candidate);
+            if (searchedIncludes.containsKey(include)) {
+                if (searchedIncludes.get(include)) {
+                    dependencies.resolved(FileUtils.canonicalize(candidate));
                     return;
                 }
                 continue;
             }
 
-            File candidateFile = new File(searchDir, include);
-            if (candidateFile.isFile()) {
-                candidate = new ResolvedIncludeFile(include, candidateFile);
-            } else {
-                candidate = new MissingIncludeFile(candidateFile);
-            }
-            searchedIncludes.put(include, candidate);
+            boolean found = candidate.isFile();
+            searchedIncludes.put(include, found);
 
-            if (candidate.applyTo(dependencies)) {
+            if (found) {
+                dependencies.resolved(FileUtils.canonicalize(candidate));
                 return;
             }
-        }
-    }
-
-    private interface Candidate {
-        /**
-         * @return true when this candidate exists.
-         */
-        boolean applyTo(BuildableResult includes);
-    }
-
-    private static class ResolvedIncludeFile implements Candidate {
-        private final String include;
-        private final File file;
-
-        ResolvedIncludeFile(String include, File file) {
-            this.include = include;
-            this.file = FileUtils.canonicalize(file);
-        }
-
-        @Override
-        public boolean applyTo(BuildableResult includes) {
-            includes.searched(file);
-            includes.resolved(file);
-            return true;
-        }
-    }
-
-    private static class MissingIncludeFile implements Candidate {
-        private final File file;
-
-        MissingIncludeFile(File file) {
-            this.file = FileUtils.canonicalize(file);
-        }
-
-        @Override
-        public boolean applyTo(BuildableResult includes) {
-            includes.searched(file);
-            return false;
         }
     }
 

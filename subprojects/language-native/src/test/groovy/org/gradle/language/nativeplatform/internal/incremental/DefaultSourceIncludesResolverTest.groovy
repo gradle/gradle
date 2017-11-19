@@ -91,7 +91,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def result = resolve(include("\"${path}\""))
         result.complete
         result.files == [header]
-        result.checkedLocations == [header]
+        result.checkedLocations == [new File(sourceDirectory, path)] // not canonicalized
 
         where:
         path << ["nested/test.h", "../sibling/test.h", "./test.h"]
