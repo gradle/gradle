@@ -21,6 +21,7 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.MacroFunction;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,18 +51,35 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         } else if (directive.getType() == IncludeType.QUOTED) {
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
             searchForDependency(quotedSearchPath, directive.getValue(), resolvedSourceIncludes);
-        } else if (directive.getType() == IncludeType.MACRO || directive.getType() == IncludeType.MACRO_FUNCTION) {
-            resolveMacroInclude(sourceFile, include, visibleIncludeDirectives, directive, resolvedSourceIncludes);
+        } else if (directive.getType() == IncludeType.MACRO) {
+            resolveMacroToIncludes(sourceFile, include, visibleIncludeDirectives, directive, resolvedSourceIncludes);
+        } else if (directive.getType() == IncludeType.MACRO_FUNCTION) {
+            resolveMacroFunctionToIncludes(sourceFile, include, visibleIncludeDirectives, directive, resolvedSourceIncludes);
         } else {
             resolvedSourceIncludes.unresolved();
         }
     }
 
-    private void resolveMacroInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Directive directive, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacroToIncludes(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Directive directive, BuildableResult resolvedSourceIncludes) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
             for (Macro macro : includeDirectives.getMacros()) {
-                if (directive.getValue().equals(macro.getName()) && (directive.getType() == IncludeType.MACRO_FUNCTION) == macro.isFunction()) {
+                if (directive.getValue().equals(macro.getName())) {
+                    found = true;
+                    resolveDirective(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
+                }
+            }
+        }
+        if (!found) {
+            resolvedSourceIncludes.unresolved();
+        }
+    }
+
+    private void resolveMacroFunctionToIncludes(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Directive directive, BuildableResult resolvedSourceIncludes) {
+        boolean found = false;
+        for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
+            for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
+                if (directive.getValue().equals(macro.getName())) {
                     found = true;
                     resolveDirective(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
                 }

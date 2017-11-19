@@ -21,6 +21,7 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.MacroFunction;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -28,10 +29,12 @@ import java.util.List;
 public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableList<Include> allIncludes;
     private final ImmutableList<Macro> macros;
+    private final ImmutableList<MacroFunction> macroFunctions;
 
-    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros) {
+    public DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
         this.allIncludes = allIncludes;
         this.macros = macros;
+        this.macroFunctions = macroFunctions;
     }
 
     @Override
@@ -85,8 +88,13 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     }
 
     @Override
+    public List<MacroFunction> getMacrosFunctions() {
+        return macroFunctions;
+    }
+
+    @Override
     public IncludeDirectives discardImports() {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(getIncludesOnly()), macros);
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(getIncludesOnly()), macros, macroFunctions);
     }
 
     @Override
@@ -100,18 +108,11 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
 
         DefaultIncludeDirectives that = (DefaultIncludeDirectives) o;
 
-        if (!allIncludes.equals(that.allIncludes)) {
-            return false;
-        }
-        if (!macros.equals(that.macros)) {
-            return false;
-        }
-
-        return true;
+        return allIncludes.equals(that.allIncludes) && macros.equals(that.macros) && macroFunctions.equals(that.macroFunctions);
     }
 
     @Override
     public int hashCode() {
-        return allIncludes.hashCode() ^ macros.hashCode();
+        return allIncludes.hashCode() ^ macros.hashCode() ^ macroFunctions.hashCode();
     }
 }

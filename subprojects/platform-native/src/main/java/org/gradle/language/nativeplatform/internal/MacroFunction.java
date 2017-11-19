@@ -17,8 +17,8 @@
 package org.gradle.language.nativeplatform.internal;
 
 /**
- * An 'object-like' macro definition.
+ * A 'function-like' macro definition.
  */
-public interface Macro extends Directive {
+public interface MacroFunction extends Directive {
     String getName();
 }

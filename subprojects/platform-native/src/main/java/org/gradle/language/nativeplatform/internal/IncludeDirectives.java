@@ -26,7 +26,9 @@ public interface IncludeDirectives {
     List<Include> getMacroIncludes();
     List<Include> getAll();
     List<Include> getIncludesOnly();
+
     List<Macro> getMacros();
+    List<MacroFunction> getMacrosFunctions();
 
     /**
      * Returns a copy of these directives, with #import directives removed.

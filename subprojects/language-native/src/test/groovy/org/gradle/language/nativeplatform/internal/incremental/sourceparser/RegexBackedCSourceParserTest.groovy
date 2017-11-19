@@ -19,6 +19,7 @@ import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.Macro
+import org.gradle.language.nativeplatform.internal.MacroFunction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -73,24 +74,28 @@ class RegexBackedCSourceParserTest extends Specification {
 
     Macro macro(String name, String value) {
         def include = DefaultInclude.parse(value, false)
-        return new DefaultMacro(name, false, include.type, include.value)
+        return new DefaultMacro(name, include.type, include.value)
     }
 
-    Macro macroFunction(String name, String value) {
+    MacroFunction macroFunction(String name, String value) {
         def include = DefaultInclude.parse(value, false)
-        return new DefaultMacro(name, true, include.type, include.value)
+        return new DefaultMacroFunction(name, include.type, include.value)
     }
 
     Macro unresolvedMacro(String name) {
-        return new UnresolveableMacro(name, false)
+        return new UnresolveableMacro(name)
     }
 
-    Macro unresolvedMacroFunction(String name) {
-        return new UnresolveableMacro(name, true)
+    MacroFunction unresolvedMacroFunction(String name) {
+        return new UnresolveableMacroFunction(name)
     }
 
     List<Macro> getMacros() {
         return parsedSource.macros
+    }
+
+    List<MacroFunction> getMacroFunctions() {
+        return parsedSource.macrosFunctions
     }
 
     def "parses file with no includes"() {
@@ -552,6 +557,7 @@ st3"
 
         then:
         macros == [macro('SOME_STRING', '"abc"')]
+        macroFunctions.empty
     }
 
     def "finds object-like macro directive whose value is a macro reference"() {
@@ -562,6 +568,7 @@ st3"
 
         then:
         macros == [macro('SOME_STRING', value)]
+        macroFunctions.empty
 
         where:
         value << ['a', '_a_123_', 'a$b']
@@ -575,6 +582,7 @@ st3"
 
         then:
         macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
 
         where:
         value << ["one two three", "a++", "one(abc)", "-12"]
@@ -599,6 +607,7 @@ st3"
 
         then:
         macros == [macro('SOME_STRING', 'abc'), macro('STRING_2', '123')]
+        macroFunctions.empty
     }
 
     def "finds object-like macro directive with no whitespace"() {
@@ -610,6 +619,7 @@ st3"
 
         then:
         macros == [macro('A', '"abc"'), macro('B', '<abc>')]
+        macroFunctions.empty
     }
 
     def "finds object-like macro directive with no body"() {
@@ -620,6 +630,7 @@ st3"
 
         then:
         macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
     }
 
     def "finds object-like macro directive with empty body"() {
@@ -630,6 +641,7 @@ st3"
 
         then:
         macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
     }
 
     def "finds multiple object-like macro directives"() {
@@ -653,6 +665,7 @@ st3"
             unresolvedMacro('EMPTY'),
             unresolvedMacro('UNKNOWN')
         ]
+        macroFunctions.empty
     }
 
     def "finds function-like macro directive whose value is a string constant"() {
@@ -662,7 +675,8 @@ st3"
 """
 
         then:
-        macros == [macroFunction('A', '"abc"')]
+        macros.empty
+        macroFunctions == [macroFunction('A', '"abc"')]
     }
 
     def "handles various separators in an function-like macro directive"() {
@@ -683,7 +697,8 @@ st3"
     /* */  "some extra"""
 
         then:
-        macros == [
+        macros.empty
+        macroFunctions == [
             macroFunction('SOME_STRING', '"abc"'),
             unresolvedMacroFunction('STRING_2')
         ]
@@ -705,5 +720,6 @@ st3"
             unresolvedMacro("X"),
             unresolvedMacro("X")
         ]
+        macroFunctions.empty
     }
 }

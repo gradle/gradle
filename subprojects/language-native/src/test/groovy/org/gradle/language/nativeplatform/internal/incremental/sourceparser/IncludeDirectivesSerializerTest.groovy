@@ -22,7 +22,7 @@ import org.gradle.language.nativeplatform.internal.IncludeType
 
 class IncludeDirectivesSerializerTest extends SerializerSpec {
     def "serializes empty directives"() {
-        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([]), ImmutableList.copyOf([]))
+        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives
@@ -32,18 +32,29 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def include1 = new DefaultInclude("one.h", true, IncludeType.QUOTED)
         def include2 = new DefaultInclude("two.h", true, IncludeType.SYSTEM)
         def include3 = new DefaultInclude("three.h", false, IncludeType.MACRO)
-        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include1, include2, include3]), ImmutableList.copyOf([]))
+        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include1, include2, include3]), ImmutableList.of(), ImmutableList.of())
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives
     }
 
     def "serializes macro directives"() {
-        def macro1 = new DefaultMacro("ONE", true, IncludeType.QUOTED,"one")
-        def macro2 = new DefaultMacro("TWO", false, IncludeType.MACRO, "two")
-        def macro3 = new UnresolveableMacro("THREE", true)
-        def macro4 = new UnresolveableMacro("FOUR", false)
-        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([]), ImmutableList.copyOf([macro1, macro2, macro3, macro4]))
+        def macro1 = new DefaultMacro("ONE", IncludeType.QUOTED,"one")
+        def macro2 = new DefaultMacro("TWO", IncludeType.MACRO, "two")
+        def macro3 = new UnresolveableMacro("THREE")
+        def macro4 = new UnresolveableMacro("FOUR")
+        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4]), ImmutableList.of())
+
+        expect:
+        serialize(directives, new IncludeDirectivesSerializer()) == directives
+    }
+
+    def "serializes macro function directives"() {
+        def macro1 = new DefaultMacroFunction("ONE", IncludeType.QUOTED,"one")
+        def macro2 = new DefaultMacroFunction("TWO", IncludeType.MACRO, "two")
+        def macro3 = new UnresolveableMacroFunction("THREE")
+        def macro4 = new UnresolveableMacroFunction("FOUR")
+        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4]))
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives

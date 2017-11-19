@@ -41,5 +41,5 @@ public interface IncrementalCompilation {
 
     Set<File> getExistingHeaders();
 
-    boolean isMacroIncludeUsedInSources();
+    boolean isUnresolvedHeaders();
 }

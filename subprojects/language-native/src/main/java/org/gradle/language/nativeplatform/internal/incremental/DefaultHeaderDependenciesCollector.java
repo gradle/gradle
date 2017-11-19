@@ -41,7 +41,7 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
     @Override
     public ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
         final Set<File> headerDependencies = new HashSet<File>();
-        if (incrementalCompilation.isMacroIncludeUsedInSources()) {
+        if (incrementalCompilation.isUnresolvedHeaders()) {
             addIncludeRoots(taskName, includeRoots, headerDependencies);
         } else {
             headerDependencies.addAll(incrementalCompilation.getDiscoveredInputs());
@@ -52,7 +52,7 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
     @Override
     public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
         final Set<File> headerDependencies = new HashSet<File>();
-        if (incrementalCompilation.isMacroIncludeUsedInSources()) {
+        if (incrementalCompilation.isUnresolvedHeaders()) {
             addIncludeRoots(taskName, includeRoots, headerDependencies);
         } else {
             headerDependencies.addAll(incrementalCompilation.getExistingHeaders());

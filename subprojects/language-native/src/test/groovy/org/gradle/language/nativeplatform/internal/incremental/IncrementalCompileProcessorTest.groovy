@@ -104,7 +104,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Collection<File> deps) {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { DefaultInclude.parse('<' + it.name + '>', false) }), ImmutableList.of())
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { DefaultInclude.parse('<' + it.name + '>', false) }), ImmutableList.of(), ImmutableList.of())
     }
 
     def added(TestFile sourceFile) {
@@ -382,9 +382,9 @@ class IncrementalCompileProcessorTest extends Specification {
         checkCompile recompiled: [source2], removed: []
     }
 
-    def "discovers if macro includes have been used"() {
+    def "discovers if unresolved includes have been used"() {
         given:
-        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of())
+        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of(), ImmutableList.of())
 
         when:
         def result = incrementalCompileProcessor.processSourceFiles([source1])
@@ -393,7 +393,7 @@ class IncrementalCompileProcessorTest extends Specification {
         1 * includesParser.parseIncludes(source1) >> includes
         1 * dependencyResolver.resolveInclude(source1, _, _) >> unresolved()
 
-        result.macroIncludeUsedInSources
+        result.unresolvedHeaders
     }
 
     def checkCompile(Map<String, List<File>> args) {

@@ -21,11 +21,9 @@ import org.gradle.language.nativeplatform.internal.Macro;
 
 public class UnresolveableMacro implements Macro {
     private final String name;
-    private final boolean function;
 
-    public UnresolveableMacro(String name, boolean function) {
+    public UnresolveableMacro(String name) {
         this.name = name;
-        this.function = function;
     }
 
     @Override
@@ -44,13 +42,8 @@ public class UnresolveableMacro implements Macro {
     }
 
     @Override
-    public boolean isFunction() {
-        return function;
-    }
-
-    @Override
     public String toString() {
-        return "{" + name + (function ? "()" : "") + "->???}";
+        return "{" + name + "->???}";
     }
 
     @Override
@@ -62,7 +55,7 @@ public class UnresolveableMacro implements Macro {
             return false;
         }
         UnresolveableMacro other = (UnresolveableMacro) obj;
-        return other.name.equals(name) && function == other.function;
+        return other.name.equals(name);
     }
 
     @Override

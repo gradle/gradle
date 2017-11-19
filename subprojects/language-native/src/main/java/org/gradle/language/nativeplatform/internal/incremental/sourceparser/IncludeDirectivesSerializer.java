@@ -26,21 +26,24 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.MacroFunction;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
     private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer));
     private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer(enumSerializer));
+    private final ListSerializer<MacroFunction> macroFunctionListSerializer = new ListSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer));
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)));
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
     }
 
     @Override
     public void write(Encoder encoder, IncludeDirectives value) throws Exception {
         includeListSerializer.write(encoder, value.getAll());
         macroListSerializer.write(encoder, value.getMacros());
+        macroFunctionListSerializer.write(encoder, value.getMacrosFunctions());
     }
 
     private static class IncludeSerializer implements Serializer<Include> {
@@ -80,14 +83,12 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             byte tag = decoder.readByte();
             if (tag == RESOLVED) {
                 String name = decoder.readString();
-                boolean function = decoder.readBoolean();
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacro(name, function, type, value);
+                return new DefaultMacro(name, type, value);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
-                boolean function = decoder.readBoolean();
-                return new UnresolveableMacro(name, function);
+                return new UnresolveableMacro(name);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -98,13 +99,52 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             if (value instanceof DefaultMacro) {
                 encoder.writeByte(RESOLVED);
                 encoder.writeString(value.getName());
-                encoder.writeBoolean(value.isFunction());
                 enumSerializer.write(encoder, value.getType());
                 encoder.writeString(value.getValue());
             } else if (value instanceof UnresolveableMacro) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
-                encoder.writeBoolean(value.isFunction());
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    private static class MacroFunctionSerializer implements Serializer<MacroFunction> {
+        private static final byte RESOLVED = (byte) 1;
+        private static final byte UNRESOLVED = (byte) 2;
+        private final Serializer<IncludeType> enumSerializer;
+
+        MacroFunctionSerializer(Serializer<IncludeType> enumSerializer) {
+            this.enumSerializer = enumSerializer;
+        }
+
+        @Override
+        public MacroFunction read(Decoder decoder) throws Exception {
+            byte tag = decoder.readByte();
+            if (tag == RESOLVED) {
+                String name = decoder.readString();
+                IncludeType type = enumSerializer.read(decoder);
+                String value = decoder.readString();
+                return new DefaultMacroFunction(name, type, value);
+            } else if (tag == UNRESOLVED) {
+                String name = decoder.readString();
+                return new UnresolveableMacroFunction(name);
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, MacroFunction value) throws Exception {
+            if (value instanceof DefaultMacroFunction) {
+                encoder.writeByte(RESOLVED);
+                encoder.writeString(value.getName());
+                enumSerializer.write(encoder, value.getType());
+                encoder.writeString(value.getValue());
+            } else if (value instanceof UnresolveableMacroFunction) {
+                encoder.writeByte(UNRESOLVED);
+                encoder.writeString(value.getName());
             } else {
                 throw new UnsupportedOperationException();
             }

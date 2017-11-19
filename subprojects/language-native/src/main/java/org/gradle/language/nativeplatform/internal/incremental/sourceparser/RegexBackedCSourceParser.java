@@ -24,6 +24,7 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.MacroFunction;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -48,6 +49,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     public IncludeDirectives parseSource(File sourceFile) {
         List<Include> includes = Lists.newArrayList();
         List<Macro> macros = Lists.newArrayList();
+        List<MacroFunction> macroFunctions = Lists.newArrayList();
         try {
             BufferedReader bf = new BufferedReader(new PreprocessingReader(new BufferedReader(new FileReader(sourceFile))));
             try {
@@ -75,9 +77,17 @@ public class RegexBackedCSourceParser implements CSourceParser {
                         }
                         Include include = DefaultInclude.parse(value, false);
                         if (include.getType() != IncludeType.OTHER) {
-                            macros.add(new DefaultMacro(name, function, include.getType(), include.getValue()));
+                            if (function) {
+                                macroFunctions.add(new DefaultMacroFunction(name, include.getType(), include.getValue()));
+                            } else {
+                                macros.add(new DefaultMacro(name, include.getType(), include.getValue()));
+                            }
                         } else {
-                            macros.add(new UnresolveableMacro(name, function));
+                            if (function) {
+                                macroFunctions.add(new UnresolveableMacroFunction(name));
+                            } else {
+                                macros.add(new UnresolveableMacro(name));
+                            }
                         }
                     }
                 }
@@ -87,6 +97,6 @@ public class RegexBackedCSourceParser implements CSourceParser {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros));
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
     }
 }

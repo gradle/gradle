@@ -72,7 +72,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     }
 
     @Override
-    public boolean isMacroIncludeUsedInSources() {
+    public boolean isUnresolvedHeaders() {
         return macroIncludesUsedInSources;
     }
 }

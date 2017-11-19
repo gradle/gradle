@@ -141,7 +141,7 @@ class IncrementalNativeCompilerTest extends Specification {
         def compilation = Mock(IncrementalCompilation)
 
         compilation.discoveredInputs >> [includedFile]
-        compilation.macroIncludeUsedInSources >> true
+        compilation.unresolvedHeaders >> true
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
