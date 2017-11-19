@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
 import static org.hamcrest.Matchers.not
@@ -180,26 +179,34 @@ include("child")
         KOTLIN            | GROOVY
     }
 
-    def "pom conversion is triggered when pom and no gradle file found"() {
+    @Unroll
+    def "pom conversion to #scriptDsl build scripts is triggered when pom and no gradle file found"() {
         given:
         pom()
 
         when:
-        run('init')
+        run('init', '--build-script-dsl', scriptDsl.id)
 
         then:
-        pomValuesUsed()
+        pomValuesUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "pom conversion not triggered when build type is specified"() {
+    @Unroll
+    def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
         given:
         pom()
 
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library', '--build-script-dsl', scriptDsl.id)
 
         then:
-        pomValuesNotUsed()
+        pomValuesNotUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "gives decent error message when triggered with unknown init-type"() {
@@ -273,28 +280,27 @@ include("child")
       </project>"""
     }
 
-    private pomValuesUsed() {
-        buildFile.assertContents(containsPomGroup())
-        buildFile.assertContents(containsPomVersion())
-        settingsFile.assertContents(containsPomArtifactId())
+    private static pomValuesUsed(ScriptDslFixture dslFixture) {
+        dslFixture.buildFile.assertContents(containsPomGroup(dslFixture))
+        dslFixture.buildFile.assertContents(containsPomVersion(dslFixture))
+        dslFixture.settingsFile.assertContents(containsPomArtifactId(dslFixture))
     }
 
-    private pomValuesNotUsed() {
-        buildFile.assertContents(not(containsPomGroup()))
-        buildFile.assertContents(not(containsPomVersion()))
-        settingsFile.assertContents(not(containsPomArtifactId()))
+    private static pomValuesNotUsed(ScriptDslFixture dslFixture) {
+        dslFixture.buildFile.assertContents(not(containsPomGroup(dslFixture)))
+        dslFixture.buildFile.assertContents(not(containsPomVersion(dslFixture)))
+        dslFixture.settingsFile.assertContents(not(containsPomArtifactId(dslFixture)))
     }
 
-    private Matcher<String> containsPomGroup() {
-        containsString("group = 'util'")
+    private static Matcher<String> containsPomGroup(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('group', 'util')
     }
 
-    private Matcher<String> containsPomVersion() {
-        containsString("version = '2.5'")
+    private static Matcher<String> containsPomVersion(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('version', '2.5')
     }
 
-    private Matcher<String> containsPomArtifactId() {
-        containsString("rootProject.name = 'util'")
+    private static Matcher<String> containsPomArtifactId(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('rootProject.name', 'util')
     }
-
 }

@@ -29,6 +29,9 @@ import org.gradle.util.SingleMessageLogger;
 import java.io.File;
 import java.util.Set;
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
+
 public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     private final MavenSettingsProvider settingsProvider;
     private final PathToFileResolver fileResolver;
@@ -45,7 +48,7 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(mavenProjects, fileResolver.resolve(".")).convert();
+            new Maven2Gradle(scriptDsl, mavenProjects, fileResolver.resolve(".")).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
@@ -53,8 +56,8 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY;
+    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
+        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
     }
 
     @Override

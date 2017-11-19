@@ -15,11 +15,11 @@
  */
 
 package org.gradle.buildinit.plugins
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
+
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -27,6 +27,12 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Unroll
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,14 +55,23 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         using m2
     }
 
-    def "multiModule"() {
+    @Unroll
+    def "multiModule with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild("multiModule")
+
+        and:
+        def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
-        file("build.gradle").text.contains("options.encoding = 'UTF-8'")
-        !file("webinar-war/build.gradle").text.contains("'options.encoding'")
+        dslFixture.assertGradleFilesGenerated()
+
+        and:
+        dslFixture.buildFile.assertContents(dslFixture.containsStringAssignment('options.encoding', 'UTF-8'))
+        dslFixture.scriptFile("webinar-war/build").assertContents(not(containsString("options.encoding")))
 
         when:
         run 'clean', 'build'
@@ -78,14 +93,21 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "multiModuleWithNestedParent"() {
+    @Unroll
+    def "multiModuleWithNestedParent with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('multiModuleWithNestedParent')
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -96,15 +118,22 @@ Root project 'webinar-parent'
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "flatmultimodule"() {
+    @Unroll
+    def "flatmultimodule with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('flatmultimodule')
+
         when:
         executer.inDirectory(file("webinar-parent"))
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated(file("webinar-parent"))
+        ScriptDslFixture.of(scriptDsl, file("webinar-parent")).assertGradleFilesGenerated()
 
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -128,15 +157,22 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "singleModule"() {
+    @Unroll
+    def "singleModule with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('singleModule')
+
         when:
         executer.withArgument("-d")
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         //TODO this build should fail because the TestNG test is failing
@@ -145,18 +181,22 @@ Root project 'webinar-parent'
         run 'clean', 'build'
         then:
         file("build/libs/util-2.5.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "singleModule with explicit project dir"() {
+    @Unroll
+    def "singleModule with #scriptDsl build scripts and explicit project dir"() {
         setup:
-        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+        withMavenBuild('singleModule')
         def workingDir = temporaryFolder.createDir("workingDir")
         when:
         executer.inDirectory(workingDir).usingProjectDirectory(file('.'))
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         //TODO this build should fail because the TestNG test is failing
@@ -165,14 +205,21 @@ Root project 'webinar-parent'
         run 'clean', 'build'
         then:
         file("build/libs/util-2.5.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "testjar"() {
+    @Unroll
+    def "testjar with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('testjar')
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -180,40 +227,70 @@ Root project 'webinar-parent'
         then:
         file("build/libs/testjar-2.5.jar").exists()
         file("build/libs/testjar-2.5-tests.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "enforcerplugin"() {
+    @Unroll
+    def "enforcerplugin with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('enforcerplugin')
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
+        dslFixture.assertGradleFilesGenerated()
 
         and:
-        buildFile.text.contains("""configurations.all {
+        switch (scriptDsl) {
+            case KOTLIN:
+                dslFixture.buildFile.text.contains("""configurations.all {
+exclude(group = "org.apache.maven")
+exclude(group = "org.apache.maven", module = "badArtifact")
+exclude(group = "*", module = "badArtifact")
+}""")
+                break
+            case GROOVY:
+            default:
+                dslFixture.buildFile.text.contains("""configurations.all {
 it.exclude group: 'org.apache.maven'
 it.exclude group: 'org.apache.maven', module: 'badArtifact'
 it.exclude group: '*', module: 'badArtifact'
 }""")
+        }
+
         when:
         run 'clean', 'build'
 
         then:
         file("build/libs/enforcerExample-1.0.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "providedNotWar"() {
+    @Unroll
+    def "providedNotWar with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('providedNotWar')
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
 
         then:
         file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "provides decent error message when POM is invalid"() {
@@ -228,22 +305,31 @@ it.exclude group: '*', module: 'badArtifact'
         failure.assertHasCause("Could not convert Maven POM $pom to a Gradle build.")
     }
 
-    def "mavenExtensions"() {
+    @Unroll
+    def "mavenExtensions with #scriptDsl build scripts"() {
+        given:
+        withMavenBuild('mavenExtensions')
+
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
 
         then:
         file("build/libs/testApp-1.0.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2820")
-    def "remoteparent"() {
+    @Unroll
+    def "remoteparent with #scriptDsl build scripts"() {
         setup:
+        withMavenBuild('remoteparent')
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
@@ -252,10 +338,10 @@ it.exclude group: '*', module: 'badArtifact'
         expectParentPomRequest(repo)
 
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         libRequest(repo, "commons-lang", "commons-lang", "2.6")
@@ -263,29 +349,40 @@ it.exclude group: '*', module: 'badArtifact'
 
         then:
         file("build/libs/util-2.5.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2872")
-    def "expandProperties"() {
+    @Unroll
+    def "expandProperties with #scriptDsl build scripts"() {
         setup:
+        withMavenBuild('expandProperties')
         withSharedResources()
         executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
 
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
+
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         run('clean', 'build')
 
         then:
         file("build/libs/util-3.2.1.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2819")
-    def "multiModuleWithRemoteParent"() {
+    @Unroll
+    def "multiModuleWithRemoteParent with #scriptDsl build scripts"() {
         setup:
+        withMavenBuild('multiModuleWithRemoteParent')
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
@@ -294,10 +391,10 @@ it.exclude group: '*', module: 'badArtifact'
         expectParentPomRequest(repo)
 
         when:
-        run 'init'
+        run 'init', '--build-script-dsl', scriptDsl.id
 
         then:
-        gradleFilesGenerated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         libRequest(repo, "commons-lang", "commons-lang", 2.6)
@@ -327,12 +424,9 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-    }
 
-    void gradleFilesGenerated(TestFile parentFolder = file(".")) {
-        assert parentFolder.file("build.gradle").exists()
-        assert parentFolder.file("settings.gradle").exists()
-        new WrapperTestFixture(parentFolder).generated()
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
@@ -343,6 +437,10 @@ Root project 'webinar-parent'
     def expectModule(MavenHttpRepository repo, String group, String name, String version) {
         MavenHttpModule module1 = repo.module(group, name, version).publish()
         module1.allowAll()
+    }
+
+    def withMavenBuild(String name) {
+        resources.maybeCopy("${getClass().simpleName}/$name")
     }
 
     def withSharedResources() {
