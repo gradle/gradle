@@ -19,6 +19,7 @@ import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -150,8 +151,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def header1 = includeDir.createFile("test.h")
         includePaths << includeDir
 
-        macros << new DefaultMacro("TEST", '"test.h"')
-        macros << new DefaultMacro("IGNORE", 'broken')
+        macros << new DefaultMacro("TEST", "test.h")
+        macros << new DefaultMacro("IGNORE", "broken")
+        macros << new UnresolveableMacro("IGNORE")
 
         expect:
         def result = resolve(include('TEST'))
@@ -165,9 +167,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def includeFile1 = sourceDirectory.createFile("test1.h")
         def includeFile2 = sourceDirectory.createFile("test2.h")
 
-        macros << new DefaultMacro("TEST", '"test1.h"')
-        macros << new DefaultMacro("IGNORE", 'broken')
-        macros << new DefaultMacro("TEST", '"test2.h"')
+        macros << new DefaultMacro("TEST", "test1.h")
+        macros << new DefaultMacro("IGNORE", "broken")
+        macros << new DefaultMacro("TEST", "test2.h")
 
         expect:
         def result = resolve(include('TEST'))
@@ -176,12 +178,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations == [includeFile1, includeFile2]
     }
 
-    def "marks macro include as unresolved when value is not a string constant"() {
+    def "marks macro include as unresolved when target macro value cannot be resolved"() {
         given:
-        macros << new DefaultMacro("TEST", 'OTHER')
-        macros << new DefaultMacro("TEST", '<test2.h>')
-        macros << new DefaultMacro("TEST", '')
-        macros << new DefaultMacro("TEST", 'thing(12)')
+        macros << new UnresolveableMacro("TEST")
 
         expect:
         def result = resolve(include('TEST'))
@@ -190,13 +189,13 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations.empty
     }
 
-    def "marks macro include as unresolved when any value is not a string constant"() {
+    def "marks macro include as unresolved when any macro value cannot be resolved"() {
         given:
         def includeFile = sourceDirectory.createFile("test.h")
 
-        macros << new DefaultMacro("TEST", '"test.h"')
+        macros << new DefaultMacro("TEST", "test.h")
         macros << new DefaultMacro("IGNORE", 'broken')
-        macros << new DefaultMacro("TEST", 'UNKNOWN')
+        macros << new UnresolveableMacro("TEST")
 
         expect:
         def result = resolve(include('TEST'))

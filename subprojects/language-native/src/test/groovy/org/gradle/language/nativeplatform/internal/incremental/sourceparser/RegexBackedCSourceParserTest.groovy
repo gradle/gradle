@@ -74,6 +74,10 @@ class RegexBackedCSourceParserTest extends Specification {
         return new DefaultMacro(name, value)
     }
 
+    Macro unresolvedMacro(String name) {
+        return new UnresolveableMacro(name)
+    }
+
     List<Macro> getMacros() {
         return parsedSource.macros
     }
@@ -477,54 +481,87 @@ st3"
         includes == ['"test1"', '"test2"', '"test3"'].collect { include(it) }
     }
 
-    def "finds object-like macro definition"() {
+    def "finds object-like macro directive whose value is a string constant"() {
         when:
         sourceFile << """
-#define SOME_STRING abc
+#define SOME_STRING "abc"
 """
 
         then:
         macros == [macro('SOME_STRING', 'abc')]
     }
 
-    def "finds object-like macro definition with no body"() {
+    def "finds object-like macro directive whose value is not a string constant"() {
+        when:
+        sourceFile << """
+#define SOME_STRING abc
+"""
+
+        then:
+        macros == [unresolvedMacro('SOME_STRING')]
+    }
+
+    def "handles whitespace, comments and line continuation in a macro directive"() {
+        when:
+        sourceFile << """
+  #   define     SOME_STRING         "abc"      // some extra
+  /*    
+  
+  */  \\
+  #/*
+  
+  
+  */ define \\
+        /*
+         */STRING_2\\
+/*         
+*/"123"\\
+    /* */   // some extra"""
+
+        then:
+        macros == [macro('SOME_STRING', 'abc'), macro('STRING_2', '123')]
+    }
+
+    def "finds object-like macro directive with no body"() {
         when:
         sourceFile << """
 #define SOME_STRING
 """
 
         then:
-        macros == [macro('SOME_STRING', '')]
+        macros == [unresolvedMacro('SOME_STRING')]
     }
 
-    def "finds object-like macro definition with empty body"() {
+    def "finds object-like macro directive with empty body"() {
         when:
         sourceFile << """
 #define SOME_STRING    // ignore
 """
 
         then:
-        macros == [macro('SOME_STRING', '')]
+        macros == [unresolvedMacro('SOME_STRING')]
     }
 
-    def "finds multiple object-like macro definitions"() {
+    def "finds multiple object-like macro directives"() {
         when:
         sourceFile << """
 #ifdef THING
-#define SOME_STRING abc
+#define SOME_STRING "abc"
 #else
-#define SOME_STRING xyz
+#define SOME_STRING "xyz"
 #endif
 #define OTHER "1234"
 #define EMPTY
+#define UNKNOWN ABC
 """
 
         then:
         macros == [
             macro('SOME_STRING', 'abc'),
             macro('SOME_STRING', 'xyz'),
-            macro('OTHER', '"1234"'),
-            macro('EMPTY', '')
+            macro('OTHER', '1234'),
+            unresolvedMacro('EMPTY'),
+            unresolvedMacro('UNKNOWN')
         ]
     }
 }

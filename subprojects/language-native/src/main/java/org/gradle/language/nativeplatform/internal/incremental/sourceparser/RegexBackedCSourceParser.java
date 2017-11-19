@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 
 import java.io.BufferedReader;
@@ -65,8 +66,14 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
                     m = macroPattern.matcher(line);
                     if (m.matches()) {
+                        String name = m.group(1);
                         String value = m.group(3);
-                        macros.add(new DefaultMacro(m.group(1), value == null ? "" : value));
+                        Include include = DefaultInclude.parse(value == null ? "" : value, false);
+                        if (include.getType() == IncludeType.QUOTED) {
+                            macros.add(new DefaultMacro(name, include.getValue()));
+                        } else {
+                            macros.add(new UnresolveableMacro(name));
+                        }
                     }
                 }
             } finally {

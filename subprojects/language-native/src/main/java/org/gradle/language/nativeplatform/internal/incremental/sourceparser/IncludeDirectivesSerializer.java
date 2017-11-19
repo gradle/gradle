@@ -50,7 +50,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             String value = decoder.readString();
             boolean isImport = decoder.readBoolean();
             IncludeType type = enumSerializer.read(decoder);
-            return new DefaultInclude(value, isImport, type);
+            return DefaultInclude.create(value, isImport, type);
         }
 
         @Override
@@ -62,17 +62,36 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     }
 
     private static class MacroSerializer implements Serializer<Macro> {
+        private static final byte RESOLVED = (byte) 1;
+        private static final byte UNRESOLVED = (byte) 2;
+
         @Override
         public Macro read(Decoder decoder) throws Exception {
-            String name = decoder.readString();
-            String value = decoder.readString();
-            return new DefaultMacro(name, value);
+            byte tag = decoder.readByte();
+            if (tag == RESOLVED) {
+                String name = decoder.readString();
+                String value = decoder.readString();
+                return new DefaultMacro(name, value);
+            } else if (tag == UNRESOLVED) {
+                String name = decoder.readString();
+                return new UnresolveableMacro(name);
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
 
         @Override
         public void write(Encoder encoder, Macro value) throws Exception {
-            encoder.writeString(value.getName());
-            encoder.writeString(value.getValue());
+            if (value instanceof DefaultMacro) {
+                encoder.writeByte(RESOLVED);
+                encoder.writeString(value.getName());
+                encoder.writeString(value.getValue());
+            } else if (value instanceof UnresolveableMacro) {
+                encoder.writeByte(UNRESOLVED);
+                encoder.writeString(value.getName());
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
     }
 }

@@ -41,7 +41,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
     def "serializes macro directives"() {
         def macro1 = new DefaultMacro("ONE", "one")
         def macro2 = new DefaultMacro("TWO", "two")
-        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([]), ImmutableList.copyOf([macro1, macro2]))
+        def macro3 = new UnresolveableMacro("THREE")
+        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([]), ImmutableList.copyOf([macro1, macro2, macro3]))
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives

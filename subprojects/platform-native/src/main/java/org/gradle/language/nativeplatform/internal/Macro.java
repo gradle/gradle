@@ -19,5 +19,7 @@ package org.gradle.language.nativeplatform.internal;
 public interface Macro {
     String getName();
 
+    IncludeType getType();
+
     String getValue();
 }

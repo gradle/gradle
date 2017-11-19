@@ -20,7 +20,6 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,10 +50,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 for (Macro macro : includeDirectives.getMacros()) {
                     if (include.getValue().equals(macro.getName())) {
                         found = true;
-                        Include expandedInclude = DefaultInclude.parse(macro.getValue(), include.isImport());
-                        if (expandedInclude.getType() == IncludeType.QUOTED) {
+                        if (macro.getType() == IncludeType.QUOTED) {
                             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-                            searchForDependency(quotedSearchPath, expandedInclude.getValue(), resolvedSourceIncludes);
+                            searchForDependency(quotedSearchPath, macro.getValue(), resolvedSourceIncludes);
                         } else {
                             // TODO - keep expanding
                             // TODO - handle system includes, which also need to be expanded when the value of a macro
