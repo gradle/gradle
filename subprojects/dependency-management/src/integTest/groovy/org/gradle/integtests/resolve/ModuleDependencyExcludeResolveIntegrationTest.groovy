@@ -25,8 +25,6 @@ import spock.lang.Issue
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
 @RequiredFeatures([
-    // TODO:DAZ convert test to ivy repos as well. Only leave ivy-only tests elsewhere.
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven"),
     // TODO:DAZ add support for Gradle metadata
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
 ]
