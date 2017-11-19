@@ -17,5 +17,5 @@
 package org.gradle.language.nativeplatform.internal;
 
 public enum IncludeType {
-    SYSTEM, QUOTED, MACRO, OTHER
+    SYSTEM, QUOTED, MACRO, MACRO_FUNCTION, OTHER
 }

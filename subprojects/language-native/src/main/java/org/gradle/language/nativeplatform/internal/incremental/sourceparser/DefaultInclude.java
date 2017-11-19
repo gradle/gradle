@@ -66,16 +66,35 @@ public class DefaultInclude implements Include {
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
             return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
         }
-        if (value.isEmpty()) {
-            return DefaultInclude.create(value, isImport, IncludeType.OTHER);
-        }
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
+        int pos = 0;
+        while (pos < value.length()) {
+            char ch = value.charAt(pos);
             if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '$') {
-                return DefaultInclude.create(value, isImport, IncludeType.OTHER);
+                break;
+            }
+            pos++;
+        }
+        if (pos > 0 && pos == value.length()) {
+            return DefaultInclude.create(value, isImport, IncludeType.MACRO);
+        }
+        if (pos > 0 && pos != value.length()) {
+            int endPos = pos;
+            if (value.charAt(pos) == '(') {
+                pos++;
+                while (pos < value.length() && Character.isWhitespace(value.charAt(pos))) {
+                    pos++;
+                }
+                if (pos < value.length() && value.charAt(pos) == ')') {
+                    while (pos < value.length() && Character.isWhitespace(value.charAt(pos))) {
+                        pos++;
+                    }
+                    if (pos == value.length() - 1) {
+                        return DefaultInclude.create(value.substring(0, endPos), isImport, IncludeType.MACRO_FUNCTION);
+                    }
+                }
             }
         }
-        return DefaultInclude.create(value, isImport, IncludeType.MACRO);
+        return DefaultInclude.create(value, isImport, IncludeType.OTHER);
     }
 
     private static String strip(String include) {

@@ -291,7 +291,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         file("app/src/main/headers/defs.h") << """
             #define _HELLO_HEADER_2 "hello.h"
             #define _HELLO_HEADER_1 _HELLO_HEADER_2
-            #define HELLO_HEADER _HELLO_HEADER_1 // some indirection
+            #define HELLO_HEADER MACRO_FUNCTION() // some indirection
+            
+            #define MACRO_FUNCTION( ) _HELLO_HEADER_1
         """
 
         def headerFile = file("app/src/main/headers/hello.h") << """
@@ -303,6 +305,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define MACRO_USES_ANOTHER_MACRO HELLO_HEADER
             #define MACRO_USES_STRING_CONSTANT "hello.h"
             #define MACRO_USES_SYSTEM_PATH <hello.h>
+            #define MACRO_USES_FUNCTION MACRO_FUNCTION()
             #include ${macro}
             #include <iostream>
 
@@ -338,7 +341,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_SYSTEM_PATH", "MACRO_USES_ANOTHER_MACRO"]
+        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_SYSTEM_PATH", "MACRO_USES_ANOTHER_MACRO", "MACRO_FUNCTION()", "MACRO_USES_FUNCTION"]
     }
 
     @Unroll

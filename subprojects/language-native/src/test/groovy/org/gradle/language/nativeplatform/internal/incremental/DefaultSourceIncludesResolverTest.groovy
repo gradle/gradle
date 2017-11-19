@@ -17,7 +17,6 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
@@ -152,12 +151,32 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def header1 = includeDir.createFile("test.h")
         includePaths << includeDir
 
-        macros << new DefaultMacro("TEST", IncludeType.QUOTED,"test.h")
-        macros << new DefaultMacro("IGNORE", IncludeType.QUOTED,"broken")
-        macros << new UnresolveableMacro("IGNORE")
+        macros << macro("TEST", '"test.h"')
+        macros << macro("IGNORE", "'broken'")
+        macros << unresolveableMacro("IGNORE")
 
         expect:
         def result = resolve(include('TEST'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [srcHeader, header, header1]
+    }
+
+    def "resolves macro function include"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.file("test.h")
+        def includeDir = testDirectory.file("include")
+        def header1 = includeDir.createFile("test.h")
+        includePaths << includeDir
+
+        macros << macroFunction("TEST", '"test.h"')
+        macros << macro("TEST", "'broken'")
+        macros << macroFunction("IGNORE", "'broken'")
+        macros << unresolveableMacro("IGNORE")
+
+        expect:
+        def result = resolve(include('TEST()'))
         result.complete
         result.files == [header1]
         result.checkedLocations == [srcHeader, header, header1]
@@ -171,10 +190,10 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def header1 = includeDir.createFile("test.h")
         includePaths << includeDir
 
-        macros << new DefaultMacro("TEST", IncludeType.QUOTED,"test.h")
-        macros << new DefaultMacro("TEST2", IncludeType.MACRO,"TEST")
-        macros << new DefaultMacro("TEST3", IncludeType.MACRO,"TEST2")
-        macros << new UnresolveableMacro("IGNORE")
+        macros << macro("TEST", '"test.h"')
+        macros << macro("TEST2", "TEST")
+        macros << macro("TEST3", "TEST2")
+        macros << unresolveableMacro("IGNORE")
 
         expect:
         def result = resolve(include('TEST3'))
@@ -189,11 +208,11 @@ class DefaultSourceIncludesResolverTest extends Specification {
         def includeFile2 = sourceDirectory.createFile("test2.h")
         def includeFile3 = sourceDirectory.createFile("test3.h")
 
-        macros << new DefaultMacro("TEST", IncludeType.QUOTED, "test1.h")
-        macros << new DefaultMacro("IGNORE", IncludeType.QUOTED, "broken")
-        macros << new DefaultMacro("NESTED", IncludeType.QUOTED,"test2.h")
-        macros << new DefaultMacro("NESTED", IncludeType.QUOTED,"test3.h")
-        macros << new DefaultMacro("TEST", IncludeType.MACRO,"NESTED")
+        macros << macro("TEST", '"test1.h"')
+        macros << macro("IGNORE", '"broken"')
+        macros << macro("NESTED", '"test2.h"')
+        macros << macro("NESTED", '"test3.h"')
+        macros << macro("TEST", "NESTED")
 
         expect:
         def result = resolve(include('TEST'))
@@ -204,9 +223,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def "marks macro include as unresolved when target macro value cannot be resolved"() {
         given:
-        macros << new UnresolveableMacro("TEST")
-        macros << new UnresolveableMacro("NESTED")
-        macros << new DefaultMacro("TEST", IncludeType.MACRO,"NESTED")
+        macros << unresolveableMacro("TEST")
+        macros << unresolveableMacro("NESTED")
+        macros << macro("TEST", "NESTED")
 
         expect:
         def result = resolve(include('TEST'))
@@ -219,15 +238,37 @@ class DefaultSourceIncludesResolverTest extends Specification {
         given:
         def includeFile = sourceDirectory.createFile("test.h")
 
-        macros << new DefaultMacro("TEST", IncludeType.QUOTED,"test.h")
-        macros << new DefaultMacro("IGNORE", IncludeType.QUOTED, 'broken')
-        macros << new UnresolveableMacro("TEST")
+        macros << macro("TEST", '"test.h"')
+        macros << macro("IGNORE", '"broken"')
+        macros << unresolveableMacro("TEST")
 
         expect:
         def result = resolve(include('TEST'))
         !result.complete
         result.files == [includeFile]
         result.checkedLocations == [includeFile]
+    }
+
+    def "macro does not match macro function of the same name"() {
+        given:
+        macroFunction("TEST", '"test.h"')
+
+        expect:
+        def result = resolve(include('TEST'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "macro function does not match macro of the same name"() {
+        given:
+        macro("TEST", '"test.h"')
+
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
     }
 
     def "marks macro include as unresolved when there are no definitions of the macro"() {
@@ -238,7 +279,29 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations.empty
     }
 
+    def "marks macro function include as unresolved when there are no definitions of the macro"() {
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
     def include(String value) {
         return DefaultInclude.parse(value, false)
+    }
+
+    def macro(String name, String value) {
+        def include = DefaultInclude.parse(value, false)
+        new DefaultMacro(name, false, include.type, include.value)
+    }
+
+    def macroFunction(String name, String value) {
+        def include = DefaultInclude.parse(value, false)
+        new DefaultMacro(name, true, include.type, include.value)
+    }
+
+    def unresolveableMacro(String name) {
+        new UnresolveableMacro(name, false)
     }
 }

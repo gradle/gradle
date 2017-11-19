@@ -21,18 +21,20 @@ import org.gradle.language.nativeplatform.internal.Macro;
 
 public class DefaultMacro implements Macro {
     private final String name;
+    private final boolean function;
     private final IncludeType includeType;
     private final String value;
 
-    public DefaultMacro(String name, IncludeType includeType, String value) {
+    public DefaultMacro(String name, boolean function, IncludeType includeType, String value) {
         this.name = name;
+        this.function = function;
         this.includeType = includeType;
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return "{" + name + "->" + value + "}";
+        return "{" + name + (function ? "()" : "") + "->" + value + "}";
     }
 
     @Override
@@ -51,6 +53,11 @@ public class DefaultMacro implements Macro {
     }
 
     @Override
+    public boolean isFunction() {
+        return function;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;
@@ -60,7 +67,7 @@ public class DefaultMacro implements Macro {
         }
 
         DefaultMacro other = (DefaultMacro) obj;
-        return name.equals(other.name) && value.equals(other.value);
+        return name.equals(other.name) && value.equals(other.value) && function == other.function;
     }
 
     @Override

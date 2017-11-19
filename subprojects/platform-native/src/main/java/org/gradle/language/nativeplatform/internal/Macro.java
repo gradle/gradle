@@ -18,4 +18,5 @@ package org.gradle.language.nativeplatform.internal;
 
 public interface Macro extends Directive {
     String getName();
+    boolean isFunction();
 }

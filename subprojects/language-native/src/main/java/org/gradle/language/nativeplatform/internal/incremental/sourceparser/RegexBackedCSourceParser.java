@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 public class RegexBackedCSourceParser implements CSourceParser {
     private static final String INCLUDE_IMPORT_PATTERN = "#\\s*(include|import)((\"|<|(\\s+\\S)).*)";
-    private static final String MACRO_PATTERN = "#\\s*define\\s+(\\w+)(\\s+(.+)?)?";
+    private static final String MACRO_PATTERN = "#\\s*define\\s+(\\w+)(\\(\\s*\\))?(.*)";
     private final Pattern includePattern;
     private final Pattern macroPattern;
 
@@ -66,12 +66,18 @@ public class RegexBackedCSourceParser implements CSourceParser {
                     m = macroPattern.matcher(line);
                     if (m.matches()) {
                         String name = m.group(1);
+                        boolean function = m.group(2) != null;
                         String value = m.group(3);
-                        Include include = DefaultInclude.parse(value == null ? "" : value, false);
-                        if (include.getType() != IncludeType.OTHER) {
-                            macros.add(new DefaultMacro(name, include.getType(), include.getValue()));
+                        if (value != null) {
+                            value = value.trim();
                         } else {
-                            macros.add(new UnresolveableMacro(name));
+                            value = "";
+                        }
+                        Include include = DefaultInclude.parse(value, false);
+                        if (include.getType() != IncludeType.OTHER) {
+                            macros.add(new DefaultMacro(name, function, include.getType(), include.getValue()));
+                        } else {
+                            macros.add(new UnresolveableMacro(name, function));
                         }
                     }
                 }

@@ -50,18 +50,18 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         } else if (directive.getType() == IncludeType.QUOTED) {
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
             searchForDependency(quotedSearchPath, directive.getValue(), resolvedSourceIncludes);
-        } else if (directive.getType() == IncludeType.MACRO) {
-            resolveMacroInclude(sourceFile, include, visibleIncludeDirectives, directive.getValue(), resolvedSourceIncludes);
+        } else if (directive.getType() == IncludeType.MACRO || directive.getType() == IncludeType.MACRO_FUNCTION) {
+            resolveMacroInclude(sourceFile, include, visibleIncludeDirectives, directive, resolvedSourceIncludes);
         } else {
             resolvedSourceIncludes.unresolved();
         }
     }
 
-    private void resolveMacroInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, String macroName, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacroInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Directive directive, BuildableResult resolvedSourceIncludes) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
             for (Macro macro : includeDirectives.getMacros()) {
-                if (macroName.equals(macro.getName())) {
+                if (directive.getValue().equals(macro.getName()) && (directive.getType() == IncludeType.MACRO_FUNCTION) == macro.isFunction()) {
                     found = true;
                     resolveDirective(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
                 }
