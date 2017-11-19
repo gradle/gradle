@@ -452,8 +452,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                     exclusions {
                                         for (exc in dep.exclusions) {
                                             exclusion {
-                                                groupId(exc.group)
-                                                artifactId(exc.module)
+                                                groupId(exc.group ?: '*')
+                                                artifactId(exc.module ?: '*')
                                             }
                                         }
                                     }
