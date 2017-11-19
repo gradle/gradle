@@ -353,4 +353,38 @@ task check(type: Sync) {
         'excluded on both'    | [[module: 'd']] | [[module: 'd']] | ['a', 'b', 'c']
         'excluded on neither' | []              | []              | ['a', 'b', 'c', 'd']
     }
+
+    def "excludes are retained in cached module metadata"() {
+        given:
+        repository {
+            'a:a:1.0' {
+                dependsOn group: 'b', artifact: 'b', version: '1.0', exclusions: [[module: 'c']]
+            }
+            'b:b:1.0' {
+                dependsOn 'c:c:1.0'
+            }
+            'c:c:1.0'()
+        }
+
+        repositoryInteractions {
+            'a:a:1.0' {expectResolve()}
+            'b:b:1.0' {expectResolve()}
+        }
+
+        and: // Initial request to cache metadata
+        succeeds "checkDeps"
+
+        when:
+        server.resetExpectations()
+        succeeds "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("a:a:1.0") {
+                    module("b:b:1.0")
+                }
+            }
+        }
+    }
 }

@@ -58,7 +58,6 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -129,8 +128,8 @@ public class ModuleMetadataSerializer {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
                 COMPONENT_SELECTOR_SERIALIZER.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
+                writeStringList(dependency.getExcludes());
             }
-            // TODO:DAZ Need to serialize exclude rules
         }
 
         private void writeAttributes(AttributeContainer attributes) throws IOException {
@@ -392,8 +391,18 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), Collections.<String>emptyList());
+                List<String> excludes = readVariantDependencyExcludes();
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes);
             }
+        }
+
+        private List<String> readVariantDependencyExcludes() throws IOException {
+            int len = readCount();
+            List<String> result = Lists.newArrayListWithCapacity(len);
+            for (int i = 0; i < len; i++) {
+                result.add(readString());
+            }
+            return result;
         }
 
         private void readVariantFiles(MutableComponentVariant variant) throws IOException {
