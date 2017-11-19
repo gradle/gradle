@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
@@ -41,8 +43,8 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     }
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY || buildScriptLanguage == BuildInitBuildScriptDsl.KOTLIN;
+    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
+        return scriptDsl == BuildInitBuildScriptDsl.GROOVY || scriptDsl == BuildInitBuildScriptDsl.KOTLIN;
     }
 
     @Override

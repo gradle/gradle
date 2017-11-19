@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.modifiers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.wrapper.Wrapper;
@@ -44,7 +44,7 @@ public enum BuildInitBuildScriptDsl {
                 return language;
             }
         }
-        throw new GradleException("The requested build script language '" + name + "' is not supported.");
+        throw new GradleException("The requested build script DSL '" + name + "' is not supported.");
     }
 
     public static List<String> listSupported() {
@@ -63,7 +63,12 @@ public enum BuildInitBuildScriptDsl {
         return wrapperDistributionType;
     }
 
-    public String fileNameFor(String filenameWithoutExtension) {
-        return filenameWithoutExtension + fileExtension;
+    public String fileNameFor(String fileNameWithoutExtension) {
+        return fileNameWithoutExtension + fileExtension;
+    }
+
+    @Override
+    public String toString() {
+        return getId();
     }
 }

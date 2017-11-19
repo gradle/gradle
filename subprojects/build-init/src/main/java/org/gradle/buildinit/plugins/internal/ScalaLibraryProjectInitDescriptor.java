@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -39,7 +41,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build")))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
@@ -52,7 +54,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
             .testRuntimeDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        buildScriptBuilder.create().generate();
+        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
 
         TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");
@@ -60,8 +62,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl buildScriptLanguage) {
-        return buildScriptLanguage == BuildInitBuildScriptDsl.GROOVY || buildScriptLanguage == BuildInitBuildScriptDsl.KOTLIN;
+    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
+        return scriptDsl == BuildInitBuildScriptDsl.GROOVY || scriptDsl == BuildInitBuildScriptDsl.KOTLIN;
     }
 
     @Override

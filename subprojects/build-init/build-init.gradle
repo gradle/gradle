@@ -18,6 +18,9 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
     compile project(':wrapper')
+
+    testFixturesImplementation project(":internalTesting")
+
     integTestRuntime project(':maven')
     integTestRuntime project(':scala')
 }

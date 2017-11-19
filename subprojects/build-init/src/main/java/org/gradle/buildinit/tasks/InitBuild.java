@@ -22,14 +22,15 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.buildinit.plugins.internal.BuildInitBuildScriptDsl;
-import org.gradle.buildinit.plugins.internal.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
@@ -41,7 +42,7 @@ import java.util.List;
  */
 public class InitBuild extends DefaultTask {
     private String type;
-    private String buildScriptsDsl;
+    private String buildScriptDsl;
     private String testFramework;
 
     @Internal
@@ -60,12 +61,15 @@ public class InitBuild extends DefaultTask {
     /**
      * The desired DSL of build scripts to create, defaults to 'groovy'.
      *
-     * This property can be set via command-line option '--build-scripts-dsl'.
+     * This property can be set via command-line option '--build-script-dsl'.
+     *
+     * @since 4.4
      */
+    @Incubating
     @Optional
     @Input
-    public String getBuildScriptsDsl() {
-        return !Strings.isNullOrEmpty(buildScriptsDsl) ? buildScriptsDsl : BuildInitBuildScriptDsl.GROOVY.getId();
+    public String getBuildScriptDsl() {
+        return !Strings.isNullOrEmpty(buildScriptDsl) ? buildScriptDsl : BuildInitBuildScriptDsl.GROOVY.getId();
     }
 
     /**
@@ -90,7 +94,7 @@ public class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         final String type = getType();
-        BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(getBuildScriptsDsl());
+        BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(getBuildScriptDsl());
         BuildInitTestFramework testFramework = BuildInitTestFramework.fromName(getTestFramework());
         final ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         if (!projectLayoutRegistry.supports(type)) {
@@ -105,7 +109,7 @@ public class InitBuild extends DefaultTask {
 
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
         if (!initDescriptor.supports(dsl)) {
-            throw new GradleException("The requested build scripts DSL '" + dsl.getId() + "' is not supported in '" + type + "' setup type");
+            throw new GradleException("The requested build script DSL '" + dsl.getId() + "' is not supported in '" + type + "' setup type");
         }
         if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
@@ -125,12 +129,24 @@ public class InitBuild extends DefaultTask {
         return getProjectLayoutRegistry().getSupportedTypes();
     }
 
-    @Option(option = "build-scripts-dsl", description = "Set alternative build scripts DSL to be used.", order = 1)
-    public void setBuildScriptsDsl(String buildScriptsDsl) {
-        this.buildScriptsDsl = buildScriptsDsl;
+    /**
+     * Set alternative build script DSL to be used.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    @Option(option = "build-script-dsl", description = "Set alternative build script DSL to be used.", order = 1)
+    public void setBuildScriptDsl(String buildScriptsDsl) {
+        this.buildScriptDsl = buildScriptsDsl;
     }
 
-    @OptionValues("build-scripts-dsl")
+    /**
+     * Available build script DSLs to be used.
+     *
+     * @since 4.4
+     */
+    @Incubating
+    @OptionValues("build-script-dsl")
     @SuppressWarnings("unused")
     public List<String> getAvailableBuildScriptDSLs() {
         return BuildInitBuildScriptDsl.listSupported();

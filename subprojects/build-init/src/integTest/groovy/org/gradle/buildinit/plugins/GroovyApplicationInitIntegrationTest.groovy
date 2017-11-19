@@ -16,28 +16,25 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import spock.lang.Unroll
 
 class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/groovy/App.groovy"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application')
+        succeeds('init', '--type', 'groovy-application', '--build-script-dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
@@ -50,35 +47,45 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using spock instead of junit"() {
+    @Unroll
+    def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock')
+        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock', '--build-script-dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("application has a greeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "specifying TestNG is not supported"() {
+    @Unroll
+    def "specifying TestNG is not supported with #scriptDsl build scripts"() {
         when:
-        fails('init', '--type', 'groovy-application', '--test-framework', 'testng')
+        fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--build-script-dsl', scriptDsl.id)
 
         then:
         errorOutput.contains("The requested test framework 'testng' is not supported in 'groovy-application' setup type")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when groovy sources detected"() {
+    @Unroll
+    def "setupProjectLayout is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/groovy/org/acme/SampleMain.groovy") << """
         package org.acme;
@@ -93,19 +100,18 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'groovy-application')
+        succeeds('init', '--type', 'groovy-application', '--build-script-dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()
         !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def assertTestPassed(String name) {
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("AppTest")
-        testResult.testClass("AppTest").assertTestPassed(name)
+        new DefaultTestExecutionResult(testDirectory).testClass("AppTest").assertTestPassed(name)
     }
 }
