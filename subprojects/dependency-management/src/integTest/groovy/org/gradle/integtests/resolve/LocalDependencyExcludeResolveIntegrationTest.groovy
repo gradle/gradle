@@ -23,7 +23,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
-class DependencyExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class LocalDependencyExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     /**
      * Dependency exclude rules defined through Gradle DSL.
      *
