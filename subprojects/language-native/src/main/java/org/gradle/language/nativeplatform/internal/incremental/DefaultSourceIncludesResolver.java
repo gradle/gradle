@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.internal.FileUtils;
+import org.gradle.language.nativeplatform.internal.Directive;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -39,35 +40,30 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     @Override
     public IncludeResolutionResult resolveInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives) {
         BuildableResult resolvedSourceIncludes = new BuildableResult(include.getValue());
-        if (include.getType() == IncludeType.SYSTEM) {
-            searchForDependency(includePaths, include.getValue(), resolvedSourceIncludes);
-        } else if (include.getType() == IncludeType.QUOTED) {
-            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-            searchForDependency(quotedSearchPath, include.getValue(), resolvedSourceIncludes);
-        } else if (include.getType() == IncludeType.MACRO) {
-            resolveMacroInclude(sourceFile, visibleIncludeDirectives, include.getValue(), resolvedSourceIncludes);
-        } else {
-            resolvedSourceIncludes.unresolved();
-        }
-
+        resolveDirective(sourceFile, include, visibleIncludeDirectives, include, resolvedSourceIncludes, includePaths);
         return resolvedSourceIncludes;
     }
 
-    private void resolveMacroInclude(File sourceFile, List<IncludeDirectives> visibleIncludeDirectives, String macroName, BuildableResult resolvedSourceIncludes) {
+    private void resolveDirective(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Directive directive, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
+        if (directive.getType() == IncludeType.SYSTEM) {
+            searchForDependency(includePaths, directive.getValue(), resolvedSourceIncludes);
+        } else if (directive.getType() == IncludeType.QUOTED) {
+            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+            searchForDependency(quotedSearchPath, directive.getValue(), resolvedSourceIncludes);
+        } else if (directive.getType() == IncludeType.MACRO) {
+            resolveMacroInclude(sourceFile, include, visibleIncludeDirectives, directive.getValue(), resolvedSourceIncludes);
+        } else {
+            resolvedSourceIncludes.unresolved();
+        }
+    }
+
+    private void resolveMacroInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, String macroName, BuildableResult resolvedSourceIncludes) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
             for (Macro macro : includeDirectives.getMacros()) {
                 if (macroName.equals(macro.getName())) {
                     found = true;
-                    if (macro.getType() == IncludeType.QUOTED) {
-                        List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-                        searchForDependency(quotedSearchPath, macro.getValue(), resolvedSourceIncludes);
-                    } else if (macro.getType() == IncludeType.MACRO) {
-                        resolveMacroInclude(sourceFile, visibleIncludeDirectives, macro.getValue(), resolvedSourceIncludes);
-                    } else {
-                        // TODO - handle system includes, which also need to be expanded when the value of a macro
-                        resolvedSourceIncludes.unresolved();
-                    }
+                    resolveDirective(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
                 }
             }
         }

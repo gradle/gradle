@@ -302,6 +302,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #include "defs.h"
             #define MACRO_USES_ANOTHER_MACRO HELLO_HEADER
             #define MACRO_USES_STRING_CONSTANT "hello.h"
+            #define MACRO_USES_SYSTEM_PATH <hello.h>
             #include ${macro}
             #include <iostream>
 
@@ -337,7 +338,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_ANOTHER_MACRO"]
+        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_SYSTEM_PATH", "MACRO_USES_ANOTHER_MACRO"]
     }
 
     @Unroll

@@ -68,7 +68,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                         String name = m.group(1);
                         String value = m.group(3);
                         Include include = DefaultInclude.parse(value == null ? "" : value, false);
-                        if (include.getType() == IncludeType.QUOTED || include.getType() == IncludeType.MACRO) {
+                        if (include.getType() != IncludeType.OTHER) {
                             macros.add(new DefaultMacro(name, include.getType(), include.getValue()));
                         } else {
                             macros.add(new UnresolveableMacro(name));

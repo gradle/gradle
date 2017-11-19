@@ -16,6 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-public interface Macro extends Directive {
-    String getName();
+/**
+ * A preprocessor directive whose value is a preprocessor expression.
+ */
+public interface Directive {
+    IncludeType getType();
+    String getValue();
 }
