@@ -31,20 +31,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RegexBackedCSourceParser implements CSourceParser {
-    private static final String INCLUDE_IMPORT_PATTERN = "#\\s*(include|import)((\"|<|(\\s+\\S)).*)";
-    private static final String MACRO_PATTERN = "#\\s*define\\s+(\\w+)(\\(\\s*\\))?(.*)";
-    private final Pattern includePattern;
-    private final Pattern macroPattern;
-
-    public RegexBackedCSourceParser() {
-        this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
-        this.macroPattern = Pattern.compile(MACRO_PATTERN, Pattern.CASE_INSENSITIVE);
-    }
-
     @Override
     public IncludeDirectives parseSource(File sourceFile) {
         List<Include> includes = Lists.newArrayList();
@@ -55,40 +43,24 @@ public class RegexBackedCSourceParser implements CSourceParser {
             try {
                 String line;
                 while ((line = bf.readLine()) != null) {
-                    line = line.trim();
-                    Matcher m = includePattern.matcher(line);
-
-                    if (m.matches()) {
-                        boolean isImport = "import".equals(m.group(1));
-                        String value = m.group(2).trim();
-                        includes.add(DefaultInclude.parse(value, isImport));
+                    int pos = consumeWhitespace(line, 0);
+                    if (pos < line.length() && line.charAt(pos) != '#') {
                         continue;
                     }
-
-                    m = macroPattern.matcher(line);
-                    if (m.matches()) {
-                        String name = m.group(1);
-                        boolean function = m.group(2) != null;
-                        String value = m.group(3);
-                        if (value != null) {
-                            value = value.trim();
-                        } else {
-                            value = "";
-                        }
-                        Include include = DefaultInclude.parse(value, false);
-                        if (include.getType() != IncludeType.OTHER) {
-                            if (function) {
-                                macroFunctions.add(new DefaultMacroFunction(name, include.getType(), include.getValue()));
-                            } else {
-                                macros.add(new DefaultMacro(name, include.getType(), include.getValue()));
-                            }
-                        } else {
-                            if (function) {
-                                macroFunctions.add(new UnresolveableMacroFunction(name));
-                            } else {
-                                macros.add(new UnresolveableMacro(name));
-                            }
-                        }
+                    pos++;
+                    pos = consumeWhitespace(line, pos);
+                    if (pos == line.length()) {
+                        continue;
+                    }
+                    if (line.startsWith("define", pos)) {
+                        pos += 6;
+                        consumeDefine(line, pos, macros, macroFunctions);
+                    } else if (line.startsWith("include", pos)) {
+                        pos += 7;
+                        consumeIncludeOrImport(line, pos, false, includes);
+                    } else if (line.startsWith("import", pos)) {
+                        pos += 6;
+                        consumeIncludeOrImport(line, pos, true, includes);
                     }
                 }
             } finally {
@@ -98,5 +70,119 @@ public class RegexBackedCSourceParser implements CSourceParser {
             throw new UncheckedIOException(e);
         }
         return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
+    }
+
+    private void consumeIncludeOrImport(String line, int startPos, boolean isImport, List<Include> includes) {
+        if (startPos == line.length()) {
+            // No include expression
+            return;
+        }
+        if (consumeIdentifier(line, startPos) != startPos) {
+            // Some other directive
+            return;
+        }
+        int startValue = consumeWhitespace(line, startPos);
+        String value = line.substring(startValue).trim();
+        if (value.isEmpty()) {
+            // No value
+            return;
+        }
+        includes.add(DefaultInclude.parse(value, isImport));
+    }
+
+    private void consumeDefine(String line, int startPos, List<Macro> macros, List<MacroFunction> macroFunctions) {
+        int startName = consumeWhitespace(line, startPos);
+        if (startName == startPos) {
+            // No separating whitespace
+            return;
+        }
+        int endName = consumeIdentifier(line, startName);
+        if (endName == startName) {
+            // No macro name
+            return;
+        }
+        String name = line.substring(startName, endName);
+        if (endName < line.length() && line.charAt(endName) == '(') {
+            // A function
+            int pos = consumeWhitespace(line, endName + 1);
+            int next = consumeIdentifier(line, pos);
+            int parameters = 0;
+            if (next != pos) {
+                while (true) {
+                    parameters++;
+                    pos = consumeWhitespace(line, next);
+                    if (pos == line.length()) {
+                        // Unexpected end of line
+                        return;
+                    }
+                    if (line.charAt(pos) == ')') {
+                        break;
+                    }
+                    if (line.charAt(pos) != ',') {
+                        // Missing ','
+                        return;
+                    }
+                    pos++;
+                    pos = consumeWhitespace(line, pos);
+                    next = consumeIdentifier(line, pos);
+                    if (next == pos) {
+                        // Not an identifier
+                        return;
+                    }
+                }
+            }
+            pos = consumeWhitespace(line, pos);
+            if (pos == line.length() || line.charAt(pos) != ')') {
+                // Badly form args list
+                return;
+            }
+            int endArgs = pos + 1;
+            String value = line.substring(endArgs).trim();
+            Include include = DefaultInclude.parse(value, false);
+            if (include.getType() == IncludeType.OTHER) {
+                macroFunctions.add(new UnresolveableMacroFunction(name, parameters));
+            } else {
+                macroFunctions.add(new DefaultMacroFunction(name, parameters, include.getType(), include.getValue()));
+            }
+        } else {
+            // An object-like macro
+            String value = line.substring(endName).trim();
+            Include include = DefaultInclude.parse(value, false);
+            if (include.getType() == IncludeType.OTHER) {
+                macros.add(new UnresolveableMacro(name));
+            } else {
+                macros.add(new DefaultMacro(name, include.getType(), include.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Finds the end of an identifier.
+     */
+    static int consumeIdentifier(CharSequence value, int startOffset) {
+        int pos = startOffset;
+        while (pos < value.length()) {
+            char ch = value.charAt(pos);
+            if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '$') {
+                break;
+            }
+            pos++;
+        }
+        return pos;
+    }
+
+    /**
+     * Finds the end of a sequence of whitespace characters.
+     */
+    static int consumeWhitespace(CharSequence value, int startOffset) {
+        int pos = startOffset;
+        while (pos < value.length()) {
+            char ch = value.charAt(pos);
+            if (!Character.isWhitespace(ch) && ch != 0) {
+                break;
+            }
+            pos++;
+        }
+        return pos;
     }
 }

@@ -22,11 +22,13 @@ import org.gradle.language.nativeplatform.internal.MacroFunction;
 public class DefaultMacroFunction implements MacroFunction {
     private final String name;
     private final IncludeType includeType;
+    private final int parameters;
     private final String value;
 
-    public DefaultMacroFunction(String name, IncludeType includeType, String value) {
+    public DefaultMacroFunction(String name, int parameters, IncludeType includeType, String value) {
         this.name = name;
         this.includeType = includeType;
+        this.parameters = parameters;
         this.value = value;
     }
 
@@ -46,6 +48,11 @@ public class DefaultMacroFunction implements MacroFunction {
     }
 
     @Override
+    public int getParameterCount() {
+        return parameters;
+    }
+
+    @Override
     public IncludeType getType() {
         return includeType;
     }
@@ -60,7 +67,7 @@ public class DefaultMacroFunction implements MacroFunction {
         }
 
         DefaultMacroFunction other = (DefaultMacroFunction) obj;
-        return name.equals(other.name) && value.equals(other.value);
+        return name.equals(other.name) && value.equals(other.value) && parameters == other.parameters;
     }
 
     @Override

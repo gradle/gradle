@@ -21,14 +21,21 @@ import org.gradle.language.nativeplatform.internal.MacroFunction;
 
 public class UnresolveableMacroFunction implements MacroFunction {
     private final String name;
+    private final int parameters;
 
-    public UnresolveableMacroFunction(String name) {
+    public UnresolveableMacroFunction(String name, int parameters) {
         this.name = name;
+        this.parameters = parameters;
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public int getParameterCount() {
+        return parameters;
     }
 
     @Override
@@ -55,7 +62,7 @@ public class UnresolveableMacroFunction implements MacroFunction {
             return false;
         }
         UnresolveableMacroFunction other = (UnresolveableMacroFunction) obj;
-        return other.name.equals(name);
+        return other.name.equals(name) && parameters == other.parameters;
     }
 
     @Override

@@ -27,7 +27,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class RegexBackedCSourceParserTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     CSourceParser parser = new RegexBackedCSourceParser()
 
     protected TestFile getSourceFile() {
@@ -77,17 +78,17 @@ class RegexBackedCSourceParserTest extends Specification {
         return new DefaultMacro(name, include.type, include.value)
     }
 
-    MacroFunction macroFunction(String name, String value) {
+    MacroFunction macroFunction(String name, int parameters = 0, String value) {
         def include = DefaultInclude.parse(value, false)
-        return new DefaultMacroFunction(name, include.type, include.value)
+        return new DefaultMacroFunction(name, parameters, include.type, include.value)
     }
 
     Macro unresolvedMacro(String name) {
         return new UnresolveableMacro(name)
     }
 
-    MacroFunction unresolvedMacroFunction(String name) {
-        return new UnresolveableMacroFunction(name)
+    MacroFunction unresolvedMacroFunction(String name, int parameters = 0) {
+        return new UnresolveableMacroFunction(name, parameters)
     }
 
     List<Macro> getMacros() {
@@ -184,12 +185,13 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
 
         where:
-        include   | macro
-        'A()'     | 'A'
-        'A( )'    | 'A'
-        'ABC( )'  | 'ABC'
-        '_A$2( )' | '_A$2'
-        'abc( )'  | 'abc'
+        include       | macro
+        'A()'         | 'A'
+        'A( )'        | 'A'
+        'ABC( )'      | 'ABC'
+        '_A$2( )'     | '_A$2'
+        'abc( )'      | 'abc'
+        'a12  \t(\t)' | 'a12'
     }
 
     def "finds other includes"() {
@@ -503,6 +505,8 @@ include
 # include
 # include    // only white space
 # import
+# import   /*
+*/
 
 void # include <thing>
 
@@ -598,7 +602,7 @@ st3"
   #/*
   
   
-  */ define \\
+  */\u0000define \\
         /*
          */STRING_2\\
 /*         
@@ -668,7 +672,7 @@ st3"
         macroFunctions.empty
     }
 
-    def "finds function-like macro directive whose value is a string constant"() {
+    def "finds function-like macro directive with no parameters whose value is a string constant"() {
         when:
         sourceFile << """
 #define A() "abc"
@@ -677,6 +681,68 @@ st3"
         then:
         macros.empty
         macroFunctions == [macroFunction('A', '"abc"')]
+    }
+
+    def "finds function-like macro directive with no parameters whose value is empty"() {
+        when:
+        sourceFile << """
+#define A()
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction('A')]
+    }
+
+    def "finds function-like macro directive with multiple parameters whose value is a string constant"() {
+        when:
+        sourceFile << """
+#define ${definition} "abc"
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction(macro, parameters, '"abc"')]
+
+        where:
+        definition   | macro | parameters
+        'A(X)'       | 'A'   | 1
+        'ABC(X,Y)'   | 'ABC' | 2
+        '_a$(X,Y,Z)' | '_a$' | 3
+    }
+
+    def "finds function-like macro directive with multiple parameters whose value is empty"() {
+        when:
+        sourceFile << """
+#define ${definition}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction(macro, parameters)]
+
+        where:
+        definition   | macro | parameters
+        'A(X)'       | 'A'   | 1
+        'ABC(X,Y)'   | 'ABC' | 2
+        '_a$(X,Y,Z)' | '_a$' | 3
+    }
+
+    def "handles whitespace in function-like macro definition"() {
+        when:
+        sourceFile << """
+#define ${definition} "abc"
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction(macro, parameters, '"abc"')]
+
+        where:
+        definition             | macro | parameters
+        'A(  \t)'              | 'A'   | 0
+        'B( X  \t)'            | 'B'   | 1
+        'ABC( X  \t,  \t Y  )' | 'ABC' | 2
     }
 
     def "handles various separators in an function-like macro directive"() {
@@ -708,18 +774,20 @@ st3"
         when:
         sourceFile << """
 #define
+#define  // white space
 #define ()
 #define ( _
+#define ( _ )
 #define X(
-#define X(abc)
+#define X(abc
+#define X( ,
+#define X( abc,
+#define X( abc, ,
 # define @(Y) Z
 """
 
         then:
-        macros == [
-            unresolvedMacro("X"),
-            unresolvedMacro("X")
-        ]
+        macros.empty
         macroFunctions.empty
     }
 }

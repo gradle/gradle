@@ -292,6 +292,17 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations.empty
     }
 
+    def "macro function does not match macro function with different number of parameters"() {
+        given:
+        macroFunctions << macroFunction("TEST", 1,'"test.h"')
+
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
     def "marks macro include as unresolved when there are no definitions of the macro"() {
         expect:
         def result = resolve(include('TEST'))
@@ -317,9 +328,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
         new DefaultMacro(name, include.type, include.value)
     }
 
-    def macroFunction(String name, String value) {
+    def macroFunction(String name, int parameters = 0, String value) {
         def include = DefaultInclude.parse(value, false)
-        new DefaultMacroFunction(name, include.type, include.value)
+        new DefaultMacroFunction(name, parameters, include.type, include.value)
     }
 
     def unresolveableMacro(String name) {

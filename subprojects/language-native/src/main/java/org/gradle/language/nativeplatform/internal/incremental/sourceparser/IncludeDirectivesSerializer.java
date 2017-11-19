@@ -124,12 +124,14 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             byte tag = decoder.readByte();
             if (tag == RESOLVED) {
                 String name = decoder.readString();
+                int parameters = decoder.readSmallInt();
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacroFunction(name, type, value);
+                return new DefaultMacroFunction(name, parameters, type, value);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
-                return new UnresolveableMacroFunction(name);
+                int parameters = decoder.readSmallInt();
+                return new UnresolveableMacroFunction(name, parameters);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -140,11 +142,13 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             if (value instanceof DefaultMacroFunction) {
                 encoder.writeByte(RESOLVED);
                 encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
                 enumSerializer.write(encoder, value.getType());
                 encoder.writeString(value.getValue());
             } else if (value instanceof UnresolveableMacroFunction) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
             } else {
                 throw new UnsupportedOperationException();
             }

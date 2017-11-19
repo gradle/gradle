@@ -66,31 +66,18 @@ public class DefaultInclude implements Include {
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
             return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
         }
-        int pos = 0;
-        while (pos < value.length()) {
-            char ch = value.charAt(pos);
-            if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '$') {
-                break;
-            }
-            pos++;
-        }
+        int pos = RegexBackedCSourceParser.consumeIdentifier(value, 0);
         if (pos > 0 && pos == value.length()) {
             return DefaultInclude.create(value, isImport, IncludeType.MACRO);
         }
         if (pos > 0 && pos != value.length()) {
             int endPos = pos;
+            pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
             if (value.charAt(pos) == '(') {
                 pos++;
-                while (pos < value.length() && Character.isWhitespace(value.charAt(pos))) {
-                    pos++;
-                }
-                if (pos < value.length() && value.charAt(pos) == ')') {
-                    while (pos < value.length() && Character.isWhitespace(value.charAt(pos))) {
-                        pos++;
-                    }
-                    if (pos == value.length() - 1) {
-                        return DefaultInclude.create(value.substring(0, endPos), isImport, IncludeType.MACRO_FUNCTION);
-                    }
+                pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
+                if (pos == value.length() - 1 && value.charAt(pos) == ')') {
+                    return DefaultInclude.create(value.substring(0, endPos), isImport, IncludeType.MACRO_FUNCTION);
                 }
             }
         }

@@ -79,7 +79,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
-                if (directive.getValue().equals(macro.getName())) {
+                if (directive.getValue().equals(macro.getName()) && macro.getParameterCount() == 0) {
                     found = true;
                     resolveDirective(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
                 }

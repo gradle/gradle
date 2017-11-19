@@ -21,4 +21,5 @@ package org.gradle.language.nativeplatform.internal;
  */
 public interface MacroFunction extends Directive {
     String getName();
+    int getParameterCount();
 }
