@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
@@ -98,9 +99,12 @@ public class HttpBuildCacheService implements BuildCacheService {
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return false;
             } else {
-                return throwHttpStatusCodeException(
-                    statusCode,
-                    String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase()));
+                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                if (isRedirect(statusCode)) {
+                    return handleRedirect(uri, response, statusCode, defaultMessage);
+                } else {
+                    return throwHttpStatusCodeException(statusCode, defaultMessage);
+                }
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
@@ -109,6 +113,22 @@ public class HttpBuildCacheService implements BuildCacheService {
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    private boolean handleRedirect(URI uri, CloseableHttpResponse response, int statusCode, String defaultMessage) {
+        final Header locationHeader = response.getFirstHeader("location");
+        if (locationHeader == null) {
+            return throwHttpStatusCodeException(statusCode, defaultMessage);
+        }
+        try {
+            throw new BuildCacheException(String.format("Received redirect (%d) to %s when loading entry from '%s'", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
+        } catch (URISyntaxException e) {
+            return throwHttpStatusCodeException(statusCode, defaultMessage);
+        }
+    }
+
+    private boolean isRedirect(int statusCode) {
+        return statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_TEMPORARY_REDIRECT;
     }
 
     private void addDiagnosticHeaders(HttpMessage request) {
@@ -157,10 +177,12 @@ public class HttpBuildCacheService implements BuildCacheService {
             }
             int statusCode = statusLine.getStatusCode();
             if (!isHttpSuccess(statusCode)) {
-                throwHttpStatusCodeException(
-                    statusCode,
-                    String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase())
-                );
+                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                if (isRedirect(statusCode)) {
+                    handleRedirect(uri, response, statusCode, defaultMessage);
+                } else {
+                    throwHttpStatusCodeException(statusCode, defaultMessage);
+                }
             }
         } catch (UnknownHostException e) {
             throw new UncheckedException(e);

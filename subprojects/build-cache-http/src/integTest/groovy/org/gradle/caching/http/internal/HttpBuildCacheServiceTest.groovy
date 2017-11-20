@@ -102,7 +102,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status 302: Found"
+        exception.message == "Received redirect (302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'"
     }
 
     private static BuildCacheEntryWriter writer(byte[] content) {
@@ -148,7 +148,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status 302: Found"
+        exception.message == "Received redirect (302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'"
     }
 
     def "reports cache miss on 404"() {
