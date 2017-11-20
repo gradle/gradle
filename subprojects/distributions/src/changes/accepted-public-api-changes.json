@@ -1,4 +1,27 @@
 {
     "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFilter()",
+            "acceptation": "Method was pulled up from Test class and was introduce in 1.10"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setTestNameIncludePatterns(java.util.List)",
+            "acceptation": "Method was pulled up from Test class"
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Constructor AbstractTestTask",
+            "acceptation": "AbstractTestTask class is not intended for implementation by build script or plugin authors",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Constructor org.gradle.api.tasks.testing.AbstractTestTask(java.lang.Class)",
+            "acceptation": "AbstractTestTask class is not intended for implementation by build script or plugin authors"
+        }
     ]
 }

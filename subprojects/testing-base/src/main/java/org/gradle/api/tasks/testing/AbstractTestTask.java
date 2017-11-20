@@ -98,7 +98,7 @@ import java.util.Map;
  * @since 4.4
  */
 public abstract class AbstractTestTask<T extends AbstractTestTask> extends ConventionTask implements VerificationTask {
-    protected final DefaultTestFilter filter;
+    private final DefaultTestFilter filter;
     private final Class<T> taskType;
     private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
@@ -487,7 +487,13 @@ public abstract class AbstractTestTask<T extends AbstractTestTask> extends Conve
             + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
     }
 
+    /**
+     * Returns the reasons for no matching test error.
+     *
+     * @since 4.5
+     */
     @Internal
+    @Incubating
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = Lists.newArrayList();
         if (!getFilter().getIncludePatterns().isEmpty()) {
