@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -30,6 +31,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
@@ -38,8 +40,8 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
+import java.util.List;
 
 public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
@@ -126,9 +128,8 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private ExecHandle executeTest(String testName) {
-            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
-                execHandleBuilder.setArgs(Arrays.asList(testName));
-            }
+            execHandleBuilder.setArgs(toTestArgs(testName));
+
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
             TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
@@ -136,6 +137,17 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
             ExecHandle handle = execHandleBuilder.build();
             return handle.start();
+        }
+
+        private static List<String> toTestArgs(String testName) {
+            List<String> args = Lists.newArrayList();
+            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
+                if (OperatingSystem.current().isMacOsX()) {
+                    args.add("-XCTest");
+                }
+                args.add(testName);
+            }
+            return args;
         }
 
         @Override

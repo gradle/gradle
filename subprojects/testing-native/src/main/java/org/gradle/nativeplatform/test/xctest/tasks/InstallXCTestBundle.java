@@ -80,14 +80,7 @@ public class InstallXCTestBundle extends DefaultTask {
             "#!/bin/sh"
                 + "\nAPP_BASE_NAME=`dirname \"$0\"`"
                 + "\nXCTEST_LOCATION=`xcrun --find xctest`"
-                + "\n"
-                + "\nARGUMENTS=(\"$@\")"
-                + "\nTEST_FILTER=\"\""
-                + "\nif [ \"${#ARGUMENTS[@]}\" -eq 1 ]; then"
-                + "\n    TEST_FILTER=\"-XCTest ${ARGUMENTS[0]}\""
-                + "\nfi"
-                + "\n"
-                + "\nexec \"$XCTEST_LOCATION\" $TEST_FILTER \"$APP_BASE_NAME/" + bundleDir.getName() + "\""
+                + "\nexec \"$XCTEST_LOCATION\" \"$@\" \"$APP_BASE_NAME/" + bundleDir.getName() + "\""
                 + "\n";
 
         GFileUtils.writeFile(runScriptText, runScript);
