@@ -88,6 +88,20 @@ This value must contain an array with zero or more elements. Each element must b
 - `version`: The version constraint of the dependency. Has the same meaning as in the Gradle DSL. A version constraint consists of:
    - `prefers`: The preferred version for this dependency
    - `rejects`: An array of rejected versions for this dependency. Can be omitted.
+- `excludes`: optional. Defines the exclusions that apply to this dependency. 
+
+#### `excludes` value
+
+This value must contain an array with zero or more elements. Each element has the same meaning as `exclude` in the Gradle DSL.
+
+Each element must be an object with the of the following values:
+
+- `group`: The group to exclude from transitive dependencies, or wildcard '*' if any group may be excluded.
+- `module`: The module to exclude from transitive dependencies, or wildcard '*' if any module may be excluded.
+
+An exclude that has a wildcard value for both `group` and `module` will exclude _all_ transitive dependencies.
+
+#### `exclude `
 
 ### `files` value
 
@@ -131,7 +145,14 @@ This value must contain an array with zero or more elements. Each element must b
                 }
             ],
             "dependencies": [
-                { "group": "some.group", "module": "other-lib", "version": { "prefers": "3.4" } }
+                { 
+                    "group": "some.group", 
+                    "module": "other-lib", 
+                    "version": { "prefers": "3.4" } 
+                    "excludes": [
+                        { "group": "*", "module": "excluded-lib" }
+                    ]
+                }
             ]
         },
         {
@@ -149,7 +170,11 @@ This value must contain an array with zero or more elements. Each element must b
                 }
             ],
             "dependencies": [
-                { "group": "some.group", "module": "other-lib", "version": { "prefers": "3.4", "rejects": ["3.4.1"] } }
+                { 
+                    "group": "some.group", 
+                    "module": "other-lib", 
+                    "version": { "prefers": "3.4", "rejects": ["3.4.1"] } 
+                }
             ]
         }
     ]
