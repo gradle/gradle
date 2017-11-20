@@ -267,10 +267,10 @@ dependencies {
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    def "skips test tasks when no source is available for Swift executable"() {
+    def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -281,12 +281,12 @@ apply plugin: 'swift-executable'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    def "can test public and internal features of a Swift executable"() {
+    def "can test public and internal features of a Swift application"() {
         given:
         def app = new SwiftAppWithXCTest()
         settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
         app.writeToProject(testDirectory)
 
@@ -298,13 +298,13 @@ apply plugin: 'swift-executable'
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can test public and internal features of a Swift executable with a single source file"() {
+    def "can test public and internal features of a Swift application with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
         def test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply)
         settingsFile << "rootProject.name = '${main.projectName}'"
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
         main.writeToProject(testDirectory)
         test.writeToProject(testDirectory)
@@ -318,12 +318,12 @@ apply plugin: 'swift-executable'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can test features of a Swift executable using a single test source file"() {
+    def "can test features of a Swift application using a single test source file"() {
         given:
         def app = new SwiftAppWithSingleXCTestSuite()
         settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
         app.writeToProject(testDirectory)
 
@@ -491,7 +491,7 @@ apply plugin: 'swift-library'
             include 'hello', 'log'
         """
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation project(':hello')
             }
@@ -506,7 +506,7 @@ apply plugin: 'swift-library'
             }
         """
 
-        app.executable.writeToProject(testDirectory)
+        app.application.writeToProject(testDirectory)
         app.greeter.writeToProject(file('hello'))
         app.logger.writeToProject(file('log'))
 
@@ -537,8 +537,8 @@ apply plugin: 'swift-library'
             include 'hello', 'log'
         """
         buildFile << """
-            apply plugin: 'swift-executable'
-            executable {
+            apply plugin: 'swift-application'
+            application {
                 source.from rootProject.file('Sources/App')
             }
             xctest {
@@ -565,7 +565,7 @@ apply plugin: 'swift-library'
             }
         """
 
-        app.executable.writeToProject(file('Sources/App'))
+        app.application.writeToProject(file('Sources/App'))
         app.greeter.writeToProject(file('Sources/Hello'))
         app.logger.writeToProject(file('Sources/Log'))
 

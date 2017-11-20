@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
@@ -52,7 +52,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.swiftSource.files == [src] as Set
     }
 
-    def "sets tested component to main component when applying swift library plugin"() {
+    def "sets tested component to main component when applying Swift library plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
@@ -66,7 +66,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == project.library
     }
 
-    def "sets tested component to swift executable when applying swift executable plugin"() {
+    def "sets tested component to Swift application when applying swift application plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 
@@ -74,7 +74,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == null
 
         when:
-        project.pluginManager.apply(SwiftExecutablePlugin)
+        project.pluginManager.apply(SwiftApplicationPlugin)
 
         then:
         project.xctest.testedComponent.orNull == project.executable

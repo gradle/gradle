@@ -28,11 +28,11 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile, link and install tasks when no source"() {
         given:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
         """
 
         expect:
@@ -45,7 +45,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         and:
@@ -65,7 +65,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -99,7 +99,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -139,7 +139,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         expect:
@@ -159,7 +159,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
          """
 
@@ -188,10 +188,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
 
             task buildDebug {
-                dependsOn executable.debugExecutable.executableFile
+                dependsOn application.debugExecutable.executableFile
             }
          """
 
@@ -209,10 +209,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
 
             task compileDebug {
-                dependsOn executable.debugExecutable.objects
+                dependsOn application.debugExecutable.objects
             }
          """
 
@@ -231,10 +231,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
 
             task install {
-                dependsOn executable.debugExecutable.installDirectory
+                dependsOn application.debugExecutable.installDirectory
             }
          """
 
@@ -258,7 +258,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         expect:
@@ -279,8 +279,8 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
-            executable {
+            apply plugin: 'swift-application'
+            application {
                 source.from 'Sources'
             }
          """
@@ -307,8 +307,8 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
-            executable {
+            apply plugin: 'swift-application'
+            application {
                 source {
                     from('src/main.swift')
                     from('src/one.swift')
@@ -334,7 +334,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             buildDir = 'output'
          """
 
@@ -357,8 +357,8 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
-            executable.module = 'TestApp'
+            apply plugin: 'swift-application'
+            application.module = 'TestApp'
          """
 
         expect:
@@ -378,7 +378,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
             compileDebugSwift.moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
@@ -402,7 +402,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -431,7 +431,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -448,7 +448,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 """
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
@@ -479,7 +479,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -492,7 +492,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
             }
 """
         app.library.writeToProject(file("hello"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         expect:
         succeeds ":app:linkRelease"
@@ -517,7 +517,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -535,7 +535,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 """
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
@@ -557,11 +557,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
-                executable {
+                application {
                     source.from '../Sources/${app.main.sourceFile.name}'
                 }
             }
@@ -583,7 +583,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 """
         app.library.writeToSourceDir(file("Sources"))
         app.logLibrary.writeToSourceDir(file("Sources"))
-        app.executable.writeToSourceDir(file("Sources"))
+        app.application.writeToSourceDir(file("Sources"))
 
         expect:
         succeeds ":app:assemble"
@@ -609,7 +609,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         given:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation 'test:hello:1.2'
             }
@@ -628,7 +628,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
-        app.executable.writeToProject(testDirectory)
+        app.application.writeToProject(testDirectory)
 
         expect:
         succeeds ":assemble"

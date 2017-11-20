@@ -59,7 +59,7 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
                     }
                 }
             }
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
         """
 
         then:
@@ -89,7 +89,7 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
                     }
                 }
             }
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
         """
 
         then:

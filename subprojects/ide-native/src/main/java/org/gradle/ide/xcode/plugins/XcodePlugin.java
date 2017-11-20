@@ -61,7 +61,7 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
@@ -180,9 +180,9 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureForSwiftPlugin(final Project project) {
-        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
+        project.getPlugins().withType(SwiftApplicationPlugin.class, new Action<SwiftApplicationPlugin>() {
             @Override
-            public void execute(SwiftExecutablePlugin plugin) {
+            public void execute(SwiftApplicationPlugin plugin) {
                 configureXcodeForSwift(project, PBXTarget.ProductType.TOOL);
             }
         });
@@ -219,7 +219,7 @@ public class XcodePlugin extends IdePlugin {
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getGroups().getSources().from(sources);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
+        // TODO - Reuse the logic from `swift-application` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");

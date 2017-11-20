@@ -38,7 +38,7 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -212,7 +212,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project) {
-        project.getPlugins().withType(SwiftExecutablePlugin.class, configureTestSuiteWithTestedComponent(project));
+        project.getPlugins().withType(SwiftApplicationPlugin.class, configureTestSuiteWithTestedComponent(project));
         project.getPlugins().withType(SwiftLibraryPlugin.class, configureTestSuiteWithTestedComponent(project));
     }
 

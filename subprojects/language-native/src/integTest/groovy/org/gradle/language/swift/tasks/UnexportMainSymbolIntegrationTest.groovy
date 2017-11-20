@@ -28,7 +28,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
     def setup() {
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
-            apply plugin: "swift-executable"
+            apply plugin: "swift-application"
             task unexport(type: UnexportMainSymbol) {
                 source components.main.developmentBinary.objects
             }

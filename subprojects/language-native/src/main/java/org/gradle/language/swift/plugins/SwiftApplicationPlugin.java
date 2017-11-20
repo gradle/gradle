@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftApplication;
-import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.util.GUtil;
 
@@ -35,12 +34,12 @@ import javax.inject.Inject;
  *
  * <p>Adds compile, link and install tasks to build the executable. Defaults to looking for source files in `src/main/swift`.</p>
  *
- * <p>Adds a {@link SwiftComponent} extension to the project to allow configuration of the executable.</p>
+ * <p>Adds a {@link SwiftApplication} extension to the project to allow configuration of the executable.</p>
  *
  * @since 4.1
  */
 @Incubating
-public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
+public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
     /**
@@ -49,7 +48,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public SwiftExecutablePlugin(FileOperations fileOperations) {
+    public SwiftApplicationPlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
     }
 
