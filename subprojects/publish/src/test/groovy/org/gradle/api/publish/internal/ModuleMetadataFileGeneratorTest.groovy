@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -213,11 +214,20 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d1.group >> "g1"
         d1.name >> "m1"
         d1.version >> "v1"
+        d1.transitive >> true
 
         def d2 = Stub(ExternalDependency)
         d2.group >> "g2"
         d2.name >> "m2"
         d2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])
+        d2.transitive >> false
+
+        def d3 = Stub(ExternalDependency)
+        d3.group >> "g3"
+        d3.name >> "m3"
+        d3.versionConstraint >> prefers("v3")
+        d3.transitive >> true
+        d3.excludeRules >> [new DefaultExcludeRule("g4", "m4"), new DefaultExcludeRule(null, "m5"), new DefaultExcludeRule("g5", null)]
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -226,7 +236,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
-        v2.dependencies >> [d2]
+        v2.dependencies >> [d2, d3]
 
         component.usages >> [v1, v2]
 
@@ -280,7 +290,35 @@ class ModuleMetadataFileGeneratorTest extends Specification {
               "v3",
               "v4"
             ]
-          }
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "g3",
+          "module": "m3",
+          "version": {
+            "prefers": "v3",
+            "rejects": []
+          },
+          "excludes": [
+            {
+              "group": "g4",
+              "module": "m4"
+            },
+            {
+              "group": "*",
+              "module": "m5"
+            },
+            {
+              "group": "g5",
+              "module": "*"
+            }
+          ]
         }
       ]
     }

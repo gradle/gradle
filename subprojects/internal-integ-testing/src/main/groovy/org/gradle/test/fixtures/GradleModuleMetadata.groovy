@@ -131,7 +131,10 @@ class GradleModuleMetadata {
         }
 
         List<Dependency> getDependencies() {
-            return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[], it.excludes?:[]) }
+            return (values.dependencies ?: []).collect {
+                def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
+                new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[], exclusions)
+            }
         }
 
         List<File> getFiles() {
