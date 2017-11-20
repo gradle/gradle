@@ -63,7 +63,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--build-script-dsl'.
      *
-     * @since 4.4
+     * @since 4.5
      */
     @Incubating
     @Optional
@@ -132,7 +132,7 @@ public class InitBuild extends DefaultTask {
     /**
      * Set alternative build script DSL to be used.
      *
-     * @since 4.4
+     * @since 4.5
      */
     @Incubating
     @Option(option = "build-script-dsl", description = "Set alternative build script DSL to be used.", order = 1)
@@ -143,7 +143,7 @@ public class InitBuild extends DefaultTask {
     /**
      * Available build script DSLs to be used.
      *
-     * @since 4.4
+     * @since 4.5
      */
     @Incubating
     @OptionValues("build-script-dsl")
