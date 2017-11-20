@@ -18,10 +18,11 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class MavenProjectsCreatorSpec extends Specification {
 
@@ -115,10 +116,11 @@ class MavenProjectsCreatorSpec extends Specification {
         ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
     }
 
-    def "can translate dependency assigned to Maven provided scope into compileOnly"() {
+    @Unroll
+    def "can translate dependency assigned to Maven provided scope into compileOnly with #scriptDsl build scripts"() {
         given:
-            def pom = temp.file("pom.xml")
-            pom.text = """<project>
+        def pom = temp.file("pom.xml")
+        pom.text = """<project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>util</groupId>
   <artifactId>util</artifactId>
@@ -133,13 +135,19 @@ class MavenProjectsCreatorSpec extends Specification {
     </dependency>
   </dependencies>
 </project>"""
+
+        and:
         def mavenProjects = creator.create(settings.buildSettings(), pom)
-        def converter = new Maven2Gradle(BuildInitBuildScriptDsl.GROOVY, mavenProjects, temp.testDirectory)
+        def converter = new Maven2Gradle(scriptDsl, mavenProjects, temp.testDirectory)
+        def dslFixture = ScriptDslFixture.of(scriptDsl, temp.testDirectory)
 
         when:
-        def gradleProject = converter.convert()
+        converter.convert()
 
         then:
-        gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
+        dslFixture.buildFile.assertContents(dslFixture.containsConfigurationDependency('compileOnly', 'org.gradle', 'build-init', '1.0.0'))
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 }
