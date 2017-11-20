@@ -362,7 +362,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Nullable
     @Override
     public ImmutableAttributes getAttributes() {
-        return null;
+        return ImmutableAttributes.EMPTY;
     }
 
     /*
