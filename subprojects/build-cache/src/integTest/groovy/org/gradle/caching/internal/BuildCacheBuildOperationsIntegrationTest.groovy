@@ -76,12 +76,12 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
                 }
 
                 // @Override
-                void load(BuildCacheKey key, Action<? super File> reader) {
+                void loadLocally(BuildCacheKey key, Action<? super File> reader) {
                     ${isLocal ? loadBody ?: "" : ""}
                 }
     
                 // @Override
-                void store(BuildCacheKey key, File file) {
+                void storeLocally(BuildCacheKey key, File file) {
                     ${isLocal ? storeBody ?: "" : ""}
                 }
     

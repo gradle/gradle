@@ -226,12 +226,12 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     static class TestLocalBuildCacheService implements LocalBuildCacheService, BuildCacheService {
         @Override
-        void store(BuildCacheKey key, File file) {
+        void storeLocally(BuildCacheKey key, File file) {
 
         }
 
         @Override
-        void load(BuildCacheKey key, Action<? super File> reader) {
+        void loadLocally(BuildCacheKey key, Action<? super File> reader) {
 
         }
 

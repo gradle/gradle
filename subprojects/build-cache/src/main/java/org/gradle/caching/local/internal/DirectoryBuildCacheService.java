@@ -86,12 +86,12 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
         LoadAction loadAction = new LoadAction(reader);
-        load(key, loadAction);
+        loadLocally(key, loadAction);
         return loadAction.loaded;
     }
 
     @Override
-    public void load(final BuildCacheKey key, final Action<? super File> reader) {
+    public void loadLocally(final BuildCacheKey key, final Action<? super File> reader) {
         // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(new Runnable() {
             @Override
@@ -147,13 +147,13 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
                     throw UncheckedException.throwAsUncheckedException(ex);
                 }
 
-                store(key, file);
+                storeLocally(key, file);
             }
         });
     }
 
     @Override
-    public void store(final BuildCacheKey key, final File file) {
+    public void storeLocally(final BuildCacheKey key, final File file) {
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
