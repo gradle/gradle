@@ -6,7 +6,7 @@ First and foremost, this release of Gradle features some exciting improvements f
  * The `eclipse` plugin now provides separate output folders. This removes test dependencies from the runtime classpath in Eclipse and should make developing applications with STS and [Buildship](http://eclipse.org/buildship) much more pleasant.
  * [Visual Studio 2017 is now supported](#visual-studio-2017-support). Please read details about `vswhere` and [VS toolchain discovery changes](#changes-to-visual-studio-toolchain-discovery) if you plan to use Gradle with VS 2017.
 
-No discussion about IDE support for Gradle would be complete without mentioning improvements to the Kotlin DSL. Version 0.13 is included in Gradle 4.4 and provides support for writing `settings.gradle.kts` files, build scripts written in Kotlin 1.1.60, improvements to `plugins {}` DSL use, and more! See the [Kotlin DSL 0.13 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.13.0) for more details.
+No discussion about IDE support for Gradle would be complete without mentioning improvements to the Kotlin DSL. Version 0.13 is included in Gradle 4.4 and provides support for writing `settings.gradle.kts` files, Kotlin standard library extensions to the Java 7 and Java 8 APIs for use in build scripts, improvements to the `plugins {}` DSL, and more! See the [Kotlin DSL 0.13 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.13.0) for more details.
 
 C and C++ developers will enjoy better [incremental builds and build cache support for C/C++](#c/c++-incremental-build-improvements) because this version of Gradle takes compiler version and system headers into account for up-to-date checks. 
 
