@@ -45,6 +45,7 @@ import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
+import org.gradle.ide.xcode.internal.XcodePropertyAdapter;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
@@ -426,17 +427,19 @@ public class XcodePlugin extends IdePlugin {
     private static class XcodeBridge implements Action<String> {
         private final DefaultXcodeProject xcodeProject;
         private final Project project;
+        private final XcodePropertyAdapter xcodePropertyAdapter;
 
         public XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
             this.xcodeProject = xcodeProject;
             this.project = project;
+            this.xcodePropertyAdapter = new XcodePropertyAdapter(project);
         }
 
         @Override
         public void execute(String taskName) {
             if (taskName.startsWith("_xcode")) {
                 Task bridgeTask = project.getTasks().create(taskName);
-                String action = System.getenv("ACTION");
+                String action = xcodePropertyAdapter.getAction();
                 if (action.equals("clean")) {
                     bridgeTask.dependsOn("clean");
                 } else if ("".equals(action) || "build".equals(action)) {
@@ -454,7 +457,7 @@ public class XcodePlugin extends IdePlugin {
         }
 
         private XcodeTarget findXcodeTarget() {
-            final String productName = System.getenv("PRODUCT_NAME");
+            final String productName = xcodePropertyAdapter.getProductName();
             final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), new Spec<XcodeTarget>() {
                 @Override
                 public boolean isSatisfiedBy(XcodeTarget target) {
@@ -469,7 +472,7 @@ public class XcodePlugin extends IdePlugin {
 
         private void bridgeProductBuild(Task bridgeTask, XcodeTarget target) {
             // Library or executable
-            final String configuration = System.getenv("CONFIGURATION");
+            final String configuration = xcodePropertyAdapter.getConfiguration();
             if (configuration.equals(DefaultXcodeProject.BUILD_DEBUG)) {
                 bridgeTask.dependsOn(target.getDebugOutputFile());
             } else {
@@ -480,7 +483,7 @@ public class XcodePlugin extends IdePlugin {
         private void bridgeTestExecution(Task bridgeTask, final XcodeTarget target) {
             // XcTest executable
             // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
-            final String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
+            final String builtProductsPath = xcodePropertyAdapter.getBuiltProductsDir();
             final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
                 @Override
                 public void execute(Sync task) {

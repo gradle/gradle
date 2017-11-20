@@ -164,6 +164,8 @@ Actual: ${actual[key]}
         assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assert target.buildArgumentsString == '-P_XCODE_ACTION="${ACTION}" -P_XCODE_PRODUCT_NAME="${PRODUCT_NAME}" -P_XCODE_CONFIGURATION="${CONFIGURATION}" -P_XCODE_BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
+        assert target.buildToolPath == "gradle"
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
