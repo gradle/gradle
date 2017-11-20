@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.nativeplatform.toolchain.NativeToolChain
@@ -40,8 +41,9 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
+    def sourceParser = Mock(CSourceParser)
     def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector, sourceParser)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -98,7 +100,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector)
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector, sourceParser)
        then:
        compiler.importsAreIncludes
        where:
@@ -139,7 +141,7 @@ class IncrementalNativeCompilerTest extends Specification {
         def compilation = Mock(IncrementalCompilation)
 
         compilation.discoveredInputs >> [includedFile]
-        compilation.macroIncludeUsedInSources >> true
+        compilation.unresolvedHeaders >> true
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)

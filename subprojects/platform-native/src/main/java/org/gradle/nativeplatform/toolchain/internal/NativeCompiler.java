@@ -110,7 +110,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         final IncludeDirectives includes = spec.getSourceFileIncludeDirectives().get(sourceFile);
         final String header = spec.getPreCompiledHeader();
 
-        List<Include> headers = includes.getIncludesAndImports();
+        List<Include> headers = includes.getAll();
         boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0).getValue());
 
         if (usePCH) {

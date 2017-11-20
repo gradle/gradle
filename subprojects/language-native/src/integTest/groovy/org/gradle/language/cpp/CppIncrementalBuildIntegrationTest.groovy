@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
@@ -96,6 +97,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         install.assertInstalled()
         install.exec().out == app.alternateOutput
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
     def "recompiles library and relinks executable after library source file change"() {
@@ -122,10 +129,19 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         install.assertInstalled()
         install.exec().out == app.alternateLibraryOutput
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
-    def "recompiles binary when header file changes"() {
+    def "considers only those headers that are reachable from source files as inputs"() {
         given:
+        def unused = file("app/src/main/headers/ignore1.h") << "broken!"
+        def unusedPrivate = file("app/src/main/cpp/ignore2.h") << "broken!"
+
         run installApp
         maybeWait()
 
@@ -147,6 +163,41 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             skipped linkTaskDebug(LIBRARY)
             skipped linkTaskDebug(APP), installApp
         }
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        unused << "even more broken"
+        unusedPrivate << "even more broken"
+        file("src/main/headers/ignored3.h") << "broken"
+        file("src/main/headers/some-dir").mkdirs()
+        file("src/main/cpp/ignored4.h") << "broken"
+        file("src/main/cpp/some-dir").mkdirs()
+
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        unused.delete()
+        unusedPrivate.delete()
+
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        headerFile.delete()
+        fails installApp
+
+        then:
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -172,19 +223,25 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             skipped linkTaskDebug(LIBRARY)
             skipped linkTaskDebug(APP), installApp
         }
+
+        when:
+        run installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 
-    def "recompiles binary when header file with relative path changes"() {
-        when:
-
+    def "header file referenced using relative path is considered an input"() {
+        given:
+        def unused = file("app/src/main/headers/ignore1.h") << "broken!"
         file("app/src/main/cpp/main.cpp").text = """
-                #include "../not_included/hello.h"
-    
-                int main () {
-                  sayHello();
-                  return 0;
-                }
-            """
+            #include "../not_included/hello.h"
+
+            int main () {
+              sayHello();
+              return 0;
+            }
+        """
 
         def headerFile = file("app/src/main/not_included/hello.h") << """
             void sayHello();
@@ -198,17 +255,442 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             }
         """
 
-        then:
+        run installApp
+
+        when:
         succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
         executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
 
         when:
-        headerFile.text = """
-            NOT A VALID HEADER FILE
-        """
+        headerFile << "// more stuff"
+
         then:
-        fails installApp
+        succeeds installApp
+
         and:
         executedAndNotSkipped compileTasksDebug(APP)
+        executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
+
+        when:
+        unused << "broken again"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+        executable("app/build/exe/main/debug/app").exec().out == "HELLO\n"
+    }
+
+    @Unroll
+    def "header file referenced using simple macro #macro is considered an input"() {
+        when:
+        def unused = file("app/src/main/headers/ignore1.h") << "broken!"
+
+        file("app/src/main/headers/defs.h") << """
+            #define _HELLO_HEADER_2 "hello.h"
+            #define _HELLO_HEADER_1 _HELLO_HEADER_2
+            #define HELLO_HEADER MACRO_FUNCTION() // some indirection
+            
+            #define MACRO_FUNCTION( ) _HELLO_HEADER_1
+        """
+
+        def headerFile = file("app/src/main/headers/hello.h") << """
+            #define MESSAGE "one"
+        """
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include "defs.h"
+            #define MACRO_USES_ANOTHER_MACRO HELLO_HEADER
+            #define MACRO_USES_STRING_CONSTANT "hello.h"
+            #define MACRO_USES_SYSTEM_PATH <hello.h>
+            #define MACRO_USES_FUNCTION MACRO_FUNCTION()
+            #include ${macro}
+            #include <iostream>
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "one\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        headerFile.text = headerFile.text.replace('one', 'two')
+        succeeds installApp
+
+        then:
+        executedAndNotSkipped compileTasksDebug(APP)
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
+
+        when:
+        unused << "more broken"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        where:
+        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_SYSTEM_PATH", "MACRO_USES_ANOTHER_MACRO", "MACRO_FUNCTION()", "MACRO_USES_FUNCTION"]
+    }
+
+    @Unroll
+    def "considers all header files as inputs when complex macro include #include is used"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            $text
+            #include <iostream>
+
+            int main () {
+              std::cout << "hello" << std::endl;
+              return 0;
+            }
+        """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        executer.withArgument("-i")
+        succeeds installApp
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+        output.contains("Cannot locate header file for include '${include}' in source file 'main.cpp'. Assuming changed.")
+        output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
+
+        when:
+        file("app/src/main/headers/some-dir").mkdirs()
+
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        file("app/src/main/headers/some-dir").deleteDir()
+
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        headerFile.delete()
+
+        then:
+        succeeds installApp
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        where:
+        include           | text
+        'HELLO'           | '''            
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        '''
+        '_HELLO(hello.h)' | '''
+            #define _HELLO(X) #X
+            #include _HELLO(hello.h)
+        '''
+        'MISSING' | '''
+            #ifdef MISSING
+            #include MISSING
+            #else
+            #include "hello.h"
+            #endif
+        '''
+        'GARBAGE' | '''
+            #if 0
+            #define GARBAGE a b c
+            #include GARBAGE
+            #else
+            #include "hello.h"
+            #endif
+        '''
+        'a b c' | '''
+            #if 0
+            #include a b c
+            #else
+            #include "hello.h"
+            #endif
+        '''
+    }
+
+    def "can have a cycle between header files"() {
+        def header1 = file("app/src/main/headers/hello.h")
+        def header2 = file("app/src/main/headers/other.h")
+
+        when:
+        header1 << """
+            #ifndef HELLO
+            #define HELLO
+            #include "other.h"
+            #endif
+        """
+        header2 << """
+            #ifndef OTHER
+            #define OTHER
+            #define MESSAGE "hello"
+            #include "hello.h"
+            #endif
+        """
+
+        file("app/src/main/cpp/main.cpp").text = """
+                #include <iostream>
+                #include "hello.h"
+    
+                int main () {
+                  std::cout << MESSAGE << std::endl;
+                  return 0;
+                }
+            """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header1 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "can reference a missing header file"() {
+        def header = file("app/src/main/headers/hello.h")
+
+        when:
+        header << """
+            #pragma once
+            #define MESSAGE "hello"
+            #if 0
+            #include "missing.h"
+            #endif
+        """
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include <iostream>
+            #include "hello.h"
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "source file can reference multiple header files using the same macro"() {
+        def header1 = file("app/src/main/headers/hello1.h")
+        def header2 = file("app/src/main/headers/hello2.h")
+        def header3 = file("app/src/main/headers/hello3.h")
+        def unused = file("app/src/main/headers/ignoreme.h")
+
+        when:
+        file("app/src/main/headers/hello.h") << """
+            #if 0
+            #include "def1.h"
+            #else
+            #include "def2.h"
+            #endif
+            #include HEADER
+        """
+        file("app/src/main/headers/def1.h") << """
+            #define HEADER "hello1.h"
+        """
+        file("app/src/main/headers/def2.h") << """
+            #define _HEADER "hello2.h"
+            #ifndef _HEADER
+            #define _HEADER "hello3.h"
+            #endif
+            #define HEADER _HEADER
+        """
+        header1 << """
+            #define MESSAGE "one"
+        """
+        header2 << """
+            #define MESSAGE "two"
+        """
+        header3 << """
+            #define MESSAGE "three"
+        """
+        unused << "broken"
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include <iostream>
+            #include "hello.h"
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header2 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header3 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header1 << """// some extra stuff"""
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+
+        when:
+        unused << "more broken"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+    }
+
+    def "changes to the included header graph are reflected in the inputs"() {
+        def header = file("app/src/main/headers/hello.h")
+        def header1 = file("app/src/main/headers/hello1.h")
+        def header2 = file("app/src/main/headers/hello2.h")
+
+        when:
+        header << """
+            #pragma once
+            #include "hello1.h"
+        """
+        header1 << """
+            #define MESSAGE "one"
+        """
+        header2 << """
+            #define MESSAGE "two"
+        """
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include <iostream>
+            #include "hello.h"
+
+            int main () {
+              std::cout << MESSAGE << std::endl;
+              return 0;
+            }
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "one\n"
+
+        when:
+        header2 << " // changes"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
+
+        when:
+        header.text = header.text.replace('"hello1.h"', '"hello2.h"')
+
+        then:
+        succeeds installApp
+        executedAndNotSkipped compileTasksDebug(APP)
+        executable("app/build/exe/main/debug/app").exec().out == "two\n"
+
+        when:
+        header1 << " // changes"
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
     }
 }

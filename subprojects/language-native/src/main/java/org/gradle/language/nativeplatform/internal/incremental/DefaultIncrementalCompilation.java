@@ -15,8 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
@@ -25,15 +28,17 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> removed;
     private final Set<File> discoveredInputs;
     private final Set<File> existingHeaders;
-
     private final boolean macroIncludesUsedInSources;
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs, Set<File> existingHeaders, boolean macroIncludesUsedInSources) {
+    private final Map<File, IncludeDirectives> sourceFileIncludeDirectives;
+
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs, Set<File> existingHeaders, boolean macroIncludesUsedInSources, Map<File, IncludeDirectives> sourceFileIncludeDirectives) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
         this.discoveredInputs = discoveredInputs;
         this.existingHeaders = existingHeaders;
         this.macroIncludesUsedInSources = macroIncludesUsedInSources;
+        this.sourceFileIncludeDirectives = sourceFileIncludeDirectives;
     }
 
     @Override
@@ -44,6 +49,11 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     @Override
     public List<File> getRemoved() {
         return removed;
+    }
+
+    @Override
+    public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
+        return sourceFileIncludeDirectives;
     }
 
     @Override
@@ -62,7 +72,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
     }
 
     @Override
-    public boolean isMacroIncludeUsedInSources() {
+    public boolean isUnresolvedHeaders() {
         return macroIncludesUsedInSources;
     }
 }

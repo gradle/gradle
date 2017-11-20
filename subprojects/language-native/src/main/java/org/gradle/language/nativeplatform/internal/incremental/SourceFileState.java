@@ -17,19 +17,16 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 /**
- * Immutable snapshot of the state of a source or header file.
+ * Immutable snapshot of the state of a source file.
  */
-public class CompilationFileState {
+public class SourceFileState {
     private final HashCode hash;
-    private final IncludeDirectives includeDirectives;
-    private final ImmutableSet<ResolvedInclude> resolvedIncludes;
+    private final ImmutableSet<IncludeFileState> resolvedIncludes;
 
-    public CompilationFileState(HashCode hash, IncludeDirectives includeDirectives, ImmutableSet<ResolvedInclude> resolvedIncludes) {
+    public SourceFileState(HashCode hash, ImmutableSet<IncludeFileState> resolvedIncludes) {
         this.hash = hash;
-        this.includeDirectives = includeDirectives;
         this.resolvedIncludes = resolvedIncludes;
     }
 
@@ -37,11 +34,17 @@ public class CompilationFileState {
         return hash;
     }
 
-    public IncludeDirectives getIncludeDirectives() {
-        return includeDirectives;
+    /**
+     * The set of successfully resolved include files, in the order included.
+     */
+    public ImmutableSet<IncludeFileState> getResolvedIncludes() {
+        return resolvedIncludes;
     }
 
-    public ImmutableSet<ResolvedInclude> getResolvedIncludes() {
-        return resolvedIncludes;
+    /**
+     * Returns true if this file or its set of includes has changed since the given snapshot.
+     */
+    public boolean hasChanged(SourceFileState previousState) {
+        return !hash.equals(previousState.hash) || !resolvedIncludes.equals(previousState.resolvedIncludes);
     }
 }

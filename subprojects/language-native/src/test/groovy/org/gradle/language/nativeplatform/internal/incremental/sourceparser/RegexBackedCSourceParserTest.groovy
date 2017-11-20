@@ -16,6 +16,10 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import org.gradle.language.nativeplatform.internal.Include
+import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.IncludeType
+import org.gradle.language.nativeplatform.internal.Macro
+import org.gradle.language.nativeplatform.internal.MacroFunction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -23,7 +27,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class RegexBackedCSourceParserTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     CSourceParser parser = new RegexBackedCSourceParser()
 
     protected TestFile getSourceFile() {
@@ -34,27 +39,27 @@ class RegexBackedCSourceParserTest extends Specification {
         temporaryFolder.testDirectory
     }
 
-    def getParsedSource() {
+    IncludeDirectives getParsedSource() {
         parser.parseSource(sourceFile)
     }
 
-    def getIncludes() {
+    List<Include> getIncludes() {
         return parsedSource.includesOnly
     }
 
-    def getImports() {
-        return parsedSource.includesAndImports - parsedSource.includesOnly
+    List<Include> getImports() {
+        return parsedSource.all - parsedSource.includesOnly
     }
 
-    def getFound() {
-        return parsedSource.includesAndImports.collect { it.value }
+    List<String> getFound() {
+        return parsedSource.all.collect { it.value }
     }
-    
+
     def noIncludes() {
         assert includes == []
         true
     }
-    
+
     def noImports() {
         assert imports == []
         true
@@ -66,6 +71,32 @@ class RegexBackedCSourceParserTest extends Specification {
 
     Include include(String value, boolean isImport = false) {
         return DefaultInclude.parse(value, isImport)
+    }
+
+    Macro macro(String name, String value) {
+        def include = DefaultInclude.parse(value, false)
+        return new DefaultMacro(name, include.type, include.value)
+    }
+
+    MacroFunction macroFunction(String name, int parameters = 0, String value) {
+        def include = DefaultInclude.parse(value, false)
+        return new DefaultMacroFunction(name, parameters, include.type, include.value)
+    }
+
+    Macro unresolvedMacro(String name) {
+        return new UnresolveableMacro(name)
+    }
+
+    MacroFunction unresolvedMacroFunction(String name, int parameters = 0) {
+        return new UnresolveableMacroFunction(name, parameters)
+    }
+
+    List<Macro> getMacros() {
+        return parsedSource.macros
+    }
+
+    List<MacroFunction> getMacroFunctions() {
+        return parsedSource.macrosFunctions
     }
 
     def "parses file with no includes"() {
@@ -109,7 +140,7 @@ class RegexBackedCSourceParserTest extends Specification {
 
         then:
         includes == ['<test.h>'].collect { include(it) }
-        
+
         and:
         noImports()
     }
@@ -125,17 +156,58 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
     }
 
-    def "finds defined include"() {
+    def "finds macro include"() {
         when:
         sourceFile << """
-    #include DEFINED
+    #include ${include}
 """
 
         then:
-        includes == ['DEFINED'].collect { include(it) }
+        includes == [new DefaultInclude(include, false, IncludeType.MACRO)]
 
         and:
         noImports()
+
+        where:
+        include << ['A', 'DEFINED', '_A$2', 'mixedDefined', '__DEFINED__']
+    }
+
+    def "finds macro function include"() {
+        when:
+        sourceFile << """
+    #include ${include}
+"""
+
+        then:
+        includes == [new DefaultInclude(macro, false, IncludeType.MACRO_FUNCTION)]
+
+        and:
+        noImports()
+
+        where:
+        include       | macro
+        'A()'         | 'A'
+        'A( )'        | 'A'
+        'ABC( )'      | 'ABC'
+        '_A$2( )'     | '_A$2'
+        'abc( )'      | 'abc'
+        'a12  \t(\t)' | 'a12'
+    }
+
+    def "finds other includes"() {
+        when:
+        sourceFile << """
+    #include ${include}
+"""
+
+        then:
+        includes == [new DefaultInclude(include, false, IncludeType.OTHER)]
+
+        and:
+        noImports()
+
+        where:
+        include << ['DEFINED(ABC)', 'not an include', 'BROKEN (', '@(X', '"abc.h" DEFINED']
     }
 
     def "finds multiple includes"() {
@@ -146,10 +218,13 @@ class RegexBackedCSourceParserTest extends Specification {
     #include <system1>
     #include <system2>
     #include DEFINED
+    #include DEFINED()
+    #include DEFINED(ABC)
+    #include not an include
 """
         then:
-        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED'].collect { include(it) }
-        
+        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED', 'DEFINED()', 'DEFINED(ABC)', 'not an include'].collect { include(it) }
+
         and:
         noImports()
     }
@@ -175,7 +250,7 @@ class RegexBackedCSourceParserTest extends Specification {
 
         then:
         imports == ['<test.h>'].collect { include(it, true) }
-        
+
         and:
         noIncludes()
     }
@@ -333,6 +408,22 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import"]
     }
 
+    @Unroll
+    def "finds #directive with no whitespace"() {
+        when:
+        sourceFile << """
+#include"test1"
+#include<test2>
+"""
+        useDirective(directive)
+
+        then:
+        found == ['test1', 'test2']
+
+        where:
+        directive << ["include", "import"]
+    }
+
     def "find quoted include with special characters"() {
         when:
         sourceFile << """
@@ -361,20 +452,6 @@ class RegexBackedCSourceParserTest extends Specification {
         included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
     }
 
-    def "find various defined includes"() {
-        when:
-        sourceFile << """
-    #include $included
-    #import $included
-"""
-        then:
-        includes == [included].collect { include(it) }
-        imports == [included].collect { include(it, true) }
-
-        where:
-        included << ["DEFINED", "mixedDefined", "DEF_INED", "_DEFINED", "__DEFINED__"]
-    }
-
     @Unroll
     def "ignores #directive inside a quoted string"() {
         when:
@@ -388,9 +465,10 @@ class RegexBackedCSourceParserTest extends Specification {
         then:
         noIncludes()
         noImports()
+        macros.empty
 
         where:
-        directive << ["include", "import"]
+        directive << ["include", "import", "define"]
     }
 
     @Unroll
@@ -413,24 +491,32 @@ class RegexBackedCSourceParserTest extends Specification {
         then:
         noIncludes()
         noImports()
+        macros.empty
 
         where:
-        directive << ["include", "import"]
+        directive << ["include", "import", "define"]
     }
 
-    def "ignores badly formed directives"() {
+    def "considers anything that starts with include or import directive and does not have an empty value as an include"() {
         when:
         sourceFile << """
 include
 #
 # include
+# include    // only white space
 # import
+# import   /*
+*/
 
 void # include <thing>
 
 #import <
 
 # inklude <thing.h>
+# included
+# included "thing.h"
+# include_other
+# include_other <thing.h>
 
 #import thing.h
 #import thing.h"
@@ -446,8 +532,8 @@ void # include <thing>
 """
 
         then:
-        noIncludes()
-        noImports()
+        includes.size() == 3
+        imports.size() == 4
     }
 
     def "detects imports with line=continuation"() {
@@ -465,5 +551,243 @@ st3"
 
         then:
         includes == ['"test1"', '"test2"', '"test3"'].collect { include(it) }
+    }
+
+    def "finds object-like macro directive whose value is a string constant"() {
+        when:
+        sourceFile << """
+#define SOME_STRING "abc"
+"""
+
+        then:
+        macros == [macro('SOME_STRING', '"abc"')]
+        macroFunctions.empty
+    }
+
+    def "finds object-like macro directive whose value is a macro reference"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [macro('SOME_STRING', value)]
+        macroFunctions.empty
+
+        where:
+        value << ['a', '_a_123_', 'a$b']
+    }
+
+    def "finds object-like macro directive whose value is not a string constant or macro reference"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
+
+        where:
+        value << ["one two three", "a++", "one(abc)", "-12"]
+    }
+
+    def "handles various separators in an object-like macro directive"() {
+        when:
+        sourceFile << """
+  #   define     SOME_STRING         "abc"      // some extra
+  /*    
+  
+  */  \\
+  #/*
+  
+  
+  */\u0000define \\
+        /*
+         */STRING_2\\
+/*         
+*/"123"\\
+    /* */   // some extra"""
+
+        then:
+        macros == [macro('SOME_STRING', 'abc'), macro('STRING_2', '123')]
+        macroFunctions.empty
+    }
+
+    def "finds object-like macro directive with no whitespace"() {
+        when:
+        sourceFile << """
+#define A"abc"
+#define B<abc>
+"""
+
+        then:
+        macros == [macro('A', '"abc"'), macro('B', '<abc>')]
+        macroFunctions.empty
+    }
+
+    def "finds object-like macro directive with no body"() {
+        when:
+        sourceFile << """
+#define SOME_STRING
+"""
+
+        then:
+        macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
+    }
+
+    def "finds object-like macro directive with empty body"() {
+        when:
+        sourceFile << """
+#define SOME_STRING    // ignore
+"""
+
+        then:
+        macros == [unresolvedMacro('SOME_STRING')]
+        macroFunctions.empty
+    }
+
+    def "finds multiple object-like macro directives"() {
+        when:
+        sourceFile << """
+#ifdef THING
+#define SOME_STRING "abc"
+#else
+#define SOME_STRING "xyz"
+#endif
+#define OTHER "1234"
+#define EMPTY
+#define UNKNOWN abc(123)
+"""
+
+        then:
+        macros == [
+            macro('SOME_STRING', 'abc'),
+            macro('SOME_STRING', 'xyz'),
+            macro('OTHER', '1234'),
+            unresolvedMacro('EMPTY'),
+            unresolvedMacro('UNKNOWN')
+        ]
+        macroFunctions.empty
+    }
+
+    def "finds function-like macro directive with no parameters whose value is a string constant"() {
+        when:
+        sourceFile << """
+#define A() "abc"
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', '"abc"')]
+    }
+
+    def "finds function-like macro directive with no parameters whose value is empty"() {
+        when:
+        sourceFile << """
+#define A()
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction('A')]
+    }
+
+    def "finds function-like macro directive with multiple parameters whose value is a string constant"() {
+        when:
+        sourceFile << """
+#define ${definition} "abc"
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction(macro, parameters, '"abc"')]
+
+        where:
+        definition   | macro | parameters
+        'A(X)'       | 'A'   | 1
+        'ABC(X,Y)'   | 'ABC' | 2
+        '_a$(X,Y,Z)' | '_a$' | 3
+    }
+
+    def "finds function-like macro directive with multiple parameters whose value is empty"() {
+        when:
+        sourceFile << """
+#define ${definition}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction(macro, parameters)]
+
+        where:
+        definition   | macro | parameters
+        'A(X)'       | 'A'   | 1
+        'ABC(X,Y)'   | 'ABC' | 2
+        '_a$(X,Y,Z)' | '_a$' | 3
+    }
+
+    def "handles whitespace in function-like macro definition"() {
+        when:
+        sourceFile << """
+#define ${definition} "abc"
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction(macro, parameters, '"abc"')]
+
+        where:
+        definition             | macro | parameters
+        'A(  \t)'              | 'A'   | 0
+        'B( X  \t)'            | 'B'   | 1
+        'ABC( X  \t,  \t Y  )' | 'ABC' | 2
+    }
+
+    def "handles various separators in an function-like macro directive"() {
+        when:
+        sourceFile << """
+  #   define     SOME_STRING(     )     "abc"      // some extra
+  /*    
+  
+  */  \\
+  #/*
+  
+  
+  */ define \\
+        /*
+         */STRING_2(\\
+/*         
+*/)/* */"123"\\
+    /* */  "some extra"""
+
+        then:
+        macros.empty
+        macroFunctions == [
+            macroFunction('SOME_STRING', '"abc"'),
+            unresolvedMacroFunction('STRING_2')
+        ]
+    }
+
+    def "ignores badly formed define directives"() {
+        when:
+        sourceFile << """
+#define
+#define  // white space
+#define ()
+#define ( _
+#define ( _ )
+#define X(
+#define X(abc
+#define X( ,
+#define X( abc,
+#define X( abc, ,
+# define @(Y) Z
+"""
+
+        then:
+        macros.empty
+        macroFunctions.empty
     }
 }

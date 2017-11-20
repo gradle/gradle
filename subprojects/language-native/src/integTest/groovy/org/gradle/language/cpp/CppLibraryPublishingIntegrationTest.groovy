@@ -29,6 +29,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
+        assert !lib.privateHeaders.files.empty
 
         given:
         buildFile << """

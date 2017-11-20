@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal.incremental;
+package org.gradle.language.nativeplatform.internal;
 
-import java.io.File;
-import java.util.List;
-import java.util.Set;
-
-public interface IncrementalCompileFiles {
-
-    CompilationState getCurrent();
-
-    void processSource(File sourceFile);
-
-    List<File> getModifiedSources();
-
-    List<File> getRemovedSources();
-
-    Set<File> getDiscoveredInputs();
-
-    Set<File> getExistingHeaders();
-
-    boolean isSourceFilesUseMacroIncludes();
+/**
+ * An 'object-like' macro definition.
+ */
+public interface Macro extends Directive {
+    String getName();
 }

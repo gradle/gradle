@@ -99,12 +99,13 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    def "source is always recompiled if it imported header via macro"() {
+    def "source is always recompiled if it imported header via complex macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
         notIncluded.text = """#pragma message("should not be used")"""
         sourceFile << """
-            #define MY_HEADER "${otherHeaderFile.name}"
+            #define _MY_HEADER(X) "${otherHeaderFile.name}"
+            #define MY_HEADER _MY_HEADER(abc)
             #import MY_HEADER
 """
 
