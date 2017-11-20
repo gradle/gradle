@@ -39,7 +39,7 @@ class GradleFileModuleAdapter {
         def file = moduleDir.file("$module-${version}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion '0.2'
+            formatVersion '0.3'
             builtBy {
                 gradle { }
             }

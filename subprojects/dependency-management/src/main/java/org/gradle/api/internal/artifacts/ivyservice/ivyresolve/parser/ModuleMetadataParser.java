@@ -48,7 +48,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.*;
 
 public class ModuleMetadataParser {
-    public static final String FORMAT_VERSION = "0.2";
+    public static final String FORMAT_VERSION = "0.3";
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final NamedObjectInstantiator instantiator;

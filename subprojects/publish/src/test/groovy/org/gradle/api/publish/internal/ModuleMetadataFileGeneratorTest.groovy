@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -68,7 +69,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -96,7 +97,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -154,7 +155,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -234,7 +235,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -309,7 +310,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -368,7 +369,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -433,7 +434,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "0.2",
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "url": "../../module/1.2/module-1.2.module",
     "group": "group",

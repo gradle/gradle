@@ -33,7 +33,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '0.2'
+        assert values.formatVersion == '0.3'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
