@@ -36,7 +36,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     }
 
     def local = Mock(Local) {
-        allocateTempFile(_, _) >> { key, action ->
+        withTempFile(_, _) >> { key, action ->
             action.execute(tmpDir.file("file"))
         }
     }

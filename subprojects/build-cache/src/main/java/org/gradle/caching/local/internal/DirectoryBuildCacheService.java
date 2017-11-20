@@ -131,7 +131,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
-        tempFileStore.allocateTempFile(key, new Action<File>() {
+        tempFileStore.withTempFile(key, new Action<File>() {
             @Override
             public void execute(@Nonnull File file) {
                 try {
@@ -172,11 +172,11 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     }
 
     @Override
-    public void allocateTempFile(final BuildCacheKey key, final Action<? super File> action) {
+    public void withTempFile(final BuildCacheKey key, final Action<? super File> action) {
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
-                tempFileStore.allocateTempFile(key, action);
+                tempFileStore.withTempFile(key, action);
             }
         });
     }

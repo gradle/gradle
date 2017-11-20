@@ -251,7 +251,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
+        void withTempFile(BuildCacheKey key, Action<? super File> action) {
 
         }
     }
