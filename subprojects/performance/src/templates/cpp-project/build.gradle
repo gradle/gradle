@@ -1,11 +1,9 @@
-import org.gradle.util.GradleVersion
-
 <% if (projectType == 'exe') { %>
 // TODO: Remove this once we bump the minimum version of the test
-if (GradleVersion.current() < GradleVersion.version("4.4")) {
-    apply plugin: 'cpp-executable'
-} else {
+try {
     apply plugin: 'cpp-application'
+} catch (Exception e) {
+    apply plugin: 'cpp-executable'
 }
 <% } else { %>
 apply plugin: 'cpp-library'
