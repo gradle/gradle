@@ -21,15 +21,15 @@ public class SimulatedDeprecationMessageLogger {
     public static final String INDIRECT_CALL = "indirect call";
     public static final String INDIRECT_CALL_2 = "second-level indirect call";
 
-    public static DeprecatedFeatureUsage indirectlySecondLevel(String message) {
+    public static FeatureUsage indirectlySecondLevel(String message) {
         return indirectly(message);
     }
 
-    public static DeprecatedFeatureUsage indirectly(String message) {
+    public static FeatureUsage indirectly(String message) {
         return nagUserWith(message);
     }
 
-    public static DeprecatedFeatureUsage nagUserWith(String message) {
-        return new DeprecatedFeatureUsage(message, SimulatedDeprecationMessageLogger.class).withStackTrace();
+    public static FeatureUsage nagUserWith(String message) {
+        return new FeatureUsage(message, SimulatedDeprecationMessageLogger.class).withStackTrace();
     }
 }

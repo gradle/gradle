@@ -17,65 +17,68 @@
 package org.gradle.internal.featurelifecycle;
 
 import org.gradle.internal.SystemProperties;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
+public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
+    private static final String deprecationMessage = initDeprecationMessage();
+
     private static boolean traceLoggingEnabled;
+
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
     public LoggingDeprecatedFeatureHandler() {
-        this(new UsageLocationReporter() {
-            public void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target) {
-            }
-        });
+        locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter) {
-        this.locationReporter = locationReporter;
+    @Override
+    public void init(UsageLocationReporter reporter) {
+        this.locationReporter = reporter;
     }
 
-    public void setLocationReporter(UsageLocationReporter locationReporter) {
-        this.locationReporter = locationReporter;
-    }
-
-    public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
+    public void featureUsed(FeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
             usage = usage.withStackTrace();
-            StringBuilder message = new StringBuilder();
-            locationReporter.reportLocation(usage, message);
-            if (message.length() > 0) {
-                message.append(SystemProperties.getInstance().getLineSeparator());
-            }
-            message.append(usage.getMessage());
-            logTraceIfNecessary(usage.getStack(), message);
-            LOGGER.warn(message.toString());
+            StringBuilder messageBuilder = new StringBuilder();
+
+            reportLocation(usage, messageBuilder);
+            messageBuilder.append(usage.getMessage());
+            appendTraceIfNecessary(usage, messageBuilder);
+
+            LOGGER.warn(messageBuilder.toString());
         }
     }
 
-    private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private void reportLocation(FeatureUsage usage, StringBuilder message) {
+        locationReporter.reportLocation(usage, message);
+        if (message.length() > 0) {
+            message.append(SystemProperties.getInstance().getLineSeparator());
+        }
+    }
+
+    private static void appendTraceIfNecessary(FeatureUsage usage, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {
             // append full stack trace
-            for (StackTraceElement frame : stack) {
+            for (StackTraceElement frame : usage.getStack()) {
                 appendStackTraceElement(frame, message, lineSeparator);
             }
             return;
         }
 
-        for (StackTraceElement element : stack) {
+        for (StackTraceElement element : usage.getStack()) {
             if (isGradleScriptElement(element)) {
                 // only print first Gradle script stack trace element
                 appendStackTraceElement(element, message, lineSeparator);
@@ -113,8 +116,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     /**
      * Whether or not deprecated features should print a full stack trace.
      *
-     * This property can be overridden by setting the ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-     * system property.
+     * This property can be overridden by setting the ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME system property.
      *
      * @param traceLoggingEnabled if trace logging should be enabled.
      */
@@ -124,10 +126,28 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     static boolean isTraceLoggingEnabled() {
         String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
-        if(value == null) {
+        if (value == null) {
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);
     }
 
+    private static String initDeprecationMessage() {
+        String messageBase = "has been deprecated and is scheduled to be removed in";
+        String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
+
+        return String.format("%s %s", messageBase, when);
+    }
+
+    public static String getDeprecationMessage() {
+        return deprecationMessage;
+    }
+
+    private enum DoNothingReporter implements UsageLocationReporter {
+        INSTANCE;
+
+        @Override
+        public void reportLocation(FeatureUsage usage, StringBuilder target) {
+        }
+    }
 }

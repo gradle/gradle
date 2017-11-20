@@ -38,9 +38,9 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'logs each deprecation warning only once'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature2'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
         then:
         def events = outputEventListener.events
@@ -53,7 +53,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'deprecations are logged at WARN level'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
 
         then:
         outputEventListener.events.size() == 1
@@ -70,7 +70,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -108,7 +108,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -146,7 +146,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -184,7 +184,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -214,7 +214,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(deprecatedFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -238,7 +238,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', FeatureUsageTest), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -263,7 +263,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest))
+        handler.featureUsed(new FeatureUsage('fake', FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
@@ -279,10 +279,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'location reporter can prepend text'() {
         when:
-        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature'))
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
 
         then:
-        1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
+        1 * locationReporter.reportLocation(_, _) >> { FeatureUsage param1, StringBuilder message ->
             message.append('location')
         }
 
@@ -336,7 +336,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String message) {
-        new DeprecatedFeatureUsage(message, LoggingDeprecatedFeatureHandlerTest)
+    private static FeatureUsage deprecatedFeatureUsage(String message) {
+        new FeatureUsage(message, LoggingDeprecatedFeatureHandlerTest)
     }
 }

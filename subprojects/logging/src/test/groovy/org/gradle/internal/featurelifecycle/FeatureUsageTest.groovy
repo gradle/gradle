@@ -24,8 +24,8 @@ import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLo
 import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
 import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
 
-@Subject(DeprecatedFeatureUsage)
-class DeprecatedFeatureUsageTest extends Specification {
+@Subject(FeatureUsage)
+class FeatureUsageTest extends Specification {
 
     @Unroll
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {

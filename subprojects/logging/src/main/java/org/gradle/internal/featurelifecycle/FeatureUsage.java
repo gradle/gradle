@@ -21,26 +21,46 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An immutable description of the usage of a deprecated feature.
+ * An immutable description of the usage of a deprecated or incubating feature.
  */
-public class DeprecatedFeatureUsage {
+public class FeatureUsage {
+    enum FeatureType {
+        INCUBATING,
+        DEPRECATED
+    }
+
     private final String message;
     private final List<StackTraceElement> stack;
     private final Class<?> calledFrom;
+    private final FeatureType type;
 
-    public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
+    public static FeatureUsage deprecatedFeature(String message, Class<?> calledFrom) {
+        return new FeatureUsage(message, calledFrom, FeatureType.DEPRECATED);
+    }
+
+    public static FeatureUsage incubatingFeature(String message, Class<?> calledFrom) {
+        return new FeatureUsage(message, calledFrom, FeatureType.INCUBATING);
+    }
+
+    private FeatureUsage(String message, Class<?> calledFrom, FeatureType type) {
         this.message = message;
         this.calledFrom = calledFrom;
         this.stack = Collections.emptyList();
+        this.type = type;
     }
 
-    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
+    private FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack");
         }
         this.message = usage.message;
         this.calledFrom = usage.calledFrom;
         this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
+        this.type = usage.type;
+    }
+
+    public FeatureType getType() {
+        return type;
     }
 
     public String getMessage() {
@@ -52,10 +72,9 @@ public class DeprecatedFeatureUsage {
     }
 
     /**
-     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that
-     * this method is called from the same thread that triggered the usage.
+     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that this method is called from the same thread that triggered the usage.
      */
-    public DeprecatedFeatureUsage withStackTrace() {
+    FeatureUsage withStackTrace() {
         if (!stack.isEmpty()) {
             return this;
         }
@@ -83,7 +102,7 @@ public class DeprecatedFeatureUsage {
         for (; caller < originalStack.length; caller++) {
             result.add(originalStack[caller]);
         }
-        return new DeprecatedFeatureUsage(this, result);
+        return new FeatureUsage(this, result);
     }
 
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
