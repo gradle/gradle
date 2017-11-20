@@ -321,9 +321,10 @@ class PublicAPIRulesTest extends Specification {
         violation.humanExplanation == 'New public API in 11.38 (@Incubating)'
     }
 
+    @Unroll
     def "constructors with @Inject annotation are not considered public API"() {
         given:
-        def rule = withContext(new BinaryBreakingChangesRule([:]))
+        def rule = withContext(ruleElem)
         def annotations = []
         jApiConstructor.annotations >> annotations
 
@@ -331,13 +332,17 @@ class PublicAPIRulesTest extends Specification {
         annotations.clear()
 
         then:
-        rule.maybeViolation(jApiConstructor).humanExplanation  =~ 'Is not binary compatible.'
+        rule.maybeViolation(jApiConstructor).humanExplanation  =~ error
 
         when:
         annotations.add(injectAnnotation)
 
         then:
         rule.maybeViolation(jApiConstructor) == null
+
+        where:
+        ruleElem << [new BinaryBreakingChangesRule([:]), new SinceAnnotationMissingRule([:])]
+        error << ['Is not binary compatible.', 'Is not annotated with @since']
     }
 
     def "the @since annotation on inner classes is recognised"() {
