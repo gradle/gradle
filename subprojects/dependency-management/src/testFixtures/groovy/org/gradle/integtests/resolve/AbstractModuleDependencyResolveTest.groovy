@@ -70,7 +70,6 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             ExperimentalFeaturesFixture.enable(settingsFile)
         }
         resolve.prepare()
-        server.start()
         buildFile << """
             $repository
 
@@ -78,10 +77,6 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
                 conf
             }
         """
-    }
-
-    def cleanup() {
-        server.stop()
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
