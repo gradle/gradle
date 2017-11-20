@@ -88,6 +88,20 @@ class ScriptDslFixture {
         }
     }
 
+    Matcher<String> containsConfigurationDependency(String configuration, String group, String name, String version, boolean useKotlinAccessors = true) {
+        switch (scriptDsl) {
+            case KOTLIN:
+                if (useKotlinAccessors) {
+                    return containsString("$configuration(group = \"$group\", name = \"$name\", version = \"$version\")")
+                } else {
+                    return containsString("\"$configuration\"(group = \"$group\", name = \"$name\", version = \"$version\")")
+                }
+            case GROOVY:
+            default:
+                return containsString("$configuration group: '$group', name: '$name', version: '$version'")
+        }
+    }
+
     Matcher<String> containsConfigurationDependencyNotation(String configuration, String notation, boolean useKotlinAccessors = true) {
         switch (scriptDsl) {
             case KOTLIN:

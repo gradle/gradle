@@ -700,7 +700,7 @@ artifacts.archives packageTests
                 return classifier
             case GROOVY:
             default:
-                def gradelDep = "group: '${mavenDependency.groupId.text()}', name: '${mavenDependency.artifactId.text()}', version:'${mavenDependency?.version?.text()}'"
+                def gradelDep = "group: '${mavenDependency.groupId.text()}', name: '${mavenDependency.artifactId.text()}', version: '${mavenDependency?.version?.text()}'"
                 def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier:'" + mavenDependency.classifier.text().trim() + "'" : gradelDep
                 return classifier
         }
