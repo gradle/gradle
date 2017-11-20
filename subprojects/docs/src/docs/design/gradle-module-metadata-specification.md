@@ -101,8 +101,6 @@ Each element must be an object with the of the following values:
 
 An exclude that has a wildcard value for both `group` and `module` will exclude _all_ transitive dependencies.
 
-#### `exclude `
-
 ### `files` value
 
 This value must contain an array with zero or more elements. Each element must be an object with the following values:

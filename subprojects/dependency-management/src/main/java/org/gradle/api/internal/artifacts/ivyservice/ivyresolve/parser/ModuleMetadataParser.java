@@ -27,12 +27,13 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -50,13 +51,13 @@ import static com.google.gson.stream.JsonToken.*;
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.3";
     private final ImmutableAttributesFactory attributesFactory;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final NamedObjectInstantiator instantiator;
+    private final ExcludeRuleConverter excludeRuleConverter;
 
     public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.instantiator = instantiator;
+        this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
     public void parse(final LocallyAvailableExternalResource resource, final MutableComponentVariantResolveMetadata metadata) {
@@ -234,8 +235,8 @@ public class ModuleMetadataParser {
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             reader.beginObject();
-            String group = "*";
-            String module = "*";
+            String group = null;
+            String module = null;
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -247,7 +248,7 @@ public class ModuleMetadataParser {
                 }
             }
             reader.endObject();
-            Exclude exclude = new DefaultExclude(moduleIdentifierFactory.module(group, module));
+            Exclude exclude = excludeRuleConverter.createExcludeRule(group, module);
             excludes.add(exclude);
         }
         reader.endArray();

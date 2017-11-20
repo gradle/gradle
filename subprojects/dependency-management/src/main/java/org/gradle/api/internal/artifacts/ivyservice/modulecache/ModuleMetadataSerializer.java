@@ -26,6 +26,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
@@ -328,6 +330,7 @@ public class ModuleMetadataSerializer {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ImmutableAttributesFactory attributesFactory;
         private final NamedObjectInstantiator instantiator;
+        private final ExcludeRuleConverter excludeRuleConverter;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
 
@@ -336,6 +339,7 @@ public class ModuleMetadataSerializer {
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.attributesFactory = attributesFactory;
             this.instantiator = instantiator;
+            this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -410,7 +414,7 @@ public class ModuleMetadataSerializer {
             for (int i = 0; i < len; i++) {
                 String group = readString();
                 String module = readString();
-                result.add(new DefaultExclude(moduleIdentifierFactory.module(group, module)));
+                result.add(excludeRuleConverter.createExcludeRule(group, module));
             }
             return result;
         }
