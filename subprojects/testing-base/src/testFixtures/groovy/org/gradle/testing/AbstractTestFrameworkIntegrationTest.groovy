@@ -200,11 +200,20 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         given:
         createPassingFailingTest()
 
-        when: run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
-        then: testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
 
-        when: run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
-        then: result.assertTaskSkipped(":$testTaskName") //up-to-date
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+
+        then:
+        testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
+
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+
+        then:
+        result.assertTaskSkipped(":$testTaskName") //up-to-date
+
 
         when:
         run(testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName")
