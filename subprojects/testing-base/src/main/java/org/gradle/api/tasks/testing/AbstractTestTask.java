@@ -93,13 +93,10 @@ import java.util.Map;
  *
  * <p><b>Note:</b> This abstract class is not intended for implementation by build script or plugin authors.
  *
- * @param <T> The concrete type of the class.
- *
  * @since 4.4
  */
-public abstract class AbstractTestTask<T extends AbstractTestTask> extends ConventionTask implements VerificationTask {
+public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
     private final DefaultTestFilter filter;
-    private final Class<T> taskType;
     private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -109,9 +106,7 @@ public abstract class AbstractTestTask<T extends AbstractTestTask> extends Conve
     private TestReporter testReporter;
     private boolean ignoreFailures;
 
-    public AbstractTestTask(Class<T> taskType) {
-        this.taskType = taskType;
-
+    public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         ListenerManager listenerManager = getListenerManager();
@@ -543,9 +538,9 @@ public abstract class AbstractTestTask<T extends AbstractTestTask> extends Conve
      */
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
-    public T setTestNameIncludePatterns(List<String> testNamePattern) {
+    public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
-        return taskType.cast(this);
+        return this;
     }
 
     /**

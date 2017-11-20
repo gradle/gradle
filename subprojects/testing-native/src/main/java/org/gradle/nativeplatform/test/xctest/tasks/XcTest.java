@@ -32,6 +32,7 @@ import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -39,14 +40,10 @@ import java.io.File;
  * @since 4.2
  */
 @Incubating
-public class XcTest extends AbstractTestTask<XcTest> {
+public class XcTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
     private final DirectoryProperty testInstallDirectory = newInputDirectory();
     private final RegularFileProperty runScriptFile = newInputFile();
-
-    public XcTest() {
-        super(XcTest.class);
-    }
 
     /**
      * {@inheritDoc}
@@ -107,5 +104,14 @@ public class XcTest extends AbstractTestTask<XcTest> {
             return null;
         }
         return runScriptFile;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public XcTest setTestNameIncludePatterns(List<String> testNamePattern) {
+        super.setTestNameIncludePatterns(testNamePattern);
+        return this;
     }
 }

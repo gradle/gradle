@@ -120,7 +120,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-public class Test extends AbstractTestTask<Test> implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
+public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
 
     private final DefaultJavaForkOptions forkOptions;
 
@@ -134,7 +134,6 @@ public class Test extends AbstractTestTask<Test> implements JavaForkOptions, Pat
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
-        super(Test.class);
         patternSet = getFileResolver().getPatternSetFactory().create();
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
@@ -628,6 +627,15 @@ public class Test extends AbstractTestTask<Test> implements JavaForkOptions, Pat
     @Override
     public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Test setTestNameIncludePatterns(List<String> testNamePattern) {
+        super.setTestNameIncludePatterns(testNamePattern);
         return this;
     }
 
