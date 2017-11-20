@@ -175,5 +175,46 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         succeeds('assemble')
     }
 
+    def 'can handle conflicting versions'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+            
+            dependencies {
+                compile "org.test:dep:1.3.0"
+                compile "org.test:dep:1.4.0"
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        def commit2 = repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.4.0')
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+        def gitCheckout2 = checkoutDir('dep', commit2.id.name, "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout2.file('.git').assertExists()
+    }
+
     // TODO: Use HTTP hosting for git repo
 }
