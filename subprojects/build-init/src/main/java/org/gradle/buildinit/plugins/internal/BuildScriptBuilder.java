@@ -145,7 +145,11 @@ public class BuildScriptBuilder {
                                 writer.println("    // " + entry.getValue());
                                 switch (dsl) {
                                     case KOTLIN:
-                                        writer.println("    " + entry.getKey());
+                                        if (entry.getKey().matches("[a-z]")) {
+                                            writer.println("    " + entry.getKey());
+                                        } else {
+                                            writer.println("    `" + entry.getKey() + "`");
+                                        }
                                         break;
                                     case GROOVY:
                                     default:
