@@ -229,14 +229,14 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        runAndFail(stringArrayOf(command))
+        runAndFail(*command)
 
         then:
-        testResult.assertTestClassesExecuted(stringArrayOf(classesExecuted))
+        testResult.assertTestClassesExecuted(*classesExecuted)
         if (!someOtherTestExecuted.isEmpty()) {
-            testResult.testClass("SomeOtherTest").assertTestsExecuted(stringArrayOf(someOtherTestExecuted))
+            testResult.testClass("SomeOtherTest").assertTestsExecuted(*someOtherTestExecuted)
         }
-        testResult.testClass("SomeTest").assertTestsExecuted(stringArrayOf(someTestExecuted))
+        testResult.testClass("SomeTest").assertTestsExecuted(*someTestExecuted)
 
         where:
         scenario                      | command                                                                                                                                                       | classesExecuted               | someOtherTestExecuted | someTestExecuted
@@ -251,7 +251,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        runAndFail(stringArrayOf(command))
+        runAndFail(*command)
 
         then:
         testResult.assertTestClassesExecuted('SomeTest')
@@ -269,9 +269,5 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
     protected boolean capturesTestOutput() {
         return true
-    }
-
-    private String[] stringArrayOf(List<String> strings) {
-        return strings.toArray()
     }
 }
