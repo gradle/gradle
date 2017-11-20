@@ -16,7 +16,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
@@ -27,7 +26,6 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScri
 import static org.hamcrest.Matchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
-    final wrapper = new WrapperTestFixture(testDirectory)
 
     def "init shows up on tasks overview "() {
         when:
