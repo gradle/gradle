@@ -58,6 +58,79 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
+    def "relinks when an upstream dependency changes in ABI compatible way"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+            }
+        """
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+
+        when:
+        file("greeter/src/main/swift/greeter.swift").replace("Hello,", "Goodbye,")
+        then:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTaskSkipped(":app:compileDebugSwift")
+        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput.replace("Hello", "Goodbye")
+    }
+
+    def "recompiles when an upstream dependency changes in non-ABI compatible way"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+            }
+        """
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+
+        when:
+        file("greeter/src/main/swift/greeter.swift").replace("sayHello", "sayAloha")
+        then:
+        fails ":app:compileDebugSwift"
+        result.error.contains("value of type 'Greeter' has no member 'sayHello'")
+
+        when:
+        file("app/src/main/swift/main.swift").replace("sayHello", "sayAloha")
+        then:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksNotSkipped(":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "sources are compiled and linked with Swift tools"() {
         given:
         def app = new SwiftApp()
