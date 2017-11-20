@@ -27,7 +27,7 @@ class XcodePropertyAdapterTest extends Specification {
     def xcodePropertyAdapter = new XcodePropertyAdapter(project)
 
     def "getAction"() {
-        expectProperty("_XCODE_ACTION", "myaction")
+        expectProperty("org.gradle.internal.xcode.bridge.ACTION", "myaction")
 
         expect:
         xcodePropertyAdapter.action == "" // default value
@@ -35,7 +35,7 @@ class XcodePropertyAdapterTest extends Specification {
     }
 
     def "getProductName"() {
-        expectProperty("_XCODE_PRODUCT_NAME", "myproduct")
+        expectProperty("org.gradle.internal.xcode.bridge.PRODUCT_NAME", "myproduct")
 
         expect:
         xcodePropertyAdapter.productName == "" // default value
@@ -43,7 +43,7 @@ class XcodePropertyAdapterTest extends Specification {
     }
 
     def "getConfiguration"() {
-        expectProperty("_XCODE_CONFIGURATION", "configuration")
+        expectProperty("org.gradle.internal.xcode.bridge.CONFIGURATION", "configuration")
 
         expect:
         xcodePropertyAdapter.configuration == "" // default value
@@ -51,7 +51,7 @@ class XcodePropertyAdapterTest extends Specification {
     }
 
     def "getBuiltProductsDir"() {
-        expectProperty("_XCODE_BUILT_PRODUCTS_DIR", "dir")
+        expectProperty("org.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR", "dir")
 
         expect:
         xcodePropertyAdapter.builtProductsDir == "" // default value
@@ -61,10 +61,10 @@ class XcodePropertyAdapterTest extends Specification {
     def "getAdapterCommandLine"() {
         expect:
         XcodePropertyAdapter.adapterCommandLine == [
-                '-P_XCODE_ACTION="${ACTION}"',
-                '-P_XCODE_PRODUCT_NAME="${PRODUCT_NAME}"',
-                '-P_XCODE_CONFIGURATION="${CONFIGURATION}"',
-                '-P_XCODE_BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}"',
+                '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}"',
+                '-Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}"',
+                '-Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}"',
+                '-Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}"',
         ]
     }
 

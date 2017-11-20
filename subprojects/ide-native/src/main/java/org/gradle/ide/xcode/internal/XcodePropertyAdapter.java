@@ -63,6 +63,6 @@ public class XcodePropertyAdapter {
     }
 
     private static String prefixName(String source) {
-        return "_XCODE_" + source;
+        return "org.gradle.internal.xcode.bridge." + source;
     }
 }
