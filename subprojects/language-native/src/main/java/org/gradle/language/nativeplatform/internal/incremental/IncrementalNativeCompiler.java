@@ -84,7 +84,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
-        ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getTask().getName(), spec.getIncludeRoots(), compilation);
+        ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getTask().getPath(), spec.getIncludeRoots(), compilation);
         discoveredInputRecorder.newInputs(headerDependencies);
     }
 

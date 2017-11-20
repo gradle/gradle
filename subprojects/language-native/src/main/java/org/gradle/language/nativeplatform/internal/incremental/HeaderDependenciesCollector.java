@@ -26,17 +26,17 @@ import java.util.List;
 public interface HeaderDependenciesCollector {
     HeaderDependenciesCollector NOOP = new HeaderDependenciesCollector() {
         @Override
-        public ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+        public ImmutableSortedSet<File> collectHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
             return ImmutableSortedSet.of();
         }
 
         @Override
-        public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
+        public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
             return ImmutableSortedSet.of();
         }
     };
 
-    ImmutableSortedSet<File> collectHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
+    ImmutableSortedSet<File> collectHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
 
-    ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskName, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
+    ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
 }
