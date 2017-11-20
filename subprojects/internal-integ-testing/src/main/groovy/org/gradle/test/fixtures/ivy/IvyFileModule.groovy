@@ -385,7 +385,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 if (dep.revConstraint) {
                     depAttrs.revConstraint = dep.revConstraint
                 }
-                dependency(depAttrs)
+                builder.dependency(depAttrs) {
+                    if (dep.exclusions) {
+                        for (exc in dep.exclusions) {
+                            def excludeAttrs = [:]
+                            if (exc.group) {
+                                excludeAttrs.org = exc.group
+                            }
+                            if (exc.module) {
+                                excludeAttrs.module = exc.module
+                            }
+                            builder.exclude(excludeAttrs)
+                        }
+                    }
+                }
             }
         }
 

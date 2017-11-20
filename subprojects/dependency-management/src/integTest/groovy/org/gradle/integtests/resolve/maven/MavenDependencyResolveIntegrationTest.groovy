@@ -212,48 +212,4 @@ dependencies {
         }
     }
 
-    @RequiredFeatures(
-        // exclusions are not supported by Gradle metadata
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    )
-    def "dependency with wildcard exclusions is treated as non-transitive"() {
-        given:
-        repository {
-            'org.gradle:thirdLevel:1.0'()
-            'org.gradle:secondLevel:1.0'() {
-                dependsOn 'org.gradle:thirdLevel:1.0'
-            }
-            'org.gradle:firstLevel:1.0' {
-                dependsOn(group:'org.gradle', artifact:'secondLevel', version:'1.0', exclusions: [[groupId: '*', artifactId: '*']])
-            }
-        }
-
-        and:
-        buildFile << """
-dependencies {
-    conf "org.gradle:firstLevel:1.0"
-}
-"""
-
-        repositoryInteractions {
-            'org.gradle:firstLevel:1.0' {
-                expectGetMetadata()
-                expectGetArtifact()
-            }
-            'org.gradle:secondLevel:1.0' {
-                expectGetMetadata()
-                expectGetArtifact()
-            }
-        }
-
-        expect:
-        succeeds "checkDep"
-        resolve.expectGraph {
-            root(':', ':testproject:') {
-                module("org.gradle:firstLevel:1.0") {
-                    module("org.gradle:secondLevel:1.0")
-                }
-            }
-        }
-    }
 }

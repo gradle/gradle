@@ -59,7 +59,9 @@ public interface IvyModule extends Module {
      *  organisation
      *  module
      *  revision
+     *  revConstraint
      *  conf
+     *  exclusions - list of maps: [[group: ?, module: ?], ...]
      */
     IvyModule dependsOn(Map<String, ?> attributes);
 
