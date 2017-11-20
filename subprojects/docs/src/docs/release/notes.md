@@ -8,6 +8,20 @@ Add-->
 
 <!--
 ### Example new and noteworthy
+
+Think of every feature section as a mini blog post.
+
+1) Make sure the release notes render properly: `./gradlew :docs:releaseNotes && open subprojects/docs/build/docs/release-notes.html`
+  TIP: Continuous build is useful when working on release notes.
+  NOTE: The markdown processor does not know GitHub flavored markdown syntax.
+
+2) Explain why users should care.
+  TIP: Avoid technical details with no indications how this impacts users.
+
+3) Link to documentation or a blog post for more detailed information.
+
+4) Show, don't just tell, if possible.
+  NOTE: Totally fine to just link to an example that show the feature.
 -->
 
 ### Provider API documentation
