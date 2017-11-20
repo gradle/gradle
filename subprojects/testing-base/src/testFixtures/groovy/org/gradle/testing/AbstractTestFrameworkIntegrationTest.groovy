@@ -197,8 +197,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     def "task is out of date when --tests argument changes"() {
-        String testTaskPath = ":$testTaskName"
-
         given:
         createPassingFailingTest()
 
@@ -206,13 +204,13 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         then: testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
 
         when: run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
-        then: result.skippedTasks.contains(testTaskPath) //up-to-date
+        then: result.assertTaskSkipped(":$testTaskName") //up-to-date
 
         when:
         run(testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName")
 
         then:
-        !result.skippedTasks.contains(testTaskPath)
+        result.assertTaskNotSkipped(":$testTaskName")
         testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
     }
 
