@@ -482,11 +482,12 @@ public abstract class AbstractTestTask<T extends AbstractTestTask> extends Conve
         }
     }
 
-    private String  createNoMatchingTestErrorMessage() {
+    private String createNoMatchingTestErrorMessage() {
         return "No tests found for given includes: "
             + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
     }
 
+    @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = Lists.newArrayList();
         if (!getFilter().getIncludePatterns().isEmpty()) {
