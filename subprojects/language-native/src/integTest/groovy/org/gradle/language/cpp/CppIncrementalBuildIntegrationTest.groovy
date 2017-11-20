@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -345,7 +346,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     }
 
     @Unroll
-    def "considers all header files as inputs when complex macro include #include is used"() {
+    def "considers all header files as inputs when complex macro include #include is used#specialFlagText"() {
         when:
 
         file("app/src/main/cpp/main.cpp").text = """
@@ -362,6 +363,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             IGNORE ME
         """
 
+        if (specialFlagActive) {
+            disableTransitiveUnresolvedHeaderDetection()
+        }
+
         then:
         succeeds installApp
         executable("app/build/exe/main/debug/app").exec().out == "hello\n"
@@ -376,7 +381,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         executedAndNotSkipped compileTasksDebug(APP)
         output.contains("Cannot locate header file for include '${include}' in source file 'main.cpp'. Assuming changed.")
-        output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
+        unresolvedHeadersDetected(':app:dependDebugCpp')
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -410,38 +415,126 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        include           | text
+        include           | text | specialFlagActive
         'HELLO'           | '''            
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
-        '''
+        '''                      | false
+        'HELLO'           | '''            
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        '''                      | true
         '_HELLO(hello.h)' | '''
             #define _HELLO(X) #X
             #include _HELLO(hello.h)
-        '''
-        'MISSING' | '''
+        '''                      | false
+        'MISSING'         | '''
             #ifdef MISSING
             #include MISSING
             #else
             #include "hello.h"
             #endif
-        '''
-        'GARBAGE' | '''
+        '''                      | false
+        'GARBAGE'         | '''
             #if 0
             #define GARBAGE a b c
             #include GARBAGE
             #else
             #include "hello.h"
             #endif
-        '''
-        'a b c' | '''
+        '''                      | false
+        'a b c'           | '''
             #if 0
             #include a b c
             #else
             #include "hello.h"
             #endif
-        '''
+        '''                      | false
+
+        specialFlagText = specialFlagActive ? ' (special flag active)' : ''
+    }
+
+    def "does not consider all header files as inputs if complex macro include is found in dependency and special flag is active"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include "headers.h"
+            #include <iostream>
+
+            int main () {
+              std::cout << "hello" << std::endl;
+              return 0;
+            }
+        """
+        file("app/src/main/headers/headers.h") << """
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        disableTransitiveUnresolvedHeaderDetection()
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        succeeds installApp
+
+        and:
+        skipped compileTasksDebug(APP)
+    }
+
+    private GradleExecuter disableTransitiveUnresolvedHeaderDetection() {
+        executer.with {
+            withArgument("-Dorg.gradle.internal.native.headers.unresolved.dependencies.ignore=true")
+        }
+    }
+
+    def "does consider all header files as inputs if complex macro include is found in dependency"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include "headers.h"
+            #include <iostream>
+
+            int main () {
+              std::cout << "hello" << std::endl;
+              return 0;
+            }
+        """
+        file("app/src/main/headers/headers.h") << """
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        succeeds installApp, '--info'
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+        unresolvedHeadersDetected(':app:dependDebugCpp')
     }
 
     def "can have a cycle between header files"() {
@@ -692,5 +785,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         then:
         nonSkippedTasks.empty
+    }
+
+    private boolean unresolvedHeadersDetected(String taskPath) {
+        output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for '${taskPath}'. Every file in the include search path will be considered a header dependency.")
     }
 }

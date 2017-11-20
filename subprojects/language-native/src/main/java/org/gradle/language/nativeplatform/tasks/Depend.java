@@ -101,8 +101,8 @@ public class Depend extends DefaultTask {
         IncrementalCompileProcessor incrementalCompileProcessor = createIncrementalCompileProcessor(includeRoots, compileStateCache);
 
         IncrementalCompilation incrementalCompilation = incrementalCompileProcessor.processSourceFiles(source.getFiles());
-        ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getName(), includeRoots, incrementalCompilation);
-        ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(getName(), includeRoots, incrementalCompilation);
+        ImmutableSortedSet<File> headerDependencies = headerDependenciesCollector.collectHeaderDependencies(getPath(), includeRoots, incrementalCompilation);
+        ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(getPath(), includeRoots, incrementalCompilation);
         compileStateCache.set(incrementalCompilation.getFinalState());
 
         inputs.newInputs(headerDependencies);

@@ -282,11 +282,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     private static LocalBuildCacheServiceHandle toHandle(LocalBuildCacheService local, boolean localPush) {
-        if (local == null) {
-            return NullLocalBuildCacheServiceHandle.INSTANCE;
-        } else {
-            return new DefaultLocalBuildCacheServiceHandle(local, localPush);
-        }
+        return new DefaultLocalBuildCacheServiceHandle(local, localPush);
     }
 
 }
