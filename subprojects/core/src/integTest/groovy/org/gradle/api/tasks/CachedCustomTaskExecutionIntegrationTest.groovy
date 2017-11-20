@@ -801,7 +801,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        args "--parallel", "--max-workers=40"
+        args "--parallel", "--max-workers=100"
         withBuildCache().succeeds "test"
         then:
         noExceptionThrown()
