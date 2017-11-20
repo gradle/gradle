@@ -71,7 +71,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
-    private ImmutableAttributes attributes;
 
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
@@ -234,8 +233,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     }
 
     public void setAttributes(ImmutableAttributes attributes) {
-        this.attributes = attributes;
         // map the "status" attribute to the "status" field
+        // currently this is the only "attribute" that is supported
+        // so this explains that we don't bother storing the whole attribute set
+        // into a mutable attribute container, but only map known attributes
+        // to fiels instead
         if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
             setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
         }
