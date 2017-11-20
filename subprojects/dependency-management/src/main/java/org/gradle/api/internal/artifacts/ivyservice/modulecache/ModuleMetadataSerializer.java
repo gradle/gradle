@@ -428,7 +428,7 @@ public class ModuleMetadataSerializer {
             List<Configuration> configurations = readConfigurations();
             List<ModuleDependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
-            List<Exclude> excludes = readAllExcludes();
+            List<Exclude> excludes = readModuleExcludes();
             DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, configurations, dependencies, artifacts);
             readSharedInfo(metadata);
             String branch = readNullableString();
@@ -504,7 +504,7 @@ public class ModuleMetadataSerializer {
                 case TYPE_IVY:
                     SetMultimap<String, String> configMappings = readDependencyConfigurationMapping();
                     List<Artifact> artifacts = readDependencyArtifactDescriptors();
-                    List<Exclude> excludes = readExcludeRules();
+                    List<Exclude> excludes = readDependencyExcludes();
                     String dynamicConstraintVersion = readString();
                     boolean force = readBoolean();
                     boolean changing = readBoolean();
@@ -513,7 +513,7 @@ public class ModuleMetadataSerializer {
                     return new IvyDependencyMetadata(requested, dynamicConstraintVersion, force, changing, transitive,  optional, configMappings, artifacts, excludes);
                 case TYPE_MAVEN:
                     artifacts = readDependencyArtifactDescriptors();
-                    excludes = readExcludeRules();
+                    excludes = readDependencyExcludes();
                     MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
                     optional = decoder.readBoolean();
                     return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes);
@@ -543,12 +543,21 @@ public class ModuleMetadataSerializer {
             return result;
         }
 
-        private List<Exclude> readExcludeRules() throws IOException {
+        private List<Exclude> readDependencyExcludes() throws IOException {
             int len = readCount();
             List<Exclude> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
                 DefaultExclude rule = readExcludeRule();
                 result.add(rule);
+            }
+            return result;
+        }
+
+        private List<Exclude> readModuleExcludes() throws IOException {
+            int len = readCount();
+            List<Exclude> result = new ArrayList<Exclude>(len);
+            for (int i = 0; i < len; i++) {
+                result.add(readExcludeRule());
             }
             return result;
         }
@@ -562,15 +571,6 @@ public class ModuleMetadataSerializer {
             String[] confs = readStringArray();
             String matcher = readString();
             return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
-        }
-
-        private List<Exclude> readAllExcludes() throws IOException {
-            int len = readCount();
-            List<Exclude> result = new ArrayList<Exclude>(len);
-            for (int i = 0; i < len; i++) {
-                result.add(readExcludeRule());
-            }
-            return result;
         }
 
         private int readCount() throws IOException {
