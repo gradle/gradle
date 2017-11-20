@@ -60,10 +60,10 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
         return ImmutableSortedSet.copyOf(headerDependencies);
     }
 
-    private void addIncludeRoots(String taskName, List<File> includeRoots, final Set<File> headerDependencies) {
-        logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskName);
+    private void addIncludeRoots(String taskPath, List<File> includeRoots, final Set<File> headerDependencies) {
+        logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskPath);
         for (final File includeRoot : includeRoots) {
-            logger.info("adding files in {} to header dependencies for {}", includeRoot, taskName);
+            logger.info("adding files in {} to header dependencies for {}", includeRoot, taskPath);
             directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {
                 @Override
                 public void visitFile(FileVisitDetails fileDetails) {

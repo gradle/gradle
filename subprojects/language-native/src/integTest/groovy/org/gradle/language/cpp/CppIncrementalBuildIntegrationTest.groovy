@@ -420,38 +420,38 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
-        ''' | false
-        'HELLO' | '''            
+        '''                      | false
+        'HELLO'           | '''            
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
-        ''' | true
+        '''                      | true
         '_HELLO(hello.h)' | '''
             #define _HELLO(X) #X
             #include _HELLO(hello.h)
-        ''' | false
-        'MISSING' | '''
+        '''                      | false
+        'MISSING'         | '''
             #ifdef MISSING
             #include MISSING
             #else
             #include "hello.h"
             #endif
-        ''' | false
-        'GARBAGE' | '''
+        '''                      | false
+        'GARBAGE'         | '''
             #if 0
             #define GARBAGE a b c
             #include GARBAGE
             #else
             #include "hello.h"
             #endif
-        ''' | false
-        'a b c' | '''
+        '''                      | false
+        'a b c'           | '''
             #if 0
             #include a b c
             #else
             #include "hello.h"
             #endif
-        ''' | false
+        '''                      | false
 
         specialFlagText = specialFlagActive ? ' (special flag active)' : ''
     }
