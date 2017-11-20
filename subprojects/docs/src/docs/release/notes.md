@@ -43,11 +43,10 @@ It is now possible to compile native applications with the Visual C++ toolchain 
   
 ### C/C++ incremental build improvements
 
-C/C++ compilation now takes system headers and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+C/C++ compilation now takes system headers, and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
 
 Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
-
-Changing system headers were not detected, either, so updating a system library would not have caused recompilation.
+Changing system headers were not detected either, so updating a system library would not have caused recompilation.
 
 ### Improved Play 2.6 support
 
@@ -124,9 +123,12 @@ In this release, the Gradle team added a new chapter in the user guide documenti
 
 ### Task validation disallows input/output annotations on private getters
 
-The `ValidateTaskProperties` task, added by the `java-gradle-plugin`, failed if private getters have not been annotated with input or output annotations. This required plugin authors to annotate private methods called `getXXX` with `@Internal`.
+Annotating private task properties will not be allowed in Gradle 5.0.
+To prepare for this, Gradle 4.4 will warn about annotations on private properties.
+The warning is visible when building the task with the [`java-gradle-plugin`](userguide/javaGradle_plugin.html) applied:
 
-Starting with Gradle 4.4, the task warns about annotations on private getters instead, so plugin authors do not need to put any annotations on private methods.
+    Task property validation finished with warnings:
+    - Warning: Task type 'MyTask': property 'inputFile' is private and annotated with an input or output annotation
 
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
