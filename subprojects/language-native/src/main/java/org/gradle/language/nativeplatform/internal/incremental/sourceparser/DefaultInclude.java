@@ -16,12 +16,14 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultInclude implements Include {
+public class DefaultInclude extends AbstractInclude {
 
     private static final Interner<DefaultInclude> INTERNER = Interners.newWeakInterner();
 
@@ -31,6 +33,13 @@ public class DefaultInclude implements Include {
 
     public static DefaultInclude create(String value, boolean isImport, IncludeType type) {
         return INTERNER.intern(new DefaultInclude(value, isImport, type));
+    }
+
+    public static Include create(Expression expression, boolean isImport) {
+        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
+            return new MacroFunctionInclude(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
+        }
+        return create(expression.getValue(), isImport, expression.getType());
     }
 
     public DefaultInclude(String value, boolean isImport, IncludeType type) {
@@ -61,36 +70,8 @@ public class DefaultInclude implements Include {
     }
 
     public static Include parse(String value, boolean isImport) {
-        if (value.startsWith("<") && value.endsWith(">")) {
-            return DefaultInclude.create(strip(value), isImport, IncludeType.SYSTEM);
-        } else if (value.startsWith("\"") && value.endsWith("\"")) {
-            return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
-        }
-        int pos = RegexBackedCSourceParser.consumeIdentifier(value, 0);
-        if (pos > 0 && pos == value.length()) {
-            return DefaultInclude.create(value, isImport, IncludeType.MACRO);
-        }
-        if (pos > 0 && pos != value.length()) {
-            int endPos = pos;
-            pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
-            if (value.charAt(pos) == '(') {
-                pos++;
-                pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
-                if (pos == value.length() - 1 && value.charAt(pos) == ')') {
-                    return DefaultInclude.create(value.substring(0, endPos), isImport, IncludeType.MACRO_FUNCTION);
-                }
-            }
-        }
-        return DefaultInclude.create(value, isImport, IncludeType.OTHER);
-    }
-
-    private static String strip(String include) {
-        return include.substring(1, include.length() - 1);
-    }
-
-    @Override
-    public String toString() {
-        return value.concat(":").concat(type.toString()).concat(":").concat(String.valueOf(isImport));
+        Expression expression = RegexBackedCSourceParser.parseExpression(value);
+        return DefaultInclude.create(expression.getValue(), isImport, expression.getType());
     }
 
     @Override

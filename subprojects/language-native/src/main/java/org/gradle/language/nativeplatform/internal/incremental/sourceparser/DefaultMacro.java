@@ -17,27 +17,15 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.Macro;
 
-public class DefaultMacro implements Macro {
-    private final String name;
+public class DefaultMacro extends AbstractMacro {
     private final IncludeType includeType;
     private final String value;
 
     public DefaultMacro(String name, IncludeType includeType, String value) {
-        this.name = name;
+        super(name);
         this.includeType = includeType;
         this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return "{" + name + "->" + value + "}";
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -52,19 +40,15 @@ public class DefaultMacro implements Macro {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (!super.equals(obj)) {
             return false;
         }
-
         DefaultMacro other = (DefaultMacro) obj;
-        return name.equals(other.name) && value.equals(other.value);
+        return value.equals(other.value);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ value.hashCode();
+        return super.hashCode() ^ value.hashCode();
     }
 }

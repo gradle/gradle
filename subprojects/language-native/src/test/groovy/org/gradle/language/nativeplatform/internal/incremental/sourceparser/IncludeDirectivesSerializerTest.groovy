@@ -32,7 +32,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def include1 = new DefaultInclude("one.h", true, IncludeType.QUOTED)
         def include2 = new DefaultInclude("two.h", true, IncludeType.SYSTEM)
         def include3 = new DefaultInclude("three.h", false, IncludeType.MACRO)
-        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include1, include2, include3]), ImmutableList.of(), ImmutableList.of())
+        def include4 = new MacroFunctionInclude("A", true, ImmutableList.of(new DefaultExpression("X", IncludeType.MACRO), new DefaultExpression("Y", IncludeType.MACRO)))
+        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include1, include2, include3, include4]), ImmutableList.of(), ImmutableList.of())
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives

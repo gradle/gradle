@@ -346,7 +346,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     }
 
     @Unroll
-    def "considers all header files as inputs when complex macro include #include is used#specialFlagText"() {
+    def "considers all header files as inputs when complex macro include #include is used"() {
         when:
 
         file("app/src/main/cpp/main.cpp").text = """
@@ -363,10 +363,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             IGNORE ME
         """
 
-        if (specialFlagActive) {
-            disableTransitiveUnresolvedHeaderDetection()
-        }
-
         then:
         succeeds installApp
         executable("app/build/exe/main/debug/app").exec().out == "hello\n"
@@ -380,7 +376,20 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         and:
         executedAndNotSkipped compileTasksDebug(APP)
-        output.contains("Cannot locate header file for include '${include}' in source file 'main.cpp'. Assuming changed.")
+        output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
+        unresolvedHeadersDetected(':app:dependDebugCpp')
+
+        when:
+        disableTransitiveUnresolvedHeaderDetection()
+        headerFile.text = "changed again"
+
+        then:
+        executer.withArgument("-i")
+        succeeds installApp
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+        output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
         unresolvedHeadersDetected(':app:dependDebugCpp')
 
         when:
@@ -415,45 +424,49 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        include           | text | specialFlagActive
-        'HELLO'           | '''            
+        include                | text
+        'HELLO'                | '''            
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
-        '''                      | false
-        'HELLO'           | '''            
-            #define _HELLO(X) #X
-            #define HELLO _HELLO(hello.h)
+        '''
+        'HELLO'                | '''            
+            #define _HELLO(X) X
+            #define PATH "hello.h"
+            #define HELLO _HELLO(PATH)
             #include HELLO
-        '''                      | true
-        '_HELLO(hello.h)' | '''
+        '''
+        '_HELLO(hello.h)'      | '''
             #define _HELLO(X) #X
             #include _HELLO(hello.h)
-        '''                      | false
-        'MISSING'         | '''
+        '''
+        '_HELLO(PATH, ignore)' | '''
+            #define _HELLO(X, Y) X
+            #define PATH "hello.h"
+            #include _HELLO(PATH, ignore)
+        '''
+        'MISSING'              | '''
             #ifdef MISSING
             #include MISSING
             #else
             #include "hello.h"
             #endif
-        '''                      | false
-        'GARBAGE'         | '''
+        '''
+        'GARBAGE'              | '''
             #if 0
             #define GARBAGE a b c
             #include GARBAGE
             #else
             #include "hello.h"
             #endif
-        '''                      | false
-        'a b c'           | '''
+        '''
+        'a b c'                | '''
             #if 0
             #include a b c
             #else
             #include "hello.h"
             #endif
-        '''                      | false
-
-        specialFlagText = specialFlagActive ? ' (special flag active)' : ''
+        '''
     }
 
     def "does not consider all header files as inputs if complex macro include is found in dependency and special flag is active"() {

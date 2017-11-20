@@ -142,7 +142,7 @@ public class IncrementalCompileFilesFactory {
                 SourceIncludesResolver.IncludeResolutionResult resolutionResult = sourceIncludesResolver.resolveInclude(file, include, visibleIncludeDirectives);
                 discoveredInputs.addAll(resolutionResult.getCheckedLocations());
                 if (!resolutionResult.isComplete()) {
-                    LOGGER.info("Cannot locate header file for include '{}' in source file '{}'. Assuming changed.", resolutionResult.getInclude(), file.getName());
+                    LOGGER.info("Cannot locate header file for '{}' in source file '{}'. Assuming changed.", include.getAsSourceText(), file.getName());
                     result = IncludeFileResolutionResult.UnresolvedMacroIncludes;
                     if (isSourceFile || !ignoreUnresolvedHeadersInDependencies) {
                         hasUnresolvedHeaders = true;

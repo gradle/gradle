@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-/**
- * A preprocessor directive whose value is a preprocessor expression.
- */
-public interface Directive {
-    IncludeType getType();
-    String getValue();
+import org.gradle.language.nativeplatform.internal.Include;
+
+public abstract class AbstractInclude extends AbstractExpression implements Include {
+    @Override
+    public String getAsSourceText() {
+        return (isImport() ? "#import " : "#include ") + super.getAsSourceText();
+    }
 }

@@ -30,8 +30,6 @@ public interface SourceIncludesResolver {
          */
         boolean isComplete();
 
-        String getInclude();
-
         List<File> getFiles();
 
         /**

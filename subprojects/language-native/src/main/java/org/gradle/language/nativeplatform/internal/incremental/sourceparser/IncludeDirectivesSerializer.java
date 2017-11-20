@@ -22,11 +22,15 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
@@ -58,7 +62,17 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             String value = decoder.readString();
             boolean isImport = decoder.readBoolean();
             IncludeType type = enumSerializer.read(decoder);
-            return DefaultInclude.create(value, isImport, type);
+            int argsCount = decoder.readSmallInt();
+            if (argsCount == 0) {
+                return DefaultInclude.create(value, isImport, type);
+            }
+            List<Expression> args = new ArrayList<Expression>(argsCount);
+            for (int i = 0; i < argsCount; i++) {
+                String expressionValue = decoder.readString();
+                IncludeType expressionType = enumSerializer.read(decoder);
+                args.add(new DefaultExpression(expressionValue, expressionType));
+            }
+            return new MacroFunctionInclude(value, isImport, ImmutableList.copyOf(args));
         }
 
         @Override
@@ -66,6 +80,17 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             encoder.writeString(value.getValue());
             encoder.writeBoolean(value.isImport());
             enumSerializer.write(encoder, value.getType());
+            if (value instanceof DefaultInclude) {
+                encoder.writeSmallInt(0);
+            } else if (value instanceof MacroFunctionInclude) {
+                encoder.writeSmallInt(value.getArguments().size());
+                for (Expression expression : value.getArguments()) {
+                    encoder.writeString(expression.getValue());
+                    enumSerializer.write(encoder, expression.getType());
+                }
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
     }
 
@@ -90,7 +115,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String name = decoder.readString();
                 return new UnresolveableMacro(name);
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
 
@@ -105,7 +130,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
     }
@@ -133,7 +158,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 int parameters = decoder.readSmallInt();
                 return new UnresolveableMacroFunction(name, parameters);
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
 
@@ -150,7 +175,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
     }

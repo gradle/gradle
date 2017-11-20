@@ -19,6 +19,6 @@ package org.gradle.language.nativeplatform.internal;
 /**
  * An 'object-like' macro definition.
  */
-public interface Macro extends Directive {
+public interface Macro extends Expression {
     String getName();
 }

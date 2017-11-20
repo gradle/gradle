@@ -18,18 +18,39 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class UnresolveableMacroFunction extends AbstractMacroFunction {
-    public UnresolveableMacroFunction(String name, int parameters) {
-        super(name, parameters);
-    }
+public class DefaultExpression extends AbstractExpression {
+    private final String value;
+    private final IncludeType type;
 
-    @Override
-    public IncludeType getType() {
-        return IncludeType.OTHER;
+    DefaultExpression(String value, IncludeType type) {
+        this.value = value;
+        this.type = type;
     }
 
     @Override
     public String getValue() {
-        return null;
+        return value;
+    }
+
+    @Override
+    public IncludeType getType() {
+        return type;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DefaultExpression other = (DefaultExpression) obj;
+        return value.equals(other.value) && type.equals(other.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode() ^ type.hashCode();
     }
 }

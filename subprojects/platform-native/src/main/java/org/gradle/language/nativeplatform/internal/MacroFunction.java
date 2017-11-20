@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform.internal;
 /**
  * A 'function-like' macro definition.
  */
-public interface MacroFunction extends Directive {
+public interface MacroFunction extends Expression {
     String getName();
     int getParameterCount();
 }

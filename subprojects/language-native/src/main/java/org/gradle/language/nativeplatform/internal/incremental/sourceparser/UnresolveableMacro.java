@@ -17,18 +17,10 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.Macro;
 
-public class UnresolveableMacro implements Macro {
-    private final String name;
-
+public class UnresolveableMacro extends AbstractMacro {
     public UnresolveableMacro(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        super(name);
     }
 
     @Override
@@ -39,27 +31,5 @@ public class UnresolveableMacro implements Macro {
     @Override
     public String getValue() {
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return "{" + name + "->???}";
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        UnresolveableMacro other = (UnresolveableMacro) obj;
-        return other.name.equals(name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
     }
 }

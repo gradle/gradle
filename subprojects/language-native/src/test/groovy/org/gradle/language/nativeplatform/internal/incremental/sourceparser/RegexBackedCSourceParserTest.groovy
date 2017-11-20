@@ -15,6 +15,8 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
+import com.google.common.collect.ImmutableList
+import org.gradle.language.nativeplatform.internal.Expression
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
@@ -69,18 +71,23 @@ class RegexBackedCSourceParserTest extends Specification {
         sourceFile.text = sourceFile.text.replace("include", directive)
     }
 
+    Expression expression(String value) {
+        return RegexBackedCSourceParser.parseExpression(value)
+    }
+
     Include include(String value, boolean isImport = false) {
-        return DefaultInclude.parse(value, isImport)
+        def expression = RegexBackedCSourceParser.parseExpression(value)
+        return DefaultInclude.create(expression, isImport)
     }
 
     Macro macro(String name, String value) {
-        def include = DefaultInclude.parse(value, false)
-        return new DefaultMacro(name, include.type, include.value)
+        def expression = RegexBackedCSourceParser.parseExpression(value)
+        return new DefaultMacro(name, expression.type, expression.value)
     }
 
     MacroFunction macroFunction(String name, int parameters = 0, String value) {
-        def include = DefaultInclude.parse(value, false)
-        return new DefaultMacroFunction(name, parameters, include.type, include.value)
+        def expression = RegexBackedCSourceParser.parseExpression(value)
+        return new DefaultMacroFunction(name, parameters, expression.type, expression.value)
     }
 
     Macro unresolvedMacro(String name) {
@@ -115,7 +122,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == ['"test.h"'].collect { include(it) }
+        includes == [new DefaultInclude('test.h', false, IncludeType.QUOTED)]
 
         and:
         noImports()
@@ -139,7 +146,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == ['<test.h>'].collect { include(it) }
+        includes == [new DefaultInclude('test.h', false, IncludeType.SYSTEM)]
 
         and:
         noImports()
@@ -194,6 +201,26 @@ class RegexBackedCSourceParserTest extends Specification {
         'a12  \t(\t)' | 'a12'
     }
 
+    def "finds macro function include with parameters"() {
+        when:
+        sourceFile << """
+    #include ${include}
+"""
+
+        then:
+        includes == [new MacroFunctionInclude(macro, false, ImmutableList.copyOf(parameters.collect{ expression(it) }))]
+
+        and:
+        noImports()
+
+        where:
+        include               | macro | parameters
+        'A(X)'                | 'A'   | ['X']
+        'A( X )'              | 'A'   | ['X']
+        'ABC(x,y)'            | 'ABC' | ['x', 'y']
+        'ABC( \t x \t,  y  )' | 'ABC' | ['x', 'y']
+    }
+
     def "finds other includes"() {
         when:
         sourceFile << """
@@ -207,7 +234,7 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
 
         where:
-        include << ['DEFINED(ABC)', 'not an include', 'BROKEN (', '@(X', '"abc.h" DEFINED']
+        include << ['DEFINED(<abc.h>)', 'not an include', 'BROKEN(', '@(X', '"abc.h" DEFINED']
     }
 
     def "finds multiple includes"() {
@@ -220,10 +247,11 @@ class RegexBackedCSourceParserTest extends Specification {
     #include DEFINED
     #include DEFINED()
     #include DEFINED(ABC)
+    #include DEFINED(X, Y)
     #include not an include
 """
         then:
-        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED', 'DEFINED()', 'DEFINED(ABC)', 'not an include'].collect { include(it) }
+        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED', 'DEFINED()', 'DEFINED(ABC)', 'DEFINED(X, Y)', 'not an include'].collect { include(it) }
 
         and:
         noImports()
@@ -381,9 +409,17 @@ class RegexBackedCSourceParserTest extends Specification {
 #include <system3> /*
    A comment here
 */
+#include MACRO1  // A comment here 
+#include MACRO2 /*
+   A comment here
+*/
+#include MACRO1()  // A comment here 
+#include MACRO2() /*
+   A comment here
+*/
 """
         then:
-        includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>'].collect { include(it) }
+        includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>', 'MACRO1', 'MACRO2', 'MACRO1()', 'MACRO2()'].collect { include(it) }
     }
 
     @Unroll
@@ -529,10 +565,14 @@ void # include <thing>
 
 #include 'thing.h' extra stuff
 
+ # include X(
+ # include X( ++
+ # include X(a,
+
 """
 
         then:
-        includes.size() == 3
+        includes.size() == 6
         imports.size() == 4
     }
 
@@ -589,7 +629,7 @@ st3"
         macroFunctions.empty
 
         where:
-        value << ["one two three", "a++", "one(abc)", "-12"]
+        value << ["one two three", "a++", "one(<abc.h>)", "-12", "(X) #X"]
     }
 
     def "handles various separators in an object-like macro directive"() {
@@ -658,16 +698,18 @@ st3"
 #endif
 #define OTHER "1234"
 #define EMPTY
-#define UNKNOWN abc(123)
+#define FUNCTION abc(123)
+#define UNKNOWN abc 123
 """
 
         then:
         macros == [
-            macro('SOME_STRING', 'abc'),
-            macro('SOME_STRING', 'xyz'),
-            macro('OTHER', '1234'),
+            macro('SOME_STRING', '"abc"'),
+            macro('SOME_STRING', '"xyz"'),
+            macro('OTHER', '"1234"'),
             unresolvedMacro('EMPTY'),
-            unresolvedMacro('UNKNOWN')
+            macro('FUNCTION', 'abc(123)'),
+            unresolvedMacro('UNKNOWN'),
         ]
         macroFunctions.empty
     }
@@ -681,6 +723,17 @@ st3"
         then:
         macros.empty
         macroFunctions == [macroFunction('A', '"abc"')]
+    }
+
+    def "finds function-like macro directive with no parameters whose value is not a string constant or macro reference"() {
+        when:
+        sourceFile << """
+#define A() @ 
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction('A')]
     }
 
     def "finds function-like macro directive with no parameters whose value is empty"() {
