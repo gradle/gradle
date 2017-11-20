@@ -74,11 +74,11 @@ public class ClasspathUtil {
 
     public static File getClasspathForClass(String targetClassName) {
         try {
-            Class clazz = Class.forName(targetClassName);
+            Class clazz = Thread.currentThread().getContextClassLoader().loadClass(targetClassName);
             if (clazz.getClassLoader() == null) {
                 return null;
             } else {
-                return getClasspathForClass(Class.forName(targetClassName));
+                return getClasspathForClass(clazz);
             }
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
