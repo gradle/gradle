@@ -249,7 +249,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
                     unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
 
-                    linkTest.source(unexportMainSymbol);
+                    linkTest.source(unexportMainSymbol.getObjects());
                     linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
                         @Override
                         public boolean isSatisfiedBy(File objectFile) {

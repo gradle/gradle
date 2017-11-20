@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
@@ -46,7 +45,6 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         succeeds("clean", "unexport", "assemble")
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle-native/issues/297")
     def "unexport is incremental"() {
         writeMainSwift()
