@@ -60,7 +60,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### HTTP build cache does not follow redirects
 
-When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more and treats them as errors instead.
+When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
 Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
 
 ## External contributions

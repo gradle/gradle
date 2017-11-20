@@ -37,7 +37,10 @@ class CookieHeaderTest extends Specification {
     @Rule
     ConfigureLogging logging = new ConfigureLogging(listener, LogLevel.WARN)
     SslContextFactory sslContextFactory = new DefaultSslContextFactory()
-    HttpSettings settings = DefaultHttpSettings.builder().withAuthenticationSettings([]).withSslContextFactory(sslContextFactory).build()
+    HttpSettings settings = DefaultHttpSettings.builder()
+        .withAuthenticationSettings([])
+        .withSslContextFactory(sslContextFactory)
+        .build()
     HttpClientHelper client = new HttpClientHelper(settings)
 
     def "cookie header with attributes #attributes can be parsed"() {
