@@ -31,5 +31,7 @@ public interface Module {
      * Returns the Gradle module metadata file of this module
      */
     ModuleArtifact getModuleMetadata()
+    GradleModuleMetadata getParsedModuleMetadata()
+
 
 }

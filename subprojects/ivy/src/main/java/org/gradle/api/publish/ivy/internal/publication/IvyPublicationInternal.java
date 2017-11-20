@@ -38,4 +38,6 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     Set<IvyDependencyInternal> getDependencies();
 
     IvyNormalizedPublication asNormalisedPublication();
+
+    boolean canPublishModuleMetadata();
 }
