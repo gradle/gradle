@@ -376,7 +376,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         executedAndNotSkipped compileTasksDebug(APP)
         output.contains("Cannot locate header file for include '${include}' in source file 'main.cpp'. Assuming changed.")
-        output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
+        unresolvedHeadersDetected()
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -442,6 +442,83 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #include "hello.h"
             #endif
         '''
+    }
+
+    def "does not consider all header files as inputs if complex macro include is found in dependency and special flag is active"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include "headers.h"
+            #include <iostream>
+
+            int main () {
+              std::cout << "hello" << std::endl;
+              return 0;
+            }
+        """
+        file("app/src/main/headers/headers.h") << """
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        executer.with {
+            withArgument('-Dorg.gradle.internal.native.headers.unresolved.dependencies.ignore=true')
+        }
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        succeeds installApp
+
+        and:
+        skipped compileTasksDebug(APP)
+    }
+
+    def "does consider all header files as inputs if complex macro include is found in dependency"() {
+        when:
+
+        file("app/src/main/cpp/main.cpp").text = """
+            #include "headers.h"
+            #include <iostream>
+
+            int main () {
+              std::cout << "hello" << std::endl;
+              return 0;
+            }
+        """
+        file("app/src/main/headers/headers.h") << """
+            #define _HELLO(X) #X
+            #define HELLO _HELLO(hello.h)
+            #include HELLO
+        """
+
+        def headerFile = file("app/src/main/headers/ignore.h") << """
+            IGNORE ME
+        """
+
+        then:
+        succeeds installApp
+        executable("app/build/exe/main/debug/app").exec().out == "hello\n"
+
+        when:
+        headerFile.text = "changed"
+
+        then:
+        succeeds installApp, '--info'
+
+        and:
+        executedAndNotSkipped compileTasksDebug(APP)
+        unresolvedHeadersDetected()
     }
 
     def "can have a cycle between header files"() {
@@ -692,5 +769,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         then:
         nonSkippedTasks.empty
+    }
+
+    private boolean unresolvedHeadersDetected() {
+        output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for dependDebugCpp. Every file in the include search path will be considered a header dependency.")
     }
 }
