@@ -18,6 +18,7 @@ package org.gradle.ide.xcode.tasks;
 
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSString;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -25,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
+import org.gradle.ide.xcode.internal.XcodePropertyAdapter;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXBuildFile;
@@ -145,7 +147,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE).getBuildSettings();
 
         target.setBuildToolPath(xcodeTarget.getGradleCommand());
-        target.setBuildArgumentsString(xcodeTarget.getTaskName());
+        target.setBuildArgumentsString(buildGradleArgs(xcodeTarget));
         target.setGlobalID(xcodeTarget.getId());
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
@@ -159,6 +161,10 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         releaseSettings.put("PRODUCT_NAME", target.getProductName());
 
         return target;
+    }
+
+    private String buildGradleArgs(XcodeTarget xcodeTarget) {
+        return Joiner.on(' ').join(XcodePropertyAdapter.getAdapterCommandLine()) + " " + xcodeTarget.getTaskName();
     }
 
     private PBXTarget toXCTestPbxTarget(XcodeTarget xcodeTarget) {
@@ -184,7 +190,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
         PBXShellScriptBuildPhase gradleBuildPhase = new PBXShellScriptBuildPhase();
         gradleBuildPhase.setShellPath("/bin/sh");
-        gradleBuildPhase.setShellScript("exec \"" + xcodeTarget.getGradleCommand() + "\" " + xcodeTarget.getTaskName() + " < /dev/null");
+        gradleBuildPhase.setShellScript("exec \"" + xcodeTarget.getGradleCommand() + "\" " + buildGradleArgs(xcodeTarget) + " < /dev/null");
 
         PBXNativeTarget target = new PBXNativeTarget(xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
