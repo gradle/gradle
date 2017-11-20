@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -31,8 +32,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.IOException;
@@ -171,7 +174,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), Collections.<String>emptyList()));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), Collections.<Exclude>emptyList()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -182,7 +185,7 @@ public class ModuleMetadataParser {
             String group = null;
             String module = null;
             VersionConstraint version = null;
-            List<String> excludes = Collections.emptyList();
+            List<Exclude> excludes = Collections.emptyList();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -224,11 +227,27 @@ public class ModuleMetadataParser {
         return DefaultImmutableVersionConstraint.of(preferred, rejects);
     }
 
-    private List<String> consumeExcludes(JsonReader reader) throws IOException {
-        List<String> excludes = Lists.newArrayList();
+    private List<Exclude> consumeExcludes(JsonReader reader) throws IOException {
+        List<Exclude> excludes = Lists.newArrayList();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
-            excludes.add(reader.nextString());
+            reader.beginObject();
+            String group = "*";
+            String module = "*";
+            while (reader.peek() != END_OBJECT) {
+                String name = reader.nextName();
+                if (name.equals("group")) {
+                    group = reader.nextString();
+                } else if (name.equals("module")) {
+                    module = reader.nextString();
+                } else {
+                    consumeAny(reader);
+                }
+            }
+            reader.endObject();
+            // TODO:DAZ Use `ImmutableModuleIdentifierFactory`
+            Exclude exclude = new DefaultExclude(DefaultModuleIdentifier.newId(group, module));
+            excludes.add(exclude);
         }
         reader.endArray();
         return excludes;
@@ -299,9 +318,9 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
-        final List<String> excludes;
+        final List<Exclude> excludes;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;

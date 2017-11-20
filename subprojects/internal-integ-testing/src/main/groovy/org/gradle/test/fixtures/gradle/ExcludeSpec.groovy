@@ -19,24 +19,12 @@ package org.gradle.test.fixtures.gradle
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class DependencySpec {
+class ExcludeSpec {
     String group
     String module
-    String prefers
-    List<String> rejects
-    List<ExcludeSpec> exclusions = []
 
-    DependencySpec(String g, String m, String version, List<String> r, Collection<Map> e) {
-        group = g
-        module = m
-        prefers = version
-        rejects = r?:Collections.<String>emptyList()
-        if (e) {
-            exclusions = e.collect { Map exclusion ->
-                def group = (String) exclusion.get('group')
-                def module = (String) exclusion.get('module')
-                new ExcludeSpec(group, module)
-            }
-        }
+    ExcludeSpec(String g, String m) {
+        group = g ?: '*'
+        module = m ?: '*'
     }
 }

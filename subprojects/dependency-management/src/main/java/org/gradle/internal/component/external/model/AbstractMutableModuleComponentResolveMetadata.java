@@ -34,6 +34,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
@@ -371,7 +372,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
             dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes));
         }
 
@@ -409,9 +410,9 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         private final String group;
         private final String module;
         private final VersionConstraint versionConstraint;
-        private final List<String> excludes;
+        private final List<Exclude> excludes;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<String> excludes) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -434,7 +435,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
 
         @Override
-        public List<String> getExcludes() {
+        public List<Exclude> getExcludes() {
             return excludes;
         }
     }

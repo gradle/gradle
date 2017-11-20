@@ -319,8 +319,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.name,
                     v.attributes,
                     dependencies.collect { d ->
-                        List<String> exclusions = d.exclusions ? d.exclusions.collect { exc -> "${exc.group ?: '*'}:${exc.module ?: '*'}" } : []
-                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects, exclusions)
+                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )

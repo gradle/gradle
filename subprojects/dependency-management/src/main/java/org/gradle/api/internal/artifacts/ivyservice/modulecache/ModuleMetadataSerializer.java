@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -128,7 +129,15 @@ public class ModuleMetadataSerializer {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
                 COMPONENT_SELECTOR_SERIALIZER.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
-                writeStringList(dependency.getExcludes());
+                writeVariantDependencyExcludes(dependency.getExcludes());
+            }
+        }
+
+        private void writeVariantDependencyExcludes(List<Exclude> excludes) throws IOException {
+            writeCount(excludes.size());
+            for (Exclude exclude : excludes) {
+                writeString(exclude.getModuleId().getGroup());
+                writeString(exclude.getModuleId().getName());
             }
         }
 
@@ -391,16 +400,18 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                List<String> excludes = readVariantDependencyExcludes();
+                List<Exclude> excludes = readVariantDependencyExcludes();
                 variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes);
             }
         }
 
-        private List<String> readVariantDependencyExcludes() throws IOException {
+        private List<Exclude> readVariantDependencyExcludes() throws IOException {
             int len = readCount();
-            List<String> result = Lists.newArrayListWithCapacity(len);
+            List<Exclude> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
-                result.add(readString());
+                String group = readString();
+                String module = readString();
+                result.add(new DefaultExclude(DefaultModuleIdentifier.newId(group, module)));
             }
             return result;
         }

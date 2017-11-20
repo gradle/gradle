@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -47,6 +48,13 @@ public class DefaultExclude implements Exclude {
 
     public DefaultExclude(ModuleIdentifier id) {
         this.moduleId = id;
+        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+        this.configurations = ImmutableSet.of();
+        this.patternMatcher = PatternMatchers.EXACT;
+    }
+
+    public DefaultExclude(String group, String module) {
+        this.moduleId = DefaultModuleIdentifier.newId(group, module);
         this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
         this.configurations = ImmutableSet.of();
         this.patternMatcher = PatternMatchers.EXACT;

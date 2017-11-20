@@ -22,8 +22,10 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata
+import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -37,6 +39,13 @@ class ModuleMetadataParserTest extends Specification {
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
         DefaultImmutableVersionConstraint.of(version, rejects)
+    }
+
+    List<Exclude> excludes(String... input) {
+        return input.collect {
+            String[] parts = it.split(":")
+            new DefaultExclude(parts[0], parts[1])
+        }
     }
 
     def "parses minimal metadata resource"() {
@@ -190,7 +199,16 @@ class ModuleMetadataParserTest extends Specification {
                 "name": "api",
                 "dependencies": [ 
                     { "group": "g1", "module": "m1", "version": { "prefers": "v1" } },
-                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" }
+                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" },
+                    { 
+                        "group": "g3", 
+                        "module": "m3", 
+                        "version": { "prefers": "v3" },
+                        "excludes": [
+                            {"group": "gx", "module": "mx" },
+                            {"group": "*", "module": "*" }
+                        ]
+                    }
                 ],
                 "attributes": { "usage": "compile" }
             },
@@ -211,6 +229,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [])
+        1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"))
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g3", "m3", prefers("v3"), [])
         1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [])
@@ -413,6 +432,9 @@ class ModuleMetadataParserTest extends Specification {
                     "group": "g",
                     "module": "m",
                     "version": { "prefers": "v" },
+                    "excludes": [
+                        { "group": "g", "otherString": "string", "otherNumber": 123, "otherObject": { "a": 1 } }
+                    ],
                     "otherString": "string",
                     "otherNumber": 123,
                     "otherBoolean": true,
@@ -427,7 +449,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes()) >> variant
-        1 * variant.addDependency("g", "m", prefers("v"), [])
+        1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"))
         0 * metadata._
     }
 
