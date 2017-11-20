@@ -58,12 +58,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
-### Incubating 'cpp-executable' plugin renamed to 'cpp-application'
-
-The `cpp-executable` plugin was intended to create _applications_ from C++ sources.  An application may consist of multiple executables and distribution packages.
-Builds that used `cpp-executable` will now need to switch to using `cpp-application` instead.
-The `CppApplication` extension added by this plugin has also been renamed from `executable` to `application`.
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
