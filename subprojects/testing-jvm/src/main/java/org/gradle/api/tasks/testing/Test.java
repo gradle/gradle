@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -62,7 +63,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.SingleMessageLogger;
-import org.testng.collections.Lists;
 
 import javax.inject.Inject;
 import java.io.File;
