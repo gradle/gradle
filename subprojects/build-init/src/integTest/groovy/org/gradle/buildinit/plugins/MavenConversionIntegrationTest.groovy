@@ -46,6 +46,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     def setup() {
+        requireGradleDistribution()
         /**
          * We need to configure the local maven repository explicitly as
          * RepositorySystem.defaultUserLocalRepository is statically initialised and used when
