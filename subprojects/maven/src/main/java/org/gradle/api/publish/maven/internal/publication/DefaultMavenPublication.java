@@ -366,14 +366,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     /*
-          When the artifacts declared in a component are modified for publishing (name/classifier/extension),
-          then the Maven publication no longer represents the underlying java component.
-          Instead of publishing incorrect metadata, we fail any attempt to publish the module metadata.
-
-          In the long term, we will likely prevent any modification of artifacts added from a component.
-          Instead, we will make it easier to modify the component(s) produced by a project, allowing the published
-          metadata to accurately reflect the local component metadata.
-         */
+     * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
+     * Maven publication no longer represents the underlying java component. Instead of
+     * publishing incorrect metadata, we fail any attempt to publish the module metadata.
+     *
+     * In the long term, we will likely prevent any modification of artifacts added from a component. Instead, we will
+     * make it easier to modify the component(s) produced by a project, allowing the
+     * published metadata to accurately reflect the local component metadata.
+     */
     private void checkThatArtifactIsPublishedUnmodified(PublishArtifact source) {
         for (MavenArtifact mavenArtifact : mavenArtifacts) {
             if (source.getFile().equals(mavenArtifact.getFile())
