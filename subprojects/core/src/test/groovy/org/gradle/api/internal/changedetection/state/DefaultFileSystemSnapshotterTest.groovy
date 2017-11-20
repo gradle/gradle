@@ -154,6 +154,32 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot4.is(snapshot3)
     }
 
+    def "reuses cached unfiltered trees when looking for details of a filtered tree"() {
+        given: "An existing snapshot"
+        def d = tmpDir.createDir("d")
+        d.createFile("f1")
+        d.createFile("d1/f2")
+        d.createFile("d1/f1")
+        def unfilteredTree = TestFiles.directoryFileTreeFactory().create(d)
+        snapshotter.snapshotDirectoryTree(unfilteredTree)
+
+        and: "Some changes to the underlying tree"
+        d.createDir("d2")
+        d.createFile("d2/f1")
+        d.createFile("d2/f2")
+
+        and: "A filtered tree over the same directory"
+        def patterns = TestFiles.patternSetFactory.create()
+        patterns.include "**/*1"
+        def filteredTree = TestFiles.directoryFileTreeFactory().create(d, patterns)
+
+        when:
+        def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
+
+        then: "The filtered tree uses the cached state"
+        snapshot.descendants.size() == 3
+    }
+
     def "snapshots a file and caches the result"() {
         def f = tmpDir.createFile("f")
 
