@@ -31,7 +31,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
-    private static final String deprecationMessage = initDeprecationMessage();
+    private static final String DEPRECATION_MESSAGE = initDeprecationMessage();
 
     private static boolean traceLoggingEnabled;
 
@@ -39,7 +39,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     private UsageLocationReporter locationReporter;
 
     public LoggingDeprecatedFeatureHandler() {
-        locationReporter = DoNothingReporter.INSTANCE;
+        this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
     @Override
@@ -140,7 +140,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     public static String getDeprecationMessage() {
-        return deprecationMessage;
+        return DEPRECATION_MESSAGE;
     }
 
     private enum DoNothingReporter implements UsageLocationReporter {

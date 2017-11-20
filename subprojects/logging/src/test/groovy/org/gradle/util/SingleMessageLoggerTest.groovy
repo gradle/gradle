@@ -17,40 +17,58 @@
 package org.gradle.util
 
 import org.gradle.internal.Factory
-import org.gradle.internal.logging.CollectingTestOutputEventListener
-import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.featurelifecycle.FeatureHandler
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.junit.Rule
 import spock.lang.Subject
+
+import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.DEPRECATED
+import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.INCUBATING
 
 @Subject(SingleMessageLogger)
 class SingleMessageLoggerTest extends ConcurrentSpec {
-    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
-    @Rule
-    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-
-    def cleanup() {
-        SingleMessageLogger.reset()
+    def setup() {
+        SingleMessageLogger.handler = Mock(FeatureHandler)
     }
 
-    def "logs deprecation warning once until reset"() {
-        when:
-        SingleMessageLogger.nagUserWith("nag")
-        SingleMessageLogger.nagUserWith("nag")
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith('nag')
+    def 'new feature handler is created after reset'() {
+        given:
+        def original = SingleMessageLogger.handler
 
         when:
         SingleMessageLogger.reset()
-        SingleMessageLogger.nagUserWith("nag")
 
         then:
-        events.size() == 2
-        events[0].message.startsWith('nag')
-        events[1].message.startsWith('nag')
+        !original.is(SingleMessageLogger.handler)
+    }
+
+    def 'deprecations are delegated to handler'() {
+        def capturedValues = []
+
+        when:
+        SingleMessageLogger.nagUserWith('1')
+        SingleMessageLogger.nagUserWith('2')
+
+        then:
+        2 * SingleMessageLogger.handler.featureUsed(_) >> { args -> capturedValues.add(args[0]) }
+        capturedValues[0].message == '1'
+        capturedValues[0].type == DEPRECATED
+        capturedValues[1].message == '2'
+        capturedValues[1].type == DEPRECATED
+    }
+
+    def 'incubating warnings are delegated to handler'() {
+        def capturedValues = []
+
+        when:
+        SingleMessageLogger.incubatingFeatureUsed('1')
+        SingleMessageLogger.incubatingFeatureUsed('2')
+
+        then:
+        2 * SingleMessageLogger.handler.featureUsed(_) >> { args -> capturedValues.add(args[0]) }
+        capturedValues[0].message == '1'
+        capturedValues[0].type == INCUBATING
+        capturedValues[1].message == '2'
+        capturedValues[1].type == INCUBATING
     }
 
     def "does not log warning while disabled with factory"() {
@@ -62,16 +80,13 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
         then:
         result == 'result'
-
-        and:
         1 * factory.create() >> {
             SingleMessageLogger.nagUserWith("nag")
             return "result"
         }
-        0 * _
 
         and:
-        outputEventListener.events.empty
+        0 * _
     }
 
     def "does not log warning while disabled with action"() {
@@ -84,12 +99,11 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         then:
         1 * action.run()
         0 * _
-
-        and:
-        outputEventListener.events.empty
     }
 
     def "warnings are disabled for the current thread only"() {
+        def capturedValues = []
+
         when:
         async {
             start {
@@ -107,21 +121,8 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         }
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith('nag')
-    }
-
-    def "deprecation message has next major version"() {
-        given:
-        def major = GradleVersion.current().nextMajor
-
-        when:
-        SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
-
-        then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith("foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.")
+        SingleMessageLogger.handler.featureUsed(_) >> { args -> capturedValues.add(args[0]) }
+        capturedValues.size() == 1
+        capturedValues[0].message == 'nag'
     }
 }

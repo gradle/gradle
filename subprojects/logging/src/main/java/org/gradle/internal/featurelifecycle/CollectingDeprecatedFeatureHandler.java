@@ -16,23 +16,14 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.INCUBATING;
+public class CollectingDeprecatedFeatureHandler implements FeatureHandler {
+    private final LoggingDeprecatedFeatureHandler delegate;
+    private final Set<FeatureInvocationSource> invocations = new HashSet<FeatureInvocationSource>();
 
-public class LoggingIncubatingFeatureHandler implements FeatureHandler {
-    public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingIncubatingFeatureHandler.class);
-
-    private final Set<String> features = new HashSet<String>();
-
-    private final CollectingDeprecatedFeatureHandler delegate;
-
-    public LoggingIncubatingFeatureHandler(CollectingDeprecatedFeatureHandler delegate) {
+    public CollectingDeprecatedFeatureHandler(LoggingDeprecatedFeatureHandler delegate) {
         this.delegate = delegate;
     }
 
@@ -43,16 +34,11 @@ public class LoggingIncubatingFeatureHandler implements FeatureHandler {
 
     @Override
     public void featureUsed(FeatureUsage usage) {
-        if (usage.getType() == INCUBATING) {
-            incubatingFeatureUsed(usage);
-        } else {
+        usage = usage.withStackTrace();
+        FeatureInvocationSource invocation = StacktraceAnalyzer.analyzeInvocation(usage);
+        invocations.add(invocation);
+        if (!invocation.isFromThirdPartyPlugin() || invocation.isUnknown()) {
             delegate.featureUsed(usage);
-        }
-    }
-
-    private void incubatingFeatureUsed(FeatureUsage usage) {
-        if (features.add(usage.getMessage())) {
-            LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getMessage()));
         }
     }
 }

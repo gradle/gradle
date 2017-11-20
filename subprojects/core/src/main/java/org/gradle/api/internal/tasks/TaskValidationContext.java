@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskValidationException;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public interface TaskValidationContext {
                 StringBuilder builder = new StringBuilder();
                 builder.append(getMainMessage(task, messages));
                 builder.append(" Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods ");
-                builder.append(DeprecationLogger.getDeprecationMessage());
+                builder.append(LoggingDeprecatedFeatureHandler.getDeprecationMessage());
                 builder.append(".");
                 for (String message : messages) {
                     builder.append("\n - ");

@@ -24,7 +24,7 @@ import java.util.List;
  * An immutable description of the usage of a deprecated or incubating feature.
  */
 public class FeatureUsage {
-    enum FeatureType {
+    public enum FeatureType {
         INCUBATING,
         DEPRECATED
     }
@@ -42,16 +42,16 @@ public class FeatureUsage {
         return new FeatureUsage(message, calledFrom, FeatureType.INCUBATING);
     }
 
-    private FeatureUsage(String message, Class<?> calledFrom, FeatureType type) {
+    FeatureUsage(String message, Class<?> calledFrom, FeatureType type) {
         this.message = message;
         this.calledFrom = calledFrom;
         this.stack = Collections.emptyList();
         this.type = type;
     }
 
-    private FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
+    FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
         if (stack == null) {
-            throw new NullPointerException("stack");
+            throw new NullPointerException("stack is null");
         }
         this.message = usage.message;
         this.calledFrom = usage.calledFrom;
@@ -75,48 +75,10 @@ public class FeatureUsage {
      * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that this method is called from the same thread that triggered the usage.
      */
     FeatureUsage withStackTrace() {
-        if (!stack.isEmpty()) {
+        if (stack.isEmpty()) {
+            return new FeatureUsage(this, StacktraceAnalyzer.getCleansedStackTrace(calledFrom));
+        } else {
             return this;
         }
-
-        StackTraceElement[] originalStack = new Exception().getStackTrace();
-        final String calledFromName = calledFrom.getName();
-        boolean calledFromFound = false;
-        int caller;
-        for (caller = 0; caller < originalStack.length; caller++) {
-            StackTraceElement current = originalStack[caller];
-            if (!calledFromFound) {
-                if (current.getClassName().startsWith(calledFromName)) {
-                    calledFromFound = true;
-                }
-            } else {
-                if (!current.getClassName().startsWith(calledFromName)) {
-                    break;
-                }
-            }
-        }
-
-        caller = skipSystemStackElements(originalStack, caller);
-
-        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
-        for (; caller < originalStack.length; caller++) {
-            result.add(originalStack[caller]);
-        }
-        return new FeatureUsage(this, result);
-    }
-
-    private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
-        for (; caller < stackTrace.length; caller++) {
-            String currentClassName = stackTrace[caller].getClassName();
-            if (!currentClassName.startsWith("org.codehaus.groovy.")
-                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
-                && !currentClassName.startsWith("groovy.")
-                && !currentClassName.startsWith("java.")
-                && !currentClassName.startsWith("jdk.internal.")
-                ) {
-                break;
-            }
-        }
-        return caller;
     }
 }
