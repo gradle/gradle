@@ -26,6 +26,10 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/scala/Library.scala"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/scala/LibrarySuite.scala"
 
+    def setup() {
+        requireGradleDistribution()
+    }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

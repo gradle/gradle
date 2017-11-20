@@ -27,6 +27,10 @@ import static org.hamcrest.Matchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        requireGradleDistribution()
+    }
+
     def "init shows up on tasks overview "() {
         when:
         run 'tasks'

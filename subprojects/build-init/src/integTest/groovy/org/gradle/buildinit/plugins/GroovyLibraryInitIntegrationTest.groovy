@@ -27,6 +27,10 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/groovy/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
+    def setup() {
+        requireGradleDistribution()
+    }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
