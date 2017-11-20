@@ -38,6 +38,10 @@ public class GitVersionRef implements VersionRef {
         return new GitVersionRef(extractName(ref), commitId.getName());
     }
 
+    public static GitVersionRef from(String version, String canonicalId) {
+        return new GitVersionRef(version, canonicalId);
+    }
+
     @Override
     public String getVersion() {
         return version;

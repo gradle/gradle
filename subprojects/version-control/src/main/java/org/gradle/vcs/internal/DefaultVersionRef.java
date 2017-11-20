@@ -21,7 +21,7 @@ import org.gradle.vcs.VersionRef;
 public class DefaultVersionRef implements VersionRef {
     @Override
     public String getVersion() {
-        return "master";
+        return "latest.integration";
     }
 
     @Override
