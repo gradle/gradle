@@ -20,15 +20,15 @@ package org.gradle.internal.featurelifecycle
  * This class is used to test proper call stack evaluation of Groovy classes.
  */
 class SimulatedGroovyCallLocation {
-    static DeprecatedFeatureUsage create() {
+    static FeatureUsage create() {
         return SimulatedDeprecationMessageLogger.nagUserWith(SimulatedDeprecationMessageLogger.DIRECT_CALL)
     }
 
-    static DeprecatedFeatureUsage indirectly() {
+    static FeatureUsage indirectly() {
         return SimulatedDeprecationMessageLogger.indirectly(SimulatedDeprecationMessageLogger.INDIRECT_CALL)
     }
 
-    static DeprecatedFeatureUsage indirectly2() {
+    static FeatureUsage indirectly2() {
         return SimulatedDeprecationMessageLogger.indirectlySecondLevel(SimulatedDeprecationMessageLogger.INDIRECT_CALL_2)
     }
 }
