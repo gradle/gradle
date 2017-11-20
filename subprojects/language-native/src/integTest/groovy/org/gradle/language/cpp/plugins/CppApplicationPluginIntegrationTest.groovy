@@ -18,5 +18,5 @@ package org.gradle.language.cpp.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class CppExecutablePluginIntegrationTest extends WellBehavedPluginTest {
+class CppApplicationPluginIntegrationTest extends WellBehavedPluginTest {
 }

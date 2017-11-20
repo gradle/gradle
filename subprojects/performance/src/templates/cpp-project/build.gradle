@@ -1,6 +1,6 @@
 plugins {
     <% if (projectType == 'exe') { %>
-    id 'cpp-executable'
+    id 'cpp-application'
     <% } else { %>
     id 'cpp-library'
     <% } %>

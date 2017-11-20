@@ -37,7 +37,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         and:
@@ -88,7 +88,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         and:
@@ -133,7 +133,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -186,7 +186,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         when:

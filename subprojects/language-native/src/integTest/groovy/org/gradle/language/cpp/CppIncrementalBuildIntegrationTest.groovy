@@ -46,7 +46,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
                 }
             }
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':library')
                 }

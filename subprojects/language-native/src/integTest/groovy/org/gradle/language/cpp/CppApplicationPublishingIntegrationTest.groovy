@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
     def repo = new MavenFileRepository(file("repo"))
     def consumer = file("consumer").createDir()
 
@@ -52,12 +52,12 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
 
         given:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             apply plugin: 'maven-publish'
             
             group = 'some.group'
             version = '1.2'
-            executable {
+            application {
                 baseName = 'test'
             }
             publishing {
@@ -154,7 +154,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 }
             }
             project(':app') { 
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -235,8 +235,8 @@ class CppExecutablePublishingIntegrationTest extends AbstractCppInstalledToolCha
                 }
             }
             project(':app') { 
-                apply plugin: 'cpp-executable'
-                executable.baseName = 'testApp'
+                apply plugin: 'cpp-application'
+                application.baseName = 'testApp'
                 dependencies {
                     implementation project(':greeter')
                 }

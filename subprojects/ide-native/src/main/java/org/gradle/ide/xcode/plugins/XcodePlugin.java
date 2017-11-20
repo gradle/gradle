@@ -58,7 +58,7 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.plugins.CppExecutablePlugin;
+import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
@@ -233,9 +233,9 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureForCppPlugin(final Project project) {
-        project.getPlugins().withType(CppExecutablePlugin.class, new Action<CppExecutablePlugin>() {
+        project.getPlugins().withType(CppApplicationPlugin.class, new Action<CppApplicationPlugin>() {
             @Override
-            public void execute(CppExecutablePlugin plugin) {
+            public void execute(CppApplicationPlugin plugin) {
                 configureXcodeForCpp(project, PBXTarget.ProductType.TOOL);
             }
         });
@@ -257,7 +257,7 @@ public class XcodePlugin extends IdePlugin {
         FileCollection headers = component.getHeaderFiles();
         xcode.getProject().getGroups().getHeaders().from(headers);
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
+        // TODO - Reuse the logic from `cpp-application` or `cpp-library` to find the link task path
         // TODO - should use the _install_ task for an executable
         // TODO - should use the basename of the component to calculate the target names
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
