@@ -17,6 +17,15 @@
 
 The recommended way to execute any Gradle build is with the help of the Gradle Wrapper (in short just “Wrapper”). The Wrapper is a feature that makes is extremely easy to bootstrap a Gradle project. Upon invocation, it can _automatically download, unpack and install the Gradle runtime with a predefined version_ and use it to execute the build. As a result, developers can get up and running with a Gradle project in no-time without having to follow manual installation processes saving your company time and money.
 
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Wrapper workflow</title>
+    <imageobject>
+        <imagedata fileref="img/wrapper-workflow.png" width="200mm" />
+    </imageobject>
+</figure>
++++++
+
 **In a nutshell you gain the following benefits:**
 
 - Standardizes a project on a given Gradle version, leading to more reliable and robust builds.
@@ -305,7 +314,7 @@ You can download the `.sha256` file by clicking on one of the `sha256` links on 
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The SHA-256 link on the installation page</title>
     <imageobject>
-        <imagedata fileref="img/sha256-link-installation-page.png" width="200mm"/>
+        <imagedata fileref="img/sha256-link-installation-page.png" width="200mm" />
     </imageobject>
 </figure>
 +++++
