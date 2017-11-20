@@ -125,10 +125,10 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
-        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        javaFile.replace('class', 'interface')
         repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
 
-        buildFile.text = buildFile.text.replace('latest.integration', '1.3.0')
+        buildFile.replace('latest.integration', '1.3.0')
 
         when:
         succeeds('assemble')
@@ -155,19 +155,20 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
-        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        javaFile.replace('class', 'interface')
         repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
 
-        buildFile.text = buildFile.text.replace('latest.integration', '1.4.0')
+        buildFile.replace('latest.integration', '1.4.0')
 
         when:
         fails('assemble')
 
         then:
+        failureCauseContains("Could not resolve org.test:dep:1.4.0. Git Repository at file:")
         failureCauseContains("does not contain a version matching 1.4.0")
 
         when:
-        javaFile.setText(javaFile.text.replace('interface', 'class'))
+        javaFile.replace('interface', 'class')
         repo.commit('Switch it back to a class.', GFileUtils.listFiles(file('dep'), null, true))
         repo.createLightWeightTag('1.4.0')
 
@@ -202,7 +203,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
         repo.createLightWeightTag('1.3.0')
         def javaFile = file('dep/src/main/java/Dep.java')
-        javaFile.setText(javaFile.text.replace('class', 'interface'))
+        javaFile.replace('class', 'interface')
         def commit2 = repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
         repo.createLightWeightTag('1.4.0')
 
