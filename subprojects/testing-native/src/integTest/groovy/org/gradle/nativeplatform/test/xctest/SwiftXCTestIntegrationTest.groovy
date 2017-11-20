@@ -356,6 +356,59 @@ apply plugin: 'swift-library'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
+    def "relinks when main sources change in ABI compatible way"() {
+        given:
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << """
+apply plugin: 'swift-library'
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+
+        when:
+        file("src/main/swift/combined.swift").replace("Hello,", "Goodbye,")
+        then:
+        succeeds("test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+    }
+
+    def "recompiles when main sources change in non-ABI compatible way"() {
+        given:
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << """
+apply plugin: 'swift-library'
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+
+        when:
+        file("src/main/swift/combined.swift").replace("sayHello", "sayAloha")
+        then:
+        fails("test")
+        result.error.contains("value of type 'Greeter' has no member 'sayHello'")
+
+        when:
+        file("src/test/swift/CombinedTests.swift").replace("sayHello", "sayAloha")
+        then:
+        succeeds("test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksNotSkipped(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+    }
+
     def "build passes when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
