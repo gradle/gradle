@@ -52,6 +52,8 @@ public class UnexportMainSymbol extends SourceTask {
 
     /**
      * Collection of modified object files.
+     *
+     * @since 4.5
      */
     @Internal
     public FileCollection getObjects() {
@@ -60,6 +62,8 @@ public class UnexportMainSymbol extends SourceTask {
 
     /**
      * Location of modified object files.
+     *
+     * @since 4.5
      */
     @OutputDirectory
     public Provider<Directory> getOutputDirectory() {
