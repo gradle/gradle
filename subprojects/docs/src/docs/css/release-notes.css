@@ -5,10 +5,14 @@
 ul li {
   list-style-type: none;
 }
-ul li:before {
+
+#fixed-issues-list li:before,
+.table-of-contents ul li:before,
+.topic ul li:before {
   content: '\00276F';
   padding-right: 5px;
   margin-left: -20px;
+  font-family: sans-serif;
 }
 
 img.logo {
