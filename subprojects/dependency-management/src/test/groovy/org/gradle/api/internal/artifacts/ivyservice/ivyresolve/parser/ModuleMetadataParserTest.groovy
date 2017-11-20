@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
@@ -31,7 +32,8 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleMetadataParserTest extends Specification {
-    def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE)
+    def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
     VersionConstraint prefers(String version) {
         DefaultImmutableVersionConstraint.of(version)
@@ -44,7 +46,7 @@ class ModuleMetadataParserTest extends Specification {
     List<Exclude> excludes(String... input) {
         return input.collect {
             String[] parts = it.split(":")
-            new DefaultExclude(parts[0], parts[1])
+            new DefaultExclude(identifierFactory.module(parts[0], parts[1]))
         }
     }
 

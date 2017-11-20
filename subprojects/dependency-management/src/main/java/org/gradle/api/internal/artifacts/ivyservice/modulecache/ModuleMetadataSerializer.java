@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -411,7 +410,7 @@ public class ModuleMetadataSerializer {
             for (int i = 0; i < len; i++) {
                 String group = readString();
                 String module = readString();
-                result.add(new DefaultExclude(DefaultModuleIdentifier.newId(group, module)));
+                result.add(new DefaultExclude(moduleIdentifierFactory.module(group, module)));
             }
             return result;
         }

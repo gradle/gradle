@@ -24,7 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -50,10 +50,12 @@ import static com.google.gson.stream.JsonToken.*;
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.2";
     private final ImmutableAttributesFactory attributesFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final NamedObjectInstantiator instantiator;
 
-    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.instantiator = instantiator;
     }
 
@@ -245,8 +247,7 @@ public class ModuleMetadataParser {
                 }
             }
             reader.endObject();
-            // TODO:DAZ Use `ImmutableModuleIdentifierFactory`
-            Exclude exclude = new DefaultExclude(DefaultModuleIdentifier.newId(group, module));
+            Exclude exclude = new DefaultExclude(moduleIdentifierFactory.module(group, module));
             excludes.add(exclude);
         }
         reader.endArray();
