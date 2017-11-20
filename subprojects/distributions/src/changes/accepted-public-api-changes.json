@@ -1,9 +1,4 @@
 {
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.publish.ivy.plugins.IvyPublishPlugin",
-            "member": "Constructor org.gradle.api.publish.ivy.plugins.IvyPublishPlugin(org.gradle.internal.reflect.Instantiator,org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider,org.gradle.api.internal.file.FileResolver,org.gradle.api.publish.internal.ProjectDependencyPublicationResolver,org.gradle.api.internal.file.FileCollectionFactory,org.gradle.api.internal.attributes.ImmutableAttributesFactory)",
-            "acceptation": "Change constructor of incubating plugin"
-        }
     ]
 }

@@ -127,7 +127,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             };
         } else if (member instanceof JApiConstructor) {
             final JApiConstructor constructor = (JApiConstructor) member;
-            if (isDeprecated(constructor)) {
+            if (isDeprecated(constructor) || isInject(constructor)) {
                 return null;
             }
             className = constructor.getjApiClass().getFullyQualifiedName();
