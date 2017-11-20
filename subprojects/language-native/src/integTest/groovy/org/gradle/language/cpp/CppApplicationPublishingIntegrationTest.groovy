@@ -38,6 +38,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
                 install {
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'native-runtime'))
                     attributes.attribute(Attribute.of('org.gradle.native.debuggable', Boolean), true)
+                    attributes.attribute(Attribute.of('org.gradle.native.optimized', Boolean), false)
                 }
             }
             task install(type: Sync) {
@@ -73,6 +74,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
         result.assertTasksExecuted(
             compileAndLinkTasks(debug),
             compileAndLinkTasks(release),
+            stripSymbolsTasksRelease(toolChain),
             ":generatePomFileForDebugPublication",
             ":generateMetadataFileForDebugPublication",
             ":publishDebugPublicationToMavenRepository",
@@ -111,7 +113,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
         release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2.module")
-        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
+        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/stripped/test").file)
 
         release.parsedPom.scopes.isEmpty()
 

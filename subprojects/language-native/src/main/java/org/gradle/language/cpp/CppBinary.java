@@ -51,6 +51,11 @@ public interface CppBinary extends SoftwareComponent {
     boolean isDebuggable();
 
     /**
+     * Returns true if this binary has debugging enabled.
+     */
+    boolean isOptimized();
+
+    /**
      * Returns the C++ source files of this binary.
      */
     FileCollection getCppSource();

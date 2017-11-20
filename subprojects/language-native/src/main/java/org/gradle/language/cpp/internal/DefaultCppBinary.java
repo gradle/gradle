@@ -44,16 +44,18 @@ public class DefaultCppBinary implements CppBinary {
     private final String name;
     private final Provider<String> baseName;
     private final boolean debuggable;
+    private final boolean optimized;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
     private final DirectoryProperty objectsDir;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.baseName = baseName;
         this.debuggable = debuggable;
+        this.optimized = optimized;
         this.sourceFiles = sourceFiles;
         this.objectsDir = projectLayout.directoryProperty();
 
@@ -64,16 +66,19 @@ public class DefaultCppBinary implements CppBinary {
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         includePathConfig.extendsFrom(implementation);
         nativeLink.extendsFrom(implementation);
@@ -112,6 +117,11 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public boolean isDebuggable() {
         return debuggable;
+    }
+
+    @Override
+    public boolean isOptimized() {
+        return optimized;
     }
 
     @Override

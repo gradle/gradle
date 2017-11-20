@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
@@ -34,7 +33,6 @@ import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
-import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -46,15 +44,11 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
-import org.gradle.platform.base.ToolChain;
-import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
 import java.util.concurrent.Callable;
 
@@ -130,7 +124,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    if (binary.isDebuggable() && binary.isOptimized()) {
+                    if (executable.isDebuggable() && executable.isOptimized()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
@@ -183,7 +177,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    if (binary.isDebuggable() && binary.isOptimized()) {
+                    if (library.isDebuggable() && library.isOptimized()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {

@@ -32,8 +32,8 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     @Inject
     public DefaultCppApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
     }
 
     @Override

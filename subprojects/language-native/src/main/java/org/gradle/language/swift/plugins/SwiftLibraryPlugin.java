@@ -27,7 +27,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;

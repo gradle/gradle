@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+
 trait CppTaskNames {
 
     private static final String DEBUG = 'Debug'
@@ -64,6 +66,24 @@ trait CppTaskNames {
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
             [*compileTasks(project, buildType), linkTask(project, buildType)]
+        }.flatten()
+    }
+
+    String[] stripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
+        return stripSymbolsTasks(project, RELEASE, toolChain)
+    }
+
+    String[] stripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        if (toolChain instanceof AvailableToolChains.InstalledVisualCpp) {
+            return []
+        } else {
+            return ["${project}:extractSymbols${buildType}", "${project}:stripSymbols${buildType}"]
+        }
+    }
+
+    String[] stripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        projects.collect { project ->
+            [*stripSymbolsTasks(project, buildType, toolChain)]
         }.flatten()
     }
 

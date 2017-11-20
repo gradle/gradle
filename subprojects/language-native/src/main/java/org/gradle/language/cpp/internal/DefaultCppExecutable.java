@@ -33,8 +33,8 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final DirectoryProperty installationDirectory;
 
     @Inject
-    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
+    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation);
         this.executableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
     }

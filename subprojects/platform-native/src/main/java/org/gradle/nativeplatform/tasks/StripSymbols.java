@@ -34,6 +34,9 @@ import org.gradle.nativeplatform.internal.StripperSpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
+/**
+ * Strips the debug symbols from a binary
+ */
 public class StripSymbols extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;

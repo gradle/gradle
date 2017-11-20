@@ -29,8 +29,10 @@ class DefaultCppApplicationTest extends Specification {
         expect:
         app.debugExecutable.name == "mainDebug"
         app.debugExecutable.debuggable
+        !app.debugExecutable.optimized
         app.releaseExecutable.name == "mainRelease"
-        !app.releaseExecutable.debuggable
+        app.releaseExecutable.debuggable
+        app.releaseExecutable.optimized
         app.developmentBinary == app.debugExecutable
     }
 }

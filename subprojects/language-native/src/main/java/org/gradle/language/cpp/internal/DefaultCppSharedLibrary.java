@@ -32,8 +32,8 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     private final RegularFileProperty runtimeFile;
 
     @Inject
-    public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
+    public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
     }

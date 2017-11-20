@@ -96,7 +96,7 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
 
         expect:
         succeeds "installRelease"
-        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), installTaskRelease())
+        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), stripSymbolsTasksRelease(toolChain), installTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
@@ -381,7 +381,7 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
         expect:
         succeeds installTaskRelease(':app')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), installTaskRelease(':app'))
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasks([':hello', ':app'], release, toolChain), installTaskRelease(':app'))
         executable("app/build/exe/main/release/app").assertExists()
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput

@@ -330,7 +330,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         succeeds ":lib1:linkRelease"
 
-        result.assertTasksExecuted compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release)
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release, toolChain))
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()

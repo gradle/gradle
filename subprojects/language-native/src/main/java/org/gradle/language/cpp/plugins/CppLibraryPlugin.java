@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -139,14 +140,16 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, true);
         releaseLinkElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getLinkFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, true);
         releaseRuntimeElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getRuntimeFile());
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {

@@ -34,6 +34,9 @@ import org.gradle.nativeplatform.internal.SymbolExtractorSpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
+/**
+ * Extracts the debug symbols from a binary and stores them in a separate file.
+ */
 public class ExtractSymbols extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
