@@ -315,7 +315,7 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
-        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output.")
+        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
