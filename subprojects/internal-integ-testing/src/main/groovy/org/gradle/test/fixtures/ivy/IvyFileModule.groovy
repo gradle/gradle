@@ -19,6 +19,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -219,6 +220,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     @Override
     ModuleArtifact getModuleMetadata() {
         moduleArtifact(name: module, type: 'module', ext: "module")
+    }
+
+    @Override
+    GradleModuleMetadata getParsedModuleMetadata() {
+        return new GradleModuleMetadata(moduleMetadataFile)
     }
 
     TestFile getIvyFile() {

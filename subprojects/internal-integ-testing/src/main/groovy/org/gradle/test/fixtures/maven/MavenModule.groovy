@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.maven
 
-import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -117,8 +116,6 @@ interface MavenModule extends Module {
     TestFile getMetaDataFile()
 
     MavenPom getParsedPom()
-
-    GradleModuleMetadata getParsedModuleMetadata()
 
     ModuleArtifact getRootMetaData()
 

@@ -57,6 +57,10 @@ class GradleModuleMetadata {
         return new ModuleReference(comp.group, comp.module, comp.version, comp.url)
     }
 
+    Map<String, String> getAttributes() {
+        values.component?.attributes
+    }
+
     List<Variant> getVariants() {
         return variants
     }

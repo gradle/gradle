@@ -27,8 +27,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -81,6 +83,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final ExperimentalFeatures experimentalFeatures;
     private FileCollection descriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
@@ -88,12 +91,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public DefaultIvyPublication(
         String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory) {
+        ImmutableAttributesFactory immutableAttributesFactory, ExperimentalFeatures experimentalFeatures) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         this.immutableAttributesFactory = immutableAttributesFactory;
+        this.experimentalFeatures = experimentalFeatures;
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
@@ -259,6 +263,19 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public IvyNormalizedPublication asNormalisedPublication() {
         return new IvyNormalizedPublication(name, getIdentity(), getDescriptorFile(), ivyArtifacts);
+    }
+
+    @Override
+    public boolean canPublishModuleMetadata() {
+        if (getComponent() == null) {
+            // Cannot yet publish module metadata without component
+            return false;
+        }
+        if (getComponent() instanceof ComponentWithVariants) {
+            // Always publish `ComponentWithVariants`
+            return true;
+        }
+        return experimentalFeatures.isEnabled();
     }
 
     private File getDescriptorFile() {

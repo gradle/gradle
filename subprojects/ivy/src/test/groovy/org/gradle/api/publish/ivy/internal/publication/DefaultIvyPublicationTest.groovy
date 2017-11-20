@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -51,6 +52,7 @@ class DefaultIvyPublicationTest extends Specification {
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = TestUtil.attributesFactory()
+    def experimentalFeatures = new ExperimentalFeatures()
 
     File descriptorFile
     File artifactFile
@@ -275,7 +277,8 @@ class DefaultIvyPublicationTest extends Specification {
             notationParser,
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
-            attributesFactory
+            attributesFactory,
+            experimentalFeatures
         )
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
