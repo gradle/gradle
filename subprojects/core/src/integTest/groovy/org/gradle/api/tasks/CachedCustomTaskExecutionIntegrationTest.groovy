@@ -793,7 +793,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     outputs.cacheIf { true }
                     outputs.file(outputFile).withPropertyName("outputFile") 
                     doFirst {
-                        Thread.sleep(new Random().nextInt(100))
+                        Thread.sleep(new Random().nextInt(30))
                         outputFile.text = "output"
                     }
                 }
