@@ -69,7 +69,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 '''
     }
 
-    def "doesn't suggest to use --scan if option was on command line"() {
+    def "suggests to use --scan even if option was on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
@@ -89,7 +89,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 <message>
 
 * Try:
-Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output. Run with {userinput}--scan{normal} to get full insights.
 
 * Get more help at https://help.gradle.org
 '''

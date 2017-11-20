@@ -146,7 +146,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3516")
-    def "does not render build scan hint in build failure output if command line option was requested"() {
+    def "renders build scan hint in build failure output if command line option was requested"() {
         given:
         withInteractiveConsole()
         buildFile << failingBuildFile()
@@ -163,7 +163,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
         !result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
-        !result.error.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        result.error.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     private void withInteractiveConsole() {

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -75,7 +74,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         ["-$LogLevelOption.QUIET_SHORT_OPTION"]             | 'quiet'
     }
 
-    def "only renders hint for failing build if build scan plugin was applied in plugins DSL and not requested for generation"() {
+    def "always renders hint for failing build if build scan plugin was applied in plugins DSL and not requested for generation"() {
         given:
         buildFile << appliedBuildScanPluginInPluginsDsl()
         buildFile << buildScanLicenseConfiguration()
@@ -86,15 +85,15 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT) == renderedHint
+        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
-        tasks                     | renderedHint | buildScanPublished
-        DUMMY_TASK_ONLY           | true         | false
-        DUMMY_TASK_AND_BUILD_SCAN | false        | true
+        tasks                     | buildScanPublished
+        DUMMY_TASK_ONLY           | false
+        DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "only renders hint for failing build if build scan plugin was applied in buildscript and not requested for generation"() {
+    def "always renders hint for failing build if build scan plugin was applied in buildscript and not requested for generation"() {
         given:
         buildFile << appliedBuildScanPluginInBuildScript()
         buildFile << buildScanLicenseConfiguration()
@@ -105,15 +104,15 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT) == renderedHint
+        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
-        tasks                     | renderedHint | buildScanPublished
-        DUMMY_TASK_ONLY           | true         | false
-        DUMMY_TASK_AND_BUILD_SCAN | false        | true
+        tasks                     | buildScanPublished
+        DUMMY_TASK_ONLY           | false
+        DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "only renders hint for failing build if build scan plugin was applied in initscript and not requested for generation"() {
+    def "always renders hint for failing build if build scan plugin was applied in initscript and not requested for generation"() {
         given:
         def initScriptFileName = 'init.gradle'
         file(initScriptFileName) << appliedBuildScanPluginInInitScript()
@@ -126,15 +125,15 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT) == renderedHint
+        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
-        tasks                     | renderedHint | buildScanPublished
-        DUMMY_TASK_ONLY           | true         | false
-        DUMMY_TASK_AND_BUILD_SCAN | false        | true
+        tasks                     | buildScanPublished
+        DUMMY_TASK_ONLY           | false
+        DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    def "only renders hint for failing build if build scan plugin was applied in script plugin and not requested for generation"() {
+    def "always hint for failing build if build scan plugin was applied in script plugin and not requested for generation"() {
         given:
         def scriptPluginFileName = 'scan.gradle'
         file(scriptPluginFileName) << appliedBuildScanPluginInScriptPlugin()
@@ -149,16 +148,15 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT) == renderedHint
+        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
-        tasks                     | renderedHint | buildScanPublished
-        DUMMY_TASK_ONLY           | true         | false
-        DUMMY_TASK_AND_BUILD_SCAN | false        | true
+        tasks                     | buildScanPublished
+        DUMMY_TASK_ONLY           | false
+        DUMMY_TASK_AND_BUILD_SCAN | true
     }
 
-    @ToBeImplemented("at the moment Gradle does not have the information that publishAlways() was set")
-    def "does not render hint for failing build if build scan plugin was applied in plugins DSL is configured to always publish"() {
+    def "renders hint for failing build if build scan plugin was applied in plugins DSL is configured to always publish"() {
         given:
         buildFile << appliedBuildScanPluginInPluginsDsl()
         buildFile << buildScanLicenseConfiguration()
@@ -170,7 +168,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        //!errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     static String failingBuildFile() {

@@ -18,7 +18,6 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -50,7 +49,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
-    private Gradle gradle;
 
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
@@ -59,7 +57,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     public void buildFinished(BuildResult result) {
-        this.gradle = result.getGradle();
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
@@ -204,16 +201,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
             resolution.text(" option to get more log output.");
         }
-        if (!isBuildScanEnabled()) {
-            addBuildScanMessage(resolution);
-        }
-    }
 
-    /**
-     * Does not take into consideration {@code buildScan.publishAlways()}. Right now Gradle does not have the information.
-     */
-    private boolean isBuildScanEnabled() {
-        return gradle != null && !gradle.getStartParameter().isNoBuildScan() && gradle.getStartParameter().isBuildScan();
+        addBuildScanMessage(resolution);
     }
 
     private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
