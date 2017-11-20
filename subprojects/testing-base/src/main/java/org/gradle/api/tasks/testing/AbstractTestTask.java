@@ -535,6 +535,7 @@ public abstract class AbstractTestTask<T extends AbstractTestTask> extends Conve
      * For more information on supported patterns see {@link TestFilter}
      */
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Incubating
     public T setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return taskType.cast(this);
