@@ -251,7 +251,7 @@ public class ModuleMetadataFileGenerator {
     }
 
     private void writeAttributes(AttributeContainer attributes, JsonWriter jsonWriter) throws IOException {
-        if (attributes==null || attributes.isEmpty()) {
+        if (attributes.isEmpty()) {
             return;
         }
         jsonWriter.name("attributes");

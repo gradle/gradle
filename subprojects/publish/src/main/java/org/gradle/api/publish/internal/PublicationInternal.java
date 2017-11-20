@@ -29,7 +29,6 @@ public interface PublicationInternal extends Publication {
 
     ModuleVersionIdentifier getCoordinates();
 
-    @Nullable
     ImmutableAttributes getAttributes();
 
     /**
