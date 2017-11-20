@@ -41,10 +41,10 @@ import java.util.Set;
 @Incubating
 public class UnexportMainSymbol extends SourceTask {
     private File mainObjectFile;
-    private final DirectoryProperty outputFile = newOutputDirectory();
+    private final DirectoryProperty outputDirectory = newOutputDirectory();
 
     public UnexportMainSymbol() {
-        outputFile.set(getTemporaryDir());
+        outputDirectory.set(getTemporaryDir());
     }
 
     /**
@@ -52,7 +52,7 @@ public class UnexportMainSymbol extends SourceTask {
      */
     @OutputFiles
     public FileCollection getOutputFiles() {
-        return outputFile.getAsFileTree();
+        return outputDirectory.getAsFileTree();
     }
 
     /**
@@ -71,7 +71,8 @@ public class UnexportMainSymbol extends SourceTask {
     public void unexport() {
         final File mainObjectFile = getMainObject();
         if (mainObjectFile != null) {
-            final File relocatedMainObject = outputFile.file(mainObjectFile.getName()).get().getAsFile();
+            final File relocatedMainObject = outputDirectory.file(mainObjectFile.getName()).get().getAsFile();
+            relocatedMainObject.getParentFile().mkdirs();
             getProject().exec(new Action<ExecSpec>() {
                 @Override
                 public void execute(ExecSpec execSpec) {
@@ -93,7 +94,7 @@ public class UnexportMainSymbol extends SourceTask {
             });
             setDidWork(true);
         } else {
-            setDidWork(getProject().delete(outputFile.get().getAsFile()));
+            setDidWork(getProject().delete(outputDirectory));
         }
     }
 

@@ -246,14 +246,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
 
                 if (testedComponent instanceof SwiftApplication) {
-                    final UnexportMainSymbol relocate = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                    relocate.source(testedComponent.getDevelopmentBinary().getObjects());
+                    final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                    unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
 
-                    linkTest.source(relocate);
+                    linkTest.source(unexportMainSymbol);
                     linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
                         @Override
                         public boolean isSatisfiedBy(File objectFile) {
-                            return !objectFile.equals(relocate.getMainObject());
+                            return !objectFile.equals(unexportMainSymbol.getMainObject());
                         }
                     }));
                 } else {

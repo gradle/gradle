@@ -16,11 +16,14 @@
 
 package org.gradle.language.swift.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
 class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -35,10 +38,32 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
     }
 
+    @Issue("https://github.com/gradle/gradle-native/issues/304")
+    def "clean build works"() {
+        writeMainSwift()
+
+        expect:
+        succeeds("clean", "unexport", "assemble")
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle-native/issues/297")
+    def "unexport is incremental"() {
+        writeMainSwift()
+
+        when:
+        succeeds("unexport")
+        then:
+        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
+
+        when:
+        succeeds("unexport", "-i")
+        then:
+        result.assertTasksSkipped(":compileDebugSwift", ":unexport")
+    }
+
     def "relocate _main symbol with main.swift"() {
-        file("src/main/swift/main.swift") << """
-            print("hello world!")
-        """
+        writeMainSwift()
 
         when:
         succeeds("unexport", "assemble")
@@ -47,9 +72,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
     }
 
     def "relocate _main symbol with notMain.swift"() {
-        file("src/main/swift/notMain.swift") << """
-            print("hello world!")
-        """
+        writeMainSwift("notMain.swift")
 
         when:
         succeeds("unexport", "assemble")
@@ -58,9 +81,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
     }
 
     def "relocate _main symbol with multiple swift files"() {
-        file("src/main/swift/main.swift") << """
-            print("hello world!")
-        """
+        writeMainSwift()
         file("src/main/swift/other.swift") << """
             class Other {}
         """
@@ -83,6 +104,12 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         succeeds("unexport")
         then:
         file("build/tmp/unexport/main.o").assertDoesNotExist()
+    }
+
+    private TestFile writeMainSwift(String filename="main.swift") {
+        file("src/main/swift/${filename}") << """
+            print("hello world!")
+        """
     }
 
     private void assertMainSymbolIsNotExported(String objectFile) {
