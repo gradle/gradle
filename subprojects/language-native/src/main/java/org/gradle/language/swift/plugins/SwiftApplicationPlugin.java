@@ -36,7 +36,7 @@ import javax.inject.Inject;
  *
  * <p>Adds a {@link SwiftApplication} extension to the project to allow configuration of the executable.</p>
  *
- * @since 4.1
+ * @since 4.5
  */
 @Incubating
 public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
@@ -60,7 +60,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
+        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
