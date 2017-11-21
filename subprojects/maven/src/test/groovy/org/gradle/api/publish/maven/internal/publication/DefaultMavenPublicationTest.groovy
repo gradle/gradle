@@ -41,7 +41,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-public class DefaultMavenPublicationTest extends Specification {
+class DefaultMavenPublicationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
@@ -50,11 +50,13 @@ public class DefaultMavenPublicationTest extends Specification {
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
     TestFile pomFile
+    TestFile gradleMetadataFile
     File artifactFile
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")
+        gradleMetadataFile = pomDir.createFile("module-file")
         artifactFile = pomDir.createFile("artifact-file")
         artifactFile << "some content"
     }
@@ -160,7 +162,7 @@ public class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
 
         then:
-        publication.publishableFiles.files == [pomFile] as Set
+        publication.publishableFiles.files == [pomFile, gradleMetadataFile] as Set
         publication.artifacts.empty
         publication.runtimeDependencies.empty
     }
@@ -184,7 +186,7 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithArtifact(artifact))
 
         then:
-        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
         publication.runtimeDependencies.empty
 
@@ -222,7 +224,7 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.from(component)
 
         then:
-        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
     }
 
@@ -337,7 +339,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.artifacts == [mavenArtifact] as Set
-        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
@@ -363,7 +365,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.artifacts == [mavenArtifact] as Set
-        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
     }
 
     def "can use setter to replace existing artifacts set"() {
@@ -393,6 +395,7 @@ public class DefaultMavenPublicationTest extends Specification {
     def createPublication() {
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), new ExperimentalFeatures())
         publication.setPomFile(new SimpleFileCollection(pomFile))
+        publication.setGradleModuleMetadataFile(new SimpleFileCollection(gradleMetadataFile))
         return publication;
     }
 

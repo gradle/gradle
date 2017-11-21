@@ -42,12 +42,12 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         LOGGER.info("Publishing to repository {}", artifactRepository);
-        MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), mavenRepositoryLocator, artifactRepository);
+        MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), publication.getMetadataFile(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();

@@ -194,9 +194,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            GenerateModuleMetadata generatorTask = (GenerateModuleMetadata) tasks.get(descriptorTaskName);
-            MavenArtifact metadataFile = publication.artifact(generatorTask.getOutputFile());
-            metadataFile.setExtension("module");
+            publication.setGradleModuleMetadataFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
         }
     }
 
