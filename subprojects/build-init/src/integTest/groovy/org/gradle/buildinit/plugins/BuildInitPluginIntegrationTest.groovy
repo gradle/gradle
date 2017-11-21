@@ -22,7 +22,6 @@ import org.hamcrest.Matcher
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
 import static org.hamcrest.Matchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -64,8 +63,6 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
-        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
-
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -85,17 +82,11 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         targetDslFixture.assertWrapperNotGenerated()
 
         where:
-        existingScriptDsl | targetScriptDsl
-        GROOVY            | GROOVY
-        KOTLIN            | KOTLIN
-        GROOVY            | KOTLIN
-        KOTLIN            | GROOVY
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
-        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
-
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -115,17 +106,11 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         targetDslFixture.assertWrapperNotGenerated()
 
         where:
-        existingScriptDsl | targetScriptDsl
-        GROOVY            | GROOVY
-        KOTLIN            | KOTLIN
-        GROOVY            | KOTLIN
-        KOTLIN            | GROOVY
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
-        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
-
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -147,17 +132,11 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         targetDslFixture.assertWrapperNotGenerated()
 
         where:
-        existingScriptDsl | targetScriptDsl
-        GROOVY            | GROOVY
-        KOTLIN            | KOTLIN
-        GROOVY            | KOTLIN
-        KOTLIN            | GROOVY
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
-        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
-
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -182,11 +161,7 @@ include("child")
         targetDslFixture.assertWrapperNotGenerated()
 
         where:
-        existingScriptDsl | targetScriptDsl
-        GROOVY            | GROOVY
-        KOTLIN            | KOTLIN
-        GROOVY            | KOTLIN
-        KOTLIN            | GROOVY
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
     @Unroll
