@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
+/**
+ * Classes responsible for modeling and executing XCTests on macOS and Linux.
+ */
 package org.gradle.nativeplatform.test.xctest.internal;
-
-import org.gradle.language.swift.internal.AbstractLocator;
-import org.gradle.process.internal.ExecActionFactory;
-
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-
-public class MacOSXCTestLocator extends AbstractLocator {
-    @Inject
-    public MacOSXCTestLocator(ExecActionFactory execActionFactory) {
-        super(execActionFactory);
-    }
-
-    @Override
-    protected List<String> getXcrunFlags() {
-        return Arrays.asList("--find", "xctest");
-    }
-}

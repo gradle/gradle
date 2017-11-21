@@ -20,6 +20,9 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 
 import java.io.File;
 
+/**
+ * Describes an XCTest execution run
+ */
 public class XCTestTestExecutionSpec implements TestExecutionSpec {
     private final File workingDir;
     private final File runScript;

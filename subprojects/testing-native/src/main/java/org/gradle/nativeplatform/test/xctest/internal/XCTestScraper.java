@@ -39,6 +39,11 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Scrapes XCTest's output and converts them into {@code TestResultProcessor} events.
+ *
+ * NOTE: We eventually want to get rid of this and use our own hooks in the test process itself.
+ */
 class XCTestScraper implements TextStream {
     private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: (-\\[\\p{Alnum}+.)?(\\p{Alnum}+)[ .](\\p{Alnum}+)]? : (.*)");
 

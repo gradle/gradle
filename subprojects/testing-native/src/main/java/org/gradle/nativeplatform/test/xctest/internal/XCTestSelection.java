@@ -25,9 +25,17 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Describes the set of filtered XCTests.
+ *
+ * NOTE: Eventually we want to support regular Java-like test filtering, like filtering for a set of test cases
+ * or test suites that match a particular pattern.  Unfortunately, XCTest is very limited with how much up-front
+ * test discovery we can do and the kind of filtering we can specify from the command-line.  This class reflects
+ * those limitations.
+ */
 public class XCTestSelection {
     public static final String INCLUDE_ALL_TESTS = "All";
-    public static final String WILDCARD = "*";
+    private static final String WILDCARD = "*";
     private final Set<String> includedTests = new LinkedHashSet<String>();
 
     public XCTestSelection(Collection<String> includedTests, Collection<String> includedTestsCommandLine) {

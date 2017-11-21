@@ -45,7 +45,7 @@ public class XCTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
     private final DirectoryProperty testInstallDirectory = newInputDirectory();
     private final RegularFileProperty runScriptFile = newInputFile();
-    
+
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
         DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();

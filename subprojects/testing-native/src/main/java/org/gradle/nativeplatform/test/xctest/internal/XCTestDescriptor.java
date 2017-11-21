@@ -21,6 +21,9 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
 import java.util.List;
 
+/**
+ * A test descriptor generated from scraping XCTest's output.
+ */
 class XCTestDescriptor {
     private final TestDescriptorInternal descriptorInternal;
     private final List<String> messages = Lists.newArrayList();

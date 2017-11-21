@@ -42,6 +42,19 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+/**
+ * Takes an XCTestTestExecutionSpec and executes the given test binary.
+ *
+ * This class is mostly responsible for managing the starting/stopping of the test process and wiring together the
+ * different test execution bits (output scraping, event generation, process handling).
+ *
+ * NOTE: Eventually, we would like to replace some of this with a lower level integration with XCTest, which would
+ * get rid of the output scraping and allow us to do things like:
+ *
+ * - Parallel test execution
+ * - Smarter/fancier test filtering
+ * - Test probing (so we know which tests exist without executing them)
+ */
 public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
         return new DefaultExecHandleBuilder();
