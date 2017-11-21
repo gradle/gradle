@@ -28,7 +28,7 @@ The Tooling API now allows model builders to accept parameters from the tooling 
 
 Android Studio, for instance, will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
 
-For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParametrizedToolingModelBuilder.html) of the new API.
+For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParameterizedToolingModelBuilder.html) of the new API.
 
 ### Eclipse plugin separates output folders
 
