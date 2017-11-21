@@ -121,7 +121,8 @@ public class HttpBuildCacheService implements BuildCacheService {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
         try {
-            throw new BuildCacheException(String.format("Received redirect (%d) to %s when loading entry from '%s'", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
+            throw new BuildCacheException(String.format("Received redirect (HTTP %d) to %s when loading entry from '%s'. "
+                + "Redirects have a performance penalty and are therefore not supported.", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
         } catch (URISyntaxException e) {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
