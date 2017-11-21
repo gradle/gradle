@@ -23,6 +23,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -200,6 +201,14 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
             resolution.text(" option to get more log output.");
         }
+
+        addBuildScanMessage(resolution);
+    }
+
+    private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
+        resolution.text(" Run with ");
+        resolution.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        resolution.text(" to get full insights.");
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
