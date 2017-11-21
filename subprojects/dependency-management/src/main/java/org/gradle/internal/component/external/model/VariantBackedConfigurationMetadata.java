@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -28,6 +29,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
@@ -53,7 +55,9 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
-            dependencies.add(new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint())));
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
+            List<Exclude> excludes = dependency.getExcludes();
+            dependencies.add(new GradleDependencyMetadata(selector, excludes));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.dependencyMetadataRules = dependencyMetadataRules;

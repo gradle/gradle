@@ -16,19 +16,11 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Issue
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
-@RequiredFeatures([
-    // TODO:DAZ add support for Gradle metadata
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-]
-)
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """
@@ -360,5 +352,39 @@ task check(type: Sync) {
         'excluded on c'       | []              | [[module: 'd']] | ['a', 'b', 'c']
         'excluded on both'    | [[module: 'd']] | [[module: 'd']] | ['a', 'b', 'c']
         'excluded on neither' | []              | []              | ['a', 'b', 'c', 'd']
+    }
+
+    def "excludes are retained in cached module metadata"() {
+        given:
+        repository {
+            'a:a:1.0' {
+                dependsOn group: 'b', artifact: 'b', version: '1.0', exclusions: [[module: 'c']]
+            }
+            'b:b:1.0' {
+                dependsOn 'c:c:1.0'
+            }
+            'c:c:1.0'()
+        }
+
+        repositoryInteractions {
+            'a:a:1.0' {expectResolve()}
+            'b:b:1.0' {expectResolve()}
+        }
+
+        and: // Initial request to cache metadata
+        succeeds "checkDeps"
+
+        when:
+        server.resetExpectations()
+        succeeds "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("a:a:1.0") {
+                    module("b:b:1.0")
+                }
+            }
+        }
     }
 }

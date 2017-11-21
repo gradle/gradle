@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -29,14 +28,22 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class GradleDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleComponentSelector selector;
+    private final List<Exclude> excludes;
 
     public GradleDependencyMetadata(ModuleComponentSelector selector) {
         this.selector = selector;
+        this.excludes = Collections.emptyList();
+    }
+
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<Exclude> excludes) {
+        this.selector = selector;
+        this.excludes = excludes;
     }
 
     @Override
@@ -72,12 +79,12 @@ public class GradleDependencyMetadata extends AbstractDependencyMetadata impleme
 
     @Override
     public List<Exclude> getExcludes() {
-        return ImmutableList.of();
+        return excludes;
     }
 
     @Override
     public List<Exclude> getExcludes(Collection<String> configurations) {
-        return ImmutableList.of();
+        return excludes;
     }
 
     @Override

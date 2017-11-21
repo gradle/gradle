@@ -20,13 +20,34 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Set;
 
+/**
+ * Represents the complete model of an exclude rule supported by Gradle.
+ * Several attributes of this model are not able to be configured in the DSL via {@link org.gradle.api.artifacts.ExcludeRule},
+ * and are only present to support the rich exclude syntax supported in Ivy.xml files.
+ */
 public interface Exclude {
+    /**
+     * The coordinates of the module to be excluded.
+     * A '*' value for group or name indicates a wildcard match.
+     */
     ModuleIdentifier getModuleId();
 
+    /**
+     * The attributes of the artifact to be excluded.
+     * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     */
     IvyArtifactName getArtifact();
 
+    /**
+     * The configurations that should be excluded.
+     * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     */
     Set<String> getConfigurations();
 
+    /**
+     * The name of the Ivy pattern matcher to use for this exclude.
+     * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     */
     String getMatcher();
 
 }
