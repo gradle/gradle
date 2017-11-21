@@ -440,7 +440,7 @@ version = '$project.version'""";
                 settings.append "${indent}    targetCompatibility = JavaVersion.${targetCompatibility.name()}\n"
                 settings.append "${indent}}\n"
                 if (encoding) {
-                    settings.append "${indent}tasks.withType(JavaCompile::class.java) {\n"
+                    settings.append "${indent}tasks.withType<JavaCompile> {\n"
                     settings.append "${indent}    options.encoding = \"${encoding}\"\n"
                     settings.append "${indent}}\n"
                 }
