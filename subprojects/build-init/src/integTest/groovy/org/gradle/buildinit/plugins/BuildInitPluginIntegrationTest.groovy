@@ -64,6 +64,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
+        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
+
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -92,6 +94,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
+        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
+
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -120,6 +124,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
+        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
+
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
@@ -150,6 +156,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
+        ScriptDslFixture.assumeScriptDslSupportFor(targetScriptDsl, existingScriptDsl)
+
         given:
         def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)

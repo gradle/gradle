@@ -24,17 +24,25 @@ import org.hamcrest.Matcher
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
 import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.hasItem
+import static org.junit.Assume.assumeThat
 
 class ScriptDslFixture {
 
     static final List<BuildInitBuildScriptDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [GROOVY, KOTLIN] : [GROOVY]
 
-    final BuildInitBuildScriptDsl scriptDsl
-    final TestFile rootDir
-
     static ScriptDslFixture of(BuildInitBuildScriptDsl scriptDsl, TestFile rootDir) {
         new ScriptDslFixture(scriptDsl, rootDir)
     }
+
+    static void assumeScriptDslSupportFor(BuildInitBuildScriptDsl... scriptDsls) {
+        scriptDsls.each { scriptDsl ->
+            assumeThat(SCRIPT_DSLS, hasItem(scriptDsl))
+        }
+    }
+
+    final BuildInitBuildScriptDsl scriptDsl
+    final TestFile rootDir
 
     ScriptDslFixture(BuildInitBuildScriptDsl scriptDsl, TestFile rootDir) {
         this.scriptDsl = scriptDsl
