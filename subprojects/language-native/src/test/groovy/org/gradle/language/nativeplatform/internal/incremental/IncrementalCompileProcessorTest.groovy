@@ -24,7 +24,7 @@ import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.Hashing
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -104,7 +104,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Collection<File> deps) {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { DefaultInclude.parse('<' + it.name + '>', false) }), ImmutableList.of(), ImmutableList.of())
+        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { IncludeWithSimpleExpression.parse('<' + it.name + '>', false) }), ImmutableList.of(), ImmutableList.of())
     }
 
     def added(TestFile sourceFile) {
@@ -384,7 +384,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def "discovers if unresolved includes have been used"() {
         given:
-        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of(), ImmutableList.of())
+        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new IncludeWithSimpleExpression("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of(), ImmutableList.of())
 
         when:
         def result = incrementalCompileProcessor.processSourceFiles([source1])

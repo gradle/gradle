@@ -21,10 +21,10 @@ import org.gradle.language.nativeplatform.internal.IncludeType
 import spock.lang.Specification
 
 
-class DefaultIncludeTest extends Specification {
+class IncludeWithSimpleExpressionTest extends Specification {
     def "can parse include string" () {
         when:
-        Include include = DefaultInclude.parse(value, isImport)
+        Include include = IncludeWithSimpleExpression.parse(value, isImport)
 
         then:
         include.getValue() == includeValue

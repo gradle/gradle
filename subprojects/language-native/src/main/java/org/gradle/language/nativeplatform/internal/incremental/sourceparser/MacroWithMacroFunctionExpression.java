@@ -16,26 +16,34 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultMacro extends AbstractMacro {
-    private final IncludeType includeType;
-    private final String value;
+import java.util.List;
 
-    public DefaultMacro(String name, IncludeType includeType, String value) {
+public class MacroWithMacroFunctionExpression extends AbstractMacro {
+    private final String macroName;
+    private final List<Expression> arguments;
+
+    public MacroWithMacroFunctionExpression(String name, String macroName, List<Expression> arguments) {
         super(name);
-        this.includeType = includeType;
-        this.value = value;
+        this.macroName = macroName;
+        this.arguments = arguments;
     }
 
     @Override
     public String getValue() {
-        return value;
+        return macroName;
     }
 
     @Override
     public IncludeType getType() {
-        return includeType;
+        return IncludeType.MACRO_FUNCTION;
+    }
+
+    @Override
+    public List<Expression> getArguments() {
+        return arguments;
     }
 
     @Override
@@ -43,12 +51,12 @@ public class DefaultMacro extends AbstractMacro {
         if (!super.equals(obj)) {
             return false;
         }
-        DefaultMacro other = (DefaultMacro) obj;
-        return value.equals(other.value);
+        MacroWithMacroFunctionExpression other = (MacroWithMacroFunctionExpression) obj;
+        return macroName.equals(other.macroName) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode();
+        return super.hashCode() ^ macroName.hashCode() ^ arguments.hashCode();
     }
 }

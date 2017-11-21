@@ -23,26 +23,26 @@ import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultInclude extends AbstractInclude {
+public class IncludeWithSimpleExpression extends AbstractInclude {
 
-    private static final Interner<DefaultInclude> INTERNER = Interners.newWeakInterner();
+    private static final Interner<IncludeWithSimpleExpression> INTERNER = Interners.newWeakInterner();
 
     private final String value;
     private final boolean isImport;
     private final IncludeType type;
 
-    public static DefaultInclude create(String value, boolean isImport, IncludeType type) {
-        return INTERNER.intern(new DefaultInclude(value, isImport, type));
+    public static IncludeWithSimpleExpression create(String value, boolean isImport, IncludeType type) {
+        return INTERNER.intern(new IncludeWithSimpleExpression(value, isImport, type));
     }
 
     public static Include create(Expression expression, boolean isImport) {
         if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            return new MacroFunctionInclude(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
+            return new IncludeWithMacroFunctionExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
         }
         return create(expression.getValue(), isImport, expression.getType());
     }
 
-    public DefaultInclude(String value, boolean isImport, IncludeType type) {
+    public IncludeWithSimpleExpression(String value, boolean isImport, IncludeType type) {
         if (value == null) {
             throw new IllegalArgumentException("value cannot be null");
         }
@@ -71,7 +71,7 @@ public class DefaultInclude extends AbstractInclude {
 
     public static Include parse(String value, boolean isImport) {
         Expression expression = RegexBackedCSourceParser.parseExpression(value);
-        return DefaultInclude.create(expression.getValue(), isImport, expression.getType());
+        return IncludeWithSimpleExpression.create(expression.getValue(), isImport, expression.getType());
     }
 
     @Override
@@ -83,7 +83,7 @@ public class DefaultInclude extends AbstractInclude {
             return false;
         }
 
-        DefaultInclude that = (DefaultInclude) o;
+        IncludeWithSimpleExpression that = (IncludeWithSimpleExpression) o;
 
         if (isImport != that.isImport) {
             return false;

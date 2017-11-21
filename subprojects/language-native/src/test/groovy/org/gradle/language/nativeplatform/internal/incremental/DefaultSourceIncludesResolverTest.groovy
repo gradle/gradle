@@ -17,8 +17,8 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.MacroWithSimpleExpression
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ReturnFixedValueMacroFunction
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
@@ -320,17 +320,17 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def include(String value) {
-        return DefaultInclude.parse(value, false)
+        return IncludeWithSimpleExpression.parse(value, false)
     }
 
     def macro(String name, String value) {
-        def include = DefaultInclude.parse(value, false)
-        new DefaultMacro(name, include.type, include.value)
+        def include = IncludeWithSimpleExpression.parse(value, false)
+        new MacroWithSimpleExpression(name, include.type, include.value)
     }
 
     def macroFunction(String name, int parameters = 0, String value) {
-        def include = DefaultInclude.parse(value, false)
-        new ReturnFixedValueMacroFunction(name, parameters, include.type, include.value)
+        def include = IncludeWithSimpleExpression.parse(value, false)
+        new ReturnFixedValueMacroFunction(name, parameters, include.type, include.value, [])
     }
 
     def unresolveableMacro(String name) {

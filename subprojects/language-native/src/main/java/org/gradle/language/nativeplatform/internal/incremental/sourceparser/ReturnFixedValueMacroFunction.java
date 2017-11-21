@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,11 +28,18 @@ import java.util.List;
 public class ReturnFixedValueMacroFunction extends AbstractMacroFunction implements Expression {
     private final String value;
     private final IncludeType type;
+    private final List<Expression> arguments;
 
-    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, String value) {
+    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, String value, List<Expression> arguments) {
         super(name, parameters);
         this.value = value;
         this.type = type;
+        this.arguments = arguments;
+    }
+
+    @Override
+    public String toString() {
+        return "#define " + getName() + "(...) " + getAsSourceText();
     }
 
     @Override
@@ -43,7 +49,7 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
 
     @Override
     public List<Expression> getArguments() {
-        return Collections.emptyList();
+        return arguments;
     }
 
     @Override
@@ -68,11 +74,11 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
         }
 
         ReturnFixedValueMacroFunction other = (ReturnFixedValueMacroFunction) obj;
-        return Objects.equal(value, other.value) && type == other.type;
+        return Objects.equal(value, other.value) && type == other.type && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode() ^ type.hashCode();
+        return super.hashCode() ^ value.hashCode() ^ type.hashCode() ^ arguments.hashCode();
     }
 }

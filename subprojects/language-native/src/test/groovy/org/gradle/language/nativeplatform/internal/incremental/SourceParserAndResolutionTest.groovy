@@ -37,7 +37,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
     def parser = new RegexBackedCSourceParser()
     def serializer = new IncludeDirectivesSerializer()
 
-    def "resolves macro with string constant value"() {
+    def "resolves macro with value that is a string constant"() {
         given:
         sourceFile << """
             #define HEADER "hello.h"
@@ -48,7 +48,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro with system include value"() {
+    def "resolves macro with value that is a system include"() {
         given:
         sourceFile << """
             #define HEADER <hello.h>
@@ -59,11 +59,35 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro with macro value"() {
+    def "resolves macro with value that is a macro"() {
         given:
         sourceFile << """
             #define HEADER2 <hello.h>
             #define HEADER HEADER2 // indirection
+            #include HEADER
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro with value that is a macro function call with zero args"() {
+        given:
+        sourceFile << """
+            #define HEADER2() <hello.h>
+            #define HEADER HEADER2 ( ) // some comment
+            #include HEADER
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro with value that is a macro function call with multiple args"() {
+        given:
+        sourceFile << """
+            #define HEADER2(X, Y) <hello.h>
+            #define HEADER HEADER2 (A1, A2) // some comment
             #include HEADER
         """
 
@@ -88,6 +112,17 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header, header2]
     }
 
+    def "does not resolve macro with multiple tokens"() {
+        given:
+        sourceFile << """
+            #define HEADER 12 + 6
+            #include HEADER
+        """
+
+        expect:
+        doesNotResolve()
+    }
+
     def "does not resolve unknown macro"() {
         given:
         sourceFile << """
@@ -98,7 +133,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         doesNotResolve()
     }
 
-    def "resolves macro function with zero args that returns string constant"() {
+    def "resolves macro function with zero args with body that is a string constant"() {
         given:
         sourceFile << """
             #define HEADER() "hello.h"
@@ -109,7 +144,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with zero args that returns system include"() {
+    def "resolves macro function with zero args with body that is a system include"() {
         given:
         sourceFile << """
             #define HEADER() <hello.h>
@@ -120,7 +155,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with zero args that returns macro reference"() {
+    def "resolves macro function with zero args with body that is a macro"() {
         given:
         sourceFile << """
             #define _HEADER_ "hello.h"
@@ -132,7 +167,20 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "does not resolve unknown macro function"() {
+    def "resolves macro function with zero args with body that is a macro function call"() {
+        given:
+        sourceFile << """
+            #define _HEADER_ "hello.h"
+            #define HEADER2(X) X
+            #define HEADER() HEADER2(_HEADER_)
+            #include HEADER( )
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "does not resolve unknown macro function call"() {
         given:
         sourceFile << """
             #include HEADER( )
@@ -142,7 +190,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         doesNotResolve()
     }
 
-    def "does not resolve macro function with too many args"() {
+    def "does not resolve macro function call with too many args"() {
         given:
         sourceFile << """
             #define HEADER() "hello.h"
@@ -153,7 +201,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         doesNotResolve()
     }
 
-    def "resolves macro function with arg that returns string constant"() {
+    def "resolves macro function with arg with body that is a string constant"() {
         given:
         sourceFile << """
             #define HEADER(X) "hello.h"

@@ -77,17 +77,20 @@ class RegexBackedCSourceParserTest extends Specification {
 
     Include include(String value, boolean isImport = false) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
-        return DefaultInclude.create(expression, isImport)
+        return IncludeWithSimpleExpression.create(expression, isImport)
     }
 
     Macro macro(String name, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
-        return new DefaultMacro(name, expression.type, expression.value)
+        if (!expression.arguments.empty) {
+            return new MacroWithMacroFunctionExpression(name, expression.value, expression.arguments)
+        }
+        return new MacroWithSimpleExpression(name, expression.type, expression.value)
     }
 
     MacroFunction macroFunction(String name, int parameters = 0, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
-        return new ReturnFixedValueMacroFunction(name, parameters, expression.type, expression.value)
+        return new ReturnFixedValueMacroFunction(name, parameters, expression.type, expression.value, expression.arguments)
     }
 
     Macro unresolvedMacro(String name) {
@@ -122,7 +125,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new DefaultInclude('test.h', false, IncludeType.QUOTED)]
+        includes == [new IncludeWithSimpleExpression('test.h', false, IncludeType.QUOTED)]
 
         and:
         noImports()
@@ -146,7 +149,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new DefaultInclude('test.h', false, IncludeType.SYSTEM)]
+        includes == [new IncludeWithSimpleExpression('test.h', false, IncludeType.SYSTEM)]
 
         and:
         noImports()
@@ -170,7 +173,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new DefaultInclude(include, false, IncludeType.MACRO)]
+        includes == [new IncludeWithSimpleExpression(include, false, IncludeType.MACRO)]
 
         and:
         noImports()
@@ -186,7 +189,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new DefaultInclude(macro, false, IncludeType.MACRO_FUNCTION)]
+        includes == [new IncludeWithSimpleExpression(macro, false, IncludeType.MACRO_FUNCTION)]
 
         and:
         noImports()
@@ -208,7 +211,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new MacroFunctionInclude(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
+        includes == [new IncludeWithMacroFunctionExpression(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
 
         and:
         noImports()
@@ -221,20 +224,20 @@ class RegexBackedCSourceParserTest extends Specification {
         'ABC( \t x \t,  y  )' | 'ABC' | ['x', 'y']
     }
 
-    def "finds other includes"() {
+    def "finds other includes that cannot be resolved"() {
         when:
         sourceFile << """
     #include ${include}
 """
 
         then:
-        includes == [new DefaultInclude(include, false, IncludeType.OTHER)]
+        includes == [new IncludeWithSimpleExpression(include, false, IncludeType.OTHER)]
 
         and:
         noImports()
 
         where:
-        include << ['DEFINED(<abc.h>)', 'not an include', 'BROKEN(', '@(X', '"abc.h" DEFINED']
+        include << ['DEFINED(<abc.h>)', 'not an include', 'BROKEN(', '@(X', '"abc.h" DEFINED', 'DEFINED(A, B(1+2))']
     }
 
     def "finds multiple includes"() {
@@ -618,7 +621,21 @@ st3"
         value << ['a', '_a_123_', 'a$b']
     }
 
-    def "finds object-like macro directive whose value is not a string constant or macro reference"() {
+    def "finds object-like macro directive whose value is a macro function call"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [macro('SOME_STRING', value)]
+        macroFunctions.empty
+
+        where:
+        value << ['a()', '_a_123_(_a1, $2)', 'a$b(X,Y)']
+    }
+
+    def "finds object-like macro directive whose value cannot be resolved"() {
         when:
         sourceFile << """
 #define SOME_STRING ${value}
@@ -629,7 +646,7 @@ st3"
         macroFunctions.empty
 
         where:
-        value << ["one two three", "a++", "one(<abc.h>)", "-12", "(X) #X"]
+        value << ["one two three", "a++", "one(<abc.h>)", "-12", "(X) #X", "A(1, B(2+2))"]
     }
 
     def "handles various separators in an object-like macro directive"() {
@@ -698,7 +715,7 @@ st3"
 #endif
 #define OTHER "1234"
 #define EMPTY
-#define FUNCTION abc(123)
+#define FUNCTION abc(a, b, c)
 #define UNKNOWN abc 123
 """
 
@@ -708,7 +725,7 @@ st3"
             macro('SOME_STRING', '"xyz"'),
             macro('OTHER', '"1234"'),
             unresolvedMacro('EMPTY'),
-            macro('FUNCTION', 'abc(123)'),
+            macro('FUNCTION', 'abc(a, b, c)'),
             unresolvedMacro('UNKNOWN'),
         ]
         macroFunctions.empty
@@ -747,7 +764,18 @@ st3"
         macroFunctions == [macroFunction('A', 'ABC_H')]
     }
 
-    def "finds function-like macro directive with no parameters whose body is some other value"() {
+    def "finds function-like macro directive with no parameters whose body is a macro function"() {
+        when:
+        sourceFile << """
+#define A() ABC_H(A, Z)
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 'ABC_H(A, Z)')]
+    }
+
+    def "finds function-like macro directive with no parameters whose body cannot be resolved"() {
         when:
         sourceFile << """
 #define A() ${definition}
@@ -758,7 +786,7 @@ st3"
         macroFunctions == [unresolvedMacroFunction('A', 0)]
 
         where:
-        definition << ['@', 'A(abc)', '"a12" 12 + 4']
+        definition << ['@', 'A(abc', 'A(1+2)', '"a12" 12 + 4']
     }
 
     def "finds function-like macro directive with no parameters whose body is empty"() {
@@ -770,6 +798,17 @@ st3"
         then:
         macros.empty
         macroFunctions == [unresolvedMacroFunction('A')]
+    }
+
+    def "finds function-like macro directive with no parameters with no whitespace between name and body"() {
+        when:
+        sourceFile << """
+#define A()Y
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 'Y')]
     }
 
     def "finds function-like macro directive with multiple parameters whose body is a string constant"() {
@@ -820,7 +859,7 @@ st3"
         body << ['_ABC_', '_a$', 'A1']
     }
 
-    def "finds function-like macro directive with multiple parameters whose body is some other value"() {
+    def "finds function-like macro directive with multiple parameters whose body cannot be resolved"() {
         when:
         sourceFile << """
 #define A(X, Y) ${body}
@@ -849,6 +888,17 @@ st3"
         'A(X)'       | 'A'   | 1
         'ABC(X,Y)'   | 'ABC' | 2
         '_a$(X,Y,Z)' | '_a$' | 3
+    }
+
+    def "finds function-like macro directive with multiple parameters with no whitespace between name and body"() {
+        when:
+        sourceFile << """
+#define A(X)Y
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 1, 'Y')]
     }
 
     def "handles whitespace in function-like macro definition"() {

@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RegexBackedCSourceParser implements CSourceParser {
@@ -85,7 +86,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
         Expression expression = parseExpression(line, startPos, line.length());
         if (expression.getType() != IncludeType.OTHER || !expression.getValue().isEmpty()) {
-            includes.add(DefaultInclude.create(expression, isImport));
+            includes.add(IncludeWithSimpleExpression.create(expression, isImport));
         }
         // Ignore includes with no value
     }
@@ -113,11 +114,13 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     private void consumeMacroDirectiveBody(CharSequence line, int startBody, String macroName, List<Macro> macros) {
         Expression expression = parseExpression(line, startBody, line.length());
-        if (expression.getType() == IncludeType.OTHER) {
+        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
+            macros.add(new MacroWithMacroFunctionExpression(macroName, expression.getValue(), expression.getArguments()));
+        } else if (expression.getType() != IncludeType.OTHER) {
+            macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
+        } else {
             // Discard the body when the expression is not resolvable
             macros.add(new UnresolveableMacro(macroName));
-        } else {
-            macros.add(new DefaultMacro(macroName, expression.getType(), expression.getValue()));
         }
     }
 
@@ -157,21 +160,26 @@ public class RegexBackedCSourceParser implements CSourceParser {
         int endArgs = pos + 1;
         Expression expression = parseExpression(line, endArgs, line.length());
         if (expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.SYSTEM) {
-            // Return a fixed value
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue()));
+            // Returns a fixed value expression
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
             return;
         }
         if (expression.getType() == IncludeType.MACRO) {
             for (int i = 0; i < paramNames.size(); i++) {
                 String name = paramNames.get(i);
                 if (name.equals(expression.getValue())) {
-                    // References a parameter, return it
+                    // Returns a parameter
                     macroFunctions.add(new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
                     return;
                 }
             }
-            // References some fixed value, return it
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue()));
+            // References some fixed value expression, return it
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
+            return;
+        }
+        if (expression.getType() == IncludeType.MACRO_FUNCTION && paramNames.isEmpty()) {
+            // Handle zero args function that returns a macro function call
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
             return;
         }
 

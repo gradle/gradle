@@ -22,12 +22,12 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.List;
 
-public class MacroFunctionInclude extends AbstractInclude {
+public class IncludeWithMacroFunctionExpression extends AbstractInclude {
     private final String name;
     private final boolean isImport;
     private final ImmutableList<Expression> arguments;
 
-    public MacroFunctionInclude(String name, boolean isImport, ImmutableList<Expression> arguments) {
+    public IncludeWithMacroFunctionExpression(String name, boolean isImport, ImmutableList<Expression> arguments) {
         this.name = name;
         this.isImport = isImport;
         this.arguments = arguments;
@@ -61,7 +61,7 @@ public class MacroFunctionInclude extends AbstractInclude {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        MacroFunctionInclude other = (MacroFunctionInclude) obj;
+        IncludeWithMacroFunctionExpression other = (IncludeWithMacroFunctionExpression) obj;
         return name.equals(other.name) && isImport == other.isImport && arguments.equals(other.arguments);
     }
 

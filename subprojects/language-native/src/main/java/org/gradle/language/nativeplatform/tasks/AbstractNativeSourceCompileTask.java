@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -67,7 +67,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
             File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
             spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
-            spec.setPreCompiledHeader(DefaultInclude.parse(preCompiledHeader.getIncludeString(), true).getValue());
+            spec.setPreCompiledHeader(IncludeWithSimpleExpression.parse(preCompiledHeader.getIncludeString(), true).getValue());
         }
     }
 
