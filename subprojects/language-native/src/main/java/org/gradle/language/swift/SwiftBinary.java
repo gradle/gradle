@@ -40,6 +40,8 @@ public interface SwiftBinary extends SoftwareComponent {
 
     /**
      * Returns true if this binary is optimized.
+     *
+     * @since 4.5
      */
     boolean isOptimized();
 

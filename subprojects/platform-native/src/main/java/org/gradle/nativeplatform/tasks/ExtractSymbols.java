@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -36,7 +37,10 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 /**
  * Extracts the debug symbols from a binary and stores them in a separate file.
+ *
+ * @since 4.5
  */
+@Incubating
 public class ExtractSymbols extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;

@@ -25,8 +25,27 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
+    /**
+     * Returns the compiler tool.
+     */
     CommandLineToolConfiguration getSwiftCompiler();
+
+    /**
+     * Returns the linker tool.
+     */
     CommandLineToolConfiguration getLinker();
+
+    /**
+     * Returns the tool for extracting symbols.
+     *
+     * @since 4.5
+     */
     CommandLineToolConfiguration getSymbolExtractor();
+
+    /**
+     * Returns the tool for stripping symbols.
+     * 
+     * @since 4.5
+     */
     CommandLineToolConfiguration getStripper();
 }

@@ -36,6 +36,8 @@ public interface CppBinary extends SoftwareComponent {
 
     /**
      * The dependency resolution attribute use to indicate whether a binary is optimized or not.
+     *
+     * @since 4.5
      */
     Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
 
@@ -52,6 +54,8 @@ public interface CppBinary extends SoftwareComponent {
 
     /**
      * Returns true if this binary has debugging enabled.
+     *
+     * @since 4.5
      */
     boolean isOptimized();
 
