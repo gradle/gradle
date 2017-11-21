@@ -33,8 +33,8 @@ class DependencySpec {
         rejects = r?:Collections.<String>emptyList()
         if (e) {
             exclusions = e.collect { Map exclusion ->
-                def group = (String) exclusion.get('group')
-                def module = (String) exclusion.get('module')
+                String group = exclusion.get('group')?.toString()
+                String module = exclusion.get('module')?.toString()
                 new ExcludeSpec(group, module)
             }
         }
