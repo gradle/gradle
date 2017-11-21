@@ -15,12 +15,30 @@
  */
 plugins {
     id 'groovy'
+    id 'java-gradle-plugin'
     id 'idea'
     id 'eclipse'
 }
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
+
+gradlePlugin {
+    plugins {
+        jsoup {
+            id = "jsoup"
+            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
+        }
+        buildTypes {
+            id = "org.gradle.build-types"
+            implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
+        }
+        pegdown {
+            id = "pegdown"
+            implementationClass = "org.gradle.plugins.pegdown.PegDownPlugin"
+        }
+    }
+}
 
 // 1.5.3 has a classloader leak (https://github.com/asciidoctor/asciidoctor-gradle-plugin/pull/215)
 // 1.5.6 requires Java 8+ (https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/218)
