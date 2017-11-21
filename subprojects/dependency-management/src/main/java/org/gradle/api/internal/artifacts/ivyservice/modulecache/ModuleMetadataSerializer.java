@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
@@ -403,20 +404,21 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                List<Exclude> excludes = readVariantDependencyExcludes();
+                ImmutableList<Exclude> excludes = readVariantDependencyExcludes();
                 variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes);
             }
         }
 
-        private List<Exclude> readVariantDependencyExcludes() throws IOException {
+        private ImmutableList<Exclude> readVariantDependencyExcludes() throws IOException {
+            ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
             int len = readCount();
             List<Exclude> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
                 String group = readString();
                 String module = readString();
-                result.add(excludeRuleConverter.createExcludeRule(group, module));
+                builder.add(excludeRuleConverter.createExcludeRule(group, module));
             }
-            return result;
+            return builder.build();
         }
 
         private void readVariantFiles(MutableComponentVariant variant) throws IOException {

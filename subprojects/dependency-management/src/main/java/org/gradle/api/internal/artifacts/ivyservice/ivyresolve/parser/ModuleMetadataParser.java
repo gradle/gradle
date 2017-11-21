@@ -177,7 +177,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), Collections.<Exclude>emptyList()));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<Exclude>of()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -188,7 +188,7 @@ public class ModuleMetadataParser {
             String group = null;
             String module = null;
             VersionConstraint version = null;
-            List<Exclude> excludes = Collections.emptyList();
+            ImmutableList<Exclude> excludes = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -230,8 +230,8 @@ public class ModuleMetadataParser {
         return DefaultImmutableVersionConstraint.of(preferred, rejects);
     }
 
-    private List<Exclude> consumeExcludes(JsonReader reader) throws IOException {
-        List<Exclude> excludes = Lists.newArrayList();
+    private ImmutableList<Exclude> consumeExcludes(JsonReader reader) throws IOException {
+        ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             reader.beginObject();
@@ -249,10 +249,10 @@ public class ModuleMetadataParser {
             }
             reader.endObject();
             Exclude exclude = excludeRuleConverter.createExcludeRule(group, module);
-            excludes.add(exclude);
+            builder.add(exclude);
         }
         reader.endArray();
-        return excludes;
+        return builder.build();
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
@@ -320,9 +320,9 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
-        final List<Exclude> excludes;
+        final ImmutableList<Exclude> excludes;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;

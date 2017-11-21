@@ -410,13 +410,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         private final String group;
         private final String module;
         private final VersionConstraint versionConstraint;
-        private final List<Exclude> excludes;
+        private final ImmutableList<Exclude> excludes;
 
         DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
-            this.excludes = excludes;
+            this.excludes = ImmutableList.copyOf(excludes);
         }
 
         @Override
@@ -435,7 +435,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
 
         @Override
-        public List<Exclude> getExcludes() {
+        public ImmutableList<Exclude> getExcludes() {
             return excludes;
         }
     }
