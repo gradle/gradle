@@ -172,7 +172,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert the provided notation to an object of type Dependency: 100."))
+        failure.assertThatCause(Matchers.startsWith("Cannot convert the provided notation to an object of type DirectDependency: 100."))
     }
 
     def "fails gracefully for single null notation"() {
@@ -190,7 +190,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type DirectDependency"))
     }
 
     def "fails gracefully for null notation in list"() {
@@ -208,7 +208,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type DirectDependency"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3271")

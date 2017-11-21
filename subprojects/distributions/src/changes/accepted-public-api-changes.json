@@ -9,6 +9,14 @@
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setTestNameIncludePatterns(java.util.List)",
             "acceptation": "Method was pulled up from Test class"
+        },
+        {
+            "type": "org.gradle.api.artifacts.DirectDependency",
+            "member": "Class org.gradle.api.artifacts.DirectDependency",
+            "acceptation": "This new interface, which does not contain any additional methods at this point, is inserted into an existing stable interface hierarchy.",
+            "changes": [
+                "Interface has been added"
+            ]
         }
     ]
 }

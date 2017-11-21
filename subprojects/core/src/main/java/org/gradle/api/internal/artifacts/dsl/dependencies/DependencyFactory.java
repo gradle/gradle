@@ -34,7 +34,7 @@ public interface DependencyFactory {
         }
     }
 
-    Dependency createDependency(Object dependencyNotation);
+    Dependency createDependency(Object dependencyNotation); //we should consider to change the return type to DirectDependency, which requires adjustment in Kotlin DSL
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }

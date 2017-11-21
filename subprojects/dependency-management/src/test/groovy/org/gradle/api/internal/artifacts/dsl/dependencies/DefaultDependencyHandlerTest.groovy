@@ -20,11 +20,11 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.DirectDependency
 import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.attributes.AttributesSchema
@@ -57,7 +57,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "creates and adds a dependency from some notation"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation")
@@ -88,7 +88,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "creates a dependency from some notation"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.create("someNotation")
@@ -121,7 +121,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "can use dynamic method to add dependency"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.someConf("someNotation")
@@ -151,8 +151,8 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "can use dynamic method to add multiple dependencies"() {
-        Dependency dependency1 = Mock()
-        Dependency dependency2 = Mock()
+        DirectDependency dependency1 = Mock()
+        DirectDependency dependency2 = Mock()
 
         when:
         def result = dependencyHandler.someConf("someNotation", "someOther")
@@ -168,8 +168,8 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "can use dynamic method to add multiple dependencies from nested lists"() {
-        Dependency dependency1 = Mock()
-        Dependency dependency2 = Mock()
+        DirectDependency dependency1 = Mock()
+        DirectDependency dependency2 = Mock()
 
         when:
         def result = dependencyHandler.someConf([["someNotation"], ["someOther"]])
@@ -273,7 +273,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "creates gradle api dependency"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.gradleApi()
@@ -286,7 +286,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "creates Gradle test-kit dependency"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.gradleTestKit()
@@ -299,7 +299,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "creates local groovy dependency"() {
-        Dependency dependency = Mock()
+        DirectDependency dependency = Mock()
 
         when:
         def result = dependencyHandler.localGroovy()
