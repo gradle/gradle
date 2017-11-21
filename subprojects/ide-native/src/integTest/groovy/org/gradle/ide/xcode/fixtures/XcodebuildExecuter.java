@@ -37,6 +37,8 @@ import java.util.Properties;
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
+    private TestFile projectDir;
+
     public enum XcodeAction {
         BUILD,
         CLEAN,
@@ -61,7 +63,7 @@ public class XcodebuildExecuter {
     }
 
     public XcodebuildExecuter withProject(XcodeProjectPackage xcodeProject) {
-        TestFile projectDir = new TestFile(xcodeProject.getDir());
+        projectDir = new TestFile(xcodeProject.getDir());
         projectDir.assertIsDir();
         return addArguments("-project", projectDir.getAbsolutePath());
     }
@@ -98,7 +100,7 @@ public class XcodebuildExecuter {
         withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
         System.out.println(result.getOut());
-        return new OutputScrapingExecutionResult(result.getOut(), result.getError());
+        return new OutputScrapingExecutionResult(result.getOut(), result.getError(), projectDir);
     }
 
     public ExecutionFailure fails() {
@@ -112,7 +114,7 @@ public class XcodebuildExecuter {
         // the error output only if xcodebuild failed most likely due to Gradle.
         System.out.println(result.getOut());
         System.out.println(result.getError());
-        return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
+        return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError(), projectDir);
     }
 
     private List<String> buildEnvironment() {

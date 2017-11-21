@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -89,77 +90,77 @@ public class SingleMessageLogger {
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s plugin %s. Please use the %s plugin instead.",
-                    pluginName, getDeprecationMessage(), replacement));
+                "The %s plugin %s. Please use the %s plugin instead.",
+                pluginName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s plugin %s. Consider using the %s plugin instead.",
-                    pluginName, getDeprecationMessage(), replacement));
+                "The %s plugin %s. Consider using the %s plugin instead.",
+                pluginName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s %s. Consider using %s instead.",
-                    toolName, getDeprecationMessage(), replacement));
+                "The %s %s. Consider using %s instead.",
+                toolName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s task %s. Please use the %s task instead.",
-                    taskName, getDeprecationMessage(), replacement));
+                "The %s task %s. Please use the %s task instead.",
+                taskName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s task type %s. Please use the %s instead.",
-                    taskName, getDeprecationMessage(), replacement));
+                "The %s task type %s. Please use the %s instead.",
+                taskName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s method %s. Please use the %s method instead.",
-                    methodName, getDeprecationMessage(), replacement));
+                "The %s method %s. Please use the %s method instead.",
+                methodName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s property %s. Please use the %s property instead.",
-                    propertyName, getDeprecationMessage(), replacement));
+                "The %s property %s. Please use the %s property instead.",
+                propertyName, getDeprecationMessage(), replacement));
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s method %s.",
-                    methodName, getDeprecationMessage()));
+                methodName, getDeprecationMessage()));
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s method %s. %s",
-                    methodName, getDeprecationMessage(), advice));
+                methodName, getDeprecationMessage(), advice));
         }
     }
 
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s property %s. %s",
-                    propertyName, getDeprecationMessage(), advice));
+                propertyName, getDeprecationMessage(), advice));
         }
     }
 
@@ -173,8 +174,8 @@ public class SingleMessageLogger {
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s named parameter %s. Please use the %s named parameter instead.",
-                    parameterName, getDeprecationMessage(), replacement));
+                "The %s named parameter %s. Please use the %s named parameter instead.",
+                parameterName, getDeprecationMessage(), replacement));
         }
     }
 
@@ -257,6 +258,15 @@ public class SingleMessageLogger {
                 message = message + "\n" + additionalWarning;
             }
             LOGGER.warn(message);
+        }
+    }
+
+    public static void renderDeprecationReport(File file) {
+        LOCK.lock();
+        try {
+            handler.renderDeprecationReport(file);
+        } finally {
+            LOCK.unlock();
         }
     }
 }

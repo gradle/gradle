@@ -39,18 +39,19 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith('nag')
+        getFirstMessage().startsWith('nag')
 
         when:
         SingleMessageLogger.reset()
+
+        then:
+        SingleMessageLogger.handler.deprecationUsages.isEmpty()
+
+        when:
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        events.size() == 2
-        events[0].message.startsWith('nag')
-        events[1].message.startsWith('nag')
+        getFirstMessage().startsWith('nag')
     }
 
     def "does not log warning while disabled with factory"() {
@@ -71,7 +72,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        outputEventListener.events.empty
+        SingleMessageLogger.handler.deprecationUsages.isEmpty()
     }
 
     def "does not log warning while disabled with action"() {
@@ -86,7 +87,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        outputEventListener.events.empty
+        SingleMessageLogger.handler.deprecationUsages.isEmpty()
     }
 
     def "warnings are disabled for the current thread only"() {
@@ -107,9 +108,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         }
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith('nag')
+        getFirstMessage().startsWith('nag')
     }
 
     def "deprecation message has next major version"() {
@@ -120,8 +119,12 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
 
         then:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message.startsWith("foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.")
+        getFirstMessage().startsWith("foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.")
+    }
+
+    static getFirstMessage() {
+        def messages = SingleMessageLogger.handler.deprecationUsages.keySet()
+        assert messages.size() == 1
+        return messages.first()
     }
 }

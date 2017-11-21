@@ -15,13 +15,15 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import java.io.File;
+
 public abstract class OutputScrapingGradleHandle implements GradleHandle {
 
-    protected ExecutionResult toExecutionResult(String output, String error) {
-        return new OutputScrapingExecutionResult(output, error);
+    protected ExecutionResult toExecutionResult(String output, String error, File projectDir) {
+        return new OutputScrapingExecutionResult(output, error, projectDir);
     }
 
-    protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new OutputScrapingExecutionFailure(output, error);
+    protected ExecutionResult toExecutionFailure(String output, String error, File projectDir) {
+        return new OutputScrapingExecutionFailure(output, error, projectDir);
     }
 }

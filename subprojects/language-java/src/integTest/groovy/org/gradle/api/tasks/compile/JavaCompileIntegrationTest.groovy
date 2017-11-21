@@ -522,7 +522,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         run 'compileJava'
 
         then:
@@ -547,7 +546,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         run 'compileJava'
 
         then:
@@ -578,7 +576,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         run 'compileJava'
 
         then:
@@ -600,7 +597,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         run 'compileJava'
 
         then:
@@ -859,7 +855,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Main.java') << "public class Main {}"
 
         expect:
-        executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         succeeds "compileJava"
         output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."

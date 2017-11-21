@@ -159,7 +159,7 @@ class UserGuideSamplesRunner extends Runner {
             }
 
             if (run.allowDeprecation) {
-                executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+                executer.expectDeprecationWarning()
             }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()

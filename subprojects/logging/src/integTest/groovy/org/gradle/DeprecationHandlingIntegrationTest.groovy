@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
@@ -61,43 +62,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    def 'DeprecatedPlugin and DeprecatedTask - without full stacktrace.'() {
-        given:
-        buildFile << """
-            apply plugin: DeprecatedPlugin // line 2
-
-            DeprecatedTask.someFeature() // line 4
-            DeprecatedTask.someFeature()
-
-            task broken(type: DeprecatedTask) {
-                doLast {
-                    otherFeature() // line 9
-                }
-            }
-        """.stripIndent()
-
-        when:
-        executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarnings(4)
-        run('deprecated', 'broken')
-
-        then:
-        output.contains('build.gradle:2)')
-        output.contains('build.gradle:4)')
-        output.contains('build.gradle:9)')
-        !output.contains('(Native Method)')
-
-        and:
-        output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
-        output.count('The someFeature() method has been deprecated') == 1
-        output.count('The otherFeature() method has been deprecated') == 1
-        output.count('The deprecated task has been deprecated') == 1
-
-        and:
-        output.count('\tat') == 3
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 3
-    }
-
     def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
         given:
         buildFile << """
@@ -115,7 +79,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarnings(4)
-        run('deprecated', 'broken')
+        DeprecationReport output = run('deprecated', 'broken').deprecationReport
 
         then:
         output.contains('build.gradle:2)')
@@ -130,10 +94,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.count('\tat') > 3
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 
-    def 'DeprecatedPlugin from init script - without full stacktrace.'() {
+    def 'DeprecatedPlugin from init script - with full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
@@ -142,44 +105,16 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         executer.usingInitScript(initScript)
-        run '-s'
+        DeprecationReport output = run('-s').deprecationReport
 
         then:
         output.contains('init.gradle:3)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
-        output.count('\tat') == 1
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
-    }
-
-    def 'DeprecatedPlugin from applied script - without full stacktrace.'() {
-        given:
-        file("project.gradle") << """
-            apply plugin:  DeprecatedPlugin // line 2
-        """.stripIndent()
-
-        buildFile << """
-            allprojects {
-                apply from: 'project.gradle' // line 2
-            }
-        """.stripIndent()
-
-        when:
-        executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
-        run()
-
-        then:
-        output.contains('project.gradle:2)')
-
-        output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
-
-        output.count('\tat') == 1
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
+        output.count('\tat') > 1
     }
 
     def 'DeprecatedPlugin from applied script - with full stacktrace.'() {
@@ -196,7 +131,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarning()
-        run()
+        DeprecationReport output = run().deprecationReport
 
         then:
         output.contains('project.gradle:2)')
@@ -205,6 +140,5 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') > 1
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 }

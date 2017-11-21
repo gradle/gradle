@@ -216,7 +216,7 @@ $lastOutput
     }
 
     private OutputScrapingExecutionResult createExecutionResult(String out, String err) {
-        out.contains("BUILD FAILED") || err.contains("FAILURE: Build failed with an exception.") ? new OutputScrapingExecutionFailure(out, err) : new OutputScrapingExecutionResult(out, err)
+        out.contains("BUILD FAILED") || err.contains("FAILURE: Build failed with an exception.") ? new OutputScrapingExecutionFailure(out, err, testDirectory) : new OutputScrapingExecutionResult(out, err, testDirectory)
     }
 
     void parseResults(String out, String err) {

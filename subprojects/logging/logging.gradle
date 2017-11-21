@@ -18,6 +18,7 @@ dependencies {
     implementation libraries.jul_to_slf4j
     implementation libraries.ant
     implementation libraries.commons_lang
+    implementation libraries.commons_io
     implementation libraries.guava
     implementation libraries.jansi
     implementation libraries.jcip

@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import spock.lang.Unroll
 
@@ -34,7 +35,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds('help')
-        outputContains(message)
+        result.deprecationReport.contains(message)
 
         where:
         issue                                          | deprecatedArgs        | message
@@ -50,11 +51,10 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.requireIsolatedDaemons()
 
         when:
-        def stdOut = new ByteArrayOutputStream()
-        toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs).forTasks('help').setStandardOutput(stdOut).run() }
+        toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs).forTasks('help').run() }
 
         then:
-        stdOut.toString().contains(message)
+        new DeprecationReport(temporaryFolder.testDirectory).contains(message)
 
         where:
         issue                                          | deprecatedArgs        | message

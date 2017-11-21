@@ -35,7 +35,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -138,7 +137,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
-    private File projectDir;
+    protected File projectDir;
     private File settingsFile;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
@@ -173,7 +172,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
-    private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
 
     private TestFile tmpDir;
@@ -275,6 +273,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return workingDir == null ? getTestDirectoryProvider().getTestDirectory() : workingDir;
     }
 
+    public File getProjectDir() {
+        return projectDir == null ? getWorkingDir() : projectDir;
+    }
+
     @Override
     public GradleExecuter copyTo(GradleExecuter executer) {
         executer.withGradleUserHomeDir(gradleUserHomeDir);
@@ -329,9 +331,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (noExplicitNativeServicesDir) {
             executer.withNoExplicitNativeServicesDir();
-        }
-        if (!fullDeprecationStackTrace) {
-            executer.withFullDeprecationStackTraceDisabled();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -888,7 +887,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
         if (useOwnUserHomeServices || (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()))) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
@@ -989,9 +987,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return null;
     }
 
-    private boolean isJava7Home(String path){
-        for(String jdk7Path: JDK7_PATHS){
-            if(path.contains(jdk7Path)){
+    private boolean isJava7Home(String path) {
+        for (String jdk7Path : JDK7_PATHS) {
+            if (path.contains(jdk7Path)) {
                 return true;
             }
         }
@@ -1099,8 +1097,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
                 validate(error, "Standard error");
 
-                if (expectedDeprecationWarnings > 0) {
-                    throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedDeprecationWarnings));
+                validateDeprecationWarnings(executionResult);
+            }
+
+            private void validateDeprecationWarnings(ExecutionResult result) {
+                if (checkDeprecations && expectedDeprecationWarnings > 0) {
+                    result.getDeprecationReport().validate(expectedDeprecationWarnings);
                 }
             }
 
@@ -1151,7 +1153,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
-                    } else if (isDeprecationMessageInHelpDescription(line)) {
+                    } else if (isDeprecationMessageInHelpDescription(line) || isDeprecationsPrompt(line)) {
                         i++;
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (checkDeprecations && expectedDeprecationWarnings <= 0) {
@@ -1160,9 +1162,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         expectedDeprecationWarnings--;
                         // skip over stack trace
                         i++;
-                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                            i++;
-                        }
                     } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
@@ -1170,6 +1169,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                     }
                 }
+            }
+
+            private boolean isDeprecationsPrompt(String line) {
+                return line.startsWith("Some deprecated APIs are used in this build");
             }
 
             private boolean isDeprecationMessageInHelpDescription(String s) {
@@ -1271,12 +1274,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withNoExplicitNativeServicesDir() {
         noExplicitNativeServicesDir = true;
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withFullDeprecationStackTraceDisabled() {
-        fullDeprecationStackTrace = false;
         return this;
     }
 

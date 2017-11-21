@@ -1,0 +1,24 @@
+<!DOCTYPE html><html>
+    <head>
+        <meta charset='utf-8'/>
+        <meta http-equiv='content-type' content='text/html; charset=utf-8'/>
+        <meta http-equiv='X-UA-Compatible' content='IE=edge'/>
+        <meta name='viewport' content='width=device-width, initial-scale=1'/>
+        <title>Deprecation usage report</title>
+        <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class='navbar navbar-inverse' role='navigation'>
+            <div class='container'>
+                <div class='navbar-header'>
+                    <a class='navbar-brand' href='#'>Deprecation usage report</a>
+                </div>
+            </div>
+        </div>
+        <div class='container'>
+            ${warnings}
+        </div>
+    </body>
+</html>

@@ -1,0 +1,16 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            ${message}
+            <br>
+            <button type="button" data-toggle="collapse" data-parent="#accordion" href="#collapse${index}" class="btn btn-primary">Show details</button>
+        </h4>
+    </div>
+    <div id="collapse${index}" class="panel-collapse collapse">
+        <div class="panel-body">
+            <pre>
+${stacktrace}
+            </pre>
+        </div>
+    </div>
+</div>

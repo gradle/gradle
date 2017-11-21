@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.util.SingleMessageLogger;
 
+import java.io.File;
 import java.io.PipedOutputStream;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,26 +32,26 @@ import static org.junit.Assert.assertThat;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
-        super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement);
+    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement, File projectDir) {
+        super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement, projectDir);
     }
 
     @Override
-    protected ExecutionResult toExecutionResult(String output, String error) {
-        return new ParallelExecutionResult(output, error);
+    protected ExecutionResult toExecutionResult(String output, String error, File projectDir) {
+        return new ParallelExecutionResult(output, error, projectDir);
     }
 
     @Override
-    protected ExecutionResult toExecutionFailure(String output, String error) {
-        return new ParallelExecutionResult(output, error);
+    protected ExecutionResult toExecutionFailure(String output, String error, File projectDir) {
+        return new ParallelExecutionResult(output, error, projectDir);
     }
 
     /**
      * Need a different output comparator for parallel execution.
      */
     private static class ParallelExecutionResult extends OutputScrapingExecutionFailure {
-        public ParallelExecutionResult(String output, String error) {
-            super(output, error);
+        public ParallelExecutionResult(String output, String error, File projectDir) {
+            super(output, error, projectDir);
         }
 
         @Override
