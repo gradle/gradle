@@ -54,9 +54,7 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
         public List<String> transform(SymbolExtractorSpec spec) {
             List<String> args = Lists.newArrayList(SymbolExtractorOsConfig.getArguments());
             args.addAll(spec.getArgs());
-            args.add("-o");
-            args.add(spec.getSymbolFile().getAbsolutePath());
-            args.add(spec.getBinaryFile().getAbsolutePath());
+            args.addAll(SymbolExtractorOsConfig.getInputOutputFileArguments(spec.getBinaryFile().getAbsolutePath(), spec.getSymbolFile().getAbsolutePath()));
             return args;
         }
     }

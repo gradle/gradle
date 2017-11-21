@@ -40,6 +40,14 @@ public class SymbolExtractorOsConfig {
         }
     }
 
+    public static List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
+        if (OS.isMacOsX()) {
+            return Lists.newArrayList("-o", outputFilePath, inputFilePath);
+        } else {
+            return Lists.newArrayList(inputFilePath, outputFilePath);
+        }
+    }
+
     public static String getExtension() {
         if (OS.isMacOsX()) {
             return ".dwarf";
