@@ -57,7 +57,6 @@ public class ModuleExclusions {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    private final Map<ImmutableList<Exclude>, Map<ImmutableSet<String>, ModuleExclusion>> cachedExcludes = Maps.newConcurrentMap();
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
     private final Map<ImmutableList<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
     private final Map<ImmutableSet<AbstractModuleExclusion>, IntersectionExclusion> intersectionCache = Maps.newConcurrentMap();
@@ -70,38 +69,6 @@ public class ModuleExclusions {
 
     public ModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-    }
-
-    public ModuleExclusion excludeAny(ImmutableList<Exclude> excludes, ImmutableSet<String> hierarchy) {
-        Map<ImmutableSet<String>, ModuleExclusion> exclusionMap = cachedExcludes.get(excludes);
-        if (exclusionMap == null) {
-            exclusionMap = Maps.newConcurrentMap();
-            cachedExcludes.put(excludes, exclusionMap);
-        }
-        ModuleExclusion moduleExclusion = exclusionMap.get(hierarchy);
-        if (moduleExclusion == null) {
-            ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
-            for (Exclude exclude : excludes) {
-                for (String config : exclude.getConfigurations()) {
-                    if (hierarchy.contains(config)) {
-                        filtered.add(exclude);
-                        break;
-                    }
-                }
-            }
-            moduleExclusion = excludeAny(filtered.build());
-            exclusionMap.put(hierarchy, moduleExclusion);
-        }
-        return moduleExclusion;
-    }
-
-    private IntersectionExclusion asIntersection(ImmutableSet<AbstractModuleExclusion> excludes) {
-        IntersectionExclusion cached = intersectionCache.get(excludes);
-        if (cached == null) {
-            cached = new IntersectionExclusion(new ImmutableModuleExclusionSet(excludes));
-            intersectionCache.put(excludes, cached);
-        }
-        return cached;
     }
 
     /**
@@ -355,6 +322,15 @@ public class ModuleExclusions {
         return exclusion;
     }
 
+    private IntersectionExclusion asIntersection(ImmutableSet<AbstractModuleExclusion> excludes) {
+        IntersectionExclusion cached = intersectionCache.get(excludes);
+        if (cached == null) {
+            cached = new IntersectionExclusion(new ImmutableModuleExclusionSet(excludes));
+            intersectionCache.put(excludes, cached);
+        }
+        return cached;
+    }
+
     // Add exclusions to the list that will exclude modules/artifacts that are excluded by _both_ of the candidate rules.
     private void mergeExcludeRules(AbstractModuleExclusion spec1, AbstractModuleExclusion spec2, Set<AbstractModuleExclusion> merged) {
         if (spec1 == spec2) {
@@ -460,11 +436,7 @@ public class ModuleExclusions {
             }
 
             MergeOperation that = (MergeOperation) o;
-
-            if (!Arrays.equals(one, that.one)) {
-                return false;
-            }
-            return Arrays.equals(two, that.two);
+            return Arrays.equals(one, that.one) && Arrays.equals(two, that.two);
         }
 
         @Override
