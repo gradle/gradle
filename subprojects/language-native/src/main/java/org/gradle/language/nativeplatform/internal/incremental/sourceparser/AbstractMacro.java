@@ -34,6 +34,7 @@ public abstract class AbstractMacro extends AbstractExpression implements Macro 
     public String getAsSourceText() {
         return "#define " + name + " " + super.getAsSourceText();
     }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

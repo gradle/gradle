@@ -87,7 +87,7 @@ class RegexBackedCSourceParserTest extends Specification {
 
     MacroFunction macroFunction(String name, int parameters = 0, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
-        return new DefaultMacroFunction(name, parameters, expression.type, expression.value)
+        return new ReturnFixedValueMacroFunction(name, parameters, expression.type, expression.value)
     }
 
     Macro unresolvedMacro(String name) {
@@ -208,7 +208,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new MacroFunctionInclude(macro, false, ImmutableList.copyOf(parameters.collect{ expression(it) }))]
+        includes == [new MacroFunctionInclude(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
 
         and:
         noImports()
@@ -714,7 +714,7 @@ st3"
         macroFunctions.empty
     }
 
-    def "finds function-like macro directive with no parameters whose value is a string constant"() {
+    def "finds function-like macro directive with no parameters whose body is a string constant"() {
         when:
         sourceFile << """
 #define A() "abc"
@@ -725,18 +725,43 @@ st3"
         macroFunctions == [macroFunction('A', '"abc"')]
     }
 
-    def "finds function-like macro directive with no parameters whose value is not a string constant or macro reference"() {
+    def "finds function-like macro directive with no parameters whose body is a system path"() {
         when:
         sourceFile << """
-#define A() @ 
+#define A() <abc.h>
 """
 
         then:
         macros.empty
-        macroFunctions == [unresolvedMacroFunction('A')]
+        macroFunctions == [macroFunction('A', '<abc.h>')]
     }
 
-    def "finds function-like macro directive with no parameters whose value is empty"() {
+    def "finds function-like macro directive with no parameters whose body is a macro"() {
+        when:
+        sourceFile << """
+#define A() ABC_H
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 'ABC_H')]
+    }
+
+    def "finds function-like macro directive with no parameters whose body is some other value"() {
+        when:
+        sourceFile << """
+#define A() ${definition}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction('A', 0)]
+
+        where:
+        definition << ['@', 'A(abc)', '"a12" 12 + 4']
+    }
+
+    def "finds function-like macro directive with no parameters whose body is empty"() {
         when:
         sourceFile << """
 #define A()
@@ -747,7 +772,7 @@ st3"
         macroFunctions == [unresolvedMacroFunction('A')]
     }
 
-    def "finds function-like macro directive with multiple parameters whose value is a string constant"() {
+    def "finds function-like macro directive with multiple parameters whose body is a string constant"() {
         when:
         sourceFile << """
 #define ${definition} "abc"
@@ -764,7 +789,52 @@ st3"
         '_a$(X,Y,Z)' | '_a$' | 3
     }
 
-    def "finds function-like macro directive with multiple parameters whose value is empty"() {
+    def "finds function-like macro directive with multiple parameters whose body is a parameter"() {
+        when:
+        sourceFile << """
+#define ${definition} ${body}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [new ReturnParameterMacroFunction(macro, parameters, paramToReturn)]
+
+        where:
+        definition         | body  | macro | parameters | paramToReturn
+        'A(X)'             | 'X'   | 'A'   | 1          | 0
+        'ABC(Y, X)'        | 'X'   | 'ABC' | 2          | 1
+        '_a$(a1, b2, _a$)' | '_a$' | '_a$' | 3          | 2
+    }
+
+    def "finds function-like macro directive with multiple parameters whose body is a macro"() {
+        when:
+        sourceFile << """
+#define A(X, Y) ${body}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 2, body)]
+
+        where:
+        body << ['_ABC_', '_a$', 'A1']
+    }
+
+    def "finds function-like macro directive with multiple parameters whose body is some other value"() {
+        when:
+        sourceFile << """
+#define A(X, Y) ${body}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [unresolvedMacroFunction('A', 2)]
+
+        where:
+        body << ['@', 'Defined(a.h)', 'A(B(C, D()))', '"abc" 12 + 5']
+    }
+
+    def "finds function-like macro directive with multiple parameters whose body is empty"() {
         when:
         sourceFile << """
 #define ${definition}

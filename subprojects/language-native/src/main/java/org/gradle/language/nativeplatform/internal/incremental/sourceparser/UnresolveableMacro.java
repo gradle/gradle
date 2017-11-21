@@ -18,6 +18,9 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+/**
+ * A macro function whose body cannot be resolved.
+ */
 public class UnresolveableMacro extends AbstractMacro {
     public UnresolveableMacro(String name) {
         super(name);

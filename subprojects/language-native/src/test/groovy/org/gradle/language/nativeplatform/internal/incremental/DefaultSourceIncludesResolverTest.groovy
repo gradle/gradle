@@ -19,7 +19,7 @@ import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacroFunction
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ReturnFixedValueMacroFunction
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -330,7 +330,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def macroFunction(String name, int parameters = 0, String value) {
         def include = DefaultInclude.parse(value, false)
-        new DefaultMacroFunction(name, parameters, include.type, include.value)
+        new ReturnFixedValueMacroFunction(name, parameters, include.type, include.value)
     }
 
     def unresolveableMacro(String name) {

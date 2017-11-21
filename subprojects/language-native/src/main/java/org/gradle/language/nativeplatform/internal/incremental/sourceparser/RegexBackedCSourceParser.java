@@ -123,11 +123,11 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     private void consumeMacroFunctionDirectiveBody(CharSequence line, int startArgs, String macroName, List<MacroFunction> macroFunctions) {
         int pos = consumeWhitespace(line, startArgs);
-        int parameters = 0;
+        List<String> paramNames = new ArrayList<String>();
         int next = consumeIdentifier(line, pos);
         if (next != pos) {
             while (true) {
-                parameters++;
+                paramNames.add(line.subSequence(pos, next).toString());
                 pos = consumeWhitespace(line, next);
                 if (pos == line.length()) {
                     // Unexpected end of line
@@ -156,12 +156,27 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
         int endArgs = pos + 1;
         Expression expression = parseExpression(line, endArgs, line.length());
-        if (expression.getType() == IncludeType.OTHER) {
-            // Discard the body when the expression is not resolvable
-            macroFunctions.add(new UnresolveableMacroFunction(macroName, parameters));
-        } else {
-            macroFunctions.add(new DefaultMacroFunction(macroName, parameters, expression.getType(), expression.getValue()));
+        if (expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.SYSTEM) {
+            // Return a fixed value
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue()));
+            return;
         }
+        if (expression.getType() == IncludeType.MACRO) {
+            for (int i = 0; i < paramNames.size(); i++) {
+                String name = paramNames.get(i);
+                if (name.equals(expression.getValue())) {
+                    // References a parameter, return it
+                    macroFunctions.add(new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
+                    return;
+                }
+            }
+            // References some fixed value, return it
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue()));
+            return;
+        }
+
+        // Not resolvable. Discard the body when the expression is not resolvable
+        macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
     }
 
     static Expression parseExpression(String value) {

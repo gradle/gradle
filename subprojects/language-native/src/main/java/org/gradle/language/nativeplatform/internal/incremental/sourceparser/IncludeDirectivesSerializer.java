@@ -136,8 +136,9 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     }
 
     private static class MacroFunctionSerializer implements Serializer<MacroFunction> {
-        private static final byte RESOLVED = (byte) 1;
-        private static final byte UNRESOLVED = (byte) 2;
+        private static final byte FIXED_VALUE = (byte) 1;
+        private static final byte RETURN_PARAM = (byte) 2;
+        private static final byte UNRESOLVED = (byte) 3;
         private final Serializer<IncludeType> enumSerializer;
 
         MacroFunctionSerializer(Serializer<IncludeType> enumSerializer) {
@@ -147,12 +148,17 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         @Override
         public MacroFunction read(Decoder decoder) throws Exception {
             byte tag = decoder.readByte();
-            if (tag == RESOLVED) {
+            if (tag == FIXED_VALUE) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacroFunction(name, parameters, type, value);
+                return new ReturnFixedValueMacroFunction(name, parameters, type, value);
+            } else if (tag == RETURN_PARAM) {
+                String name = decoder.readString();
+                int parameters = decoder.readSmallInt();
+                int parameterToReturn = decoder.readSmallInt();
+                return new ReturnParameterMacroFunction(name, parameters, parameterToReturn);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
@@ -164,12 +170,19 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
         @Override
         public void write(Encoder encoder, MacroFunction value) throws Exception {
-            if (value instanceof DefaultMacroFunction) {
-                encoder.writeByte(RESOLVED);
+            if (value instanceof ReturnFixedValueMacroFunction) {
+                ReturnFixedValueMacroFunction fixedValueFunction = (ReturnFixedValueMacroFunction) value;
+                encoder.writeByte(FIXED_VALUE);
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
-                enumSerializer.write(encoder, value.getType());
-                encoder.writeString(value.getValue());
+                enumSerializer.write(encoder, fixedValueFunction.getType());
+                encoder.writeString(fixedValueFunction.getValue());
+            } else if (value instanceof ReturnParameterMacroFunction) {
+                ReturnParameterMacroFunction returnParameterFunction = (ReturnParameterMacroFunction) value;
+                encoder.writeByte(RETURN_PARAM);
+                encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
+                encoder.writeSmallInt(returnParameterFunction.getParameterToReturn());
             } else if (value instanceof UnresolveableMacroFunction) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());

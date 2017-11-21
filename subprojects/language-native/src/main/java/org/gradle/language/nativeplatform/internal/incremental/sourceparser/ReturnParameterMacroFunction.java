@@ -17,41 +17,41 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.Expression;
-import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultExpression extends AbstractExpression implements Expression {
-    private final String value;
-    private final IncludeType type;
+import java.util.List;
 
-    DefaultExpression(String value, IncludeType type) {
-        this.value = value;
-        this.type = type;
+/**
+ * A macro function that returns the value of one of its parameters.
+ */
+public class ReturnParameterMacroFunction extends AbstractMacroFunction {
+    private final int parameterToReturn;
+
+    public ReturnParameterMacroFunction(String name, int parameters, int parameterToReturn) {
+        super(name, parameters);
+        this.parameterToReturn = parameterToReturn;
+    }
+
+    public int getParameterToReturn() {
+        return parameterToReturn;
     }
 
     @Override
-    public String getValue() {
-        return value;
-    }
-
-    @Override
-    public IncludeType getType() {
-        return type;
+    public Expression evaluate(List<Expression> arguments) {
+        return arguments.get(parameterToReturn);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
+        if (!super.equals(obj)) {
             return false;
         }
-        DefaultExpression other = (DefaultExpression) obj;
-        return value.equals(other.value) && type.equals(other.type);
+
+        ReturnParameterMacroFunction other = (ReturnParameterMacroFunction) obj;
+        return parameterToReturn == other.parameterToReturn;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode() ^ type.hashCode();
+        return super.hashCode() ^ parameterToReturn * 31;
     }
 }

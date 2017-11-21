@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Joiner;
 import org.gradle.language.nativeplatform.internal.Expression;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,22 +31,29 @@ public abstract class AbstractExpression implements Expression {
 
     @Override
     public String getAsSourceText() {
-        switch (getType()) {
-            case QUOTED:
-                return '"' + getValue() + '"';
-            case SYSTEM:
-                return '<' + getValue() + '>';
-            case MACRO:
-                return getValue();
-            case MACRO_FUNCTION:
-                return getValue() + "(" + Joiner.on(", ").join(getArguments()) + ")";
-            default:
-                return getValue() != null ? getValue() : "??";
-        }
+        return format(this);
     }
 
     @Override
     public List<Expression> getArguments() {
         return Collections.emptyList();
+    }
+
+    static String format(Expression expression) {
+        IncludeType type = expression.getType();
+        String value = expression.getValue();
+        List<Expression> arguments = expression.getArguments();
+        switch (type) {
+            case QUOTED:
+                return '"' + value + '"';
+            case SYSTEM:
+                return '<' + value + '>';
+            case MACRO:
+                return value;
+            case MACRO_FUNCTION:
+                return value + "(" + Joiner.on(", ").join(arguments) + ")";
+            default:
+                return value != null ? value : "??";
+        }
     }
 }

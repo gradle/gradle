@@ -80,9 +80,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
                 // Currently only handle functions with no parameters
-                if (expression.getValue().equals(macro.getName()) && macro.getParameterCount() == 0 && expression.getArguments().isEmpty()) {
+                if (expression.getValue().equals(macro.getName()) && macro.getParameterCount() == expression.getArguments().size()) {
                     found = true;
-                    resolveExpression(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
+                    Expression result = macro.evaluate(expression.getArguments());
+                    resolveExpression(sourceFile, include, visibleIncludeDirectives, result, resolvedSourceIncludes, includePaths);
                 }
             }
         }

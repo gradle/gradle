@@ -16,16 +16,39 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.base.Objects;
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultMacroFunction extends AbstractMacroFunction {
-    private final IncludeType includeType;
-    private final String value;
+import java.util.Collections;
+import java.util.List;
 
-    public DefaultMacroFunction(String name, int parameters, IncludeType includeType, String value) {
+/**
+ * A macro function that returns a fixed expression and ignores its parameters.
+ */
+public class ReturnFixedValueMacroFunction extends AbstractMacroFunction implements Expression {
+    private final String value;
+    private final IncludeType type;
+
+    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, String value) {
         super(name, parameters);
-        this.includeType = includeType;
         this.value = value;
+        this.type = type;
+    }
+
+    @Override
+    public String getAsSourceText() {
+        return AbstractExpression.format(this);
+    }
+
+    @Override
+    public List<Expression> getArguments() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public IncludeType getType() {
+        return type;
     }
 
     @Override
@@ -34,8 +57,8 @@ public class DefaultMacroFunction extends AbstractMacroFunction {
     }
 
     @Override
-    public IncludeType getType() {
-        return includeType;
+    public Expression evaluate(List<Expression> arguments) {
+        return this;
     }
 
     @Override
@@ -44,12 +67,12 @@ public class DefaultMacroFunction extends AbstractMacroFunction {
             return false;
         }
 
-        DefaultMacroFunction other = (DefaultMacroFunction) obj;
-        return value.equals(other.value);
+        ReturnFixedValueMacroFunction other = (ReturnFixedValueMacroFunction) obj;
+        return Objects.equal(value, other.value) && type == other.type;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode();
+        return super.hashCode() ^ value.hashCode() ^ type.hashCode();
     }
 }

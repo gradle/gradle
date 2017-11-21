@@ -16,10 +16,14 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import java.util.List;
+
 /**
  * A 'function-like' macro definition.
  */
-public interface MacroFunction extends Expression {
+public interface MacroFunction {
     String getName();
     int getParameterCount();
+
+    Expression evaluate(List<Expression> arguments);
 }

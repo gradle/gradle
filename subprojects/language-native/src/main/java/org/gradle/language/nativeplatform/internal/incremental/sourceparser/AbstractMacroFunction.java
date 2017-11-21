@@ -18,11 +18,11 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.MacroFunction;
 
-public abstract class AbstractMacroFunction extends AbstractExpression implements MacroFunction {
+public abstract class AbstractMacroFunction implements MacroFunction {
     private final String name;
     private final int parameters;
 
-    public AbstractMacroFunction(String name, int parameters) {
+    AbstractMacroFunction(String name, int parameters) {
         this.name = name;
         this.parameters = parameters;
     }
@@ -35,11 +35,6 @@ public abstract class AbstractMacroFunction extends AbstractExpression implement
     @Override
     public int getParameterCount() {
         return parameters;
-    }
-
-    @Override
-    public String getAsSourceText() {
-        return "#define " + name + "(" + (parameters > 0 ? "???" : "") + ") " + super.getAsSourceText();
     }
 
     @Override

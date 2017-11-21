@@ -295,6 +295,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define HELLO_HEADER MACRO_FUNCTION() // some indirection
             
             #define MACRO_FUNCTION( ) _HELLO_HEADER_1
+            #define FUNCTION_RETURNS_STRING(X) "hello.h"
+            #define FUNCTION_RETURNS_MACRO(X) HELLO_HEADER
+            #define FUNCTION_RETURNS_ARG(X) X
         """
 
         def headerFile = file("app/src/main/headers/hello.h") << """
@@ -342,7 +345,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        macro << ["MACRO_USES_STRING_CONSTANT", "MACRO_USES_SYSTEM_PATH", "MACRO_USES_ANOTHER_MACRO", "MACRO_FUNCTION()", "MACRO_USES_FUNCTION"]
+        macro << [
+            "MACRO_USES_STRING_CONSTANT",
+            "MACRO_USES_SYSTEM_PATH",
+            "MACRO_USES_ANOTHER_MACRO",
+            "MACRO_USES_FUNCTION",
+            "MACRO_FUNCTION()",
+            "FUNCTION_RETURNS_STRING(ignore)",
+            "FUNCTION_RETURNS_MACRO(ignore)",
+            "FUNCTION_RETURNS_ARG(HELLO_HEADER)"
+        ]
     }
 
     @Unroll
@@ -439,11 +451,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         '_HELLO(hello.h)'      | '''
             #define _HELLO(X) #X
             #include _HELLO(hello.h)
-        '''
-        '_HELLO(PATH, ignore)' | '''
-            #define _HELLO(X, Y) X
-            #define PATH "hello.h"
-            #include _HELLO(PATH, ignore)
         '''
         'MISSING'              | '''
             #ifdef MISSING
