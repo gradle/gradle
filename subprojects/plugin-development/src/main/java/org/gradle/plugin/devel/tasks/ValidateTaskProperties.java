@@ -33,11 +33,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -55,12 +53,10 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -323,45 +319,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     @OutputFile
     public RegularFileProperty getOutputFile() {
         return outputFile;
-    }
-
-    /**
-     * Sets the output file to store the report in.
-     *
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getOutputFile()} instead.
-     */
-    @Deprecated
-    public void setOutputFile(File outputFile) {
-        DeprecationLogger.nagUserOfReplacedMethod("ValidateTaskProperties.setOutputFile(File)", "getOutputFile()");
-        this.outputFile.set(outputFile);
-    }
-
-    /**
-     * Sets the output file to store the report in.
-     *
-     * @deprecated Use {@link #getOutputFile()} instead.
-     */
-    @Deprecated
-    public void setOutputFile(@Nullable final Object outputFile) {
-        DeprecationLogger.nagUserOfReplacedMethod("ValidateTaskProperties.setOutputFile(Object)", "getOutputFile()");
-        this.outputFile.set(new AbstractProvider<RegularFile>() {
-            @Override
-            public Class<RegularFile> getType() {
-                return RegularFile.class;
-            }
-
-            @Override
-            public RegularFile getOrNull() {
-                return outputFile == null ? null : new RegularFile() {
-                    @Override
-                    public File getAsFile() {
-                        return getProject().file(outputFile);
-                    }
-                };
-            }
-        });
     }
 
     /**
