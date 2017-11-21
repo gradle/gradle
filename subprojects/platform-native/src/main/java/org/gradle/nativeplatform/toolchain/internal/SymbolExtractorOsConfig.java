@@ -21,38 +21,48 @@ import org.gradle.internal.os.OperatingSystem;
 
 import java.util.List;
 
-public class SymbolExtractorOsConfig {
+public enum SymbolExtractorOsConfig {
+    OBJCOPY("objcopy", Lists.newArrayList("--only-keep-debug"), ".debug"),
+    DSYMUTIL("dsymutil", Lists.<String>newArrayList("-f"), ".dwarf") {
+        @Override
+        public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
+            return Lists.newArrayList("-o", outputFilePath, inputFilePath);
+        }
+    };
+
     private static final OperatingSystem OS = OperatingSystem.current();
 
-    public static String getExecutableName() {
+    private final String executable;
+    private final List<String> arguments;
+    private final String extension;
+
+    SymbolExtractorOsConfig(String executable, List<String> arguments, String extension) {
+        this.executable = executable;
+        this.arguments = arguments;
+        this.extension = extension;
+    }
+
+    public static SymbolExtractorOsConfig current() {
         if (OS.isMacOsX()) {
-            return "dsymutil";
+            return DSYMUTIL;
         } else {
-            return "objcopy";
+            return OBJCOPY;
         }
     }
 
-    public static List<String> getArguments() {
-        if (OS.isMacOsX()) {
-            return Lists.newArrayList("-f");
-        } else {
-            return Lists.newArrayList("--only-keep-debug");
-        }
+    public String getExecutableName() {
+        return executable;
     }
 
-    public static List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
-        if (OS.isMacOsX()) {
-            return Lists.newArrayList("-o", outputFilePath, inputFilePath);
-        } else {
-            return Lists.newArrayList(inputFilePath, outputFilePath);
-        }
+    public List<String> getArguments() {
+        return arguments;
     }
 
-    public static String getExtension() {
-        if (OS.isMacOsX()) {
-            return ".dwarf";
-        } else {
-            return ".debug";
-        }
+    public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
+        return Lists.newArrayList(inputFilePath, outputFilePath);
+    }
+
+    public String getExtension() {
+        return extension;
     }
 }

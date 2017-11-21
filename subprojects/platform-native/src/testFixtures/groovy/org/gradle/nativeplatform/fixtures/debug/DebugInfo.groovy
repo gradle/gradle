@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures.debug
 
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig
 import org.gradle.test.fixtures.file.TestFile
 
 
@@ -38,9 +37,5 @@ trait DebugInfo {
 
     void assertDoesNotHaveDebugSymbolsForSources(NativeBinaryFixture fixture, SourceElement sourceElement) {
         assert fixture.binaryInfo.doesNotHaveDebugSymbolsFor(sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name })
-    }
-
-    TestFile getSymbolFile(TestFile binary) {
-        return file(binary.absolutePath + SymbolExtractorOsConfig.extension)
     }
 }

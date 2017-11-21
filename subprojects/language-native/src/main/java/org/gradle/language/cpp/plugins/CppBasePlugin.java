@@ -137,7 +137,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.getExtension();
+                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.current().getExtension();
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -202,7 +202,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.getExtension();
+                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.current().getExtension();
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {

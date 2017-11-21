@@ -87,7 +87,7 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<?> createSymbolExtractor() {
         CommandLineToolConfigurationInternal symbolExtractor = (CommandLineToolConfigurationInternal) toolRegistry.getSymbolExtractor();
-        return new SymbolExtractor(buildOperationExecutor, commandLineTool(ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.getExecutableName()), context(symbolExtractor), workerLeaseService);
+        return new SymbolExtractor(buildOperationExecutor, commandLineTool(ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.current().getExecutableName()), context(symbolExtractor), workerLeaseService);
     }
 
     @Override

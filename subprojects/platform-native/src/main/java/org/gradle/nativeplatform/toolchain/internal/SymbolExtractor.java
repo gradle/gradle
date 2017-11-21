@@ -52,9 +52,10 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
     private static class SymbolExtractorArgsTransformer implements ArgsTransformer<SymbolExtractorSpec> {
         @Override
         public List<String> transform(SymbolExtractorSpec spec) {
-            List<String> args = Lists.newArrayList(SymbolExtractorOsConfig.getArguments());
+            SymbolExtractorOsConfig symbolExtractorOsConfig = SymbolExtractorOsConfig.current();
+            List<String> args = Lists.newArrayList(symbolExtractorOsConfig.getArguments());
             args.addAll(spec.getArgs());
-            args.addAll(SymbolExtractorOsConfig.getInputOutputFileArguments(spec.getBinaryFile().getAbsolutePath(), spec.getSymbolFile().getAbsolutePath()));
+            args.addAll(symbolExtractorOsConfig.getInputOutputFileArguments(spec.getBinaryFile().getAbsolutePath(), spec.getSymbolFile().getAbsolutePath()));
             return args;
         }
     }
