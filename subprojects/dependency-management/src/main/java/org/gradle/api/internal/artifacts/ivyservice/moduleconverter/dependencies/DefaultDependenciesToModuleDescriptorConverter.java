@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -54,6 +55,9 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                 metaData.addFiles(configuration.getName(), new DefaultLocalFileDependencyMetadata(fileDependency));
+            } else if (dependency instanceof DependencyConstraint) {
+                DependencyConstraint dependencyConstraint = (DependencyConstraint) dependency;
+                metaData.addDependency(dependencyDescriptorFactory.createDependencyConstraintDescriptor(metaData.getComponentId(), configuration.getName(), attributes, dependencyConstraint));
             } else {
                 throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
             }
