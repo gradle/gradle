@@ -140,7 +140,7 @@ public class BuildScriptBuilder {
                         if (!plugins.isEmpty()) {
                             writer.println();
                             writer.println("plugins {");
-                            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext(); ) {
+                            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
                                 Map.Entry<String, String> entry = it.next();
                                 writer.println("    // " + entry.getValue());
                                 switch (dsl) {
