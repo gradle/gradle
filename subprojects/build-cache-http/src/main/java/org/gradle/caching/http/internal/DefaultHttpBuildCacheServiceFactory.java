@@ -26,7 +26,6 @@ import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
-import org.gradle.internal.resource.transport.http.HttpSettings;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 
 import javax.inject.Inject;
@@ -69,10 +68,15 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
-        HttpSettings httpSettings = allowUntrustedServer
-            ? DefaultHttpSettings.allowUntrustedSslConnections(authentications)
-            : new DefaultHttpSettings(authentications, sslContextFactory);
-        HttpClientHelper httpClientHelper = new HttpClientHelper(httpSettings);
+        DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
+            .withAuthenticationSettings(authentications)
+            .followRedirects(false);
+        if (allowUntrustedServer) {
+            builder.allowUntrustedConnections();
+        } else {
+            builder.withSslContextFactory(sslContextFactory);
+        }
+        HttpClientHelper httpClientHelper = new HttpClientHelper(builder.build());
 
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
