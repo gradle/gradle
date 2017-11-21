@@ -29,7 +29,7 @@ For Gradle users it is important to understand how Groovy deals with script vari
         </sample>
 ++++
 
-Variables which are declared with a type modifier are visible within closures but not visible within methods. This is a heavily discussed behavior in the Groovy community.footnote:[One of those discussions can be found here: http://groovy.329449.n5.nabble.com/script-scoping-question-td355887.html[] ]
+Variables which are declared with a type modifier are visible within closures but not visible within methods.
 
 [[sec:configuration_and_execution_phase]]
 === Configuration and execution phase
