@@ -27,13 +27,17 @@ import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -51,10 +55,12 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -105,11 +111,12 @@ import java.util.Map;
  */
 @Incubating
 @CacheableTask
+@NonNullApi
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private FileCollection classes;
     private FileCollection classpath;
-    private Object outputFile;
+    private RegularFileProperty outputFile = newOutputFile();
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
@@ -187,15 +194,16 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             }
         });
         List<String> problemMessages = toProblemMessages(taskValidationProblems);
-        storeResults(problemMessages, getOutputFile());
+        storeResults(problemMessages);
         communicateResult(problemMessages, taskValidationProblems.values().contains(Boolean.TRUE));
     }
 
-    private void storeResults(List<String> problemMessages, File outputFile) throws IOException {
-        if (outputFile != null) {
+    private void storeResults(List<String> problemMessages) throws IOException {
+        if (outputFile.isPresent()) {
+            File output = outputFile.get().getAsFile();
             //noinspection ResultOfMethodCallIgnored
-            outputFile.createNewFile();
-            Files.asCharSink(outputFile, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
+            output.createNewFile();
+            Files.write(Joiner.on('\n').join(problemMessages), output, Charsets.UTF_8);
         }
     }
 
@@ -239,6 +247,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
         return  Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
             @Override
+            @SuppressWarnings("NullableProblems")
             public InvalidUserDataException apply(String problemMessage) {
                 return new InvalidUserDataException(problemMessage);
             }
@@ -307,26 +316,52 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * Returns the output file to store the report in.
+     *
+     * @since 4.5
      */
-    @Optional @OutputFile
-    public File getOutputFile() {
-        return outputFile == null ? null : getProject().file(outputFile);
+    @Optional
+    @OutputFile
+    public RegularFileProperty getOutputFile() {
+        return outputFile;
     }
 
     /**
      * Sets the output file to store the report in.
      *
      * @since 4.0
+     *
+     * @deprecated Use {@link #getOutputFile()} instead.
      */
+    @Deprecated
     public void setOutputFile(File outputFile) {
-        setOutputFile((Object) outputFile);
+        DeprecationLogger.nagUserOfReplacedMethod("ValidateTaskProperties.setOutputFile(File)", "getOutputFile()");
+        this.outputFile.set(outputFile);
     }
 
     /**
      * Sets the output file to store the report in.
+     *
+     * @deprecated Use {@link #getOutputFile()} instead.
      */
-    public void setOutputFile(Object outputFile) {
-        this.outputFile = outputFile;
+    @Deprecated
+    public void setOutputFile(@Nullable final Object outputFile) {
+        DeprecationLogger.nagUserOfReplacedMethod("ValidateTaskProperties.setOutputFile(Object)", "getOutputFile()");
+        this.outputFile.set(new AbstractProvider<RegularFile>() {
+            @Override
+            public Class<RegularFile> getType() {
+                return RegularFile.class;
+            }
+
+            @Override
+            public RegularFile getOrNull() {
+                return outputFile == null ? null : new RegularFile() {
+                    @Override
+                    public File getAsFile() {
+                        return getProject().file(outputFile);
+                    }
+                };
+            }
+        });
     }
 
     /**
