@@ -39,7 +39,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class XcTestScraper implements TextStream {
+class XCTestScraper implements TextStream {
     private static final Pattern TEST_FAILURE_PATTERN = Pattern.compile(":\\d+: error: (-\\[\\p{Alnum}+.)?(\\p{Alnum}+)[ .](\\p{Alnum}+)]? : (.*)");
 
     private final TestResultProcessor processor;
@@ -50,7 +50,7 @@ class XcTestScraper implements TextStream {
     private TestDescriptorInternal lastDescriptor;
     private StringBuilder textBuilder = new StringBuilder();
 
-    XcTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
+    XCTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
         this.processor = processor;
         this.destination = destination;
         this.idGenerator = idGenerator;

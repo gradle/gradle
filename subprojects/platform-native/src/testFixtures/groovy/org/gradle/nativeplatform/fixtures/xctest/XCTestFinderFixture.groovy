@@ -32,9 +32,9 @@ class XCTestFinderFixture {
     allprojects {
         pluginManager.withPlugin("xctest") {
             dependencies {
-                swiftCompileTest files('${xcTestImportPath}')
-                nativeLinkTest files('${xcTestLinkFile}')
-                nativeRuntimeTest files('${xcTestRuntimeFile}')
+                swiftCompileTest files('${XCTestImportPath}')
+                nativeLinkTest files('${XCTestLinkFile}')
+                nativeRuntimeTest files('${XCTestRuntimeFile}')
             }
         }
     }
@@ -44,18 +44,18 @@ class XCTestFinderFixture {
         }
     }
 
-    private File getXcTestImportPath() {
+    private File getXCTestImportPath() {
         File result = find('lib/swift/linux/x86_64/XCTest.swiftmodule')
         return result.parentFile
     }
 
-    private String getXcTestLinkFile() {
+    private String getXCTestLinkFile() {
         File result = find('lib/swift/linux/libXCTest.so')
         return result.absolutePath
     }
 
-    private String getXcTestRuntimeFile() {
-        return xcTestLinkFile
+    private String getXCTestRuntimeFile() {
+        return XCTestLinkFile
     }
 
     private File find(String file) {

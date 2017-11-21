@@ -30,7 +30,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
-import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
+import org.gradle.nativeplatform.test.xctest.internal.XCTestExecuter;
 
 import java.io.File;
 import java.util.List;
@@ -38,18 +38,14 @@ import java.util.List;
 /**
  * Executes XCTest tests. Test are always run in a single execution.
  *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public class XcTest extends AbstractTestTask {
+public class XCTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
     private final DirectoryProperty testInstallDirectory = newInputDirectory();
     private final RegularFileProperty runScriptFile = newInputFile();
-
-    /**
-     * {@inheritDoc}
-     * @since 4.4
-     */
+    
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
         DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();
@@ -60,8 +56,6 @@ public class XcTest extends AbstractTestTask {
 
     /**
      * Sets the test suite bundle or executable location
-     *
-     * @since 4.4
      */
     @InputDirectory
     public DirectoryProperty getTestInstallDirectory() {
@@ -70,8 +64,6 @@ public class XcTest extends AbstractTestTask {
 
     /**
      * Returns test suite bundle or executable location
-     *
-     * @since 4.4
      */
     @Internal("Covered by getRunScript")
     public RegularFileProperty getRunScriptFile() {
@@ -80,8 +72,6 @@ public class XcTest extends AbstractTestTask {
 
     /**
      * Returns the working directory property for this test.
-     *
-     * @since 4.4
      */
     @Internal
     public DirectoryProperty getWorkingDirectory() {
@@ -90,13 +80,11 @@ public class XcTest extends AbstractTestTask {
 
     @Override
     protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
-        return getProject().getObjects().newInstance(XcTestExecuter.class);
+        return getProject().getObjects().newInstance(XCTestExecuter.class);
     }
 
     /**
      * Workaround for when the task is given an input file that doesn't exist
-     *
-     * @since 4.4
      */
     @SkipWhenEmpty
     @Optional
@@ -114,7 +102,7 @@ public class XcTest extends AbstractTestTask {
      * {@inheritDoc}
      */
     @Override
-    public XcTest setTestNameIncludePatterns(List<String> testNamePattern) {
+    public XCTest setTestNameIncludePatterns(List<String> testNamePattern) {
         super.setTestNameIncludePatterns(testNamePattern);
         return this;
     }

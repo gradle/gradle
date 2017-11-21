@@ -481,7 +481,7 @@ public class XcodePlugin extends IdePlugin {
         }
 
         private void bridgeTestExecution(Task bridgeTask, final XcodeTarget target) {
-            // XcTest executable
+            // XCTest executable
             // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
             final String builtProductsPath = xcodePropertyAdapter.getBuiltProductsDir();
             final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {

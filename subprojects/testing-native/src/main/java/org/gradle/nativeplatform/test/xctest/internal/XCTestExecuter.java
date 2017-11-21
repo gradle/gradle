@@ -42,7 +42,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
+public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
         return new DefaultExecHandleBuilder();
     }
@@ -71,20 +71,20 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         ObjectFactory objectFactory = getObjectFactory();
         File executable = testExecutionSpec.getRunScript();
         File workingDir = testExecutionSpec.getWorkingDir();
-        TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
+        TestClassProcessor processor = objectFactory.newInstance(XCTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
-        Runnable detector = new XcTestDetector(processor, testExecutionSpec.getTestSelection());
+        Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
-    private static class XcTestDetector implements Runnable {
+    private static class XCTestDetector implements Runnable {
         private final TestClassProcessor testClassProcessor;
         private final XCTestSelection testSelection;
 
-        XcTestDetector(TestClassProcessor testClassProcessor, XCTestSelection testSelection) {
+        XCTestDetector(TestClassProcessor testClassProcessor, XCTestSelection testSelection) {
             this.testClassProcessor = testClassProcessor;
             this.testSelection = testSelection;
         }
@@ -98,7 +98,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
     }
 
-    static class XcTestProcessor implements TestClassProcessor {
+    static class XCTestProcessor implements TestClassProcessor {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ExecHandleBuilder execHandleBuilder;
@@ -106,7 +106,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         private final Clock clock;
 
         @Inject
-        public XcTestProcessor(Clock clock, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
+        public XCTestProcessor(Clock clock, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
             this.clock = clock;
@@ -129,8 +129,8 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             execHandleBuilder.setArgs(toTestArgs(testName));
 
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
-            TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
-            TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
+            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
+            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
             execHandleBuilder.setStandardOutput(new LineBufferingOutputStream(stdOut));
             execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
             ExecHandle handle = execHandleBuilder.build();

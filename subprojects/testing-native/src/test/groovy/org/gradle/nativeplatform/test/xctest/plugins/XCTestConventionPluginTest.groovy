@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
-import org.gradle.nativeplatform.test.xctest.tasks.XcTest
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Requires
@@ -116,7 +116,7 @@ class XCTestConventionPluginTest extends Specification {
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
-        test instanceof XcTest
+        test instanceof XCTest
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
@@ -147,7 +147,7 @@ class XCTestConventionPluginTest extends Specification {
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
-        test instanceof XcTest
+        test instanceof XCTest
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 

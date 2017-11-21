@@ -54,7 +54,7 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
-import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -181,7 +181,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private static Task createTestingTask(final Project project, SwiftXCTestSuite testSuite) {
         final TaskContainer tasks = project.getTasks();
 
-        final XcTest testTask = tasks.create("xcTest", XcTest.class);
+        final XCTest testTask = tasks.create("xcTest", XCTest.class);
 
         SwiftXCTestBinary binary = testSuite.getDevelopmentBinary();
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
