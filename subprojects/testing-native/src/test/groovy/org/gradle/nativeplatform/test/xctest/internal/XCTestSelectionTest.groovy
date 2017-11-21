@@ -32,7 +32,7 @@ class XCTestSelectionTest extends Specification {
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == 'Invalid pattern'
+        ex.message == "'more.than.two.dots' is an invalid pattern. Patterns should have one or two dots."
     }
 
     def "can use filters with two dots or fewer"() {

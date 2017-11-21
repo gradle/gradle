@@ -80,7 +80,7 @@ public class XCTestSelection {
     private String prepareIncludedTest(String testFilter, Set<String> testSuiteCache) {
         String[] tokens = StringUtils.splitPreserveAllTokens(testFilter, '.');
         if (tokens.length > 3) {
-            throw new IllegalArgumentException("Invalid pattern");
+            throw new IllegalArgumentException(String.format("'%s' is an invalid pattern. Patterns should have one or two dots.", testFilter));
         } else if (tokens.length == 3) {
             if (WILDCARD.equals(tokens[2])) {
                 String filter = tokens[0] + "." + tokens[1];
