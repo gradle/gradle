@@ -18,9 +18,10 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.hash.TestFileHasher
+import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -163,21 +164,19 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def unfilteredTree = TestFiles.directoryFileTreeFactory().create(d)
         snapshotter.snapshotDirectoryTree(unfilteredTree)
 
-        and: "Some changes to the underlying tree"
-        d.createDir("d2")
-        d.createFile("d2/f1")
-        d.createFile("d2/f2")
-
         and: "A filtered tree over the same directory"
         def patterns = TestFiles.patternSetFactory.create()
         patterns.include "**/*1"
-        def filteredTree = TestFiles.directoryFileTreeFactory().create(d, patterns)
+        DirectoryFileTree filteredTree = Mock(DirectoryFileTree) {
+            getDir() >> d
+            getPatterns() >> patterns
+        }
 
         when:
         def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
 
         then: "The filtered tree uses the cached state"
-        snapshot.descendants.size() == 3
+        snapshot.descendants*.relativePath*.pathString as Set == ["d1", "d1/f1", "f1"] as Set
     }
 
     def "snapshots a file and caches the result"() {
