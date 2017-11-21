@@ -96,6 +96,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ExperimentalFeatures experimentalFeatures;
     private FileCollection pomFile;
+    private FileCollection moduleMetadataFile;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
@@ -131,6 +132,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.pomFile = pomFile;
     }
 
+    public void setGradleModuleMetadataFile(FileCollection file) {
+        this.moduleMetadataFile = file;
+    }
 
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
@@ -246,7 +250,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
+        return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile, moduleMetadataFile);
     }
 
     public MavenProjectIdentity getMavenProjectIdentity() {
@@ -262,7 +266,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getArtifacts(), determineMainArtifact());
+        return new MavenNormalizedPublication(name, getPomFile(), getGradleMetadataFile(), projectIdentity, getArtifacts(), determineMainArtifact());
     }
 
     private File getPomFile() {
@@ -270,6 +274,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new IllegalStateException("pomFile not set for publication");
         }
         return pomFile.getSingleFile();
+    }
+
+    private File getGradleMetadataFile() {
+        if (moduleMetadataFile == null) {
+            // possible if experimental features are disabled
+            return null;
+        }
+        return moduleMetadataFile.getSingleFile();
     }
 
     public String determinePackagingFromArtifacts() {
@@ -299,17 +311,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return null;
     }
 
-    // TODO:DAZ The module metadata file should never be in the artifacts collection to start with
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         return CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
             public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
-                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact) && isNotModuleMetadata(mavenArtifact);
+                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
             }
         });
-    }
-
-    private boolean isNotModuleMetadata(MavenArtifact artifact) {
-        return !artifact.getExtension().equals("module");
     }
 
     private boolean hasNoClassifier(MavenArtifact element) {
