@@ -78,7 +78,7 @@ see more at gradle.org""")
     def "can add plugins to #scriptDsl build script"() {
         when:
         builder.plugin("Add support for the Java language", "java")
-        builder.plugin("Add support for building applications", "application")
+        builder.plugin("Add support for Java libraries", "java-library")
         builder.create(scriptDsl, outputFile).generate()
 
         then:
@@ -92,8 +92,8 @@ plugins {
     // Add support for the Java language
     id 'java'
 
-    // Add support for building applications
-    id 'application'
+    // Add support for Java libraries
+    id 'java-library'
 }
 
 """)))
@@ -107,8 +107,8 @@ plugins {
     // Add support for the Java language
     java
 
-    // Add support for building applications
-    application
+    // Add support for Java libraries
+    `java-library`
 }
 
 """)))

@@ -145,7 +145,7 @@ public class BuildScriptBuilder {
                                 writer.println("    // " + entry.getValue());
                                 switch (dsl) {
                                     case KOTLIN:
-                                        if (entry.getKey().matches("[a-z]")) {
+                                        if (entry.getKey().matches("[a-z]+")) {
                                             writer.println("    " + entry.getKey());
                                         } else {
                                             writer.println("    `" + entry.getKey() + "`");
