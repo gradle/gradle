@@ -112,7 +112,7 @@ class UserGuideSamplesRunner extends Runner {
             try {
                 cleanup(sampleRun)
                 for (run in sampleRun.runs) {
-                    if (run.brokenForParallel && GradleContextualExecuter.parallel) {
+                    if (run.ignoreExecution || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
                         continue
                     }
                     runSample(run)
@@ -288,6 +288,7 @@ class UserGuideSamplesRunner extends Runner {
         }
 
         // Some custom values
+        samplesByDir.get('userguide/tutorial/groovyScope')*.ignoreExecution = true
         samplesByDir.get('userguide/tutorial/properties').each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
         samplesByDir.get('userguide/buildlifecycle/taskExecutionEvents')*.expectFailure = true
         samplesByDir.get('userguide/buildlifecycle/buildProjectEvaluateEvents')*.expectFailure = true
@@ -364,6 +365,7 @@ Please run 'gradle docs:extractSamples' first"""
         Map envs = [:]
         String outputFile
         Transformer<String, String> outputFormatter
+        boolean ignoreExecution
         boolean expectFailure
         boolean ignoreExtraLines
         boolean ignoreLineOrder
