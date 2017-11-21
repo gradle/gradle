@@ -16,5 +16,5 @@
 
 package org.gradle.language.swift.plugins
 
-class SwiftExecutablePluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
+class SwiftApplicationPluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
 }

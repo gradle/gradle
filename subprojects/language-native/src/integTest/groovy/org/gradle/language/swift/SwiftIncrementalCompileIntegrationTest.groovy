@@ -42,7 +42,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         when:
@@ -77,7 +77,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -87,7 +87,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             }
 """
         app.library.writeToProject(file("greeter"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         when:
         succeeds ":app:assemble"
@@ -123,7 +123,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         and:
@@ -173,7 +173,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         and:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         and:
@@ -217,7 +217,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -227,14 +227,14 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             }
 """
         app.library.writeToProject(file("greeter"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         when:
         succeeds "assemble"
 
         then:
         executable("app/build/exe/main/debug/App").assertExists()
-        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.executable.original))
+        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.application.original))
         installation("app/build/install/main/debug").assertInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
@@ -242,7 +242,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         when:
         app.library.applyChangesToProject(file('greeter'))
-        app.executable.applyChangesToProject(file('app'))
+        app.application.applyChangesToProject(file('app'))
         succeeds "assemble"
 
         then:
@@ -267,7 +267,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         given:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
         """
         app.writeToProject(testDirectory)
 
