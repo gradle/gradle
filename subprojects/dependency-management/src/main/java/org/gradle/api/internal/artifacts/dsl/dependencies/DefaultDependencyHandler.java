@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -31,13 +32,11 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.List;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
@@ -46,17 +45,19 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
+    private final DependencyConstraintHandler dependencyConstraintHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
     private final Factory<ArtifactTypeContainer> artifactTypeContainer;
-    private final DynamicMethods dynamicMethods;
+    private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder,
+                                    DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
                                     ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
@@ -66,6 +67,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
+        this.dependencyConstraintHandler = dependencyConstraintHandler;
         this.componentMetadataHandler = componentMetadataHandler;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
         this.resolutionQueryFactory = resolutionQueryFactory;
@@ -73,7 +75,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         this.transforms = transforms;
         this.artifactTypeContainer = artifactTypeContainer;
         configureSchema();
-        dynamicMethods = new DynamicMethods();
+        dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
     }
 
     @Override
@@ -147,6 +149,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         return dynamicMethods;
     }
 
+    @Override
+    public void constraints(Action<? super DependencyConstraintHandler> configureAction) {
+        configureAction.execute(dependencyConstraintHandler);
+    }
+
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
         configureAction.execute(getComponents());
     }
@@ -197,32 +204,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         transforms.registerTransform(registrationAction);
     }
 
-    private class DynamicMethods implements MethodAccess {
-        @Override
-        public boolean hasMethod(String name, Object... arguments) {
-            return arguments.length != 0 && configurationContainer.findByName(name) != null;
-        }
+    private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder {
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
-            if (arguments.length == 0) {
-                return DynamicInvokeResult.notFound();
-            }
-            Configuration configuration = configurationContainer.findByName(name);
-            if (configuration == null) {
-                return DynamicInvokeResult.notFound();
-            }
-            List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
-            if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
-            } else if (normalizedArgs.size() == 1) {
-                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), null));
-            } else {
-                for (Object arg : normalizedArgs) {
-                    doAdd(configuration, arg, null);
-                }
-                return DynamicInvokeResult.found();
-            }
+        public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
+            return doAdd(configuration, dependencyNotation, configureAction);
         }
     }
 }
