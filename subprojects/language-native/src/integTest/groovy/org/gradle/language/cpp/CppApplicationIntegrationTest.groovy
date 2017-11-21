@@ -26,12 +26,12 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 
 import static org.gradle.util.Matchers.containsText
 
-class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
     def "skip compile, link and install tasks when no source"() {
         given:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
         """
 
         expect:
@@ -44,7 +44,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         and:
@@ -70,7 +70,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         expect:
@@ -90,7 +90,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
@@ -117,10 +117,10 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
 
             task buildDebug {
-                dependsOn executable.debugExecutable.executableFile
+                dependsOn application.debugExecutable.executableFile
             }
          """
 
@@ -139,10 +139,10 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
 
             task compileDebug {
-                dependsOn executable.debugExecutable.objects
+                dependsOn application.debugExecutable.objects
             }
          """
 
@@ -162,10 +162,10 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
 
             task install {
-                dependsOn executable.debugExecutable.installDirectory
+                dependsOn application.debugExecutable.installDirectory
             }
          """
 
@@ -189,7 +189,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
          """
 
         expect:
@@ -212,8 +212,8 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
-            executable {
+            apply plugin: 'cpp-application'
+            application {
                 source.from 'srcs'
                 privateHeaders.from 'include'
             }
@@ -241,8 +241,8 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
-            executable {
+            apply plugin: 'cpp-application'
+            application {
                 source {
                     from('srcs/main.cpp')
                     from('srcs/one.cpp')
@@ -269,7 +269,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             buildDir = 'output'
          """
 
@@ -291,8 +291,8 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
-            executable.baseName = 'test_app'
+            apply plugin: 'cpp-application'
+            application.baseName = 'test_app'
          """
 
         expect:
@@ -313,7 +313,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         and:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
             installDebug.installDirectory = layout.buildDirectory.dir("some-app")
@@ -335,7 +335,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -364,7 +364,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -402,7 +402,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':deck')
                 }
@@ -447,7 +447,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':lib1')
                 }
@@ -488,7 +488,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':lib1')
                 }
@@ -532,7 +532,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':lib1')
                 }
@@ -580,11 +580,11 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
-                executable {
+                application {
                     source.from '../Sources/main.cpp'
                 }
             }
@@ -635,7 +635,7 @@ class CppExecutableIntegrationTest extends AbstractCppInstalledToolChainIntegrat
 
         given:
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             dependencies {
                 implementation 'test:lib1:1.2'
             }

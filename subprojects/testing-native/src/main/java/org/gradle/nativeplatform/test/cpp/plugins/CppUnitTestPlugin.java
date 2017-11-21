@@ -27,7 +27,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.cpp.plugins.CppExecutablePlugin;
+import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -103,6 +103,6 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
         project.getPlugins().withType(CppLibraryPlugin.class, projectConfiguration);
         // TODO: We will get symbol conflicts with executables since they already have a main()
-        project.getPlugins().withType(CppExecutablePlugin.class, projectConfiguration);
+        project.getPlugins().withType(CppApplicationPlugin.class, projectConfiguration);
     }
 }

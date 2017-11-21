@@ -28,7 +28,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         project.file('settings.gradle') << "include 'lib1', 'lib2'"
         project.file('settings.gradle') << localCacheConfiguration()
         project.file('build.gradle').text = """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             dependencies {
                 implementation project(':lib1')
             }

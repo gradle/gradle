@@ -33,7 +33,6 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
-import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
@@ -43,25 +42,20 @@ import javax.inject.Inject;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 
 /**
- * <p>A plugin that produces a native executable from C++ source.</p>
+ * <p>A plugin that produces a native application from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp` and header files are located in `src/main/headers`.</p>
  *
- * <p>Adds a {@link CppComponent} extension to the project to allow configuration of the executable.</p>
+ * <p>Adds a {@link CppApplication} extension to the project to allow configuration of the application.</p>
  *
- * @since 4.1
+ * @since 4.5
  */
 @Incubating
-public class CppExecutablePlugin implements Plugin<ProjectInternal> {
+public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
-    /**
-     * Injects a {@link FileOperations} instance.
-     *
-     * @since 4.2
-     */
     @Inject
-    public CppExecutablePlugin(FileOperations fileOperations) {
+    public CppApplicationPlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
     }
 
@@ -74,7 +68,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         ObjectFactory objectFactory = project.getObjects();
 
         // Add the application extension
-        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());

@@ -27,10 +27,10 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def "can create xcode project for C++ executable"() {
+    def "can create xcode project for C++ application"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         def app = new CppApp()
@@ -99,7 +99,7 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         def lib = new CppLib()
@@ -186,7 +186,7 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         app.writeToProject(testDirectory)
@@ -260,7 +260,7 @@ apply plugin: 'cpp-library'
     def "adds new source files in the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         when:
@@ -284,7 +284,7 @@ apply plugin: 'cpp-executable'
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         when:
@@ -309,9 +309,9 @@ apply plugin: 'cpp-executable'
     def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 
-executable {
+application {
     source.from 'Sources'
     privateHeaders.from 'Sources/include'
 }
@@ -357,12 +357,12 @@ library {
         rootXcodeProject.projectFile.headers.assertHasChildren(lib.headers.files*.name)
     }
 
-    def "honors changes to executable output locations"() {
+    def "honors changes to application output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 buildDir = 'output'
-executable.baseName = 'test_app'
+application.baseName = 'test_app'
 """
 
         def app = new CppApp()

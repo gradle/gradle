@@ -27,7 +27,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-class CppExecutablePluginTest extends Specification {
+class CppApplicationPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
@@ -38,22 +38,22 @@ class CppExecutablePluginTest extends Specification {
         def src = projectDir.file("src/main/cpp/main.cpp").createFile()
 
         when:
-        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
 
         then:
-        project.executable instanceof CppApplication
-        project.executable.baseName.get() == "testApp"
-        project.executable.cppSource.files == [src] as Set
+        project.application instanceof CppApplication
+        project.application.baseName.get() == "testApp"
+        project.application.cppSource.files == [src] as Set
     }
 
-    def "registers a component for the executable"() {
+    def "registers a component for the application"() {
         when:
-        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
 
         then:
-        project.components.main == project.executable
-        project.components.mainDebug == project.executable.debugExecutable
-        project.components.mainRelease == project.executable.releaseExecutable
+        project.components.main == project.application
+        project.components.mainDebug == project.application.debugExecutable
+        project.components.mainRelease == project.application.releaseExecutable
     }
 
     def "adds compile, link and install tasks"() {
@@ -61,7 +61,7 @@ class CppExecutablePluginTest extends Specification {
         def src = projectDir.file("src/main/cpp/main.cpp").createFile()
 
         when:
-        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
 
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
@@ -103,8 +103,8 @@ class CppExecutablePluginTest extends Specification {
 
     def "output locations are calculated using base name defined on extension"() {
         when:
-        project.pluginManager.apply(CppExecutablePlugin)
-        project.executable.baseName = "test_app"
+        project.pluginManager.apply(CppApplicationPlugin)
+        project.application.baseName = "test_app"
 
         then:
         def link = project.tasks.linkDebug
@@ -117,7 +117,7 @@ class CppExecutablePluginTest extends Specification {
 
     def "output locations reflects changes to buildDir"() {
         given:
-        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
 
         when:
         project.buildDir = "output"
@@ -139,11 +139,11 @@ class CppExecutablePluginTest extends Specification {
 
     def "adds publications when maven-publish plugin is applied"() {
         when:
-        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
         project.pluginManager.apply(MavenPublishPlugin)
         project.version = 1.2
         project.group = 'my.group'
-        project.executable.baseName = 'test_app'
+        project.application.baseName = 'test_app'
 
         then:
         def publishing = project.publishing
