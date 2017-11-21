@@ -42,7 +42,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         writeMainSwift()
 
         expect:
-        succeeds("clean", "unexport", "assemble")
+        succeeds("clean", "unexport")
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/297")
@@ -64,7 +64,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         writeMainSwift()
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
         assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
     }
@@ -73,7 +73,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         writeMainSwift("notMain.swift")
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
         assertMainSymbolIsNotExported("build/tmp/unexport/notMain.o")
     }
@@ -85,7 +85,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         """
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
         assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
     }
