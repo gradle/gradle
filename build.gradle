@@ -17,9 +17,12 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 
+plugins {
+    id 'java-base'
+    id 'org.gradle.build-types'
+}
+
 defaultTasks 'assemble'
-apply plugin: 'java-base'
-apply plugin: 'build-types'
 archivesBaseName = 'gradle'
 
 buildTypes {

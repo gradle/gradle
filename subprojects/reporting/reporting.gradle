@@ -1,4 +1,6 @@
-apply plugin: 'javascript-base'
+plugins {
+    id 'javascript-base'
+}
 
 sourceCompatibility = 1.6
 

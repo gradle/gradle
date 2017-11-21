@@ -1,4 +1,3 @@
-apply plugin: "groovy"
 
 sourceCompatibility = 1.6
 
