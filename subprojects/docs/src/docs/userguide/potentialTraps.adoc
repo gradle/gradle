@@ -25,7 +25,7 @@ For Gradle users it is important to understand how Groovy deals with script vari
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scope" dir="userguide/tutorial" title="Variables scope: local and script wide">
             <sourcefile file="scope.groovy"/>
-            <output args="scope.groovy" executable="groovy" />
+            <output executable="groovy" args="scope.groovy" />
         </sample>
 ++++
 
