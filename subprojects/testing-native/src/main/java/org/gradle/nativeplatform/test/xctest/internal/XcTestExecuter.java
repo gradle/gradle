@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -29,6 +30,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
@@ -38,6 +40,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public ExecHandleBuilder getExecHandleBuilder() {
@@ -64,30 +67,34 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     @Override
-    public void execute(XCTestTestExecutionSpec testTestExecutionSpec, TestResultProcessor testResultProcessor) {
+    public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = testTestExecutionSpec.getRunScript();
-        File workingDir = testTestExecutionSpec.getWorkingDir();
+        File executable = testExecutionSpec.getRunScript();
+        File workingDir = testExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
-        Runnable detector = new XcTestDetector(processor);
+        Runnable detector = new XcTestDetector(processor, testExecutionSpec.getTestSelection());
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testTestExecutionSpec.getPath(), "Gradle Test Run " + testTestExecutionSpec.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
     private static class XcTestDetector implements Runnable {
         private final TestClassProcessor testClassProcessor;
+        private final XCTestSelection testSelection;
 
-        XcTestDetector(TestClassProcessor testClassProcessor) {
+        XcTestDetector(TestClassProcessor testClassProcessor, XCTestSelection testSelection) {
             this.testClassProcessor = testClassProcessor;
+            this.testSelection = testSelection;
         }
 
         @Override
         public void run() {
-            TestClassRunInfo testClass = new DefaultTestClassRunInfo("All");
-            testClassProcessor.processTestClass(testClass);
+            for (String includedTests : testSelection.getIncludedTests()) {
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
+                testClassProcessor.processTestClass(testClass);
+            }
         }
     }
 
@@ -119,6 +126,8 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         private ExecHandle executeTest(String testName) {
+            execHandleBuilder.setArgs(toTestArgs(testName));
+
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XcTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
             TextStream stdErr = new XcTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
@@ -126,6 +135,17 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
             ExecHandle handle = execHandleBuilder.build();
             return handle.start();
+        }
+
+        private static List<String> toTestArgs(String testName) {
+            List<String> args = Lists.newArrayList();
+            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
+                if (OperatingSystem.current().isMacOsX()) {
+                    args.add("-XCTest");
+                }
+                args.add(testName);
+            }
+            return args;
         }
 
         @Override

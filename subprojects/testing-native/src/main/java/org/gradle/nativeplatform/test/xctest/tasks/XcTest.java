@@ -21,16 +21,19 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
+import org.gradle.nativeplatform.test.xctest.internal.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Executes XCTest tests. Test are always run in a single execution.
@@ -49,7 +52,10 @@ public class XcTest extends AbstractTestTask {
      */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
-        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath());
+        DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();
+
+        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath(),
+            new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
     }
 
     /**
@@ -102,5 +108,14 @@ public class XcTest extends AbstractTestTask {
             return null;
         }
         return runScriptFile;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public XcTest setTestNameIncludePatterns(List<String> testNamePattern) {
+        super.setTestNameIncludePatterns(testNamePattern);
+        return this;
     }
 }
