@@ -23,12 +23,12 @@ import spock.lang.Subject
 class XCTestSelectionTest extends Specification {
     def "includes all tests when no filter provided"() {
         expect:
-        select([]).includedTests == [XCTestSelection.INCLUDE_ALL_TESTS]
+        select().includedTests == [XCTestSelection.INCLUDE_ALL_TESTS]
     }
 
     def "throws IllegalArgumentException when filter has more than two dots"() {
         when:
-        select(['more.than.two.dots'])
+        select('more.than.two.dots')
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -37,7 +37,7 @@ class XCTestSelectionTest extends Specification {
 
     def "can use filters with two dots or fewer"() {
         when:
-        select(['one.dot', 'has.two.dots'])
+        select('one.dot', 'has.two.dots', 'ModuleName')
 
         then:
         noExceptionThrown()
@@ -45,37 +45,37 @@ class XCTestSelectionTest extends Specification {
 
     def "converts second dot into slash"() {
         expect:
-        select(['one.dot', 'has.two.dots']).includedTests == ['one.dot', 'has.two/dots']
+        select('one.dot', 'has.two.dots').includedTests == ['one.dot', 'has.two/dots']
     }
 
     def "can use wildcard to select all tests from module"() {
         expect:
-        select(['ModuleName.*']).includedTests == ['All']
+        select('ModuleName.*').includedTests == ['All']
     }
 
     def "can use wildcard to select all test case from suite"() {
         expect:
-        select(['ModuleName.suite.*']).includedTests == ['ModuleName.suite']
+        select('ModuleName.suite.*').includedTests == ['ModuleName.suite']
     }
 
     def "ignores textual duplicate filters"() {
         expect:
-        select(['a.b.c', 'a.b.c']).includedTests == ['a.b/c']
+        select('a.b.c', 'a.b.c').includedTests == ['a.b/c']
     }
 
     def "ignores conceptual duplicate filters"() {
         expect:
-        select(['a.*', 'a.b.c']).includedTests == ['All']
-        select(['a.b.*', 'a.b.c', 'a.d.e']).includedTests == ['a.b', 'a.d/e']
-        select(['a.b.c', 'a.d.e', 'a.b.*']).includedTests == ['a.d/e', 'a.b']
+        select('a.*', 'a.b.c').includedTests == ['All']
+        select('a.b.*', 'a.b.c', 'a.d.e').includedTests == ['a.b', 'a.d/e']
+        select('a.b.c', 'a.d.e', 'a.b.*').includedTests == ['a.d/e', 'a.b']
     }
 
     def "conserve order of filters"() {
         expect:
-        select(['a.1', 'a.2', 'a.3', 'a.4']).includedTests == ['a.1', 'a.2', 'a.3', 'a.4']
+        select('a.1', 'a.2', 'a.3', 'a.4').includedTests == ['a.1', 'a.2', 'a.3', 'a.4']
     }
 
-    private static XCTestSelection select(List<String> commandLinePattern) {
-        new XCTestSelection([], commandLinePattern)
+    private static XCTestSelection select(String... commandLinePattern) {
+        new XCTestSelection([], Arrays.asList(commandLinePattern))
     }
 }
