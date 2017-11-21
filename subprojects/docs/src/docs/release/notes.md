@@ -52,6 +52,16 @@ When registering task properties via the runtime API, property names are not req
 
 When generating grammar sources with ANTLR, now the task's outputs are stored and retrieved from the build cache.
 
+### The `init` task can now generate Kotlin DSL build scripts
+
+It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--build-script-dsl` option:
+
+    gradle init --build-script-dsl kotlin 
+
+The new option defaults to `groovy` and is supported by all build setup types, including migration from Maven builds.
+
+See the user guide section on the [`init` plugin](userguide/build_init_plugin.html) for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

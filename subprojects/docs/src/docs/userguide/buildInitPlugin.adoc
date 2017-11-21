@@ -64,7 +64,9 @@ If a `--type` parameter is not supplied, Gradle will attempt to infer the type f
 
 If the type could not be inferred, the type “`basic`” will be used.
 
-All build setup types include the setup of the Gradle Wrapper.
+The `init` plugin also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL to use defaults to the Groovy DSL and is specified by supplying a `--build-script-dsl` argument value. For example, to create a Java library project with Kotlin DSL build scripts simply execute: `gradle init --type java-library --build-script-dsl kotlin`.
+
+All build setup types include the setup of the Gradle Wrapper and support both Groovy and Kotlin DSL build scripts.
 
 [[sec:build_init_types]]
 === Build init types
