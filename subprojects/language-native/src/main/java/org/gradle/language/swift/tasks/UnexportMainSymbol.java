@@ -18,12 +18,15 @@ package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.os.OperatingSystem;
@@ -41,18 +44,30 @@ import java.util.Set;
 @Incubating
 public class UnexportMainSymbol extends SourceTask {
     private File mainObjectFile;
-    private final DirectoryProperty outputFile = newOutputDirectory();
+    private final DirectoryProperty outputDirectory = newOutputDirectory();
 
     public UnexportMainSymbol() {
-        outputFile.set(getTemporaryDir());
+        outputDirectory.set(getTemporaryDir());
     }
 
     /**
-     * Modified object files.
+     * Collection of modified object files.
+     *
+     * @since 4.5
      */
-    @OutputFiles
-    public FileCollection getOutputFiles() {
-        return outputFile.getAsFileTree();
+    @Internal
+    public FileCollection getObjects() {
+        return outputDirectory.getAsFileTree();
+    }
+
+    /**
+     * Location of modified object files.
+     *
+     * @since 4.5
+     */
+    @OutputDirectory
+    public Provider<Directory> getOutputDirectory() {
+        return outputDirectory;
     }
 
     /**
@@ -71,7 +86,7 @@ public class UnexportMainSymbol extends SourceTask {
     public void unexport() {
         final File mainObjectFile = getMainObject();
         if (mainObjectFile != null) {
-            final File relocatedMainObject = outputFile.file(mainObjectFile.getName()).get().getAsFile();
+            final File relocatedMainObject = outputDirectory.file(mainObjectFile.getName()).get().getAsFile();
             getProject().exec(new Action<ExecSpec>() {
                 @Override
                 public void execute(ExecSpec execSpec) {
@@ -93,7 +108,7 @@ public class UnexportMainSymbol extends SourceTask {
             });
             setDidWork(true);
         } else {
-            setDidWork(getProject().delete(outputFile.get().getAsFile()));
+            setDidWork(getProject().delete(outputDirectory));
         }
     }
 
