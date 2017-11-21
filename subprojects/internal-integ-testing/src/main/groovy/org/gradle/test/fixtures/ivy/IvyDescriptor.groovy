@@ -91,7 +91,7 @@ class IvyDescriptor {
 
     IvyDescriptorArtifact expectArtifact(String name) {
         return oneResult(artifacts.findAll({
-            it.name == name
+            it.name == name && it.ext != 'module'
         }), [name])
     }
 
@@ -109,6 +109,18 @@ class IvyDescriptor {
             assert dependencies.containsKey(key)
             assert dependencies[key].hasConf(conf)
         }
+        true
+    }
+
+    def assertConfigurationDependsOn(String configuration, String[] expected) {
+        def actualDependencies = dependencies.values().findAll { it.conf.contains(configuration) }
+        assert actualDependencies.size() == expected.length
+        expected.each {
+            String conf = "$configuration->default"
+            assert dependencies.containsKey(it)
+            assert dependencies[it].hasConf(conf)
+        }
+
         true
     }
 

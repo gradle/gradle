@@ -17,11 +17,11 @@
 
 package org.gradle.api.publish.ivy
 
-public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can publish single jar with specified coordinates"() {
         given:
-        def module = ivyRepo.module('org.custom', 'custom', '2.2')
+        def javaLibrary = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -54,14 +54,18 @@ public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest 
         file('build/libs/root-1.0.jar').assertExists()
 
         and:
-        module.assertPublishedAsJavaModule()
-        module.moduleDir.file('custom-2.2.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.moduleDir.file('custom-2.2.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 
         and:
-        resolveArtifacts(module) == ['custom-2.2.jar']
+        resolveArtifacts(javaLibrary) == ['custom-2.2.jar']
     }
 
     def "can produce multiple separate publications for single project"() {
+        // cannot yet publish Gradle metadata when there's no associated component
+        resolveModuleMetadata = false
+        publishModuleMetadata = false
+
         given:
         def module = ivyRepo.module('org.custom', 'custom', '2.2')
         def apiModule = ivyRepo.module('org.custom', 'custom-api', '2')

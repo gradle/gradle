@@ -149,6 +149,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
     }
 
     def "can set custom artifacts to override component artifacts"() {
+        publishModuleMetadata = false
         given:
         createBuildScripts("""
             publications {

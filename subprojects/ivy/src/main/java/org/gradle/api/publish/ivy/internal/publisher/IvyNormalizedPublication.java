@@ -25,14 +25,16 @@ public class IvyNormalizedPublication {
 
     private final String name;
     private final IvyPublicationIdentity projectIdentity;
-    private final File descriptorFile;
+    private final File ivyDescriptorFile;
+    private final File gradleModuleDescriptorFile;
     private final Set<IvyArtifact> artifacts;
 
-    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File descriptorFile, Set<IvyArtifact> artifacts) {
+    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, File gradleModuleDescriptorFile, Set<IvyArtifact> artifacts) {
         this.name = name;
         this.projectIdentity = projectIdentity;
+        this.gradleModuleDescriptorFile = gradleModuleDescriptorFile;
         this.artifacts = artifacts;
-        this.descriptorFile = descriptorFile;
+        this.ivyDescriptorFile = ivyDescriptorFile;
     }
 
     public String getName() {
@@ -43,8 +45,12 @@ public class IvyNormalizedPublication {
         return projectIdentity;
     }
 
-    public File getDescriptorFile() {
-        return descriptorFile;
+    public File getIvyDescriptorFile() {
+        return ivyDescriptorFile;
+    }
+
+    public File getGradleModuleDescriptorFile() {
+        return gradleModuleDescriptorFile;
     }
 
     public Set<IvyArtifact> getArtifacts() {
