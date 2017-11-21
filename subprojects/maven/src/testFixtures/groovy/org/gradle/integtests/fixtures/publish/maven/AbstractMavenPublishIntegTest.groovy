@@ -17,27 +17,17 @@ package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
-    def publishModuleMetadata = true
-    def resolveModuleMetadata = true
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
 
     def setup() {
-        executer.beforeExecute {
-            if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.experimentalFeatures")
-            }
-        }
-    }
-
-    protected void disableModuleMetadataPublishing() {
-        publishModuleMetadata = false
-        resolveModuleMetadata = false
+        prepare()
     }
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {

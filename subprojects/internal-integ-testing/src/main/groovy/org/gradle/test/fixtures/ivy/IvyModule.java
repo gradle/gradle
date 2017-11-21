@@ -123,5 +123,12 @@ public interface IvyModule extends Module {
      */
     void assertIvyAndJarFilePublished();
 
+    /**
+     * Assert that exactly the module metadata file, ivy.xml and jar file for this module, plus checksum files, have been published.
+     */
+    void assertMetadataAndJarFilePublished();
+
     void assertPublishedAsJavaModule();
+
+    void assertPublishedAsWebModule();
 }

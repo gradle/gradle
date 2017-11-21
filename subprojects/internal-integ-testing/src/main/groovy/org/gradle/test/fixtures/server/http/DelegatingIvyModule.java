@@ -83,6 +83,11 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         backingModule.assertPublishedAsJavaModule();
     }
 
+    @Override
+    public void assertPublishedAsWebModule() {
+        backingModule.assertPublishedAsWebModule();
+    }
+
     public T publish() {
         backingModule.publish();
         return t();
@@ -198,4 +203,8 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         backingModule.assertIvyAndJarFilePublished();
     }
 
+    @Override
+    public void assertMetadataAndJarFilePublished() {
+        backingModule.assertMetadataAndJarFilePublished();
+    }
 }

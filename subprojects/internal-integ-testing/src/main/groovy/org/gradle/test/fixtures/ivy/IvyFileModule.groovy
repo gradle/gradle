@@ -50,6 +50,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     XmlTransformer transformer = new XmlTransformer()
     private final String modulePath
 
+    // cached to improve performance of tests
+    GradleModuleMetadata parsedModuleMetadata
+
     enum MetadataPublish {
         ALL(true, true),
         IVY(true, false),
@@ -224,7 +227,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     @Override
     GradleModuleMetadata getParsedModuleMetadata() {
-        return new GradleModuleMetadata(moduleMetadataFile)
+        if (parsedModuleMetadata == null) {
+            parsedModuleMetadata = new GradleModuleMetadata(moduleMetadataFile)
+        }
+        parsedModuleMetadata
     }
 
     TestFile getIvyFile() {
@@ -249,10 +255,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return moduleArtifact(options).file
     }
 
-    ModuleArtifact moduleArtifact(Map<String, ?> options, String pattern = artifactPattern) {
+    IvyModuleArtifact moduleArtifact(Map<String, ?> options, String pattern = artifactPattern) {
         def path = getArtifactFilePath(options, pattern)
         def file = moduleDir.file(path)
-        return new ModuleArtifact() {
+        return new IvyModuleArtifact() {
             @Override
             String getPath() {
                 return modulePath + '/' + path
@@ -262,13 +268,23 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             TestFile getFile() {
                 return file
             }
+
+            @Override
+            Map<String, String> getIvyTokens() {
+                toTokens(options)
+            }
         }
     }
 
     protected String getArtifactFilePath(Map<String, ?> options, String pattern = artifactPattern) {
+        LinkedHashMap<String, Object> tokens = toTokens(options)
+        M2CompatibleIvyPatternHelper.substitute(pattern, m2Compatible, tokens)
+    }
+
+    private LinkedHashMap<String, String> toTokens(Map<String, ?> options) {
         def artifact = toArtifact(options)
         def tokens = [organisation: organisation, module: module, revision: revision, artifact: artifact.name, type: artifact.type, ext: artifact.ext, classifier: artifact.classifier]
-        M2CompatibleIvyPatternHelper.substitute(pattern, m2Compatible, tokens)
+        tokens
     }
 
     /**
@@ -425,12 +441,14 @@ ivyFileWriter << '</ivy-module>'
      * Asserts that exactly the given artifacts have been published.
      */
     void assertArtifactsPublished(String... names) {
-        Set allFileNames = []
+        def expectedArtifacts = [] as Set
         for (name in names) {
-            allFileNames.addAll([name, "${name}.sha1"])
+            expectedArtifacts.addAll([name, "${name}.sha1"])
         }
 
-        assert moduleDir.list() as Set == allFileNames
+        List<String> publishedArtifacts = moduleDir.list().sort()
+        expectedArtifacts = (expectedArtifacts as List).sort()
+        assert publishedArtifacts == expectedArtifacts
         for (name in names) {
             assertChecksumPublishedFor(moduleDir.file(name))
         }
@@ -448,6 +466,11 @@ ivyFileWriter << '</ivy-module>'
 
     void assertIvyAndJarFilePublished() {
         assertArtifactsPublished(ivyFile.name, jarFile.name)
+        assertPublished()
+    }
+
+    void assertMetadataAndJarFilePublished() {
+        assertArtifactsPublished(ivyFile.name, moduleMetadataFile.name, jarFile.name)
         assertPublished()
     }
 
@@ -476,4 +499,7 @@ ivyFileWriter << '</ivy-module>'
         parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
     }
 
+    interface IvyModuleArtifact extends ModuleArtifact {
+        Map<String, String> getIvyTokens()
+    }
 }

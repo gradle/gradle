@@ -20,9 +20,9 @@ import groovy.transform.NotYetImplemented
 import spock.lang.Issue
 
 class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
-    def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+    def ivyModule = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    public void "version range is mapped to ivy syntax in published ivy descriptor file"() {
+    void "version range is mapped to ivy syntax in published ivy descriptor file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
@@ -56,12 +56,12 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         ivyModule.assertPublishedAsJavaModule()
-        ivyModule.parsedIvy.assertDependsOn(
-            "group:projectA:latest.release@compile",
-            "group:projectB:latest.integration@compile",
-            "group:projectC:1.+@compile",
-            "group:projectD:[1.0,2.0)@compile",
-            "group:projectE:[1.0]@compile"
+        ivyModule.assertApiDependencies(
+            "group:projectA:latest.release",
+            "group:projectB:latest.integration",
+            "group:projectC:1.+",
+            "group:projectD:[1.0,2.0)",
+            "group:projectE:[1.0]"
         )
     }
 

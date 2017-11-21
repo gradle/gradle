@@ -18,13 +18,18 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
+
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+    private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
+
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<Artifact> artifacts;
     private final ImmutableList<Exclude> excludes;
@@ -96,5 +101,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return graphVariants;
+    }
+
+    @Nullable
+    @Override
+    public AttributesSchemaInternal getAttributesSchema() {
+        return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 }
