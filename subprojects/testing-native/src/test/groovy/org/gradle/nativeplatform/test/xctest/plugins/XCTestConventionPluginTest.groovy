@@ -77,7 +77,7 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(SwiftApplicationPlugin)
 
         then:
-        project.xctest.testedComponent.orNull == project.executable
+        project.xctest.testedComponent.orNull == project.application
     }
 
     def "registers a component for the test suite"() {
