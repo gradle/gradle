@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
@@ -224,25 +225,36 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
-    def "can select multiple tests from commandline #scenario"() {
+    def "can select multiple tests from command line #scenario"() {
         given:
         createPassingFailingTest()
 
         when:
-        runAndFail(*command)
+        runAndFail(toTestArgs(desiredTestFilters))
 
         then:
-        testResult.assertTestClassesExecuted(*classesExecuted)
-        if (!someOtherTestExecuted.isEmpty()) {
-            testResult.testClass("SomeOtherTest").assertTestsExecuted(*someOtherTestExecuted)
+        def results = testResult
+        results.assertTestClassesExecuted(desiredTestFilters.keySet().toArray(new String[0]))
+        desiredTestFilters.each { testClass, testCases ->
+            results.testClass(testClass).assertTestsExecuted(*testCases)
         }
-        testResult.testClass("SomeTest").assertTestsExecuted(*someTestExecuted)
 
         where:
-        scenario                      | command                                                                                                                                                       | classesExecuted               | someOtherTestExecuted | someTestExecuted
-        "no options"                  | [testTaskName]                                                                                                                                                | ["SomeTest", "SomeOtherTest"] | [passingTestCaseName] | [passingTestCaseName, failingTestCaseName]
-        "fail and SomeTest.pass"      | [testTaskName, "--tests", "${testSuite('SomeTest')}.$failingTestCaseName", "--tests", "${testSuite('SomeTest')}.$passingTestCaseName"]      | ["SomeTest"]                  | []                    | [passingTestCaseName, failingTestCaseName]
-        "fail and SomeOtherTest.fail" | [testTaskName, "--tests", "${testSuite('SomeTest')}.$failingTestCaseName", "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName"] | ["SomeTest", "SomeOtherTest"] | [passingTestCaseName] | [failingTestCaseName]
+        scenario                      | desiredTestFilters
+        "fail and SomeTest.pass"      | ['SomeTest': [failingTestCaseName, passingTestCaseName]]
+        "fail and SomeOtherTest.pass" | ['SomeTest': [failingTestCaseName], 'SomeOtherTest': [passingTestCaseName]]
+    }
+
+    private String[] toTestArgs(Map<String, List<String>> desiredTestFilters) {
+        def command = Lists.newArrayList()
+        command.add(testTaskName)
+
+        desiredTestFilters.each { testClass, testCases ->
+            testCases.collect { testCase ->
+                command.addAll([ '--tests', testSuite(testClass) + "." + testCase ])
+            }
+        }
+        return command.toArray()
     }
 
     @Unroll
