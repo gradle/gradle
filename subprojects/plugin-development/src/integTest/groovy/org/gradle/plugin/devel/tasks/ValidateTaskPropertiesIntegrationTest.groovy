@@ -22,20 +22,15 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
+            apply plugin: "java-gradle-plugin"
 
             dependencies {
                 compile gradleApi()
             }
 
-            tasks.create("validateTaskProperties", org.gradle.plugin.devel.tasks.ValidateTaskProperties) { validator ->
-                def sourceSet = sourceSets.main
-                validator.dependsOn sourceSet.output
-                validator.classpath = sourceSet.runtimeClasspath
-                validator.failOnWarning = true
-                validator.classes = sourceSets.main.output.classesDirs
+            validateTaskProperties {
+                failOnWarning = true
             }
-            tasks.check.dependsOn validateTaskProperties
         """
     }
 
@@ -54,9 +49,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     return count;
                 }
 
-                // Ignored because not a JavaBean getter
                 public long getter() {
-                    return System.currentTimeMillis();
+                    return 0L;
                 }
 
                 // Ignored because static
@@ -107,6 +101,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -144,6 +145,11 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
     }
 
     def "no problems with Copy task"() {
@@ -218,5 +224,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validateTaskProperties"
+
+        file("build/reports/task-properties/report.txt").text == ""
     }
 }

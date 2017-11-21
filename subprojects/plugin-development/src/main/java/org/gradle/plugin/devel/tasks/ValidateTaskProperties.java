@@ -27,11 +27,13 @@ import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.CacheableTask;
@@ -105,11 +107,12 @@ import java.util.Map;
  */
 @Incubating
 @CacheableTask
+@NonNullApi
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private FileCollection classes;
     private FileCollection classpath;
-    private Object outputFile;
+    private RegularFileProperty outputFile = newOutputFile();
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
@@ -187,15 +190,16 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             }
         });
         List<String> problemMessages = toProblemMessages(taskValidationProblems);
-        storeResults(problemMessages, getOutputFile());
+        storeResults(problemMessages);
         communicateResult(problemMessages, taskValidationProblems.values().contains(Boolean.TRUE));
     }
 
-    private void storeResults(List<String> problemMessages, File outputFile) throws IOException {
-        if (outputFile != null) {
+    private void storeResults(List<String> problemMessages) throws IOException {
+        if (outputFile.isPresent()) {
+            File output = outputFile.get().getAsFile();
             //noinspection ResultOfMethodCallIgnored
-            outputFile.createNewFile();
-            Files.asCharSink(outputFile, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
+            output.createNewFile();
+            Files.write(Joiner.on('\n').join(problemMessages), output, Charsets.UTF_8);
         }
     }
 
@@ -239,6 +243,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
         return  Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
             @Override
+            @SuppressWarnings("NullableProblems")
             public InvalidUserDataException apply(String problemMessage) {
                 return new InvalidUserDataException(problemMessage);
             }
@@ -307,26 +312,13 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * Returns the output file to store the report in.
-     */
-    @Optional @OutputFile
-    public File getOutputFile() {
-        return outputFile == null ? null : getProject().file(outputFile);
-    }
-
-    /**
-     * Sets the output file to store the report in.
      *
-     * @since 4.0
+     * @since 4.5
      */
-    public void setOutputFile(File outputFile) {
-        setOutputFile((Object) outputFile);
-    }
-
-    /**
-     * Sets the output file to store the report in.
-     */
-    public void setOutputFile(Object outputFile) {
-        this.outputFile = outputFile;
+    @Optional
+    @OutputFile
+    public RegularFileProperty getOutputFile() {
+        return outputFile;
     }
 
     /**
