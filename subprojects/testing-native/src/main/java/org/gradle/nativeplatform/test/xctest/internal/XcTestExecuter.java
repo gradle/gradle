@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -74,8 +73,7 @@ public class XcTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         File workingDir = testExecutionSpec.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(XcTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
-        DefaultTestFilter testFilter = testExecutionSpec.getTestFilter();
-        Runnable detector = new XcTestDetector(processor, new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
+        Runnable detector = new XcTestDetector(processor, testExecutionSpec.getTestSelection());
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.testing.AbstractTestTask;
+import org.gradle.nativeplatform.test.xctest.internal.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.XCTestTestExecutionSpec;
 import org.gradle.nativeplatform.test.xctest.internal.XcTestExecuter;
 
@@ -51,7 +52,10 @@ public class XcTest extends AbstractTestTask {
      */
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {
-        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath(), (DefaultTestFilter) getFilter());
+        DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();
+
+        return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath(),
+            new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
     }
 
     /**
