@@ -1,3 +1,7 @@
+plugins {
+    id 'application'
+}
+
 configurations {
     androidTools
     compile.extendsFrom androidTools
@@ -31,8 +35,6 @@ class BuildClassPath extends DefaultTask {
         }
     }
 }
-
-apply plugin: 'application'
 
 mainClassName = 'org.gradle.performance.android.Main'
 applicationName = 'android-test-app'
