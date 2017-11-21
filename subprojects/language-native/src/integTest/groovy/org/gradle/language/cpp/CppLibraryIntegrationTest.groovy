@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
@@ -24,7 +25,7 @@ import org.hamcrest.Matchers
 
 import static org.gradle.util.Matchers.containsText
 
-class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames, DebugInfo {
 
     def "skip compile and link tasks when no source"() {
         given:
@@ -108,10 +109,15 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         expect:
         executer.withArgument("--info")
-        succeeds "linkRelease"
+        def releaseTask = toolChain.visualCpp ? "linkRelease" : "stripSymbolsRelease"
+        succeeds releaseTask
 
-        result.assertTasksExecuted(compileAndLinkTasks(release))
+        result.assertTasksExecuted(compileAndLinkTasks(release), stripSymbolsTasksRelease(toolChain))
         sharedLibrary("build/lib/main/release/hello").assertExists()
+        if (!toolChain.visualCpp) {
+            assertHasDebugSymbolsForSources(sharedLibrary("build/lib/main/release/hello"), lib)
+            assertDoesNotHaveDebugSymbolsForSources(sharedLibrary("build/lib/main/release/stripped/hello"), lib)
+        }
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
@@ -328,12 +334,18 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
-        succeeds ":lib1:linkRelease"
+        def releaseTask = toolChain.visualCpp ? "linkRelease" : "stripSymbolsRelease"
+        succeeds ":lib1:${releaseTask}"
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release, toolChain))
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2', ':lib1'], release, toolChain))
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
+        if (!toolChain.visualCpp) {
+            sharedLibrary("lib1/build/lib/main/release/stripped/lib1").assertExists()
+            sharedLibrary("lib2/build/lib/main/release/stripped/lib2").assertExists()
+            sharedLibrary("lib3/build/lib/main/release/stripped/lib3").assertExists()
+        }
     }
 
     def "private headers are not visible to consumer"() {

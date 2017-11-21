@@ -88,7 +88,7 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
 
     private void assertTasksExecutedFor(String buildType) {
         def tasks = [":app:depend${buildType}Cpp", ":hello:depend${buildType}Cpp", ":log:depend${buildType}Cpp", ":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}"]
-        if (buildType == "Release") {
+        if (buildType == "Release" && !toolChain.visualCpp) {
             tasks << [ ":log:extractSymbols${buildType}", ":log:stripSymbols${buildType}", ":hello:extractSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:extractSymbols${buildType}", ":app:stripSymbols${buildType}"]
         }
         assert result.assertTasksExecuted(tasks)

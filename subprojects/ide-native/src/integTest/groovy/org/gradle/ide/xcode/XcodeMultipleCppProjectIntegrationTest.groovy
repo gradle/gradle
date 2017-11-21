@@ -84,7 +84,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseApp.assertTasksExecuted(':greeter:dependReleaseCpp', ':greeter:compileReleaseCpp', ':greeter:linkRelease',
+        resultReleaseApp.assertTasksExecuted(':greeter:dependReleaseCpp', ':greeter:compileReleaseCpp', ':greeter:linkRelease', ':greeter:extractSymbolsRelease', ':greeter:stripSymbolsRelease',
             ':app:dependReleaseCpp', ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
@@ -160,8 +160,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':shuffle:dependReleaseCpp', ':shuffle:compileReleaseCpp', ':shuffle:linkRelease',
-            ':card:dependReleaseCpp', ':card:compileReleaseCpp', ':card:linkRelease',
+        resultReleaseHello.assertTasksExecuted(':shuffle:dependReleaseCpp', ':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:extractSymbolsRelease', ':shuffle:stripSymbolsRelease',
+            ':card:dependReleaseCpp', ':card:compileReleaseCpp', ':card:linkRelease', ':card:extractSymbolsRelease', ':card:stripSymbolsRelease',
             ':deck:dependReleaseCpp', ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:_xcode___Deck_Release')
     }
 

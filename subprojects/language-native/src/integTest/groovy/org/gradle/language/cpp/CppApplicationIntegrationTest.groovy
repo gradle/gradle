@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
@@ -26,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 
 import static org.gradle.util.Matchers.containsText
 
-class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames, DebugInfo {
 
     def "skip compile, link and install tasks when no source"() {
         given:
@@ -99,6 +100,10 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
         result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), stripSymbolsTasksRelease(toolChain), installTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
+        if (!toolChain.visualCpp) {
+            assertHasDebugSymbolsForSources(executable("build/exe/main/release/app"), app)
+            assertDoesNotHaveDebugSymbolsForSources(executable("build/exe/main/release/stripped/app"), app)
+        }
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds "installDebug"
@@ -384,6 +389,10 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
         result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasks([':hello', ':app'], release, toolChain), installTaskRelease(':app'))
         executable("app/build/exe/main/release/app").assertExists()
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
+        if (!toolChain.visualCpp) {
+            executable("app/build/exe/main/release/stripped/app").assertExists()
+            sharedLibrary("hello/build/lib/main/release/stripped/hello").assertExists()
+        }
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds ":app:installDebug"

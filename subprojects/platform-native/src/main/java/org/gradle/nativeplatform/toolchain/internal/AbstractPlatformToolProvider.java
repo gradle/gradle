@@ -189,9 +189,13 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         throw unavailableTool("Static library archiver is not available");
     }
 
-    protected Compiler<?> createSymbolExtractor() { throw unavailableTool("Symbol extracter is not available"); }
+    protected Compiler<?> createSymbolExtractor() {
+        throw unavailableTool("Symbol extracter is not available");
+    }
 
-    protected Compiler<?> createStripper() { throw unavailableTool("Stripper is not available"); }
+    protected Compiler<?> createStripper() {
+        throw unavailableTool("Stripper is not available");
+    }
 
     @Override
     public String getObjectFileExtension() {

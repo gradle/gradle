@@ -181,13 +181,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get()) + SymbolExtractorOsConfig.getExtension();
+                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get()) + SymbolExtractorOsConfig.getExtension();
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
+                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
                             }
                         }));
                         StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);

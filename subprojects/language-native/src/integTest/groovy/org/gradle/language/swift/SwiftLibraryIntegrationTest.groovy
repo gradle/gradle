@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -27,7 +28,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DebugInfo {
     def "skip compile and link tasks when no source"() {
         given:
         buildFile << """
@@ -86,11 +87,16 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
          """
 
-        expect:
-        succeeds "linkRelease"
-        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
+        when:
+        succeeds "stripSymbolsRelease"
+
+        then:
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease")
         file("build/modules/main/release/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/release/${lib.moduleName}" ).assertExists()
+        assertHasDebugSymbolsForSources(sharedLibrary("build/lib/main/release/${lib.moduleName}" ), lib)
+        sharedLibrary("build/lib/main/release/stripped/${lib.moduleName}" ).assertExists()
+        assertDoesNotHaveDebugSymbolsForSources(sharedLibrary("build/lib/main/release/stripped/${lib.moduleName}" ), lib)
     }
 
     def "can use link file as task dependency"() {
@@ -271,11 +277,15 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
 
-        succeeds ":hello:linkRelease"
+        succeeds ":hello:stripSymbolsRelease"
 
-        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:extractSymbolsRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease")
+        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:extractSymbolsRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease")
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
+        assertHasDebugSymbolsForSources(sharedLibrary("hello/build/lib/main/release/Hello"), app.library)
+        assertDoesNotHaveDebugSymbolsForSources(sharedLibrary("hello/build/lib/main/release/stripped/Hello"), app.library)
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
+        assertHasDebugSymbolsForSources(sharedLibrary("log/build/lib/main/release/Log"), app.logLibrary)
+        assertDoesNotHaveDebugSymbolsForSources(sharedLibrary("log/build/lib/main/release/stripped/Log"), app.logLibrary)
     }
 
     def "can change default module name and successfully link against library"() {

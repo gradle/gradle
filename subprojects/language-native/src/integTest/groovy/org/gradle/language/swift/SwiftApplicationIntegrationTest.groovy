@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -28,7 +29,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DebugInfo {
     def "skip compile, link and install tasks when no source"() {
         given:
         buildFile << """
@@ -154,6 +155,8 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
     def "can build debug and release variant of the executable"() {
         given:
         def app = new SwiftAppWithOptionalFeature()
+        def debugBinary = executable("build/exe/main/debug/App")
+        def releaseBinary = executable("build/exe/main/release/stripped/App")
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
 
@@ -167,17 +170,20 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         succeeds "installRelease"
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease")
 
-        executable("build/exe/main/release/App").assertExists()
-        executable("build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
+        releaseBinary.assertExists()
+        releaseBinary.exec().out == app.withFeatureEnabled().expectedOutput
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
+        assertDoesNotHaveDebugSymbolsForSources(releaseBinary, app)
+        assertHasDebugSymbolsForSources(executable("build/exe/main/release/App"), app)
 
         succeeds "installDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug")
 
         file("build/modules/main/release/App.swiftmodule").assertIsFile()
-        executable("build/exe/main/debug/App").assertExists()
-        executable("build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
+        debugBinary.assertExists()
+        debugBinary.exec().out == app.withFeatureDisabled().expectedOutput
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
+        assertHasDebugSymbolsForSources(debugBinary, app)
     }
 
     def "can use executable file as task dependency"() {

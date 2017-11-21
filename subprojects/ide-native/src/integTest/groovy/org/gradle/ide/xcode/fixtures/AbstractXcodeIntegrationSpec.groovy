@@ -19,12 +19,10 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
-import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig
+import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.test.fixtures.file.TestFile
 
-class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
+class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements DebugInfo {
     def setup() {
         buildFile << """
 allprojects {
@@ -196,14 +194,5 @@ Actual: ${actual[key]}
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == swiftIncludes
-    }
-
-    void assertHasDebugSymbolsForSources(TestFile binary, SourceElement sourceElement) {
-        def fixture = new NativeBinaryFixture(binary, null)
-        assert fixture.binaryInfo.hasDebugSymbolsFor(sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name })
-    }
-
-    TestFile getSymbolFile(TestFile binary) {
-        return file(binary.absolutePath + SymbolExtractorOsConfig.extension)
     }
 }

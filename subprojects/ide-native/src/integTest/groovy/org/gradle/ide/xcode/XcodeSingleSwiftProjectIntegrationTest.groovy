@@ -343,7 +343,6 @@ apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
-        //executer.startLauncherInDebugger(true)
         succeeds("xcode")
 
         when:
