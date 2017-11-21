@@ -37,11 +37,6 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_LICENSE_DECLINATION = 'Gradle Cloud Services license agreement not accepted.'
     private static final String BUILD_SCAN_WARNING = 'WARNING: The build scan plugin was applied after other plugins.'
 
-    def setup() {
-        requireOwnGradleUserHomeDir()
-        requireGradleDistribution()
-    }
-
     def "can auto-apply build scan plugin but does not ask for license acceptance in non-interactive console"() {
         given:
         buildFile << dummyBuildFile()
@@ -151,9 +146,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFailure()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
