@@ -23,7 +23,8 @@ class Install extends Sync {
     @Internal
     String installDirPropertyName
 
-    private File installDir
+    @Internal
+    File installDir
 
     def Install() {
         addPropertyCheck()
