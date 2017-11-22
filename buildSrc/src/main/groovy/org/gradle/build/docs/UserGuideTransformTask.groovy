@@ -81,8 +81,6 @@ class UserGuideTransformTask extends DefaultTask {
     @Input
     Set<String> tags = new LinkedHashSet()
 
-    final SampleElementValidator validator = new SampleElementValidator()
-
     @Input String getJavadocUrl() {
         javadocUrl
     }
@@ -94,6 +92,8 @@ class UserGuideTransformTask extends DefaultTask {
     @Input String getWebsiteUrl() {
         websiteUrl
     }
+
+    private final SampleElementValidator validator = new SampleElementValidator()
 
     @TaskAction
     def transform() {
