@@ -77,7 +77,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         moduleSource = source;
         dependencies = metadata.getDependencies();
         dependencyMetadataRules = metadata.dependencyMetadataRules;
-        configurations = metadata.getConfigurations();
+        configurations = metadata.configurations;
         contentHash = metadata.getContentHash();
     }
 
@@ -198,11 +198,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     @Override
     public List<? extends ModuleDependencyMetadata> getDependencies() {
         return dependencies;
-    }
-
-    @Override
-    public ImmutableMap<String, T> getConfigurations() {
-        return configurations;
     }
 
     @Override

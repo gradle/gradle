@@ -105,8 +105,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         expect:
         def immutable = metadata.asImmutable()
-        immutable.configurations["compile"].artifacts.name.name == ["two", "three"]
-        immutable.configurations["runtime"].artifacts.name.name == ["one", "two", "three"]
+        immutable.getConfiguration("compile").artifacts.name.name == ["two", "three"]
+        immutable.getConfiguration("runtime").artifacts.name.name == ["one", "two", "three"]
     }
 
     def "can override values from descriptor"() {
