@@ -38,6 +38,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -49,6 +50,8 @@ class DefaultIvyPublicationTest extends Specification {
     def projectIdentity = Mock(IvyPublicationIdentity)
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
+    def attributesFactory = TestUtil.attributesFactory()
+
     File descriptorFile
     File artifactFile
 
@@ -265,7 +268,15 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver, TestFiles.fileCollectionFactory())
+        def publication = instantiator.newInstance(DefaultIvyPublication,
+            "pub-name",
+            instantiator,
+            projectIdentity,
+            notationParser,
+            projectDependencyResolver,
+            TestFiles.fileCollectionFactory(),
+            attributesFactory
+        )
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }

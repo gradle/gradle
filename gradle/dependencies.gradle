@@ -19,7 +19,7 @@ ext {
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.12.3'
+versions.gradle_kotlin_dsl = '0.13.1'
 versions.commons_io = '2.2'
 versions.groovy = '2.4.12'
 versions.bouncycastle = '1.58'
@@ -175,10 +175,10 @@ allprojects { currentProject ->
             }
             withModule('org.apache.maven.wagon:wagon-provider-api') {
                 withVariant('default') {
-                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { it.version = '2.1' }}
+                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { changeVersionInMetadata it, '2.1' }}
                 }
                 withVariant('runtime') {
-                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { it.version = '2.1' }}
+                    withDependencies { it.findAll { it.name == 'plexus-utils' }.each { changeVersionInMetadata it, '2.1' }}
                 }
             }
             withModule('org.apache.xbean:xbean-reflect') {
@@ -238,7 +238,7 @@ allprojects { currentProject ->
                 withVariant('default') {
                     withDependencies {
                         it.findAll { it.group == 'xerces' }.each {
-                            it.version = '2.11.0'
+                            changeVersionInMetadata it, '2.11.0'
                         }
                     }
                 }
@@ -270,7 +270,7 @@ allprojects { currentProject ->
                 withVariant('default') {
                     withDependencies {
                         it.findAll { it.group == 'org.slf4j' }.each {
-                            it.version = '1.7.10'
+                            changeVersionInMetadata it, '1.7.10'
                         }
                         add('org.apache.mina:mina-core:2.0.10') //is declared, but optional
                     }
@@ -280,14 +280,14 @@ allprojects { currentProject ->
                 withVariant('default') {
                     withDependencies {
                         it.findAll { it.group == 'org.slf4j' }.each {
-                            it.version = '1.7.10'
+                            changeVersionInMetadata it, '1.7.10'
                         }
                     }
                 }
                 withVariant('runtime') {
                     withDependencies {
                         it.findAll { it.group == 'org.slf4j' }.each {
-                            it.version = '1.7.10'
+                            changeVersionInMetadata it, '1.7.10'
                         }
                     }
                 }
@@ -296,7 +296,7 @@ allprojects { currentProject ->
                 withVariant('default') {
                     withDependencies {
                         it.findAll { it.group == 'org.objenesis' }.each {
-                            it.version = '1.2'
+                            changeVersionInMetadata it, '1.2'
                         }
                     }
                 }
@@ -320,21 +320,29 @@ allprojects { currentProject ->
                         withDependencies {
                             it.removeAll { it.group == 'commons-logging' }
                             add(libraries.jcl_to_slf4j)
-                            it.findAll { it.group == 'commons-codec' }.each { it.version = '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { it.version = '4.4.8' }
+                            it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
+                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, '4.4.8' }
                             add(libraries.jcifs)
                         }
                     }
                     withVariant('runtime') {
                         withDependencies {
                             it.removeAll { it.group == 'commons-logging' }
-                            it.findAll { it.group == 'commons-codec' }.each { it.version = '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { it.version = '4.4.8' }
+                            it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
+                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, '4.4.8' }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+def changeVersionInMetadata(DependencyMetadata dependencyMetadata, String version) {
+    if (dependencyMetadata.hasProperty('version')) {
+        dependencyMetadata.version = version
+    } else {
+        dependencyMetadata.version { prefer version }
     }
 }
 

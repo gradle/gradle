@@ -65,9 +65,23 @@ public class DefaultInclude implements Include {
             return DefaultInclude.create(strip(value), isImport, IncludeType.SYSTEM);
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
             return DefaultInclude.create(strip(value), isImport, IncludeType.QUOTED);
-        } else {
+        }
+        int pos = RegexBackedCSourceParser.consumeIdentifier(value, 0);
+        if (pos > 0 && pos == value.length()) {
             return DefaultInclude.create(value, isImport, IncludeType.MACRO);
         }
+        if (pos > 0 && pos != value.length()) {
+            int endPos = pos;
+            pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
+            if (value.charAt(pos) == '(') {
+                pos++;
+                pos = RegexBackedCSourceParser.consumeWhitespace(value, pos);
+                if (pos == value.length() - 1 && value.charAt(pos) == ')') {
+                    return DefaultInclude.create(value.substring(0, endPos), isImport, IncludeType.MACRO_FUNCTION);
+                }
+            }
+        }
+        return DefaultInclude.create(value, isImport, IncludeType.OTHER);
     }
 
     private static String strip(String include) {

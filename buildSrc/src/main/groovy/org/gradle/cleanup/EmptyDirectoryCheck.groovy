@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -28,7 +29,7 @@ import org.gradle.api.tasks.TaskAction
  * the directory to a report file.
  */
 class EmptyDirectoryCheck extends DefaultTask {
-    @Input
+    @InputFiles
     FileTree targetDir
 
     @OutputFile

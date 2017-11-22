@@ -37,11 +37,6 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_LICENSE_DECLINATION = 'Gradle Cloud Services license agreement not accepted.'
     private static final String BUILD_SCAN_WARNING = 'WARNING: The build scan plugin was applied after other plugins.'
 
-    def setup() {
-        requireOwnGradleUserHomeDir()
-        requireGradleDistribution()
-    }
-
     def "can auto-apply build scan plugin but does not ask for license acceptance in non-interactive console"() {
         given:
         buildFile << dummyBuildFile()
@@ -66,9 +61,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, YES.bytes)
+        writeToStdInAndClose(gradleHandle, YES.bytes)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
@@ -85,9 +79,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, NO.bytes)
+        writeToStdInAndClose(gradleHandle, NO.bytes)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
@@ -107,9 +100,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
+        writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
         !result.output.contains(BUILD_SCAN_LICENSE_DECLINATION)
@@ -133,9 +125,8 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
-        writeToStdIn(gradleHandle, EOF)
+        writeToStdInAndClose(gradleHandle, EOF)
         def result = gradleHandle.waitForFinish()
-        closeStdIn(gradleHandle)
         !result.output.contains(BUILD_SCAN_WARNING)
         result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
         !result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
@@ -143,6 +134,26 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
         result.output.contains(BUILD_SCAN_LICENSE_NOTE)
         !result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3516")
+    def "renders build scan hint in build failure output if command line option was requested"() {
+        given:
+        withInteractiveConsole()
+        buildFile << failingBuildFile()
+
+        when:
+        def gradleHandle = startBuildWithBuildScanCommandLineOption()
+
+        then:
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+        def result = gradleHandle.waitForFailure()
+        result.output.contains(BUILD_SCAN_LICENSE_QUESTION)
+        result.output.contains(BUILD_SCAN_LICENSE_ACCEPTANCE)
+        result.output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        !result.output.contains(BUILD_SCAN_PLUGIN_CONFIG_PROBLEM)
+        !result.output.contains(BUILD_SCAN_LICENSE_NOTE)
+        result.error.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     private void withInteractiveConsole() {
@@ -155,5 +166,15 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
     static String dummyBuildFile() {
         "task $DUMMY_TASK_NAME"
+    }
+
+    static String failingBuildFile() {
+        """
+            task $DUMMY_TASK_NAME {
+                doLast {
+                    throw new GradleException('something went wrong')
+                }
+            }
+        """
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,20 +30,25 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class ModuleMetadataFileGenerator {
@@ -56,7 +62,7 @@ public class ModuleMetadataFileGenerator {
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, ModuleVersionIdentifier> coordinates = new HashMap<SoftwareComponent, ModuleVersionIdentifier>();
+        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<SoftwareComponent, ComponentData>();
         collectCoordinates(publications, coordinates);
 
         // Collect a map from component to its owning component. This might be better to move to the component or some publications model
@@ -83,18 +89,20 @@ public class ModuleMetadataFileGenerator {
         }
     }
 
-    private void collectCoordinates(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, ModuleVersionIdentifier> coordinates) {
+    private void collectCoordinates(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, ComponentData> coordinates) {
         for (PublicationInternal publication : publications) {
             if (publication.getComponent() != null) {
-                coordinates.put(publication.getComponent(), publication.getCoordinates());
+                ModuleVersionIdentifier moduleVersionIdentifier = publication.getCoordinates();
+                ImmutableAttributes attributes = publication.getAttributes();
+                coordinates.put(publication.getComponent(), new ComponentData(moduleVersionIdentifier, attributes));
             }
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
-        writeIdentity(publication.getCoordinates(), component, componentCoordinates, owners, jsonWriter);
+        writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
         writeCreator(jsonWriter);
         writeVariants(publication, component, componentCoordinates, jsonWriter);
         jsonWriter.endObject();
@@ -115,7 +123,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeIdentity(ModuleVersionIdentifier coordinates, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeIdentity(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
         SoftwareComponent owner = owners.get(component);
         if (owner == null) {
             jsonWriter.name("component");
@@ -126,9 +134,11 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(coordinates.getName());
             jsonWriter.name("version");
             jsonWriter.value(coordinates.getVersion());
+            writeAttributes(attributes, jsonWriter);
             jsonWriter.endObject();
         } else {
-            ModuleVersionIdentifier ownerCoordinates = componentCoordinates.get(owner);
+            ComponentData componentData = componentCoordinates.get(owner);
+            ModuleVersionIdentifier ownerCoordinates = componentData.coordinates;
             jsonWriter.name("component");
             jsonWriter.beginObject();
             jsonWriter.name("url");
@@ -139,11 +149,12 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.value(ownerCoordinates.getName());
             jsonWriter.name("version");
             jsonWriter.value(ownerCoordinates.getVersion());
+            writeAttributes(componentData.attributes, jsonWriter);
             jsonWriter.endObject();
         }
     }
 
-    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ModuleVersionIdentifier> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter) throws IOException {
         boolean started = false;
         for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
             if (!started) {
@@ -155,7 +166,8 @@ public class ModuleMetadataFileGenerator {
         }
         if (component instanceof ComponentWithVariants) {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
-                ModuleVersionIdentifier childCoordinates = componentCoordinates.get(childComponent);
+                ComponentData componentData = componentCoordinates.get(childComponent);
+                ModuleVersionIdentifier childCoordinates = componentData == null ? null : componentData.coordinates;
                 if (childCoordinates == null) {
                     continue;
                 }
@@ -337,7 +349,45 @@ public class ModuleMetadataFileGenerator {
                 vc = DefaultImmutableVersionConstraint.of(moduleDependency.getVersion());
             }
             writeVersionConstraint(vc, jsonWriter);
+            writeExcludes(moduleDependency, jsonWriter);
         }
         jsonWriter.endObject();
+    }
+
+    private void writeExcludes(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
+        Set<ExcludeRule> excludeRules;
+        if (!moduleDependency.isTransitive()) {
+            excludeRules = Collections.<ExcludeRule>singleton(new DefaultExcludeRule(null, null));
+        } else {
+            excludeRules = moduleDependency.getExcludeRules();
+        }
+        if (excludeRules.isEmpty()) {
+            return;
+        }
+
+        jsonWriter.name("excludes");
+        jsonWriter.beginArray();
+        for (ExcludeRule excludeRule : excludeRules) {
+            jsonWriter.beginObject();
+            jsonWriter.name("group");
+            String group = GUtil.elvis(excludeRule.getGroup(), "*");
+            jsonWriter.value(group);
+            jsonWriter.name("module");
+            String module = GUtil.elvis(excludeRule.getModule(), "*");
+            jsonWriter.value(module);
+
+            jsonWriter.endObject();
+        }
+        jsonWriter.endArray();
+    }
+
+    private static class ComponentData {
+        private final ModuleVersionIdentifier coordinates;
+        private final ImmutableAttributes attributes;
+
+        private ComponentData(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes) {
+            this.coordinates = coordinates;
+            this.attributes = attributes;
+        }
     }
 }

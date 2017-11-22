@@ -16,10 +16,12 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
@@ -27,12 +29,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Patte
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.DefaultDependencyMetadata
 import org.gradle.internal.component.model.DefaultDependencyMetadataTest
 import org.gradle.internal.component.model.Exclude
+import org.gradle.util.TestUtil
 
 import static com.google.common.collect.ImmutableList.copyOf
 
@@ -393,4 +398,23 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         "%"    | "to"
         "%"    | "to(to)"
     }
+
+    def "selects target configuration using attribute matching when target has variants to select from"() {
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata)
+        def fromCompile = Stub(ConfigurationMetadata)
+        def toMaster = Stub(ConfigurationMetadata)
+        toComponent.variantsForGraphTraversal >> ImmutableList.of(toMaster)
+        toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
+        def attrs = TestUtil.attributesFactory().of(Attribute.of(String), "value").asImmutable()
+        def matcher = Stub(AttributeMatcher)
+        attributesSchema.withProducer(_) >> matcher
+        matcher.matches([toMaster], attrs, _) >> [toMaster]
+
+        def dep = new IvyDependencyMetadata(Stub(ModuleComponentSelector), ImmutableListMultimap.of())
+
+        expect:
+        dep.selectConfigurations(attrs, fromComponent, fromCompile, toComponent, attributesSchema) as List == [toMaster]
+    }
+
 }

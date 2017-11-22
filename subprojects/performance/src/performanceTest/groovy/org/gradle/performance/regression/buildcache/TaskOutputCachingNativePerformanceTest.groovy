@@ -23,7 +23,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
 
     def setup() {
         runner.minimumVersion = "4.3"
-        runner.targetVersions = ["4.4-20171108153325+0000"]
+        runner.targetVersions = ["4.5-20171117235935+0000"]
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
@@ -44,6 +44,6 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         testProject        | task                         | maxMemory
         'bigCppApp'        | 'assemble'                   | '256m'
         'bigCppMulti'      | 'assemble'                   | '1G'
-        'bigNative'        | 'assemble'                   | '1G'
+//        'bigNative'        | 'assemble'                   | '1G'
     }
 }

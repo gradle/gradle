@@ -24,12 +24,14 @@ class GradleFileModuleAdapter {
     private final String module
     private final String version
     private final List<VariantMetadata> variants
+    private final Map<String, String> attributes
 
-    public GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadata> variants) {
+    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadata> variants, Map<String, String> attributes = [:]) {
         this.group = group
         this.module = module
         this.version = version
         this.variants = variants
+        this.attributes = attributes
     }
 
     void publishTo(TestFile moduleDir) {
@@ -37,9 +39,19 @@ class GradleFileModuleAdapter {
         def file = moduleDir.file("$module-${version}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion '0.2'
+            formatVersion '0.3'
             builtBy {
                 gradle { }
+            }
+            component {
+                group this.group
+                module this.module
+                version this.version
+                attributes {
+                    this.attributes.each { key, value ->
+                        "$key" value
+                    }
+                }
             }
             variants(this.variants.collect { v ->
                 { ->
@@ -62,6 +74,14 @@ class GradleFileModuleAdapter {
                             version {
                                 prefers d.prefers
                                 rejects d.rejects
+                            }
+                            if (d.exclusions) {
+                                excludes(d.exclusions.collect { e ->
+                                    { ->
+                                        group e.group
+                                        module e.module
+                                    }
+                                })
                             }
                         }
                     })

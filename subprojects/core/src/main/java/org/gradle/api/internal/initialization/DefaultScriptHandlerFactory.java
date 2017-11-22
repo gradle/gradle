@@ -43,7 +43,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
-        return create(scriptSource, classLoaderScope, new BasicDomainObjectContext());
+        return create(scriptSource, classLoaderScope, RootScriptDomainObjectContext.INSTANCE);
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {

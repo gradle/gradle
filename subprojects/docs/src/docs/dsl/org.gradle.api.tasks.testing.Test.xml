@@ -125,9 +125,6 @@
                 <td>executable</td>
             </tr>
             <tr>
-                <td>setTestNameIncludePatterns</td>
-            </tr>
-            <tr>
                 <td>systemProperties</td>
             </tr>
             <tr>

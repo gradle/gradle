@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -33,6 +34,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
@@ -231,6 +233,17 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.moduleSource = source;
     }
 
+    public void setAttributes(ImmutableAttributes attributes) {
+        // map the "status" attribute to the "status" field
+        // currently this is the only "attribute" that is supported
+        // so this explains that we don't bother storing the whole attribute set
+        // into a mutable attribute container, but only map known attributes
+        // to fiels instead
+        if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
+            setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
+        }
+    }
+
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
@@ -359,8 +372,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes));
         }
 
         @Override
@@ -397,11 +410,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         private final String group;
         private final String module;
         private final VersionConstraint versionConstraint;
+        private final ImmutableList<Exclude> excludes;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.excludes = ImmutableList.copyOf(excludes);
         }
 
         @Override
@@ -417,6 +432,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         @Override
         public VersionConstraint getVersionConstraint() {
             return versionConstraint;
+        }
+
+        @Override
+        public ImmutableList<Exclude> getExcludes() {
+            return excludes;
         }
     }
 

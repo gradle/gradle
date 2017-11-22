@@ -106,7 +106,115 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Git repo is cloned
         def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
         gitCheckout.file('.git').assertExists()
+    }
 
+    def 'can resolve specific version'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.replace('class', 'interface')
+        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+
+        buildFile.replace('latest.integration', '1.3.0')
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+    }
+
+    def 'handle missing version by adding tag to git repository'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.replace('class', 'interface')
+        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+
+        buildFile.replace('latest.integration', '1.4.0')
+
+        when:
+        fails('assemble')
+
+        then:
+        failureCauseContains("Could not resolve org.test:dep:1.4.0. Git Repository at file:")
+        failureCauseContains("does not contain a version matching 1.4.0")
+
+        when:
+        javaFile.replace('interface', 'class')
+        repo.commit('Switch it back to a class.', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.4.0')
+
+        then:
+        succeeds('assemble')
+    }
+
+    def 'can handle conflicting versions'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+            
+            dependencies {
+                compile "org.test:dep:1.3.0"
+                compile "org.test:dep:1.4.0"
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.3.0')
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.replace('class', 'interface')
+        def commit2 = repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+        repo.createLightWeightTag('1.4.0')
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+        def gitCheckout2 = checkoutDir('dep', commit2.id.name, "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout2.file('.git').assertExists()
     }
 
     // TODO: Use HTTP hosting for git repo

@@ -38,7 +38,7 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -54,7 +54,7 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
-import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -181,7 +181,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private static Task createTestingTask(final Project project, SwiftXCTestSuite testSuite) {
         final TaskContainer tasks = project.getTasks();
 
-        final XcTest testTask = tasks.create("xcTest", XcTest.class);
+        final XCTest testTask = tasks.create("xcTest", XCTest.class);
 
         SwiftXCTestBinary binary = testSuite.getDevelopmentBinary();
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
@@ -212,7 +212,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project) {
-        project.getPlugins().withType(SwiftExecutablePlugin.class, configureTestSuiteWithTestedComponent(project));
+        project.getPlugins().withType(SwiftApplicationPlugin.class, configureTestSuiteWithTestedComponent(project));
         project.getPlugins().withType(SwiftLibraryPlugin.class, configureTestSuiteWithTestedComponent(project));
     }
 
@@ -246,14 +246,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
 
                 if (testedComponent instanceof SwiftApplication) {
-                    final UnexportMainSymbol relocate = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                    relocate.source(testedComponent.getDevelopmentBinary().getObjects());
+                    final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                    unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
 
-                    linkTest.source(relocate);
+                    linkTest.source(unexportMainSymbol.getObjects());
                     linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
                         @Override
                         public boolean isSatisfiedBy(File objectFile) {
-                            return !objectFile.equals(relocate.getMainObject());
+                            return !objectFile.equals(unexportMainSymbol.getMainObject());
                         }
                     }));
                 } else {

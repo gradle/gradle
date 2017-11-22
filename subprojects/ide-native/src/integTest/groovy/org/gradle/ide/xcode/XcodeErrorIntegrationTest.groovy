@@ -29,7 +29,7 @@ class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
 
         given:
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
 
         and:

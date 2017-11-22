@@ -36,7 +36,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     }
 
     def local = Mock(Local) {
-        allocateTempFile(_, _) >> { key, action ->
+        withTempFile(_, _) >> { key, action ->
             action.execute(tmpDir.file("file"))
         }
     }
@@ -104,8 +104,8 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        1 * local.load(key, _)
-        0 * local.store(key, _)
+        1 * local.loadLocally(key, _)
+        0 * local.storeLocally(key, _)
     }
 
     def "does suppress exceptions from store"() {
@@ -119,7 +119,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         noExceptionThrown()
 
         and:
-        1 * local.store(key, _)
+        1 * local.storeLocally(key, _)
     }
 
     def "does not store to local if local push is disabled"() {
@@ -130,7 +130,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.store(storeCommand)
 
         then:
-        0 * local.store(key, _)
+        0 * local.storeLocally(key, _)
     }
 
     def "does not store to local if no local"() {
@@ -146,7 +146,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def "local load does not stores to local"() {
         given:
-        1 * local.load(key, _) >> { BuildCacheKey key, Action<File> action ->
+        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Action<File> action ->
             def file = tmpDir.file("file")
             file.text = "alma"
             action.execute(file)
@@ -156,12 +156,12 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        0 * local.store(key, _)
+        0 * local.storeLocally(key, _)
     }
 
     def "remote load also stores to local"() {
         given:
-        1 * local.load(key, _) // miss
+        1 * local.loadLocally(key, _) // miss
         1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
             reader.readFrom(new ByteArrayInputStream("foo".bytes))
             true
@@ -171,7 +171,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        1 * local.store(key, _)
+        1 * local.storeLocally(key, _)
     }
 
     def "remote load does not store to local if local is disabled"() {
@@ -192,7 +192,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     def "remote load does not store to local if local push is disabled"() {
         given:
         localPush = false
-        1 * local.load(key, _) // miss
+        1 * local.loadLocally(key, _) // miss
         1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
             reader.readFrom(new ByteArrayInputStream("foo".bytes))
             true
@@ -202,7 +202,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         controller.load(loadCommand)
 
         then:
-        0 * local.store(key, _)
+        0 * local.storeLocally(key, _)
     }
 
     def "stops calling through after read error"() {

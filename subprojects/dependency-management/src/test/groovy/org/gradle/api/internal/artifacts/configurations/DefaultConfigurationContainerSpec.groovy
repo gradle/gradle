@@ -98,7 +98,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
-        0 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -108,17 +108,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         configurationContainer.getByName("compile") == compile
         compile.description == "I compile!"
-
-        when:
-        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-
-        then:
         compile.path == ":compile"
     }
 
     def "creates detached"() {
         given:
-        0 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
+        1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 
@@ -131,11 +126,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
-
-        when:
-        1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
-
-        then:
         detached.path == ":detachedConfiguration1"
     }
 }

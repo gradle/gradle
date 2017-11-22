@@ -20,31 +20,32 @@ import org.gradle.api.NonNullApi;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.util.VersionNumber;
 
-import javax.annotation.Nullable;
-
 @NonNullApi
 public class DefaultCompilerVersion implements CompilerVersion {
 
     private final String type;
-    private final String version;
+    private final String vendor;
+    private final VersionNumber version;
 
-    public DefaultCompilerVersion(String type, VersionNumber version) {
-        this(type, version == VersionNumber.UNKNOWN ? null : version.toString());
-    }
-
-    public DefaultCompilerVersion(String type, @Nullable String version) {
+    public DefaultCompilerVersion(String type, String vendor, VersionNumber version) {
         this.type = type;
+        this.vendor = vendor;
         this.version = version;
-    }
-
-    @Nullable
-    @Override
-    public String getVersion() {
-        return version;
     }
 
     @Override
     public String getType() {
         return type;
     }
+
+    @Override
+    public String getVendor() {
+        return vendor;
+    }
+
+    @Override
+    public String getVersion() {
+        return version.toString();
+    }
+
 }

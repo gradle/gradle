@@ -15,8 +15,12 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacro
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultMacroFunction
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,161 +31,309 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
-    def quotedIncludes = []
-    def systemIncludes = []
-    def macroIncludes = []
-    def includesParser = Mock(SourceIncludesParser)
-    def includes
-    def includePaths = [ ]
+    def systemIncludeDir = testDirectory.createDir("headers")
+    def included
+    def macros = []
+    def macroFunctions = []
+    def includePaths = [ systemIncludeDir ]
 
     def setup() {
-        includes = Mock(IncludeDirectives)
-        includesParser.parseIncludes(sourceFile) >> includes
-        includes.getQuotedIncludes() >> { quotedIncludes.collect { include(it) } }
-        includes.getSystemIncludes() >> { systemIncludes.collect { include(it) } }
-        includes.getMacroIncludes() >> { macroIncludes.collect { include(it) } }
+        included = Mock(IncludeDirectives)
+        included.getMacros() >> macros
+        included.getMacrosFunctions() >> macroFunctions
     }
 
     protected TestFile getSourceFile() {
         sourceDirectory.file('source.c')
     }
 
-    def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getResolvedIncludes() as List
+    def resolve(Include include) {
+        return new DefaultSourceIncludesResolver(includePaths).resolveInclude(sourceFile, include, [included])
     }
 
-    def getCandidates() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getCheckedLocations() as List
-    }
-
-    def "handles source file with no includes"() {
-        expect:
-        dependencies == []
-        noCandidates()
-    }
-
-    def "ignores include files that do not exist"() {
+    def "ignores system include file that does not exist"() {
         given:
-        def test = sourceDirectory.file("test.h")
+        def test = systemIncludeDir.file("test.h")
 
-        when:
-        quotedIncludes << "test.h"
-        systemIncludes << "system.h"
-
-        then:
-        dependencies == []
-        searchedCandidates() == [ test ]
+        expect:
+        def result = resolve(include('<test.h>'))
+        result.complete
+        result.files.empty
+        result.checkedLocations == [test]
     }
 
-    def "locates quoted includes in same directory"() {
-        when:
-        final header1 = sourceDirectory.createFile("test1.h")
-        final header2 = sourceDirectory.createFile("test2.h")
+    def "ignores quoted include file that does not exist"() {
+        given:
+        def test1 = sourceDirectory.file("test.h")
+        def test2 = systemIncludeDir.file("test.h")
 
-        and:
-        quotedIncludes << "test1.h" << "test2.h"
+        expect:
+        def result = resolve(include('"test.h"'))
+        result.complete
+        result.files.empty
+        result.checkedLocations == [test1, test2]
+    }
 
-        then:
-        dependencies == deps(header1, header2)
-        searchedCandidates() == [ header1, header2 ]
+    def "locates quoted includes in source directory"() {
+        given:
+        final header = sourceDirectory.createFile("test.h")
+
+        expect:
+        def result = resolve(include('"test.h"'))
+        result.complete
+        result.files == [header]
+        result.checkedLocations == [header]
     }
 
     def "locates quoted includes relative to source directory"() {
-        when:
-        final header1 = sourceDirectory.createFile("test1.h")
-        final header2 = sourceDirectory.file("nested", "test2.h").createFile()
-        final header3 = sourceDirectory.file("..", "sibling", "test3.h").createFile()
+        given:
+        def header = sourceDirectory.createFile(path)
 
-        and:
-        quotedIncludes << "test1.h" << "nested/test2.h" << "../sibling/test3.h"
+        expect:
+        def result = resolve(include("\"${path}\""))
+        result.complete
+        result.files == [header]
+        result.checkedLocations == [new File(sourceDirectory, path)] // not canonicalized
 
-        then:
-        dependencies.collect {it.file} == [header1, header2, header3]
-        searchedCandidates() == [ header1, header2, header3 ]
+        where:
+        path << ["nested/test.h", "../sibling/test.h", "./test.h"]
     }
 
-    def "does not locate system includes in same directory"() {
-        when:
+    def "does not locate system includes in source directory"() {
+        given:
         sourceDirectory.file("system.h").createFile()
+        def header = systemIncludeDir.file("system.h")
 
-        and:
-        systemIncludes << "system.h"
-
-        then:
-        dependencies == []
-        noCandidates()
+        expect:
+        def result = resolve(include('<system.h>'))
+        result.complete
+        result.files.empty
+        result.checkedLocations == [header]
     }
 
-    def "locates includes in path"() {
-        when:
+    def "locates system include in path"() {
+        given:
+        def header = systemIncludeDir.file("system.h")
         def includeDir1 = testDirectory.file("include1")
-        final projectHeader1 = includeDir1.file("projectHeader1.h").createFile()
-        final headerWithSystemName1 = includeDir1.file("headerWithSystemName1.h").createFile()
+        def header1 = includeDir1.file("system.h").createFile()
         def includeDir2 = testDirectory.file("include2")
-        final projectHeader2 = includeDir2.file("projectHeader2.h").createFile()
-        final headerWithSystemName2 = includeDir2.file("headerWithSystemName2.h").createFile()
+        includeDir2.file("system.h").createFile()
 
-        and:
         includePaths << includeDir1 << includeDir2
-        quotedIncludes << "projectHeader1.h" << "projectHeader2.h"
-        systemIncludes << "headerWithSystemName1.h" << "headerWithSystemName2.h"
 
-        then:
-        dependencies == deps(projectHeader1, projectHeader2, headerWithSystemName1, headerWithSystemName2)
-        searchedCandidates() == [ sourceDirectory.file("projectHeader1.h"), projectHeader1,
-                                  sourceDirectory.file("projectHeader2.h"), includeDir1.file("projectHeader2.h"), projectHeader2,
-                                  includeDir1.file("headerWithSystemName1.h"),
-                                  includeDir1.file("headerWithSystemName2.h"), includeDir2.file("headerWithSystemName2.h")
-        ]
+        expect:
+        def result = resolve(include('<system.h>'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [header, header1]
     }
 
-    def "searches relative before searching include path"() {
-        when:
-        final relativeHeader = sourceDirectory.createFile("test.h")
-        final includeDir = testDirectory.file("include")
-        includeDir.createFile("test.h")
-        final otherHeader = includeDir.createFile("other.h")
+    def "locates quoted include in path"() {
+        given:
+        def srcHeader = sourceDirectory.file("header.h")
+        def header = systemIncludeDir.file("header.h")
+        def includeDir1 = testDirectory.file("include1")
+        def header1 = includeDir1.file("header.h").createFile()
+        def includeDir2 = testDirectory.file("include2")
+        includeDir2.file("header.h").createFile()
 
-        and:
+        includePaths << includeDir1 << includeDir2
+
+        expect:
+        def result = resolve(include('"header.h"'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [srcHeader, header, header1]
+    }
+
+    def "resolves macro include"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.file("test.h")
+        def includeDir = testDirectory.file("include")
+        def header1 = includeDir.createFile("test.h")
         includePaths << includeDir
-        quotedIncludes << "test.h" << "other.h"
 
-        then:
-        dependencies == deps(relativeHeader, otherHeader)
-        searchedCandidates() == [ relativeHeader,
-                                  sourceDirectory.file("other.h"), otherHeader ]
+        macros << macro("TEST", '"test.h"')
+        macros << macro("IGNORE", "'broken'")
+        macros << unresolveableMacro("IGNORE")
+
+        expect:
+        def result = resolve(include('TEST'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [srcHeader, header, header1]
     }
 
-    def "includes unknown source dependency for first macro include"() {
-        when:
-        macroIncludes << 'DEFINE_1' << 'DEFINE_2'
+    def "resolves macro function include"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.file("test.h")
+        def includeDir = testDirectory.file("include")
+        def header1 = includeDir.createFile("test.h")
+        includePaths << includeDir
 
-        then:
-        dependencies.size() == 1
-        with (dependencies[0]) {
-            unknown
-            include == 'DEFINE_1'
-            maybeMacro
-            file == null
-        }
+        macroFunctions << macroFunction("TEST", '"test.h"')
+        macroFunctions << macroFunction("IGNORE", "'broken'")
+
+        expect:
+        def result = resolve(include('TEST()'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [srcHeader, header, header1]
+    }
+
+    def "resolves nested macro include"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.file("test.h")
+        def includeDir = testDirectory.file("include")
+        def header1 = includeDir.createFile("test.h")
+        includePaths << includeDir
+
+        macros << macro("TEST", '"test.h"')
+        macroFunctions << macroFunction("TEST1", "TEST")
+        macros << macro("TEST2", "TEST1()")
+        macros << macro("TEST3", "TEST2")
+        macros << unresolveableMacro("IGNORE")
+
+        expect:
+        def result = resolve(include('TEST3'))
+        result.complete
+        result.files == [header1]
+        result.checkedLocations == [srcHeader, header, header1]
+    }
+
+    def "resolves macro include once for each definition of the macro"() {
+        given:
+        def includeFile1 = sourceDirectory.createFile("test1.h")
+        def includeFile2 = sourceDirectory.createFile("test2.h")
+        def includeFile3 = sourceDirectory.createFile("test3.h")
+
+        macros << macro("TEST", '"test1.h"')
+        macros << macro("IGNORE", '"broken"')
+        macros << macro("NESTED", '"test2.h"')
+        macros << macro("NESTED", '"test3.h"')
+        macros << macro("TEST", "NESTED")
+
+        expect:
+        def result = resolve(include('TEST'))
+        result.complete
+        result.files == [includeFile1, includeFile2, includeFile3]
+        result.checkedLocations == [includeFile1, includeFile2, includeFile3]
+    }
+
+    def "resolves macro function include once for each definition of the function"() {
+        given:
+        def includeFile1 = sourceDirectory.createFile("test1.h")
+        def includeFile2 = sourceDirectory.createFile("test2.h")
+        def includeFile3 = sourceDirectory.createFile("test3.h")
+
+        macroFunctions << macroFunction("TEST", '"test1.h"')
+        macroFunctions << macroFunction("IGNORE", '"broken"')
+        macroFunctions << macroFunction("NESTED", '"test2.h"')
+        macroFunctions << macroFunction("NESTED", '"test3.h"')
+        macroFunctions << macroFunction("TEST", "NESTED()")
+
+        expect:
+        def result = resolve(include('TEST()'))
+        result.complete
+        result.files == [includeFile1, includeFile2, includeFile3]
+        result.checkedLocations == [includeFile1, includeFile2, includeFile3]
+    }
+
+    def "marks macro include as unresolved when target macro value cannot be resolved"() {
+        given:
+        macros << unresolveableMacro("TEST")
+        macros << unresolveableMacro("NESTED")
+        macros << macro("TEST", "NESTED")
+
+        expect:
+        def result = resolve(include('TEST'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "marks macro include as unresolved when any macro value cannot be resolved"() {
+        given:
+        def includeFile = sourceDirectory.createFile("test.h")
+
+        macros << macro("TEST", '"test.h"')
+        macros << macro("IGNORE", '"broken"')
+        macros << unresolveableMacro("TEST")
+
+        expect:
+        def result = resolve(include('TEST'))
+        !result.complete
+        result.files == [includeFile]
+        result.checkedLocations == [includeFile]
+    }
+
+    def "macro does not match macro function of the same name"() {
+        given:
+        macroFunctions << macroFunction("TEST", '"test.h"')
+
+        expect:
+        def result = resolve(include('TEST'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "macro function does not match macro of the same name"() {
+        given:
+        macros << macro("TEST", '"test.h"')
+
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "macro function does not match macro function with different number of parameters"() {
+        given:
+        macroFunctions << macroFunction("TEST", 1,'"test.h"')
+
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "marks macro include as unresolved when there are no definitions of the macro"() {
+        expect:
+        def result = resolve(include('TEST'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
+    }
+
+    def "marks macro function include as unresolved when there are no definitions of the macro"() {
+        expect:
+        def result = resolve(include('TEST()'))
+        !result.complete
+        result.files.empty
+        result.checkedLocations.empty
     }
 
     def include(String value) {
         return DefaultInclude.parse(value, false)
     }
 
-    def deps(File... files) {
-        return files.collect {dep(it)}
+    def macro(String name, String value) {
+        def include = DefaultInclude.parse(value, false)
+        new DefaultMacro(name, include.type, include.value)
     }
 
-    def dep(File dependencyFile) {
-        return new ResolvedInclude(dependencyFile.name, dependencyFile)
+    def macroFunction(String name, int parameters = 0, String value) {
+        def include = DefaultInclude.parse(value, false)
+        new DefaultMacroFunction(name, parameters, include.type, include.value)
     }
 
-    void noCandidates() {
-        assert searchedCandidates() == []
-    }
-    def searchedCandidates() {
-        candidates.collect { it.canonicalFile } as List
+    def unresolveableMacro(String name) {
+        new UnresolveableMacro(name)
     }
 }

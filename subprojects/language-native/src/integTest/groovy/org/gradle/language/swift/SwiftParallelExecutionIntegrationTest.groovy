@@ -29,7 +29,7 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
         settingsFile << "rootProject.name = '${app.projectName}'"
         app.writeToProject(testDirectory)
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
          """
     }
 

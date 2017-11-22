@@ -32,7 +32,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             apply plugin: 'swift-library'
         """
         file('app/build.gradle') << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation project(':greeter')
             }
@@ -77,7 +77,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             apply plugin: 'swift-library'
         """
         file('app/build.gradle') << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation project(':greeter')
             }

@@ -16,10 +16,12 @@
 
 package org.gradle.testing
 
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 import org.junit.Assume
+import spock.lang.Unroll
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
@@ -30,6 +32,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
     abstract String getPassingTestCaseName()
     abstract String getFailingTestCaseName()
+
+    String testSuite(String testSuite) {
+        return testSuite
+    }
 
     def "can listen for test results"() {
         given:
@@ -53,7 +59,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         then:
 
         outputContains "START Test Suite [null] [Gradle Test Run :$testTaskName]"
-        outputContains "FINISH Test Suite [null] [Gradle Test Run :$testTaskName] [FAILURE] [2]"
+        outputContains "FINISH Test Suite [null] [Gradle Test Run :$testTaskName] [FAILURE] [3]"
 
         outputContains "START Test Suite [SomeOtherTest] [SomeOtherTest]"
         outputContains "FINISH Test Suite [SomeOtherTest] [SomeOtherTest]"
@@ -64,6 +70,8 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         outputContains "FINISH Test Suite [SomeTest] [SomeTest]"
         outputContains "START Test Case [SomeTest] [$failingTestCaseName]"
         outputContains "FINISH Test Case [SomeTest] [$failingTestCaseName] [FAILURE] [1]"
+        outputContains "START Test Case [SomeTest] [$passingTestCaseName]"
+        outputContains "FINISH Test Case [SomeTest] [$passingTestCaseName] [SUCCESS] [1]"
     }
 
     def "test results conventions are consistent"() {
@@ -150,7 +158,124 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
     }
 
-    private DefaultTestExecutionResult getTestResult() {
+    def "honors test case filter from --tests flag"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.$passingTestCaseName"
+
+        then:
+        testResult.assertTestClassesExecuted('SomeOtherTest')
+        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+    }
+
+    def "honors test suite filter from --tests flag"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.*"
+
+        then:
+        testResult.assertTestClassesExecuted('SomeOtherTest')
+        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+    }
+
+    def "reports when no matching methods found"() {
+        given:
+        createPassingFailingTest()
+
+        //by command line
+        when: fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](--tests filter)")
+
+        //by build script
+        when:
+        buildFile << "${testTaskName}.filter.includeTestsMatching '${testSuite('SomeTest')}.missingMethod'"
+        fails(testTaskName)
+        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
+    }
+
+    def "task is out of date when --tests argument changes"() {
+        given:
+        createPassingFailingTest()
+
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+
+        then:
+        testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
+
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+
+        then:
+        result.assertTaskSkipped(":$testTaskName") //up-to-date
+
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName")
+
+        then:
+        result.assertTaskNotSkipped(":$testTaskName")
+        testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
+    }
+
+    @Unroll
+    def "can select multiple tests from command line #scenario"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        runAndFail(toTestArgs(desiredTestFilters))
+
+        then:
+        def results = testResult
+        results.assertTestClassesExecuted(desiredTestFilters.keySet().toArray(new String[0]))
+        desiredTestFilters.each { testClass, testCases ->
+            results.testClass(testClass).assertTestsExecuted(*testCases)
+        }
+
+        where:
+        scenario                      | desiredTestFilters
+        "fail and SomeTest.pass"      | ['SomeTest': [failingTestCaseName, passingTestCaseName]]
+        "fail and SomeOtherTest.pass" | ['SomeTest': [failingTestCaseName], 'SomeOtherTest': [passingTestCaseName]]
+    }
+
+    private String[] toTestArgs(Map<String, List<String>> desiredTestFilters) {
+        def command = Lists.newArrayList()
+        command.add(testTaskName)
+
+        desiredTestFilters.each { testClass, testCases ->
+            testCases.collect { testCase ->
+                command.addAll([ '--tests', testSuite(testClass) + "." + testCase ])
+            }
+        }
+        return command.toArray()
+    }
+
+    @Unroll
+    def "can deduplicate test filters when #scenario"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        runAndFail(*command)
+
+        then:
+        testResult.assertTestClassesExecuted('SomeTest')
+        testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName, failingTestCaseName)
+
+        where:
+        scenario                             | command
+        "test suite appear before test case" | [testTaskName, "--tests", "${testSuite('SomeTest')}.*", "--tests", "${testSuite('SomeTest')}.$passingTestCaseName"]
+        "test suite appear after test case"  | [testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName", "--tests", "${testSuite('SomeTest')}.*"]
+    }
+
+    protected DefaultTestExecutionResult getTestResult() {
         new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
     }
 

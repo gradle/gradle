@@ -8,6 +8,20 @@ Add-->
 
 <!--
 ### Example new and noteworthy
+
+Think of every feature section as a mini blog post.
+
+1) Make sure the release notes render properly: `./gradlew :docs:releaseNotes && open subprojects/docs/build/docs/release-notes.html`
+  TIP: Continuous build is useful when working on release notes.
+  NOTE: The markdown processor does not know GitHub flavored markdown syntax.
+
+2) Explain why users should care.
+  TIP: Avoid technical details with no indications how this impacts users.
+
+3) Link to documentation or a blog post for more detailed information.
+
+4) Show, don't just tell, if possible.
+  NOTE: Totally fine to just link to an example that show the feature.
 -->
 
 ### Provider API documentation
@@ -40,9 +54,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+* Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
+
 <!--
 ### Example breaking change
 -->
+
+### HTTP build cache does not follow redirects
+
+When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
+Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
 
 ## External contributions
 
@@ -51,6 +72,9 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+
+- [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
+- [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

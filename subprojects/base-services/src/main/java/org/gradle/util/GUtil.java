@@ -27,6 +27,7 @@ import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -141,7 +142,7 @@ public class GUtil {
         return prefixed;
     }
 
-    public static boolean isTrue(Object object) {
+    public static boolean isTrue(@Nullable Object object) {
         if (object == null) {
             return false;
         }
@@ -153,7 +154,7 @@ public class GUtil {
         return true;
     }
 
-    public static <T> T elvis(T object, T defaultValue) {
+    public static <T> T elvis(@Nullable T object, T defaultValue) {
         return isTrue(object) ? object : defaultValue;
     }
 

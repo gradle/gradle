@@ -16,8 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-public interface Include {
-    String getValue();
+public interface Include extends Directive {
     boolean isImport();
-    IncludeType getType();
 }

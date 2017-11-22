@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.GUtil;
 
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
@@ -33,5 +34,12 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         String module = GUtil.elvis(excludeRule.getModule(), PatternMatchers.ANY_EXPRESSION);
         String[] configurationNames = GUtil.isTrue(configurationName) ? new String[]{configurationName} : new String[0];
         return new DefaultExclude(moduleIdentifierFactory.module(org, module), configurationNames, PatternMatchers.EXACT);
+    }
+
+    @Override
+    public Exclude createExcludeRule(String group, String module) {
+        group = GUtil.elvis(group, PatternMatchers.ANY_EXPRESSION);
+        module = GUtil.elvis(module, PatternMatchers.ANY_EXPRESSION);
+        return new DefaultExclude(moduleIdentifierFactory.module(group, module));
     }
 }

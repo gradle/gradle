@@ -23,13 +23,13 @@
 For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types of script variables. One with a local scope and one with a script-wide scope.
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scope" dir="userguide/tutorial" title="Variables scope: local and script wide">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scope" dir="userguide/tutorial/groovyScope" title="Variables scope: local and script wide">
             <sourcefile file="scope.groovy"/>
-            <output args=""/>
+            <output executable="groovy" args="scope.groovy" />
         </sample>
 ++++
 
-Variables which are declared with a type modifier are visible within closures but not visible within methods. This is a heavily discussed behavior in the Groovy community.footnote:[One of those discussions can be found here: http://groovy.329449.n5.nabble.com/script-scoping-question-td355887.html[] ] 
+Variables which are declared with a type modifier are visible within closures but not visible within methods.
 
 [[sec:configuration_and_execution_phase]]
 === Configuration and execution phase

@@ -37,11 +37,11 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         useXcodebuildTool()
     }
 
-    def "can create xcode project for Swift executable"() {
+    def "can create xcode project for Swift application"() {
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -90,7 +90,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileReleaseSwift', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
-    def "can create xcode project for Swift executable with transitive dependencies"() {
+    def "can create xcode project for Swift application with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
         given:
@@ -100,7 +100,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         """
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -117,7 +117,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         """
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
 
         when:
         succeeds("xcode")
@@ -168,7 +168,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         """
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':hello')
                 }
@@ -185,7 +185,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         """
         app.library.writeToProject(file("hello"))
         app.logLibrary.writeToProject(file("log"))
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
         succeeds("xcode")
 
         when:
@@ -222,14 +222,14 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         sharedLib("log/build/lib/main/debug/Log").assertExists()
     }
 
-    def "can create xcode project for Swift executable inside composite build"() {
+    def "can create xcode project for Swift application inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
             rootProject.name = '${rootProjectName}'
         """
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             apply plugin: 'xcode'
 
             dependencies {
@@ -286,7 +286,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         given:
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-executable'
+                apply plugin: 'swift-application'
                 dependencies {
                     implementation project(':greeter')
                 }

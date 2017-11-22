@@ -28,6 +28,9 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 
 import javax.inject.Inject;
 
+/**
+ * Abstract software component representing an XCTest suite.
+ */
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
     private Property<SwiftComponent> testedComponent;
     private final SwiftXCTestBinary testBinary;

@@ -104,12 +104,15 @@ allprojects { p ->
         List<XCTestSourceFileElement> testSuites = [
             new XCTestSourceFileElement("SomeTest") {
                 List<XCTestCaseElement> testCases = [
-                    testCase("testFail", FAILING_TEST, true)
+                    testCase(failingTestCaseName, FAILING_TEST, true),
+                    passingTestCase(passingTestCaseName)
                 ]
             }.withImport(libcModuleName),
 
             new XCTestSourceFileElement("SomeOtherTest") {
-                List<XCTestCaseElement> testCases = [passingTestCase("testPass")]
+                List<XCTestCaseElement> testCases = [
+                    passingTestCase(passingTestCaseName)
+                ]
             },
         ]
 
@@ -134,5 +137,10 @@ allprojects { p ->
     @Override
     String getFailingTestCaseName() {
         return "testFail"
+    }
+
+    @Override
+    String testSuite(String testSuite) {
+        return "AppTest.$testSuite"
     }
 }

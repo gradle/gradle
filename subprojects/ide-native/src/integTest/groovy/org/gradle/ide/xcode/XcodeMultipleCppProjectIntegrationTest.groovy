@@ -39,7 +39,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
@@ -98,7 +98,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         """
         buildFile << """
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':deck')
                 }
@@ -172,7 +172,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             rootProject.name = '${rootProjectName}'
         """
         buildFile << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             apply plugin: 'xcode'
 
             dependencies {

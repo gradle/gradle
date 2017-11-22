@@ -18,7 +18,9 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -773,6 +775,36 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         true          | "{ null }"
         false         | "null"
         api = useRuntimeApi ? "runtime" : "annotation"
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Issue("https://github.com/gradle/gradle/issues/3537")
+    def "concurrent access to local cache works"() {
+        def projectNames = GroovyCollections.combinations(('a'..'p'), ('a'..'p'), ('a'..'d'))*.join("")
+        println "Running with ${projectNames.size()} projects"
+        projectNames.each { projectName ->
+            settingsFile << "include '$projectName'\n"
+        }
+
+        buildFile << """
+            subprojects { project ->
+                task test {
+                    def outputFile = file("\${project.buildDir}/output.txt")
+                    outputs.cacheIf { true }
+                    outputs.file(outputFile).withPropertyName("outputFile") 
+                    doFirst {
+                        Thread.sleep(new Random().nextInt(30))
+                        outputFile.text = "output"
+                    }
+                }
+            }
+        """
+
+        when:
+        args "--parallel", "--max-workers=100"
+        withBuildCache().succeeds "test"
+        then:
+        noExceptionThrown()
     }
 
     private static String defineProducerTask() {

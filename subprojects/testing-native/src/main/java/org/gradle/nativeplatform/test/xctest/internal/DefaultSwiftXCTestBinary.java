@@ -29,6 +29,12 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 
 import javax.inject.Inject;
 
+/**
+ * Binary of a XCTest suite component.
+ * This may be an executable that can be executed directly or a bundle that must be executed through xctest.
+ *
+ * Either way, the installation provides a single entry point for executing this binary.
+ */
 public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;

@@ -36,14 +36,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.util.Path;
-import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.vcs.internal.VcsMappingsInternal;
 
 import java.util.Collection;
 import java.util.Set;
@@ -104,7 +103,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), new DefaultConfigurationUseSite(name, context), name, this, resolver,
+        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
@@ -134,7 +133,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
-            context.identityPath(name), new DefaultConfigurationUseSite(name, context), name, detachedConfigurationsProvider, resolver,
+            context, name, detachedConfigurationsProvider, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
             rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
@@ -161,27 +160,4 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
-    private static class DefaultConfigurationUseSite implements ConfigurationUseSite {
-        private final String configurationName;
-        private final DomainObjectContext context;
-        private Path projectPath;
-
-        public DefaultConfigurationUseSite(String configurationName, DomainObjectContext context) {
-            this.configurationName = configurationName;
-            this.context = context;
-        }
-
-        @Override
-        public Path getProjectPath() {
-            if(projectPath == null){
-                projectPath = context.projectPath(configurationName);
-            }
-            return projectPath;
-        }
-
-        @Override
-        public boolean isScript() {
-            return context.isScriptContext();
-        }
-    }
 }

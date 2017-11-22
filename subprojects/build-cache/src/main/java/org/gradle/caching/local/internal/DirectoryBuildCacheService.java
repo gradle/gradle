@@ -30,10 +30,15 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
@@ -41,6 +46,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
     private final String failedFileSuffix;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, String failedFileSuffix) {
         this.fileStore = fileStore;
@@ -58,7 +64,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         }
 
         @Override
-        public void execute(File file) {
+        public void execute(@Nonnull File file) {
             try {
                 // Mark as recently used
                 GFileUtils.touch(file);
@@ -80,43 +86,54 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
         LoadAction loadAction = new LoadAction(reader);
-        load(key, loadAction);
+        loadLocally(key, loadAction);
         return loadAction.loaded;
     }
 
     @Override
-    public void load(final BuildCacheKey key, final Action<? super File> reader) {
-        // We need to lock here because garbage collection can be under way in another process
+    public void loadLocally(final BuildCacheKey key, final Action<? super File> reader) {
+        // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
-                LocallyAvailableResource resource = fileStore.get(key.getHashCode());
-                if (resource != null) {
-                    final File file = resource.getFile();
-                    GFileUtils.touch(file); // Mark as recently used
-
-                    try {
-                        reader.execute(file);
-                    } catch (Exception e) {
-                        // Try to move the file out of the way in case its permanently corrupt
-                        // Don't delete, so that it can be potentially used for debugging
-                        File failedFile = new File(file.getAbsolutePath() + failedFileSuffix);
-                        GFileUtils.deleteQuietly(failedFile);
-                        //noinspection ResultOfMethodCallIgnored
-                        file.renameTo(failedFile);
-
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
+                lock.readLock().lock();
+                try {
+                    loadInsideLock(key, reader);
+                } finally {
+                    lock.readLock().unlock();
                 }
             }
         });
     }
 
+    private void loadInsideLock(BuildCacheKey key, Action<? super File> reader) {
+        LocallyAvailableResource resource = fileStore.get(key.getHashCode());
+        if (resource == null) {
+            return;
+        }
+
+        File file = resource.getFile();
+        touch(file);
+
+        try {
+            reader.execute(file);
+        } catch (Exception e) {
+            // Try to move the file out of the way in case its permanently corrupt
+            // Don't delete, so that it can be potentially used for debugging
+            File failedFile = new File(file.getAbsolutePath() + failedFileSuffix);
+            GFileUtils.deleteQuietly(failedFile);
+            //noinspection ResultOfMethodCallIgnored
+            file.renameTo(failedFile);
+
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
-        tempFileStore.allocateTempFile(key, new Action<File>() {
+        tempFileStore.withTempFile(key, new Action<File>() {
             @Override
-            public void execute(final File file) {
+            public void execute(@Nonnull File file) {
                 try {
                     Closer closer = Closer.create();
                     try {
@@ -130,27 +147,36 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
                     throw UncheckedException.throwAsUncheckedException(ex);
                 }
 
-                store(key, file);
+                storeLocally(key, file);
             }
         });
     }
 
     @Override
-    public void store(final BuildCacheKey key, final File file) {
-        persistentCache.useCache(new Runnable() {
-            @Override
-            public void run() {
-                fileStore.move(key.getHashCode(), file);
-            }
-        });
-    }
-
-    @Override
-    public void allocateTempFile(final BuildCacheKey key, final Action<? super File> action) {
+    public void storeLocally(final BuildCacheKey key, final File file) {
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
-                tempFileStore.allocateTempFile(key, action);
+                lock.writeLock().lock();
+                try {
+                    storeInsideLock(key, file);
+                } finally {
+                    lock.writeLock().unlock();
+                }
+            }
+        });
+    }
+
+    private void storeInsideLock(BuildCacheKey key, File file) {
+        fileStore.move(key.getHashCode(), file);
+    }
+
+    @Override
+    public void withTempFile(final BuildCacheKey key, final Action<? super File> action) {
+        persistentCache.withFileLock(new Runnable() {
+            @Override
+            public void run() {
+                tempFileStore.withTempFile(key, action);
             }
         });
     }
@@ -158,5 +184,14 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public void close() {
         persistentCache.close();
+    }
+
+    @SuppressWarnings("Since15")
+    private static void touch(File file) {
+        try {
+            Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

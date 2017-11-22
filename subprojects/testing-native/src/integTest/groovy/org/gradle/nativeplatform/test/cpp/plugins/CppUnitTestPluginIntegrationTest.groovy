@@ -38,7 +38,7 @@ class CppUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainInte
             ":dependUnitTestCpp", ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
     }
 
-    def "does nothing if cpp-library or cpp-executable are not applied"() {
+    def "does nothing if cpp-library or cpp-application are not applied"() {
         def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-unit-test'

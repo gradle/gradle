@@ -38,7 +38,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':library')
                 }
@@ -125,7 +125,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             project(':app') {
-                apply plugin: 'cpp-executable'
+                apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':library')
                 }

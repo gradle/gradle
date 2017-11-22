@@ -176,11 +176,12 @@ class GitVersionControlSystemSpec extends Specification {
         }
 
         expect:
-        versions.size() == 5
+        versions.size() == 6
         versionMap['release'] == c1.id.name
         versionMap['1.0.1'] == c1.id.name
         versionMap['v1.0.1'] == c1.id.name
         versionMap['HEAD'] == c2.id.name
+        versionMap['latest.integration'] == c2.id.name
         versionMap['master'] == c2.id.name
     }
 }

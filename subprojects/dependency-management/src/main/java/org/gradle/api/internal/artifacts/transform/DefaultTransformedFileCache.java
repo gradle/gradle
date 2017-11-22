@@ -66,14 +66,14 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
         cache = cacheRepository
-                .cache(transformsStoreDirectory)
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName("Artifact transforms cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
-                .open();
+            .cache(transformsStoreDirectory)
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName("Artifact transforms cache")
+            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .open();
         String cacheName = TRANSFORMS_META_DATA.getKey() + "/results";
         PersistentIndexedCacheParameters<HashCode, List<File>> cacheParameters = new PersistentIndexedCacheParameters<HashCode, List<File>>(cacheName, new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-                .cacheDecorator(cacheDecoratorFactory.decorator(1000, true));
+            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true));
         indexedCache = cache.createCache(cacheParameters);
     }
 
@@ -93,27 +93,36 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
-        // Collect up hash of the input files and of the transform's configuration params and implementation to calculate the key
-        Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        hasher.putHash(inputsHash);
-        inputFileSnapshot.appendToHasher(hasher);
-        final HashCode resultHash = hasher.hash();
+    public boolean contains(File absoluteFile, HashCode inputsHash) {
+        return resultHashToResult.containsKey(getCacheKey(absoluteFile, inputsHash));
+    }
 
-        // Apply locking so that only this process is writing to the file store and only a single thread is running this particular transform
-        return producing.guardByKey(resultHash, new Factory<List<File>>() {
+    @Override
+    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
+        final HashCode resultHash = getCacheKey(inputFile, inputsHash);
+        List<File> files = resultHashToResult.get(resultHash);
+        if (files != null) {
+            return files;
+        }
+        return loadIntoCache(inputFile, resultHash, transformer);
+    }
+
+    /*
+     * Loads the transformed files from the file system cache into memory. Creates them if they are not present yet.
+     * This makes sure that only one thread tries to load a result for a given key.
+     */
+    private List<File> loadIntoCache(final File inputFile, final HashCode cacheKey, final BiFunction<List<File>, File, File> transformer) {
+        return producing.guardByKey(cacheKey, new Factory<List<File>>() {
             @Override
             public List<File> create() {
-                List<File> files = resultHashToResult.get(resultHash);
+                List<File> files = resultHashToResult.get(cacheKey);
                 if (files != null) {
                     return files;
                 }
-
                 files = cache.withFileLock(new Factory<List<File>>() {
                     @Override
                     public List<File> create() {
-                        List<File> files = indexedCache.get(resultHash);
+                        List<File> files = indexedCache.get(cacheKey);
                         if (files != null) {
                             boolean allExist = true;
                             for (File file : files) {
@@ -125,11 +134,9 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                             if (allExist) {
                                 return files;
                             }
-                            // Else, recreate outputs
                         }
 
-                        // File store takes care of cleaning up on failure/crash
-                        String key = inputFile.getName() + "/" + resultHash;
+                        String key = inputFile.getName() + "/" + cacheKey;
                         TransformAction action = new TransformAction(transformer, inputFile);
                         try {
                             fileStore.add(key, action);
@@ -137,15 +144,23 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                             throw UncheckedException.throwAsUncheckedException(e.getCause());
                         }
 
-                        indexedCache.put(resultHash, action.result);
+                        indexedCache.put(cacheKey, action.result);
                         return action.result;
                     }
                 });
 
-                resultHashToResult.put(resultHash, files);
+                resultHashToResult.put(cacheKey, files);
                 return files;
             }
         });
+    }
+
+    private HashCode getCacheKey(File inputFile, HashCode inputsHash) {
+        Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        hasher.putHash(inputsHash);
+        inputFileSnapshot.appendToHasher(hasher);
+        return hasher.hash();
     }
 
     private static class TransformAction implements Action<File> {

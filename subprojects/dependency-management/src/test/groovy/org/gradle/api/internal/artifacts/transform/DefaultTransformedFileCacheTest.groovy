@@ -40,7 +40,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     def cacheRepo = new DefaultCacheRepository(scopeMapping, new InMemoryCacheFactory())
     def decorator = Stub(InMemoryCacheDecoratorFactory)
     def snapshotter = Mock(FileSystemSnapshotter)
-    def cache
+    TransformedFileCache cache
 
     def setup() {
         scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
@@ -75,6 +75,47 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         1 * snapshotter.snapshotAll(inputFile) >> snapshot(HashCode.fromInt(234))
         0 * snapshotter._
         0 * transform._
+    }
+
+    def "does not contain result before transform ran"() {
+        given:
+        def inputFile = tmpDir.file("a")
+        def hash = HashCode.fromInt(123)
+        _ * snapshotter.snapshotAll(_) >> snapshot(hash)
+
+        expect:
+        !cache.contains(inputFile, hash)
+    }
+
+    def "contains result after transform ran once"() {
+        given:
+        def transform = Stub(BiFunction)
+        def inputFile = tmpDir.file("a")
+        def hash = HashCode.fromInt(123)
+        _ * snapshotter.snapshotAll(_) >> snapshot(hash)
+        _ * transform.apply(_, _) >>  { File file, File dir -> [file] }
+
+        when:
+        cache.getResult(inputFile, hash, transform)
+
+        then:
+        cache.contains(inputFile, hash)
+    }
+
+    def "does not contain result if a different transform ran"() {
+        given:
+        def transform = Stub(BiFunction)
+        def inputFile = tmpDir.file("a")
+        def hash = HashCode.fromInt(123)
+        def otherHash = HashCode.fromInt(456)
+        _ * snapshotter.snapshotAll(_) >> snapshot(hash)
+        _ * transform.apply(_, _) >>  { File file, File dir -> [file] }
+
+        when:
+        cache.getResult(inputFile, hash, transform)
+
+        then:
+        !cache.contains(inputFile, otherHash)
     }
 
     def "reuses result when transform returns its input file"() {

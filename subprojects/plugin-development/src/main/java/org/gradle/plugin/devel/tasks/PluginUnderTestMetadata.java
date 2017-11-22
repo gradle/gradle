@@ -115,7 +115,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     }
 
     @Input
-    private List<String> getPaths() {
+    protected List<String> getPaths() {
         return collect(classpathFiles(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {

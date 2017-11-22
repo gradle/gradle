@@ -32,7 +32,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["4.4-20171109115057+0000"]
+        runner.targetVersions = ["4.5-20171117235935+0000"]
 
         when:
         def result = runner.run()

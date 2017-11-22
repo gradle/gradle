@@ -29,6 +29,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
+        assert !lib.privateHeaders.files.empty
 
         given:
         buildFile << """
@@ -235,7 +236,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
@@ -348,7 +349,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
@@ -460,7 +461,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:card_deck:1.2' }
 """
@@ -604,7 +605,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         def consumer = file("consumer").createDir()
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
             compileReleaseCpp.macros(WITH_FEATURE: "true")

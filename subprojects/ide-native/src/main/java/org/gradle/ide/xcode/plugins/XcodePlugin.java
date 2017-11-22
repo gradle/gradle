@@ -45,6 +45,7 @@ import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
+import org.gradle.ide.xcode.internal.XcodePropertyAdapter;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
@@ -58,10 +59,10 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.plugins.CppExecutablePlugin;
+import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
@@ -180,9 +181,9 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureForSwiftPlugin(final Project project) {
-        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
+        project.getPlugins().withType(SwiftApplicationPlugin.class, new Action<SwiftApplicationPlugin>() {
             @Override
-            public void execute(SwiftExecutablePlugin plugin) {
+            public void execute(SwiftApplicationPlugin plugin) {
                 configureXcodeForSwift(project, PBXTarget.ProductType.TOOL);
             }
         });
@@ -219,7 +220,7 @@ public class XcodePlugin extends IdePlugin {
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getGroups().getSources().from(sources);
 
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
+        // TODO - Reuse the logic from `swift-application` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
@@ -233,9 +234,9 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureForCppPlugin(final Project project) {
-        project.getPlugins().withType(CppExecutablePlugin.class, new Action<CppExecutablePlugin>() {
+        project.getPlugins().withType(CppApplicationPlugin.class, new Action<CppApplicationPlugin>() {
             @Override
-            public void execute(CppExecutablePlugin plugin) {
+            public void execute(CppApplicationPlugin plugin) {
                 configureXcodeForCpp(project, PBXTarget.ProductType.TOOL);
             }
         });
@@ -257,7 +258,7 @@ public class XcodePlugin extends IdePlugin {
         FileCollection headers = component.getHeaderFiles();
         xcode.getProject().getGroups().getHeaders().from(headers);
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
+        // TODO - Reuse the logic from `cpp-application` or `cpp-library` to find the link task path
         // TODO - should use the _install_ task for an executable
         // TODO - should use the basename of the component to calculate the target names
         AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
@@ -426,17 +427,19 @@ public class XcodePlugin extends IdePlugin {
     private static class XcodeBridge implements Action<String> {
         private final DefaultXcodeProject xcodeProject;
         private final Project project;
+        private final XcodePropertyAdapter xcodePropertyAdapter;
 
         public XcodeBridge(DefaultXcodeProject xcodeProject, Project project) {
             this.xcodeProject = xcodeProject;
             this.project = project;
+            this.xcodePropertyAdapter = new XcodePropertyAdapter(project);
         }
 
         @Override
         public void execute(String taskName) {
             if (taskName.startsWith("_xcode")) {
                 Task bridgeTask = project.getTasks().create(taskName);
-                String action = System.getenv("ACTION");
+                String action = xcodePropertyAdapter.getAction();
                 if (action.equals("clean")) {
                     bridgeTask.dependsOn("clean");
                 } else if ("".equals(action) || "build".equals(action)) {
@@ -454,7 +457,7 @@ public class XcodePlugin extends IdePlugin {
         }
 
         private XcodeTarget findXcodeTarget() {
-            final String productName = System.getenv("PRODUCT_NAME");
+            final String productName = xcodePropertyAdapter.getProductName();
             final XcodeTarget target = CollectionUtils.findFirst(xcodeProject.getTargets(), new Spec<XcodeTarget>() {
                 @Override
                 public boolean isSatisfiedBy(XcodeTarget target) {
@@ -469,7 +472,7 @@ public class XcodePlugin extends IdePlugin {
 
         private void bridgeProductBuild(Task bridgeTask, XcodeTarget target) {
             // Library or executable
-            final String configuration = System.getenv("CONFIGURATION");
+            final String configuration = xcodePropertyAdapter.getConfiguration();
             if (configuration.equals(DefaultXcodeProject.BUILD_DEBUG)) {
                 bridgeTask.dependsOn(target.getDebugOutputFile());
             } else {
@@ -478,9 +481,9 @@ public class XcodePlugin extends IdePlugin {
         }
 
         private void bridgeTestExecution(Task bridgeTask, final XcodeTarget target) {
-            // XcTest executable
+            // XCTest executable
             // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
-            final String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
+            final String builtProductsPath = xcodePropertyAdapter.getBuiltProductsDir();
             final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
                 @Override
                 public void execute(Sync task) {

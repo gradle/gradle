@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -29,6 +30,10 @@ import static com.google.common.base.Strings.nullToEmpty;
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String prefer;
     private List<String> rejects;
+
+    public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
+        this(versionConstraint.getPreferredVersion(), versionConstraint.getRejectedVersions());
+    }
 
     public DefaultMutableVersionConstraint(String version, boolean strict) {
         this.prefer = version;

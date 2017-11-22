@@ -20,4 +20,5 @@ import org.gradle.internal.component.model.Exclude;
 
 public interface ExcludeRuleConverter {
     Exclude convertExcludeRule(String configuration, ExcludeRule excludeRule);
+    Exclude createExcludeRule(String group, String module);
 }

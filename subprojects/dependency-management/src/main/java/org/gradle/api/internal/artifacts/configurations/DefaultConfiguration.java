@@ -48,6 +48,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -98,7 +99,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
-import org.gradle.util.TextUtil;
 import org.gradle.util.WrapUtil;
 
 import javax.annotation.Nullable;
@@ -148,6 +148,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
+    private final Path path;
+
     // These fields are not covered by mutation lock
     private final String name;
     private final DefaultConfigurationPublications outgoing;
@@ -171,13 +173,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
-    private final ConfigurationUseSite configurationUseSite;
+    private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
     private final DisplayName displayName;
 
-    public DefaultConfiguration(final Path identityPath, ConfigurationUseSite configurationUseSite, String name,
+    public DefaultConfiguration(DomainObjectContext domainObjectContext,
+                                String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -191,8 +194,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder
-                                ) {
-        this.identityPath = identityPath;
+
+    ) {
+        this.identityPath = domainObjectContext.identityPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -208,7 +212,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.artifactNotationParser = artifactNotationParser;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
-        this.configurationUseSite = configurationUseSite;
+        this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
@@ -230,6 +234,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
+        path = domainObjectContext.projectPath(name);
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -501,11 +506,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         });
     }
 
-    private String calculateBuildPath() {
-        String buildPath = TextUtil.minus(getIdentityPath().getPath(), getPath());
-        return buildPath.isEmpty() ? ":" : buildPath;
-    }
-
     private void performPreResolveActions(ResolvableDependencies incoming) {
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
@@ -641,10 +641,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
-        Path newIdentityPath = identityPath.getParent().child(newName);
-        SimpleConfigurationUseSite configurationUseSiteCopy = new SimpleConfigurationUseSite(this.configurationUseSite.getProjectPath().getParent().child(newName), this.configurationUseSite.isScript());
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, configurationUseSiteCopy, newName,
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
             rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
@@ -714,8 +712,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getPath() {
-        Path projectPath = configurationUseSite.getProjectPath();
-        return projectPath == null ? null : projectPath.getPath();
+        return path.getPath();
     }
 
     @Override
@@ -1026,12 +1023,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getPath() {
-            return configurationUseSite.getProjectPath().getPath();
+            return path.getPath();
         }
 
         @Override
         public String toString() {
-            return "dependencies '" + configurationUseSite.getProjectPath() + "'";
+            return "dependencies '" + getIdentityPath() + "'";
         }
 
         public FileCollection getFiles() {
@@ -1317,17 +1314,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Nullable
         @Override
         public String getProjectPath() {
-            if(isScriptConfiguration()) {
+            if (isScriptConfiguration()) {
                 return null;
             } else {
-                Path projectPath = configurationUseSite.getProjectPath().getParent();
+                Path projectPath = domainObjectContext.getProjectPath();
                 return projectPath == null ? null : projectPath.getPath();
             }
         }
 
         @Override
         public boolean isScriptConfiguration() {
-            return configurationUseSite.isScript();
+            return domainObjectContext.isScript();
         }
 
         @Override
@@ -1337,7 +1334,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public String getBuildPath() {
-            return calculateBuildPath();
+            return domainObjectContext.getBuildPath().getPath();
         }
 
         @Override
@@ -1351,23 +1348,4 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class SimpleConfigurationUseSite implements ConfigurationUseSite {
-        private final Path projectPath;
-        private final boolean isScript;
-
-        public SimpleConfigurationUseSite(Path projectPath, boolean isScript) {
-            this.projectPath = projectPath;
-            this.isScript = isScript;
-        }
-
-        @Override
-        public Path getProjectPath() {
-            return projectPath;
-        }
-
-        @Override
-        public boolean isScript() {
-            return isScript;
-        }
-    }
 }

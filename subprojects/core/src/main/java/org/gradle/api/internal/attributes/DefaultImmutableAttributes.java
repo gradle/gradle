@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterators;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -63,7 +66,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         hashCode = 31 * hashCode + attribute.hashCode();
         hashCode = 31 * hashCode + value.hashCode();
         this.hashCode = hashCode;
-        this.size = parent.size + 1;
+        this.size = parent.contains(attribute) ? parent.size : parent.size + 1;
     }
 
     @Override
@@ -99,13 +102,53 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public Set<Attribute<?>> keySet() {
-        if (parent == null) {
+        if (attribute == null) {
             return Collections.emptySet();
         }
         if (keySet == null) {
-            keySet = Sets.union(Collections.singleton(attribute), parent.keySet());
+            keySet = new KeySet();
         }
         return keySet;
+    }
+
+    private class KeySet extends AbstractSet<Attribute<?>> {
+        @Override
+        public Iterator<Attribute<?>> iterator() {
+            return new AbstractIterator<Attribute<?>>() {
+                private boolean visitedThis = false;
+                private Iterator<Attribute<?>> parentIterator;
+
+                @Override
+                protected Attribute<?> computeNext() {
+                    if (!visitedThis) {
+                        visitedThis = true;
+                        if (attribute == null) {
+                            return endOfData();
+                        }
+                        if (parent == null || !parent.contains(attribute)) {
+                            return attribute;
+                        }
+                    }
+                    if (parentIterator == null) {
+                        parentIterator = parent == null ? Iterators.<Attribute<?>>emptyIterator() : parent.keySet().iterator();
+                    }
+                    if (parentIterator.hasNext()) {
+                        return parentIterator.next();
+                    }
+                    return endOfData();
+                }
+            };
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return o instanceof Attribute && DefaultImmutableAttributes.this.contains((Attribute<?>) o);
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
     }
 
     @Override

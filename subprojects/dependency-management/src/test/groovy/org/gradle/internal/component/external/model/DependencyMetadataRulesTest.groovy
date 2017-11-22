@@ -135,7 +135,9 @@ class DependencyMetadataRulesTest extends Specification {
         addDependency(metadataImplementation, "org.test", "toModify", "1.0")
         def rule = { dependencies ->
             assert dependencies.size() == 1
-            dependencies[0].version = "2.0"
+            dependencies[0].version {
+                it.strictly "2.0"
+            }
         }
 
         when:
@@ -143,6 +145,7 @@ class DependencyMetadataRulesTest extends Specification {
 
         then:
         selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.version == "2.0"
+        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.versionConstraint.rejectedVersions[0] == "]2.0,)"
 
         where:
         metadataType | metadataImplementation
@@ -195,7 +198,7 @@ class DependencyMetadataRulesTest extends Specification {
 
     private addDependency(AbstractMutableModuleComponentResolveMetadata<? extends DefaultConfigurationMetadata> resolveMetadata, String group, String name, String version) {
         if (resolveMetadata instanceof MutableMavenModuleResolveMetadata && !resolveMetadata.variants.empty) {
-            defaultVariant.addDependency(group, name, new DefaultMutableVersionConstraint(version))
+            defaultVariant.addDependency(group, name, new DefaultMutableVersionConstraint(version), [])
         } else if (resolveMetadata instanceof MutableMavenModuleResolveMetadata) {
             //legacy dependency handling
             resolveMetadata.dependencies += new MavenDependencyMetadata(MavenScope.Compile, false, newSelector(group, name, version), [], [])

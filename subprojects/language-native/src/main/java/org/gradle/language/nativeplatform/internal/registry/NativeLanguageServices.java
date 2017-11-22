@@ -21,16 +21,14 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultCompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultIncrementalCompilerBuilder;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CachingCSourceParser;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 
 public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         registration.add(DefaultCompilationStateCacheFactory.class);
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(CachingCSourceParser.class);
         registration.add(DefaultIncrementalCompilerBuilder.class);
     }
 

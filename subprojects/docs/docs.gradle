@@ -34,11 +34,13 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
-apply plugin: 'base'
-apply plugin: 'pegdown'
-apply plugin: 'jsoup'
-apply plugin: 'javascript-base'
-apply plugin: 'org.asciidoctor.convert'
+plugins {
+    id 'base'
+    id 'pegdown'
+    id 'jsoup'
+    id 'javascript-base'
+    id 'org.asciidoctor.convert'
+}
 
 repositories {
     javaScript.googleApis()

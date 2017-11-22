@@ -17,9 +17,12 @@
 import org.gradle.build.Install
 import org.gradle.cleanup.EmptyDirectoryCheck
 
+plugins {
+    id 'java-base'
+    id 'build-types'
+}
+
 defaultTasks 'assemble'
-apply plugin: 'java-base'
-apply plugin: 'build-types'
 archivesBaseName = 'gradle'
 
 buildTypes {
@@ -186,6 +189,7 @@ apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
 apply from: "gradle/publicApi.gradle"
 apply from: "gradle/updateReleasedVersions.gradle"
+apply from: "gradle/dependenciesCheck.gradle"
 
 allprojects {
     group = 'org.gradle'

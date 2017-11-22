@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Configuration for a Swift application, defining the source files that make up the application plus other settings.
  *
- * <p>An instance of this type is added as a project extension by the Swift executable plugin.</p>
+ * <p>An instance of this type is added as a project extension by the Swift application plugin.</p>
  *
  * @since 4.2
  */

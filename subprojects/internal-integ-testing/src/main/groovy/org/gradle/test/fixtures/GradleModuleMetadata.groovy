@@ -33,7 +33,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '0.2'
+        assert values.formatVersion == '0.3'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
@@ -131,7 +131,10 @@ class GradleModuleMetadata {
         }
 
         List<Dependency> getDependencies() {
-            return (values.dependencies ?: []).collect { new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[]) }
+            return (values.dependencies ?: []).collect {
+                def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
+                new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[], exclusions)
+            }
         }
 
         List<File> getFiles() {
@@ -167,8 +170,10 @@ class GradleModuleMetadata {
     }
 
     static class Dependency extends Coords {
-        Dependency(String group, String module, String version, List<String> rejectedVersions) {
+        final List<String> excludes
+        Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes) {
             super(group, module, version, rejectedVersions)
+            this.excludes = excludes
         }
     }
 
