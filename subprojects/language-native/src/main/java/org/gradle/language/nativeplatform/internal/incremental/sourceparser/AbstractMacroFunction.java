@@ -28,6 +28,15 @@ public abstract class AbstractMacroFunction implements MacroFunction {
     }
 
     @Override
+    public String toString() {
+        return "#define " + getName() + "(...) " + getBody();
+    }
+
+    protected String getBody() {
+        return "???";
+    }
+
+    @Override
     public String getName() {
         return name;
     }

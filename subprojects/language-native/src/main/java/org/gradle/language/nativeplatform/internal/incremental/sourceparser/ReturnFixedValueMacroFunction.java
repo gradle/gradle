@@ -38,8 +38,8 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
     }
 
     @Override
-    public String toString() {
-        return "#define " + getName() + "(...) " + getAsSourceText();
+    protected String getBody() {
+        return getAsSourceText();
     }
 
     @Override

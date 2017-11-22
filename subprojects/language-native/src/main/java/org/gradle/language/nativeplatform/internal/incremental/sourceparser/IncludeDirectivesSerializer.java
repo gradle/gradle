@@ -194,7 +194,8 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
     private static class MacroFunctionSerializer implements Serializer<MacroFunction> {
         private static final byte FIXED_VALUE = (byte) 1;
         private static final byte RETURN_PARAM = (byte) 2;
-        private static final byte UNRESOLVED = (byte) 3;
+        private static final byte MAPPING = (byte) 3;
+        private static final byte UNRESOLVED = (byte) 4;
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<List<Expression>> expressionSerializer;
 
@@ -218,6 +219,17 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 int parameters = decoder.readSmallInt();
                 int parameterToReturn = decoder.readSmallInt();
                 return new ReturnParameterMacroFunction(name, parameters, parameterToReturn);
+            } else if (tag == MAPPING) {
+                String name = decoder.readString();
+                int parameters = decoder.readSmallInt();
+                String macroToCall = decoder.readString();
+                List<Expression> arguments = expressionSerializer.read(decoder);
+                int mapCount = decoder.readSmallInt();
+                int[] argsMap = new int[mapCount];
+                for(int i = 0; i < mapCount; i++) {
+                    argsMap[i] = decoder.readSmallInt();
+                }
+                return new ArgsMappingMacroFunction(name, parameters, argsMap, macroToCall, arguments);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
@@ -243,6 +255,18 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
                 encoder.writeSmallInt(returnParameterFunction.getParameterToReturn());
+            } else if (value instanceof ArgsMappingMacroFunction) {
+                ArgsMappingMacroFunction argsMappingFunction = (ArgsMappingMacroFunction) value;
+                encoder.writeByte(MAPPING);
+                encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
+                encoder.writeString(argsMappingFunction.getMacroToCall());
+                expressionSerializer.write(encoder, argsMappingFunction.getArguments());
+                int[] argsMap = argsMappingFunction.getArgsMap();
+                encoder.writeSmallInt(argsMap.length);
+                for (int anArgsMap : argsMap) {
+                    encoder.writeSmallInt(anArgsMap);
+                }
             } else if (value instanceof UnresolveableMacroFunction) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());

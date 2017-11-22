@@ -864,6 +864,24 @@ st3"
         body << ['_ABC_', '_a$', 'A1']
     }
 
+    def "finds function-like macro directive with multiple parameters whose body is a macro function"() {
+        when:
+        sourceFile << """
+#define A(X, Y) ${body}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [expected]
+
+        where:
+        body      | expected
+        "B()"     | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [])
+        "B(Z)"    | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [expression('Z')])
+        "B(X, Y)" | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], "B", [expression('X'), expression('Y')])
+        "B(<a.h>, X, Y)" | new ArgsMappingMacroFunction("A", 2, [-1, 0, 1] as int[], "B", [expression('<a.h>'), expression('X'), expression('Y')])
+    }
+
     def "finds function-like macro directive with multiple parameters whose body cannot be resolved"() {
         when:
         sourceFile << """

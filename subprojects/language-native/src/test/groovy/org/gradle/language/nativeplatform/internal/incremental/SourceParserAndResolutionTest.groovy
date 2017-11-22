@@ -304,6 +304,43 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "resolves macro function with arg that returns macro function call with no args"() {
+        given:
+        sourceFile << """
+            #define HEADER_() "hello.h"
+            #define HEADER(X) HEADER_()
+            #include HEADER(ignore)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with arg that returns macro function call with arg that is parameter"() {
+        given:
+        sourceFile << """
+            #define HEADER_(X, Y) X
+            #define HEADER(X) HEADER_(X, ignore)
+            #include HEADER("hello.h")
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with arg that returns macro function call with arg that is other macro"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER_(X, Y) X
+            #define HEADER(X) HEADER_(HEADER_NAME, ignore)
+            #include HEADER(ignore)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def resolve() {
         def directives = parser.parseSource(sourceFile)
         directives = serialize(directives, serializer)

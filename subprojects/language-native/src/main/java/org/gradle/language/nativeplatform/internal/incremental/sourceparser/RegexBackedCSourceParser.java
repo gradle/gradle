@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.GradleException;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,8 +67,8 @@ public class RegexBackedCSourceParser implements CSourceParser {
             } finally {
                 IOUtils.closeQuietly(reader);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not extract includes from source file %s.", sourceFile), e);
         }
         return new DefaultIncludeDirectives(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
     }
@@ -133,7 +132,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse a "function-like" macro directive body. Consumes all input.
      */
-    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, List<MacroFunction> macroFunctions) {
+    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, final List<MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
         List<String> paramNames = new ArrayList<String>();
         consumeParameterList(buffer, paramNames);
@@ -160,10 +159,42 @@ public class RegexBackedCSourceParser implements CSourceParser {
             macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
             return;
         }
-        if (expression.getType() == IncludeType.MACRO_FUNCTION && paramNames.isEmpty()) {
-            // Handle zero args function that returns a macro function call
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
-            return;
+        if (expression.getType() == IncludeType.MACRO_FUNCTION) {
+            if (paramNames.isEmpty() || expression.getArguments().isEmpty()) {
+                // Handle zero args function that returns a macro function call, as we don't need to substitute parameters
+                // Also handle calling a zero args function, as we also don't need to substitute parameters
+                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+                return;
+            }
+            final int[] argsMap = new int[expression.getArguments().size()];
+            boolean canResolve = true;
+            boolean usesArgs = false;
+            for (int i = 0; i < expression.getArguments().size(); i++) {
+                Expression argument = expression.getArguments().get(i);
+                if (argument.getType() == IncludeType.MACRO_FUNCTION) {
+                    canResolve = false;
+                    break;
+                }
+                argsMap[i] = -1;
+                if (argument.getType() == IncludeType.MACRO) {
+                    for (int j = 0; j < paramNames.size(); j++) {
+                        String paramName = paramNames.get(j);
+                        if (argument.getValue().equals(paramName)) {
+                            argsMap[i] = j;
+                            usesArgs = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (canResolve) {
+                if (!usesArgs) {
+                    macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+                } else {
+                    macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMap, expression.getValue(), expression.getArguments()));
+                }
+                return;
+            }
         }
 
         // Not resolvable. Discard the body when the expression is not resolvable

@@ -297,6 +297,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define MACRO_FUNCTION( ) _HELLO_HEADER_1
             #define FUNCTION_RETURNS_STRING(X) "hello.h"
             #define FUNCTION_RETURNS_MACRO(X) HELLO_HEADER
+            #define FUNCTION_RETURNS_MACRO_CALL(X) FUNCTION_RETURNS_ARG(X)
             #define FUNCTION_RETURNS_ARG(X) X
         """
 
@@ -310,7 +311,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define MACRO_USES_STRING_CONSTANT "hello.h"
             #define MACRO_USES_SYSTEM_PATH <hello.h>
             #define MACRO_USES_FUNCTION MACRO_FUNCTION()
-            #define MACRO_USES_FUNCTION_WITH_ARGS FUNCTION_RETURNS_ARG(FUNCTION_RETURNS_ARG(MACRO_USES_FUNCTION))
+            #define MACRO_USES_FUNCTION_WITH_ARGS FUNCTION_RETURNS_MACRO_CALL(MACRO_USES_FUNCTION)
             #include ${macro}
             #include <iostream>
 
