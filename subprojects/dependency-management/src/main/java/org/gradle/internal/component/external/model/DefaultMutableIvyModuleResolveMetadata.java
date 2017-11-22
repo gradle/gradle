@@ -50,9 +50,13 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
+        this(id, componentIdentifier, ImmutableList.<ModuleDependencyMetadata>of());
+    }
+
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ModuleDependencyMetadata> dependencies) {
         this(id, componentIdentifier,
             ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
-            ImmutableList.<ModuleDependencyMetadata>of(),
+            ImmutableList.copyOf(dependencies),
             ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))),
             ImmutableList.<Exclude>of());
     }

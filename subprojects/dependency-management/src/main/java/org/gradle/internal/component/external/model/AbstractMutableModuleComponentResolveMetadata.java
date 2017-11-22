@@ -198,11 +198,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         return dependencies;
     }
 
-    @Override
-    public void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
-        this.dependencies = ImmutableList.copyOf(dependencies);
-    }
-
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
         MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
         if (newVariants == null) {

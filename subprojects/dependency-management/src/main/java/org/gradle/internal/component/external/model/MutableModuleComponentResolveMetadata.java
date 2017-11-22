@@ -82,11 +82,6 @@ public interface MutableModuleComponentResolveMetadata {
     List<? extends ModuleDependencyMetadata> getDependencies();
 
     /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies);
-
-    /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);

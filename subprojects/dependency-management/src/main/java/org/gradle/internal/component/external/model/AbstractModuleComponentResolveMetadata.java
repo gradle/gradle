@@ -69,7 +69,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         dependencyMetadataRules = metadata.dependencyMetadataRules;
         contentHash = metadata.getContentHash();
 
-        this.variants = metadata.getVariants();
+        variants = metadata.getVariants();
     }
 
     /**
@@ -86,11 +86,34 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         configurationDefinitions = metadata.configurationDefinitions;
         dependencies = metadata.dependencies;
         dependencyMetadataRules = metadata.dependencyMetadataRules;
-        configurations.putAll(metadata.configurations);
-
         contentHash = metadata.contentHash;
-        this.variants = metadata.variants;
+
+        variants = metadata.variants;
+
+        // Copy built-on-demand state
+        configurations.putAll(metadata.configurations);
         this.graphVariants = metadata.graphVariants;
+    }
+
+    /**
+     * Creates a copy of the given metadata with the provided dependencies.
+     */
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, List<? extends ModuleDependencyMetadata> dependencies) {
+        this.componentIdentifier = metadata.getComponentId();
+        this.moduleVersionIdentifier = metadata.getId();
+        changing = metadata.changing;
+        missing = metadata.missing;
+        status = metadata.status;
+        statusScheme = metadata.statusScheme;
+        moduleSource = metadata.moduleSource;
+        configurationDefinitions = metadata.configurationDefinitions;
+        dependencyMetadataRules = metadata.dependencyMetadataRules;
+        contentHash = metadata.contentHash;
+
+        variants = metadata.getVariants();
+
+        // Set the dependencies, and do not copy built-on-demand state
+        this.dependencies = dependencies;
     }
 
     // TODO:DAZ Wrap each `DependencyMetadata` with a configuration-aware wrapper, so that we can remove the 'fromConfiguration' parameters.

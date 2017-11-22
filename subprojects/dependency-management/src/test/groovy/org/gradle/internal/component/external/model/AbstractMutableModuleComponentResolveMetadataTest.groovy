@@ -199,39 +199,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         copy.contentHash == contentHash
     }
 
-    def "can replace the dependencies for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-
-        dependency("foo", "bar", "1.0")
-        def metadata = getMetadata()
-
-        then:
-        metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
-
-        when:
-        def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])
-        def dependency2 = dependency("foo", "baz", "1.2", ["compile"])
-        metadata.dependencies = [dependency1, dependency2]
-
-        then:
-        metadata.dependencies == [dependency1, dependency2]
-
-        def immutable = metadata.asImmutable()
-        immutable.getConfiguration("compile").dependencies == [dependency2]
-        immutable.getConfiguration("runtime").dependencies == [dependency1, dependency2]
-
-        when:
-        def copy = immutable.asMutable()
-        copy.dependencies = [dependency1]
-
-        then:
-        def immutable2 = copy.asImmutable()
-        immutable2.getConfiguration("compile").dependencies == []
-        immutable2.getConfiguration("runtime").dependencies == [dependency1]
-    }
-
     def "can attach variants with files"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def metadata = createMetadata(id)

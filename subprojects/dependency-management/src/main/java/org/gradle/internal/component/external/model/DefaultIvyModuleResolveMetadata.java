@@ -61,6 +61,15 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.extraAttributes = metadata.extraAttributes;
     }
 
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends ModuleDependencyMetadata> dependencies) {
+        super(metadata, dependencies);
+        this.configurationDefinitions = metadata.configurationDefinitions;
+        this.branch = metadata.branch;
+        this.artifactDefinitions = metadata.artifactDefinitions;
+        this.excludes = metadata.excludes;
+        this.extraAttributes = metadata.extraAttributes;
+    }
+
     @Override
     protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
@@ -134,9 +143,10 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
                 return dependency;
             }
         });
-        // TODO:DAZ Should "just" create a new instance here to avoid the setDependencies() call
-        MutableIvyModuleResolveMetadata mutableMetadata = asMutable();
-        mutableMetadata.setDependencies(transformed);
-        return mutableMetadata.asImmutable();
+        return this.withDependencies(transformed);
+    }
+
+    private IvyModuleResolveMetadata withDependencies(List<ModuleDependencyMetadata> transformed) {
+        return new DefaultIvyModuleResolveMetadata(this, transformed);
     }
 }
