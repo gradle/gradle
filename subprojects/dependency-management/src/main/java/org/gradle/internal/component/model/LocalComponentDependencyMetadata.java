@@ -32,7 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata implements LocalOriginDependencyMetadata {
+public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
@@ -87,7 +87,7 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);

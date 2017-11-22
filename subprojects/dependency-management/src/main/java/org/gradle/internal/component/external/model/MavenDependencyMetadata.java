@@ -27,7 +27,6 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
-import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import java.util.Collection;

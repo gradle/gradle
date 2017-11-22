@@ -30,7 +30,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.GradleDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
