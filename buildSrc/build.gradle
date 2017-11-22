@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 plugins {
-    id("groovy")
-    id("idea")
-    id("eclipse")
+    id 'groovy'
+    id 'idea'
+    id 'eclipse'
 }
 
 sourceCompatibility = '1.7'
