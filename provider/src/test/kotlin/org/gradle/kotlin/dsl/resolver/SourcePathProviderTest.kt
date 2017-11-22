@@ -57,7 +57,7 @@ class SourcePathProviderTest : FolderBasedTest() {
 
         val resolver = mock(SourceDistributionProvider::class.java)
 
-        whenever(resolver.downloadAndResolveSources())
+        whenever(resolver.sourceDirs())
             .thenReturn(listOf(tempFolder.newFolder("gradle", "src", "gradle-foo")))
 
         assertThat(

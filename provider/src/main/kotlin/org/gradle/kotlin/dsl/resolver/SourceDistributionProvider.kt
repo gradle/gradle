@@ -25,24 +25,24 @@ import org.gradle.kotlin.dsl.create
 import java.io.File
 
 interface SourceDistributionProvider {
-    fun downloadAndResolveSources(): Collection<File>
+    fun sourceDirs(): Collection<File>
 }
 
 class StandardSourceDistributionResolver(val project: Project) : SourceDistributionProvider {
     companion object {
-        val ARTIFACT_TYPE = Attribute.of("artifactType", String::class.java)
-        val ZIP_TYPE = "zip"
-        val SOURCES_DIRECTORY = "src-directory"
+        val artifactType = Attribute.of("artifactType", String::class.java)
+        val zipType = "zip"
+        val sourceDirectory = "src-directory"
     }
 
-    override fun downloadAndResolveSources(): Collection<File> {
+    override fun sourceDirs(): Collection<File> {
         val repositories = project.repositories
         val repos = createSourceRepositories(repositories)
         registerTransforms()
         try {
             val sourceDependency = project.dependencies.create("gradle", "gradle", project.gradle.gradleVersion, null, "src", "zip")
             val configuration = project.configurations.detachedConfiguration(sourceDependency)
-            configuration.attributes.attribute(ARTIFACT_TYPE, SOURCES_DIRECTORY)
+            configuration.attributes.attribute(artifactType, sourceDirectory)
             return configuration.files
         } finally {
             repos.forEach {
@@ -72,8 +72,8 @@ class StandardSourceDistributionResolver(val project: Project) : SourceDistribut
     private
     fun registerTransforms() {
         project.dependencies.registerTransform {
-            it.from.attribute(ARTIFACT_TYPE, ZIP_TYPE)
-            it.to.attribute(ARTIFACT_TYPE, SOURCES_DIRECTORY)
+            it.from.attribute(artifactType, zipType)
+            it.to.attribute(artifactType, sourceDirectory)
             it.artifactTransform(ExtractGradleSourcesTransform::class.java)
         }
     }

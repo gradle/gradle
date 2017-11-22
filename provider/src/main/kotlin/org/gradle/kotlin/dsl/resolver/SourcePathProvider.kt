@@ -52,7 +52,7 @@ object SourcePathProvider {
         if (dir.exists()) {
             return subDirsOf(dir)
         }
-        return sourceDistributionResolver.downloadAndResolveSources()
+        return sourceDistributionResolver.sourceDirs()
     }
 
     private
