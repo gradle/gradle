@@ -67,6 +67,5 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     HashValue getContentHash();
 
-    @Override
     List<? extends ModuleDependencyMetadata> getDependencies();
 }

@@ -273,16 +273,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("child2").files == [files1] as Set
     }
 
-    def "can add dependencies"() {
-        def dependency = Mock(LocalOriginDependencyMetadata)
-
-        when:
-        metadata.addDependency(dependency)
-
-        then:
-        metadata.dependencies == [dependency]
-    }
-
     def "dependency is attached to configuration and its children"() {
         def dependency1 = Mock(LocalOriginDependencyMetadata)
         dependency1.moduleConfiguration >> "conf1"

@@ -216,7 +216,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return componentIdentifier;
     }
 
-    @Override
     public List<LocalOriginDependencyMetadata> getDependencies() {
         return allDependencies;
     }
