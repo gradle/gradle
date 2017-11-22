@@ -2,7 +2,9 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.PerformanceTest
+import configurations.SanityCheck
 import configurations.buildReportTab
+import jetbrains.buildServer.configs.kotlin.v10.FailureAction
 import jetbrains.buildServer.configs.kotlin.v10.Project
 import model.CIBuildModel
 import model.SpecificBuild
@@ -25,7 +27,7 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
         }
     }
 
-    stage.specificBuilds.forEach {
+    val specificBuildTypes = stage.specificBuilds.map {
         buildType(it.create(model))
     }
 
@@ -36,7 +38,22 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
     stage.functionalTests.forEach { testCoverage ->
         val isSplitIntoBuckets = testCoverage.testType != TestType.soak
         if (isSplitIntoBuckets) {
-            subProject(FunctionalTestProject(model, testCoverage))
+            val functionalTests = subProject(FunctionalTestProject(model, testCoverage))
+            if (stage.functionalTestsDependOnSpecificBuilds) {
+                functionalTests.buildTypes.forEach { functionalTestBuildType ->
+                    functionalTestBuildType.dependencies {
+                        specificBuildTypes.forEach { specificBuildType ->
+                            dependency(specificBuildType) {
+                                snapshot {
+                                    onDependencyFailure = FailureAction.CANCEL
+                                    onDependencyCancel = FailureAction.CANCEL
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
         } else {
             buildType(FunctionalTest(model, testCoverage))
         }

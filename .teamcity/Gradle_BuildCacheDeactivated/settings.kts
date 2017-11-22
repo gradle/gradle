@@ -43,8 +43,11 @@ val buildModel = CIBuildModel(
                                 TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
                 Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
                         trigger = Trigger.eachCommit,
+                        specificBuilds = listOf(
+                                SpecificBuild.CompileAllJava7),
                         functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
+                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                        functionalTestsDependOnSpecificBuilds = true)
         )
 )
 project(RootProject(buildModel))

@@ -1,6 +1,7 @@
 package model
 
 import configurations.BuildDistributions
+import configurations.CompileAllJava7
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
@@ -22,8 +23,11 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+                    specificBuilds = listOf(
+                            SpecificBuild.CompileAllJava7),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
+                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                    functionalTestsDependOnSpecificBuilds = true),
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
@@ -167,7 +171,7 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never)
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false)
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
@@ -221,6 +225,11 @@ enum class SpecificBuild {
     SanityCheck {
         override fun create(model: CIBuildModel): BuildType {
             return SanityCheck(model)
+        }
+    },
+    CompileAllJava7 {
+        override fun create(model: CIBuildModel): BuildType {
+            return CompileAllJava7(model)
         }
     },
     BuildDistributions {
