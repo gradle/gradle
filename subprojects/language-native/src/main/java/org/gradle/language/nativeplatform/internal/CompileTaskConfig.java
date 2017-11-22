@@ -15,11 +15,14 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
@@ -44,7 +47,9 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
@@ -89,17 +94,23 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
                 });
             }
         });
-        task.includes(new Callable<List<File>>() {
+        FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
+        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
             @Override
-            public List<File> call() throws Exception {
+            public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
                 if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
                     ToolType toolType = determineToolType(languageTransform.getLanguageName());
-                    return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(toolType);
+                    return new LinkedHashSet<File>(((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(toolType));
                 }
-                return ImmutableList.of();
+                return ImmutableSet.of();
             }
-        });
+
+            @Override
+            public String getDisplayName() {
+                return "System includes for " + binary.getToolChain().getDisplayName();
+            }
+        }));
 
         for (String toolName : languageTransform.getBinaryTools().keySet()) {
             Tool tool = binary.getToolByName(toolName);

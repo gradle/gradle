@@ -136,7 +136,7 @@ model {
         fails "compileMainExecutableMainC"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescription("Execution failed for task ':dependMainExecutableMainC'.")
         failure.assertThatCause(Matchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
