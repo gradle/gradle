@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
@@ -111,7 +112,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         return status;
     }
 
-    protected abstract Map<String, Configuration> getConfigurationDefinitions();
+    protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
 
     @Override
     public void setStatus(String status) {

@@ -55,7 +55,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
         graphVariants = metadata.getVariantsForGraphTraversal();
-        populateConfigurationsFromDescriptor(metadata.getConfigurationDefinitions());
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {

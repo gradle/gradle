@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -32,7 +33,6 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,10 +46,13 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final List<? extends ModuleDependencyMetadata> dependencies;
     private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
     private final HashValue contentHash;
-    private ImmutableMap<String, T> configurations;
+
+    // Configurations are built on-demand, but only once.
+    private final Map<String, T> configurations = Maps.newHashMap();
 
     protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata<T> metadata) {
         this.componentIdentifier = metadata.getComponentId();
@@ -59,6 +62,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
+        configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         dependencyMetadataRules = metadata.dependencyMetadataRules;
         contentHash = metadata.getContentHash();
@@ -70,29 +74,20 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, @Nullable ModuleSource source) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
-        changing = metadata.isChanging();
-        missing = metadata.isMissing();
-        status = metadata.getStatus();
-        statusScheme = metadata.getStatusScheme();
+        changing = metadata.changing;
+        missing = metadata.missing;
+        status = metadata.status;
+        statusScheme = metadata.statusScheme;
         moduleSource = source;
-        dependencies = metadata.getDependencies();
+        configurationDefinitions = metadata.configurationDefinitions;
+        dependencies = metadata.dependencies;
         dependencyMetadataRules = metadata.dependencyMetadataRules;
-        configurations = metadata.configurations;
-        contentHash = metadata.getContentHash();
+        configurations.putAll(metadata.configurations);
+
+        contentHash = metadata.contentHash;
     }
 
-    // TODO:DAZ Maybe create these on-demand
     // TODO:DAZ Wrap each `DependencyMetadata` with a configuration-aware wrapper, so that we can remove the 'fromConfiguration' parameters.
-    protected void populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
-        Set<String> configurationsNames = configurationDefinitions.keySet();
-        Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
-        for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
-            configuration.populateDependencies(dependencies, dependencyMetadataRules.get(configName));
-        }
-        this.configurations = ImmutableMap.copyOf(configurations);
-    }
-
     private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
         T populated = configurations.get(name);
         if (populated != null) {
@@ -100,16 +95,20 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         }
 
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
+        if (descriptorConfiguration == null) {
+            return null;
+        }
+
         List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = createConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.<T>of());
+            populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.<T>of());
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
+            populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
             configurations.put(name, populated);
             return populated;
         }
@@ -117,10 +116,19 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
-        populated = createConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.copyOf(hierarchy));
+        populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.copyOf(hierarchy));
 
         configurations.put(name, populated);
         return populated;
+    }
+
+    /**
+     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
+     */
+    private T createAndPopulateConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents) {
+        T configuration = createConfiguration(componentId, name, transitive, visible, parents);
+        configuration.populateDependencies(dependencies, dependencyMetadataRules.get(name));
+        return configuration;
     }
 
     /**
@@ -175,11 +183,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     }
 
     @Override
-    public Set<String> getConfigurationNames() {
-        return configurations.keySet();
-    }
-
-    @Override
     public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return ImmutableList.of();
     }
@@ -201,7 +204,13 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     }
 
     @Override
-    public ConfigurationMetadata getConfiguration(final String name) {
-        return configurations.get(name);
+    public Set<String> getConfigurationNames() {
+        return configurationDefinitions.keySet();
+    }
+
+    @Override
+    public synchronized ConfigurationMetadata getConfiguration(final String name) {
+        // TODO:DAZ Try `CacheBuilder` or similar
+        return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
@@ -24,7 +25,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -64,7 +64,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected Map<String, Configuration> getConfigurationDefinitions() {
+    protected ImmutableMap<String, Configuration> getConfigurationDefinitions() {
         return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
     }
 

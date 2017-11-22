@@ -55,7 +55,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.extraAttributes = metadata.getExtraAttributes();
         this.variants = metadata.getVariants();
         this.graphVariants = metadata.getVariantsForGraphTraversal();
-        populateConfigurationsFromDescriptor(configurationDefinitions);
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {

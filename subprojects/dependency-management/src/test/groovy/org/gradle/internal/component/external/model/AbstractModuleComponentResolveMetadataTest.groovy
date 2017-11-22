@@ -80,8 +80,11 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         configuration("compile")
         def source = Stub(ModuleSource)
 
-        when:
         def metadata = getMetadata()
+        // Prime the configuration
+        metadata.getConfiguration("compile")
+
+        when:
         def copy = metadata.withSource(source)
 
         then:

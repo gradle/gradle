@@ -43,6 +43,7 @@ import java.util.Set;
 public abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
+    // TODO:DAZ We only need the parents in order to populate the hierarchy.
     private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
     private final List<ModuleDependencyMetadata> configDependencies = Lists.newArrayList();
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -98,7 +99,7 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
     }
 
     private void populateHierarchy(Set<String> accumulator) {
-            accumulator.add(name);
+        accumulator.add(name);
         for (DefaultConfigurationMetadata parent : getParents()) {
             parent.populateHierarchy(accumulator);
         }
