@@ -60,16 +60,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-        if (artifactOverrides != null) {
-            artifacts = artifactOverrides;
+        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
         } else {
-            if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-                artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
-            } else {
-                artifacts = ImmutableList.of();
-            }
+            artifacts = ImmutableList.of();
         }
         return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
     }

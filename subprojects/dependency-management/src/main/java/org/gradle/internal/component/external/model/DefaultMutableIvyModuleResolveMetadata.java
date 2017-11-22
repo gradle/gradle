@@ -86,9 +86,9 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
-        collectArtifactsFor(name, artifactOverrides, artifacts);
+        collectArtifactsFor(name, artifacts);
         for (IvyConfigurationMetadata parent : parents) {
             artifacts.addAll(parent.getArtifacts());
         }
@@ -96,11 +96,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes, ImmutableList.copyOf(artifacts));
     }
 
-    private void collectArtifactsFor(String name, Collection<? extends ModuleComponentArtifactMetadata> artifactOverrides, Collection<ModuleComponentArtifactMetadata> dest) {
-        if (artifactOverrides != null) {
-            dest.addAll(artifactOverrides);
-            return;
-        }
+    private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {
         if (artifacts == null) {
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }

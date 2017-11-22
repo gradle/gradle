@@ -42,9 +42,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, ? extends ConfigurationMetadata> configurations;
-    // This should live in a decorator rather than here
-    @Nullable
-    private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private final List<? extends ModuleDependencyMetadata> dependencies;
     private final HashValue contentHash;
 
@@ -57,7 +54,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         dependencies = metadata.getDependencies();
-        artifactOverrides = metadata.getArtifactOverrides();
         configurations = metadata.getConfigurations();
         contentHash = metadata.getContentHash();
     }
@@ -74,7 +70,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = source;
         dependencies = metadata.getDependencies();
-        artifactOverrides = metadata.getArtifactOverrides();
         configurations = metadata.getConfigurations();
         contentHash = metadata.getContentHash();
     }
@@ -144,12 +139,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
-    }
-
-    @Nullable
-    @Override
-    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
-        return artifactOverrides;
     }
 
     @Override

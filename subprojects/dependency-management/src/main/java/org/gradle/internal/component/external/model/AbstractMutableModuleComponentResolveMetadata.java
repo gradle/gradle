@@ -63,8 +63,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private ModuleSource moduleSource;
     private List<? extends ModuleDependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
-    @Nullable
-    private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private ImmutableMap<String, T> configurations;
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
@@ -88,7 +86,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.artifactOverrides = metadata.getArtifactOverrides();
         this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
@@ -155,11 +152,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of(), artifactOverrides);
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of());
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)), artifactOverrides);
+            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
             configurations.put(name, populated);
             return populated;
         }
@@ -167,7 +164,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
-        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy), artifactOverrides);
+        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy));
 
         configurations.put(name, populated);
         return populated;
@@ -176,7 +173,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
 
     @Override
     public void setStatus(String status) {
@@ -260,18 +257,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         dependencyMetadataRules.get(variantName).addAction(action);
         resetConfigurations();
         graphVariants = null;
-    }
-
-    @Nullable
-    @Override
-    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
-        return artifactOverrides;
-    }
-
-    @Override
-    public void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.artifactOverrides = ImmutableList.copyOf(artifacts);
-        resetConfigurations();
     }
 
     @Override

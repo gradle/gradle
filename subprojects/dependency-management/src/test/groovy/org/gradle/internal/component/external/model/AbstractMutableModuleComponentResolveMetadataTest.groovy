@@ -236,35 +236,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable2.getConfiguration("runtime").dependencies == [dependency1]
     }
 
-    def "can replace the artifacts for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime")
-        def metadata = getMetadata()
-        metadata.configurations
-        def a1 = metadata.artifact("jar", "jar", null)
-        def a2 = metadata.artifact("pom", "pom", null)
-        metadata.artifactOverrides = [a1, a2]
-
-        then:
-        def immutable = metadata.asImmutable()
-        immutable.artifactOverrides == [a1, a2]
-        immutable.getConfiguration("compile").artifacts == [a1, a2]
-        immutable.getConfiguration("runtime").artifacts == [a1, a2]
-
-        def copy = immutable.asMutable()
-        copy.artifactOverrides == [a1, a2]
-
-        when:
-        metadata.artifactOverrides = [a2]
-
-        then:
-        def immutable2 = metadata.asImmutable()
-        immutable2.artifactOverrides == [a2]
-        immutable2.getConfiguration("compile").artifacts == [a2]
-        immutable2.getConfiguration("runtime").artifacts == [a2]
-    }
-
     def "can attach variants with files"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def metadata = createMetadata(id)

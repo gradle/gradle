@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
@@ -93,17 +92,6 @@ public interface MutableModuleComponentResolveMetadata {
      * Replaces the dependencies of this module version.
      */
     void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies);
-
-    /**
-     * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.
-     */
-    @Nullable
-    ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
-
-    /**
-     * Replaces the artifacts of this module version. The artifacts are attached to all configurations.
-     */
-    void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
