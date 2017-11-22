@@ -71,6 +71,14 @@ class GradleModuleMetadata {
         return matches.first()
     }
 
+    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Void> action) {
+        def variant = variant(name)
+        action.delegate = variant
+        action.resolveStrategy = Closure.DELEGATE_FIRST
+        action()
+        variant
+    }
+
     private Map<String, Object> readObject(JsonReader reader) {
         Map<String, Object> values = [:]
         reader.beginObject()
@@ -123,6 +131,9 @@ class GradleModuleMetadata {
         final String name
         private final Map<String, Object> values
 
+        List<Dependency> dependencies
+        final Set<Dependency> checkedDependencies = []
+
         Variant(String name, Map<String, Object> values) {
             this.name = name
             this.values = values
@@ -135,14 +146,78 @@ class GradleModuleMetadata {
         }
 
         List<Dependency> getDependencies() {
-            return (values.dependencies ?: []).collect {
-                def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                new Dependency(it.group, it.module, it.version.prefers, it.version.rejects?:[], exclusions)
+            if (dependencies == null) {
+                dependencies = (values.dependencies ?: []).collect {
+                    def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
+                    new Dependency(it.group, it.module, it.version.prefers, it.version.rejects ?: [], exclusions)
+                }
             }
+            dependencies
+        }
+
+        Variant noMoreDependencies() {
+            Set<Dependency> uncheckedDependencies = getDependencies() - checkedDependencies
+            assert uncheckedDependencies.empty
+            this
         }
 
         List<File> getFiles() {
             return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5)) }
+        }
+
+        DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+            def view = new DependencyView(group, module, version)
+            action.delegate = view
+            action.resolveStrategy = Closure.DELEGATE_FIRST
+            action()
+            view
+        }
+
+        DependencyView dependency(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+            def (String group, String module, String version) = notation.split(':') as List
+            dependency(group, module, version, action)
+        }
+
+        class DependencyView {
+            final String group
+            final String module
+            final String version
+            final Set<String> checkedExcludes = []
+
+            DependencyView(String gid, String mid, String v) {
+                group = gid
+                module = mid
+                version = v
+            }
+
+            Dependency find() {
+                def dep = dependencies.find { it.group == group && it.module == module && it.version == version }
+                checkedDependencies << dep
+                dep
+            }
+
+            DependencyView exists() {
+                assert find()
+                this
+            }
+
+            DependencyView hasExclude(String group, String module = '*') {
+                String exc = "${group}:${module}"
+                assert find()?.excludes?.contains(exc)
+                checkedExcludes << exc
+                this
+            }
+
+            DependencyView noMoreExcludes() {
+                def uncheckedExcludes = find().excludes - checkedExcludes
+                assert uncheckedExcludes.empty
+                this
+            }
+
+            DependencyView notTransitive() {
+                hasExclude('*', '*')
+                noMoreExcludes()
+            }
         }
     }
 
@@ -162,6 +237,10 @@ class GradleModuleMetadata {
         String getCoords() {
             return "$group:$module:${version ?: ''}"
         }
+
+        String toString() {
+            coords
+        }
     }
 
     static class ModuleReference extends Coords {
@@ -171,13 +250,25 @@ class GradleModuleMetadata {
             super(group, module, version)
             this.url = url
         }
+
+        String toString() {
+            "${coords} ${url?url:''}"
+        }
     }
 
     static class Dependency extends Coords {
         final List<String> excludes
         Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes) {
             super(group, module, version, rejectedVersions)
-            this.excludes = excludes
+            this.excludes = excludes*.toString()
+        }
+
+        String toString() {
+            def exc = ""
+            if (excludes) {
+                exc = excludes.collect { " excludes $it" }.join(', ')
+            }
+            "${coords}${exc}"
         }
     }
 
@@ -194,6 +285,10 @@ class GradleModuleMetadata {
             this.size = size
             this.sha1 = sha1
             this.md5 = md5
+        }
+
+        String toString() {
+            "name($name) URL($url) size($size) sha1($sha1) md5($md5)"
         }
     }
 }

@@ -32,6 +32,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
 """
     }
+
     void "can publish jar and descriptor to ivy repository"() {
         given:
         createBuildScripts("""
@@ -52,7 +53,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         then:
         javaLibrary.assertPublishedAsJavaModule()
 
-        with (javaLibrary.parsedIvy) {
+        with(javaLibrary.parsedIvy) {
             configurations.keySet() == ["default", "compile", "runtime"] as Set
             configurations["default"].extend == ["runtime", "compile"] as Set
             configurations["runtime"].extend == null
@@ -117,17 +118,17 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         where:
-        plugin         | gradleConfiguration  | ivyConfiguration
-        'java'         | 'compile'            | 'compile'
-        'java'         | 'runtime'            | 'compile'
-        'java'         | 'implementation'     | 'runtime'
-        'java'         | 'runtimeOnly'        | 'runtime'
+        plugin         | gradleConfiguration | ivyConfiguration
+        'java'         | 'compile'           | 'compile'
+        'java'         | 'runtime'           | 'compile'
+        'java'         | 'implementation'    | 'runtime'
+        'java'         | 'runtimeOnly'       | 'runtime'
 
-        'java-library' | 'api'                | 'compile'
-        'java-library' | 'compile'            | 'compile'
-        'java-library' | 'runtime'            | 'compile'
-        'java-library' | 'runtimeOnly'        | 'runtime'
-        'java-library' | 'implementation'     | 'runtime'
+        'java-library' | 'api'               | 'compile'
+        'java-library' | 'compile'           | 'compile'
+        'java-library' | 'runtime'           | 'compile'
+        'java-library' | 'runtimeOnly'       | 'runtime'
+        'java-library' | 'implementation'    | 'runtime'
 
     }
 
@@ -201,7 +202,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-3514")
     void "generated ivy descriptor includes dependency exclusions"() {
-        resolveModuleMetadata = false // Excludes not yet honoured in module metadata
         given:
         createBuildScripts("""
             $dependencies
@@ -236,16 +236,41 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         then:
         javaLibrary.assertPublishedAsJavaModule()
 
-        def dependency = javaLibrary.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
-        dependency.exclusions.size() == 1
-        dependency.exclusions[0].org == 'commons-logging'
-        dependency.exclusions[0].module == 'commons-logging'
+        def dep = javaLibrary.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
+        dep.exclusions.size() == 1
+        dep.exclusions[0].org == 'commons-logging'
+        dep.exclusions[0].module == 'commons-logging'
 
         javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
         javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
         !javaLibrary.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
         javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->default")
         javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                exists()
+                hasExclude('commons-logging', 'commons-logging')
+                noMoreExcludes()
+            }
+            dependency('commons-dbcp:commons-dbcp:1.4') {
+                exists()
+                notTransitive()
+            }
+            dependency('commons-beanutils', 'commons-beanutils', '1.8.3') {
+                exists()
+                hasExclude('commons-logging')
+                noMoreExcludes()
+            }
+            dependency('org.apache.camel:camel-jackson:2.15.3') {
+                exists()
+                hasExclude('*', 'camel-core')
+                noMoreExcludes()
+            }
+            dependency('commons-collections:commons-collections:3.2.2').exists()
+            noMoreDependencies()
+        }
 
         and:
         resolveArtifacts(javaLibrary) == [
