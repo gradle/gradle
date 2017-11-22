@@ -96,8 +96,8 @@ public class XCTestSelection {
                 return filter;
             }
             return tokens[0] + "." + tokens[1] + "/" + tokens[2];
-        } else if (tokens.length == 2 && WILDCARD.equals(tokens[1])) {
-            return INCLUDE_ALL_TESTS;
+        } else if (tokens.length == 2 && !WILDCARD.equals(tokens[1])) {
+            testSuiteCache.add(testFilter);
         }
 
         return testFilter;
