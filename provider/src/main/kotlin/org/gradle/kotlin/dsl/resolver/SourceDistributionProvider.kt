@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout
@@ -38,17 +39,22 @@ class StandardSourceDistributionResolver(val project: Project) : SourceDistribut
     override fun sourceDirs(): Collection<File> {
         val repositories = project.repositories
         val repos = createSourceRepositories(repositories)
-        registerTransforms()
         try {
-            val sourceDependency = project.dependencies.create("gradle", "gradle", project.gradle.gradleVersion, null, "src", "zip")
-            val configuration = project.configurations.detachedConfiguration(sourceDependency)
-            configuration.attributes.attribute(artifactType, sourceDirectory)
-            return configuration.files
+            registerTransforms()
+            return transientConfigurationForSourcesDownload().files
         } finally {
             repos.forEach {
                 repositories.remove(it)
             }
         }
+    }
+
+    private
+    fun transientConfigurationForSourcesDownload(): Configuration {
+        val sourceDependency = project.dependencies.create("gradle", "gradle", project.gradle.gradleVersion, null, "src", "zip")
+        val configuration = project.configurations.detachedConfiguration(sourceDependency)
+        configuration.attributes.attribute(artifactType, sourceDirectory)
+        return configuration
     }
 
     private
