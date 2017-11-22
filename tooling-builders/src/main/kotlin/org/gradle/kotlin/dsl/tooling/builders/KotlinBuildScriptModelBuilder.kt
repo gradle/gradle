@@ -31,6 +31,7 @@ import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.resolver.DefaultSourceDistributionResolverImpl
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -75,7 +76,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun scriptModelBuilderFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         when {
             parameter.noScript       -> projectScriptModelBuilder(modelRequestProject)
-            parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject.settings)
+            parameter.settingsScript -> settingsScriptModelBuilder(modelRequestProject)
             else                     -> resolveScriptModelBuilderFor(parameter.scriptFile!!, modelRequestProject)
         }
 
@@ -92,15 +93,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
 
 private
-fun settingsScriptModelBuilder(settings: Settings) =
+fun settingsScriptModelBuilder(project: Project) =
     KotlinScriptTargetModelBuilder(
-        settings,
+        project.settings,
         type = Settings::class,
-        rootDir = settings.rootDir,
-        gradleHomeDir = settings.gradle.gradleHomeDir,
-        scriptClassPath = settings.scriptCompilationClassPath,
-        sourceLookupScriptHandlers = listOf(settings.buildscript),
-        implicitImports = settings.scriptImplicitImports)
+        project = project,
+        rootDir = project.settings.rootDir,
+        gradleHomeDir = project.settings.gradle.gradleHomeDir,
+        scriptClassPath = project.settings.scriptCompilationClassPath,
+        sourceLookupScriptHandlers = listOf(project.settings.buildscript),
+        implicitImports = project.settings.scriptImplicitImports)
 
 
 private
@@ -108,6 +110,7 @@ fun projectScriptModelBuilder(project: Project) =
     KotlinScriptTargetModelBuilder(
         project,
         type = Project::class,
+        project = project,
         rootDir = project.rootProject.rootDir,
         gradleHomeDir = project.gradle.gradleHomeDir,
         scriptClassPath = project.scriptCompilationClassPath,
@@ -121,6 +124,7 @@ fun defaultScriptModelBuilder(project: Project) =
     KotlinScriptTargetModelBuilder(
         project,
         type = Project::class,
+        project = project,
         rootDir = project.rootDir,
         gradleHomeDir = project.gradle.gradleHomeDir,
         scriptClassPath = project.defaultScriptCompilationClassPath,
@@ -132,6 +136,7 @@ private
 data class KotlinScriptTargetModelBuilder<out T : Any>(
     val `object`: T,
     private val type: KClass<T>,
+    val project: Project,
     val rootDir: File,
     val gradleHomeDir: File?,
     val scriptClassPath: ClassPath,
@@ -150,7 +155,7 @@ data class KotlinScriptTargetModelBuilder<out T : Any>(
 
     private
     fun gradleSource() =
-        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir)
+        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir, DefaultSourceDistributionResolverImpl(project))
 }
 
 
