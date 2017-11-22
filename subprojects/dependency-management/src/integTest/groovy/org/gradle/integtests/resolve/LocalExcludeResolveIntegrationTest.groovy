@@ -23,7 +23,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
-class LocalDependencyExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     /**
      * Dependency exclude rules defined through Gradle DSL.
      *
@@ -93,6 +93,48 @@ task check {
         'attempting to exclude declared module'            | [group: 'org.gradle', module: 'test']     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
     }
 
+    void "does not resolve module excluded for configuration"() {
+        given:
+        def repo = mavenRepo
+        repo.module('org.gradle.test', 'direct', '1.0').publish()
+        repo.module('org.gradle.test', 'transitive', '1.0').publish()
+        def module = repo.module('org.gradle.test', 'external', '1.0')
+        module.dependsOn('org.gradle.test', 'transitive', '1.0')
+        module.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${repo.uri}' }
+}
+configurations {
+    excluded {
+        exclude module: 'direct'
+        exclude module: 'transitive'
+    }
+    extendedExcluded.extendsFrom excluded
+}
+dependencies {
+    excluded 'org.gradle.test:external:1.0'
+    excluded 'org.gradle.test:direct:1.0'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config*.name as Set == expectedDependencies as Set
+}
+
+task test {
+    doLast {
+        checkDeps configurations.excluded, ['external-1.0.jar']
+        checkDeps configurations.extendedExcluded, ['external-1.0.jar']
+    }
+}
+"""
+
+        expect:
+        succeeds 'test'
+    }
+
+
     /**
      * Dependency graph:
      *
@@ -136,4 +178,116 @@ task check {
         'include bar dependency' | true       | ['test-1.0', 'foo-2.0', 'bar-3.0']
         'exclude bar dependency' | false      | ['test-1.0', 'foo-2.0']
     }
+
+    def "configuration excludes are supported for project dependency"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'direct', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'transitive', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'external', '1.0')
+            .dependsOn('org.gradle.test', 'transitive', '1.0')
+            .publish()
+
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b', 'c'
+"""
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                repositories { maven { url "${mavenRepo.uri}" } }
+            }
+            
+            project(':a') {
+                configurations {
+                    compile {
+                        exclude module: 'direct'
+                        exclude module: 'transitive'
+                    }
+                    other {
+                        exclude module: 'external'
+                    }
+                }
+                dependencies {
+                    compile 'org.gradle.test:external:1.0'
+                    compile 'org.gradle.test:direct:1.0'
+                    compile project(':b')
+                }
+            }
+            
+            project(':b') {
+                configurations {
+                    compile {
+                        exclude module: 'external' // Only applies to transitive dependencies of 'b'
+                    }
+                }
+            }
+            
+            dependencies {
+                compile project(':a')
+            }
+            
+            def compare(config, expectedDependencies) {
+                assert config*.name as Set == expectedDependencies as Set
+            }
+            
+            task checkDeps {
+                doLast {
+                    assert configurations.compile*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
+                }
+            }
+"""
+
+        expect:
+        succeeds ":checkDeps"
+    }
+
+
+    @Issue("GRADLE-3124")
+    void "provides reasonable error message for typo in exclude declaration"() {
+        when:
+        buildFile << """
+            configurations { foo }
+            configurations.foo.exclude group: 'kafka', modue: 'kafka'
+        """
+
+        then:
+        fails()
+        failure.assertHasCause("Could not set unknown property 'modue' for object of type org.gradle.api.internal.artifacts.DefaultExcludeRule.")
+    }
+
+    void "makes no attempt to resolve an excluded dependency"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'external', '1.0')
+            .dependsOn('org.gradle.test', 'unknown1', '1.0')
+            .dependsOn('org.gradle.test', 'unknown2', '1.0').publish()
+
+        when:
+        buildFile << """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+configurations {
+    excluded {
+        exclude module: 'unknown2'
+    }
+}
+dependencies {
+    excluded 'org.gradle.test:external:1.0', { exclude module: 'unknown1' }
+    excluded 'org.gradle.test:unknown2:1.0'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config*.name as Set == expectedDependencies as Set
+}
+
+task test {
+    doLast {
+        assert configurations.excluded.collect { it.name } == ['external-1.0.jar']
+    }
+}
+"""
+        then:
+        succeeds("test")
+    }
+
 }
