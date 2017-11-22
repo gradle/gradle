@@ -19,6 +19,7 @@ package org.gradle.api.tasks.wrapper;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
@@ -368,7 +369,10 @@ public class Wrapper extends DefaultTask {
      * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
      * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
      * the downloaded Gradle distribution.
+     *
+     * @since 4.5
      */
+    @Incubating
     @Input
     @Optional
     public String getDistributionSha256Sum() {
@@ -383,7 +387,10 @@ public class Wrapper extends DefaultTask {
      * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
      * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
      * the downloaded Gradle distribution.
+     *
+     * @since 4.5
      */
+    @Incubating
     @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
     public void setDistributionSha256Sum(String distributionSha256Sum) {
         this.distributionSha256Sum = distributionSha256Sum;
