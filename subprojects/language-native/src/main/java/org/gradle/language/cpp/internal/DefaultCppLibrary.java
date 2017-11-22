@@ -74,7 +74,10 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
     @Override
     public FileTree getPublicHeaderFiles() {
-        return publicHeadersWithConvention.getAsFileTree().matching(new PatternSet().include("**/*.h"));
+        PatternSet patterns = new PatternSet();
+        patterns.include("**/*.h");
+        patterns.include("**/*.hpp");
+        return publicHeadersWithConvention.getAsFileTree().matching(patterns);
     }
 
     @Override
