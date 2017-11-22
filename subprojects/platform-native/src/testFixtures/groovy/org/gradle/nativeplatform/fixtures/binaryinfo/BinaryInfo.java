@@ -25,8 +25,7 @@ public interface BinaryInfo {
     List<String> listObjectFiles();
     List<String> listLinkedLibraries();
     List<Symbol> listSymbols();
-    boolean hasDebugSymbolsFor(List<String> sourceFileNames);
-    boolean doesNotHaveDebugSymbolsFor(List<String> sourceFileNames);
+    List<Symbol> listDebugSymbols();
     String getSoName();
 
     class Symbol {

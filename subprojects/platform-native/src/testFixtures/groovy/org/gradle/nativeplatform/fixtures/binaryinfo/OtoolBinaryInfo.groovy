@@ -66,17 +66,8 @@ class OtoolBinaryInfo implements BinaryInfo {
     }
 
     @Override
-    boolean hasDebugSymbolsFor(List<String> sourceFileNames) {
-        List<BinaryInfo.Symbol> symbols = listSymbols()
-        return sourceFileNames.every { sourceFileName ->
-            symbols.any { it.name == sourceFileName }
-        }
-    }
-
-    @Override
-    boolean doesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
-        List<BinaryInfo.Symbol> symbols = listSymbols()
-        return symbols.every { !(it.name in sourceFileNames) }
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        return listSymbols()
     }
 
     String getSoName() {

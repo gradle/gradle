@@ -20,22 +20,30 @@ import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.test.fixtures.file.TestFile
 
-
 trait DebugInfo {
     void assertHasDebugSymbolsForSources(TestFile binary, SourceElement sourceElement) {
         assertHasDebugSymbolsForSources(new NativeBinaryFixture(binary, null), sourceElement)
     }
 
     void assertHasDebugSymbolsForSources(NativeBinaryFixture fixture, SourceElement sourceElement) {
-        assert fixture.binaryInfo.hasDebugSymbolsFor(sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name })
+        def symbols = fixture.binaryInfo.listDebugSymbols()
+        def sourceFileNames = sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name }
+        def symbolNames = symbols.collect { it.name }
+        sourceFileNames.each { sourceFileName ->
+            assert sourceFileName in symbolNames
+        }
     }
 
     void assertDoesNotHaveDebugSymbolsForSources(TestFile binary, SourceElement sourceElement) {
         assertDoesNotHaveDebugSymbolsForSources(new NativeBinaryFixture(binary, null), sourceElement)
-
     }
 
     void assertDoesNotHaveDebugSymbolsForSources(NativeBinaryFixture fixture, SourceElement sourceElement) {
-        assert fixture.binaryInfo.doesNotHaveDebugSymbolsFor(sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name })
+        def symbols = fixture.binaryInfo.listDebugSymbols()
+        def sourceFileNames = sourceElement.files.findAll { !it.name.endsWith(".h") }.collect { it.name }
+        def symbolNames = symbols.collect { it.name }
+        sourceFileNames.each { sourceFileName ->
+            assert !(sourceFileName in symbolNames)
+        }
     }
 }

@@ -98,13 +98,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         throw new UnsupportedOperationException("Not yet implemented")
     }
 
-    @Override
-    boolean hasDebugSymbolsFor(List<String> sourceFileNames) {
-        throw new UnsupportedOperationException("Not yet implemented")
-    }
-
-    @Override
-    boolean doesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
+    List<BinaryInfo.Symbol> listDebugSymbols() {
         throw new UnsupportedOperationException("Not yet implemented")
     }
 

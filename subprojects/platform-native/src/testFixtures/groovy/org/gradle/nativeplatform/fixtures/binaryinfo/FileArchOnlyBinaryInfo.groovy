@@ -50,13 +50,8 @@ class FileArchOnlyBinaryInfo implements BinaryInfo {
     }
 
     @Override
-    boolean hasDebugSymbolsFor(List<String> sourceFileNames) {
-        throw new UnsupportedOperationException("Not yet implemented")
-    }
-
-    @Override
-    boolean doesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
-        throw new UnsupportedOperationException("Not yet implemented")
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        throw new UnsupportedOperationException("Only getting the architecture is supported using the file utility")
     }
 
     @Override
