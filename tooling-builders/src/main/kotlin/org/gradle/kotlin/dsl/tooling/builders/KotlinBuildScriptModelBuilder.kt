@@ -89,16 +89,17 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
 
 private
-fun settingsScriptModelBuilder(project: Project) =
+fun settingsScriptModelBuilder(project: Project) = project.run {
     KotlinScriptTargetModelBuilder(
-        project.settings,
+        settings,
         type = Settings::class,
         project = project,
-        rootDir = project.settings.rootDir,
-        gradleHomeDir = project.settings.gradle.gradleHomeDir,
-        scriptClassPath = project.settings.scriptCompilationClassPath,
-        sourceLookupScriptHandlers = listOf(project.settings.buildscript),
-        implicitImports = project.settings.scriptImplicitImports)
+        rootDir = settings.rootDir,
+        gradleHomeDir = settings.gradle.gradleHomeDir,
+        scriptClassPath = settings.scriptCompilationClassPath,
+        sourceLookupScriptHandlers = listOf(settings.buildscript),
+        implicitImports = settings.scriptImplicitImports)
+}
 
 
 private
