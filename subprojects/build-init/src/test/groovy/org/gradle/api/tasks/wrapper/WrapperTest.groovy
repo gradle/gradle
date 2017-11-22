@@ -41,6 +41,7 @@ class WrapperTest extends AbstractTaskTest {
                 targetWrapperJarPath + "/gradle-wrapper.properties")
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs()
         wrapper.setDistributionPath("somepath")
+        wrapper.setDistributionSha256Sum("somehash")
     }
 
     AbstractTask getTask() {
@@ -61,6 +62,7 @@ class WrapperTest extends AbstractTaskTest {
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getDistributionBase()
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
         wrapper.getDistributionUrl() != null
+        wrapper.getDistributionSha256Sum() == null
     }
 
     def "determines Windows script path from unix script path"() {
@@ -118,6 +120,14 @@ class WrapperTest extends AbstractTaskTest {
         "http://some-url" == wrapper.getDistributionUrl()
     }
 
+    def "uses explicitly defined distribution sha256 sum"() {
+        given:
+        wrapper.setDistributionSha256Sum("somehash")
+
+        expect:
+        "somehash" == wrapper.getDistributionSha256Sum()
+    }
+
     def "execute with non extant wrapper jar parent directory"() {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
@@ -128,6 +138,7 @@ class WrapperTest extends AbstractTaskTest {
         then:
         unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
         properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
@@ -137,7 +148,8 @@ class WrapperTest extends AbstractTaskTest {
     def "check inputs"() {
         expect:
         wrapper.getInputs().getProperties().keySet() == WrapUtil.toSet(
-            "distributionBase", "distributionPath", "distributionUrl", "distributionType", "archiveBase", "archivePath", "gradleVersion")
+            "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
+            "distributionType", "archiveBase", "archivePath", "gradleVersion")
     }
 
     def "execute with extant wrapper jar parent directory and extant wraper jar"() {
@@ -159,6 +171,7 @@ class WrapperTest extends AbstractTaskTest {
         then:
         unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
         properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()

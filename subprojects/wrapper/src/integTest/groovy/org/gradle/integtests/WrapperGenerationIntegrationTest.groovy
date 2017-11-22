@@ -106,4 +106,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
     }
+
+    def "generated wrapper scripts for given distribution SHA-256 hash sum from command-line"() {
+        when:
+        run "wrapper", "--gradle-distribution-sha256-sum", "somehash"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
+    }
 }

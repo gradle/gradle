@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.IoActions;
@@ -93,6 +94,7 @@ public class Wrapper extends DefaultTask {
     private String distributionPath;
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
     private String distributionUrl;
+    private String distributionSha256Sum;
     private GradleVersion gradleVersion;
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
@@ -172,6 +174,9 @@ public class Wrapper extends DefaultTask {
     private void writeProperties(File propertiesFileDestination) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
+        if (distributionSha256Sum != null) {
+            wrapperProperties.put(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, distributionSha256Sum);
+        }
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
@@ -356,6 +361,35 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
+     * The SHA-256 hash sum of the gradle distribution.
+     *
+     * <p>If not set, the hash sum of the gradle distribution is not verified.
+     *
+     * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
+     * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
+     * the downloaded Gradle distribution.
+     */
+    @Input
+    @Optional
+    public String getDistributionSha256Sum() {
+        return distributionSha256Sum;
+    }
+
+    /**
+     * The SHA-256 hash sum of the gradle distribution.
+     *
+     * <p>If not set, the hash sum of the gradle distribution is not verified.
+     *
+     * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
+     * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
+     * the downloaded Gradle distribution.
+     */
+    @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
+    public void setDistributionSha256Sum(String distributionSha256Sum) {
+        this.distributionSha256Sum = distributionSha256Sum;
+    }
+
+    /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
      * the gradle user home dir.
      */
@@ -405,5 +439,4 @@ public class Wrapper extends DefaultTask {
     public void setArchiveBase(PathBase archiveBase) {
         this.archiveBase = archiveBase;
     }
-
 }
