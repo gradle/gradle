@@ -28,6 +28,12 @@ Think of every feature section as a mini blog post.
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
+### Improvement to C/C++ incremental compilation
+
+Gradle' incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change to a header file. This means much faster builds. However, in some cases Gradle cannot analyze all of these dependencies, and in these cases it assumes all source files depend on all header files and recompiles all source files when any header file changes regardless of whether the change affects the compiler output or not. This also affects how well the Gradle build cache can be used to skip the compilation. None of this is good for performance.
+
+In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means much better incremental compilation and more build cache hits. And this means faster builds.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
