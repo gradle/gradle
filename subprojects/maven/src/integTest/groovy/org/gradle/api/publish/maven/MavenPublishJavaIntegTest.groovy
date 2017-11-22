@@ -174,23 +174,26 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 
-        def apiVariant = javaLibrary.parsedModuleMetadata.variant('api')
-        apiVariant.dependencies.size() == 1
-        apiVariant.dependencies[0].group == 'org.springframework'
-        apiVariant.dependencies[0].module == 'spring-core'
-        apiVariant.dependencies[0].version == '2.5.6'
-        apiVariant.dependencies[0].rejectsVersion == []
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
 
-        def runtimeVariant = javaLibrary.parsedModuleMetadata.variant('runtime')
-        runtimeVariant.dependencies.size() == 2
-        runtimeVariant.dependencies[0].group == 'commons-collections'
-        runtimeVariant.dependencies[0].module == 'commons-collections'
-        runtimeVariant.dependencies[0].version == '3.2.2'
-        runtimeVariant.dependencies[0].rejectsVersion == [']3.2.2,)']
-        runtimeVariant.dependencies[1].group == 'org.springframework'
-        runtimeVariant.dependencies[1].module == 'spring-core'
-        runtimeVariant.dependencies[1].version == '2.5.6'
-        runtimeVariant.dependencies[1].rejectsVersion == []
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                noMoreExcludes()
+                rejects ']3.2.2,)'
+            }
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
 
         and:
         resolveArtifacts(javaLibrary) == [
