@@ -25,12 +25,9 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
-import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
-import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.PreprocessingTool;
@@ -92,12 +89,12 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
                 });
             }
         });
-        final ToolType toolType = determineToolType(task);
         task.includes(new Callable<List<File>>() {
             @Override
             public List<File> call() throws Exception {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
                 if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
+                    ToolType toolType = determineToolType(languageTransform.getLanguageName());
                     return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(toolType);
                 }
                 return ImmutableList.of();
@@ -114,15 +111,9 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         }
     }
 
-    private ToolType determineToolType(AbstractNativeCompileTask task) {
-        if (task instanceof CppCompile) {
+    private ToolType determineToolType(String languageName) {
+        if (languageName.equals("cpp")) {
             return ToolType.CPP_COMPILER;
-        }
-        if (task instanceof ObjectiveCCompile) {
-            return ToolType.OBJECTIVEC_COMPILER;
-        }
-        if (task instanceof ObjectiveCppCompile) {
-            return ToolType.OBJECTIVECPP_COMPILER;
         }
         return ToolType.C_COMPILER;
     }

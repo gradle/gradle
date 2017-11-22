@@ -52,6 +52,28 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    def "finds C++ library headers"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeLibrarySpec)
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/includeIoStream.cpp") << """
+            #include <iostream>
+        """
+
+        when:
+        run 'mainSharedLibrary'
+
+        then:
+        file('build/dependMainSharedLibraryMainCpp/inputs.txt').text.contains('iostream')
+    }
+
     def "sources are compiled with C++ compiler"() {
         def app = new CppCompilerDetectingTestApp()
 
