@@ -15,17 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-
-import java.util.List;
 
 class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleComponentRepositoryAccess {
 
@@ -64,13 +58,9 @@ class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleCompone
 
     private void transformDependencies(BuildableModuleComponentMetaDataResolveResult result) {
         ModuleComponentResolveMetadata metadata = result.getMetaData();
-        MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-        List<ModuleDependencyMetadata> transformed = Lists.newArrayList();
-        for (ModuleDependencyMetadata dependency : metadata.getDependencies()) {
-            DependencyMetadata dependencyMetadata = dependency.withRequestedVersion(new DefaultMutableVersionConstraint(dependency.getDynamicConstraintVersion()));
-            transformed.add((ModuleDependencyMetadata) dependencyMetadata);
+        if (metadata instanceof IvyModuleResolveMetadata) {
+            IvyModuleResolveMetadata transformedMetadata = ((IvyModuleResolveMetadata) metadata).withDynamicConstraintVersions();
+            result.setMetadata(transformedMetadata);
         }
-        mutableMetadata.setDependencies(transformed);
-        result.setMetadata(mutableMetadata.asImmutable());
     }
 }

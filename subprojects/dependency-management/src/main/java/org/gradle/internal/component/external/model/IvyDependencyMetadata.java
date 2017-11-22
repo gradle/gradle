@@ -85,7 +85,6 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return force;
     }
 
-    @Override
     public String getDynamicConstraintVersion() {
         return dynamicConstraintVersion;
     }

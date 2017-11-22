@@ -104,9 +104,4 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     public boolean isOptional() {
         return delegate.isOptional();
     }
-
-    @Override
-    public String getDynamicConstraintVersion() {
-        return getSelector().getVersionConstraint().getPreferredVersion();
-    }
 }

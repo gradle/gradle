@@ -17,12 +17,17 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.util.CollectionUtils;
+
+import java.util.List;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final ImmutableMap<String, Configuration> configurationDefinitions;
@@ -96,5 +101,23 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         return graphVariants;
+    }
+
+    @Override
+    public IvyModuleResolveMetadata withDynamicConstraintVersions() {
+        List<ModuleDependencyMetadata> transformed = CollectionUtils.collect(getDependencies(), new Transformer<ModuleDependencyMetadata, ModuleDependencyMetadata>() {
+            @Override
+            public ModuleDependencyMetadata transform(ModuleDependencyMetadata dependency) {
+                if (dependency instanceof IvyDependencyMetadata) {
+                    String dynamicConstraintVersion = ((IvyDependencyMetadata) dependency).getDynamicConstraintVersion();
+                    return dependency.withRequestedVersion(new DefaultMutableVersionConstraint(dynamicConstraintVersion));
+                }
+
+                return dependency;
+            }
+        });
+        MutableIvyModuleResolveMetadata mutableMetadata = asMutable();
+        mutableMetadata.setDependencies(transformed);
+        return mutableMetadata.asImmutable();
     }
 }

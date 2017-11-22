@@ -70,4 +70,9 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
      * @return the extra info for the module
      */
     ImmutableMap<NamespaceId, String> getExtraAttributes();
+
+    /**
+     * Returns this metadata with all dependencies transformed to use the dynamic constraint version.
+     */
+    IvyModuleResolveMetadata withDynamicConstraintVersions();
 }
