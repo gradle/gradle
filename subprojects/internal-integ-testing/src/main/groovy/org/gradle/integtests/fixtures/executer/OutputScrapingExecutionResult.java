@@ -63,7 +63,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
-    private static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("Some deprecated APIs are used in this build, which may be broken in Gradle (\\d|\\.)+ See the report at: file://(.*)\n");
+    private static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("Some deprecated APIs are used in this build, which may be broken in Gradle (\\d|\\.)+ See the report at: file://(.*)$");
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));

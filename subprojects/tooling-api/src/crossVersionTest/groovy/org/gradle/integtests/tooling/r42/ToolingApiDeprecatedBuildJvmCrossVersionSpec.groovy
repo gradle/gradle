@@ -42,12 +42,8 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
     }
 
-    def getDeprecationReport(){
-        new DeprecationReport(projectDir)
-    }
-
     def warningCount(def output){
-        return deprecationReport.count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0")
+        return new DeprecationReport(projectDir.file('build/reports/deprecations/report.html')).count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })

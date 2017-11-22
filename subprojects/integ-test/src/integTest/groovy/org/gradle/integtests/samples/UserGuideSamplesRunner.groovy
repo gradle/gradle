@@ -169,7 +169,7 @@ class UserGuideSamplesRunner extends Runner {
                     expectedResult = run.outputFormatter.transform(expectedResult)
                 }
                 if (run.allowDeprecation) {
-                    expectedResult = expectedResult + '\nSome deprecated APIs are used in this build, which may be broken in Gradle 5.0.'
+                    expectedResult = expectedResult + 'Some deprecated APIs are used in this build, which may be broken in Gradle 5.0. '
                 }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
@@ -301,6 +301,11 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
+        samplesByDir.get('userguide/multiproject/dependencies/java').each {
+            if (it.args.contains('-a')) {
+                it.allowDeprecation = true
+            }
+        }
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
         }
