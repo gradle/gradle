@@ -298,17 +298,6 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
-        samplesByDir.get('userguide/multiproject/dependencies/java').each {
-            if (it.args.contains('-a')) {
-                it.allowDeprecation = true
-                it.outputFormatter = new Transformer<String, String>() {
-                    @Override
-                    String transform(String s) {
-                        return '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle 5.0.\n' + s
-                    }
-                }
-            }
-        }
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
         }

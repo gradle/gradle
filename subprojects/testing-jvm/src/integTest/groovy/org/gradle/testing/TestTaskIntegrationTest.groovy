@@ -228,7 +228,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
         succeeds("test")
         then:
-        result.assertOutputContains("The setTestClassesDir(File) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
+        result.deprecationReport.contains("The setTestClassesDir(File) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
     }
 
     private static String standaloneTestClass() {

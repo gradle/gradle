@@ -31,7 +31,7 @@ class WrapperDeprecatedBuildJvmIntegrationTest extends AbstractWrapperIntegratio
 
         expect:
         def result = wrapperExecuter.withTasks("help").run()
-        result.output.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 1
+        result.deprecationReport.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -44,6 +44,6 @@ class WrapperDeprecatedBuildJvmIntegrationTest extends AbstractWrapperIntegratio
 
         expect:
         def result = wrapperExecuter.withTasks("help").run()
-        result.output.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 0
+        result.deprecationReport.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 0
     }
 }

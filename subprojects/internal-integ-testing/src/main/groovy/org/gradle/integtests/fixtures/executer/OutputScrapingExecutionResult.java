@@ -64,6 +64,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
 
+    public OutputScrapingExecutionResult(String output, String error) {
+        this(output, error, null);
+    }
+
     public OutputScrapingExecutionResult(String output, String error, File projectDir) {
         this.output = TextUtil.normaliseLineSeparators(output);
         this.error = TextUtil.normaliseLineSeparators(error);

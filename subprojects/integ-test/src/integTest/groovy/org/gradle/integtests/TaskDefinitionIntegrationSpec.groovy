@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -41,7 +42,7 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarning()
-        succeeds taskName
+        DeprecationReport output = succeeds(taskName).deprecationReport
 
         then:
         output.contains(message)

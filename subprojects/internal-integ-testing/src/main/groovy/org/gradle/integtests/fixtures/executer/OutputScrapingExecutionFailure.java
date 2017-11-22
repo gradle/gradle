@@ -49,6 +49,10 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return FAILURE_PATTERN.matcher(error).find();
     }
 
+    public OutputScrapingExecutionFailure(String output, String error) {
+        this(output, error, null);
+    }
+
     public OutputScrapingExecutionFailure(String output, String error, File projectDir) {
         super(output, error, projectDir);
 
