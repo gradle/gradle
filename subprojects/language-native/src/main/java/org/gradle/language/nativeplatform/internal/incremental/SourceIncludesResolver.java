@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 import java.util.List;
@@ -41,5 +40,5 @@ public interface SourceIncludesResolver {
     /**
      * Resolves the given include directive to zero or more include files.
      */
-    IncludeResolutionResult resolveInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives);
+    IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros);
 }

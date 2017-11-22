@@ -39,34 +39,34 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     @Override
-    public IncludeResolutionResult resolveInclude(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives) {
+    public IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros) {
         BuildableResult resolvedSourceIncludes = new BuildableResult();
-        resolveExpression(sourceFile, include, visibleIncludeDirectives, include, resolvedSourceIncludes, includePaths);
+        resolveExpression(sourceFile, include, visibleMacros, include, resolvedSourceIncludes, includePaths);
         return resolvedSourceIncludes;
     }
 
-    private void resolveExpression(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Expression expression, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
+    private void resolveExpression(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
         if (expression.getType() == IncludeType.SYSTEM) {
             searchForDependency(includePaths, expression.getValue(), resolvedSourceIncludes);
         } else if (expression.getType() == IncludeType.QUOTED) {
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
             searchForDependency(quotedSearchPath, expression.getValue(), resolvedSourceIncludes);
         } else if (expression.getType() == IncludeType.MACRO) {
-            resolveMacroToIncludes(sourceFile, include, visibleIncludeDirectives, expression, resolvedSourceIncludes);
+            resolveMacroToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
         } else if (expression.getType() == IncludeType.MACRO_FUNCTION) {
-            resolveMacroFunctionToIncludes(sourceFile, include, visibleIncludeDirectives, expression, resolvedSourceIncludes);
+            resolveMacroFunctionToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
         } else {
             resolvedSourceIncludes.unresolved();
         }
     }
 
-    private void resolveMacroToIncludes(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Expression expression, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacroToIncludes(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes) {
         boolean found = false;
-        for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
+        for (IncludeDirectives includeDirectives : visibleMacros) {
             for (Macro macro : includeDirectives.getMacros()) {
                 if (expression.getValue().equals(macro.getName())) {
                     found = true;
-                    resolveExpression(sourceFile, include, visibleIncludeDirectives, macro, resolvedSourceIncludes, includePaths);
+                    resolveExpression(sourceFile, include, visibleMacros, macro, resolvedSourceIncludes, includePaths);
                 }
             }
         }
@@ -75,15 +75,15 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private void resolveMacroFunctionToIncludes(File sourceFile, Include include, List<IncludeDirectives> visibleIncludeDirectives, Expression expression, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacroFunctionToIncludes(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes) {
         boolean found = false;
-        for (IncludeDirectives includeDirectives : visibleIncludeDirectives) {
+        for (IncludeDirectives includeDirectives : visibleMacros) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
                 // Currently only handle functions with no parameters
                 if (expression.getValue().equals(macro.getName()) && macro.getParameterCount() == expression.getArguments().size()) {
                     found = true;
                     Expression result = macro.evaluate(expression.getArguments());
-                    resolveExpression(sourceFile, include, visibleIncludeDirectives, result, resolvedSourceIncludes, includePaths);
+                    resolveExpression(sourceFile, include, visibleMacros, result, resolvedSourceIncludes, includePaths);
                 }
             }
         }
