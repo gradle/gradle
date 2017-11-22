@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -44,16 +46,28 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 class GccPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
+
+    private static final Map<ToolType, String> LANGUAGE_FOR_COMPILER = ImmutableMap.of(
+        ToolType.C_COMPILER, "c",
+        ToolType.CPP_COMPILER, "c++",
+        ToolType.OBJECTIVEC_COMPILER, "objective-c",
+        ToolType.OBJECTIVECPP_COMPILER, "objective-c++"
+    );
+
     private final ToolSearchPath toolSearchPath;
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
@@ -62,8 +76,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     private final WorkerLeaseService workerLeaseService;
     private final CompilerType compilerType;
     private final GccMetadata gccMetadata;
+    private final CompilerMetaDataProvider<GccMetadata> metadataProvider;
 
-    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerType compilerType, GccMetadata gccMetadata) {
+    GccPlatformToolProvider(BuildOperationExecutor buildOperationExecutor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, boolean useCommandFile, WorkerLeaseService workerLeaseService, CompilerType compilerType, GccMetadata gccMetadata, CompilerMetaDataProvider<GccMetadata> metadataProvider) {
         super(buildOperationExecutor, targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
@@ -73,6 +88,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
         this.workerLeaseService = workerLeaseService;
         this.compilerType = compilerType;
         this.gccMetadata = gccMetadata;
+        this.metadataProvider = metadataProvider;
     }
 
     @Override
@@ -183,7 +199,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     }
 
     @Override
-    public List<File> getSystemIncludes() {
-        return gccMetadata.getSystemIncludes();
+    public List<File> getSystemIncludes(ToolType compilerType) {
+        GccCommandLineToolConfigurationInternal compiler = toolRegistry.getTool(compilerType);
+        CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
+        String language = LANGUAGE_FOR_COMPILER.get(compilerType);
+        List<String> languageArgs = language == null ? Collections.<String>emptyList() : ImmutableList.of("-x", language);
+        return metadataProvider.getCompilerMetaData(searchResult.getTool(), languageArgs).getSystemIncludes();
     }
 }

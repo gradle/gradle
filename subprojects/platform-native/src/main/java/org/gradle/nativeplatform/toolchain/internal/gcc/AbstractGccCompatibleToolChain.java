@@ -17,6 +17,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -44,6 +45,7 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +57,7 @@ import static java.util.Arrays.asList;
 /**
  * A tool chain that has GCC semantics.
  */
+@NonNullApi
 public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements GccCompatibleToolChain {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGccCompatibleToolChain.class);
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
@@ -162,9 +165,10 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, metaDataProvider.getCompilerType(), gccMetadata);
+        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, metaDataProvider.getCompilerType(), gccMetadata, metaDataProvider);
     }
 
+    @Nullable
     protected GccMetadata initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
         // Attempt to determine whether the compiler is the correct implementation
         boolean found = false;
@@ -214,6 +218,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     protected void configureDefaultTools(DefaultGccPlatformToolChain toolChain) {
     }
 
+    @Nullable
     protected TargetPlatformConfiguration getPlatformConfiguration(NativePlatformInternal targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {

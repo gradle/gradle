@@ -49,6 +49,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
 import java.io.File;
@@ -92,7 +93,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     public List<File> call() throws Exception {
                         PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                         if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
-                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes();
+                            return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
                         }
                         return ImmutableList.of();
                     }

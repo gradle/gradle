@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.jvm.Jvm;
@@ -55,6 +56,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+@NonNullApi
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final VisualCppInstall visualCpp;
@@ -206,7 +208,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
-    public List<File> getSystemIncludes() {
+    public List<File> getSystemIncludes(ToolType compilerType) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         builder.add(visualCpp.getIncludePath(targetPlatform));
         builder.add(sdk.getIncludeDirs());
