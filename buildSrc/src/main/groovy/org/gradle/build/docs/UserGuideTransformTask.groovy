@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -93,7 +94,8 @@ class UserGuideTransformTask extends DefaultTask {
         websiteUrl
     }
 
-    private final SampleElementValidator validator = new SampleElementValidator()
+    @Internal
+    final SampleElementValidator validator = new SampleElementValidator()
 
     @TaskAction
     def transform() {
