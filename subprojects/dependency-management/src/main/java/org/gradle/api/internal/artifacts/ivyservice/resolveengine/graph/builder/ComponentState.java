@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -32,8 +32,8 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Resolution state for a given component
@@ -41,7 +41,7 @@ import java.util.Set;
 public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent {
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final Set<NodeState> nodes = new LinkedHashSet<NodeState>();
+    private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
     private volatile ComponentResolveMetadata metaData;
@@ -51,7 +51,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private ModuleVersionResolveException failure;
     private SelectorState selectedBy;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
-    Set<SelectorState> allResolvers;
+    List<SelectorState> allResolvers;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
@@ -97,7 +97,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
         this.visitState = visitState;
     }
 
-    public Set<NodeState> getNodes() {
+    public List<NodeState> getNodes() {
         return nodes;
     }
 
@@ -119,7 +119,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     public void selectedBy(SelectorState resolver) {
         if (selectedBy == null) {
             selectedBy = resolver;
-            allResolvers = Sets.newLinkedHashSet();
+            allResolvers = Lists.newLinkedList();
         }
         allResolvers.add(resolver);
     }
@@ -204,8 +204,8 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     @Override
-    public Set<ComponentState> getDependents() {
-        Set<ComponentState> incoming = new LinkedHashSet<ComponentState>();
+    public Collection<ComponentState> getDependents() {
+        List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
         for (NodeState configuration : nodes) {
             for (EdgeState dependencyEdge : configuration.getIncomingEdges()) {
                 incoming.add(dependencyEdge.getFrom().getComponent());

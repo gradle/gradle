@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -34,7 +35,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +47,7 @@ class EdgeState implements DependencyGraphEdge {
     private final SelectorState selector;
     private final ResolveState resolveState;
     private final ModuleExclusion moduleExclusion;
-    private final Set<NodeState> targetNodes = new LinkedHashSet<NodeState>();
+    private final List<NodeState> targetNodes = Lists.newLinkedList();
 
     private ComponentState targetModuleRevision;
     private ModuleVersionResolveException targetNodeSelectionFailure;
