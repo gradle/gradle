@@ -140,7 +140,7 @@ public class GradlePomModuleDescriptorBuilder {
             scope = MavenScope.Compile;
         }
 
-        String version = determineVersion(dep);
+        String version = determineVersion(dep, optional);
         String mappedVersion = convertVersionFromMavenSyntax(version);
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), new DefaultImmutableVersionConstraint(mappedVersion));
 
@@ -252,17 +252,24 @@ public class GradlePomModuleDescriptorBuilder {
 
     /**
      * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it from the dependency management section.
-     * In case the version cannot be resolved with any of these methods, throw an exception of type {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
+     * In case the version cannot be resolved with any of these methods:
+     * - If this is a direct dependency: throw an exception of type {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
+     * - If this is an optional dependency: return the empty version
      *
      * @param dependency Dependency
+     * @param optional is this an optional dependency?
      * @return Resolved dependency version
      */
-    private String determineVersion(PomDependencyMgt dependency) {
+    private String determineVersion(PomDependencyMgt dependency, boolean optional) {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
         if (version == null) {
-            throw new UnresolvedDependencyVersionException(dependency.getId());
+            if (optional) {
+                version = "";
+            } else {
+                throw new UnresolvedDependencyVersionException(dependency.getId());
+            }
         }
 
         return version;
