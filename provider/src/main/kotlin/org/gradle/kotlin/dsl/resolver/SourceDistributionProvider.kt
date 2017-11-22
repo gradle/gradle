@@ -17,12 +17,16 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.api.Project
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout
+
 import org.gradle.api.attributes.Attribute
+
 import org.gradle.kotlin.dsl.create
+
 import java.io.File
 
 interface SourceDistributionProvider {

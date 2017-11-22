@@ -1,12 +1,18 @@
 package org.gradle.kotlin.dsl.resolver
 
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+
 import org.gradle.internal.classpath.ClassPath
+
 import org.gradle.kotlin.dsl.fixtures.FolderBasedTest
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider.sourcePathFor
+
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Test
+
 import org.mockito.Mockito.mock
 
 class SourcePathProviderTest : FolderBasedTest() {
@@ -55,10 +61,9 @@ class SourcePathProviderTest : FolderBasedTest() {
             }
         }
 
-        val resolver = mock(SourceDistributionProvider::class.java)
-
-        whenever(resolver.sourceDirs())
-            .thenReturn(listOf(tempFolder.newFolder("gradle", "src", "gradle-foo")))
+        val resolver = mock<SourceDistributionProvider> {
+            on { sourceDirs() } doReturn listOf(tempFolder.newFolder("gradle", "src", "gradle-foo"))
+        }
 
         assertThat(
             sourcePathFor(
