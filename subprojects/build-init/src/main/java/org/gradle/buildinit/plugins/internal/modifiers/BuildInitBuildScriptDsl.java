@@ -15,11 +15,11 @@
  */
 package org.gradle.buildinit.plugins.internal.modifiers;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.wrapper.Wrapper;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 public enum BuildInitBuildScriptDsl {
@@ -48,11 +48,11 @@ public enum BuildInitBuildScriptDsl {
     }
 
     public static List<String> listSupported() {
-        List<String> result = new ArrayList<String>();
+        ImmutableList.Builder<String> supported = ImmutableList.builder();
         for (BuildInitBuildScriptDsl language : values()) {
-            result.add(language.getId());
+            supported.add(language.getId());
         }
-        return result;
+        return supported.build();
     }
 
     public String getId() {
