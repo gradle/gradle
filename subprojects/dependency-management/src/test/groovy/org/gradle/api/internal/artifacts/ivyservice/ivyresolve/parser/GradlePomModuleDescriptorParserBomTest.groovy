@@ -142,6 +142,38 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         metadata.dependencies.empty
     }
 
+    def "an entry in the dependencyManagement block without version does not fail parsing"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>bom</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.selector == moduleId('group-b', 'module-b', '')
+        dep.scope == MavenScope.Compile
+        hasDefaultDependencyArtifact(dep)
+        dep.optional
+    }
+
     def "a bom version can be relocated"() {
         given:
         pomFile << """

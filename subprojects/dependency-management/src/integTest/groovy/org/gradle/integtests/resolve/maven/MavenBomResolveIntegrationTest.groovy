@@ -52,18 +52,13 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         </project>
         ''')
         mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
-
-        buildFile << """
-            dependencies {
-                compile "group:moduleA"
-            }
-        """
     }
 
     def "can use a bom to select a version"() {
         given:
         buildFile << """
             dependencies {
+                compile "group:moduleA"
                 compile "group:bom:1.0"
             }
         """
@@ -88,6 +83,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         buildFile << """
             dependencies {
+                compile "group:moduleA"
                 compile "group:main:5.0"
             }
         """
@@ -113,6 +109,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         buildFile << """
             dependencies {
+                compile "group:moduleA"
                 compile "group:main:5.0"
             }
         """
@@ -122,5 +119,67 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         failure.assertHasCause "Could not find group:moduleA:."
+    }
+
+    def "a parent pom with dependency entries without versions does not fail the build"() {
+        given:
+        mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
+        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
+
+        buildFile << """
+            dependencies {
+                compile "group:moduleA:2.0"
+                compile "group:main:5.0"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:moduleA:2.0")
+                module("group:main:5.0")
+            }
+        }
+    }
+
+    def "does not fail for unused dependency entries without version"() {
+        given:
+        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
+        buildFile << """
+            dependencies {
+                compile "group:bom:1.0"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0").noArtifacts()
+            }
+        }
+    }
+
+    def "fails late for dependency entries that fail to provide a missing version"() {
+        given:
+        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
+        buildFile << """
+            dependencies {
+                compile "group:moduleA"
+                compile "group:bom:1.0"
+            }
+        """
+
+        when:
+        fails 'checkDep'
+
+        then:
+        failure.assertHasCause "Could not find group:moduleA:."
+        !failure.error.contains("Could not parse POM ${mavenHttpRepo.uri}/group/bom/1.0/bom-1.0.pom")
     }
 }
