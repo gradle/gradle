@@ -1,0 +1,11 @@
+Downloading https://services.gradle.org/distributions/gradle-4.3.1-bin.zip
+.....................................................................
+Verification of Gradle distribution failed!
+
+Your Gradle distribution may have been tampered with.
+Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.
+
+ Distribution Url: https://services.gradle.org/distributions/gradle-4.3.1-bin.zip
+Download Location: /Users/claudia/.gradle/wrapper/dists/gradle-4.3.1-bin/7yzdu24db77gi3zukl2a7o0xx/gradle-4.3.1-bin.zip
+Expected checksum: 'abc123'
+  Actual checksum: '15ebe098ce0392a2d06d252bff24143cc88c4e963346582c8d88814758d93ac7'

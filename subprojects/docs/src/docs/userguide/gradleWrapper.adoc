@@ -76,17 +76,11 @@ Generating the Wrapper files requires an installed version of the Gradle runtime
 
 Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when <<sec:listing_tasks,listing the tasks>>. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
 
-.Running the Wrapper task
-====
-[source,shell]
-----
-> gradle wrapper
-:wrapper
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-----
-====
+++++
+<sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the Wrapper task">
+    <output args="wrapper"/>
+</sample>
+++++
 
 [NOTE]
 ====
@@ -122,17 +116,11 @@ All of those aspects are configurable at the time of generating the Wrapper file
 
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
-.Providing options to Wrapper task
-====
-[source,shell]
-----
-> gradle wrapper --gradle-version 4.0 --distribution-type all
-:wrapper
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-----
-====
+++++
+<sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Providing options to Wrapper task">
+    <output args="wrapper --gradle-version 4.0 --distribution-type all"/>
+</sample>
+++++
 
 As a result you can find the desired information in the Wrapper properties file.
 
@@ -150,21 +138,11 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-4.0-all.zip
 
 It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operation system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
 
-.Executing the build with the Wrapper batch file
-====
-[source,shell]
-----
-> gradlew.bat build
-Downloading https://services.gradle.org/distributions/gradle-4.0-all.zip
-.....................................................................................
-Unzipping C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-4.0-all.zip to C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-al\ac27o8rbd0ic8ih41or9l32mv
-Set executable permissions for: C:\Documents and Settings\Claudia\.gradle\wrapper\dists\gradle-4.0-all\ac27o8rbd0ic8ih41or9l32mv\gradle-4.0\bin\gradle
-Starting a Gradle Daemon (subsequent builds will be faster)
-
-BUILD SUCCESSFUL in 12s
-1 actionable task: 1 executed
-----
-====
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperBatchFileExecution" title="Executing the build with the Wrapper batch file">
+    <output executable="gradlew.bat" args="build" />
+</sample>
+++++
 
 In case the Gradle distribution is not available on the machine, the Wrapper will download it and store in the local file system. Any subsequent build invocation is going to reuse the existing local distribution as long as the metadata in the Gradle properties doesn't change.
 
@@ -175,61 +153,23 @@ Long-running projects will want to keep up with the times and upgrade their Grad
 
 The following console outputs demonstrate the Wrapper upgrade process from Gradle version 4.0 to 4.2.1.
 
-.Checking the version of the existing Wrapper
-====
-[source,shell]
-----
-$ ./gradlew -v
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperGradleVersionBeforeUpgrade" title="Checking the version of the existing Wrapper">
+    <output executable="./gradlew" args="-v" />
+</sample>
+++++
 
-------------------------------------------------------------
-Gradle 4.0
-------------------------------------------------------------
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperGradleVersionUpgrade" title="Upgrading the Wrapper version">
+    <output executable="./gradlew" args="wrapper --gradle-version 4.2.1" />
+</sample>
+++++
 
-Build time:   2017-06-14 15:11:08 UTC
-Revision:     316546a5fcb4e2dfe1d6aa0b73a4e09e8cecb5a5
-
-Groovy:       2.4.11
-Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
-JVM:          1.8.0_60 (Oracle Corporation 25.60-b23)
-OS:           Mac OS X 10.13.1 x86_64
-----
-====
-
-.Upgrading the Wrapper version
-====
-[source,shell]
-----
-$ ./gradlew wrapper --gradle-version 4.2.1
-Starting a Gradle Daemon (subsequent builds will be faster)
-
-BUILD SUCCESSFUL in 4s
-1 actionable task: 1 executed
-----
-====
-
-.Checking the Wrapper version after upgrading
-====
-[source,shell]
-----
-./gradlew -v
-Downloading https://services.gradle.org/distributions/gradle-4.2.1-bin.zip
-...................................................................
-Unzipping /Users/claudia/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju/gradle-4.2.1-bin.zip to /Users/claudia/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju
-Set executable permissions for: /Users/claudia/.gradle/wrapper/dists/gradle-4.2.1-bin/dajvke9o8kmaxbu0kc5gcgeju/gradle-4.2.1/bin/gradle
-
-------------------------------------------------------------
-Gradle 4.2.1
-------------------------------------------------------------
-
-Build time:   2017-10-02 15:36:21 UTC
-Revision:     a88ebd6be7840c2e59ae4782eb0f27fbe3405ddf
-
-Groovy:       2.4.12
-Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
-JVM:          1.8.0_60 (Oracle Corporation 25.60-b23)
-OS:           Mac OS X 10.13.1 x86_64
-----
-====
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperGradleVersionAfterUpgrade" title="Checking the Wrapper version after upgrading">
+    <output executable="./gradlew" args="-v" />
+</sample>
+++++
 
 [[customizing_wrapper]]
 === Customizing the Wrapper
@@ -337,21 +277,8 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 
 Gradle will report a build failure in case the configured checksum does not match the checksum found on the server for hosting the distribution. Checksum Verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.
 
-.Checksum verification failure
-====
-[source,shell]
-----
-$ ./gradlew help
-Downloading https://services.gradle.org/distributions/gradle-4.3.1-bin.zip
-.....................................................................
-Verification of Gradle distribution failed!
-
-Your Gradle distribution may have been tampered with.
-Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.
-
- Distribution Url: https://services.gradle.org/distributions/gradle-4.3.1-bin.zip
-Download Location: /Users/claudia/.gradle/wrapper/dists/gradle-4.3.1-bin/7yzdu24db77gi3zukl2a7o0xx/gradle-4.3.1-bin.zip
-Expected checksum: 'abc123'
-  Actual checksum: '15ebe098ce0392a2d06d252bff24143cc88c4e963346582c8d88814758d93ac7'
-----
-====
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperChecksumVerificationFailure" title="Checksum verification failure">
+    <output executable="./gradlew" args="help" />
+</sample>
+++++
