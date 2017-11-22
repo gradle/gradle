@@ -160,31 +160,29 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
 
-        GccMetadata gccMetadata = initTools(configurableToolChain, result);
+        initTools(configurableToolChain, result);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, metaDataProvider.getCompilerType(), gccMetadata, metaDataProvider);
+        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, metaDataProvider);
     }
 
-    @Nullable
-    protected GccMetadata initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
+    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
         // Attempt to determine whether the compiler is the correct implementation
         boolean found = false;
-        GccMetadata versionResult = null;
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                versionResult = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
-                availability.mustBeAvailable(versionResult);
-                if (!versionResult.isAvailable()) {
-                    return versionResult;
+                GccMetadata gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
+                availability.mustBeAvailable(gccMetadata);
+                if (!gccMetadata.isAvailable()) {
+                    return;
                 }
                 // Assume all the other compilers are ok, if they happen to be installed
-                LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
+                LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), gccMetadata);
                 found = true;
-                initForImplementation(platformToolChain, versionResult);
+                initForImplementation(platformToolChain, gccMetadata);
                 break;
             }
         }
@@ -199,7 +197,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             GccCommandLineToolConfigurationInternal cCompiler = platformToolChain.getcCompiler();
             availability.mustBeAvailable(locate(cCompiler));
         }
-        return versionResult;
     }
 
     protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccMetadata versionResult) {
