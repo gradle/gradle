@@ -18,6 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
+import spock.lang.Issue
 
 class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
@@ -73,5 +74,20 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     @Override
     String getFailingTestCaseName() {
         return "fail"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3545")
+    def "disabled tests do not throw NullPointerException"() {
+        given:
+        file("src/test/java/DisabledTest.java") << """
+            @org.testng.annotations.Test(enabled = false)
+            public class DisabledTest {
+                public void testOne() {}
+                public void testTwo() {}
+            }
+        """
+
+        expect:
+        succeeds "check"
     }
 }
