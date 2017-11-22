@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
@@ -75,6 +76,7 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
     /* Relies on the resources directory:
      * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
+    @Ignore
     def defaultLoggingConfigNoFineLevelWhenDisabled() {
         given:
         testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')
