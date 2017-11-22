@@ -104,9 +104,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, configurations, [], [a1, a2, a3])
 
         expect:
-        metadata.configurations["compile"].artifacts.name.name == ["two", "three"]
-        metadata.configurations["runtime"].artifacts.name.name == ["one", "two", "three"]
-
         def immutable = metadata.asImmutable()
         immutable.configurations["compile"].artifacts.name.name == ["two", "three"]
         immutable.configurations["runtime"].artifacts.name.name == ["one", "two", "three"]
@@ -237,7 +234,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         configuration("runtime", ["compile"])
 
         def metadata = getMetadata()
-        metadata.configurations
 
         def exclude1 = exclude("foo", "bar", "runtime")
         def exclude2 = exclude("foo", "baz", "compile")

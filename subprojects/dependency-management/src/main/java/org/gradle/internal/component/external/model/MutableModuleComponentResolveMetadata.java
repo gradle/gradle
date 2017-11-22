@@ -15,12 +15,10 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.reflect.Instantiator;
@@ -70,11 +68,6 @@ public interface MutableModuleComponentResolveMetadata {
 
     ModuleSource getSource();
     void setSource(ModuleSource source);
-
-    /**
-     * Return the configurations of this component.
-     */
-    ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations();
 
     /**
      * Checks if the metadata defines the given variant. Depending on the origin of the metadata, a "variant" can be backed

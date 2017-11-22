@@ -61,20 +61,21 @@ class DependencyMetadataRulesTest extends Specification {
 
         when:
         metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        def metadata = metadataImplementation.asImmutable()
 
         then:
         0 * rule.execute(_)
 
         when:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
 
         then:
         1 * rule.execute(_)
 
         when:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
 
         then:
         0 * rule.execute(_)
@@ -209,11 +210,15 @@ class DependencyMetadataRulesTest extends Specification {
     }
 
     private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+        selectTargetConfigurationMetadata(targetComponent.asImmutable())
+    }
+
+    private selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def consumerIdentifier = new DefaultModuleVersionIdentifier("org.test", "consumer", "1.0")
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumerResolveMetadata = new DefaultMutableMavenModuleResolveMetadata(consumerIdentifier, DefaultModuleComponentIdentifier.newId(consumerIdentifier)).asImmutable()
         def consumer = new LocalComponentDependencyMetadata(componentSelector, "default", attributes, null, [] as Set, [], false, false, true)
 
-        consumer.selectConfigurations(attributes, consumerResolveMetadata, consumerResolveMetadata.getConfiguration("default"), targetComponent.asImmutable(), schema)[0]
+        consumer.selectConfigurations(attributes, consumerResolveMetadata, consumerResolveMetadata.getConfiguration("default"), immutable, schema)[0]
     }
 }

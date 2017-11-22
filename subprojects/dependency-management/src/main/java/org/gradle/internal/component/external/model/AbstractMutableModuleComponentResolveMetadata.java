@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
@@ -45,10 +44,8 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
@@ -63,11 +60,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private ModuleSource moduleSource;
     private List<? extends ModuleDependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
-    private ImmutableMap<String, T> configurations;
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
     private List<MutableVariantImpl> newVariants;
+
+    // TODO:DAZ Maybe only construct these once immutable
     private ImmutableList<? extends ComponentVariant> variants;
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
@@ -114,66 +112,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     }
 
     protected abstract Map<String, Configuration> getConfigurationDefinitions();
-
-    @Override
-    public ImmutableMap<String, T> getConfigurations() {
-        if (configurations == null) {
-            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions());
-        }
-        return configurations;
-    }
-
-    /**
-     * Called when some input to the configurations of this component has changed and the configurations should be recalculated
-     */
-    protected void resetConfigurations() {
-        configurations = null;
-    }
-
-    private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
-        Set<String> configurationsNames = configurationDefinitions.keySet();
-        Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
-        for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
-            configuration.populateDependencies(dependencies, dependencyMetadataRules.get(configName));
-        }
-        return ImmutableMap.copyOf(configurations);
-    }
-
-    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
-        T populated = configurations.get(name);
-        if (populated != null) {
-            return populated;
-        }
-
-        Configuration descriptorConfiguration = configurationDefinitions.get(name);
-        List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
-        boolean transitive = descriptorConfiguration.isTransitive();
-        boolean visible = descriptorConfiguration.isVisible();
-        if (extendsFrom.isEmpty()) {
-            // tail
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of());
-            configurations.put(name, populated);
-            return populated;
-        } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
-            configurations.put(name, populated);
-            return populated;
-        }
-        List<T> hierarchy = new ArrayList<T>(extendsFrom.size());
-        for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
-        }
-        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy));
-
-        configurations.put(name, populated);
-        return populated;
-    }
-
-    /**
-     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
-     */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
 
     @Override
     public void setStatus(String status) {
@@ -255,7 +193,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
         dependencyMetadataRules.get(variantName).addAction(action);
-        resetConfigurations();
         graphVariants = null;
     }
 
@@ -267,7 +204,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     @Override
     public void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
         this.dependencies = ImmutableList.copyOf(dependencies);
-        resetConfigurations();
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {

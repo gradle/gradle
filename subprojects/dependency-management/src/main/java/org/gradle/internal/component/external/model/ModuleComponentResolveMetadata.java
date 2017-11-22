@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;

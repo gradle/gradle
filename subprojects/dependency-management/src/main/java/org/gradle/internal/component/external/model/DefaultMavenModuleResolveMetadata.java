@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
@@ -53,6 +55,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         variants = metadata.getVariants();
         graphVariants = metadata.getVariantsForGraphTraversal();
+        populateConfigurationsFromDescriptor(metadata.getConfigurationDefinitions());
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
@@ -62,6 +65,17 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         snapshotTimestamp = metadata.snapshotTimestamp;
         variants = metadata.variants;
         graphVariants = metadata.graphVariants;
+    }
+
+    @Override
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+        } else {
+            artifacts = ImmutableList.of();
+        }
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
     }
 
     @Override

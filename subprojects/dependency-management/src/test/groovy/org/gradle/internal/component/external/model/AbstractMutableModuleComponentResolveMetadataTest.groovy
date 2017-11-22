@@ -209,7 +209,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         dependency("foo", "bar", "1.0")
         def metadata = getMetadata()
-        metadata.configurations
 
         then:
         metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
