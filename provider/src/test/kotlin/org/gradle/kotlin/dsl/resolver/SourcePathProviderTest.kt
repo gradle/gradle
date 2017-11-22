@@ -33,7 +33,7 @@ class SourcePathProviderTest : FolderBasedTest() {
                 classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
-                sourceDistributionResolver = mock(SourceDistributionResolver::class.java)).asFiles,
+                sourceDistributionResolver = mock(SourceDistributionProvider::class.java)).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
@@ -55,7 +55,7 @@ class SourcePathProviderTest : FolderBasedTest() {
             }
         }
 
-        val resolver = mock(SourceDistributionResolver::class.java)
+        val resolver = mock(SourceDistributionProvider::class.java)
 
         whenever(resolver.downloadAndResolveSources())
             .thenReturn(listOf(tempFolder.newFolder("gradle", "src", "gradle-foo")))

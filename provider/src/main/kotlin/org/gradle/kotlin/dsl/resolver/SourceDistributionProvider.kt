@@ -24,19 +24,18 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.kotlin.dsl.create
 import java.io.File
 
-interface SourceDistributionResolver {
+interface SourceDistributionProvider {
     fun downloadAndResolveSources(): Collection<File>
 }
 
-class DefaultSourceDistributionResolverImpl(val project: Project) : SourceDistributionResolver {
+class StandardSourceDistributionResolver(val project: Project) : SourceDistributionProvider {
     companion object {
         val ARTIFACT_TYPE = Attribute.of("artifactType", String::class.java)
         val ZIP_TYPE = "zip"
         val SOURCES_DIRECTORY = "src-directory"
     }
 
-    override
-    fun downloadAndResolveSources(): Collection<File> {
+    override fun downloadAndResolveSources(): Collection<File> {
         val repositories = project.repositories
         val repos = createSourceRepositories(repositories)
         registerTransforms()

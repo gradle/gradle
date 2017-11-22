@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -25,24 +26,19 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
-import org.gradle.kotlin.dsl.resolver.DefaultSourceDistributionResolverImpl
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
+import org.gradle.kotlin.dsl.resolver.StandardSourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
-
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-
-
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 import java.io.Serializable
-
 import kotlin.coroutines.experimental.buildSequence
 import kotlin.reflect.KClass
 
@@ -155,7 +151,7 @@ data class KotlinScriptTargetModelBuilder<out T : Any>(
 
     private
     fun gradleSource() =
-        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir, DefaultSourceDistributionResolverImpl(project))
+        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir, StandardSourceDistributionResolver(project))
 }
 
 

@@ -27,7 +27,7 @@ object SourcePathProvider {
         classPath: ClassPath,
         projectDir: File,
         gradleHomeDir: File?,
-        sourceDistributionResolver: SourceDistributionResolver): ClassPath {
+        sourceDistributionResolver: SourceDistributionProvider): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
@@ -47,7 +47,7 @@ object SourcePathProvider {
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
     private
-    fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionResolver): Collection<File> {
+    fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> {
         val dir = File(gradleInstallation, "src")
         if (dir.exists()) {
             return subDirsOf(dir)
