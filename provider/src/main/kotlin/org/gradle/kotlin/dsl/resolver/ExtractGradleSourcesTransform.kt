@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.kotlin.dsl.support.unzipTo
 import java.io.File
-import java.util.zip.ZipFile
 
 /**
  * This dependency transform is responsible for extracting the sources from
@@ -26,29 +26,10 @@ import java.util.zip.ZipFile
  * subdirectories for all subprojects.
  */
 class ExtractGradleSourcesTransform : ArtifactTransform() {
-    fun Any?.discard() = Unit
 
     override
     fun transform(input: File): List<File> {
-        ZipFile(input).use { zip ->
-            zip.entries().asSequence().forEach { entry ->
-                zip.getInputStream(entry).use { input ->
-                    val out = File(outputDirectory, entry.name)
-                    if (!out.parentFile.exists()) {
-                        out.parentFile.mkdirs()
-                    }
-                    if (entry.isDirectory) {
-                        out.mkdir().discard()
-                    } else {
-                        out.outputStream().use { output ->
-                            input.copyTo(output)
-                        }.discard()
-                    }
-
-                }
-            }
-        }
-
+        unzipTo(input, outputDirectory)
         return sourceDirectories()
     }
 
@@ -58,4 +39,5 @@ class ExtractGradleSourcesTransform : ArtifactTransform() {
     private
     fun isSourceDirectory(file: File) =
         file.isDirectory && file.parentFile.name == "main" && file.parentFile.parentFile.name == "src"
+
 }

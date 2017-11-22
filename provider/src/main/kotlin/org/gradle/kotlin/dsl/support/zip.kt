@@ -22,8 +22,11 @@ import java.io.File
 import java.io.OutputStream
 
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
+private
+fun Any?.discard() = Unit
 
 fun zipTo(zipFile: File, baseDir: File) {
     val files = baseDir.walkTopDown().filter { it.isFile }
@@ -57,3 +60,23 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
     }
 }
 
+fun unzipTo(zipFile: File, outputDirectory: File) {
+    ZipFile(zipFile).use { zip ->
+        zip.entries().asSequence().forEach { entry ->
+            zip.getInputStream(entry).use { input ->
+                val out = File(outputDirectory, entry.name)
+                if (!out.parentFile.exists()) {
+                    out.parentFile.mkdirs()
+                }
+                if (entry.isDirectory) {
+                    out.mkdir().discard()
+                } else {
+                    out.outputStream().use { output ->
+                        input.copyTo(output)
+                    }.discard()
+                }
+
+            }
+        }
+    }
+}
