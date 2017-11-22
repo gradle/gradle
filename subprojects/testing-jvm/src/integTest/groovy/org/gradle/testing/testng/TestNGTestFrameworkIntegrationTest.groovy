@@ -77,7 +77,7 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
-    def "disabled tests do not throw NullPointerException"() {
+    def "can run tests with ignored test class"() {
         given:
         file("src/test/java/DisabledTest.java") << """
             @org.testng.annotations.Test(enabled = false)
@@ -87,7 +87,30 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
             }
         """
 
-        expect:
-        succeeds "check"
+        when:
+        succeeds "test"
+
+        then:
+        testResult.assertNoTestClassesExecuted()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3545")
+    def "can run tests with ignored test methods"() {
+        given:
+        file("src/test/java/DisabledTest.java") << """
+            public class DisabledTest {
+                @org.testng.annotations.Test(enabled = false)
+                public void testOne() {}
+                
+                @org.testng.annotations.Test(enabled = false)
+                public void testTwo() {}
+            }
+        """
+
+        when:
+        succeeds "test"
+
+        then:
+        testResult.assertNoTestClassesExecuted()
     }
 }

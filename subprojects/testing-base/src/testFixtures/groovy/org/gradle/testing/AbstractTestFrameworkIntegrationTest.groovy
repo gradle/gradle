@@ -275,7 +275,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         "test suite appear after test case"  | [testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName", "--tests", "${testSuite('SomeTest')}.*"]
     }
 
-    private DefaultTestExecutionResult getTestResult() {
+    protected DefaultTestExecutionResult getTestResult() {
         new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
     }
 

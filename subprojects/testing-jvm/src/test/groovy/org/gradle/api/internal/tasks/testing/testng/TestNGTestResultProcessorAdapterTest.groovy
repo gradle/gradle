@@ -19,18 +19,19 @@ package org.gradle.api.internal.tasks.testing.testng
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Clock
 import org.testng.ITestClass
-import spock.lang.Issue;
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
 class TestNGTestResultProcessorAdapterTest extends Specification {
 
+    private static final Long TEST_CLASS_ID = 1L
     private TestResultProcessor resultProcessor = Mock()
 
     private IdGenerator<Long> idGenerator = Mock {
-        generateId() >> 1L
+        generateId() >> TEST_CLASS_ID
     }
 
     @Subject
@@ -47,7 +48,7 @@ class TestNGTestResultProcessorAdapterTest extends Specification {
         resultProcessorAdapter.onAfterClass(testClass)
 
         then:
-        1 * resultProcessor.completed(!null, _ as TestCompleteEvent)
+        1 * resultProcessor.completed(TEST_CLASS_ID, _ as TestCompleteEvent)
 
         when:
         resultProcessorAdapter.onAfterClass(testClass)
