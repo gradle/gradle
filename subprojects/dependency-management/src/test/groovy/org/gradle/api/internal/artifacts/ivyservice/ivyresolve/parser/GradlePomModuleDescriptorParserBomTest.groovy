@@ -174,6 +174,45 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.optional
     }
 
+    def "a bom can declare an optional dependency with excludes"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>bom</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>group-c</groupId>
+                        <artifactId>module-c</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.excludes[0].moduleId.group == 'group-c'
+        dep.excludes[0].moduleId.name == 'module-c'
+        dep.excludes[0].artifact.name == '*'
+        dep.excludes[0].artifact.extension == '*'
+    }
+
     def "a bom version can be relocated"() {
         given:
         pomFile << """

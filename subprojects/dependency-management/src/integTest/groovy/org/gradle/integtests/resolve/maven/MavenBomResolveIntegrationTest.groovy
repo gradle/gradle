@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile)
     MavenModule bom
+    MavenModule moduleA
 
     def setup() {
         resolve.prepare()
@@ -51,7 +52,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             </dependencyManagement>
         </project>
         ''')
-        mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
+        moduleA = mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
     }
 
     def "can use a bom to select a version"() {
@@ -99,6 +100,59 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                         module("group:moduleA:2.0")
                     }).noArtifacts()
                 }
+                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+            }
+        }
+    }
+
+    def "a bom can declare excludes"() {
+        given:
+        moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
+        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", '''
+                        <version>2.0</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>group</groupId>
+                                <artifactId>moduleC</artifactId>
+                            </exclusion>
+                        </exclusions>
+        ''')
+
+        buildFile << """
+            dependencies {
+                compile("group:moduleA") {
+                    exclude(group: 'group')
+                }
+                compile "group:bom:1.0"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0", {
+                    module("group:moduleA:2.0")
+                }).noArtifacts()
+                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+            }
+        }
+
+        when:
+        //we remove the exclude in the build script: the excludes are merged and the one in the bom has no effect anymore
+        buildFile.text = buildFile.text.replace("exclude(group: 'group')", "")
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0", {
+                    module("group:moduleA:2.0") {
+                        module("group:moduleC:1.0")
+                    }
+                }).noArtifacts()
                 edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
             }
         }
