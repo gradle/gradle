@@ -22,6 +22,7 @@ class IvyDescriptor {
     Map<String, IvyDescriptorConfiguration> configurations = [:]
     List<IvyDescriptorArtifact> artifacts = []
     Map<String, IvyDescriptorDependency> dependencies = [:]
+    List<IvyDescriptorDependencyExclusion> exclusions = []
     String organisation
     String module
     String revision
@@ -80,6 +81,10 @@ class IvyDescriptor {
 
             def key = "${ivyDependency.org}:${ivyDependency.module}:${ivyDependency.revision}"
             dependencies[key] = ivyDependency
+        }
+
+        ivy.dependencies.exclude.each { exclude ->
+            exclusions << new IvyDescriptorDependencyExclusion(org: exclude.@org, module: exclude.@module, name: exclude.@artifact, type: exclude.@type, ext: exclude.@ext, conf: exclude.@conf, matcher: exclude.@matcher)
         }
     }
 
