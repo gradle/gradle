@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
+abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements ModuleComponentResolveMetadata {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
@@ -41,11 +41,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
-    private final ImmutableMap<String, ? extends ConfigurationMetadata> configurations;
+    private final ImmutableMap<String, T> configurations;
     private final List<? extends ModuleDependencyMetadata> dependencies;
     private final HashValue contentHash;
 
-    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
+    protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata<T> metadata) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -61,7 +61,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, @Nullable ModuleSource source) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -147,7 +147,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations() {
+    public ImmutableMap<String, T> getConfigurations() {
         return configurations;
     }
 

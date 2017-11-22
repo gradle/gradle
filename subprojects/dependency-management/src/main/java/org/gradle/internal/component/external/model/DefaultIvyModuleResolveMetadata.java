@@ -29,7 +29,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<IvyConfigurationMetadata> implements IvyModuleResolveMetadata {
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<Artifact> artifacts;
     private final ImmutableList<Exclude> excludes;
@@ -38,7 +38,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
     private final String branch;
 
-    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
+    DefaultIvyModuleResolveMetadata(DefaultMutableIvyModuleResolveMetadata metadata) {
         super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();

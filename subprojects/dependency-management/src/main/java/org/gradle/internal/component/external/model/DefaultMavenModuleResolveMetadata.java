@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<MavenConfigurationMetadata> implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -46,7 +46,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final ImmutableList<? extends ComponentVariant> variants;
     private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
-    DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
