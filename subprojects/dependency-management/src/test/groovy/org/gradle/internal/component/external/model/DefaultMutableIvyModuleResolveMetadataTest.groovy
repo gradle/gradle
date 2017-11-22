@@ -32,7 +32,7 @@ import org.gradle.internal.hash.HashValue
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, [])
+        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, [], [])
     }
 
     @Override
@@ -50,7 +50,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def vid = Mock(ModuleVersionIdentifier)
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], [a1, a2])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], [a1, a2], [])
         metadata.componentId == id
         metadata.id == vid
         metadata.branch == null
@@ -101,7 +101,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def a2 = artifact("two", "runtime", "compile")
         def a3 = artifact("three", "compile")
 
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, configurations, [], [a1, a2, a3])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, configurations, [], [a1, a2, a3], [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -117,7 +117,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def excludes = [new DefaultExclude(new DefaultModuleIdentifier("group", "name"))]
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], excludes)
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -126,7 +126,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.missing = true
         metadata.statusScheme = ["1", "2", "3"]
         metadata.contentHash = contentHash
-        metadata.excludes = excludes
 
         then:
         metadata.componentId == newId
@@ -173,7 +172,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -205,7 +204,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId
@@ -226,34 +225,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutableCopy.componentId == newId
         immutableCopy.source == source
         immutableCopy.statusScheme == ["1", "2"]
-    }
-
-    def "can replace the exclude rules for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-
-        def metadata = getMetadata()
-
-        def exclude1 = exclude("foo", "bar", "runtime")
-        def exclude2 = exclude("foo", "baz", "compile")
-        metadata.excludes = [exclude1, exclude2]
-
-        then:
-        metadata.excludes == [exclude1, exclude2]
-
-        def immutable = metadata.asImmutable()
-        immutable.getConfiguration("compile").excludes == [exclude2]
-        immutable.getConfiguration("runtime").excludes == [exclude1, exclude2]
-
-        when:
-        def copy = immutable.asMutable()
-        copy.excludes = [exclude1]
-
-        then:
-        def immutable2 = copy.asImmutable()
-        immutable2.getConfiguration("compile").excludes == []
-        immutable2.getConfiguration("runtime").excludes == [exclude1]
     }
 
     def "treats ivy configurations as variants when checking if a variant exists"() {

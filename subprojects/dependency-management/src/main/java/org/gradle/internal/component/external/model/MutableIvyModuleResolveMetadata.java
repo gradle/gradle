@@ -48,11 +48,6 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
      */
     ImmutableList<Exclude> getExcludes();
 
-    /**
-     * Replaces the excludes of this component.
-     */
-    void setExcludes(Iterable<? extends Exclude> excludes);
-
     ImmutableMap<NamespaceId, String> getExtraAttributes();
 
     void setExtraAttributes(Map<NamespaceId, String> extraAttributes);

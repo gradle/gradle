@@ -53,15 +53,18 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         this(id, componentIdentifier,
             ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
             ImmutableList.<ModuleDependencyMetadata>of(),
-            ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))));
+            ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))),
+            ImmutableList.<Exclude>of());
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurationDefinitions, Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifactDefinitions) {
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurationDefinitions,
+                                                  Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);
         this.excludes = ImmutableList.of();
         this.extraAttributes = ImmutableMap.of();
+        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     public DefaultMutableIvyModuleResolveMetadata(IvyModuleResolveMetadata metadata) {
@@ -99,11 +102,6 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     @Override
     public ImmutableList<Exclude> getExcludes() {
         return excludes;
-    }
-
-    @Override
-    public void setExcludes(Iterable<? extends Exclude> excludes) {
-        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     @Override
