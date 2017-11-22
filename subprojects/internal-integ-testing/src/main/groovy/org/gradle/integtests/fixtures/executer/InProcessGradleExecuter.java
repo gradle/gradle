@@ -133,7 +133,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString(), getProjectDir())));
+            new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
     }
 
     @Override
@@ -150,7 +150,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString(), getProjectDir()), e));
+                new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
         }
     }
 
@@ -176,7 +176,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
-        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement(), getProjectDir()).start();
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 
     private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {

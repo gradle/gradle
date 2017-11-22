@@ -28,12 +28,9 @@ class DeprecationReport {
 
     List<Deprecation> deprecations = []
 
-    DeprecationReport(File projectDirectory) {
-        if (projectDirectory != null) {
-            File reportFile = new File(projectDirectory, "build/reports/deprecations/report.html")
-            if (reportFile.exists()) {
-                extractDeprecations(reportFile)
-            }
+    DeprecationReport(File reportFile) {
+        if (reportFile != null) {
+            extractDeprecations(reportFile)
         }
     }
 

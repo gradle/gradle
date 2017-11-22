@@ -54,7 +54,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs).forTasks('help').run() }
 
         then:
-        new DeprecationReport(temporaryFolder.testDirectory).contains(message)
+        new DeprecationReport(temporaryFolder.testDirectory.file('build/reports/deprecations/report.html')).contains(message)
 
         where:
         issue                                          | deprecatedArgs        | message

@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.DeprecationReport;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
@@ -34,10 +34,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
@@ -60,18 +63,29 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
+    private static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("Some deprecated APIs are used in this build, which may be broken in Gradle (\\d|\\.)+ See the report at: file://(.*)\n");
+
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
 
     public OutputScrapingExecutionResult(String output, String error) {
-        this(output, error, null);
-    }
-
-    public OutputScrapingExecutionResult(String output, String error, File projectDir) {
         this.output = TextUtil.normaliseLineSeparators(output);
         this.error = TextUtil.normaliseLineSeparators(error);
-        this.deprecationReport = new DeprecationReport(projectDir);
+        this.deprecationReport = new DeprecationReport(extractFileLocation(output));
+    }
+
+    private File extractFileLocation(String output) {
+        Matcher matcher = DEPRECATION_REPORT_PATTERN.matcher(output);
+        if (!matcher.find()) {
+            return null;
+        }
+        try {
+            String decoded = URLDecoder.decode(matcher.group(2), "UTF-8");
+            return new File(decoded);
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public String getOutput() {
@@ -113,12 +127,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "Expiring Daemon" message
                 i++;
-            } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
-                // Remove the Java 7 deprecation warning. This should be removed after 5.0
+            } else if (DEPRECATION_REPORT_PATTERN.matcher(line).matches()) {
                 i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                    i++;
-                }
+                result.append(line.replaceAll("See the report at.*", ""));
+                result.append("\n");
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');

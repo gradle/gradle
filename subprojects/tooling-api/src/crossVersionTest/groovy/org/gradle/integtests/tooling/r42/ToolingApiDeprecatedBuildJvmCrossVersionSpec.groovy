@@ -47,7 +47,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
     }
 
     def warningCount(def output){
-        assert output.toString().contains('Some deprecated APIs are used in this build')
         return deprecationReport.count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 

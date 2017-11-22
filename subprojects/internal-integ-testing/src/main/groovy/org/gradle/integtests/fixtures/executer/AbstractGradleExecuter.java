@@ -272,10 +272,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return workingDir == null ? getTestDirectoryProvider().getTestDirectory() : workingDir;
     }
 
-    public File getProjectDir() {
-        return projectDir == null ? getWorkingDir() : projectDir;
-    }
-
     @Override
     public GradleExecuter copyTo(GradleExecuter executer) {
         executer.withGradleUserHomeDir(gradleUserHomeDir);
@@ -968,7 +964,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         String javaHomeInProperties = javaHomeInProperties();
         if (javaHomeInProperties != null) {
             return isJava7Home(javaHomeInProperties);
-        } else if (getJavaHome().equals(Jvm.current().getJavaHome())) {
+        } else if (Jvm.current().getJavaHome().equals(javaHome)) {
             return JavaVersion.current().isJava7();
         } else {
             return isJava7Home(getJavaHome().toString());
@@ -1076,6 +1072,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
             boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
+            boolean java7DeprecationWarningShouldExist = AbstractGradleExecuter.this.java7DeprecationWarningShouldExist();
 
             @Override
             public void execute(ExecutionResult executionResult) {
@@ -1101,7 +1098,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
             private void validateDeprecationWarnings(ExecutionResult result) {
                 if (checkDeprecations && expectedDeprecationWarnings > 0) {
-                    if (java7DeprecationWarningShouldExist()) {
+                    if (java7DeprecationWarningShouldExist) {
                         result.getDeprecationReport().validate(expectedDeprecationWarnings + 1);
                     } else {
                         result.getDeprecationReport().validate(expectedDeprecationWarnings);
@@ -1147,21 +1144,30 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
-                    } else if (isDeprecationMessageInHelpDescription(line) || isDeprecationsPrompt(line)) {
+                    } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
+                    } else if (isDeprecationsPrompt(line)) {
+                        i++;
+                        assertDeprecationWarningExists(displayName, i, line, output);
                     } else if (line.matches(".*\\s+deprecated.*")) {
-                        if (checkDeprecations && expectedDeprecationWarnings <= 0) {
-                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-                        }
-                        expectedDeprecationWarnings--;
-                        // skip over stack trace
                         i++;
+                        assertDeprecationWarningExists(displayName, i, line, output);
+                        expectedDeprecationWarnings--;
                     } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else {
                         i++;
                     }
+                }
+            }
+
+            private void assertDeprecationWarningExists(String displayName, int i, String line, String output) {
+                if (java7DeprecationWarningShouldExist) {
+                    return;
+                }
+                if (checkDeprecations && expectedDeprecationWarnings <= 0) {
+                    throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                 }
             }
 

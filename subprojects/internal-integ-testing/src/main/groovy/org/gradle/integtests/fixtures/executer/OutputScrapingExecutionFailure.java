@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -50,11 +49,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public OutputScrapingExecutionFailure(String output, String error) {
-        this(output, error, null);
-    }
-
-    public OutputScrapingExecutionFailure(String output, String error, File projectDir) {
-        super(output, error, projectDir);
+        super(output, error);
 
         java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(error);
         if (matcher.find()) {

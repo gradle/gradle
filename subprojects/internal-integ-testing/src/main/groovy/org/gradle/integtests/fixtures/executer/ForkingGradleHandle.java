@@ -25,7 +25,6 @@ import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
@@ -44,12 +43,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private final Action<ExecutionResult> resultAssertion;
     private final PipedOutputStream stdinPipe;
     private final boolean isDaemon;
-    private final File projectDir;
 
     private final DurationMeasurement durationMeasurement;
     private AtomicReference<ExecHandle> execHandleRef = new AtomicReference<ExecHandle>();
 
-    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement, File projectDir) {
+    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
         this.isDaemon = isDaemon;
@@ -57,7 +55,6 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.durationMeasurement = durationMeasurement;
         this.standardOutputCapturer = outputCapturerFor(System.out, outputEncoding, durationMeasurement);
         this.errorOutputCapturer = outputCapturerFor(System.err, outputEncoding, durationMeasurement);
-        this.projectDir = projectDir;
     }
 
     private static OutputCapturer outputCapturerFor(PrintStream stream, String outputEncoding, DurationMeasurement durationMeasurement) {
@@ -198,7 +195,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         // Exit value is unreliable for determination of process failure.
         // On rare occasions, exitValue == 0 when the process is expected to fail, and the error output indicates failure.
         boolean buildFailed = execResult.getExitValue() != 0 || OutputScrapingExecutionFailure.hasFailure(error);
-        ExecutionResult executionResult = buildFailed ? toExecutionFailure(output, error, projectDir) : toExecutionResult(output, error, projectDir);
+        ExecutionResult executionResult = buildFailed ? toExecutionFailure(output, error) : toExecutionResult(output, error);
 
         if (expectFailure && !buildFailed) {
             throw unexpectedBuildStatus(execResult, output, error, "did not fail", executionResult);

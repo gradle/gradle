@@ -509,8 +509,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    // Java 9 compiler throws error already: 'zip END header not found'
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
@@ -523,6 +522,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -532,8 +532,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1581")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    // Java 9 compiler throws error already: java.nio.file.InvalidPathException: Path: nul character not allowed
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: java.nio.file.InvalidPathException: Path: nul character not allowed
     def "compile classpath snapshotting should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
@@ -548,6 +547,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -578,6 +578,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -599,6 +600,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:

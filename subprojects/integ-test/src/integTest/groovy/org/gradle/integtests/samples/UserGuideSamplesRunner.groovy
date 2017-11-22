@@ -168,6 +168,9 @@ class UserGuideSamplesRunner extends Runner {
                 if (run.outputFormatter) {
                     expectedResult = run.outputFormatter.transform(expectedResult)
                 }
+                if (run.allowDeprecation) {
+                    expectedResult = expectedResult + '\nSome deprecated APIs are used in this build, which may be broken in Gradle 5.0.'
+                }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
 

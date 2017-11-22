@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import spock.lang.IgnoreIf
@@ -44,6 +45,6 @@ class WrapperDeprecatedBuildJvmIntegrationTest extends AbstractWrapperIntegratio
 
         expect:
         def result = wrapperExecuter.withTasks("help").run()
-        result.deprecationReport.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 0
+        result.deprecationReport.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == (JavaVersion.current().isJava8Compatible() ? 0 : 1)
     }
 }

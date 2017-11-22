@@ -34,7 +34,7 @@ class ForkingGradleHandleTest extends Specification {
     def execHandle = Mock(ExecHandle)
     def execResult = Mock(ExecResult)
     def resultAssertion = Mock(Action)
-    def forkingGradleHandle = new ForkingGradleHandle(null, false, resultAssertion, 'UTF-8', null, null, null)
+    def forkingGradleHandle = new ForkingGradleHandle(null, false, resultAssertion, 'UTF-8', null, null)
 
     def setup() {
         forkingGradleHandle.execHandleRef.set(execHandle)

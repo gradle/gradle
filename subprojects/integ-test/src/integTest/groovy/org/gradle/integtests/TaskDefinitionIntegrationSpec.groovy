@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.logging.DeprecationReport
 
 class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -42,10 +41,10 @@ class TaskDefinitionIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarning()
-        DeprecationReport output = succeeds(taskName).deprecationReport
+        succeeds(taskName)
 
         then:
         output.contains(message)
-        output.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
+        result.deprecationReport.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
     }
 }
