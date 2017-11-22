@@ -90,7 +90,7 @@ BUILD SUCCESSFUL in 0s
 
 [NOTE]
 ====
-_Important:_ To make the Wrapper files available to other developers and execution environments you’ll need to check them into version control. Adding the JAR file to version control is expected. Some organizations do not allow projects to submit binary files to version control. At the moment there are no alternative options to the approach.
+To make the Wrapper files available to other developers and execution environments you’ll need to check them into version control. Adding the JAR file to version control is expected. Some organizations do not allow projects to submit binary files to version control. At the moment there are no alternative options to the approach.
 ====
 
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, encodes important information about the Gradle distribution.
@@ -259,13 +259,13 @@ Please check out the API documentation for more detail descriptions of the avail
 [[sec:authenticated_download]]
 ==== Authenticated Gradle distribution download
 
+The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication. This enables you to host the Gradle distribution on a private protected server. You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`. Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
+
 [TIP]
 .Security Warning
 ====
 HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. With Basic Authentication, the user credentials are sent in clear text.
 ====
-
-The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication. This enables you to host the Gradle distribution on a private protected server. You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`. Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
 
 Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<sec:gradle_configuration_properties>>.
 
