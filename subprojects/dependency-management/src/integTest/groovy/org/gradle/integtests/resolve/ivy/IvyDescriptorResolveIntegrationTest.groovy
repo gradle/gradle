@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Unroll
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "substitutes system properties into ivy descriptor"() {
@@ -138,108 +137,5 @@ task check {
 
         then:
         succeeds "check"
-    }
-
-    @Unroll
-    def "excludes transitive dependencies when ivy.xml has dependency declared with #name"() {
-        given:
-
-        ivyRepo.module("org.gradle.dep", "dep_module", "1.134")
-                .dependsOn("org.gradle.one", "mod_one", "1.1")
-                .dependsOn("org.gradle.two", "mod_one", "2.1")
-                .dependsOn("org.gradle.two", "mod_two", "2.2")
-                .publish()
-        ivyRepo.module("org.gradle.one", "mod_one", "1.1").artifact([:]).artifact([type: 'war']).publish()
-        ivyRepo.module("org.gradle.two", "mod_one", "2.1").publish()
-        ivyRepo.module("org.gradle.two", "mod_two", "2.2").publish()
-
-        ivyRepo.module("org.gradle.test", "test_exclude", "1.134")
-                .dependsOn("org.gradle.dep", "dep_module", "1.134")
-                .withXml({
-            asNode().dependencies[0].dependency[0].appendNode("exclude", excludeAttributes)
-        })
-                .publish()
-
-        and:
-        buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle.test:test_exclude:1.134"
-}
-
-task check(type: Sync) {
-    into "libs"
-    from configurations.compile
-}
-"""
-
-        when:
-        succeeds "check"
-
-        then:
-        def jars = ['test_exclude-1.134.jar'] + transitiveJars
-        file("libs").assertHasDescendants(jars.toArray(new String[0]))
-
-        where:
-        name                       | excludeAttributes                          | transitiveJars
-        "empty exclude"            | [:]                                        | ['dep_module-1.134.jar'] // Does not exclude the depended-on module itself
-        "unmatched exclude"        | [module: "different"]                      | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "module exclude"           | [module: "mod_one"]                        | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
-        "org exclude"              | [org: "org.gradle.two"]                    | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war']
-        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
-        "regex module exclude"     | [module: "mod.*"]                          | ['dep_module-1.134.jar']
-        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
-        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "type exclude"             | [type: "war"]                              | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "extension exclude"        | [ext: "jar"]                               | ['mod_one-1.1.war']
-        "name exclude"             | [name: "dep_module-*"]                     | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-    }
-
-    def "transitive dependencies are only excluded if excluded from each dependency declaration"() {
-//        c -> d,e
-//        a -> c (excludes 'd')
-//        b -> c (excludes 'd', 'e')
-        given:
-        ivyRepo.module("d").publish()
-        ivyRepo.module("e").publish()
-        ivyRepo.module("c").dependsOn("d").dependsOn("e").publish()
-
-        ivyRepo.module("a")
-                .dependsOn("c")
-                .withXml({
-            asNode().dependencies[0].dependency[0].appendNode("exclude", [module: "d"])
-        })
-                .publish()
-        ivyRepo.module("b")
-                .dependsOn("c")
-                .withXml({
-            def dep = asNode().dependencies[0].dependency[0]
-            dep.appendNode("exclude", [module: "d"])
-            dep.appendNode("exclude", [module: "e"])
-        })
-                .publish()
-
-        and:
-        buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
-configurations {
-    merged
-}
-dependencies {
-    merged "org.gradle.test:a:1.0", "org.gradle.test:b:1.0"
-}
-
-task syncMerged(type: Sync) {
-    from configurations.merged
-    into "libs"
-}
-"""
-
-        when:
-        succeeds "syncMerged"
-
-        then:
-        file("libs").assertHasDescendants(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar'] as String[])
     }
 }
