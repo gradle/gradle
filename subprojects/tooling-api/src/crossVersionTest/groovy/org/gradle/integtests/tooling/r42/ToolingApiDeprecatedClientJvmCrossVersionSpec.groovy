@@ -98,6 +98,6 @@ public class TestClient {
         executer.commandLine("build/install/test/bin/test")
         executer.run().assertNormalExitValue()
 
-        return new DeprecationReport(projectDir)
+        return new DeprecationReport(projectDir.file('build/reports/deprecations/report.html'))
     }
 }

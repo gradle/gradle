@@ -29,7 +29,7 @@ class DeprecationReport {
     List<Deprecation> deprecations = []
 
     DeprecationReport(File reportFile) {
-        if (reportFile != null) {
+        if (reportFile != null && reportFile.exists()) {
             extractDeprecations(reportFile)
         }
     }
