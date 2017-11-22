@@ -58,8 +58,8 @@ class StandardSourceDistributionResolver(val project: Project) : SourceDistribut
     }
 
     private
-    fun createSourceRepositories(repositories: RepositoryHandler): List<IvyArtifactRepository> {
-        return listOf("distributions", "distributions-snapshots").map { repoName ->
+    fun createSourceRepositories(repositories: RepositoryHandler): List<IvyArtifactRepository> =
+        listOf("distributions", "distributions-snapshots").map { repoName ->
             val repo = repositories.ivy {
                 it.setName("Gradle ${repoName}")
                 it.setUrl("https://services.gradle.org")
@@ -73,7 +73,6 @@ class StandardSourceDistributionResolver(val project: Project) : SourceDistribut
             repositories.addFirst(repo)
             repo
         }
-    }
 
     private
     fun registerTransforms() {
