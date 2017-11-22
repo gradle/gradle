@@ -65,18 +65,33 @@ class ReadelfBinaryInfo implements BinaryInfo {
         }
     }
 
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        def symbols = []
+
+        lines.each { line ->
+            def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
+            if (findSymbol.matches()) {
+                def name = new File(findSymbol[0][2] as String).name
+                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+            }
+        }
+        return symbols
+    }
+
     @Override
     boolean hasDebugSymbolsFor(List<String> sourceFileNames) {
-        List<BinaryInfo.Symbol> symbols = listSymbols()
-        return symbols.any { it.name == ".debug_info" } && sourceFileNames.every { sourceFileName ->
+        List<BinaryInfo.Symbol> symbols = listDebugSymbols()
+        return sourceFileNames.every { sourceFileName ->
             symbols.any { it.name == sourceFileName }
         }
     }
 
     @Override
     boolean doesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
-        List<BinaryInfo.Symbol> symbols = listSymbols()
-        return symbols.every { it.name != ".debug_info" } && symbols.every { !(it.name in sourceFileNames) }
+        List<BinaryInfo.Symbol> symbols = listDebugSymbols()
+        return symbols.every { !(it.name in sourceFileNames) }
     }
 
     String getSoName() {
