@@ -15,6 +15,7 @@
  */
 package org.gradle.buildinit.plugins.fixtures
 
+import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +26,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScri
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
 import static org.hamcrest.Matchers.containsString
 
+@CompileStatic
 class ScriptDslFixture {
 
     static final List<BuildInitBuildScriptDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [GROOVY, KOTLIN] : [GROOVY]
