@@ -54,6 +54,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+* Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
+
 <!--
 ### Example breaking change
 -->
