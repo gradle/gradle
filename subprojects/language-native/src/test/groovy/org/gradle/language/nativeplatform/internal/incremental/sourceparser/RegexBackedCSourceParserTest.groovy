@@ -83,7 +83,7 @@ class RegexBackedCSourceParserTest extends Specification {
     Macro macro(String name, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
         if (!expression.arguments.empty) {
-            return new MacroWithMacroFunctionExpression(name, expression.value, expression.arguments)
+            return new MacroWithMacroFunctionCallExpression(name, expression.value, expression.arguments)
         }
         return new MacroWithSimpleExpression(name, expression.type, expression.value)
     }
@@ -182,7 +182,7 @@ class RegexBackedCSourceParserTest extends Specification {
         include << ['A', 'DEFINED', '_A$2', 'mixedDefined', '__DEFINED__']
     }
 
-    def "finds macro function include"() {
+    def "finds macro function call include"() {
         when:
         sourceFile << """
     #include ${include}
@@ -204,24 +204,29 @@ class RegexBackedCSourceParserTest extends Specification {
         'a12  \t(\t)' | 'a12'
     }
 
-    def "finds macro function include with parameters"() {
+    def "finds macro function call include with parameters"() {
         when:
         sourceFile << """
     #include ${include}
 """
 
         then:
-        includes == [new IncludeWithMacroFunctionExpression(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
+        includes == [new IncludeWithMacroFunctionCallExpression(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
 
         and:
         noImports()
 
         where:
-        include               | macro | parameters
-        'A(X)'                | 'A'   | ['X']
-        'A( X )'              | 'A'   | ['X']
-        'ABC(x,y)'            | 'ABC' | ['x', 'y']
-        'ABC( \t x \t,  y  )' | 'ABC' | ['x', 'y']
+        include                                            | macro | parameters
+        'A(X)'                                             | 'A'   | ['X']
+        'A( X )'                                           | 'A'   | ['X']
+        'ABC(x,y)'                                         | 'ABC' | ['x', 'y']
+        'ABC( \t x \t,  y  )'                              | 'ABC' | ['x', 'y']
+        'A ( "include.h" )'                                | 'A'   | ['"include.h"']
+        'A ( <include.h> )'                                | 'A'   | ['<include.h>']
+        'A ( _b )'                                         | 'A'   | ['_b']
+        'A ( _b(c) )'                                      | 'A'   | ['_b(c)']
+        ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'   | ['"a.h"', '<b.h>', 'b$(a,b,c("b.h"))', 'Z']
     }
 
     def "finds other includes that cannot be resolved"() {
@@ -237,7 +242,7 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
 
         where:
-        include << ['DEFINED(<abc.h>)', 'not an include', 'BROKEN(', '@(X', '"abc.h" DEFINED', 'DEFINED(A, B(1+2))']
+        include << ['DEFINED(one two three)', 'not an include', 'BROKEN(', 'broken(A,', 'broken(a, b', '@(X', '"abc.h" DEFINED', 'DEFINED(A, B(1+2))']
     }
 
     def "finds multiple includes"() {
@@ -632,7 +637,7 @@ st3"
         macroFunctions.empty
 
         where:
-        value << ['a()', '_a_123_(_a1, $2)', 'a$b(X,Y)']
+        value << ['a()', '_a_123_(_a1, $2)', 'a$b(X,Y)', ' A( X, Y(Z)  )']
     }
 
     def "finds object-like macro directive whose value cannot be resolved"() {
@@ -646,7 +651,7 @@ st3"
         macroFunctions.empty
 
         where:
-        value << ["one two three", "a++", "one(<abc.h>)", "-12", "(X) #X", "A(1, B(2+2))"]
+        value << ["one two three", "a++", "one(two three)", "-12", "(X) #X", "A(1, B(2+2))"]
     }
 
     def "handles various separators in an object-like macro directive"() {
@@ -764,7 +769,7 @@ st3"
         macroFunctions == [macroFunction('A', 'ABC_H')]
     }
 
-    def "finds function-like macro directive with no parameters whose body is a macro function"() {
+    def "finds function-like macro directive with no parameters whose body is a macro function call"() {
         when:
         sourceFile << """
 #define A() ABC_H(A, Z)

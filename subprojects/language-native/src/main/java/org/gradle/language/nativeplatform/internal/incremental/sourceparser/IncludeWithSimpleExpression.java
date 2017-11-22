@@ -23,6 +23,9 @@ import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+/**
+ * An #include directive whose body is a simple expression (not a macro function call).
+ */
 public class IncludeWithSimpleExpression extends AbstractInclude {
 
     private static final Interner<IncludeWithSimpleExpression> INTERNER = Interners.newWeakInterner();
@@ -37,7 +40,7 @@ public class IncludeWithSimpleExpression extends AbstractInclude {
 
     public static Include create(Expression expression, boolean isImport) {
         if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            return new IncludeWithMacroFunctionExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
+            return new IncludeWithMacroFunctionCallExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
         }
         return create(expression.getValue(), isImport, expression.getType());
     }

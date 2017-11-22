@@ -21,19 +21,21 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.List;
 
-public class MacroWithMacroFunctionExpression extends AbstractMacro {
-    private final String macroName;
+/**
+ * A macro function call expression.
+ */
+class MacroFunctionCallExpression extends AbstractExpression {
+    private final String value;
     private final List<Expression> arguments;
 
-    public MacroWithMacroFunctionExpression(String name, String macroName, List<Expression> arguments) {
-        super(name);
-        this.macroName = macroName;
+    MacroFunctionCallExpression(String value, List<Expression> arguments) {
+        this.value = value;
         this.arguments = arguments;
     }
 
     @Override
     public String getValue() {
-        return macroName;
+        return value;
     }
 
     @Override
@@ -48,15 +50,18 @@ public class MacroWithMacroFunctionExpression extends AbstractMacro {
 
     @Override
     public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        MacroWithMacroFunctionExpression other = (MacroWithMacroFunctionExpression) obj;
-        return macroName.equals(other.macroName) && arguments.equals(other.arguments);
+        MacroFunctionCallExpression other = (MacroFunctionCallExpression) obj;
+        return value.equals(other.value) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ macroName.hashCode() ^ arguments.hashCode();
+        return value.hashCode() ^ arguments.hashCode();
     }
 }

@@ -19,11 +19,14 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-public class DefaultExpression extends AbstractExpression implements Expression {
+/**
+ * An expression that has only a type and value and is not a macro function call.
+ */
+public class SimpleExpression extends AbstractExpression implements Expression {
     private final String value;
     private final IncludeType type;
 
-    DefaultExpression(String value, IncludeType type) {
+    SimpleExpression(String value, IncludeType type) {
         this.value = value;
         this.type = type;
     }
@@ -46,7 +49,7 @@ public class DefaultExpression extends AbstractExpression implements Expression 
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        DefaultExpression other = (DefaultExpression) obj;
+        SimpleExpression other = (SimpleExpression) obj;
         return value.equals(other.value) && type.equals(other.type);
     }
 

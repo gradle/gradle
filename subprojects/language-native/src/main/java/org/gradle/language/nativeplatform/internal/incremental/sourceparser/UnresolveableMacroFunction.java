@@ -25,7 +25,7 @@ import java.util.List;
  * A macro function whose body cannot be resolved.
  */
 public class UnresolveableMacroFunction extends AbstractMacroFunction {
-    private static final DefaultExpression UNRESOLVED_EXPRESSION = new DefaultExpression(null, IncludeType.OTHER);
+    private static final SimpleExpression UNRESOLVED_EXPRESSION = new SimpleExpression(null, IncludeType.OTHER);
 
     public UnresolveableMacroFunction(String name, int parameters) {
         super(name, parameters);

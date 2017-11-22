@@ -16,29 +16,37 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
-/**
- * An "object-like" macro #define whose body is a simple expression (not a macro function call).
- */
-public class MacroWithSimpleExpression extends AbstractMacro {
-    private final IncludeType includeType;
-    private final String value;
+import java.util.List;
 
-    public MacroWithSimpleExpression(String name, IncludeType includeType, String value) {
+/**
+ * An "object-like" macro #define whose body is a macro function call.
+ */
+public class MacroWithMacroFunctionCallExpression extends AbstractMacro {
+    private final String macroName;
+    private final List<Expression> arguments;
+
+    public MacroWithMacroFunctionCallExpression(String name, String macroName, List<Expression> arguments) {
         super(name);
-        this.includeType = includeType;
-        this.value = value;
+        this.macroName = macroName;
+        this.arguments = arguments;
     }
 
     @Override
     public String getValue() {
-        return value;
+        return macroName;
     }
 
     @Override
     public IncludeType getType() {
-        return includeType;
+        return IncludeType.MACRO_FUNCTION;
+    }
+
+    @Override
+    public List<Expression> getArguments() {
+        return arguments;
     }
 
     @Override
@@ -46,12 +54,12 @@ public class MacroWithSimpleExpression extends AbstractMacro {
         if (!super.equals(obj)) {
             return false;
         }
-        MacroWithSimpleExpression other = (MacroWithSimpleExpression) obj;
-        return value.equals(other.value);
+        MacroWithMacroFunctionCallExpression other = (MacroWithMacroFunctionCallExpression) obj;
+        return macroName.equals(other.macroName) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode();
+        return super.hashCode() ^ macroName.hashCode() ^ arguments.hashCode();
     }
 }

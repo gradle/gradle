@@ -121,7 +121,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, List<Macro> macros) {
         Expression expression = parseExpression(buffer);
         if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            macros.add(new MacroWithMacroFunctionExpression(macroName, expression.getValue(), expression.getArguments()));
+            macros.add(new MacroWithMacroFunctionCallExpression(macroName, expression.getValue(), expression.getArguments()));
         } else if (expression.getType() != IncludeType.OTHER) {
             macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
         } else {
@@ -136,25 +136,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, List<MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
         List<String> paramNames = new ArrayList<String>();
-        String paramName = buffer.readIdentifier();
-        while (paramName != null) {
-            paramNames.add(paramName);
-            buffer.consumeWhitespace();
-            if (buffer.has(')')) {
-                break;
-            }
-            if (!buffer.consume(',')) {
-                // Missing ','
-                return;
-            }
-            buffer.consumeWhitespace();
-            paramName = buffer.readIdentifier();
-            if (paramName == null) {
-                // Missing parameter name
-                return;
-            }
-        }
-        buffer.consumeWhitespace();
+        consumeParameterList(buffer, paramNames);
         if (!buffer.consume(')')) {
             // Badly form args list
             return;
@@ -188,6 +170,24 @@ public class RegexBackedCSourceParser implements CSourceParser {
         macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
     }
 
+    private void consumeParameterList(Buffer buffer, List<String> paramNames) {
+        String paramName = buffer.readIdentifier();
+        while (paramName != null) {
+            paramNames.add(paramName);
+            buffer.consumeWhitespace();
+            if (!buffer.consume(',')) {
+                // Missing ','
+                return;
+            }
+            buffer.consumeWhitespace();
+            paramName = buffer.readIdentifier();
+            if (paramName == null) {
+                // Missing parameter name
+                return;
+            }
+        }
+    }
+
     static Expression parseExpression(String value) {
         Buffer buffer = new Buffer();
         buffer.value.append(value);
@@ -199,90 +199,92 @@ public class RegexBackedCSourceParser implements CSourceParser {
      */
     private static Expression parseExpression(Buffer buffer) {
         int startPos = buffer.pos;
+        Expression expression = readExpression(buffer);
+        buffer.consumeWhitespace();
+        if (expression == null || buffer.hasAny()) {
+            return new SimpleExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
+        }
+        return expression;
+    }
+
+    /**
+     * Parses an expression that forms the body of a directive. Returns null when an expression cannot be parsed and consumes input up to the parse failure point.
+     */
+    @Nullable
+    private static Expression readExpression(Buffer buffer) {
         buffer.consumeWhitespace();
         if (!buffer.hasAny()) {
             // Empty or only whitespace
-            return new DefaultExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
+            return null;
         }
 
         if (buffer.consume('<')) {
-            return parseDelimitedExpression(buffer, startPos, '>', IncludeType.SYSTEM);
+            return readDelimitedExpression(buffer, '>', IncludeType.SYSTEM);
         } else if (buffer.consume('"')) {
-            return parseDelimitedExpression(buffer, startPos, '"', IncludeType.QUOTED);
+            return readDelimitedExpression(buffer, '"', IncludeType.QUOTED);
         }
 
         String identifier = buffer.readIdentifier();
         if (identifier == null) {
             // No identifier
-            return new DefaultExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
+            return null;
         }
         buffer.consumeWhitespace();
-        if (!buffer.hasAny()) {
+        if (!buffer.consume('(')) {
             // Just an identifier, this is a macro reference
-            return new DefaultExpression(identifier, IncludeType.MACRO);
-        }
-        if (buffer.consume('(')) {
-            // A macro function reference
-            buffer.consumeWhitespace();
-            List<Expression> argumentExpressions = new ArrayList<Expression>();
-            consumeArgumentList(buffer, argumentExpressions);
-            if (buffer.consume(')')) {
-                buffer.consumeWhitespace();
-                if (!buffer.hasAny()) {
-                    if (argumentExpressions.isEmpty()) {
-                        return new DefaultExpression(identifier, IncludeType.MACRO_FUNCTION);
-                    } else {
-                        return new MacroFunctionExpression(identifier, argumentExpressions);
-                    }
-                }
-            }
+            return new SimpleExpression(identifier, IncludeType.MACRO);
         }
 
-        return new DefaultExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
+        // A macro function call
+        buffer.consumeWhitespace();
+        List<Expression> argumentExpressions = new ArrayList<Expression>();
+        consumeArgumentList(buffer, argumentExpressions);
+        if (!buffer.consume(')')) {
+            // Badly formed arguments
+            return null;
+        }
+        if (argumentExpressions.isEmpty()) {
+            return new SimpleExpression(identifier, IncludeType.MACRO_FUNCTION);
+        } else {
+            return new MacroFunctionCallExpression(identifier, argumentExpressions);
+        }
     }
 
     /**
      * Parses a macro function argument list. Stops when unable to recognize any further arguments.
      */
     private static void consumeArgumentList(Buffer buffer, List<Expression> expressions) {
-        // Only handle macro expressions for now
-        String identifier = buffer.readIdentifier();
-        if (identifier == null) {
-            // Not an identifier
+        Expression expression = readExpression(buffer);
+        if (expression == null) {
+            // Not an expression
             return;
         }
-        expressions.add(new DefaultExpression(identifier, IncludeType.MACRO));
+        expressions.add(expression);
         while (true) {
             buffer.consumeWhitespace();
             if (!buffer.consume(',')) {
                 return;
             }
-            buffer.consumeWhitespace();
-            identifier = buffer.readIdentifier();
-            if (identifier == null) {
+            expression = readExpression(buffer);
+            if (expression == null) {
                 return;
             }
-            expressions.add(new DefaultExpression(identifier, IncludeType.MACRO));
+            expressions.add(expression);
         }
     }
 
     /**
-     * Parses an expression that ends with the given delimiter. Consumes all input.
+     * Parses an expression that ends with the given delimiter. Returns null on failure and consumes input up to the parse failure point.
      */
-    private static Expression parseDelimitedExpression(Buffer buffer, int startPos, char endDelim, IncludeType type) {
+    @Nullable
+    private static Expression readDelimitedExpression(Buffer buffer, char endDelim, IncludeType type) {
         int startValue = buffer.pos;
         buffer.consumeUpTo(endDelim);
         int endValue = buffer.pos;
         if (!buffer.consume(endDelim)) {
-            // No terminating delimiter
-            return new DefaultExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
+            return null;
         }
-        buffer.consumeWhitespace();
-        if (buffer.hasAny()) {
-            // Extra stuff
-            return new DefaultExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
-        }
-        return new DefaultExpression(buffer.value.substring(startValue, endValue), type);
+        return new SimpleExpression(buffer.value.substring(startValue, endValue), type);
     }
 
     /**
@@ -318,6 +320,11 @@ public class RegexBackedCSourceParser implements CSourceParser {
     private static class Buffer {
         final StringBuilder value = new StringBuilder();
         int pos = 0;
+
+        @Override
+        public String toString() {
+            return "{buffer remaining: '" + value.substring(pos, pos + Math.min(value.length() - pos, 20)) + "'}";
+        }
 
         void reset() {
             value.setLength(0);
@@ -357,7 +364,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
 
         /**
-         * Reads an identifier from the current location.
+         * Reads an identifier from the current location. Does not consume anything if there is not an identifier at the current location.
          *
          * @return the identifier or null if none present.
          */
@@ -423,28 +430,4 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
     }
 
-    private static class MacroFunctionExpression extends AbstractExpression {
-        private final String value;
-        private final List<Expression> arguments;
-
-        MacroFunctionExpression(String value, List<Expression> arguments) {
-            this.value = value;
-            this.arguments = arguments;
-        }
-
-        @Override
-        public String getValue() {
-            return value;
-        }
-
-        @Override
-        public IncludeType getType() {
-            return IncludeType.MACRO_FUNCTION;
-        }
-
-        @Override
-        public List<Expression> getArguments() {
-            return arguments;
-        }
-    }
 }

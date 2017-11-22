@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import groovy.transform.NotYetImplemented
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
@@ -87,7 +86,8 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         given:
         sourceFile << """
             #define HEADER2(X, Y) <hello.h>
-            #define HEADER HEADER2 (A1, A2) // some comment
+            #define A2(X) X
+            #define HEADER HEADER2 (A1, A2("ignore.h")) // some comment
             #include HEADER
         """
 
@@ -212,12 +212,22 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
     def "resolves macro function with arg that returns param and param is string constant"() {
         given:
         sourceFile << """
             #define HEADER(X) X
             #include HEADER("hello.h")
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with arg that returns param and param is system path"() {
+        given:
+        sourceFile << """
+            #define HEADER(X) X
+            #include HEADER(<hello.h>)
         """
 
         expect:
@@ -236,7 +246,6 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
     def "resolves macro function with arg that returns param and param is macro function call with zero args"() {
         given:
         sourceFile << """
@@ -249,7 +258,6 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
     def "resolves macro function with arg that returns param and param is macro function call with arg"() {
         given:
         sourceFile << """
@@ -261,7 +269,6 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
     def "resolves macro function with multiple args that returns param and param is string constant"() {
         given:
         sourceFile << """
@@ -279,6 +286,18 @@ class SourceParserAndResolutionTest extends SerializerSpec {
             #define HEADER_ "hello.h"
             #define HEADER(X, Y, Z) Y
             #include HEADER(IGNORE, HEADER_, IGNORE)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with multiple args that returns param and param is macro function call"() {
+        given:
+        sourceFile << """
+            #define HEADER_(X) "hello.h"
+            #define HEADER(X, Y, Z) Y
+            #include HEADER(IGNORE, HEADER_(IGNORE()), IGNORE)
         """
 
         expect:
