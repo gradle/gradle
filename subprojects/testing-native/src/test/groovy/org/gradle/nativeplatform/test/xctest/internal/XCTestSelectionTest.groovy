@@ -48,9 +48,9 @@ class XCTestSelectionTest extends Specification {
         select('one.dot', 'has.two.dots').includedTests == ['one.dot', 'has.two/dots']
     }
 
-    def "can use wildcard to select all tests from module"() {
+    def "ignores wildcard to select all tests from module"() {
         expect:
-        select('ModuleName.*').includedTests == ['All']
+        select('ModuleName.*').includedTests == ['ModuleName.*']
     }
 
     def "can use wildcard to select all test case from suite"() {
@@ -65,9 +65,10 @@ class XCTestSelectionTest extends Specification {
 
     def "ignores conceptual duplicate filters"() {
         expect:
-        select('a.*', 'a.b.c').includedTests == ['All']
         select('a.b.*', 'a.b.c', 'a.d.e').includedTests == ['a.b', 'a.d/e']
         select('a.b.c', 'a.d.e', 'a.b.*').includedTests == ['a.d/e', 'a.b']
+        select('a.b', 'a.b.c', 'a.d.e').includedTests == ['a.b', 'a.d/e']
+        select('a.b.c', 'a.d.e', 'a.b').includedTests == ['a.d/e', 'a.b']
     }
 
     def "conserve order of filters"() {
