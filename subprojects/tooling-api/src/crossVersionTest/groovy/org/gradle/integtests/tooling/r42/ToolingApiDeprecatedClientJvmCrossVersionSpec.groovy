@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -88,7 +89,7 @@ public class TestClient {
         out.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 0
     }
 
-    String runScript(File javaHome) {
+    def runScript(File javaHome) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
         executer.environment(JAVA_HOME: javaHome)
@@ -97,6 +98,6 @@ public class TestClient {
         executer.commandLine("build/install/test/bin/test")
         executer.run().assertNormalExitValue()
 
-        return outStr.toString()
+        return new DeprecationReport(projectDir)
     }
 }

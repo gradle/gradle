@@ -18,6 +18,7 @@
 package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -41,6 +42,15 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
     }
 
+    def getDeprecationReport(){
+        new DeprecationReport(projectDir)
+    }
+
+    def warningCount(def output){
+        assert output.toString().contains('Some deprecated APIs are used in this build')
+        return deprecationReport.count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0")
+    }
+
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
     def "warning running a build when build is configured to use Java 7"() {
         configureJava7()
@@ -54,7 +64,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        warningCount(output) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
@@ -70,7 +80,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        warningCount(output) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
@@ -86,7 +96,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        warningCount(output) == 1
     }
 
     @ToolingApiVersion(">=2.6")
@@ -105,7 +115,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         then:
         TestExecutionException e = thrown()
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
+        warningCount(output) == 1
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -121,7 +131,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        warningCount(output) == 0
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -137,7 +147,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        warningCount(output) == 0
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
@@ -153,7 +163,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        warningCount(output) == 0
     }
 
     @ToolingApiVersion(">=2.6")
@@ -172,6 +182,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         then:
         TestExecutionException e = thrown()
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
-        output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
+        warningCount(output) == 0
     }
 }

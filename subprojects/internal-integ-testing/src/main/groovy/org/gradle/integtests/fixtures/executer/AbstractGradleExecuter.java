@@ -36,7 +36,6 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -1102,7 +1101,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
             private void validateDeprecationWarnings(ExecutionResult result) {
                 if (checkDeprecations && expectedDeprecationWarnings > 0) {
-                    result.getDeprecationReport().validate(expectedDeprecationWarnings);
+                    if (java7DeprecationWarningShouldExist()) {
+                        result.getDeprecationReport().validate(expectedDeprecationWarnings + 1);
+                    } else {
+                        result.getDeprecationReport().validate(expectedDeprecationWarnings);
+                    }
                 }
             }
 
@@ -1138,15 +1141,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
-                    } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
-                        if (!java7DeprecationWarningShouldExist()) {
-                            throw new AssertionError(String.format("%s line %d contains unexpected deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-                        }
-                        // skip over stack trace
-                        i++;
-                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                            i++;
-                        }
                     } else if (isJava7DeprecationTruncatedDaemonLog(lines, i, line)) {
                         // skip over stack trace
                         i++;
