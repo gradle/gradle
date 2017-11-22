@@ -30,7 +30,7 @@ gradlePlugin {
             implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
         }
         buildTypes {
-            id = "org.gradle.build-types"
+            id = "build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
         pegdown {

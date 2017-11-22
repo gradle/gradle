@@ -19,7 +19,7 @@ import org.gradle.cleanup.EmptyDirectoryCheck
 
 plugins {
     id 'java-base'
-    id 'org.gradle.build-types'
+    id 'build-types'
 }
 
 defaultTasks 'assemble'
