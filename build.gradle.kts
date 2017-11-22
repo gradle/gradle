@@ -8,9 +8,8 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    val kotlinRepo: String by extra
     repositories {
-        maven(url = kotlinRepo)
+        maven(url = build.kotlinRepo)
     }
 
     val kotlinVersion: String by extra
