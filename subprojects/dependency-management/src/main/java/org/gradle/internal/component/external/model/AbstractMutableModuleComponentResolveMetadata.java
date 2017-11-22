@@ -31,7 +31,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
@@ -68,7 +67,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
 
     // TODO:DAZ Maybe only construct these once immutable
     private ImmutableList<? extends ComponentVariant> variants;
-    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
@@ -88,7 +86,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
-        this.graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     @Override
@@ -194,7 +191,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
         dependencyMetadataRules.get(variantName).addAction(action);
-        graphVariants = null;
     }
 
     @Override
@@ -213,24 +209,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             newVariants = new ArrayList<MutableVariantImpl>();
         }
         newVariants.add(variant);
-        graphVariants = null;
         return variant;
-    }
-
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        if (graphVariants == null) {
-            ImmutableList<? extends ComponentVariant> variants = getVariants();
-            if (variants.isEmpty()) {
-                graphVariants = ImmutableList.of();
-            } else {
-                List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
-                for (ComponentVariant variant : variants) {
-                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
-                }
-                graphVariants = ImmutableList.copyOf(configurations);
-            }
-        }
-        return graphVariants;
     }
 
     public ImmutableList<? extends ComponentVariant> getVariants() {

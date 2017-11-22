@@ -19,9 +19,6 @@ package org.gradle.internal.component.external.model;
 import javax.annotation.Nullable;
 
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
-    /**
-     * {@inheritDoc}
-     */
     @Override
     MavenModuleResolveMetadata asImmutable();
 

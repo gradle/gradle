@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
-import org.gradle.api.Action
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -28,8 +27,6 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -368,14 +365,12 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         v2.addDependency("g3", "m3", v("v3"), [])
 
         expect:
-        metadata.variantsForGraphTraversal.size() == 2
-        metadata.variantsForGraphTraversal[0].name == 'api'
-        metadata.variantsForGraphTraversal[0].dependencies.size() == 1
-        metadata.variantsForGraphTraversal[1].name == 'runtime'
-        metadata.variantsForGraphTraversal[1].dependencies.size() == 2
-
         def immutable = metadata.asImmutable()
         immutable.variantsForGraphTraversal.size() == 2
+        immutable.variantsForGraphTraversal[0].name == 'api'
+        immutable.variantsForGraphTraversal[0].dependencies.size() == 1
+        immutable.variantsForGraphTraversal[1].name == 'runtime'
+        immutable.variantsForGraphTraversal[1].dependencies.size() == 2
 
         def api = immutable.variantsForGraphTraversal[0]
         api.name == 'api'
@@ -413,29 +408,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null
         artifacts2[0].name.extension == 'zip'
-
-        def copy = immutable.asMutable()
-        copy.variantsForGraphTraversal.size() == 2
-        copy.addVariant("link", attributes())
-        copy.variantsForGraphTraversal.size() == 3
-
-        def immutable2 = copy.asImmutable()
-        immutable2.variantsForGraphTraversal.size() == 3
-    }
-
-    def "resets variant backed configuration metadata if dependency rules are modified"() {
-        given:
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = createMetadata(id)
-        metadata.addVariant("aVariant", Mock(ImmutableAttributes))
-        def before = metadata.variantsForGraphTraversal
-
-        when:
-        metadata.addDependencyMetadataRule("aVariant", Mock(Action), Mock(Instantiator), Mock(NotationParser))
-        def after = metadata.variantsForGraphTraversal
-
-        then:
-        !after.is(before)
     }
 
 

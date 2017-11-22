@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -45,16 +44,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
-    private final ImmutableList<? extends ComponentVariant> variants;
-    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
-        variants = metadata.getVariants();
-        graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
@@ -62,8 +57,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
-        variants = metadata.variants;
-        graphVariants = metadata.graphVariants;
     }
 
     @Override
@@ -106,16 +99,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;
-    }
-
-    @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return graphVariants;
-    }
-
-    @Override
-    public ImmutableList<? extends ComponentVariant> getVariants() {
-        return variants;
     }
 
     @Nullable

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
@@ -40,8 +39,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableList<Exclude> excludes;
     private final ImmutableMap<NamespaceId, String> extraAttributes;
-    private final ImmutableList<? extends ComponentVariant> variants;
-    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
     private final String branch;
     // Since a single `Artifact` is shared between configurations, share the metadata type as well.
     private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
@@ -53,8 +50,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.artifactDefinitions = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
         this.extraAttributes = metadata.getExtraAttributes();
-        this.variants = metadata.getVariants();
-        this.graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
@@ -64,8 +59,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.artifactDefinitions = metadata.artifactDefinitions;
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
-        this.variants = metadata.variants;
-        this.graphVariants = metadata.graphVariants;
     }
 
     @Override
@@ -126,16 +119,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     public ImmutableMap<NamespaceId, String> getExtraAttributes() {
         return extraAttributes;
-    }
-
-    @Override
-    public ImmutableList<? extends ComponentVariant> getVariants() {
-        return variants;
-    }
-
-    @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return graphVariants;
     }
 
     @Override

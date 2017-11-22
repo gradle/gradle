@@ -49,10 +49,12 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final List<? extends ModuleDependencyMetadata> dependencies;
     private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
+    private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
 
     // Configurations are built on-demand, but only once.
     private final Map<String, T> configurations = Maps.newHashMap();
+    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata<T> metadata) {
         this.componentIdentifier = metadata.getComponentId();
@@ -66,6 +68,8 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         dependencies = metadata.getDependencies();
         dependencyMetadataRules = metadata.dependencyMetadataRules;
         contentHash = metadata.getContentHash();
+
+        this.variants = metadata.getVariants();
     }
 
     /**
@@ -85,6 +89,8 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         configurations.putAll(metadata.configurations);
 
         contentHash = metadata.contentHash;
+        this.variants = metadata.variants;
+        this.graphVariants = metadata.graphVariants;
     }
 
     // TODO:DAZ Wrap each `DependencyMetadata` with a configuration-aware wrapper, so that we can remove the 'fromConfiguration' parameters.
@@ -136,6 +142,17 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
      */
     protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
 
+    private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+        if (variants.isEmpty()) {
+            return ImmutableList.of();
+        }
+        List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
+        for (ComponentVariant variant : variants) {
+            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
+        }
+        return ImmutableList.copyOf(configurations);
+    }
+
     @Nullable
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
@@ -183,8 +200,16 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     }
 
     @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return ImmutableList.of();
+    public ImmutableList<? extends ComponentVariant> getVariants() {
+        return variants;
+    }
+
+    @Override
+    public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+        if (graphVariants == null) {
+            graphVariants = buildVariantsForGraphTraversal(variants);
+        }
+        return graphVariants;
     }
 
     @Override
