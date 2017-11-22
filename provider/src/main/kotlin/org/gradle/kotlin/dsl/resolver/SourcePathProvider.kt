@@ -47,13 +47,16 @@ object SourcePathProvider {
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
     private
-    fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> {
-        val dir = File(gradleInstallation, "src")
-        if (dir.exists()) {
-            return subDirsOf(dir)
-        }
-        return sourceDistributionResolver.sourceDirs()
-    }
+    fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> =
+        gradleInstallationSources(gradleInstallation) ?: downloadedSources(sourceDistributionResolver)
+
+    private
+    fun gradleInstallationSources(gradleInstallation: File) =
+        File(gradleInstallation, "src").takeIf { it.exists() }?.let { subDirsOf(it) }
+
+    private
+    fun downloadedSources(sourceDistributionResolver: SourceDistributionProvider) =
+        sourceDistributionResolver.sourceDirs()
 
     private
     fun subDirsOf(dir: File): Collection<File> =
