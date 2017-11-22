@@ -218,6 +218,12 @@ class GradleModuleMetadata {
                 hasExclude('*', '*')
                 noMoreExcludes()
             }
+
+            DependencyView rejects(String... rejections) {
+                Set<String> actualRejects = find()?.rejectsVersion
+                Set<String> expectedRejects = rejections as Set
+                assert actualRejects == expectedRejects
+            }
         }
     }
 
