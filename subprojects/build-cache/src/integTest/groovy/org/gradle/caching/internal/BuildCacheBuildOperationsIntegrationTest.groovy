@@ -76,17 +76,17 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
                 }
 
                 // @Override
-                void load(BuildCacheKey key, Action<? super File> reader) {
+                void loadLocally(BuildCacheKey key, Action<? super File> reader) {
                     ${isLocal ? loadBody ?: "" : ""}
                 }
     
                 // @Override
-                void store(BuildCacheKey key, File file) {
+                void storeLocally(BuildCacheKey key, File file) {
                     ${isLocal ? storeBody ?: "" : ""}
                 }
     
-                void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
-                    new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).allocateTempFile(key, action)
+                void withTempFile(BuildCacheKey key, Action<? super File> action) {
+                    new $DefaultBuildCacheTempFileStore.name(new File("${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}")).withTempFile(key, action)
                 } 
 
                 @Override
