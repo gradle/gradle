@@ -29,8 +29,7 @@ import java.io.File
  */
 class ExtractGradleSourcesTransform : ArtifactTransform() {
 
-    override
-    fun transform(input: File): List<File> {
+    override fun transform(input: File): List<File> {
         unzipTo(input, outputDirectory)
         return sourceDirectories()
     }
