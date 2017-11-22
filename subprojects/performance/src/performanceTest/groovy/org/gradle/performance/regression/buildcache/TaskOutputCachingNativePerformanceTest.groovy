@@ -44,6 +44,6 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         testProject        | task                         | maxMemory
         'bigCppApp'        | 'assemble'                   | '256m'
         'bigCppMulti'      | 'assemble'                   | '1G'
-//        'bigNative'        | 'assemble'                   | '1G'
+        'bigNative'        | 'assemble'                   | '1G'
     }
 }
