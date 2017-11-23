@@ -176,7 +176,7 @@ public class ComponentAttributeMatcher {
             for (MatchDetails<T> details : compatible) {
                 boolean superSetToAll = true;
                 for (MatchDetails candidate : compatible) {
-                    if (details != candidate && (!details.matched.containsAll(candidate.matched) || details.matched.equals(candidate.matched))) {
+                    if (!details.isStrictSuperSetOf(candidate)) {
                         superSetToAll = false;
                         break;
                     }
@@ -194,12 +194,11 @@ public class ComponentAttributeMatcher {
             Multimap<Object, MatchDetails<T>> candidatesByValue = LinkedHashMultimap.create();
             Set<Attribute<?>> allAttributes = Sets.newHashSet();
             for (MatchDetails<T> details : compatible) {
-                allAttributes.addAll(details.matchesByAttribute.keySet());
+                allAttributes.addAll(details.getAllMatches());
             }
             for (Attribute<?> attribute : allAttributes) {
                 for (MatchDetails<T> details : compatible) {
-                    Map<Attribute<Object>, Object> matchedAttributes = details.matchesByAttribute;
-                    Object val = matchedAttributes.get(attribute);
+                    Object val = details.getValue(attribute);
                     candidatesByValue.put(val, details);
                 }
                 disambiguate(attribute, requested.getAttribute(attribute), remainingMatches, candidatesByValue, schema, best);
@@ -231,8 +230,8 @@ public class ComponentAttributeMatcher {
     }
 
     private static class MatchDetails<T extends HasAttributes> {
-        private final Set<Attribute<Object>> matched = Sets.newHashSet();
-        private final Map<Attribute<Object>, Object> matchesByAttribute = Maps.newHashMap();
+        private final Map<Attribute<?>, Object> explicitMatches = Maps.newHashMap();
+        private final Map<Attribute<?>, Object> implicitMatches = Maps.newHashMap();
         private final ImmutableAttributes candidateAttributes;
         private final T candidate;
 
@@ -261,15 +260,36 @@ public class ComponentAttributeMatcher {
             DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue.get(), val);
             schema.matchValue(attribute, details);
             if (details.isCompatible()) {
-                matched.add(attribute);
-                matchesByAttribute.put(attribute, val);
+                explicitMatches.put(attribute, val);
             } else {
                 compatible = false;
             }
         }
 
         void updateForMissingRequestedValue(Attribute<Object> attribute, Object producerValue) {
-            matchesByAttribute.put(attribute, producerValue);
+            implicitMatches.put(attribute, producerValue);
+        }
+
+        Set<Attribute<?>> getExplicitMatches() {
+            return explicitMatches.keySet();
+        }
+
+        Set<Attribute<?>> getAllMatches() {
+            return Sets.union(explicitMatches.keySet(), implicitMatches.keySet());
+        }
+
+        boolean isStrictSuperSetOf(MatchDetails<?> other) {
+            if (this == other) {
+                return true;
+            }
+            Set<Attribute<?>> myMatches = this.getExplicitMatches();
+            Set<Attribute<?>> otherMatches = other.getExplicitMatches();
+            return myMatches.containsAll(otherMatches) && !myMatches.equals(otherMatches);
+        }
+
+        Object getValue(Attribute<?> key) {
+            Object o = explicitMatches.get(key);
+            return o != null ? o : implicitMatches.get(key);
         }
     }
 }
