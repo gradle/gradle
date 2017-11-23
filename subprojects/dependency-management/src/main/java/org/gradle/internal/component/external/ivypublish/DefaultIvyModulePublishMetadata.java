@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.ivypublish;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -59,11 +61,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     public DefaultIvyModulePublishMetadata(IvyModulePublishMetadata metadata) {
-        this.id = metadata.getId();
+        this.id = metadata.getComponentId();
         this.status = metadata.getStatus();
     }
 
-    public ModuleComponentIdentifier getId() {
+    public ModuleComponentIdentifier getComponentId() {
         return id;
     }
 

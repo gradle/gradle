@@ -21,9 +21,9 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata
-import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
+import org.gradle.internal.component.external.ivypublish.BuildableIvyModulePublishMetadata
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleArtifactPublishMetadata
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -75,7 +75,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     def addDependencyDescriptor(BuildableIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
-        def dep = new LocalComponentDependencyMetadata(
+        def dep = new LocalComponentDependencyMetadata(metadata.getComponentId(),
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
             "default", null, "default", [] as Set, [], false, false, true)
         metadata.addDependency(dep)

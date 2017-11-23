@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -33,7 +34,9 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -140,7 +143,7 @@ class EdgeState implements DependencyGraphEdge {
         ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
         Set<ConfigurationMetadata> targetConfigurations;
         try {
-            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, from.getComponent().getMetadata(), from.getMetadata(), targetModuleVersion, resolveState.getAttributesSchema());
+            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
 //                 Broken selector
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyMetadata.getSelector(), t);
@@ -153,7 +156,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public ModuleExclusion toExclusions(DependencyMetadata md, ConfigurationMetadata from) {
-        List<Exclude> excludes = md.getExcludes(from.getHierarchy());
+        List<Exclude> excludes = md.getExcludes();
         if (excludes.isEmpty()) {
             return ModuleExclusions.excludeNone();
         }
@@ -203,7 +206,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData1) {
-        return dependencyMetadata.getArtifacts(from.getMetadata(), metaData1);
+    public Set<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata metaData1) {
+        return CollectionUtils.collect(dependencyMetadata.getArtifacts(), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
+            @Override
+            public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {
+                return metaData1.artifact(ivyArtifactName);
+            }
+        });
     }
 }

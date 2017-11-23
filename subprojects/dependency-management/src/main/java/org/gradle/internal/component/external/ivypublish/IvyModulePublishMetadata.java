@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.external.ivypublish;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -31,7 +31,7 @@ public interface IvyModulePublishMetadata {
 
     String getStatus();
 
-    ModuleComponentIdentifier getId();
+    ModuleComponentIdentifier getComponentId();
 
     Map<String, Configuration> getConfigurations();
 

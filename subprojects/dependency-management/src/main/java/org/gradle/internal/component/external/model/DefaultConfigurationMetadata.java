@@ -144,7 +144,13 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
 
     protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, @Nullable DependencyMetadataRules dependencyMetadataRules) {
         for (ModuleDependencyMetadata dependency : dependencies) {
-            if (include(dependency)) {
+            if (dependency instanceof DefaultDependencyMetadata) {
+                // For DefaultDependencyMetadata, need to check if it applies to this configuration, and contextualize
+                DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+                if (include(defaultDependencyMetadata)) {
+                    this.configDependencies.add(contextualize(defaultDependencyMetadata));
+                }
+            } else {
                 this.configDependencies.add(dependency);
             }
         }
@@ -152,7 +158,12 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
-    private boolean include(DependencyMetadata dependency) {
+    private ModuleDependencyMetadata contextualize(DefaultDependencyMetadata incoming) {
+        return new ConfigurationDependencyMetadataWrapper(this, componentId, incoming);
+    }
+
+    // TODO:DAZ This logic should be simpler for Maven modules: each dependency has a single scope
+    private boolean include(DefaultDependencyMetadata dependency) {
         Collection<String> hierarchy = getHierarchy();
         for (String moduleConfiguration : dependency.getModuleConfigurations()) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {

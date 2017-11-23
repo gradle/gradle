@@ -46,13 +46,13 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         return new IvyDependencyMetadata(selector, ImmutableListMultimap.of())
     }
 
-    DefaultDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
-        return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), [], excludes)
+    IvyDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
+        return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), [], excludes)
     }
 
     @Override
     DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
-        return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), artifacts, [])
+        return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), artifacts, [])
     }
 
     def "excludes nothing when no exclude rules provided"() {
@@ -60,8 +60,8 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration("from").hierarchy))) == ModuleExclusions.excludeNone()
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("from").hierarchy))) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
     }
 
     def "excludes nothing when traversing a different configuration"() {
@@ -70,7 +70,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration("anything").hierarchy))) == ModuleExclusions.excludeNone()
     }
 
     def "applies exclude rules when traversing a configuration"() {
@@ -80,7 +80,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
     }
 
     def "applies rules when traversing a child of specified configuration"() {
@@ -90,7 +90,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude)
     }
 
     def "applies matching exclude rules"() {
@@ -102,22 +102,22 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        moduleExclusions.excludeAny(copyOf(dep.getExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude1, exclude2)
+        moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(exclude1, exclude2)
     }
 
     def "selects no configurations when no configuration mappings provided"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         fromConfig.name >> "from"
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, ImmutableListMultimap.of(), [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema).empty
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent).empty
     }
 
     def "selects configurations from target component that match configuration mappings"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def toConfig1 = Stub(ConfigurationMetadata)
@@ -132,12 +132,12 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig2] // verify order as well
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2] // verify order as well
     }
 
     def "selects matching configurations for super-configurations"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def toConfig1 = Stub(ConfigurationMetadata)
@@ -152,12 +152,12 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
     }
 
     def "configuration mapping can use wildcard on LHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -173,13 +173,13 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("*", "to-2")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig2]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
     }
 
     def "configuration mapping can use wildcard on RHS to select all public configurations"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def toConfig1 = Stub(ConfigurationMetadata)
@@ -200,12 +200,12 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
     }
 
     def "configuration mapping can use all-except-wildcard on LHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -224,14 +224,14 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("from", "to-1")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig3, toComponent, attributesSchema) as List == [toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2]
     }
 
     def "configuration mapping can include fallback on LHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -252,14 +252,14 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("*", "to-3")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig3]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig1, toConfig3]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig3, toComponent, attributesSchema) as List == [toConfig2, toConfig3]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig3]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1, toConfig3]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2, toConfig3]
     }
 
     def "configuration mapping can include fallback on RHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -282,14 +282,14 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other2", "to-2(unknown)")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1, toConfig2]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig3, toComponent, attributesSchema) as List == [toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2]
     }
 
     def "configuration mapping can include self placeholder on RHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -302,13 +302,13 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("a", "@")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig1]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
     }
 
     def "configuration mapping can include this placeholder on RHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -325,13 +325,13 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("a", "#")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
     }
 
     def "configuration mapping can include wildcard on LHS and placeholder on RHS"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
         def fromConfig2 = Stub(ConfigurationMetadata)
@@ -348,9 +348,9 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put(lhs, rhs)
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema) as List == [toConfig1]
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig2, toComponent, attributesSchema) as List == [toConfig2]
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
 
         where:
         // these all map to the same thing
@@ -362,14 +362,12 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "fails when target component does not have matching configurations"() {
-        def fromId = Stub(ComponentIdentifier) {
+        def fromComponent = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing a"
         }
         def toId = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing b"
         }
-        def fromComponent = Stub(ComponentResolveMetadata)
-        fromComponent.componentId >> fromId
         def toComponent = Stub(ComponentResolveMetadata)
         toComponent.componentId >> toId
         def fromConfig = Stub(ConfigurationMetadata)
@@ -380,10 +378,10 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def configMapping = LinkedHashMultimap.create()
         configMapping.put(lhs, rhs)
 
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
 
         when:
-        metadata.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromConfig, toComponent, attributesSchema)
+        metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent)
 
         then:
         ConfigurationNotFoundException e = thrown()
@@ -398,7 +396,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "selects target configuration using attribute matching when target has variants to select from"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
@@ -412,7 +410,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new IvyDependencyMetadata(Stub(ModuleComponentSelector), ImmutableListMultimap.of())
 
         expect:
-        dep.selectConfigurations(attrs, fromComponent, fromCompile, toComponent, attributesSchema) as List == [toMaster]
+        dep.getMetadataForConfigurations(attrs, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toMaster]
     }
 
 }

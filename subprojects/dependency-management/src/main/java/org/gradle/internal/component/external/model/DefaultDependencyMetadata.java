@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -28,10 +29,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata {
-    private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
     private final boolean optional;
@@ -49,59 +49,26 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         this.selector = selector;
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.optional = optional;
-        this.artifacts = map(dependencyArtifacts);
     }
 
-    private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
-        if (dependencyArtifacts.isEmpty()) {
-            return ImmutableSet.of();
-        }
-        Set<IvyArtifactName> result = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
-        for (Artifact artifact : dependencyArtifacts) {
-            result.add(artifact.getArtifactName());
-        }
-        return result;
+    // TODO:DAZ Get rid of these: DefaultDependencyMetadata is not a _real_ `DependencyMetadata`
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
-        if (dependencyArtifacts.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
-        Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
-
-        for (Artifact depArtifact : dependencyArtifacts) {
-            IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
-            Set<String> artifactConfigurations = depArtifact.getConfigurations();
-            if (include(artifactConfigurations, includedConfigurations)) {
-                ComponentArtifactMetadata artifact = toConfiguration.artifact(ivyArtifactName);
-                artifacts.add(artifact);
-            }
-        }
-        return artifacts;
-    }
-
-    protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
-        for (String configuration : configurations) {
-            if (configuration.equals("*")) {
-                return true;
-            }
-            if (acceptedConfigurations.contains(configuration)) {
-                return true;
-            }
-        }
-        return false;
+    public List<Exclude> getExcludes() {
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
-        return artifacts;
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
-    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+    public DefaultDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
@@ -126,7 +93,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         }
     }
 
-    protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested);
+    protected abstract DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested);
 
     @Override
     public ModuleComponentSelector getSelector() {
@@ -142,7 +109,38 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return optional;
     }
 
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    // TODO:DAZ Could do this when constructing the ConfigurationMetadata
+    Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+        if (dependencyArtifacts.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        // TODO:DAZ This logic should be simpler for Maven dependencies: they can only set a single artifact via classifier/type.
+        Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
+        Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
+        for (Artifact depArtifact : dependencyArtifacts) {
+            Set<String> artifactConfigurations = depArtifact.getConfigurations();
+            if (include(artifactConfigurations, includedConfigurations)) {
+                IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
+                artifacts.add(ivyArtifactName);
+            }
+        }
+        return artifacts;
+    }
+
+    protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
+        for (String configuration : configurations) {
+            if (configuration.equals("*")) {
+                return true;
+            }
+            if (acceptedConfigurations.contains(configuration)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Set<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
             // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
             // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
@@ -152,6 +150,15 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
                 return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
             }
         }
-        return null;
+        return selectLegacyConfigurations(fromComponent, fromConfiguration, targetComponent);
     }
+
+    protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+
+    public abstract List<Exclude> getConfigurationExcludes(Collection<String> configurations);
+
+    /**
+     * Returns the set of source configurations that this dependency should be attached to.
+     */
+    public abstract Set<String> getModuleConfigurations();
 }

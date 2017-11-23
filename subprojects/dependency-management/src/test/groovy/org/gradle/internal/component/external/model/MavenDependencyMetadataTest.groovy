@@ -32,6 +32,7 @@
 package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -91,9 +92,9 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [])
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
     def "applies exclude rules when traversing a configuration"() {
@@ -102,13 +103,13 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [exclude1, exclude2])
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
         exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
     def "selects target configuration using attribute matching when target has variants to select from"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
@@ -122,11 +123,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Runtime, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(attrs, fromComponent, fromCompile, toComponent, attributesSchema) as List == [toMaster]
+        dep.getMetadataForConfigurations(attrs, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toMaster]
     }
 
     def "selects compile and master configurations from target when traversing from compile configuration"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toCompile = Stub(ConfigurationMetadata)
@@ -139,11 +140,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromCompile, toComponent, attributesSchema) as List == [toCompile, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toCompile, toMaster]
     }
 
     def "selects compile, runtime and master configurations from target when traversing from other configuration"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         def fromRuntime2 = Stub(ConfigurationMetadata)
@@ -160,12 +161,12 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime, toCompile, toMaster]
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime2, toComponent, attributesSchema) as List == [toRuntime, toCompile, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime, toCompile, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime2, toComponent) as List == [toRuntime, toCompile, toMaster]
     }
 
     def "selects runtime and master configurations from target when traversing from other configuration and target's runtime extends compile"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         def fromRuntime2 = Stub(ConfigurationMetadata)
@@ -181,12 +182,12 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime, toMaster]
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime2, toComponent, attributesSchema) as List == [toRuntime, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime2, toComponent) as List == [toRuntime, toMaster]
     }
 
     def "ignores missing master configuration"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         def toRuntime = Stub(ConfigurationMetadata)
@@ -198,11 +199,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime]
     }
 
     def "ignores empty master configuration"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         def toRuntime = Stub(ConfigurationMetadata)
@@ -215,11 +216,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime]
     }
 
     def "falls back to default configuration when compile is not defined in target component"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toDefault = Stub(ConfigurationMetadata)
@@ -233,11 +234,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromCompile, toComponent, attributesSchema) as List == [toDefault, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toDefault, toMaster]
     }
 
     def "falls back to default configuration when runtime is not defined in target component"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         def toDefault = Stub(ConfigurationMetadata)
@@ -252,11 +253,11 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         expect:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toDefault, toMaster]
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toDefault, toMaster]
     }
 
     def "fails when compile configuration is not defined in target component"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         fromCompile.name >> "compile"
@@ -267,14 +268,14 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         when:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromCompile, toComponent, attributesSchema)
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent)
 
         then:
         thrown(ConfigurationNotFoundException)
     }
 
     def "fails when runtime configuration is not defined in target component"() {
-        def fromComponent = Stub(ComponentResolveMetadata)
+        def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromRuntime = Stub(ConfigurationMetadata)
         fromRuntime.name >> "runtime"
@@ -285,7 +286,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
 
         when:
-        dep.selectConfigurations(ImmutableAttributes.EMPTY, fromComponent, fromRuntime, toComponent, attributesSchema)
+        dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent)
 
         then:
         thrown(ConfigurationNotFoundException)

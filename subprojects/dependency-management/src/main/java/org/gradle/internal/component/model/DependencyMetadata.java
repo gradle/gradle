@@ -20,21 +20,35 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A dependency that can participate in dependency resolution.
+ * Note that various subtypes provide additional details, but these are not required by the core resolution engine.
+ */
 public interface DependencyMetadata {
     /**
-     * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
-     * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
+     * Returns the component selector for this dependency.
+     *
+     * @return Component selector
      */
-    // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration);
+    ComponentSelector getSelector();
 
     /**
-     * Returns the artifacts referenced by this dependency, if any. Returns an empty set if this dependency does not reference any specific artifacts - the
-     * defaults should be used in this case.
+     * Select the target configurations for this dependency from the given target component.
+     */
+    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
+
+    /**
+     * Returns a view of the excludes filtered for this dependency in this configuration.
+     */
+    List<Exclude> getExcludes();
+
+    /**
+     * Returns the artifacts referenced by this dependency, if any.
+     * When a dependency references artifacts, those artifacts are used in place of the default artifacts of the target component.
+     * In most cases, it makes sense for this set to be empty, and for all of the artifacts of the target component to be included.
      */
     Set<IvyArtifactName> getArtifacts();
 
@@ -44,38 +58,19 @@ public interface DependencyMetadata {
     DependencyMetadata withTarget(ComponentSelector target);
 
     /**
-     * Returns the component selector for this dependency.
-     *
-     * @return Component selector
+     * Is the target component of this dependency considered 'changing'.
      */
-    ComponentSelector getSelector();
-
-    List<Exclude> getExcludes();
-
-    /**
-     * Returns a view of the excludes filtered by configurations
-     * @param configurations the configurations to be included
-     * @return matching excludes
-     */
-    List<Exclude> getExcludes(Collection<String> configurations);
-
-    /**
-     * Select the target configurations for this dependency from the given target component.
-     */
-    // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
-
-    /**
-     * Returns the set of source configurations that this dependency should be attached to.
-     */
-    Set<String> getModuleConfigurations();
-
     boolean isChanging();
 
+    /**
+     * Should the dependency be resolved transitively?
+     * A false value is effectively equivalent to a wildcard exclusion.
+     */
     boolean isTransitive();
 
-    boolean isForce();
-
+    /**
+     * Is this a strong dependency, does it is merely a constraint on the module to select if brought in
+     * by another dependency? ("Optional" dependencies are "constraints")
+     */
     boolean isOptional();
-
 }

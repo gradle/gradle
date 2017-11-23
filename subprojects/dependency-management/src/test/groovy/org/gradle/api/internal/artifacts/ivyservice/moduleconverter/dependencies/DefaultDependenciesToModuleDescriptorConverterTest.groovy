@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
@@ -50,6 +51,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     }
 
     def "adds ModuleDependency instances from configuration"() {
+        def componentId = Mock(ComponentIdentifier)
         def dependencyDescriptor1 = Mock(LocalOriginDependencyMetadata)
         def dependencyDescriptor2 = Mock(LocalOriginDependencyMetadata)
         def dependency1 = Mock(ModuleDependency)
@@ -59,12 +61,13 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         converter.addDependencyDescriptors(metaData, configuration)
 
         then:
+        _ * metaData.getComponentId() >> componentId
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
         _ * configuration.attributes >> Stub(AttributeContainerInternal)
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency1) >> dependencyDescriptor1
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", _, dependency2) >> dependencyDescriptor2
+        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency1) >> dependencyDescriptor1
+        1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency2) >> dependencyDescriptor2
         1 * metaData.addDependency(dependencyDescriptor1)
         1 * metaData.addDependency(dependencyDescriptor2)
         1 * configuration.excludeRules >> ([] as Set)
