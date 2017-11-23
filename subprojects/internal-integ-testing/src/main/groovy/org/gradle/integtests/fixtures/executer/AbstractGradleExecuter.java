@@ -1153,6 +1153,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                         assertDeprecationWarningExists(displayName, i, line, output);
                         expectedDeprecationWarnings--;
+                        // skip over stack trace
+                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            i++;
+                        }
                     } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
