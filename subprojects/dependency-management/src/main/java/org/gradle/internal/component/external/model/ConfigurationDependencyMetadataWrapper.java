@@ -56,7 +56,7 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
-        return defaultDependencyMetadata.getDependencyExcludes(configuration.getHierarchy());
+    public List<Exclude> getExcludes() {
+        return defaultDependencyMetadata.getConfigurationExcludes(configuration.getHierarchy());
     }
 }

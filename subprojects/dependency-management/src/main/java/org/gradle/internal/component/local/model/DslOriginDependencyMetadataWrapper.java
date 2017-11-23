@@ -69,11 +69,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
-        return delegate.getFilteredExcludes();
-    }
-
-    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }

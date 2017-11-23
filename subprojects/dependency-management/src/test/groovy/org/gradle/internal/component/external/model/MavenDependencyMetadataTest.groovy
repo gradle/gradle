@@ -92,9 +92,9 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [])
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
     def "applies exclude rules when traversing a configuration"() {
@@ -103,9 +103,9 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [exclude1, exclude2])
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(dep.allExcludes)
         exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
     def "selects target configuration using attribute matching when target has variants to select from"() {

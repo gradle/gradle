@@ -175,12 +175,13 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         targetConfigurations.add(configuration);
     }
 
-    public List<Exclude> getExcludes() {
+    public List<Exclude> getAllExcludes() {
         return excludes;
     }
 
+    // TODO:DAZ Could do this work when constructing the ConfigurationMetadata
     @Override
-    public List<Exclude> getDependencyExcludes(Collection<String> configurations) {
+    public List<Exclude> getConfigurationExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();

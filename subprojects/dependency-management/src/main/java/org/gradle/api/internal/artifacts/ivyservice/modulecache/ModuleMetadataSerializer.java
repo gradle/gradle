@@ -247,7 +247,7 @@ public class ModuleMetadataSerializer {
                 encoder.writeByte(TYPE_IVY);
                 writeDependencyConfigurationMapping(ivyDependency);
                 writeArtifacts(ivyDependency.getDependencyArtifacts());
-                writeExcludeRules(ivyDependency.getExcludes());
+                writeExcludeRules(ivyDependency.getAllExcludes());
                 writeString(ivyDependency.getDynamicConstraintVersion());
                 writeBoolean(ivyDependency.isForce());
                 writeBoolean(ivyDependency.isChanging());
@@ -257,7 +257,7 @@ public class ModuleMetadataSerializer {
                 MavenDependencyMetadata mavenDependency = (MavenDependencyMetadata) dep;
                 encoder.writeByte(TYPE_MAVEN);
                 writeArtifacts(mavenDependency.getDependencyArtifacts());
-                writeExcludeRules(mavenDependency.getExcludes());
+                writeExcludeRules(mavenDependency.getAllExcludes());
                 encoder.writeSmallInt(mavenDependency.getScope().ordinal());
                 encoder.writeBoolean(mavenDependency.isOptional());
             } else {

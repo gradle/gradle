@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
-import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
@@ -82,20 +81,18 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {
         def metadata = createWithArtifacts(requested, [])
         def fromConfiguration = Stub(ConfigurationMetadata)
-        def toConfiguration = Stub(ConfigurationMetadata)
 
         expect:
-        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getConfigurationArtifacts(fromConfiguration).empty
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
         def artifact = new Artifact(new DefaultIvyArtifactName("art", "type", "ext"), ["other"] as Set)
         def metadata = createWithArtifacts(requested, [artifact])
         def fromConfiguration = Stub(ConfigurationMetadata)
-        def toConfiguration = Stub(ConfigurationMetadata)
 
         expect:
-        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getConfigurationArtifacts(fromConfiguration).empty
     }
 
     def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
@@ -104,19 +101,13 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
 
         def fromConfiguration = Stub(ConfigurationMetadata)
-        def toConfiguration = Stub(ConfigurationMetadata)
-        def compArtifact1 = Stub(ComponentArtifactMetadata)
-        def compArtifact3 = Stub(ComponentArtifactMetadata)
 
         given:
         fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
-
         def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])
-        toConfiguration.artifact(artifact1.artifactName) >> compArtifact1
-        toConfiguration.artifact(artifact3.artifactName) >> compArtifact3
 
         expect:
-        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration) == [compArtifact1, compArtifact3] as Set
+        metadata.getConfigurationArtifacts(fromConfiguration) == [artifact1.artifactName, artifact3.artifactName] as Set
     }
 
     def "uses artifacts defined by dependency descriptor"() {

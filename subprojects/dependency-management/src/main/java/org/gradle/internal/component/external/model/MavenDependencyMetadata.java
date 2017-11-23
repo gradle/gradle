@@ -113,12 +113,12 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), excludes);
     }
 
-    public List<Exclude> getExcludes() {
+    public List<Exclude> getAllExcludes() {
         return excludes;
     }
 
     @Override
-    public List<Exclude> getDependencyExcludes(Collection<String> configurations) {
+    public List<Exclude> getConfigurationExcludes(Collection<String> configurations) {
         return excludes;
     }
 }

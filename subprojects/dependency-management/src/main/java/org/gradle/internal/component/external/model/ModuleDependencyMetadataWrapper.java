@@ -64,11 +64,6 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
-        return delegate.getFilteredExcludes();
-    }
-
-    @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
     }

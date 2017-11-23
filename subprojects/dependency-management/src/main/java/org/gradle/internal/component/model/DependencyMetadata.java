@@ -44,15 +44,9 @@ public interface DependencyMetadata {
     ComponentSelector getSelector();
 
     /**
-     * Returns all excludes for this dependency.
-     */
-    List<Exclude> getExcludes();
-
-    /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
      */
-    // TODO:DAZ Rename to `getExcludes()` once the other is removed.
-    List<Exclude> getFilteredExcludes();
+    List<Exclude> getExcludes();
 
     /**
      * Select the target configurations for this dependency from the given target component.
@@ -66,5 +60,4 @@ public interface DependencyMetadata {
     boolean isForce();
 
     boolean isOptional();
-
 }

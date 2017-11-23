@@ -119,11 +119,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
-        return excludes;
-    }
-
-    @Override
     public boolean isChanging() {
         return changing;
     }

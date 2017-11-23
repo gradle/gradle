@@ -50,11 +50,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
-        return Collections.emptyList();
-    }
-
-    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target.equals(selector)) {
             return this;

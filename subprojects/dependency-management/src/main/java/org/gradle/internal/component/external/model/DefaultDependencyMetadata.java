@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -30,13 +29,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,16 +51,16 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         this.optional = optional;
     }
 
+    // TODO:DAZ Get rid of these: DefaultDependencyMetadata is not a _real_ `DependencyMetadata`
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Exclude> getFilteredExcludes() {
+    public List<Exclude> getExcludes() {
         throw new UnsupportedOperationException();
     }
-
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
@@ -112,6 +109,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return optional;
     }
 
+    // TODO:DAZ Could do this when constructing the ConfigurationMetadata
     Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
             return Collections.emptySet();
@@ -127,15 +125,6 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
             }
         }
         return artifacts;
-    }
-
-    Set<ComponentArtifactMetadata> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration, final ConfigurationMetadata toConfiguration) {
-        return CollectionUtils.collect(getConfigurationArtifacts(fromConfiguration), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
-            @Override
-            public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {
-                return toConfiguration.artifact(ivyArtifactName);
-            }
-        });
     }
 
     protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
@@ -165,5 +154,5 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
-    public abstract List<Exclude> getDependencyExcludes(Collection<String> configurations);
+    public abstract List<Exclude> getConfigurationExcludes(Collection<String> configurations);
 }
