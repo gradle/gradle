@@ -64,50 +64,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.asImmutable().asMutable().componentId == newId
     }
 
-    def "builds and caches the dependency meta-data"() {
-        given:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        dependency("org", "module", "1.2", ["compile"])
-        dependency("org", "another", "1.2", ["runtime"])
-
-        when:
-        def deps = metadata.dependencies
-
-        then:
-        deps.size() == 2
-        deps[0].selector == newSelector("org", "module", v("1.2"))
-        deps[1].selector == newSelector("org", "another", v("1.2"))
-
-        and:
-        def immutable = metadata.asImmutable()
-        immutable.dependencies.size() == 2
-        immutable.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        immutable.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-        immutable.getConfiguration("compile").dependencies.size() == 1
-        immutable.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
-        immutable.getConfiguration("runtime").dependencies.size() == 2
-        immutable.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
-        immutable.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
-
-        and:
-        def copy = immutable.asMutable()
-        copy.dependencies.size() == 2
-        copy.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        copy.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-
-        and:
-        def immutable2 = copy.asImmutable()
-        immutable2.dependencies.size() == 2
-        immutable2.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        immutable2.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-        immutable2.getConfiguration("compile").dependencies.size() == 1
-        immutable2.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
-        immutable2.getConfiguration("runtime").dependencies.size() == 2
-        immutable2.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
-        immutable2.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
-    }
-
     def "can create default metadata"() {
         def metadata = createMetadata(id)
 

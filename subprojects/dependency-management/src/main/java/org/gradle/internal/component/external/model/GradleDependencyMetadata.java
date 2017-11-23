@@ -52,7 +52,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
         return ImmutableSet.of();
     }
 
@@ -93,7 +93,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
     }
 

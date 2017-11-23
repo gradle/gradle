@@ -81,7 +81,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(attributes([:]), fromComponent, fromConfig, toComponent, attributesSchema) == [toConfig] as Set
+        dep.selectConfigurations(attributes([:]), fromComponent, toComponent, attributesSchema) == [toConfig] as Set
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
@@ -113,7 +113,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -145,7 +145,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("default") >> defaultConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'other'), fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'other'), fromComponent, toComponent, attributesSchema)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -184,7 +184,7 @@ Configuration 'default': Required key 'other' and found incompatible value 'noth
         toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'something'), fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'something'), fromComponent, toComponent, attributesSchema)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -231,7 +231,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -303,7 +303,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -348,7 +348,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(attributes([:]), fromComponent, fromConfig, toComponent, attributesSchema)
+        dep.selectConfigurations(attributes([:]), fromComponent, toComponent, attributesSchema)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -431,7 +431,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

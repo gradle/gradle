@@ -145,11 +145,18 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
     protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, @Nullable DependencyMetadataRules dependencyMetadataRules) {
         for (ModuleDependencyMetadata dependency : dependencies) {
             if (include(dependency)) {
-                this.configDependencies.add(dependency);
+                this.configDependencies.add(convert(dependency));
             }
         }
         this.calculatedDependencies = null;
         this.dependencyMetadataRules = dependencyMetadataRules;
+    }
+
+    private ModuleDependencyMetadata convert(ModuleDependencyMetadata incoming) {
+        if (incoming instanceof DefaultDependencyMetadata) {
+            return new ConfigurationDependencyMetadataWrapper(this, componentId, (DefaultDependencyMetadata) incoming);
+        }
+        return incoming;
     }
 
     private boolean include(DependencyMetadata dependency) {

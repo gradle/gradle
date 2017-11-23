@@ -116,7 +116,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         this.dependencies = dependencies;
     }
 
-    // TODO:DAZ Wrap each `DependencyMetadata` with a configuration-aware wrapper, so that we can remove the 'fromConfiguration' parameters.
     private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
         T populated = configurations.get(name);
         if (populated != null) {

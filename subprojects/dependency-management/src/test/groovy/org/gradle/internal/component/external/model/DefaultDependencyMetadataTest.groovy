@@ -86,7 +86,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         def toConfiguration = Stub(ConfigurationMetadata)
 
         expect:
-        metadata.getArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration).empty
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
@@ -96,7 +96,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         def toConfiguration = Stub(ConfigurationMetadata)
 
         expect:
-        metadata.getArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration).empty
     }
 
     def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
@@ -117,7 +117,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         toConfiguration.artifact(artifact3.artifactName) >> compArtifact3
 
         expect:
-        metadata.getArtifacts(fromConfiguration, toConfiguration) == [compArtifact1, compArtifact3] as Set
+        metadata.getConfigurationArtifacts(fromConfiguration, toConfiguration) == [compArtifact1, compArtifact3] as Set
     }
 
     def "uses artifacts defined by dependency descriptor"() {

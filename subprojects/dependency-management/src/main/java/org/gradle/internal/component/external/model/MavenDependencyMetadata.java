@@ -19,9 +19,8 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -78,13 +77,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         return false;
     }
 
-    @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        Set<ConfigurationMetadata> result = super.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
-        if (result != null) {
-            return result;
-        }
-        result = Sets.newLinkedHashSet();
+    public Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies
@@ -103,19 +97,19 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         return result;
     }
 
-    private ConfigurationMetadata findTargetConfiguration(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, String target) {
+    private ConfigurationMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, String target) {
         ConfigurationMetadata configuration = targetComponent.getConfiguration(target);
         if (configuration == null) {
             configuration = targetComponent.getConfiguration("default");
             if (configuration == null) {
-                throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration.getName(), target, targetComponent.getComponentId());
+                throw new ConfigurationNotFoundException(fromComponentId, fromConfiguration.getName(), target, targetComponent.getComponentId());
             }
         }
         return configuration;
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
+    protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
         return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), getExcludes());
     }
 

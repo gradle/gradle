@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -64,7 +65,65 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public Set<IvyArtifactName> getArtifacts() {
+        return artifacts;
+    }
+
+    @Override
+    public DefaultDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        if (requestedVersion.equals(selector.getVersionConstraint())) {
+            return this;
+        }
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        return withRequested(newSelector);
+    }
+
+    @Override
+    public DependencyMetadata withTarget(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
+            if (newSelector.equals(selector)) {
+                return this;
+            }
+            return withRequested(newSelector);
+        } else if (target instanceof ProjectComponentSelector) {
+            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
+            return new DefaultProjectDependencyMetadata(projectTarget, this);
+        } else {
+            throw new IllegalArgumentException("Unexpected selector provided: " + target);
+        }
+    }
+
+    protected abstract DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested);
+
+    @Override
+    public ModuleComponentSelector getSelector() {
+        return selector;
+    }
+
+    public List<Artifact> getDependencyArtifacts() {
+        return dependencyArtifacts;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return optional;
+    }
+
+
+    Set<ComponentArtifactMetadata> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
             return Collections.emptySet();
         }
@@ -95,54 +154,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return false;
     }
 
-    @Override
-    public Set<IvyArtifactName> getArtifacts() {
-        return artifacts;
-    }
-
-    @Override
-    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        if (requestedVersion.equals(selector.getVersionConstraint())) {
-            return this;
-        }
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
-        return withRequested(newSelector);
-    }
-
-    @Override
-    public DependencyMetadata withTarget(ComponentSelector target) {
-        if (target instanceof ModuleComponentSelector) {
-            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
-            if (newSelector.equals(selector)) {
-                return this;
-            }
-            return withRequested(newSelector);
-        } else if (target instanceof ProjectComponentSelector) {
-            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetadata(projectTarget, this);
-        } else {
-            throw new IllegalArgumentException("Unexpected selector provided: " + target);
-        }
-    }
-
-    protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested);
-
-    @Override
-    public ModuleComponentSelector getSelector() {
-        return selector;
-    }
-
-    public List<Artifact> getDependencyArtifacts() {
-        return dependencyArtifacts;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return optional;
-    }
-
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public Set<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
             // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
             // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
@@ -152,6 +164,8 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
                 return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
             }
         }
-        return null;
+        return selectLegacyConfigurations(fromComponent, fromConfiguration, targetComponent);
     }
+
+    protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 }

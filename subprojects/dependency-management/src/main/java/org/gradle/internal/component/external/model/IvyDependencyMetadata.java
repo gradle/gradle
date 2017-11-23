@@ -23,9 +23,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -65,7 +64,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
+    protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
         return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 
@@ -97,14 +96,9 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return confs;
     }
 
-    @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        Set<ConfigurationMetadata> targets = super.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
-        if (targets != null) {
-            return targets;
-        }
+    public Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        targets = Sets.newLinkedHashSet();
+        Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
@@ -144,7 +138,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return targets;
     }
 
-    private void findMatches(ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
@@ -176,7 +170,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
         ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration, targetPattern, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getComponentId());
         }
         targetConfigurations.add(configuration);
     }

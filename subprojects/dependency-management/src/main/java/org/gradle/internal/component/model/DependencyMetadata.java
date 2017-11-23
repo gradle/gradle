@@ -29,8 +29,7 @@ public interface DependencyMetadata {
      * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
      * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
      */
-    // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration);
+    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration);
 
     /**
      * Returns the artifacts referenced by this dependency, if any. Returns an empty set if this dependency does not reference any specific artifacts - the
@@ -57,13 +56,14 @@ public interface DependencyMetadata {
      * @param configurations the configurations to be included
      * @return matching excludes
      */
+    // TODO:DAZ - configurations should be implicit in this metadata
     List<Exclude> getExcludes(Collection<String> configurations);
 
     /**
      * Select the target configurations for this dependency from the given target component.
      */
-    // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
+    // TODO:DAZ - fromComponent should be implicit in this metadata
+    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.

@@ -56,8 +56,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return delegate.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        return delegate.selectConfigurations(consumerAttributes, fromComponent, targetComponent, consumerSchema);
     }
 
     @Override
@@ -101,8 +101,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
-        return delegate.getArtifacts(fromConfiguration, toConfiguration);
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
+        return delegate.getArtifacts(toConfiguration);
     }
 
     @Override
