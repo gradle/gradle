@@ -29,7 +29,7 @@ abstract class AbstractSmokeTest extends Specification {
     File buildFile
 
     def setup() {
-        buildFile = testProjectDir.newFile(defaultBuildFileName)
+        buildFile = new File(testProjectDir.root, defaultBuildFileName)
     }
 
     protected String getDefaultBuildFileName() {
