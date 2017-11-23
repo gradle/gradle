@@ -27,7 +27,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -76,8 +75,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        return delegate.getExcludes(configurations);
+    public List<Exclude> getFilteredExcludes() {
+        return delegate.getFilteredExcludes();
     }
 
     @Override

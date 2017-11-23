@@ -110,7 +110,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
-        return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), getExcludes());
+        return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), excludes);
     }
 
     public List<Exclude> getExcludes() {
@@ -118,8 +118,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    public List<Exclude> getDependencyExcludes(Collection<String> configurations) {
         return excludes;
     }
-
 }

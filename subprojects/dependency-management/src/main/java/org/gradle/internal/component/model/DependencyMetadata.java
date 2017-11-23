@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -49,15 +48,17 @@ public interface DependencyMetadata {
      */
     ComponentSelector getSelector();
 
+    /**
+     * Returns all excludes for this dependency.
+     */
+    // TODO:DAZ Remove this: it doesn't belong on this key API
     List<Exclude> getExcludes();
 
     /**
-     * Returns a view of the excludes filtered by configurations
-     * @param configurations the configurations to be included
-     * @return matching excludes
+     * Returns a view of the excludes filtered for this dependency in this configuration.
      */
-    // TODO:DAZ - configurations should be implicit in this metadata
-    List<Exclude> getExcludes(Collection<String> configurations);
+    // TODO:DAZ Rename to `getExcludes()` once the other is removed.
+    List<Exclude> getFilteredExcludes();
 
     /**
      * Select the target configurations for this dependency from the given target component.

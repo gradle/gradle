@@ -348,9 +348,9 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
+        def exclusions = moduleExclusions.excludeAny(copyOf(dep.filteredExcludes))
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.excludes)))
+        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.filteredExcludes)))
     }
 
     def "applies exclude rules when traversing the from configuration"() {
@@ -360,9 +360,9 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true)
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
+        def exclusions = moduleExclusions.excludeAny(copyOf(dep.filteredExcludes))
         exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.excludes)))
+        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.filteredExcludes)))
     }
 
     static class EqualsValuesCompatibleRule implements AttributeCompatibilityRule<String> {

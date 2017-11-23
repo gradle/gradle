@@ -179,7 +179,8 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return excludes;
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    @Override
+    public List<Exclude> getDependencyExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();

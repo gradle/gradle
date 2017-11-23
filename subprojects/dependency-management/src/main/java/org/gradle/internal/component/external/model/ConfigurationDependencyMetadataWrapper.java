@@ -22,7 +22,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.Exclude;
 
+import java.util.List;
 import java.util.Set;
 
 public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMetadataWrapper {
@@ -51,5 +53,10 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
         return defaultDependencyMetadata.getConfigurationArtifacts(configuration, toConfiguration);
+    }
+
+    @Override
+    public List<Exclude> getFilteredExcludes() {
+        return defaultDependencyMetadata.getDependencyExcludes(configuration.getHierarchy());
     }
 }

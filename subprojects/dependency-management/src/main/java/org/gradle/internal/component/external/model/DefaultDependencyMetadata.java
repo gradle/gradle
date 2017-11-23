@@ -33,6 +33,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
@@ -71,6 +72,11 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Exclude> getFilteredExcludes() {
         throw new UnsupportedOperationException();
     }
 
@@ -168,4 +174,6 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     }
 
     protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+
+    public abstract List<Exclude> getDependencyExcludes(Collection<String> configurations);
 }

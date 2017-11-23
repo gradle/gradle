@@ -27,7 +27,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -71,8 +70,8 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        return delegate.getExcludes(configurations);
+    public List<Exclude> getFilteredExcludes() {
+        return delegate.getFilteredExcludes();
     }
 
     @Override

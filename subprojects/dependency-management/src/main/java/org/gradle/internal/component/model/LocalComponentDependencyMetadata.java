@@ -27,7 +27,6 @@ import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -127,7 +126,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    public List<Exclude> getFilteredExcludes() {
         return excludes;
     }
 

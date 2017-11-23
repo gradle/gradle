@@ -153,7 +153,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public ModuleExclusion toExclusions(DependencyMetadata md, ConfigurationMetadata from) {
-        List<Exclude> excludes = md.getExcludes(from.getHierarchy());
+        List<Exclude> excludes = md.getFilteredExcludes();
         if (excludes.isEmpty()) {
             return ModuleExclusions.excludeNone();
         }
