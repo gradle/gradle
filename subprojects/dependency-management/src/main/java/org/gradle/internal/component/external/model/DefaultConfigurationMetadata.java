@@ -32,8 +32,6 @@ import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,25 +41,22 @@ import java.util.Set;
 public abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
-    // TODO:DAZ We only need the parents in order to populate the hierarchy.
-    private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
     private final List<ModuleDependencyMetadata> configDependencies = Lists.newArrayList();
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
-    private final List<String> hierarchy;
+    private final ImmutableList<String> hierarchy;
 
     private DependencyMetadataRules dependencyMetadataRules;
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
-    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
+    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.componentId = componentId;
         this.name = name;
-        this.parents = parents;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
-        this.hierarchy = calculateHierarchy();
+        this.hierarchy = hierarchy;
     }
 
     @Override
@@ -79,30 +74,9 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         return name;
     }
 
-    public ImmutableList<? extends DefaultConfigurationMetadata> getParents() {
-        return parents;
-    }
-
     @Override
     public Collection<String> getHierarchy() {
         return hierarchy;
-    }
-
-    private List<String> calculateHierarchy() {
-        List<? extends DefaultConfigurationMetadata> parents = getParents();
-        if (parents.isEmpty()) {
-            return Collections.singletonList(name);
-        }
-        Set<String> hierarchy = new LinkedHashSet<String>(1 + parents.size());
-        populateHierarchy(hierarchy);
-        return ImmutableList.copyOf(hierarchy);
-    }
-
-    private void populateHierarchy(Set<String> accumulator) {
-        accumulator.add(name);
-        for (DefaultConfigurationMetadata parent : getParents()) {
-            parent.populateHierarchy(accumulator);
-        }
     }
 
     @Override

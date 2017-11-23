@@ -29,12 +29,16 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      */
+    // TODO:DAZ Remove this from this API: it's only required by implementors, not consumers
     Collection<String> getHierarchy();
 
     String getName();
 
     DisplayName asDescribable();
 
+    /**
+     * Attributes are immutable on ConfigurationMetadata
+     */
     @Override
     ImmutableAttributes getAttributes();
 
@@ -78,5 +82,6 @@ public interface ConfigurationMetadata extends HasAttributes {
      * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
      * (For external module components, we just instantiate a new artifact metadata).
      */
+    // TODO:DAZ Try to remove this from the ConfigurationMetadata API
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 }

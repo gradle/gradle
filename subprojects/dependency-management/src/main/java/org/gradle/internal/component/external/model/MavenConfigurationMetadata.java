@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 class MavenConfigurationMetadata extends DefaultConfigurationMetadata {
-    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
-        super(componentId, name, transitive, visible, parents, artifacts);
+    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
+        super(componentId, name, transitive, visible, hierarchy, artifacts);
     }
 
     @Override

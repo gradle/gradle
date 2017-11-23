@@ -171,7 +171,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
     private static class ClientModuleConfigurationMetadata extends DefaultConfigurationMetadata {
         ClientModuleConfigurationMetadata(ModuleComponentIdentifier componentId, String name, ModuleComponentArtifactMetadata artifact, List<ModuleDependencyMetadata> dependencies) {
-            super(componentId, name, true, true, ImmutableList.<DefaultConfigurationMetadata>of(), ImmutableList.of(artifact));
+            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact));
             populateDependencies(dependencies, null);
         }
 

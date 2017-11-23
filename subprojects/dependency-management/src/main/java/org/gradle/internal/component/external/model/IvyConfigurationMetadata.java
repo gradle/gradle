@@ -22,16 +22,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
-import java.util.Collection;
 import java.util.List;
 
 class IvyConfigurationMetadata extends DefaultConfigurationMetadata {
     private final ImmutableList<Exclude> excludes;
     private ModuleExclusion exclusions;
 
-    IvyConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, List<Exclude> excludes, ImmutableList<ModuleComponentArtifactMetadata> artifacts) {
-        super(componentId, name, transitive, visible, parents, artifacts);
-        Collection<String> hierarchy = getHierarchy();
+    IvyConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, List<Exclude> excludes, ImmutableList<ModuleComponentArtifactMetadata> artifacts) {
+        super(componentId, name, transitive, visible, hierarchy, artifacts);
         ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {

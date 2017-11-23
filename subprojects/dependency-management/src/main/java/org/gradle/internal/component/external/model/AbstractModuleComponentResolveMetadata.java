@@ -33,6 +33,7 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -127,34 +128,37 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
             return null;
         }
 
-        List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
+        ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        if (extendsFrom.isEmpty()) {
-            // tail
-            populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.<T>of());
-            configurations.put(name, populated);
-            return populated;
-        } else if (extendsFrom.size() == 1) {
-            populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)));
-            configurations.put(name, populated);
-            return populated;
-        }
-        List<T> hierarchy = new ArrayList<T>(extendsFrom.size());
-        for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
-        }
-        populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, ImmutableList.copyOf(hierarchy));
-
+        populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, hierarchy);
         configurations.put(name, populated);
         return populated;
+    }
+
+    // TODO:DAZ We might be better off constructing the tree once
+    private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
+        if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
+            return ImmutableList.of(descriptorConfiguration.getName());
+        }
+        Set<String> accumulator = new LinkedHashSet<String>();
+        populateHierarchy(descriptorConfiguration, accumulator);
+        return ImmutableList.copyOf(accumulator);
+    }
+
+    private void populateHierarchy(Configuration metadata, Set<String> accumulator) {
+        accumulator.add(metadata.getName());
+        for (String parentName : metadata.getExtendsFrom()) {
+            Configuration parent = configurationDefinitions.get(parentName);
+            populateHierarchy(parent, accumulator);
+        }
     }
 
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    private T createAndPopulateConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents) {
-        T configuration = createConfiguration(componentId, name, transitive, visible, parents);
+    private T createAndPopulateConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
+        T configuration = createConfiguration(componentId, name, transitive, visible, hierarchy);
         configuration.populateDependencies(dependencies, dependencyMetadataRules.get(name));
         return configuration;
     }
@@ -162,7 +166,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy);
 
     private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {

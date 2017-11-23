@@ -74,14 +74,14 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents) {
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
-        for (IvyConfigurationMetadata parent : parents) {
-            artifacts.addAll(parent.getArtifacts());
+        for (String parent : hierarchy) {
+            collectArtifactsFor(parent, artifacts);
         }
 
-        return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes, ImmutableList.copyOf(artifacts));
+        return new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, excludes, ImmutableList.copyOf(artifacts));
     }
 
     private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {
@@ -89,6 +89,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }
         for (Artifact artifact : artifactDefinitions) {
+            // TODO:DAZ I think this is a bug: we should be checking for '*' here
             if (artifact.getConfigurations().contains(name)) {
                 ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
                 if (artifactMetadata == null) {
