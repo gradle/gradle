@@ -16,10 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
@@ -34,11 +32,9 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
             .plugin(
                 "Apply the application plugin to add support for building an application",
                 "application")
-            .configuration(
+            .conventionPropertyAssignment(
                 "Define the main class for the application",
-                ImmutableMap.of(
-                    BuildInitBuildScriptDsl.GROOVY, "mainClassName = 'App'",
-                    BuildInitBuildScriptDsl.KOTLIN, "application.mainClassName = \"App\""));
+                "application", "mainClassName", "App");
     }
 
     @Override

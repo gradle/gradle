@@ -16,22 +16,26 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
 
 /**
  * Assembles the parts of a build script.
@@ -40,7 +44,7 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final Map<String, String> plugins = new LinkedHashMap<String, String>();
-    private final List<ConfigSpec> config = new ArrayList<ConfigSpec>();
+    private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
 
     /**
      * Adds a comment to the header of the file.
@@ -102,19 +106,35 @@ public class BuildScriptBuilder {
         return dependency("testRuntime", comment, dependencies);
     }
 
-    /**
-     * Adds some arbitrary configuration to the _end_ of the build script.
-     */
-    public BuildScriptBuilder configuration(String comment, String config) {
-        this.config.add(new ConfigSpec(comment, config));
-        return this;
+    public BuildScriptBuilder taskMethodInvocation(String comment, String taskName, String taskType, String methodName) {
+        return configuration(
+            new TaskConfigurationSpec(taskName, taskType),
+            new MethodInvocationSpec(comment, methodName));
     }
 
-    /**
-     * Adds some arbitrary configuration to the _end_ of the build script.
-     */
-    public BuildScriptBuilder configuration(String comment, Map<BuildInitBuildScriptDsl, String> config) {
-        this.config.add(new ConfigSpec(comment, config));
+    public BuildScriptBuilder taskPropertyAssignment(String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
+        return configuration(
+            new TaskConfigurationSpec(taskName, taskType),
+            new PropertyAssignmentSpec(comment, propertyName, propertyValue));
+    }
+
+    public BuildScriptBuilder conventionPropertyAssignment(String comment, String conventionName, String propertyName, Object propertyValue) {
+        return configuration(
+            new ConventionConfigurationSpec(conventionName),
+            new PropertyAssignmentSpec(comment, propertyName, propertyValue));
+    }
+
+    private BuildScriptBuilder configuration(ConfigBlockSpec configBlockSpec, ConfigCodeSpec configCodeSpec) {
+        if (configSpecs.isEmpty()) {
+            configSpecs.add(new ConfigSpec(configBlockSpec, configCodeSpec));
+        } else {
+            ConfigSpec previousConfigSpec = configSpecs.get(configSpecs.size() - 1);
+            if (Objects.equal(previousConfigSpec.block, configBlockSpec)) {
+                previousConfigSpec.codeSpecs.add(configCodeSpec);
+            } else {
+                configSpecs.add(new ConfigSpec(configBlockSpec, configCodeSpec));
+            }
+        }
         return this;
     }
 
@@ -197,12 +217,10 @@ public class BuildScriptBuilder {
                             writer.println("}");
                         }
 
-                        for (ConfigSpec configSpec : config) {
+                        // Arbitrary configuration
+                        for (ConfigSpec configSpec : configSpecs) {
                             writer.println();
-                            writer.println("// " + configSpec.comment);
-                            for (String line : configSpec.configLines.get(dsl)) {
-                                writer.println(line);
-                            }
+                            configSpec.accept(new DefaultConfigSpecVisitor(dsl, writer));
                         }
 
                         writer.println();
@@ -227,23 +245,240 @@ public class BuildScriptBuilder {
     }
 
     private static class ConfigSpec {
-        private final String comment;
-        private final Map<BuildInitBuildScriptDsl, List<String>> configLines;
+        private final ConfigBlockSpec block;
+        private List<ConfigCodeSpec> codeSpecs = new ArrayList<ConfigCodeSpec>();
 
-        ConfigSpec(String comment, String config) {
-            this.comment = comment;
-            this.configLines = new HashMap<BuildInitBuildScriptDsl, List<String>>();
-            List<String> lines = Splitter.on("\n").splitToList(config);
-            for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
-                this.configLines.put(scriptDsl, lines);
+        private ConfigSpec(@Nullable ConfigBlockSpec block, ConfigCodeSpec codeSpec) {
+            this.block = block;
+            this.codeSpecs.add(codeSpec);
+        }
+
+        public void accept(ConfigSpecVisitor visitor) {
+            if (block != null) {
+                visitor.visitOpenBlock(block);
+            }
+            for (ConfigCodeSpec codeSpec : codeSpecs) {
+                visitor.visitCode(codeSpec);
+            }
+            if (block != null) {
+                visitor.visitCloseBlock(block);
+            }
+        }
+    }
+
+    private interface ConfigBlockSpec {
+        @Nullable
+        String getOpenCodeFor(BuildInitBuildScriptDsl dsl);
+
+        @Nullable
+        String getCloseCodeFor(BuildInitBuildScriptDsl dsl);
+    }
+
+    private interface ConfigCodeSpec {
+        @Nullable
+        String getComment();
+
+        String getCodeFor(BuildInitBuildScriptDsl dsl);
+    }
+
+    private interface ConfigSpecVisitor {
+
+        void visitOpenBlock(ConfigBlockSpec block);
+
+        void visitCode(ConfigCodeSpec code);
+
+        void visitCloseBlock(ConfigBlockSpec block);
+    }
+
+    private static class DefaultConfigSpecVisitor implements ConfigSpecVisitor {
+        private final BuildInitBuildScriptDsl dsl;
+        private final PrintWriter writer;
+
+        private String indent = "";
+        private boolean visitedCode = false;
+
+        private DefaultConfigSpecVisitor(BuildInitBuildScriptDsl dsl, PrintWriter writer) {
+            this.dsl = dsl;
+            this.writer = writer;
+        }
+
+
+        @Override
+        public void visitOpenBlock(ConfigBlockSpec block) {
+            String openBlock = block.getOpenCodeFor(dsl);
+            if (openBlock != null) {
+                writer.println(openBlock);
+                indent = "    ";
             }
         }
 
-        ConfigSpec(String comment, Map<BuildInitBuildScriptDsl, String> config) {
+        @Override
+        public void visitCode(ConfigCodeSpec code) {
+            if (visitedCode) {
+                writer.println();
+            }
+            String comment = code.getComment();
+            if (comment != null) {
+                for (String commentLine : comment.split("\n")) {
+                    writer.println(indent + "// " + commentLine);
+                }
+            }
+            for (String codeLine : code.getCodeFor(dsl).split("\n")) {
+                writer.println(indent + codeLine);
+            }
+            visitedCode = true;
+        }
+
+        @Override
+        public void visitCloseBlock(ConfigBlockSpec block) {
+            String closeBlock = block.getCloseCodeFor(dsl);
+            if (closeBlock != null) {
+                writer.println(closeBlock);
+                indent = "";
+            }
+        }
+    }
+
+    private static class TaskConfigurationSpec implements ConfigBlockSpec {
+        private final String taskName;
+        private final String taskType;
+
+        private TaskConfigurationSpec(String taskName, String taskType) {
+            this.taskName = taskName;
+            this.taskType = taskType;
+        }
+
+        @Override
+        public String getOpenCodeFor(BuildInitBuildScriptDsl dsl) {
+            switch (dsl) {
+                case KOTLIN:
+                    return "val " + taskName + " by tasks.getting(" + taskType + "::class) {";
+                case GROOVY:
+                default:
+                    return taskName + " {";
+            }
+        }
+
+        @Override
+        public String getCloseCodeFor(BuildInitBuildScriptDsl dsl) {
+            return "}";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TaskConfigurationSpec that = (TaskConfigurationSpec) o;
+            return Objects.equal(taskName, that.taskName) && Objects.equal(taskType, that.taskType);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(taskName, taskType);
+        }
+    }
+
+    private static class ConventionConfigurationSpec implements ConfigBlockSpec {
+
+        private final String conventionName;
+
+        private ConventionConfigurationSpec(String conventionName) {
+            this.conventionName = conventionName;
+        }
+
+        @Nullable
+        @Override
+        public String getOpenCodeFor(BuildInitBuildScriptDsl dsl) {
+            if (dsl == KOTLIN) {
+                return conventionName + " {";
+            }
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public String getCloseCodeFor(BuildInitBuildScriptDsl dsl) {
+            if (dsl == KOTLIN) {
+                return "}";
+            }
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ConventionConfigurationSpec that = (ConventionConfigurationSpec) o;
+            return Objects.equal(conventionName, that.conventionName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(conventionName);
+        }
+    }
+
+    private static class MethodInvocationSpec implements ConfigCodeSpec {
+        private final String comment;
+        private final String methodName;
+
+        private MethodInvocationSpec(String comment, String methodName) {
             this.comment = comment;
-            this.configLines = new HashMap<BuildInitBuildScriptDsl, List<String>>();
-            for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
-                this.configLines.put(scriptDsl, Splitter.on("\n").splitToList(config.get(scriptDsl)));
+            this.methodName = methodName;
+        }
+
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public String getCodeFor(BuildInitBuildScriptDsl dsl) {
+            return methodName + "()";
+        }
+    }
+
+    private static class PropertyAssignmentSpec implements ConfigCodeSpec {
+
+        private final String comment;
+        private final String propertyName;
+        private final Object propertyValue;
+
+        private PropertyAssignmentSpec(String comment, String propertyName, Object propertyValue) {
+            this.comment = comment;
+            this.propertyName = propertyName;
+            this.propertyValue = propertyValue;
+        }
+
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public String getCodeFor(BuildInitBuildScriptDsl scriptDsl) {
+            switch (scriptDsl) {
+                case KOTLIN:
+                    if (propertyValue instanceof Boolean) {
+                        return "is" + StringUtils.capitalize(propertyName) + " = " + propertyValue;
+                    } else if (propertyValue instanceof CharSequence) {
+                        return propertyName + " = \"" + propertyValue + '\"';
+                    }
+                    return propertyName + " = " + propertyValue;
+                case GROOVY:
+                default:
+                    if (propertyValue instanceof CharSequence) {
+                        return propertyName + " = '" + propertyValue + "'";
+                    }
+                    return propertyName + " = " + propertyValue;
             }
         }
     }
