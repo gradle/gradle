@@ -24,11 +24,22 @@ import spock.lang.Subject
 class LeakingProcessKillPatternTest extends Specification {
     @Issue("https://github.com/gradle/ci-health/issues/138")
     def "can match Play application process command-line on Windows"() {
-        def line = '"C:\\Program Files\\Java\\jdk1.7/bin/java.exe"    -Dhttp.port=0  -classpath "C:\\some\\ci\\workspace\\subprojects\\platform-play\\build\\tmp\\test files\\PlayDistributionAdvancedAppIntegrationTest\\can_run_play_distribution\\d3r0j\\build\\stage\\playBinary\\bin\\..\\lib\\advancedplayapp.jar" play.core.server.NettyServer '
-        def projectDir = 'C:\\some\\ci\\workspace'
-        def buildDir = 'C:\\some\\ci\\workspace\\build'
+        def line = '"C:\\Program Files\\Java\\jdk1.7/bin/java.exe"    -Dhttp.port=0  -classpath "C:\\some\\agent\\workspace\\subprojects\\platform-play\\build\\tmp\\test files\\PlayDistributionAdvancedAppIntegrationTest\\can_run_play_distribution\\d3r0j\\build\\stage\\playBinary\\bin\\..\\lib\\advancedplayapp.jar" play.core.server.NettyServer '
+        def agentDir = 'C:\\some\\agent'
+        def projectDir = 'C:\\some\\agent\\workspace'
+        def buildDir = 'C:\\some\\agent\\workspace\\build'
 
         expect:
-        (line =~ LeakingProcessKillPattern.generate(projectDir, buildDir)).find()
+        (line =~ LeakingProcessKillPattern.generate(agentDir, projectDir, buildDir)).find()
+    }
+
+    def "can match worker process command-line on Windows"() {
+        def line = '"C:\\Program Files\\Java\\jdk1.7\\bin\\java.exe" -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\some\\agent\\.gradle\\caches\\4.4-rc-1\\workerMain\\gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain "\'Gradle Worker Daemon 318\'"'
+        def agentDir = 'C:\\some\\agent'
+        def projectDir = 'C:\\some\\agent\\workspace'
+        def buildDir = 'C:\\some\\agent\\workspace\\build'
+
+        expect:
+        (line =~ LeakingProcessKillPattern.generate(agentDir, projectDir, buildDir)).find()
     }
 }

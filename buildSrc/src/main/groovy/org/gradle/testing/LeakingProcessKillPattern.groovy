@@ -16,12 +16,31 @@
 
 package org.gradle.testing
 
+import groovy.transform.CompileStatic
+
 import java.util.regex.Pattern
 
+@CompileStatic
 class LeakingProcessKillPattern {
     private LeakingProcessKillPattern() {}
 
-    static String generate(String rootProjectDir, String rootBuildDir) {
-        return "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootBuildDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))).+)"
+    static String generate(String agentDir, String rootProjectDir, String rootBuildDir) {
+        return "(?i)[/\\\\](java(?:\\.exe)?.+?(?:${toOrgGradleProcessInProjectDirectoryPattern(rootProjectDir)}|${toOrgGradleProcessInBuildDirectoryPattern(rootBuildDir)}|${toNettyServerPattern(rootProjectDir)}|${toWorkerProcessPattern(agentDir)}).+)"
+    }
+
+    private static String toNettyServerPattern(String rootProjectDir) {
+        return "(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))"
+    }
+
+    private static String toOrgGradleProcessInBuildDirectoryPattern(String rootBuildDir) {
+        return "(?:-classpath.+${Pattern.quote(rootBuildDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))"
+    }
+
+    private static String toOrgGradleProcessInProjectDirectoryPattern(String rootProjectDir) {
+        return "(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))"
+    }
+
+    private static String toWorkerProcessPattern(String agentDir) {
+        return "(?:-cp.+${Pattern.quote(agentDir)}[\\\\/]\\.gradle.+?(worker\\.org\\.gradle\\.process\\.internal\\.worker\\.GradleWorkerMain))"
     }
 }
