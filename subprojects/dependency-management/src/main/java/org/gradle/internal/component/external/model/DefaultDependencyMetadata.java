@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -35,6 +36,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +44,6 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata, ExternalOriginDependencyMetadata {
-    private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
     private final boolean optional;
@@ -51,18 +52,6 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         this.selector = selector;
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.optional = optional;
-        this.artifacts = map(dependencyArtifacts);
-    }
-
-    private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
-        if (dependencyArtifacts.isEmpty()) {
-            return ImmutableSet.of();
-        }
-        Set<IvyArtifactName> result = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
-        for (Artifact artifact : dependencyArtifacts) {
-            result.add(artifact.getArtifactName());
-        }
-        return result;
     }
 
     @Override
@@ -83,7 +72,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
-        return artifacts;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -128,24 +117,30 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return optional;
     }
 
-
-    Set<ComponentArtifactMetadata> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
+    Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
             return Collections.emptySet();
         }
 
         Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
-        Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
-
+        Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
         for (Artifact depArtifact : dependencyArtifacts) {
-            IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
             Set<String> artifactConfigurations = depArtifact.getConfigurations();
             if (include(artifactConfigurations, includedConfigurations)) {
-                ComponentArtifactMetadata artifact = toConfiguration.artifact(ivyArtifactName);
-                artifacts.add(artifact);
+                IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
+                artifacts.add(ivyArtifactName);
             }
         }
         return artifacts;
+    }
+
+    Set<ComponentArtifactMetadata> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration, final ConfigurationMetadata toConfiguration) {
+        return CollectionUtils.collect(getConfigurationArtifacts(fromConfiguration), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
+            @Override
+            public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {
+                return toConfiguration.artifact(ivyArtifactName);
+            }
+        });
     }
 
     protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {

@@ -128,11 +128,11 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])
 
         expect:
-        metadata.artifacts.size() == 3
-        def artifacts = metadata.artifacts
-        artifacts[0] == artifact1.artifactName
-        artifacts[1] == artifact2.artifactName
-        artifacts[2] == artifact3.artifactName
+        metadata.dependencyArtifacts.size() == 3
+        def artifacts = metadata.dependencyArtifacts
+        artifacts[0] == artifact1
+        artifacts[1] == artifact2
+        artifacts[2] == artifact3
     }
 
     def "returns a module component selector if descriptor indicates a default dependency"() {

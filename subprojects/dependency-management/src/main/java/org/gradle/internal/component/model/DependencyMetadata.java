@@ -25,16 +25,16 @@ import java.util.Set;
 
 public interface DependencyMetadata {
     /**
-     * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
-     * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
-     */
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration);
-
-    /**
      * Returns the artifacts referenced by this dependency, if any. Returns an empty set if this dependency does not reference any specific artifacts - the
      * defaults should be used in this case.
      */
     Set<IvyArtifactName> getArtifacts();
+
+    /**
+     * Returns the artifacts referenced by this dependency for the given combination of source and target configurations, if any. Returns an empty set if
+     * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
+     */
+    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration);
 
     /**
      * Returns a copy of this dependency with the given target.
