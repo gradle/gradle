@@ -22,6 +22,7 @@ import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.SimpleExpression;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,9 +56,16 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             resolveMacroToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
         } else if (expression.getType() == IncludeType.MACRO_FUNCTION) {
             resolveMacroFunctionToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
+        } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+            resolveTokenConcatenation(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes, includePaths);
         } else {
             resolvedSourceIncludes.unresolved();
         }
+    }
+
+    private void resolveTokenConcatenation(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
+        String newValue = expression.getArguments().get(0).getValue() + expression.getArguments().get(1).getValue();
+        resolveExpression(sourceFile, include, visibleMacros, new SimpleExpression(newValue, IncludeType.MACRO), resolvedSourceIncludes, includePaths);
     }
 
     private void resolveMacroToIncludes(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes) {

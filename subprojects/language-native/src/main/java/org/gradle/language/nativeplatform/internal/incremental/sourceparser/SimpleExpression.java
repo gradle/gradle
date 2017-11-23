@@ -26,7 +26,7 @@ public class SimpleExpression extends AbstractExpression implements Expression {
     private final String value;
     private final IncludeType type;
 
-    SimpleExpression(String value, IncludeType type) {
+    public SimpleExpression(String value, IncludeType type) {
         this.value = value;
         this.type = type;
     }

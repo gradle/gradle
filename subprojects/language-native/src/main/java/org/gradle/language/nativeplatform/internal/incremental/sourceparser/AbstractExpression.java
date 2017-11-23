@@ -49,7 +49,10 @@ public abstract class AbstractExpression implements Expression {
             case SYSTEM:
                 return '<' + value + '>';
             case MACRO:
+            case TOKEN:
                 return value;
+            case TOKEN_CONCATENATION:
+                return expression.getArguments().get(0).getAsSourceText() + "##" + expression.getArguments().get(1).getAsSourceText();
             case MACRO_FUNCTION:
                 return value + "(" + Joiner.on(", ").join(arguments) + ")";
             default:

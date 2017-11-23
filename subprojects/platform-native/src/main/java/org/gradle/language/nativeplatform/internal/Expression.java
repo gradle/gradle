@@ -32,12 +32,14 @@ public interface Expression {
     /**
      * When type is {@link IncludeType#QUOTED} or {@link IncludeType#SYSTEM}, then this returns the path, without the delimiters.
      * When type is {@link IncludeType#MACRO} or {@link IncludeType#MACRO_FUNCTION}, then this returns the name of the macro.
-     * When type is {@link IncludeType#OTHER} returns null.
+     * When type is {@link IncludeType#TOKEN}, then this returns the token.
+     * When type is {@link IncludeType#OTHER} or {@link IncludeType#TOKEN_CONCATENATION} returns null.
      */
     String getValue();
 
     /**
-     * Returns the actual arguments of this expression, when type is {@link IncludeType#MACRO_FUNCTION}. Otherwise, returns an empty list.
+     * Returns the actual arguments of this expression when type is {@link IncludeType#MACRO_FUNCTION}.
+     * Returns the left and right arguments of the expression when type is {@link IncludeType#TOKEN_CONCATENATION}.
      */
     List<Expression> getArguments();
 }

@@ -17,5 +17,32 @@
 package org.gradle.language.nativeplatform.internal;
 
 public enum IncludeType {
-    SYSTEM, QUOTED, MACRO, MACRO_FUNCTION, OTHER
+    /**
+     * A system include path, eg {@code <hello.h>}
+     */
+    SYSTEM,
+    /**
+     * A quoted include path eg {@code "hello.h"}
+     */
+    QUOTED,
+    /**
+     * An identifier that should be macro expanded. These appear in the body of a directive eg {@code #define HEADER ABC}.
+     */
+    MACRO,
+    /**
+     * A macro function invocation that should be expanded. These appear in the body of a directive and as arguments to another function eg {@code #define HEADER ABC(X, Y)}.
+     */
+    MACRO_FUNCTION,
+    /**
+     * An identifier that should not be macro expanded. These appear as the arguments to a {@link #MACRO_FUNCTION} or {@link #TOKEN_CONCATENATION} eg {@code #include ABC(X, Y)}
+     */
+    TOKEN,
+    /**
+     * A token concatenation expression. These appear in the body of macro directives eg {@code #define ABC(X, Y) X ## Y}.
+     */
+    TOKEN_CONCATENATION,
+    /**
+     * All other expressions. These things cannot be resolve to an include path.
+     */
+    OTHER
 }

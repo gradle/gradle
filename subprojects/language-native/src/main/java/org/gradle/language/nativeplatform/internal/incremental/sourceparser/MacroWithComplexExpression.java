@@ -16,19 +16,23 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.List;
 
 /**
- * A macro function call expression.
+ * An "object-like" macro #define whose body is an expression with arguments.
  */
-class MacroFunctionCallExpression extends AbstractExpression {
+public class MacroWithComplexExpression extends AbstractMacro {
+    private final IncludeType type;
     private final String value;
     private final List<Expression> arguments;
 
-    MacroFunctionCallExpression(String value, List<Expression> arguments) {
+    public MacroWithComplexExpression(String name, IncludeType type, String value, List<Expression> arguments) {
+        super(name);
+        this.type = type;
         this.value = value;
         this.arguments = arguments;
     }
@@ -40,7 +44,7 @@ class MacroFunctionCallExpression extends AbstractExpression {
 
     @Override
     public IncludeType getType() {
-        return IncludeType.MACRO_FUNCTION;
+        return type;
     }
 
     @Override
@@ -50,18 +54,15 @@ class MacroFunctionCallExpression extends AbstractExpression {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (!super.equals(obj)) {
             return false;
         }
-        MacroFunctionCallExpression other = (MacroFunctionCallExpression) obj;
-        return value.equals(other.value) && arguments.equals(other.arguments);
+        MacroWithComplexExpression other = (MacroWithComplexExpression) obj;
+        return type == other.type && Objects.equal(value, other.value) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode() ^ arguments.hashCode();
+        return super.hashCode() ^ type.hashCode() ^ arguments.hashCode();
     }
 }

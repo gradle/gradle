@@ -32,6 +32,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -86,10 +87,14 @@ public class RegexBackedCSourceParser implements CSourceParser {
             return;
         }
         Expression expression = parseExpression(buffer);
+        if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+            // Token concatenation is only allowed inside a #define body
+            expression = new SimpleExpression(expression.getAsSourceText(), IncludeType.OTHER);
+        }
         if (expression.getType() != IncludeType.OTHER || !expression.getValue().isEmpty()) {
+            // Either a resolvable expression or a non-empty unresolvable expression, collect. Ignore includes with no value
             includes.add(IncludeWithSimpleExpression.create(expression, isImport));
         }
-        // Ignore includes with no value
     }
 
     /**
@@ -119,9 +124,11 @@ public class RegexBackedCSourceParser implements CSourceParser {
      */
     private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, List<Macro> macros) {
         Expression expression = parseExpression(buffer);
-        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            macros.add(new MacroWithMacroFunctionCallExpression(macroName, expression.getValue(), expression.getArguments()));
+        if (!expression.getArguments().isEmpty()) {
+            // Body is an expression with one or more arguments
+            macros.add(new MacroWithComplexExpression(macroName, expression.getType(), expression.getValue(), expression.getArguments()));
         } else if (expression.getType() != IncludeType.OTHER) {
+            // Body is a simple expression, including a macro function call with no arguments
             macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
         } else {
             // Discard the body when the expression is not resolvable
@@ -196,6 +203,11 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 return;
             }
         }
+        if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+            // TODO - substitute parameters
+            return;
+        }
 
         // Not resolvable. Discard the body when the expression is not resolvable
         macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
@@ -233,6 +245,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         Expression expression = readExpression(buffer);
         buffer.consumeWhitespace();
         if (expression == null || buffer.hasAny()) {
+            // Missing expression or extra stuff after the expression, possibly another expression
             return new SimpleExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
         }
         return expression;
@@ -255,18 +268,33 @@ public class RegexBackedCSourceParser implements CSourceParser {
             return readDelimitedExpression(buffer, '"', IncludeType.QUOTED);
         }
 
-        String identifier = buffer.readIdentifier();
+        final String identifier = buffer.readIdentifier();
         if (identifier == null) {
             // No identifier
             return null;
         }
         buffer.consumeWhitespace();
-        if (!buffer.consume('(')) {
-            // Just an identifier, this is a macro reference
-            return new SimpleExpression(identifier, IncludeType.MACRO);
+        if (buffer.consume('(')) {
+            // A macro function call
+            return readMacroFunctionCall(buffer, identifier);
         }
 
-        // A macro function call
+        buffer.consumeWhitespace();
+        if (buffer.consume("##")) {
+            buffer.consumeWhitespace();
+            final String rightIdentifier = buffer.readIdentifier();
+            if (rightIdentifier == null) {
+                // Need another identifier
+                return null;
+            }
+            return new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(new SimpleExpression(identifier, IncludeType.TOKEN), new SimpleExpression(rightIdentifier, IncludeType.TOKEN)));
+        }
+
+        // Just an identifier, this is a macro reference
+        return new SimpleExpression(identifier, IncludeType.MACRO);
+    }
+
+    private static Expression readMacroFunctionCall(Buffer buffer, String identifier) {
         buffer.consumeWhitespace();
         List<Expression> argumentExpressions = new ArrayList<Expression>();
         consumeArgumentList(buffer, argumentExpressions);
@@ -277,7 +305,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         if (argumentExpressions.isEmpty()) {
             return new SimpleExpression(identifier, IncludeType.MACRO_FUNCTION);
         } else {
-            return new MacroFunctionCallExpression(identifier, argumentExpressions);
+            return new ComplexExpression(IncludeType.MACRO_FUNCTION, identifier, argumentExpressions);
         }
     }
 

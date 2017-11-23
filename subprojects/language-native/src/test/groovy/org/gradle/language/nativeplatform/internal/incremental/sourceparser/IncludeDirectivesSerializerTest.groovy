@@ -42,12 +42,13 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
     def "serializes macro directives"() {
         def macro1 = new MacroWithSimpleExpression("ONE", IncludeType.QUOTED,"one")
         def macro2 = new MacroWithSimpleExpression("TWO", IncludeType.MACRO, "two")
-        def macro3 = new MacroWithMacroFunctionCallExpression("THREE", "abc", [])
-        def macro4 = new MacroWithMacroFunctionCallExpression("FOUR", "abc", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
-        def macro5 = new MacroWithMacroFunctionCallExpression("FIVE", "abc", [new MacroFunctionCallExpression("macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])])
-        def macro6 = new UnresolveableMacro("SIX")
+        def macro3 = new MacroWithComplexExpression("THREE", IncludeType.MACRO_FUNCTION, "abc", [])
+        def macro4 = new MacroWithComplexExpression("FOUR", IncludeType.MACRO_FUNCTION, "abc", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
+        def macro5 = new MacroWithComplexExpression("FIVE", IncludeType.MACRO_FUNCTION, "abc", [new ComplexExpression(IncludeType.MACRO_FUNCTION, "macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])])
+        def macro6 = new MacroWithComplexExpression("SIX", IncludeType.TOKEN_CONCATENATION, null, [new SimpleExpression("X", IncludeType.TOKEN), new SimpleExpression("Y", IncludeType.TOKEN)])
         def macro7 = new UnresolveableMacro("SEVEN")
-        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7]), ImmutableList.of())
+        def macro8 = new UnresolveableMacro("EIGHT")
+        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8]), ImmutableList.of())
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives

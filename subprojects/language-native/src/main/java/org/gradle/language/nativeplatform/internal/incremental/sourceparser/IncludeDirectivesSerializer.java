@@ -53,7 +53,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     private static class ExpressionSerializer implements Serializer<Expression> {
         private static final byte SIMPLE = (byte) 1;
-        private static final byte WITH_FUNCTION = (byte) 2;
+        private static final byte COMPLEX = (byte) 2;
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<List<Expression>> argsSerializer;
 
@@ -69,10 +69,11 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String expressionValue = decoder.readString();
                 IncludeType expressionType = enumSerializer.read(decoder);
                 return new SimpleExpression(expressionValue, expressionType);
-            } else if (tag == WITH_FUNCTION) {
-                String expressionValue = decoder.readString();
-                List<Expression> args = argsSerializer.read(decoder);
-                return new MacroFunctionCallExpression(expressionValue, args);
+            } else if (tag == COMPLEX) {
+                String expressionValue = decoder.readNullableString();
+                IncludeType type = enumSerializer.read(decoder);
+                List<Expression> args = ImmutableList.copyOf(argsSerializer.read(decoder));
+                return new ComplexExpression(type, expressionValue, args);
             } else {
                 throw new IllegalArgumentException();
             }
@@ -84,9 +85,10 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeByte(SIMPLE);
                 encoder.writeString(value.getValue());
                 enumSerializer.write(encoder, value.getType());
-            } else if (value instanceof MacroFunctionCallExpression) {
-                encoder.writeByte(WITH_FUNCTION);
-                encoder.writeString(value.getValue());
+            } else if (value instanceof ComplexExpression) {
+                encoder.writeByte(COMPLEX);
+                encoder.writeNullableString(value.getValue());
+                enumSerializer.write(encoder, value.getType());
                 argsSerializer.write(encoder, value.getArguments());
             } else {
                 throw new IllegalArgumentException();
@@ -139,7 +141,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     private static class MacroSerializer implements Serializer<Macro> {
         private static final byte SIMPLE = (byte) 1;
-        private static final byte WITH_FUNCTION = (byte) 2;
+        private static final byte COMPLEX = (byte) 2;
         private static final byte UNRESOLVED = (byte) 3;
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<List<Expression>> expressionSerializer;
@@ -157,11 +159,12 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
                 return new MacroWithSimpleExpression(name, type, value);
-            } else if (tag == WITH_FUNCTION) {
+            } else if (tag == COMPLEX) {
                 String name = decoder.readString();
-                String macroName = decoder.readString();
-                List<Expression> args = expressionSerializer.read(decoder);
-                return new MacroWithMacroFunctionCallExpression(name, macroName, args);
+                IncludeType type = enumSerializer.read(decoder);
+                String value = decoder.readNullableString();
+                List<Expression> args = ImmutableList.copyOf(expressionSerializer.read(decoder));
+                return new MacroWithComplexExpression(name, type, value, args);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 return new UnresolveableMacro(name);
@@ -177,10 +180,11 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeString(value.getName());
                 enumSerializer.write(encoder, value.getType());
                 encoder.writeString(value.getValue());
-            } else if (value instanceof MacroWithMacroFunctionCallExpression) {
-                encoder.writeByte(WITH_FUNCTION);
+            } else if (value instanceof MacroWithComplexExpression) {
+                encoder.writeByte(COMPLEX);
                 encoder.writeString(value.getName());
-                encoder.writeString(value.getValue());
+                enumSerializer.write(encoder, value.getType());
+                encoder.writeNullableString(value.getValue());
                 expressionSerializer.write(encoder, value.getArguments());
             } else if (value instanceof UnresolveableMacro) {
                 encoder.writeByte(UNRESOLVED);
@@ -211,8 +215,8 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
                 IncludeType type = enumSerializer.read(decoder);
-                String value = decoder.readString();
-                List<Expression> args = expressionSerializer.read(decoder);
+                String value = decoder.readNullableString();
+                List<Expression> args = ImmutableList.copyOf(expressionSerializer.read(decoder));
                 return new ReturnFixedValueMacroFunction(name, parameters, type, value, args);
             } else if (tag == RETURN_PARAM) {
                 String name = decoder.readString();
@@ -223,7 +227,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
                 String macroToCall = decoder.readString();
-                List<Expression> arguments = expressionSerializer.read(decoder);
+                List<Expression> arguments = ImmutableList.copyOf(expressionSerializer.read(decoder));
                 int mapCount = decoder.readSmallInt();
                 int[] argsMap = new int[mapCount];
                 for(int i = 0; i < mapCount; i++) {
@@ -247,7 +251,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
                 enumSerializer.write(encoder, fixedValueFunction.getType());
-                encoder.writeString(fixedValueFunction.getValue());
+                encoder.writeNullableString(fixedValueFunction.getValue());
                 expressionSerializer.write(encoder, fixedValueFunction.getArguments());
             } else if (value instanceof ReturnParameterMacroFunction) {
                 ReturnParameterMacroFunction returnParameterFunction = (ReturnParameterMacroFunction) value;

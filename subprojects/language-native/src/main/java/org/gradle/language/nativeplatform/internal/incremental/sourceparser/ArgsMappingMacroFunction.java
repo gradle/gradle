@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Joiner;
 import org.gradle.language.nativeplatform.internal.Expression;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +63,7 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
                 mapped.add(arguments.get(argsMap[i]));
             }
         }
-        return new MacroFunctionCallExpression(macroToCall, mapped);
+        return new ComplexExpression(IncludeType.MACRO_FUNCTION, macroToCall, mapped);
     }
 
     @Override

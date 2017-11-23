@@ -75,6 +75,10 @@ class RegexBackedCSourceParserTest extends Specification {
         return RegexBackedCSourceParser.parseExpression(value)
     }
 
+    Expression token(String value) {
+        return new SimpleExpression(value, IncludeType.TOKEN)
+    }
+
     Include include(String value, boolean isImport = false) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
         return IncludeWithSimpleExpression.create(expression, isImport)
@@ -83,9 +87,16 @@ class RegexBackedCSourceParserTest extends Specification {
     Macro macro(String name, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
         if (!expression.arguments.empty) {
-            return new MacroWithMacroFunctionCallExpression(name, expression.value, expression.arguments)
+            return new MacroWithComplexExpression(name, expression.type, expression.value, expression.arguments)
         }
         return new MacroWithSimpleExpression(name, expression.type, expression.value)
+    }
+
+    Macro macro(String name, IncludeType type, String value, List<?> args) {
+        if (!args.empty) {
+            return new MacroWithComplexExpression(name, type, value, args.collect { it instanceof Expression ? it : expression(it as String) })
+        }
+        return new MacroWithSimpleExpression(name, type, value)
     }
 
     MacroFunction macroFunction(String name, int parameters = 0, String value) {
@@ -242,7 +253,20 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
 
         where:
-        include << ['DEFINED(one two three)', 'not an include', 'BROKEN(', 'broken(A,', 'broken(a, b', '@(X', '"abc.h" DEFINED', 'DEFINED(A, B(1+2))']
+        include << [
+            'DEFINED(one two three)',
+            'not an include',
+            'BROKEN(',
+            'broken(A,',
+            'broken(a, b',
+            '@(X',
+            '"abc.h" DEFINED',
+            'DEFINED(A, B(1+2))',
+            'A##B',
+            'A#B',
+            'A##.',
+            'A##'
+        ]
     }
 
     def "finds multiple includes"() {
@@ -633,11 +657,32 @@ st3"
 """
 
         then:
-        macros == [macro('SOME_STRING', value)]
+        macros == [macro('SOME_STRING', IncludeType.MACRO_FUNCTION, function, args)]
         macroFunctions.empty
 
         where:
-        value << ['a()', '_a_123_(_a1, $2)', 'a$b(X,Y)', ' A( X, Y(Z)  )']
+        value              | function  | args
+        'a()'              | 'a'       | []
+        '_a_123_(_a1, $2)' | '_a_123_' | ['_a1', '$2']
+        'a$b(X,Y)'         | 'a$b'     | ['X', 'Y']
+        ' A( X, Y(Z)  )'   | 'A'       | ['X', 'Y(Z)']
+    }
+
+    def "finds object-like macro directive whose value is token concatenation"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [macro('SOME_STRING', IncludeType.TOKEN_CONCATENATION, null, [token(left), token(right)])]
+        macroFunctions.empty
+
+        where:
+        value           | left  | right
+        'A##B'          | 'A'   | 'B'
+        ' \tA  ##\tB  ' | 'A'   | 'B'
+        '_a$##h2_'      | '_a$' | 'h2_'
     }
 
     def "finds object-like macro directive whose value cannot be resolved"() {
@@ -651,7 +696,18 @@ st3"
         macroFunctions.empty
 
         where:
-        value << ["one two three", "a++", "one(two three)", "-12", "(X) #X", "A(1, B(2+2))"]
+        value << [
+            "one two three",
+            "a++",
+            "one(two three)",
+            "-12",
+            "(X) #X",
+            "A(1, B(2+2))",
+            "A(12)##@",
+            "A##",
+            'A##@',
+            '##B'
+        ]
     }
 
     def "handles various separators in an object-like macro directive"() {
@@ -780,6 +836,17 @@ st3"
         macroFunctions == [macroFunction('A', 'ABC_H(A, Z)')]
     }
 
+    def "finds function-like macro directive with no parameters whose body is token concatenation"() {
+        when:
+        sourceFile << """
+#define A() A ## Z
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [macroFunction('A', 'A##Z')]
+    }
+
     def "finds function-like macro directive with no parameters whose body cannot be resolved"() {
         when:
         sourceFile << """
@@ -791,7 +858,7 @@ st3"
         macroFunctions == [unresolvedMacroFunction('A', 0)]
 
         where:
-        definition << ['@', 'A(abc', 'A(1+2)', '"a12" 12 + 4']
+        definition << ['@', 'A(abc', 'A(1+2)', '"a12" 12 + 4', 'x##', 'a##~']
     }
 
     def "finds function-like macro directive with no parameters whose body is empty"() {
@@ -875,10 +942,10 @@ st3"
         macroFunctions == [expected]
 
         where:
-        body      | expected
-        "B()"     | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [])
-        "B(Z)"    | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [expression('Z')])
-        "B(X, Y)" | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], "B", [expression('X'), expression('Y')])
+        body             | expected
+        "B()"            | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [])
+        "B(Z)"           | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [expression('Z')])
+        "B(X, Y)"        | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], "B", [expression('X'), expression('Y')])
         "B(<a.h>, X, Y)" | new ArgsMappingMacroFunction("A", 2, [-1, 0, 1] as int[], "B", [expression('<a.h>'), expression('X'), expression('Y')])
     }
 
@@ -893,7 +960,7 @@ st3"
         macroFunctions == [unresolvedMacroFunction('A', 2)]
 
         where:
-        body << ['@', 'Defined(a.h)', 'A(B(C, D()))', '"abc" 12 + 5']
+        body << ['@', 'Defined(a.h)', 'A(B(C, D()))', '"abc" 12 + 5', 'A##~']
     }
 
     def "finds function-like macro directive with multiple parameters whose body is empty"() {

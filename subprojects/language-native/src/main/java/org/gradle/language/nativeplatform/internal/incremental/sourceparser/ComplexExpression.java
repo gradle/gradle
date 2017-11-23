@@ -16,32 +16,34 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import java.util.List;
 
 /**
- * An "object-like" macro #define whose body is a macro function call.
+ * A macro function call expression.
  */
-public class MacroWithMacroFunctionCallExpression extends AbstractMacro {
-    private final String macroName;
+class ComplexExpression extends AbstractExpression {
+    private final IncludeType type;
+    private final String value;
     private final List<Expression> arguments;
 
-    public MacroWithMacroFunctionCallExpression(String name, String macroName, List<Expression> arguments) {
-        super(name);
-        this.macroName = macroName;
+    ComplexExpression(IncludeType type, String value, List<Expression> arguments) {
+        this.type = type;
+        this.value = value;
         this.arguments = arguments;
     }
 
     @Override
     public String getValue() {
-        return macroName;
+        return value;
     }
 
     @Override
     public IncludeType getType() {
-        return IncludeType.MACRO_FUNCTION;
+        return type;
     }
 
     @Override
@@ -51,15 +53,18 @@ public class MacroWithMacroFunctionCallExpression extends AbstractMacro {
 
     @Override
     public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        MacroWithMacroFunctionCallExpression other = (MacroWithMacroFunctionCallExpression) obj;
-        return macroName.equals(other.macroName) && arguments.equals(other.arguments);
+        ComplexExpression other = (ComplexExpression) obj;
+        return Objects.equal(value, other.value) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ macroName.hashCode() ^ arguments.hashCode();
+        return type.hashCode() ^ (value == null ? 0 : value.hashCode()) ^ arguments.hashCode();
     }
 }
