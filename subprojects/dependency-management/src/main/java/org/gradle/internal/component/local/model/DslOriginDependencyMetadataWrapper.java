@@ -60,11 +60,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return delegate.getModuleConfigurations();
-    }
-
-    @Override
     public String getDependencyConfiguration() {
         return delegate.getDependencyConfiguration();
     }

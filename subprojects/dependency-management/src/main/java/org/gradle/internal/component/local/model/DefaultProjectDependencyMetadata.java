@@ -84,11 +84,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return delegate.getModuleConfigurations();
-    }
-
-    @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
     }

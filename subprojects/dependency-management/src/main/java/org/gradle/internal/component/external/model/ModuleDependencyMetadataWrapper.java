@@ -80,11 +80,6 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return delegate.getModuleConfigurations();
-    }
-
-    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }

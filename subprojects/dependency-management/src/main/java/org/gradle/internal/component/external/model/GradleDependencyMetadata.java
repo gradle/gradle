@@ -97,11 +97,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of();
-    }
-
-    @Override
     public boolean isChanging() {
         return false;
     }

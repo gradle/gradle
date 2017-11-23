@@ -84,6 +84,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return getOrDefaultConfiguration(dependencyConfiguration);
     }
 
+    private static String getOrDefaultConfiguration(String configuration) {
+        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+    }
+
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
@@ -109,15 +113,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             }
         }
         return ImmutableSet.of(toConfiguration);
-    }
-
-    private static String getOrDefaultConfiguration(String configuration) {
-        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
-    }
-
-    @Override
-    public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of(getOrDefaultConfiguration(moduleConfiguration));
     }
 
     @Override

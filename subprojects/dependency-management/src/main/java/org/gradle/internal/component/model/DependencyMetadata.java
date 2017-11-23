@@ -51,7 +51,6 @@ public interface DependencyMetadata {
     /**
      * Returns all excludes for this dependency.
      */
-    // TODO:DAZ Remove this: it doesn't belong on this key API
     List<Exclude> getExcludes();
 
     /**
@@ -64,11 +63,6 @@ public interface DependencyMetadata {
      * Select the target configurations for this dependency from the given target component.
      */
     Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
-
-    /**
-     * Returns the set of source configurations that this dependency should be attached to.
-     */
-    Set<String> getModuleConfigurations();
 
     boolean isChanging();
 

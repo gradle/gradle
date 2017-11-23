@@ -77,7 +77,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         then:
         copy != metadata
         copy.selector == selector
-        copy.moduleConfigurations == metadata.moduleConfigurations
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {

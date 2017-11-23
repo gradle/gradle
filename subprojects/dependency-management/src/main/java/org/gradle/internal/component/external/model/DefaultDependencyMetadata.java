@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata {
+public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata, ExternalOriginDependencyMetadata {
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;

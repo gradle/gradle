@@ -144,22 +144,25 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
 
     protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, @Nullable DependencyMetadataRules dependencyMetadataRules) {
         for (ModuleDependencyMetadata dependency : dependencies) {
-            if (include(dependency)) {
-                this.configDependencies.add(convert(dependency));
+            if (dependency instanceof DefaultDependencyMetadata) {
+                // For DefaultDependencyMetadata, need to check if it applies to this configuration, and contextualize
+                DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+                if (include(defaultDependencyMetadata)) {
+                    this.configDependencies.add(contextualize(defaultDependencyMetadata));
+                }
+            } else {
+                this.configDependencies.add(dependency);
             }
         }
         this.calculatedDependencies = null;
         this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
-    private ModuleDependencyMetadata convert(ModuleDependencyMetadata incoming) {
-        if (incoming instanceof DefaultDependencyMetadata) {
-            return new ConfigurationDependencyMetadataWrapper(this, componentId, (DefaultDependencyMetadata) incoming);
-        }
-        return incoming;
+    private ModuleDependencyMetadata contextualize(DefaultDependencyMetadata incoming) {
+        return new ConfigurationDependencyMetadataWrapper(this, componentId, incoming);
     }
 
-    private boolean include(DependencyMetadata dependency) {
+    private boolean include(ExternalOriginDependencyMetadata dependency) {
         Collection<String> hierarchy = getHierarchy();
         for (String moduleConfiguration : dependency.getModuleConfigurations()) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
