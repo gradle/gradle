@@ -85,15 +85,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 <h4 class="panel-title">
 gradle
 <br>
-<button type="button" data-toggle="collapse" data-parent="#accordion" href="#collapse1" class="btn btn-primary">Show details</button>
-</h4>
 ''')
         html.contains('''
 <h4 class="panel-title">
 kotlin
 <br>
-<button type="button" data-toggle="collapse" data-parent="#accordion" href="#collapse2" class="btn btn-primary">Show details</button>
-</h4>
 ''')
         html.contains('''
 <pre>
