@@ -62,8 +62,7 @@ public interface DependencyMetadata {
     /**
      * Select the target configurations for this dependency from the given target component.
      */
-    // TODO:DAZ - fromComponent should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
+    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.

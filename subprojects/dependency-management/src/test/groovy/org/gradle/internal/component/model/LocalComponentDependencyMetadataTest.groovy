@@ -71,9 +71,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "selects the target configuration from target component"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, "to", [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def toConfig = Stub(LocalConfigurationMetadata) {
             isCanBeConsumed() >> true
             getAttributes() >> attributes([:])
@@ -83,14 +81,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(attributes([:]), fromComponent, toComponent, attributesSchema) == [toConfig] as Set
+        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema) == [toConfig] as Set
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -115,7 +111,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -126,8 +122,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "revalidates default configuration if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, Dependency.DEFAULT_CONFIGURATION, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
             isCanBeResolved() >> true
@@ -147,7 +141,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("default") >> defaultConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'other'), fromComponent, toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'other'), toComponent, attributesSchema)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -157,8 +151,6 @@ Configuration 'default': Required key 'other' and found incompatible value 'noth
 
     def "revalidates explicit configuration selection if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, 'bar', [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -186,7 +178,7 @@ Configuration 'default': Required key 'other' and found incompatible value 'noth
         toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'something'), fromComponent, toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'something'), toComponent, attributesSchema)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -197,8 +189,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -233,7 +223,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -269,8 +259,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -305,7 +293,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -341,7 +329,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
     def "fails to select target configuration when not present in the target component"() {
         def fromId = Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
         def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, "to", [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         toComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
 
@@ -349,7 +336,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(attributes([:]), fromComponent, toComponent, attributesSchema)
+        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -402,8 +389,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -432,7 +417,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), fromComponent, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

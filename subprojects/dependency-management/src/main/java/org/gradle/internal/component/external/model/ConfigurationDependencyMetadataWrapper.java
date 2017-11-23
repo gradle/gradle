@@ -44,7 +44,7 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return defaultDependencyMetadata.getMetadataForConfigurations(consumerAttributes, consumerSchema, componentId, configuration, targetComponent);
     }
 
