@@ -27,8 +27,6 @@ import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -143,18 +141,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public boolean isOptional() {
         return false;
-    }
-
-    @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
-        if (artifactNames.isEmpty()) {
-            return Collections.emptySet();
-        }
-        Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
-        for (IvyArtifactName artifactName : artifactNames) {
-            artifacts.add(toConfiguration.artifact(artifactName));
-        }
-        return artifacts;
     }
 
     @Override

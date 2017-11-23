@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -92,11 +91,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public boolean isOptional() {
         return delegate.isOptional();
-    }
-
-    @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
-        return delegate.getArtifacts(toConfiguration);
     }
 
     @Override

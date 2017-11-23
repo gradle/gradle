@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -54,11 +53,6 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     @Override
     public Set<IvyArtifactName> getArtifacts() {
         return defaultDependencyMetadata.getConfigurationArtifacts(configuration);
-    }
-
-    @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
-        return defaultDependencyMetadata.getConfigurationArtifacts(configuration, toConfiguration);
     }
 
     @Override

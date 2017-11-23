@@ -55,11 +55,6 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata toConfiguration) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         throw new UnsupportedOperationException();
     }
