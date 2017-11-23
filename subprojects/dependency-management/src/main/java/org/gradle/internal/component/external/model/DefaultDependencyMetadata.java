@@ -54,17 +54,17 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     // TODO:DAZ Get rid of these: DefaultDependencyMetadata is not a _real_ `DependencyMetadata`
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
     public List<Exclude> getExcludes() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
     @Override
