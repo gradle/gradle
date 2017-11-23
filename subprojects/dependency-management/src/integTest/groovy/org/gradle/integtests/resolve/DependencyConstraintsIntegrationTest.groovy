@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -229,6 +228,139 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 constraints {
                     conf 'org:bar:1.1'
                 }
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "dependency constraints are inherited"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                confSuper
+                conf { extendsFrom confSuper }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+
+                constraints {
+                    confSuper 'org:foo:1.1'
+                }
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildFile << """
+            subprojects {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            project(':a') {
+                configurations {
+                    confA
+                }
+                dependencies {
+                    confA project(path: ':b', configuration: 'confB')
+                    confA 'org:foo:1.0'
+                }
+                task checkDeps {
+                    doLast {
+                        def files = configurations.confA*.name.sort()
+                        assert files == ['foo-1.1.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    confB
+                }
+                dependencies {
+                    constraints {
+                        confB 'org:foo:1.1'
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+
+        file('includeBuild/settings.gradle') << "rootProject.name = 'included'"
+        file('includeBuild/build.gradle') << """
+            group "org"
+            version "1.0"
+            
+            configurations {
+                conf
+                'default' { extendsFrom conf }
+            }
+            dependencies {
+                constraints {
+                    conf 'org:foo:1.1'
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild 'includeBuild'
+        """
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:included:1.0'
+                conf 'org:foo:1.0'
             }
             task checkDeps {
                 doLast {
