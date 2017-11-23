@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 import java.util.List;

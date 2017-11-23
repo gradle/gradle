@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

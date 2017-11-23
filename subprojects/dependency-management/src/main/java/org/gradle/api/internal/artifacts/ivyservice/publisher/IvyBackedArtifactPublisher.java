@@ -25,11 +25,11 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.BuildableIvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
