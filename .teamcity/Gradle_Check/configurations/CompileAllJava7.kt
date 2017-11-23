@@ -1,6 +1,7 @@
 package configurations
 
 import model.CIBuildModel
+import model.OS
 
 class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
     uuid = "${model.projectPrefix}CompileAllJava7"
@@ -18,5 +19,5 @@ class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
         }
     }
 
-    applyDefaults(model, this, "compileAll", extraParameters = "-DenableCodeQuality=true --parallel")
+    applyDefaults(model, this, "compileAll", os = OS.windows, extraParameters = "-DenableCodeQuality=true --parallel")
 }, usesParentBuildCache = true)
