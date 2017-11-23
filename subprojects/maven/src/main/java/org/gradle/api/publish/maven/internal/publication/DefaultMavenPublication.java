@@ -36,11 +36,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -95,6 +98,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ExperimentalFeatures experimentalFeatures;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
     private FileCollection pomFile;
     private FileCollection moduleMetadataFile;
     private SoftwareComponentInternal component;
@@ -104,11 +108,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public DefaultMavenPublication(
         String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ExperimentalFeatures experimentalFeatures
-    ) {
+        ExperimentalFeatures experimentalFeatures,
+        ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
+        this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
         this.experimentalFeatures = experimentalFeatures;
@@ -369,7 +374,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Nullable
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        String version = getMavenProjectIdentity().getVersion();
+        String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
+        return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
     }
 
     /*

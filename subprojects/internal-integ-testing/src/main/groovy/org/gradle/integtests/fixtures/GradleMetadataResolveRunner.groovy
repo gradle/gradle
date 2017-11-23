@@ -29,11 +29,11 @@ class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
         super(target, [(GRADLE_METADATA): booleanFeature("Gradle metadata"), (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')])
     }
 
-    static isGradleMetadataEnabled() {
+    static boolean isGradleMetadataEnabled() {
         System.getProperty(GRADLE_METADATA) == "true"
     }
 
-    static useIvy() {
+    static boolean useIvy() {
         System.getProperty(REPOSITORY_TYPE) == "ivy"
     }
 }

@@ -38,6 +38,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -393,7 +394,7 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), new ExperimentalFeatures())
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), new ExperimentalFeatures(), TestUtil.attributesFactory())
         publication.setPomFile(new SimpleFileCollection(pomFile))
         publication.setGradleModuleMetadataFile(new SimpleFileCollection(gradleMetadataFile))
         return publication;
