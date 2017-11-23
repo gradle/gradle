@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import java.util.regex.Pattern
 import org.gradle.testing.DistributionTest
+import org.gradle.testing.LeakingProcessKillPattern
 import org.gradle.util.GradleVersion
 
 ext.distributionTestTasks = tasks.withType(DistributionTest)
@@ -243,7 +243,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))).+)"
+    String queryString = LeakingProcessKillPattern.generate(rootProject.projectDir.absolutePath, rootProject.buildDir.absolutePath)
     def output = new ByteArrayOutputStream()
     def error = new ByteArrayOutputStream()
     def pidPattern
