@@ -161,7 +161,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         fails("pluginTask")
 
         then:
-        !failure.output.contains(repoType)
+        !failure.normalizedOutput.contains(repoType)
 
         where:
         repoType << [IVY, MAVEN]

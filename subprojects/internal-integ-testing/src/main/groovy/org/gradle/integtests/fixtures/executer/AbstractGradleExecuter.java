@@ -1150,10 +1150,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                         assertDeprecationWarningExists(displayName, i, line, output);
                     } else if (line.matches(".*\\s+deprecated.*")) {
-                        i++;
                         assertDeprecationWarningExists(displayName, i, line, output);
                         expectedDeprecationWarnings--;
                         // skip over stack trace
+                        i++;
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }

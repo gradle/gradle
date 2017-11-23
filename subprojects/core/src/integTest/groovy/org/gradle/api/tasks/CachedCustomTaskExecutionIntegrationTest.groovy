@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -255,6 +257,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """.stripIndent()
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "optional file output is not stored when there is no output"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
@@ -320,6 +323,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "plural output files are only restored when map keys match"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"

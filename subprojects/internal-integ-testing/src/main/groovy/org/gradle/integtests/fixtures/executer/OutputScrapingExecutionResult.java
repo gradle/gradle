@@ -129,8 +129,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (DEPRECATION_REPORT_PATTERN.matcher(line).matches()) {
                 i++;
-                result.append(line.replaceAll("See the report at.*", ""));
-                result.append("\n");
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');

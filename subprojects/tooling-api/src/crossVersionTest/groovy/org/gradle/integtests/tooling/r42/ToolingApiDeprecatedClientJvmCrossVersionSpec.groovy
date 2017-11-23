@@ -62,7 +62,7 @@ public class TestClient {
     public static void main(String[] args) throws Exception {
         GradleConnector.newConnector().forProjectDirectory(new File("."))
             .useDistribution(new java.net.URI("${buildContext.currentDevDistribution().binDistribution.toURI()}"))
-            .useGradleUserHomeDir(new File("${buildContext.gradleUserHomeDir.replace(File.separator, "/")}"))
+            .useGradleUserHomeDir(new File("${buildContext.gradleUserHomeDir.toString().replace(File.separator,"/")}"))
             .connect()
             .newBuild()
             .forTasks("help")
