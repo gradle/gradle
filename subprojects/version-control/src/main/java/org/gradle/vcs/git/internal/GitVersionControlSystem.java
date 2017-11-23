@@ -19,6 +19,7 @@ package org.gradle.vcs.git.internal;
 import com.google.common.collect.Sets;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
@@ -51,9 +52,9 @@ public class GitVersionControlSystem implements VersionControlSystem {
         // TODO: Assuming the default branch for the repository
         File dbDir = new File(workingDir, ".git");
         if (dbDir.exists() && dbDir.isDirectory()) {
-            updateRepo(workingDir, gitSpec);
+            updateRepo(workingDir, gitSpec, ref);
         } else {
-            cloneRepo(workingDir, gitSpec);
+            cloneRepo(workingDir, gitSpec, ref);
         }
         return workingDir;
     }
@@ -76,17 +77,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
             // The HEAD reference in a Git Repository is a logical choice if the user is looking
             // for the 'latest.integration' version of a dependency.
             if (gitRef.getVersion().equals("HEAD")) {
-                versions.add(GitVersionRef.from("latest.integration", gitRef.getCanonicalId()));
+                versions.add(GitVersionRef.from(VersionRef.LATEST_INTEGRATION, gitRef.getCanonicalId()));
             }
         }
         return versions;
     }
 
-    private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         CloneCommand clone = Git.cloneRepository().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
         Git git = null;
         try {
             git = clone.call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (GitAPIException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } catch (JGitInternalException e) {
@@ -98,11 +100,12 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private static void updateRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void updateRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.pull().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
+            git.fetch().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (URISyntaxException e) {

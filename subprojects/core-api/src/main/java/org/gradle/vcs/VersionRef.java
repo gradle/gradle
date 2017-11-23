@@ -27,6 +27,13 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface VersionRef {
     /**
+     * Human-readable string for latest integration version.
+     *
+     * @since 4.5
+     */
+    static final String LATEST_INTEGRATION = "latest.integration";
+
+    /**
      * Returns a human-readable version of the software component.
      */
     String getVersion();
