@@ -46,8 +46,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder, with minor changes: 1) Do not create artifact for empty classifier. (Previously did so for all non-null
@@ -73,7 +71,6 @@ public class GradlePomModuleDescriptorBuilder {
         .put("test", MavenScope.Test)
         .put("system", MavenScope.System)
         .build();
-    private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
     private static final String[] WILDCARD = new String[]{"*"};
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
@@ -105,15 +102,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void setModuleRevId(String group, String module, String version) {
-        String effectiveVersion = version;
-        if (version != null) {
-            Matcher matcher = TIMESTAMP_PATTERN.matcher(version);
-            if (matcher.matches()) {
-                effectiveVersion = matcher.group(1) + "-SNAPSHOT";
-            }
-        }
-
-        status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
+        String effectiveVersion = MavenVersionUtils.toEffectiveVersion(version);
+        status = MavenVersionUtils.inferStatusFromEffectiveVersion(version);
         componentIdentifier = DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion);
     }
 

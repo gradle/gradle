@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.Publication;
@@ -76,17 +77,19 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
     private final ExperimentalFeatures experimentalFeatures;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
                               ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                              ExperimentalFeatures experimentalFeatures) {
+                              ExperimentalFeatures experimentalFeatures, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.experimentalFeatures = experimentalFeatures;
+        this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
     public void apply(final Project project) {
@@ -217,7 +220,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, experimentalFeatures
+                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, experimentalFeatures, immutableAttributesFactory
             );
         }
     }
