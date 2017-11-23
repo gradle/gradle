@@ -58,8 +58,15 @@ mainClassName = 'TestClient'
 import org.gradle.tooling.GradleConnector;
 
 public class TestClient {
-    public static void main(String[] args) {
-        GradleConnector.newConnector();
+    public static void main(String[] args) throws Exception {
+        GradleConnector.newConnector().forProjectDirectory(new java.io.File("."))
+            .useDistribution(new java.net.URI("${buildContext.currentDevDistribution().binDistribution.toURI()}"))
+            .connect()
+            .newBuild()
+            .forTasks("help")
+            .setStandardOutput(System.out)
+            .setStandardError(System.out)
+            .run();
         System.exit(0);
     }
 }

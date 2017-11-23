@@ -94,6 +94,10 @@ public class IntegrationTestBuildContext {
         return fatToolingApiJar;
     }
 
+    public GradleDistribution currentDevDistribution() {
+        return distribution(getVersion().getVersion());
+    }
+
     public GradleDistribution distribution(String version) {
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();
