@@ -154,6 +154,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         configureAction.execute(dependencyConstraintHandler);
     }
 
+    @Override
+    public DependencyConstraintHandler getConstraints() {
+        return dependencyConstraintHandler;
+    }
+
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
         configureAction.execute(getComponents());
     }

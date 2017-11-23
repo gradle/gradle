@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -48,7 +48,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
             nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName()), dependencyConstraint.getVersionConstraint());
         return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, null,
-            Collections.<IvyArtifactName>emptySet(), Collections.<Exclude>emptyList(), false, false, true, true);
+            Collections.<IvyArtifactName>emptySet(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true);
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

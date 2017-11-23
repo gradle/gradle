@@ -338,9 +338,18 @@ public interface DependencyHandler {
     Dependency localGroovy();
 
     /**
+     * Returns the dependency constraint handler for this project.
+     *
+     * @return the dependency constraint handler for this project
+     * @since 4.5
+     */
+    @Incubating
+    DependencyConstraintHandler getConstraints();
+
+    /**
      * Configures dependency constraint for this project.
      *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.DependencyConstraintHandler} for this project.
+     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.DependencyConstraintHandler} for this project.</p>
      *
      * @param configureAction the action to use to configure module metadata
      * @since 4.5
@@ -361,7 +370,7 @@ public interface DependencyHandler {
     /**
      * Configures component metadata for this project.
      *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.
+     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.</p>
      *
      * @param configureAction the action to use to configure module metadata
      * @since 1.8
