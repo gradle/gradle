@@ -20,6 +20,9 @@ package org.gradle.api.internal.changedetection.state;
  * An immutable snapshot of some aspects of a file's metadata and content.
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
+ * Comparisons are very frequent, so these methods need to be fast.
+ *
+ * File snapshots are cached between builds, so their memory footprint should be kept to a minimum.
  */
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
     String getNormalizedPath();
