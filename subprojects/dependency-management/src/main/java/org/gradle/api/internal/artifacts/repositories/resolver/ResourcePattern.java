@@ -50,12 +50,18 @@ public interface ResourcePattern {
     ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier);
 
     /**
-     * Checks if the given organisation and module values are sufficient to bind the [organisation] and [module] tokens in the pattern.
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
      */
     boolean isComplete(ModuleIdentifier moduleIdentifier);
 
     /**
-     * Checks if the given organisation, module and revision values are sufficient to bind the [organisation], [module] and [revision] tokens in the pattern.
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
      */
     boolean isComplete(ModuleComponentIdentifier componentIdentifier);
+
+    /**
+     * Checks if the given identifier contains sufficient information to bind the tokens in this pattern.
+     */
+    boolean isComplete(ModuleComponentArtifactMetadata id);
+
 }

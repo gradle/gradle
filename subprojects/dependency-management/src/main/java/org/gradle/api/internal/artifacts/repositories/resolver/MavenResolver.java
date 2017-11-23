@@ -197,7 +197,7 @@ public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<M
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module, ResourceAwareResolveResult result) {
         M2ResourcePattern wholePattern = getWholePattern();
         if (!wholePattern.isComplete(module)) {
-            //do not attempt to download maven-metadata.xml fo incomplete identifiers
+            //do not attempt to download maven-metadata.xml for incomplete identifiers
             return null;
         }
         ExternalResourceName metadataLocation = wholePattern.toModuleVersionPath(module).resolve("maven-metadata.xml");

@@ -151,6 +151,6 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     }
 
     private boolean isIncomplete(ResourcePattern resourcePattern, ModuleComponentArtifactMetadata artifact) {
-        return !resourcePattern.isComplete(artifact.getId().getComponentIdentifier());
+        return !resourcePattern.isComplete(artifact);
     }
 }
