@@ -36,6 +36,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -76,6 +77,8 @@ public class JavaLibrary implements SoftwareComponentInternal {
      */
     @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
+        DeprecationLogger.nagUserOfDeprecatedThing("A constructor for `org.gradle.api.internal.java.JavaLibrary` is used by Shadow plugin v1.2.x, and has been preserved for compatibility",
+            "If you're using the Shadow plugin, try upgrading to v2.x");
         this.artifacts.add(jarArtifact);
         this.objectFactory = DEPRECATED_OBJECT_FACTORY;
         this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory());
