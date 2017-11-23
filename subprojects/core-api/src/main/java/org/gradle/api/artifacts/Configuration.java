@@ -384,7 +384,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * configurations['conf'].withDependencies { dependencies -&gt;
      *      dependencies.each { dependency -&gt;
      *          if (dependency.version == null) {
-     *              dependency.version = '1.0'
+     *              dependency.version { prefer '1.0' }
      *          }
      *      }
      * }
