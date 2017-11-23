@@ -23,7 +23,28 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A dependency that can participate in dependency resolution.
+ * Note that various subtypes provide additional details, but these are not required by the core resolution engine.
+ */
 public interface DependencyMetadata {
+    /**
+     * Returns the component selector for this dependency.
+     *
+     * @return Component selector
+     */
+    ComponentSelector getSelector();
+
+    /**
+     * Select the target configurations for this dependency from the given target component.
+     */
+    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
+
+    /**
+     * Returns a view of the excludes filtered for this dependency in this configuration.
+     */
+    List<Exclude> getExcludes();
+
     /**
      * Returns the artifacts referenced by this dependency, if any.
      * When a dependency references artifacts, those artifacts are used in place of the default artifacts of the target component.
@@ -37,27 +58,19 @@ public interface DependencyMetadata {
     DependencyMetadata withTarget(ComponentSelector target);
 
     /**
-     * Returns the component selector for this dependency.
-     *
-     * @return Component selector
+     * Is the target component of this dependency considered 'changing'.
      */
-    ComponentSelector getSelector();
-
-    /**
-     * Returns a view of the excludes filtered for this dependency in this configuration.
-     */
-    List<Exclude> getExcludes();
-
-    /**
-     * Select the target configurations for this dependency from the given target component.
-     */
-    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
-
     boolean isChanging();
 
+    /**
+     * Should the dependency be resolved transitively?
+     * A false value is effectively equivalent to a wildcard exclusion.
+     */
     boolean isTransitive();
 
-    boolean isForce();
-
+    /**
+     * Is this a strong dependency, does it is merely a constraint on the module to select if brought in
+     * by another dependency? ("Optional" dependencies are "constraints")
+     */
     boolean isOptional();
 }

@@ -79,11 +79,6 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public boolean isForce() {
-        return delegate.isForce();
-    }
-
-    @Override
     public boolean isOptional() {
         return delegate.isOptional();
     }

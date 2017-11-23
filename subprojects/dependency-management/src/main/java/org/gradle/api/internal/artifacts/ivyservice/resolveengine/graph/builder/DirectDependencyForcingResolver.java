@@ -20,6 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolv
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collection;
 
@@ -36,7 +38,9 @@ class DirectDependencyForcingResolver implements ModuleConflictResolver {
         for (NodeState configuration : root.getNodes()) {
             for (EdgeState outgoingEdge : configuration.getOutgoingEdges()) {
                 ComponentState targetComponent = outgoingEdge.getTargetComponent();
-                if (outgoingEdge.getDependencyMetadata().isForce() && candidates.contains(targetComponent)) {
+                DependencyMetadata dependencyMetadata = outgoingEdge.getDependencyMetadata();
+                assert dependencyMetadata instanceof LocalOriginDependencyMetadata; // Will always be true because we are looking at direct dependencies only
+                if (((LocalOriginDependencyMetadata) dependencyMetadata).isForce() && candidates.contains(targetComponent)) {
                     targetComponent.setSelectionReason(VersionSelectionReasons.FORCED);
                     details.select(Cast.<T>uncheckedCast(targetComponent));
                     return;

@@ -125,7 +125,6 @@ public class IvyModuleDescriptorConverter {
         result.add(new IvyDependencyMetadata(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
-            false,
             dependencyDescriptor.isChanging(),
             dependencyDescriptor.isTransitive(),
             false,

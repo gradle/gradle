@@ -47,12 +47,12 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     IvyDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
-        return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), [], excludes)
+        return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), [], excludes)
     }
 
     @Override
     DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
-        return new IvyDependencyMetadata(selector, "12", false, false, true, false, ImmutableListMultimap.of(), artifacts, [])
+        return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), artifacts, [])
     }
 
     def "excludes nothing when no exclude rules provided"() {
@@ -112,7 +112,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         fromConfig.name >> "from"
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, ImmutableListMultimap.of(), [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent).empty
     }
 
@@ -132,7 +132,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2] // verify order as well
     }
 
@@ -152,7 +152,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
     }
 
@@ -173,7 +173,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("*", "to-2")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
     }
@@ -200,7 +200,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other", "unknown")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
     }
 
@@ -224,7 +224,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("from", "to-1")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2]
@@ -252,7 +252,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("*", "to-3")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig3]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1, toConfig3]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2, toConfig3]
@@ -282,7 +282,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("other2", "to-2(unknown)")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig3, toComponent) as List == [toConfig2]
@@ -302,7 +302,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("a", "@")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig1]
     }
@@ -325,7 +325,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put("a", "#")
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
     }
@@ -348,7 +348,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         configMapping.put(lhs, rhs)
 
         expect:
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent) as List == [toConfig1]
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig2, toComponent) as List == [toConfig2]
 
@@ -378,7 +378,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def configMapping = LinkedHashMultimap.create()
         configMapping.put(lhs, rhs)
 
-        def metadata = new IvyDependencyMetadata(requested, "12", true, true, true, false, configMapping, [], [])
+        def metadata = new IvyDependencyMetadata(requested, "12", true, true, false, configMapping, [], [])
 
         when:
         metadata.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromConfig, toComponent)

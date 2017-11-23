@@ -63,11 +63,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public boolean isForce() {
-        return delegate.isForce();
-    }
-
-    @Override
     public boolean isOptional() {
         return false;
     }

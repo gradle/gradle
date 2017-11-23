@@ -72,11 +72,6 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         return true;
     }
 
-    @Override
-    public boolean isForce() {
-        return false;
-    }
-
     public Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");

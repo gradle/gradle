@@ -249,7 +249,6 @@ public class ModuleMetadataSerializer {
                 writeArtifacts(ivyDependency.getDependencyArtifacts());
                 writeExcludeRules(ivyDependency.getAllExcludes());
                 writeString(ivyDependency.getDynamicConstraintVersion());
-                writeBoolean(ivyDependency.isForce());
                 writeBoolean(ivyDependency.isChanging());
                 writeBoolean(ivyDependency.isTransitive());
                 writeBoolean(ivyDependency.isOptional());
@@ -412,7 +411,6 @@ public class ModuleMetadataSerializer {
         private ImmutableList<Exclude> readVariantDependencyExcludes() throws IOException {
             ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
             int len = readCount();
-            List<Exclude> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
                 String group = readString();
                 String module = readString();
@@ -511,11 +509,10 @@ public class ModuleMetadataSerializer {
                     List<Artifact> artifacts = readDependencyArtifactDescriptors();
                     List<Exclude> excludes = readDependencyExcludes();
                     String dynamicConstraintVersion = readString();
-                    boolean force = readBoolean();
                     boolean changing = readBoolean();
                     boolean transitive = readBoolean();
                     boolean optional = readBoolean();
-                    return new IvyDependencyMetadata(requested, dynamicConstraintVersion, force, changing, transitive,  optional, configMappings, artifacts, excludes);
+                    return new IvyDependencyMetadata(requested, dynamicConstraintVersion, changing, transitive,  optional, configMappings, artifacts, excludes);
                 case TYPE_MAVEN:
                     artifacts = readDependencyArtifactDescriptors();
                     excludes = readDependencyExcludes();

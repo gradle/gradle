@@ -38,16 +38,14 @@ import java.util.Set;
 
 public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     private final String dynamicConstraintVersion;
-    private final boolean force;
     private final boolean changing;
     private final boolean transitive;
     private final SetMultimap<String, String> confs;
     private final List<Exclude> excludes;
 
-    public IvyDependencyMetadata(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public IvyDependencyMetadata(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
         super(selector, artifacts, optional);
         this.dynamicConstraintVersion = dynamicConstraintVersion;
-        this.force = force;
         this.changing = changing;
         this.transitive = transitive;
         this.confs = ImmutableSetMultimap.copyOf(confMappings);
@@ -55,7 +53,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     public IvyDependencyMetadata(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
-        this(requested, requested.getVersionConstraint().getPreferredVersion(), false, false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
+        this(requested, requested.getVersionConstraint().getPreferredVersion(), false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
     }
 
     @Override
@@ -65,7 +63,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
-        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
+        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 
     @Override
@@ -76,11 +74,6 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     @Override
     public boolean isTransitive() {
         return transitive;
-    }
-
-    @Override
-    public boolean isForce() {
-        return force;
     }
 
     public String getDynamicConstraintVersion() {

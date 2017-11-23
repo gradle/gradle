@@ -96,11 +96,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public boolean isForce() {
-        return false;
-    }
-
-    @Override
     public boolean isOptional() {
         return false;
     }
