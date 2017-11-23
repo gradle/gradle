@@ -21,7 +21,7 @@ import org.eclipse.jgit.api.Git
 class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Santa Tracker Android application"() {
-        def testRepoUri = "https://github.com/lptr/android-relocation-test"
+        def testRepoUri = "https://github.com/gradle/android-relocation-test"
         def testRepoBranch = "master"
 
         def projectDir = testProjectDir.root
