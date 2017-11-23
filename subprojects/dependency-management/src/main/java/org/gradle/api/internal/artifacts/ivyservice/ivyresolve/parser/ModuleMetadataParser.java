@@ -24,8 +24,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
@@ -33,6 +36,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.IOException;
@@ -45,13 +49,15 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.*;
 
 public class ModuleMetadataParser {
-    public static final String FORMAT_VERSION = "0.2";
+    public static final String FORMAT_VERSION = "0.3";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
+    private final ExcludeRuleConverter excludeRuleConverter;
 
-    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
+        this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
     public void parse(final LocallyAvailableExternalResource resource, final MutableComponentVariantResolveMetadata metadata) {
@@ -149,7 +155,7 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes);
         }
     }
 
@@ -171,7 +177,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version)));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<Exclude>of()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -182,6 +188,7 @@ public class ModuleMetadataParser {
             String group = null;
             String module = null;
             VersionConstraint version = null;
+            ImmutableList<Exclude> excludes = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -190,11 +197,13 @@ public class ModuleMetadataParser {
                     module = reader.nextString();
                 } else if (name.equals("version")) {
                     version = consumeVersion(reader);
+                } else if (name.equals("excludes")) {
+                    excludes = consumeExcludes(reader);
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version));
+            dependencies.add(new ModuleDependency(group, module, version, excludes));
             reader.endObject();
         }
         reader.endArray();
@@ -219,6 +228,31 @@ public class ModuleMetadataParser {
         }
         reader.endObject();
         return DefaultImmutableVersionConstraint.of(preferred, rejects);
+    }
+
+    private ImmutableList<Exclude> consumeExcludes(JsonReader reader) throws IOException {
+        ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            reader.beginObject();
+            String group = null;
+            String module = null;
+            while (reader.peek() != END_OBJECT) {
+                String name = reader.nextName();
+                if (name.equals("group")) {
+                    group = reader.nextString();
+                } else if (name.equals("module")) {
+                    module = reader.nextString();
+                } else {
+                    consumeAny(reader);
+                }
+            }
+            reader.endObject();
+            Exclude exclude = excludeRuleConverter.createExcludeRule(group, module);
+            builder.add(exclude);
+        }
+        reader.endArray();
+        return builder.build();
     }
 
     private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
@@ -286,11 +320,13 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
+        final ImmutableList<Exclude> excludes;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<Exclude> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.excludes = excludes;
         }
     }
 }

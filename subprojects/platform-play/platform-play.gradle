@@ -1,4 +1,3 @@
-apply plugin: "groovy"
 
 // Compiler daemon
 sourceCompatibility = 1.6

@@ -336,6 +336,35 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         succeedsDependencyResolution()
     }
 
+    /**
+     * Ivy module exclusions may define one or more configurations to apply to.
+     * Configuration exclusions are inherited.
+     * Dependency graph:
+     * a -> b, c
+     */
+    @Issue("GRADLE-3275")
+    def "module excludes apply to specified configurations"() {
+        given:
+        IvyModule moduleA = ivyRepo.module('a')
+            .configuration('other')
+            .dependsOn('b').dependsOn('c').dependsOn('d')
+        ivyRepo.module('b').publish()
+        ivyRepo.module('c').publish()
+        ivyRepo.module('d').publish()
+
+        addExcludeRuleToModule(moduleA, [module: 'b', conf: 'other'])
+        addExcludeRuleToModule(moduleA, [module: 'c', conf: 'runtime'])
+        addExcludeRuleToModule(moduleA, [module: 'd', conf: 'default'])
+
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar'])
+    }
+
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {
         if (!excludeAttributes.containsKey("matcher")) {
             excludeAttributes.put("matcher", "exact")

@@ -108,11 +108,15 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.moduleMetadata.expectParentCheckdir()
+        module.moduleMetadata.expectFileUpload()
+        module.moduleMetadata.sha1.expectParentCheckdir()
+        module.moduleMetadata.sha1.expectFileUpload()
 
         then:
         succeeds 'publish'
 
-        module.assertIvyAndJarFilePublished()
+        module.assertMetadataAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         where:
@@ -167,11 +171,15 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.moduleMetadata.expectParentCheckdir()
+        module.moduleMetadata.expectFileUpload()
+        module.moduleMetadata.sha1.expectParentCheckdir()
+        module.moduleMetadata.sha1.expectFileUpload()
 
         then:
         succeeds 'publish'
 
-        module.assertIvyAndJarFilePublished()
+        module.assertMetadataAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         where:

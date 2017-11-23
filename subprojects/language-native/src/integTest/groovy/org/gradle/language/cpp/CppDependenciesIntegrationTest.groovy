@@ -97,7 +97,7 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
     private writeApp() {
         app.main.writeToProject(file("app"))
         file("app/build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             group = 'org.gradle.cpp'
             version = '1.0'
 

@@ -48,7 +48,7 @@ import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import java.util.concurrent.Callable;
 
 /**
- * A common base plugin for the Swift executable and library plugins
+ * A common base plugin for the Swift application and library plugins
  *
  * @since 4.1
  */

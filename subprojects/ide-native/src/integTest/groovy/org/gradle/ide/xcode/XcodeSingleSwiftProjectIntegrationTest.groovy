@@ -28,10 +28,10 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def "can create xcode project for Swift executable"() {
+    def "can create xcode project for Swift application"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         def app = new SwiftApp()
@@ -89,10 +89,10 @@ apply plugin: 'swift-library'
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
-    def "can create xcode project for Swift executable with xctest"() {
+    def "can create xcode project for Swift application with xctest"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 apply plugin: 'xctest'
 """
 
@@ -157,12 +157,12 @@ apply plugin: 'xctest'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "returns meaningful errors from xcode when Swift executable product doesn't have test configured"() {
+    def "returns meaningful errors from xcode when Swift application product doesn't have test configured"() {
         useXcodebuildTool()
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         def lib = new SwiftLib()
@@ -300,7 +300,7 @@ apply plugin: 'xctest'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can run tests for Swift executable from xcode"() {
+    def "can run tests for Swift application from xcode"() {
         useXcodebuildTool()
         def app = new SwiftAppWithXCTest()
 
@@ -309,7 +309,7 @@ apply plugin: 'xctest'
 rootProject.name = 'app'
 """
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 apply plugin: 'xctest'
 """
 
@@ -331,13 +331,13 @@ apply plugin: 'xctest'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift executable from xcode"() {
+    def "can build Swift application from xcode"() {
         useXcodebuildTool()
         def app = new SwiftApp()
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
@@ -376,7 +376,7 @@ apply plugin: 'swift-executable'
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
@@ -399,7 +399,7 @@ apply plugin: 'swift-executable'
 
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         app.writeToProject(testDirectory)
@@ -465,7 +465,7 @@ apply plugin: 'swift-library'
     def "adds new source files in the project"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -488,7 +488,7 @@ apply plugin: 'swift-executable'
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -509,12 +509,12 @@ apply plugin: 'swift-executable'
         rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
-    def "includes source files in a non-default location in Swift executable project"() {
+    def "includes source files in a non-default location in Swift application project"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 
-executable {
+application {
     source.from 'Sources'
 }
 """
@@ -552,9 +552,9 @@ library {
     def "honors changes to executable output file locations"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 buildDir = 'output'
-executable.module = 'TestApp'
+application.module = 'TestApp'
 """
 
         def app = new SwiftApp()

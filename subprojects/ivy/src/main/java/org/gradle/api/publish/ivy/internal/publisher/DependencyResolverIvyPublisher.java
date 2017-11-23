@@ -26,6 +26,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.io.File;
+
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
@@ -39,8 +41,15 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
             publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
         }
 
-        IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-        publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
+        IvyArtifactName ivyDescriptor = new DefaultIvyArtifactName("ivy", "ivy", "xml");
+        publishMetaData.addArtifact(ivyDescriptor, publication.getIvyDescriptorFile());
+
+        File gradleModuleDescriptorFile = publication.getGradleModuleDescriptorFile();
+        if (gradleModuleDescriptorFile != null && gradleModuleDescriptorFile.exists()) {
+            // may not exist if experimental features are disabled
+            IvyArtifactName gradleDescriptor = new DefaultIvyArtifactName(projectIdentity.getModule(), "json", "module");
+            publishMetaData.addArtifact(gradleDescriptor, gradleModuleDescriptorFile);
+        }
 
         publisher.publish(publishMetaData);
     }
@@ -48,4 +57,6 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
     private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
         return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
     }
+
+
 }

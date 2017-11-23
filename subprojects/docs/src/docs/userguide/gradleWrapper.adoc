@@ -164,7 +164,7 @@ You can download the `.sha256` file by clicking on one of the `sha256` links on 
 
 The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
 
-Add the downloaded hash sum to the `gradle-wrapper.properties` using the `distributionSha256Sum` property.
+Add the downloaded hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line.
 
 .Configuring SHA-256 checksum verification
 ====

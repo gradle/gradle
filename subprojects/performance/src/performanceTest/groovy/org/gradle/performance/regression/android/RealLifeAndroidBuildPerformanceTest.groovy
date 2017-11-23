@@ -29,7 +29,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumVersion = "3.4"
+        runner.minimumVersion = "4.3.1"
         runner.targetVersions = ["4.5-20171117235935+0000"]
 
         when:
@@ -43,8 +43,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         'k9AndroidBuild'    | '512m' | false    | null       | null | 'help'
         'k9AndroidBuild'    | '512m' | false    | null       | null | 'assembleDebug'
         'k9AndroidBuild'    | '512m' | false    | null       | null | 'clean k9mail:assembleDebug'
-        'largeAndroidBuild' | '2g'   | true     | null       | null | 'help'
-        'largeAndroidBuild' | '2g'   | true     | null       | null | 'assembleDebug'
-        'largeAndroidBuild' | '2g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
+        'largeAndroidBuild' | '4g'   | true     | null       | null | 'help'
+        'largeAndroidBuild' | '4g'   | true     | null       | null | 'assembleDebug'
+        'largeAndroidBuild' | '4g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
     }
 }

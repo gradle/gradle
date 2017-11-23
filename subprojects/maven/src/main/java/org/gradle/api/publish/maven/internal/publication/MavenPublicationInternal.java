@@ -31,6 +31,8 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     void setPomFile(FileCollection pomFile);
 
+    void setGradleModuleMetadataFile(FileCollection metadatafile);
+
     FileCollection getPublishableFiles();
 
     MavenProjectIdentity getMavenProjectIdentity();

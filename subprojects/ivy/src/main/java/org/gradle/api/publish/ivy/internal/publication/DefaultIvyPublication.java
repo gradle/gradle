@@ -27,8 +27,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -49,6 +51,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -81,19 +84,22 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private FileCollection descriptorFile;
+    private final ExperimentalFeatures experimentalFeatures;
+    private FileCollection ivyDescriptorFile;
+    private FileCollection gradleModuleDescriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
 
     public DefaultIvyPublication(
         String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory) {
+        ImmutableAttributesFactory immutableAttributesFactory, ExperimentalFeatures experimentalFeatures) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         this.immutableAttributesFactory = immutableAttributesFactory;
+        this.experimentalFeatures = experimentalFeatures;
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
@@ -113,8 +119,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return descriptor;
     }
 
-    public void setDescriptorFile(FileCollection descriptorFile) {
-        this.descriptorFile = descriptorFile;
+    public void setIvyDescriptorFile(FileCollection descriptorFile) {
+        this.ivyDescriptorFile = descriptorFile;
+    }
+
+    public void setGradleModuleDescriptorFile(FileCollection descriptorFile) {
+        this.gradleModuleDescriptorFile = descriptorFile;
     }
 
     public void descriptor(Action<? super IvyModuleDescriptorSpec> configure) {
@@ -246,7 +256,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return new UnionFileCollection(ivyArtifacts.getFiles(), descriptorFile);
+        return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile, gradleModuleDescriptorFile);
     }
 
     public IvyPublicationIdentity getIdentity() {
@@ -258,14 +268,35 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(name, getIdentity(), getDescriptorFile(), ivyArtifacts);
+        return new IvyNormalizedPublication(name, getIdentity(), assertDescriptorFile(ivyDescriptorFile), maybeGradleDescriptorFile(), ivyArtifacts);
     }
 
-    private File getDescriptorFile() {
-        if (descriptorFile == null) {
+    private File maybeGradleDescriptorFile() {
+        if (gradleModuleDescriptorFile == null) {
+            // possible if experimental features are disabled
+            return null;
+        }
+        return gradleModuleDescriptorFile.getSingleFile();
+    }
+
+    @Override
+    public boolean canPublishModuleMetadata() {
+        if (getComponent() == null) {
+            // Cannot yet publish module metadata without component
+            return false;
+        }
+        if (getComponent() instanceof ComponentWithVariants) {
+            // Always publish `ComponentWithVariants`
+            return true;
+        }
+        return experimentalFeatures.isEnabled();
+    }
+
+    private static File assertDescriptorFile(FileCollection ref) {
+        if (ref == null) {
             throw new IllegalStateException("descriptorFile not set for publication");
         }
-        return descriptorFile.getSingleFile();
+        return ref.getSingleFile();
     }
 
     public ModuleVersionIdentifier getCoordinates() {
@@ -277,8 +308,40 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, getDescriptor().getStatus());
     }
 
+    private String getPublishedUrl(PublishArtifact source) {
+        return getArtifactFileName(source.getClassifier(), source.getExtension());
+    }
+
+    private String getArtifactFileName(String classifier, String extension) {
+        StringBuilder artifactPath = new StringBuilder();
+        ModuleVersionIdentifier coordinates = getCoordinates();
+        artifactPath.append(coordinates.getName());
+        artifactPath.append('-');
+        artifactPath.append(coordinates.getVersion());
+        if (GUtil.isTrue(classifier)) {
+            artifactPath.append('-');
+            artifactPath.append(classifier);
+        }
+        if (GUtil.isTrue(extension)) {
+            artifactPath.append('.');
+            artifactPath.append(extension);
+        }
+        return artifactPath.toString();
+    }
+
     @Override
     public PublishedFile getPublishedFile(PublishArtifact source) {
-        throw new UnsupportedOperationException("Will be required for publishing module metadata");
+        final String publishedUrl = getPublishedUrl(source);
+        return new PublishedFile() {
+            @Override
+            public String getName() {
+                return publishedUrl;
+            }
+
+            @Override
+            public String getUri() {
+                return publishedUrl;
+            }
+        };
     }
 }

@@ -22,17 +22,22 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
-    private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer));
-    private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer(enumSerializer));
-    private final ListSerializer<MacroFunction> macroFunctionListSerializer = new ListSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer));
+    private final Serializer<Expression> expressionSerializer = new ExpressionSerializer(enumSerializer);
+    private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer, expressionSerializer));
+    private final ListSerializer<Macro> macroListSerializer = new ListSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
+    private final ListSerializer<MacroFunction> macroFunctionListSerializer = new ListSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
@@ -46,11 +51,56 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         macroFunctionListSerializer.write(encoder, value.getMacrosFunctions());
     }
 
+    private static class ExpressionSerializer implements Serializer<Expression> {
+        private static final byte SIMPLE = (byte) 1;
+        private static final byte WITH_FUNCTION = (byte) 2;
+        private final Serializer<IncludeType> enumSerializer;
+        private final Serializer<List<Expression>> argsSerializer;
+
+        ExpressionSerializer(Serializer<IncludeType> enumSerializer) {
+            this.enumSerializer = enumSerializer;
+            this.argsSerializer = new ListSerializer<Expression>(this);
+        }
+
+        @Override
+        public Expression read(Decoder decoder) throws Exception {
+            byte tag = decoder.readByte();
+            if (tag == SIMPLE) {
+                String expressionValue = decoder.readString();
+                IncludeType expressionType = enumSerializer.read(decoder);
+                return new SimpleExpression(expressionValue, expressionType);
+            } else if (tag == WITH_FUNCTION) {
+                String expressionValue = decoder.readString();
+                List<Expression> args = argsSerializer.read(decoder);
+                return new MacroFunctionCallExpression(expressionValue, args);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, Expression value) throws Exception {
+            if (value instanceof SimpleExpression) {
+                encoder.writeByte(SIMPLE);
+                encoder.writeString(value.getValue());
+                enumSerializer.write(encoder, value.getType());
+            } else if (value instanceof MacroFunctionCallExpression) {
+                encoder.writeByte(WITH_FUNCTION);
+                encoder.writeString(value.getValue());
+                argsSerializer.write(encoder, value.getArguments());
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+    }
+
     private static class IncludeSerializer implements Serializer<Include> {
         private final Serializer<IncludeType> enumSerializer;
+        private final Serializer<Expression> expressionSerializer;
 
-        private IncludeSerializer(Serializer<IncludeType> enumSerializer) {
+        private IncludeSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
+            this.expressionSerializer = expressionSerializer;
         }
 
         @Override
@@ -58,7 +108,15 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             String value = decoder.readString();
             boolean isImport = decoder.readBoolean();
             IncludeType type = enumSerializer.read(decoder);
-            return DefaultInclude.create(value, isImport, type);
+            int argsCount = decoder.readSmallInt();
+            if (argsCount == 0) {
+                return IncludeWithSimpleExpression.create(value, isImport, type);
+            }
+            List<Expression> args = new ArrayList<Expression>(argsCount);
+            for (int i = 0; i < argsCount; i++) {
+                args.add(expressionSerializer.read(decoder));
+            }
+            return new IncludeWithMacroFunctionCallExpression(value, isImport, ImmutableList.copyOf(args));
         }
 
         @Override
@@ -66,91 +124,155 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             encoder.writeString(value.getValue());
             encoder.writeBoolean(value.isImport());
             enumSerializer.write(encoder, value.getType());
+            if (value instanceof IncludeWithSimpleExpression) {
+                encoder.writeSmallInt(0);
+            } else if (value instanceof IncludeWithMacroFunctionCallExpression) {
+                encoder.writeSmallInt(value.getArguments().size());
+                for (Expression expression : value.getArguments()) {
+                    expressionSerializer.write(encoder, expression);
+                }
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
     }
 
     private static class MacroSerializer implements Serializer<Macro> {
-        private static final byte RESOLVED = (byte) 1;
-        private static final byte UNRESOLVED = (byte) 2;
+        private static final byte SIMPLE = (byte) 1;
+        private static final byte WITH_FUNCTION = (byte) 2;
+        private static final byte UNRESOLVED = (byte) 3;
         private final Serializer<IncludeType> enumSerializer;
+        private final Serializer<List<Expression>> expressionSerializer;
 
-        MacroSerializer(Serializer<IncludeType> enumSerializer) {
+        MacroSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
+            this.expressionSerializer = new ListSerializer<Expression>(expressionSerializer);
         }
 
         @Override
         public Macro read(Decoder decoder) throws Exception {
             byte tag = decoder.readByte();
-            if (tag == RESOLVED) {
+            if (tag == SIMPLE) {
                 String name = decoder.readString();
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacro(name, type, value);
+                return new MacroWithSimpleExpression(name, type, value);
+            } else if (tag == WITH_FUNCTION) {
+                String name = decoder.readString();
+                String macroName = decoder.readString();
+                List<Expression> args = expressionSerializer.read(decoder);
+                return new MacroWithMacroFunctionCallExpression(name, macroName, args);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 return new UnresolveableMacro(name);
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
 
         @Override
         public void write(Encoder encoder, Macro value) throws Exception {
-            if (value instanceof DefaultMacro) {
-                encoder.writeByte(RESOLVED);
+            if (value instanceof MacroWithSimpleExpression) {
+                encoder.writeByte(SIMPLE);
                 encoder.writeString(value.getName());
                 enumSerializer.write(encoder, value.getType());
                 encoder.writeString(value.getValue());
+            } else if (value instanceof MacroWithMacroFunctionCallExpression) {
+                encoder.writeByte(WITH_FUNCTION);
+                encoder.writeString(value.getName());
+                encoder.writeString(value.getValue());
+                expressionSerializer.write(encoder, value.getArguments());
             } else if (value instanceof UnresolveableMacro) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
     }
 
     private static class MacroFunctionSerializer implements Serializer<MacroFunction> {
-        private static final byte RESOLVED = (byte) 1;
-        private static final byte UNRESOLVED = (byte) 2;
+        private static final byte FIXED_VALUE = (byte) 1;
+        private static final byte RETURN_PARAM = (byte) 2;
+        private static final byte MAPPING = (byte) 3;
+        private static final byte UNRESOLVED = (byte) 4;
         private final Serializer<IncludeType> enumSerializer;
+        private final Serializer<List<Expression>> expressionSerializer;
 
-        MacroFunctionSerializer(Serializer<IncludeType> enumSerializer) {
+        MacroFunctionSerializer(Serializer<IncludeType> enumSerializer, Serializer<Expression> expressionSerializer) {
             this.enumSerializer = enumSerializer;
+            this.expressionSerializer = new ListSerializer<Expression>(expressionSerializer);
         }
 
         @Override
         public MacroFunction read(Decoder decoder) throws Exception {
             byte tag = decoder.readByte();
-            if (tag == RESOLVED) {
+            if (tag == FIXED_VALUE) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
                 IncludeType type = enumSerializer.read(decoder);
                 String value = decoder.readString();
-                return new DefaultMacroFunction(name, parameters, type, value);
+                List<Expression> args = expressionSerializer.read(decoder);
+                return new ReturnFixedValueMacroFunction(name, parameters, type, value, args);
+            } else if (tag == RETURN_PARAM) {
+                String name = decoder.readString();
+                int parameters = decoder.readSmallInt();
+                int parameterToReturn = decoder.readSmallInt();
+                return new ReturnParameterMacroFunction(name, parameters, parameterToReturn);
+            } else if (tag == MAPPING) {
+                String name = decoder.readString();
+                int parameters = decoder.readSmallInt();
+                String macroToCall = decoder.readString();
+                List<Expression> arguments = expressionSerializer.read(decoder);
+                int mapCount = decoder.readSmallInt();
+                int[] argsMap = new int[mapCount];
+                for(int i = 0; i < mapCount; i++) {
+                    argsMap[i] = decoder.readSmallInt();
+                }
+                return new ArgsMappingMacroFunction(name, parameters, argsMap, macroToCall, arguments);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
                 return new UnresolveableMacroFunction(name, parameters);
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
 
         @Override
         public void write(Encoder encoder, MacroFunction value) throws Exception {
-            if (value instanceof DefaultMacroFunction) {
-                encoder.writeByte(RESOLVED);
+            if (value instanceof ReturnFixedValueMacroFunction) {
+                ReturnFixedValueMacroFunction fixedValueFunction = (ReturnFixedValueMacroFunction) value;
+                encoder.writeByte(FIXED_VALUE);
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
-                enumSerializer.write(encoder, value.getType());
-                encoder.writeString(value.getValue());
+                enumSerializer.write(encoder, fixedValueFunction.getType());
+                encoder.writeString(fixedValueFunction.getValue());
+                expressionSerializer.write(encoder, fixedValueFunction.getArguments());
+            } else if (value instanceof ReturnParameterMacroFunction) {
+                ReturnParameterMacroFunction returnParameterFunction = (ReturnParameterMacroFunction) value;
+                encoder.writeByte(RETURN_PARAM);
+                encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
+                encoder.writeSmallInt(returnParameterFunction.getParameterToReturn());
+            } else if (value instanceof ArgsMappingMacroFunction) {
+                ArgsMappingMacroFunction argsMappingFunction = (ArgsMappingMacroFunction) value;
+                encoder.writeByte(MAPPING);
+                encoder.writeString(value.getName());
+                encoder.writeSmallInt(value.getParameterCount());
+                encoder.writeString(argsMappingFunction.getMacroToCall());
+                expressionSerializer.write(encoder, argsMappingFunction.getArguments());
+                int[] argsMap = argsMappingFunction.getArgsMap();
+                encoder.writeSmallInt(argsMap.length);
+                for (int anArgsMap : argsMap) {
+                    encoder.writeSmallInt(anArgsMap);
+                }
             } else if (value instanceof UnresolveableMacroFunction) {
                 encoder.writeByte(UNRESOLVED);
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
             } else {
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             }
         }
     }

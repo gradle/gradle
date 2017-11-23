@@ -36,7 +36,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
     }
 
     @Override
-    public void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
+    public void withTempFile(BuildCacheKey key, Action<? super File> action) {
         String hashCode = key.getHashCode();
         final File tempFile;
         try {
@@ -48,10 +48,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         try {
             action.execute(tempFile);
         } finally {
-            if (tempFile.exists()) {
-                GFileUtils.deleteQuietly(tempFile);
-            }
+            GFileUtils.deleteQuietly(tempFile);
         }
     }
-
 }

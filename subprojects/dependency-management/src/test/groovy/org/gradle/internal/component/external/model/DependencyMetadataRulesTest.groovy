@@ -198,7 +198,7 @@ class DependencyMetadataRulesTest extends Specification {
 
     private addDependency(AbstractMutableModuleComponentResolveMetadata<? extends DefaultConfigurationMetadata> resolveMetadata, String group, String name, String version) {
         if (resolveMetadata instanceof MutableMavenModuleResolveMetadata && !resolveMetadata.variants.empty) {
-            defaultVariant.addDependency(group, name, new DefaultMutableVersionConstraint(version))
+            defaultVariant.addDependency(group, name, new DefaultMutableVersionConstraint(version), [])
         } else if (resolveMetadata instanceof MutableMavenModuleResolveMetadata) {
             //legacy dependency handling
             resolveMetadata.dependencies += new MavenDependencyMetadata(MavenScope.Compile, false, newSelector(group, name, version), [], [])

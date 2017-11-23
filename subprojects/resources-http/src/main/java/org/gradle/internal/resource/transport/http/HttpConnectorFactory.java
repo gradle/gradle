@@ -54,7 +54,11 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getAuthentications(), sslContextFactory));
+        HttpClientHelper http = new HttpClientHelper(DefaultHttpSettings.builder()
+            .withAuthenticationSettings(connectionDetails.getAuthentications())
+            .withSslContextFactory(sslContextFactory)
+            .build()
+        );
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceLister lister = new HttpResourceLister(accessor);
         HttpResourceUploader uploader = new HttpResourceUploader(http);

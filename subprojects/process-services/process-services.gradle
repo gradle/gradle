@@ -1,7 +1,9 @@
 /**
  * Process execution abstractions.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 

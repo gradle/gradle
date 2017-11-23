@@ -95,6 +95,7 @@ public class HttpClientConfigurer {
         configureCookieSpecRegistry(builder);
         configureRequestConfig(builder);
         configureSocketConfig(builder);
+        configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
@@ -219,6 +220,14 @@ public class HttpClientConfigurer {
         }
 
         return Cast.uncheckedCast(credentials);
+    }
+
+    private void configureRedirectStrategy(HttpClientBuilder builder) {
+        if (httpSettings.isFollowRedirects()) {
+            builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
+        } else {
+            builder.disableRedirectHandling();
+        }
     }
 
     private String getAuthScheme(Authentication authentication) {

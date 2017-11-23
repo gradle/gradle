@@ -20,15 +20,20 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 
 import java.io.File;
 
+/**
+ * Describes an XCTest execution run
+ */
 public class XCTestTestExecutionSpec implements TestExecutionSpec {
     private final File workingDir;
     private final File runScript;
     private final String path;
+    private final XCTestSelection testSelection;
 
-    public XCTestTestExecutionSpec(File workingDir, File runScript, String path) {
+    public XCTestTestExecutionSpec(File workingDir, File runScript, String path, XCTestSelection testSelection) {
         this.workingDir = workingDir;
         this.runScript = runScript;
         this.path = path;
+        this.testSelection = testSelection;
     }
 
     public File getWorkingDir() {
@@ -41,5 +46,9 @@ public class XCTestTestExecutionSpec implements TestExecutionSpec {
 
     public String getPath() {
         return path;
+    }
+
+    public XCTestSelection getTestSelection() {
+        return testSelection;
     }
 }

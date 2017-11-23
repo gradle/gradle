@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.server.http;
 
 import groovy.lang.Closure;
 import org.gradle.internal.Cast;
+import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.ivy.IvyDescriptor;
@@ -63,6 +64,11 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
+    public GradleModuleMetadata getParsedModuleMetadata() {
+        return backingModule.getParsedModuleMetadata();
+    }
+
+    @Override
     public void assertPublished() {
         backingModule.assertPublished();
     }
@@ -75,6 +81,11 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     @Override
     public void assertPublishedAsJavaModule() {
         backingModule.assertPublishedAsJavaModule();
+    }
+
+    @Override
+    public void assertPublishedAsWebModule() {
+        backingModule.assertPublishedAsWebModule();
     }
 
     public T publish() {
@@ -192,4 +203,8 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         backingModule.assertIvyAndJarFilePublished();
     }
 
+    @Override
+    public void assertMetadataAndJarFilePublished() {
+        backingModule.assertMetadataAndJarFilePublished();
+    }
 }

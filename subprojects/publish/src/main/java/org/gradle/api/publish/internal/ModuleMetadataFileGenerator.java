@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,6 +30,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -36,14 +38,17 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class ModuleMetadataFileGenerator {
@@ -344,8 +349,36 @@ public class ModuleMetadataFileGenerator {
                 vc = DefaultImmutableVersionConstraint.of(moduleDependency.getVersion());
             }
             writeVersionConstraint(vc, jsonWriter);
+            writeExcludes(moduleDependency, jsonWriter);
         }
         jsonWriter.endObject();
+    }
+
+    private void writeExcludes(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
+        Set<ExcludeRule> excludeRules;
+        if (!moduleDependency.isTransitive()) {
+            excludeRules = Collections.<ExcludeRule>singleton(new DefaultExcludeRule(null, null));
+        } else {
+            excludeRules = moduleDependency.getExcludeRules();
+        }
+        if (excludeRules.isEmpty()) {
+            return;
+        }
+
+        jsonWriter.name("excludes");
+        jsonWriter.beginArray();
+        for (ExcludeRule excludeRule : excludeRules) {
+            jsonWriter.beginObject();
+            jsonWriter.name("group");
+            String group = GUtil.elvis(excludeRule.getGroup(), "*");
+            jsonWriter.value(group);
+            jsonWriter.name("module");
+            String module = GUtil.elvis(excludeRule.getModule(), "*");
+            jsonWriter.value(module);
+
+            jsonWriter.endObject();
+        }
+        jsonWriter.endArray();
     }
 
     private static class ComponentData {

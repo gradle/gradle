@@ -4,7 +4,9 @@
  * Should have a very small set of dependencies, and should be appropriate to embed in an external
  * application (eg as part of the tooling API).
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 

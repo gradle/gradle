@@ -42,7 +42,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final ModuleMetadataParser metadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), Mock(NamedObjectInstantiator))
+    final ModuleMetadataParser metadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
 
     final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository), metadataParser)
 

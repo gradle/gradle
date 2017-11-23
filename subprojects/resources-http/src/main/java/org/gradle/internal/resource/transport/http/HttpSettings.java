@@ -28,6 +28,8 @@ public interface HttpSettings {
 
     HttpTimeoutSettings getTimeoutSettings();
 
+    boolean isFollowRedirects();
+
     Collection<Authentication> getAuthenticationSettings();
 
     SslContextFactory getSslContextFactory();

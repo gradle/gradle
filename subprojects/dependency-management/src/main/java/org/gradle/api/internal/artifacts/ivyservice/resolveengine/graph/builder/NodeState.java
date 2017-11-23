@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +43,7 @@ class NodeState implements DependencyGraphNode {
 
     private final Long resultId;
     private final ComponentState component;
-    private final Set<EdgeState> incomingEdges = new LinkedHashSet<EdgeState>();
+    private final List<EdgeState> incomingEdges = Lists.newLinkedList();
     private final List<EdgeState> outgoingEdges = Lists.newLinkedList();
     private final ResolvedConfigurationIdentifier id;
 
@@ -90,7 +89,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     @Override
-    public Set<EdgeState> getIncomingEdges() {
+    public List<EdgeState> getIncomingEdges() {
         return incomingEdges;
     }
 

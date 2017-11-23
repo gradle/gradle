@@ -107,7 +107,9 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            assert testsExecuted - testsSkipped == testNames as List
+            def executedAndNotSkipped = testsExecuted - testsSkipped
+            assert executedAndNotSkipped.containsAll(testNames as List)
+            assert executedAndNotSkipped.size() == testNames.size()
             return this
         }
 

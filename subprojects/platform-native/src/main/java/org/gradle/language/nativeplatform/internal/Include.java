@@ -16,6 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-public interface Include extends Directive {
+public interface Include extends Expression {
     boolean isImport();
 }

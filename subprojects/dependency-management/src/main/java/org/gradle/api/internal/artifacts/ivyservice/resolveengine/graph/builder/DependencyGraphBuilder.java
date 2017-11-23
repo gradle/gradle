@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
@@ -185,7 +184,7 @@ public class DependencyGraphBuilder {
                                                   String version,
                                                   final ModuleResolveState module) {
         final ComponentState selected = module.getSelected();
-        Set<SelectorState> moduleSelectors = module.getSelectors();
+        List<SelectorState> moduleSelectors = module.getSelectors();
         if (selected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
             if (allSelectorsAgreeWith(moduleSelectors, version, ALL_SELECTORS)) {
                 module.select(moduleRevision);
@@ -193,7 +192,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        final Set<SelectorState> selectedBy = moduleRevision.allResolvers;
+        final Collection<SelectorState> selectedBy = moduleRevision.allResolvers;
         if (selected != null && selected != moduleRevision) {
             if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion(), ALL_SELECTORS)) {
                 // if this selector agrees with the already selected version, don't bother and pick it

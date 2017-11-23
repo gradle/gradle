@@ -28,6 +28,12 @@ Think of every feature section as a mini blog post.
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
+### Improvement to C/C++ incremental compilation
+
+Gradle' incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change to a header file. This means much faster builds. However, in some cases Gradle cannot analyze all of these dependencies, and in these cases it assumes all source files depend on all header files and recompiles all source files when any header file changes regardless of whether the change affects the compiler output or not. This also affects how well the Gradle build cache can be used to skip the compilation. None of this is good for performance.
+
+In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means much better incremental compilation and more build cache hits. And this means faster builds.
+
 ### The `init` task can now generate Kotlin DSL build scripts
 
 It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--build-script-dsl` option:
@@ -64,9 +70,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+* Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
+
 <!--
 ### Example breaking change
 -->
+
+### HTTP build cache does not follow redirects
+
+When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
+Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
 
 ## External contributions
 
@@ -75,6 +88,9 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+
+- [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
+- [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

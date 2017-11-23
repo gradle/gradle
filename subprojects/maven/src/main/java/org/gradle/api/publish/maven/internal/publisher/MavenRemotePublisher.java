@@ -43,8 +43,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, metadataFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         return deployTask;
@@ -63,8 +63,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
 
-        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(pomFile, null);
+        public GradleWagonMavenDeployAction(File pomFile, File metadataFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            super(pomFile, metadataFile, null);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
 

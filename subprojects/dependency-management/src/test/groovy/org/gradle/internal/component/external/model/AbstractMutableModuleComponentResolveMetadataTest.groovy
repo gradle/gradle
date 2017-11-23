@@ -341,10 +341,10 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         given:
         def v1 = metadata.addVariant("api", attributes(usage: "compile"))
-        v1.addDependency("g1", "m1", v("v1"))
-        v1.addDependency("g2", "m2", v("v2"))
+        v1.addDependency("g1", "m1", v("v1"), [])
+        v1.addDependency("g2", "m2", v("v2"), [])
         def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
-        v2.addDependency("g1", "m1", v("v1"))
+        v2.addDependency("g1", "m1", v("v1"), [])
 
         expect:
         metadata.variants.size() == 2
@@ -391,11 +391,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def v1 = metadata.addVariant("api", attributes1)
         v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
-        v1.addDependency("g1", "m1", v("v1"))
+        v1.addDependency("g1", "m1", v("v1"), [])
         def v2 = metadata.addVariant("runtime", attributes2)
         v2.addFile("f2", "f2-version.zip")
-        v2.addDependency("g2", "m2", v("v2"))
-        v2.addDependency("g3", "m3", v("v3"))
+        v2.addDependency("g2", "m2", v("v2"), [])
+        v2.addDependency("g3", "m3", v("v3"), [])
 
         expect:
         metadata.variantsForGraphTraversal.size() == 2

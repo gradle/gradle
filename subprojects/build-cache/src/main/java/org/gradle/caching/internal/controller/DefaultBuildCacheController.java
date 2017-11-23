@@ -112,7 +112,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         if (legacyLocal.canLoad() || remote.canLoad()) {
-            tmp.allocateTempFile(command.getKey(), new Action<File>() {
+            tmp.withTempFile(command.getKey(), new Action<File>() {
                 @Override
                 public void execute(File file) {
                     LoadTarget loadTarget = new LoadTarget(file);
@@ -205,7 +205,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         final BuildCacheKey key = command.getKey();
         final Pack pack = new Pack(command);
 
-        tmp.allocateTempFile(command.getKey(), new Action<File>() {
+        tmp.withTempFile(command.getKey(), new Action<File>() {
             @Override
             public void execute(File file) {
                 pack.execute(file);

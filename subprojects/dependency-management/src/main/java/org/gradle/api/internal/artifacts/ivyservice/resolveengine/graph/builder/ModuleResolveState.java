@@ -26,12 +26,10 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Resolution state for a given module.
@@ -42,7 +40,7 @@ class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
-    private final Set<SelectorState> selectors = new HashSet<SelectorState>();
+    private final List<SelectorState> selectors = Lists.newLinkedList();
     private ComponentState selected;
 
     ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver) {
@@ -175,7 +173,7 @@ class ModuleResolveState implements CandidateModule {
         selectors.add(selector);
     }
 
-    public Set<SelectorState> getSelectors() {
+    public List<SelectorState> getSelectors() {
         return selectors;
     }
 }

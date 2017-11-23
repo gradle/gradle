@@ -39,7 +39,7 @@ class GradleFileModuleAdapter {
         def file = moduleDir.file("$module-${version}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion '0.2'
+            formatVersion '0.3'
             builtBy {
                 gradle { }
             }
@@ -74,6 +74,14 @@ class GradleFileModuleAdapter {
                             version {
                                 prefers d.prefers
                                 rejects d.rejects
+                            }
+                            if (d.exclusions) {
+                                excludes(d.exclusions.collect { e ->
+                                    { ->
+                                        group e.group
+                                        module e.module
+                                    }
+                                })
                             }
                         }
                     })

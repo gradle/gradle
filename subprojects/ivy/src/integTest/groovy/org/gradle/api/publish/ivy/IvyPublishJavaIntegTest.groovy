@@ -18,11 +18,22 @@
 package org.gradle.api.publish.ivy
 
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
-    def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+    def javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    public void "can publish jar and descriptor to ivy repository"() {
+    String getDependencies() {
+        """dependencies {
+                api "commons-collections:commons-collections:3.2.2"
+                compileOnly "javax.servlet:servlet-api:2.5"
+                runtimeOnly "commons-io:commons-io:1.4"
+                testImplementation "junit:junit:4.12"
+            }
+"""
+    }
+
+    void "can publish jar and descriptor to ivy repository"() {
         given:
         createBuildScripts("""
             publishing {
@@ -32,25 +43,93 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
+
+            $dependencies            
 """)
 
         when:
         run "publish"
 
         then:
-        ivyModule.assertPublishedAsJavaModule()
+        javaLibrary.assertPublishedAsJavaModule()
 
-        with (ivyModule.parsedIvy) {
+        with(javaLibrary.parsedIvy) {
             configurations.keySet() == ["default", "compile", "runtime"] as Set
             configurations["default"].extend == ["runtime", "compile"] as Set
             configurations["runtime"].extend == null
 
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile"])
         }
-        ivyModule.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@compile", "commons-io:commons-io:1.4@compile")
+        javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
+        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
 
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+
+    }
+
+    @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
+    void "maps dependencies in the correct Ivy configuration"() {
+        given:
+        file("settings.gradle") << '''
+            rootProject.name = 'publishTest' 
+            include "b"
+        '''
+        buildFile << """
+            apply plugin: "$plugin"
+            apply plugin: "ivy-publish"
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            dependencies {
+                $gradleConfiguration project(':b')
+            }
+        """
+
+        file('b/build.gradle') << """
+            apply plugin: 'java'
+            
+            group = 'org.gradle.test'
+            version = '1.2'
+            
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        if (ivyConfiguration == 'compile') {
+            javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+        } else {
+            javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
+        }
+
+        where:
+        plugin         | gradleConfiguration | ivyConfiguration
+        'java'         | 'compile'           | 'compile'
+        'java'         | 'runtime'           | 'compile'
+        'java'         | 'implementation'    | 'runtime'
+        'java'         | 'runtimeOnly'       | 'runtime'
+
+        'java-library' | 'api'               | 'compile'
+        'java-library' | 'compile'           | 'compile'
+        'java-library' | 'runtime'           | 'compile'
+        'java-library' | 'runtimeOnly'       | 'runtime'
+        'java-library' | 'implementation'    | 'runtime'
+
     }
 
     public void "ignores extra artifacts added to configurations"() {
@@ -80,12 +159,14 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        ivyModule.assertPublishedAsJavaModule()
+        javaLibrary.assertPublishedAsJavaModule()
     }
 
-    public void "can publish additional artifacts for java project"() {
+    void "can publish additional artifacts for java project"() {
         given:
         createBuildScripts("""
+            $dependencies
+
             task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
                 baseName "publishTest-source"
@@ -109,19 +190,22 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        ivyModule.assertPublished()
-        ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9-source.jar", "ivy-1.9.xml")
+        javaLibrary.withClassifiedArtifact('source', 'jar')
+        javaLibrary.assertPublishedAsJavaModule()
 
-        ivyModule.parsedIvy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
+        javaLibrary.parsedIvy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
 
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveAdditionalArtifacts(javaLibrary) == ["publishTest-1.9-source.jar"]
     }
 
     @Issue("GRADLE-3514")
-    public void "generated ivy descriptor includes dependency exclusions"() {
+    void "generated ivy descriptor includes dependency exclusions"() {
         given:
         createBuildScripts("""
+            $dependencies
+
             dependencies {
                 compile 'org.springframework:spring-core:2.5.6', {
                     exclude group: 'commons-logging', module: 'commons-logging'
@@ -150,21 +234,46 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        ivyModule.assertPublishedAsJavaModule()
+        javaLibrary.assertPublishedAsJavaModule()
 
-        def dependency = ivyModule.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
-        dependency.exclusions.size() == 1
-        dependency.exclusions[0].org == 'commons-logging'
-        dependency.exclusions[0].module == 'commons-logging'
+        def dep = javaLibrary.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
+        dep.exclusions.size() == 1
+        dep.exclusions[0].org == 'commons-logging'
+        dep.exclusions[0].module == 'commons-logging'
 
-        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
-        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
-        !ivyModule.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
-        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->default")
-        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
+        javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
+        javaLibrary.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
+        !javaLibrary.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
+        javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->default")
+        javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
 
         and:
-        resolveArtifacts(ivyModule) == [
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                exists()
+                hasExclude('commons-logging', 'commons-logging')
+                noMoreExcludes()
+            }
+            dependency('commons-dbcp:commons-dbcp:1.4') {
+                exists()
+                notTransitive()
+            }
+            dependency('commons-beanutils', 'commons-beanutils', '1.8.3') {
+                exists()
+                hasExclude('commons-logging')
+                noMoreExcludes()
+            }
+            dependency('org.apache.camel:camel-jackson:2.15.3') {
+                exists()
+                hasExclude('*', 'camel-core')
+                noMoreExcludes()
+            }
+            dependency('commons-collections:commons-collections:3.2.2').exists()
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) == [
             "camel-jackson-2.15.3.jar",
             "commons-beanutils-1.8.3.jar",
             "commons-collections-3.2.2.jar",
@@ -179,42 +288,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         ]
     }
 
-    def createBuildScripts(def append) {
-        settingsFile << "rootProject.name = 'publishTest' "
-
-        buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java'
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyRepo.uri}" }
-                }
-            }
-
-$append
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile "commons-collections:commons-collections:3.2.2"
-                compileOnly "javax.servlet:servlet-api:2.5"
-                runtime "commons-io:commons-io:1.4"
-                testCompile "junit:junit:4.12"
-            }
-"""
-    }
-
     void "defaultDependencies are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
 
         buildFile << """
             apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -241,8 +321,8 @@ $append
         succeeds "publish"
 
         then:
-        ivyModule.assertPublishedAsJavaModule()
-        ivyModule.parsedIvy.assertDependsOn("org.test:default-dependency:1.1@compile")
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
 
     void "dependency mutations are included in published ivy descriptor"() {
@@ -251,7 +331,7 @@ $append
 
         buildFile << """
             apply plugin: 'ivy-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -268,13 +348,13 @@ $append
             }
 
             dependencies {
-                compile "org.test:dep1:1.0"
+                api "org.test:dep1:1.0"
             }
 
-            configurations.compile.withDependencies { deps ->
+            configurations.api.withDependencies { deps ->
                 deps.add project.dependencies.create("org.test:dep2:1.1")
             }
-            configurations.compile.withDependencies { deps ->
+            configurations.api.withDependencies { deps ->
                 deps.each { dep ->
                     dep.version { prefer 'X' }
                 }
@@ -285,8 +365,88 @@ $append
         succeeds "publish"
 
         then:
-        ivyModule.assertPublishedAsJavaModule()
-        ivyModule.parsedIvy.assertDependsOn("org.test:dep1:X@compile", "org.test:dep2:X@compile")
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
+    private void createBuildScripts(def append) {
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java-library'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+
+$append
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            ${mavenCentralRepository()}
+
+"""
+    }
+
+    def "can publish java-library with strict dependencies"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:2.5.6"
+                implementation("commons-collections:commons-collections") {
+                    version { strictly '3.2.2' }
+                }
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:2.5.6@compile", "commons-collections:commons-collections:3.2.2@runtime")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                noMoreExcludes()
+                rejects ']3.2.2,)'
+            }
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) == [
+            'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+    }
 }

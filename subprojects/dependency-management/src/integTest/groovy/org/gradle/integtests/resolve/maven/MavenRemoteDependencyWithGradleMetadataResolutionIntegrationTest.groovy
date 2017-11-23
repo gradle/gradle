@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
+
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile)
 
@@ -218,7 +220,7 @@ dependencies {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -299,7 +301,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -391,7 +393,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "lot-o-files",
@@ -462,7 +464,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "lot-o-files",
@@ -535,7 +537,7 @@ task checkDebug {
         c.publish()
         c.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -565,7 +567,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -638,7 +640,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -852,7 +854,7 @@ dependencies {
 
     def "reports failure to accept module metadata with unexpected format version"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
-        m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace("0.2", "123.67")
+        m.moduleMetadata.file.text = m.moduleMetadata.file.text.replace(FORMAT_VERSION, "123.67")
 
         given:
         buildFile << """
@@ -877,7 +879,7 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version 0.2 only.")
+        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version ${FORMAT_VERSION} only.")
 
         when:
         server.resetExpectations()
@@ -890,7 +892,7 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:a:1.2.")
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
-        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version 0.2 only.")
+        failure.assertHasCause("Unsupported format version '123.67' specified in module metadata. This version of Gradle supports format version ${FORMAT_VERSION} only.")
     }
 
     def "reports failure to locate files"() {
@@ -901,7 +903,7 @@ dependencies {
         m.publish()
         m.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "lot-o-files",
