@@ -46,4 +46,5 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     public String toString() {
         return path + " (" + descendants.size() + " descendants)";
     }
+
 }
