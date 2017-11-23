@@ -18,7 +18,9 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
+import spock.lang.Ignore
 
+@Ignore
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
