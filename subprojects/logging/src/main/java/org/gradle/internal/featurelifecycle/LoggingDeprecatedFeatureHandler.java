@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
+    public static final String RENDER_REPORT_SYSTEM_PROPERTY = "org.gradle.internal.deprecation.report";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private final Map<String, DeprecatedFeatureUsage> deprecationUsages = new HashMap<String, DeprecatedFeatureUsage>();
@@ -59,7 +61,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     }
 
     public void renderDeprecationReport(File reportLocation) {
-        if (deprecationUsages.isEmpty()) {
+        if (!shouldRenderReport()) {
             return;
         }
 
@@ -71,6 +73,14 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         GFileUtils.writeFile(report.toString(), reportLocation);
 
         LOGGER.warn("Some deprecated APIs are used in this build, which may be broken in Gradle 5.0. See the detailed report at: " + new ConsoleRenderer().asClickableFileUrl(reportLocation));
+    }
+
+    private boolean shouldRenderReport() {
+        if (deprecationUsages.isEmpty()) {
+            return false;
+        }
+
+        return "true".equals(System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY, "true"));
     }
 
     private String renderWarnings(String divTemplate) {

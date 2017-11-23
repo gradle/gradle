@@ -26,6 +26,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.RENDER_REPORT_SYSTEM_PROPERTY
+
 @Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
     private static final String REPORT_LOCATION = "build/reports/deprecations/report.html"
@@ -117,6 +119,24 @@ at some.GradleScript.foo(GradleScript.gradle:1337)
 at java.lang.reflect.Method.invoke(Method.java:498)
 </pre>
 ''')
+    }
+
+    def "honor system property when generating report"() {
+        setup:
+        String originProperty = System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY)
+        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, 'false')
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('gradle'), gradleScriptStacktrace()))
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('kotlin'), kotlinScriptStracktrace()))
+        renderDeprecationReport()
+
+        then:
+        outputEventListener.events.size() == 0
+        !temporaryFolder.file(REPORT_LOCATION).exists()
+
+        cleanup:
+        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, originProperty == null ? '' : null)
     }
 
     static gradleScriptStacktrace() {

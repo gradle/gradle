@@ -18,8 +18,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.util.GUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
@@ -41,6 +39,10 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         return "assemble"
     }
 
+    def setup() {
+        executer.noDeprecationChecks()
+    }
+
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -49,7 +51,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         succeeds mainTask
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()

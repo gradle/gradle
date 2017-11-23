@@ -158,9 +158,8 @@ class UserGuideSamplesRunner extends Runner {
                 executer.withArgument("--no-daemon")
             }
 
-            if (run.allowDeprecation) {
-                executer.expectDeprecationWarning()
-            }
+            // We don't care deprecation warnings in these tests
+            executer.noDeprecationChecks()
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
@@ -297,13 +296,8 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
-        samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
-        }
-        if (JavaVersion.current().isJava7()) {
-            // Under Java 7 a deprecation report will be generated (after clean task) and disturb the sequential execution
-            samplesByDir.removeAll('userguide/tasks/incrementalBuild/incrementalBuildAdvanced')
         }
 
         configureJava6CrossCompilationForGroovyAndScala(samplesByDir)
@@ -365,7 +359,6 @@ Please run 'gradle docs:extractSamples' first"""
         boolean ignoreExtraLines
         boolean ignoreLineOrder
         boolean brokenForParallel
-        boolean allowDeprecation
         List files = []
         List dirs = []
         int index

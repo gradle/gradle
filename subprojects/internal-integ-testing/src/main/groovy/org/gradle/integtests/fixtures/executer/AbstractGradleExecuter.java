@@ -35,6 +35,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
@@ -136,7 +137,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
-    protected File projectDir;
+    private File projectDir;
     private File settingsFile;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
@@ -910,6 +911,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (interactive) {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
+        }
+
+        if (!checkDeprecations) {
+            properties.put(LoggingDeprecatedFeatureHandler.RENDER_REPORT_SYSTEM_PROPERTY, "false");
         }
 
         return properties;

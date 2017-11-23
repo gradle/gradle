@@ -16,12 +16,14 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.noDeprecationChecks()
         requireOwnGradleUserHomeDir()
     }
 
@@ -31,5 +33,10 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
 
     MavenFileRepository mavenRepo(String name = "repo") {
         return maven(name)
+    }
+
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.noDeprecationChecks()
+        return super.succeeds(tasks)
     }
 }

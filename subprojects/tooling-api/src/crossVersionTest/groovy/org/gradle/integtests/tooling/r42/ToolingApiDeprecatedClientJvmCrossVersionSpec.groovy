@@ -105,6 +105,7 @@ public class TestClient {
         executer.workingDir(projectDir)
         executer.errorOutput = outStr // simple slf4j writes warnings to stderr
         executer.commandLine("build/install/test/bin/test")
+        projectDir.file('build/reports/deprecations/report.html').delete() // report will be generated under Java 7
         executer.run().assertNormalExitValue()
 
         return new DeprecationReport(projectDir.file('build/reports/deprecations/report.html'))

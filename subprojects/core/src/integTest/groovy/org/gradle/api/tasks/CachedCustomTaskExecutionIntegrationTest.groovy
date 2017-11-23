@@ -21,14 +21,16 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+    def setup(){
+        executer.noDeprecationChecks()
+    }
+
     def configureCacheForBuildSrc() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
@@ -257,7 +259,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """.stripIndent()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "optional file output is not stored when there is no output"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
@@ -296,6 +297,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
+        executer.noDeprecationChecks()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.contains ":customTask"
@@ -308,6 +310,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << """
             customTask.secondaryOutputFile = null
         """
+        executer.noDeprecationChecks()
         withBuildCache().succeeds "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
@@ -316,6 +319,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
+        executer.noDeprecationChecks()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.contains ":customTask"
@@ -323,7 +327,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "plural output files are only restored when map keys match"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
@@ -368,6 +371,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 two: file("build/output-b.txt")
             ]
         """
+        executer.noDeprecationChecks()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.contains ":customTask"
@@ -383,6 +387,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 second: file("build/output-b.txt")
             ]
         """
+        executer.noDeprecationChecks()
         withBuildCache().succeeds "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
