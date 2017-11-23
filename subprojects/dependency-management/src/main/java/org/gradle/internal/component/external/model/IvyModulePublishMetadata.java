@@ -31,7 +31,7 @@ public interface IvyModulePublishMetadata {
 
     String getStatus();
 
-    ModuleComponentIdentifier getId();
+    ModuleComponentIdentifier getComponentId();
 
     Map<String, Configuration> getConfigurations();
 

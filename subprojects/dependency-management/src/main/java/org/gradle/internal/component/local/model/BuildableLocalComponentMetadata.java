@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.Exclude;
@@ -25,6 +26,11 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
+    /**
+     * Returns the identifier for this component.
+     */
+    ComponentIdentifier getComponentId();
+
     /**
      * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.
      */

@@ -82,7 +82,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printInfoTag(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
-        ModuleComponentIdentifier id = metadata.getId();
+        ModuleComponentIdentifier id = metadata.getComponentId();
         writer.startElement("info");
 
         writer.attribute("organisation", id.getGroup());

@@ -59,11 +59,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     public DefaultIvyModulePublishMetadata(IvyModulePublishMetadata metadata) {
-        this.id = metadata.getId();
+        this.id = metadata.getComponentId();
         this.status = metadata.getStatus();
     }
 
-    public ModuleComponentIdentifier getId() {
+    public ModuleComponentIdentifier getComponentId() {
         return id;
     }
 

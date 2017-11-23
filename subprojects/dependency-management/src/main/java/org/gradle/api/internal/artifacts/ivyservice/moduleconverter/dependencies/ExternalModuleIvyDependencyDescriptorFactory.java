@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
@@ -33,7 +34,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         super(excludeRuleConverter);
     }
 
-    public LocalOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
@@ -43,7 +44,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
 
         List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
+                componentId, selector, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 excludes, force, changing, transitive);
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);

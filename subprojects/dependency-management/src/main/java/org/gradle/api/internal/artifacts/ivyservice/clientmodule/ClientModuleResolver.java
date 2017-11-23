@@ -63,7 +63,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
             ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetaData();
-            List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(clientModule);
+            List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
@@ -76,10 +76,10 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return resolver.isFetchingMetadataCheap(identifier);
     }
 
-    private List<ModuleDependencyMetadata> createClientModuleDependencies(ClientModule clientModule) {
+    private List<ModuleDependencyMetadata> createClientModuleDependencies(ComponentIdentifier identifier, ClientModule clientModule) {
         List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
-            ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(moduleDependency);
+            ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(identifier, moduleDependency);
             dependencies.add(dependencyMetadata);
         }
         return dependencies;
@@ -89,8 +89,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return metadata.artifact("jar", "jar", null);
     }
 
-    private ModuleDependencyMetadata createDependencyMetadata(ModuleDependency moduleDependency) {
-        LocalOriginDependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getTargetConfiguration(), null, moduleDependency);
+    private ModuleDependencyMetadata createDependencyMetadata(ComponentIdentifier identifier, ModuleDependency moduleDependency) {
+        LocalOriginDependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(identifier, moduleDependency.getTargetConfiguration(), null, moduleDependency);
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             return new ClientModuleDependencyMetadataWrapper((DslOriginDependencyMetadata) dependencyMetadata);
         }

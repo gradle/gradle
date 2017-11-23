@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
 public class DefaultDependencyDescriptorFactoryTest extends Specification {
     def configurationName = "conf"
-    def moduleDescriptor = Stub(DefaultModuleDescriptor)
     def projectDependency = Stub(ProjectDependency)
+    def componentId = new OpaqueComponentIdentifier("foo")
 
     def "delegates to internal factory"() {
         given:
@@ -36,7 +36,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
         );
-        def created = dependencyDescriptorFactory.createDependencyDescriptor(configurationName, null, projectDependency)
+        def created = dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
 
         then:
         created == result
@@ -44,7 +44,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         and:
         1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
         1 * ivyDependencyDescriptorFactory2.canConvert(projectDependency) >> true
-        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(configurationName, null, projectDependency) >> result
+        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(componentId, configurationName, null, projectDependency) >> result
     }
 
     def "fails where no internal factory can handle dependency type"() {
@@ -57,7 +57,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1
         );
-        dependencyDescriptorFactory.createDependencyDescriptor(configurationName, null, projectDependency)
+        dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
 
         then:
         thrown InvalidUserDataException

@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -33,6 +35,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
 
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
             new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
+    private final ComponentIdentifier componentId = new OpaqueComponentIdentifier("foo");
 
     @Test
     public void canConvert() {
@@ -43,7 +46,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, dependency);
+        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, dependency);
         ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
         assertThat(selector.getGroup(), equalTo(""));
         assertThat(selector.getModule(), equalTo("gradle-core"));
@@ -57,7 +60,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, moduleDependency);
+        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, moduleDependency);
         ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector();
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());

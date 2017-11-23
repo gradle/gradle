@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
+    private final ComponentIdentifier componentId;
     private final ComponentSelector selector;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
@@ -44,12 +46,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private final AttributeContainer moduleAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector,
+    public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
+                                            ComponentSelector selector,
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
+        this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
@@ -93,7 +97,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
@@ -173,6 +177,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 }
