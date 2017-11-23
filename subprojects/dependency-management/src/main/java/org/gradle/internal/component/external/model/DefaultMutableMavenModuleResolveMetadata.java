@@ -17,15 +17,14 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -60,27 +59,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-        if (artifactOverrides != null) {
-            artifacts = artifactOverrides;
-        } else {
-            if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-                artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
-            } else {
-                artifacts = ImmutableList.of();
-            }
-        }
-        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
-    }
-
-    @Override
     public MavenModuleResolveMetadata asImmutable() {
         return new DefaultMavenModuleResolveMetadata(this);
     }
 
     @Override
-    protected Map<String, Configuration> getConfigurationDefinitions() {
+    protected ImmutableMap<String, Configuration> getConfigurationDefinitions() {
         return GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
     }
 

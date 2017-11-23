@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.model.GradleDependencyMetadata;
+import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 

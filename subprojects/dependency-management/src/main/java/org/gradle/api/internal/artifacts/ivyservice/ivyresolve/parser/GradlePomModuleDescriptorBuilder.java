@@ -55,7 +55,7 @@ import java.util.regex.Pattern;
  * classifiers)
  */
 public class GradlePomModuleDescriptorBuilder {
-    public static final Map<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()
+    public static final ImmutableMap<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()
         .put("default", new Configuration("default", true, true, ImmutableSet.of("runtime", "master")))
         .put("master", new Configuration("master", true, true, ImmutableSet.<String>of()))
         .put("compile", new Configuration("compile", true, true, ImmutableSet.<String>of()))

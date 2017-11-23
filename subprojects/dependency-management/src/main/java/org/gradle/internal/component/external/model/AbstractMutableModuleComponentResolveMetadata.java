@@ -31,7 +31,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
@@ -45,14 +44,12 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements MutableModuleComponentResolveMetadata, ComponentVariantResolveMetadata {
+abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
@@ -63,15 +60,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private ModuleSource moduleSource;
     private List<? extends ModuleDependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
-    @Nullable
-    private ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides;
-    private ImmutableMap<String, T> configurations;
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
     private List<MutableVariantImpl> newVariants;
+
+    // TODO:DAZ Maybe only construct these once immutable
     private ImmutableList<? extends ComponentVariant> variants;
-    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
@@ -88,11 +83,9 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.artifactOverrides = metadata.getArtifactOverrides();
         this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
-        this.graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     @Override
@@ -116,67 +109,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         return status;
     }
 
-    protected abstract Map<String, Configuration> getConfigurationDefinitions();
-
-    @Override
-    public ImmutableMap<String, T> getConfigurations() {
-        if (configurations == null) {
-            configurations = populateConfigurationsFromDescriptor(getConfigurationDefinitions());
-        }
-        return configurations;
-    }
-
-    /**
-     * Called when some input to the configurations of this component has changed and the configurations should be recalculated
-     */
-    protected void resetConfigurations() {
-        configurations = null;
-    }
-
-    private ImmutableMap<String, T> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions) {
-        Set<String> configurationsNames = configurationDefinitions.keySet();
-        Map<String, T> configurations = new HashMap<String, T>(configurationsNames.size());
-        for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
-            configuration.populateDependencies(dependencies, dependencyMetadataRules.get(configName));
-        }
-        return ImmutableMap.copyOf(configurations);
-    }
-
-    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
-        T populated = configurations.get(name);
-        if (populated != null) {
-            return populated;
-        }
-
-        Configuration descriptorConfiguration = configurationDefinitions.get(name);
-        List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
-        boolean transitive = descriptorConfiguration.isTransitive();
-        boolean visible = descriptorConfiguration.isVisible();
-        if (extendsFrom.isEmpty()) {
-            // tail
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.<T>of(), artifactOverrides);
-            configurations.put(name, populated);
-            return populated;
-        } else if (extendsFrom.size() == 1) {
-            populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.of(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)), artifactOverrides);
-            configurations.put(name, populated);
-            return populated;
-        }
-        List<T> hierarchy = new ArrayList<T>(extendsFrom.size());
-        for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
-        }
-        populated = createConfiguration(componentId, name, transitive, visible, ImmutableList.copyOf(hierarchy), artifactOverrides);
-
-        configurations.put(name, populated);
-        return populated;
-    }
-
-    /**
-     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
-     */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<T> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides);
+    protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
 
     @Override
     public void setStatus(String status) {
@@ -258,31 +191,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
         dependencyMetadataRules.get(variantName).addAction(action);
-        resetConfigurations();
-        graphVariants = null;
-    }
-
-    @Nullable
-    @Override
-    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
-        return artifactOverrides;
-    }
-
-    @Override
-    public void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.artifactOverrides = ImmutableList.copyOf(artifacts);
-        resetConfigurations();
     }
 
     @Override
     public List<? extends ModuleDependencyMetadata> getDependencies() {
         return dependencies;
-    }
-
-    @Override
-    public void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
-        this.dependencies = ImmutableList.copyOf(dependencies);
-        resetConfigurations();
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
@@ -291,24 +204,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             newVariants = new ArrayList<MutableVariantImpl>();
         }
         newVariants.add(variant);
-        graphVariants = null;
         return variant;
-    }
-
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        if (graphVariants == null) {
-            ImmutableList<? extends ComponentVariant> variants = getVariants();
-            if (variants.isEmpty()) {
-                graphVariants = ImmutableList.of();
-            } else {
-                List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
-                for (ComponentVariant variant : variants) {
-                    configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
-                }
-                graphVariants = ImmutableList.copyOf(configurations);
-            }
-        }
-        return graphVariants;
     }
 
     public ImmutableList<? extends ComponentVariant> getVariants() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -26,17 +26,20 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
+import org.gradle.internal.component.model.AttributeConfigurationSelector;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata extends AbstractDependencyMetadata implements ModuleDependencyMetadata {
+public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata {
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
@@ -146,7 +149,7 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
             // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
             // - or the target is a component from a Maven/Ivy repo as we can assume this is well behaved
             if (!consumerAttributes.isEmpty() || targetComponent instanceof ModuleComponentResolveMetadata) {
-                return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+                return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
             }
         }
         return null;

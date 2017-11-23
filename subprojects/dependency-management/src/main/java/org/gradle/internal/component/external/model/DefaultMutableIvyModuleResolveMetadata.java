@@ -29,17 +29,13 @@ import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<IvyConfigurationMetadata> implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifactDefinitions;
-    private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
-    private final ImmutableMap<String, Configuration> configurations;
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
@@ -54,23 +50,30 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier,
-            ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
-            ImmutableList.<ModuleDependencyMetadata>of(),
-            ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))));
+        this(id, componentIdentifier, ImmutableList.<ModuleDependencyMetadata>of());
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurations, Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifacts) {
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ModuleDependencyMetadata> dependencies) {
+        this(id, componentIdentifier,
+            ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
+            ImmutableList.copyOf(dependencies),
+            ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), ImmutableSet.of(DEFAULT_CONFIGURATION))),
+            ImmutableList.<Exclude>of());
+    }
+
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurationDefinitions,
+                                                  Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
-        this.configurations = toMap(configurations);
-        this.artifactDefinitions = ImmutableList.copyOf(artifacts);
+        this.configurationDefinitions = toMap(configurationDefinitions);
+        this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);
         this.excludes = ImmutableList.of();
         this.extraAttributes = ImmutableMap.of();
+        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     public DefaultMutableIvyModuleResolveMetadata(IvyModuleResolveMetadata metadata) {
         super(metadata);
-        this.configurations = metadata.getConfigurationDefinitions();
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.artifactDefinitions = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
         this.branch = metadata.getBranch();
@@ -86,44 +89,13 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifactOverrides) {
-        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
-        collectArtifactsFor(name, artifactOverrides, artifacts);
-        for (IvyConfigurationMetadata parent : parents) {
-            artifacts.addAll(parent.getArtifacts());
-        }
-
-        return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes, ImmutableList.copyOf(artifacts));
-    }
-
-    private void collectArtifactsFor(String name, Collection<? extends ModuleComponentArtifactMetadata> artifactOverrides, Collection<ModuleComponentArtifactMetadata> dest) {
-        if (artifactOverrides != null) {
-            dest.addAll(artifactOverrides);
-            return;
-        }
-        if (artifacts == null) {
-            artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
-        }
-        for (Artifact artifact : artifactDefinitions) {
-            if (artifact.getConfigurations().contains(name)) {
-                ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
-                if (artifactMetadata == null) {
-                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact.getArtifactName());
-                    artifacts.put(artifact, artifactMetadata);
-                }
-                dest.add(artifactMetadata);
-            }
-        }
-    }
-
-    @Override
     public ImmutableMap<String, Configuration> getConfigurationDefinitions() {
-        return configurations;
+        return configurationDefinitions;
     }
 
     @Override
     public boolean definesVariant(String name) {
-        return configurations.containsKey(name);
+        return configurationDefinitions.containsKey(name);
     }
 
     @Override
@@ -134,12 +106,6 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     @Override
     public ImmutableList<Exclude> getExcludes() {
         return excludes;
-    }
-
-    @Override
-    public void setExcludes(Iterable<? extends Exclude> excludes) {
-        this.excludes = ImmutableList.copyOf(excludes);
-        resetConfigurations();
     }
 
     @Override

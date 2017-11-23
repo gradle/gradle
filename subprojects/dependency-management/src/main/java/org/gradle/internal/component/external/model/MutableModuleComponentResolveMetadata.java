@@ -15,13 +15,10 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.reflect.Instantiator;
@@ -73,11 +70,6 @@ public interface MutableModuleComponentResolveMetadata {
     void setSource(ModuleSource source);
 
     /**
-     * Return the configurations of this component.
-     */
-    ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations();
-
-    /**
      * Checks if the metadata defines the given variant. Depending on the origin of the metadata, a "variant" can be backed
      * by another concept (for example an ivy configuration). The check should be implemented in a cheap way without creating
      * full variant/configuration metadata objects since the method only needs to check the name.
@@ -88,22 +80,6 @@ public interface MutableModuleComponentResolveMetadata {
      * Returns the dependency declarations of this component.
      */
     List<? extends ModuleDependencyMetadata> getDependencies();
-
-    /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies);
-
-    /**
-     * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.
-     */
-    @Nullable
-    ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
-
-    /**
-     * Replaces the artifacts of this module version. The artifacts are attached to all configurations.
-     */
-    void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

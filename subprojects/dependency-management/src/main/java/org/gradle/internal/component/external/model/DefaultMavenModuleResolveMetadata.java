@@ -17,15 +17,16 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<MavenConfigurationMetadata> implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -34,16 +35,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
-    private final ImmutableList<? extends ComponentVariant> variants;
-    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
-    DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
-        variants = metadata.getVariants();
-        graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
@@ -51,8 +48,17 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
-        variants = metadata.variants;
-        graphVariants = metadata.graphVariants;
+    }
+
+    @Override
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<MavenConfigurationMetadata> parents) {
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
+        } else {
+            artifacts = ImmutableList.of();
+        }
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
     }
 
     @Override
@@ -84,16 +90,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;
-    }
-
-    @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return graphVariants;
-    }
-
-    @Override
-    public ImmutableList<? extends ComponentVariant> getVariants() {
-        return variants;
     }
 
     @Nullable

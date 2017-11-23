@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
-import org.gradle.api.Action
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -28,8 +27,6 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -202,69 +199,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         copy.contentHash == contentHash
     }
 
-    def "can replace the dependencies for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-
-        dependency("foo", "bar", "1.0")
-        def metadata = getMetadata()
-        metadata.configurations
-
-        then:
-        metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
-
-        when:
-        def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])
-        def dependency2 = dependency("foo", "baz", "1.2", ["compile"])
-        metadata.dependencies = [dependency1, dependency2]
-
-        then:
-        metadata.dependencies == [dependency1, dependency2]
-
-        def immutable = metadata.asImmutable()
-        immutable.getConfiguration("compile").dependencies == [dependency2]
-        immutable.getConfiguration("runtime").dependencies == [dependency1, dependency2]
-
-        when:
-        def copy = immutable.asMutable()
-        copy.dependencies = [dependency1]
-
-        then:
-        def immutable2 = copy.asImmutable()
-        immutable2.getConfiguration("compile").dependencies == []
-        immutable2.getConfiguration("runtime").dependencies == [dependency1]
-    }
-
-    def "can replace the artifacts for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime")
-        def metadata = getMetadata()
-        metadata.configurations
-        def a1 = metadata.artifact("jar", "jar", null)
-        def a2 = metadata.artifact("pom", "pom", null)
-        metadata.artifactOverrides = [a1, a2]
-
-        then:
-        def immutable = metadata.asImmutable()
-        immutable.artifactOverrides == [a1, a2]
-        immutable.getConfiguration("compile").artifacts == [a1, a2]
-        immutable.getConfiguration("runtime").artifacts == [a1, a2]
-
-        def copy = immutable.asMutable()
-        copy.artifactOverrides == [a1, a2]
-
-        when:
-        metadata.artifactOverrides = [a2]
-
-        then:
-        def immutable2 = metadata.asImmutable()
-        immutable2.artifactOverrides == [a2]
-        immutable2.getConfiguration("compile").artifacts == [a2]
-        immutable2.getConfiguration("runtime").artifacts == [a2]
-    }
-
     def "can attach variants with files"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def metadata = createMetadata(id)
@@ -398,14 +332,12 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         v2.addDependency("g3", "m3", v("v3"), [])
 
         expect:
-        metadata.variantsForGraphTraversal.size() == 2
-        metadata.variantsForGraphTraversal[0].name == 'api'
-        metadata.variantsForGraphTraversal[0].dependencies.size() == 1
-        metadata.variantsForGraphTraversal[1].name == 'runtime'
-        metadata.variantsForGraphTraversal[1].dependencies.size() == 2
-
         def immutable = metadata.asImmutable()
         immutable.variantsForGraphTraversal.size() == 2
+        immutable.variantsForGraphTraversal[0].name == 'api'
+        immutable.variantsForGraphTraversal[0].dependencies.size() == 1
+        immutable.variantsForGraphTraversal[1].name == 'runtime'
+        immutable.variantsForGraphTraversal[1].dependencies.size() == 2
 
         def api = immutable.variantsForGraphTraversal[0]
         api.name == 'api'
@@ -443,29 +375,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null
         artifacts2[0].name.extension == 'zip'
-
-        def copy = immutable.asMutable()
-        copy.variantsForGraphTraversal.size() == 2
-        copy.addVariant("link", attributes())
-        copy.variantsForGraphTraversal.size() == 3
-
-        def immutable2 = copy.asImmutable()
-        immutable2.variantsForGraphTraversal.size() == 3
-    }
-
-    def "resets variant backed configuration metadata if dependency rules are modified"() {
-        given:
-        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = createMetadata(id)
-        metadata.addVariant("aVariant", Mock(ImmutableAttributes))
-        def before = metadata.variantsForGraphTraversal
-
-        when:
-        metadata.addDependencyMetadataRule("aVariant", Mock(Action), Mock(Instantiator), Mock(NotationParser))
-        def after = metadata.variantsForGraphTraversal
-
-        then:
-        !after.is(before)
     }
 
 

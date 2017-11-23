@@ -17,47 +17,87 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<IvyConfigurationMetadata> implements IvyModuleResolveMetadata {
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
-
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final ImmutableList<Artifact> artifacts;
+    private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableList<Exclude> excludes;
     private final ImmutableMap<NamespaceId, String> extraAttributes;
-    private final ImmutableList<? extends ComponentVariant> variants;
-    private final ImmutableList<? extends ConfigurationMetadata> graphVariants;
     private final String branch;
+    // Since a single `Artifact` is shared between configurations, share the metadata type as well.
+    private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
 
-    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
+    DefaultIvyModuleResolveMetadata(DefaultMutableIvyModuleResolveMetadata metadata) {
         super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
-        this.artifacts = metadata.getArtifactDefinitions();
+        this.artifactDefinitions = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
         this.extraAttributes = metadata.getExtraAttributes();
-        this.variants = metadata.getVariants();
-        this.graphVariants = metadata.getVariantsForGraphTraversal();
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
-        this.artifacts = metadata.artifacts;
+        this.artifactDefinitions = metadata.artifactDefinitions;
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
-        this.variants = metadata.variants;
-        this.graphVariants = metadata.graphVariants;
+    }
+
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends ModuleDependencyMetadata> dependencies) {
+        super(metadata, dependencies);
+        this.configurationDefinitions = metadata.configurationDefinitions;
+        this.branch = metadata.branch;
+        this.artifactDefinitions = metadata.artifactDefinitions;
+        this.excludes = metadata.excludes;
+        this.extraAttributes = metadata.extraAttributes;
+    }
+
+    @Override
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<IvyConfigurationMetadata> parents) {
+        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
+        collectArtifactsFor(name, artifacts);
+        for (IvyConfigurationMetadata parent : parents) {
+            artifacts.addAll(parent.getArtifacts());
+        }
+
+        return new IvyConfigurationMetadata(componentId, name, transitive, visible, parents, excludes, ImmutableList.copyOf(artifacts));
+    }
+
+    private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {
+        if (artifacts == null) {
+            artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
+        }
+        for (Artifact artifact : artifactDefinitions) {
+            if (artifact.getConfigurations().contains(name)) {
+                ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
+                if (artifactMetadata == null) {
+                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact.getArtifactName());
+                    artifacts.put(artifact, artifactMetadata);
+                }
+                dest.add(artifactMetadata);
+            }
+        }
     }
 
     @Override
@@ -77,7 +117,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     public ImmutableList<Artifact> getArtifactDefinitions() {
-        return artifacts;
+        return artifactDefinitions;
     }
 
     @Override
@@ -94,13 +134,23 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    public ImmutableList<? extends ComponentVariant> getVariants() {
-        return variants;
+    public IvyModuleResolveMetadata withDynamicConstraintVersions() {
+        List<ModuleDependencyMetadata> transformed = CollectionUtils.collect(getDependencies(), new Transformer<ModuleDependencyMetadata, ModuleDependencyMetadata>() {
+            @Override
+            public ModuleDependencyMetadata transform(ModuleDependencyMetadata dependency) {
+                if (dependency instanceof IvyDependencyMetadata) {
+                    String dynamicConstraintVersion = ((IvyDependencyMetadata) dependency).getDynamicConstraintVersion();
+                    return dependency.withRequestedVersion(new DefaultMutableVersionConstraint(dynamicConstraintVersion));
+                }
+
+                return dependency;
+            }
+        });
+        return this.withDependencies(transformed);
     }
 
-    @Override
-    public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-        return graphVariants;
+    private IvyModuleResolveMetadata withDependencies(List<ModuleDependencyMetadata> transformed) {
+        return new DefaultIvyModuleResolveMetadata(this, transformed);
     }
 
     @Nullable

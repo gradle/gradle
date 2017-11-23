@@ -62,8 +62,6 @@ public interface ComponentResolveMetadata {
      */
     ComponentResolveMetadata withSource(ModuleSource source);
 
-    List<? extends DependencyMetadata> getDependencies();
-
     /**
      * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
      */

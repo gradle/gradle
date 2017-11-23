@@ -26,7 +26,7 @@ import org.gradle.internal.component.model.Exclude;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata, ComponentVariantResolveMetadata {
+public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
     /**
      * {@inheritDoc}
      */
@@ -47,11 +47,6 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
      * Returns the Ivy excludes of this component.
      */
     ImmutableList<Exclude> getExcludes();
-
-    /**
-     * Replaces the excludes of this component.
-     */
-    void setExcludes(Iterable<? extends Exclude> excludes);
 
     ImmutableMap<NamespaceId, String> getExtraAttributes();
 

@@ -44,15 +44,27 @@ class DependencyMetadataRulesTest extends Specification {
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     @Shared defaultVariant
 
-    private ivyComponentMetadata() { new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier) }
-    private mavenComponentMetadata() { new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier) }
-    private gradleComponentMetadata() {
+    private ivyComponentMetadata(String[] deps) {
+        def dependencies = deps.collect { name ->
+            new IvyDependencyMetadata(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+        }
+        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
+    }
+    private mavenComponentMetadata(String[] deps) {
+        def dependencies = deps.collect { name ->
+            new MavenDependencyMetadata(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), [], [])
+        }
+        new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
+    }
+    private gradleComponentMetadata(String[] deps) {
         def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier)
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         defaultVariant = metadata.addVariant("default", attributes)
+        deps.each { name ->
+            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [])
+        }
         metadata
     }
-
 
     @Unroll
     def "dependency metadata rules are evaluated once and lazily for #metadataType metadata"() {
@@ -61,20 +73,21 @@ class DependencyMetadataRulesTest extends Specification {
 
         when:
         metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        def metadata = metadataImplementation.asImmutable()
 
         then:
         0 * rule.execute(_)
 
         when:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
 
         then:
         1 * rule.execute(_)
 
         when:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
+        selectTargetConfigurationMetadata(metadata).dependencies
 
         then:
         0 * rule.execute(_)
@@ -108,8 +121,8 @@ class DependencyMetadataRulesTest extends Specification {
     @Unroll
     def "dependencies of selected variant are accessible in dependency metadata rule for #metadataType metadata"() {
         given:
-        addDependency(metadataImplementation, "org.test", "dep1", "1.0")
-        addDependency(metadataImplementation, "org.test", "dep2", "1.0")
+//        addDependency(metadataImplementation, "org.test", "dep1", "1.0")
+//        addDependency(metadataImplementation, "org.test", "dep2", "1.0")
         def rule = { dependencies ->
             assert dependencies.size() == 2
             assert dependencies[0].name == "dep1"
@@ -124,15 +137,14 @@ class DependencyMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadataImplementation
-        "maven"      | mavenComponentMetadata()
-        "ivy"        | ivyComponentMetadata()
-        "gradle"     | gradleComponentMetadata()
+        "maven"      | mavenComponentMetadata("dep1", "dep2")
+        "ivy"        | ivyComponentMetadata("dep1", "dep2")
+        "gradle"     | gradleComponentMetadata("dep1", "dep2")
     }
 
     @Unroll
     def "dependencies of selected variant are modifiable in dependency metadata rule for #metadataType metadata"() {
         given:
-        addDependency(metadataImplementation, "org.test", "toModify", "1.0")
         def rule = { dependencies ->
             assert dependencies.size() == 1
             dependencies[0].version {
@@ -149,9 +161,9 @@ class DependencyMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadataImplementation
-        "maven"      | mavenComponentMetadata()
-        "ivy"        | ivyComponentMetadata()
-        "gradle"     | gradleComponentMetadata()
+        "maven"      | mavenComponentMetadata("toModify")
+        "ivy"        | ivyComponentMetadata("toModify")
+        "gradle"     | gradleComponentMetadata("toModify")
     }
 
     @Unroll
@@ -177,7 +189,6 @@ class DependencyMetadataRulesTest extends Specification {
     @Unroll
     def "dependencies removed in dependency metadata rules are removed from dependency list for #metadataType metadata"() {
         given:
-        addDependency(metadataImplementation, "org.test", "toRemove", "1.0")
         def rule = { dependencies ->
             assert dependencies.size() == 1
             dependencies.removeAll { it.name == "toRemove" }
@@ -191,29 +202,21 @@ class DependencyMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadataImplementation
-        "maven"      | mavenComponentMetadata()
-        "ivy"        | ivyComponentMetadata()
-        "gradle"     | gradleComponentMetadata()
+        "maven"      | mavenComponentMetadata("toRemove")
+        "ivy"        | ivyComponentMetadata("toRemove")
+        "gradle"     | gradleComponentMetadata("toRemove")
     }
-
-    private addDependency(AbstractMutableModuleComponentResolveMetadata<? extends DefaultConfigurationMetadata> resolveMetadata, String group, String name, String version) {
-        if (resolveMetadata instanceof MutableMavenModuleResolveMetadata && !resolveMetadata.variants.empty) {
-            defaultVariant.addDependency(group, name, new DefaultMutableVersionConstraint(version), [])
-        } else if (resolveMetadata instanceof MutableMavenModuleResolveMetadata) {
-            //legacy dependency handling
-            resolveMetadata.dependencies += new MavenDependencyMetadata(MavenScope.Compile, false, newSelector(group, name, version), [], [])
-        } else if (resolveMetadata instanceof MutableIvyModuleResolveMetadata) {
-            //legacy dependency handling
-            resolveMetadata.dependencies += new IvyDependencyMetadata(newSelector(group, name, version), ImmutableListMultimap.of("default", "default"))
-        }
-    }
-
+    
     private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+        selectTargetConfigurationMetadata(targetComponent.asImmutable())
+    }
+
+    private selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def consumerIdentifier = new DefaultModuleVersionIdentifier("org.test", "consumer", "1.0")
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumerResolveMetadata = new DefaultMutableMavenModuleResolveMetadata(consumerIdentifier, DefaultModuleComponentIdentifier.newId(consumerIdentifier)).asImmutable()
         def consumer = new LocalComponentDependencyMetadata(componentSelector, "default", attributes, null, [] as Set, [], false, false, true)
 
-        consumer.selectConfigurations(attributes, consumerResolveMetadata, consumerResolveMetadata.getConfiguration("default"), targetComponent.asImmutable(), schema)[0]
+        consumer.selectConfigurations(attributes, consumerResolveMetadata, consumerResolveMetadata.getConfiguration("default"), immutable, schema)[0]
     }
 }

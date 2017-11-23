@@ -44,7 +44,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, notationParser)
 
     private ivyComponentMetadata() {
-        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
+        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [], [])
     }
     private gradleComponentMetadata() {
         def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier)
