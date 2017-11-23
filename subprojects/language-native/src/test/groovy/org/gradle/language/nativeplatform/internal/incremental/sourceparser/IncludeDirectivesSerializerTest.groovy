@@ -58,10 +58,11 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def macro1 = new ReturnFixedValueMacroFunction("ONE", 0, IncludeType.QUOTED, "one", [])
         def macro2 = new ReturnFixedValueMacroFunction("TWO", 3, IncludeType.MACRO, "two", [new SimpleExpression("abc", IncludeType.MACRO)])
         def macro3 = new ReturnParameterMacroFunction("THREE", 12, 4)
-        def macro4 = new ArgsMappingMacroFunction("FOUR", 3, [0, 1, 2] as int[], "macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
-        def macro5 = new UnresolveableMacroFunction("FIVE", 3)
+        def macro4 = new ArgsMappingMacroFunction("FOUR", 3, [0, 1, 2] as int[], IncludeType.MACRO_FUNCTION, "macro", [new SimpleExpression("abc.h", IncludeType.QUOTED)])
+        def macro5 = new ArgsMappingMacroFunction("FOUR", 3, [2, 1] as int[], IncludeType.TOKEN_CONCATENATION,null, [new SimpleExpression("abc.h", IncludeType.QUOTED)])
         def macro6 = new UnresolveableMacroFunction("SIX", 3)
-        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6]))
+        def macro7 = new UnresolveableMacroFunction("SEVEN", 3)
+        def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7]))
 
         expect:
         serialize(directives, new IncludeDirectivesSerializer()) == directives

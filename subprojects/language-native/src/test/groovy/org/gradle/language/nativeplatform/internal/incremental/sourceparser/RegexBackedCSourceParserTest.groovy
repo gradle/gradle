@@ -222,22 +222,22 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == [new IncludeWithMacroFunctionCallExpression(macro, false, ImmutableList.copyOf(parameters.collect { expression(it) }))]
+        includes == [new IncludeWithMacroFunctionCallExpression(macro, false, ImmutableList.copyOf(parameters))]
 
         and:
         noImports()
 
         where:
         include                                            | macro | parameters
-        'A(X)'                                             | 'A'   | ['X']
-        'A( X )'                                           | 'A'   | ['X']
-        'ABC(x,y)'                                         | 'ABC' | ['x', 'y']
-        'ABC( \t x \t,  y  )'                              | 'ABC' | ['x', 'y']
-        'A ( "include.h" )'                                | 'A'   | ['"include.h"']
-        'A ( <include.h> )'                                | 'A'   | ['<include.h>']
-        'A ( _b )'                                         | 'A'   | ['_b']
-        'A ( _b(c) )'                                      | 'A'   | ['_b(c)']
-        ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'   | ['"a.h"', '<b.h>', 'b$(a,b,c("b.h"))', 'Z']
+        'A(X)'                                             | 'A'   | [token('X')]
+        'A( X )'                                           | 'A'   | [token('X')]
+        'ABC(x,y)'                                         | 'ABC' | [token('x'), token('y')]
+        'ABC( \t x \t,  y  )'                              | 'ABC' | [token('x'), token('y')]
+        'A ( "include.h" )'                                | 'A'   | [expression('"include.h"')]
+        'A ( <include.h> )'                                | 'A'   | [expression('<include.h>')]
+        'A ( _b )'                                         | 'A'   | [token('_b')]
+        'A ( _b(c) )'                                      | 'A'   | [expression('_b(c)')]
+        ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'   | [expression('"a.h"'), expression('<b.h>'), expression('b$(a,b,c("b.h"))'), token('Z')]
     }
 
     def "finds other includes that cannot be resolved"() {
@@ -663,9 +663,9 @@ st3"
         where:
         value              | function  | args
         'a()'              | 'a'       | []
-        '_a_123_(_a1, $2)' | '_a_123_' | ['_a1', '$2']
-        'a$b(X,Y)'         | 'a$b'     | ['X', 'Y']
-        ' A( X, Y(Z)  )'   | 'A'       | ['X', 'Y(Z)']
+        '_a_123_(_a1, $2)' | '_a_123_' | [token('_a1'), token('$2')]
+        'a$b(X,Y)'         | 'a$b'     | [token('X'), token('Y')]
+        ' A( X, Y(Z)  )'   | 'A'       | [token('X'), expression('Y(Z)')]
     }
 
     def "finds object-like macro directive whose value is token concatenation"() {
@@ -944,9 +944,27 @@ st3"
         where:
         body             | expected
         "B()"            | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [])
-        "B(Z)"           | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [expression('Z')])
-        "B(X, Y)"        | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], "B", [expression('X'), expression('Y')])
-        "B(<a.h>, X, Y)" | new ArgsMappingMacroFunction("A", 2, [-1, 0, 1] as int[], "B", [expression('<a.h>'), expression('X'), expression('Y')])
+        "B(Z)"           | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [token('Z')])
+        "B(X, Y)"        | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], IncludeType.MACRO_FUNCTION, "B", [token('X'), token('Y')])
+        "B(<a.h>, X, Y)" | new ArgsMappingMacroFunction("A", 2, [-1, 0, 1] as int[], IncludeType.MACRO_FUNCTION, "B", [expression('<a.h>'), token('X'), token('Y')])
+    }
+
+    def "finds function-like macro directive with multiple parameters whose body is token concatenation of parameters"() {
+        when:
+        sourceFile << """
+#define A(X, Y) ${body}
+"""
+
+        then:
+        macros.empty
+        macroFunctions == [expected]
+
+        where:
+        body         | expected
+        'X ## Y'     | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('X'), token('Y')])
+        'X ## OTHER' | new ArgsMappingMacroFunction("A", 2, [0, -1] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('X'), token('OTHER')])
+        'OTHER ## X' | new ArgsMappingMacroFunction("A", 2, [-1, 0] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('OTHER'), token('X')])
+        'A ## B'     | new ReturnFixedValueMacroFunction("A", 2, IncludeType.TOKEN_CONCATENATION, null, [token('A'), token('B')])
     }
 
     def "finds function-like macro directive with multiple parameters whose body cannot be resolved"() {

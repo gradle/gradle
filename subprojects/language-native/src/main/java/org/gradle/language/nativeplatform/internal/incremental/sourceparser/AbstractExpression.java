@@ -39,10 +39,23 @@ public abstract class AbstractExpression implements Expression {
         return Collections.emptyList();
     }
 
+    @Override
+    public Expression asMacroExpansion() {
+        return asMacroExpansion(this);
+    }
+
+    static Expression asMacroExpansion(Expression expression) {
+        if (expression.getType() == IncludeType.TOKEN) {
+            return new SimpleExpression(expression.getValue(), IncludeType.MACRO);
+        }
+        return expression;
+    }
+
     static String format(Expression expression) {
-        IncludeType type = expression.getType();
-        String value = expression.getValue();
-        List<Expression> arguments = expression.getArguments();
+        return format(expression.getType(), expression.getValue(), expression.getArguments());
+    }
+
+    static String format(IncludeType type, String value, List<Expression> arguments) {
         switch (type) {
             case QUOTED:
                 return '"' + value + '"';
@@ -52,7 +65,7 @@ public abstract class AbstractExpression implements Expression {
             case TOKEN:
                 return value;
             case TOKEN_CONCATENATION:
-                return expression.getArguments().get(0).getAsSourceText() + "##" + expression.getArguments().get(1).getAsSourceText();
+                return arguments.get(0).getAsSourceText() + "##" + arguments.get(1).getAsSourceText();
             case MACRO_FUNCTION:
                 return value + "(" + Joiner.on(", ").join(arguments) + ")";
             default:

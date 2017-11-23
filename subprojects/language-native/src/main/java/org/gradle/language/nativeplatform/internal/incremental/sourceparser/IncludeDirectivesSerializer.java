@@ -226,14 +226,15 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             } else if (tag == MAPPING) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
-                String macroToCall = decoder.readString();
+                IncludeType type = enumSerializer.read(decoder);
+                String value = decoder.readNullableString();
                 List<Expression> arguments = ImmutableList.copyOf(expressionSerializer.read(decoder));
                 int mapCount = decoder.readSmallInt();
                 int[] argsMap = new int[mapCount];
                 for(int i = 0; i < mapCount; i++) {
                     argsMap[i] = decoder.readSmallInt();
                 }
-                return new ArgsMappingMacroFunction(name, parameters, argsMap, macroToCall, arguments);
+                return new ArgsMappingMacroFunction(name, parameters, argsMap, type, value, arguments);
             } else if (tag == UNRESOLVED) {
                 String name = decoder.readString();
                 int parameters = decoder.readSmallInt();
@@ -264,7 +265,8 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeByte(MAPPING);
                 encoder.writeString(value.getName());
                 encoder.writeSmallInt(value.getParameterCount());
-                encoder.writeString(argsMappingFunction.getMacroToCall());
+                enumSerializer.write(encoder, argsMappingFunction.getType());
+                encoder.writeNullableString(argsMappingFunction.getValue());
                 expressionSerializer.write(encoder, argsMappingFunction.getArguments());
                 int[] argsMap = argsMappingFunction.getArgsMap();
                 encoder.writeSmallInt(argsMap.length);

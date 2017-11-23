@@ -285,7 +285,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     }
 
     @Unroll
-    def "header file referenced using simple macro #macro is considered an input"() {
+    def "header file referenced using macro #macro is considered an input"() {
         when:
         def unused = file("app/src/main/headers/ignore1.h") << "broken!"
 
@@ -299,6 +299,13 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define FUNCTION_RETURNS_MACRO(X) HELLO_HEADER
             #define FUNCTION_RETURNS_MACRO_CALL(X) FUNCTION_RETURNS_ARG(X)
             #define FUNCTION_RETURNS_ARG(X) X
+            
+            #define PREFIX MACRO_USES
+            #define SUFFIX() _FUNCTION
+            
+            // Token concatenation ## does not macro expand macro function args, so is usually wrapped by another macro function
+            #define CONCAT_FUNCTION2(X, Y) X ## Y
+            #define CONCAT_FUNCTION(X, Y) CONCAT_FUNCTION2(X, Y)
         """
 
         def headerFile = file("app/src/main/headers/hello.h") << """
@@ -312,6 +319,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define MACRO_USES_SYSTEM_PATH <hello.h>
             #define MACRO_USES_FUNCTION MACRO_FUNCTION()
             #define MACRO_USES_FUNCTION_WITH_ARGS FUNCTION_RETURNS_MACRO_CALL(MACRO_USES_FUNCTION)
+            #define MACRO_USES_CONCAT_FUNCTION CONCAT_FUNCTION(PREFIX, SUFFIX())
             #include ${macro}
             #include <iostream>
 
@@ -353,6 +361,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             "MACRO_USES_ANOTHER_MACRO",
             "MACRO_USES_FUNCTION",
             "MACRO_USES_FUNCTION_WITH_ARGS",
+            "MACRO_USES_CONCAT_FUNCTION",
             "MACRO_FUNCTION()",
             "FUNCTION_RETURNS_STRING(ignore)",
             "FUNCTION_RETURNS_MACRO(ignore)",

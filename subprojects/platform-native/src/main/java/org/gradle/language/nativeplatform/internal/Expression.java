@@ -42,4 +42,9 @@ public interface Expression {
      * Returns the left and right arguments of the expression when type is {@link IncludeType#TOKEN_CONCATENATION}.
      */
     List<Expression> getArguments();
+
+    /**
+     * Returns this expression as a macro expansion expression. If the type is {@link IncludeType#TOKEN} replace with a {@link IncludeType#MACRO}, otherwise return this.
+     */
+    Expression asMacroExpansion();
 }

@@ -43,6 +43,11 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
     }
 
     @Override
+    public Expression asMacroExpansion() {
+        return AbstractExpression.asMacroExpansion(this);
+    }
+
+    @Override
     public String getAsSourceText() {
         return AbstractExpression.format(this);
     }

@@ -40,50 +40,101 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     @Override
-    public IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros) {
-        BuildableResult resolvedSourceIncludes = new BuildableResult();
-        resolveExpression(sourceFile, include, visibleMacros, include, resolvedSourceIncludes, includePaths);
-        return resolvedSourceIncludes;
+    public IncludeResolutionResult resolveInclude(final File sourceFile, Include include, MacroLookup visibleMacros) {
+        BuildableResult results = new BuildableResult();
+        resolveExpression(visibleMacros, include, new PathResolvingVisitor(sourceFile, results));
+        return results;
     }
 
-    private void resolveExpression(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
+    private void resolveExpression(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
         if (expression.getType() == IncludeType.SYSTEM) {
-            searchForDependency(includePaths, expression.getValue(), resolvedSourceIncludes);
+            visitor.visitSystem(expression.getValue());
         } else if (expression.getType() == IncludeType.QUOTED) {
-            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-            searchForDependency(quotedSearchPath, expression.getValue(), resolvedSourceIncludes);
+            visitor.visitQuoted(expression.getValue());
         } else if (expression.getType() == IncludeType.MACRO) {
-            resolveMacroToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
+            resolveMacro(visibleMacros, expression, visitor);
         } else if (expression.getType() == IncludeType.MACRO_FUNCTION) {
-            resolveMacroFunctionToIncludes(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes);
+            resolveMacroFunction(visibleMacros, expression, visitor);
         } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
-            resolveTokenConcatenation(sourceFile, include, visibleMacros, expression, resolvedSourceIncludes, includePaths);
+            resolveTokenConcatenation(visibleMacros, expression, visitor);
+        } else if (expression.getType() == IncludeType.TOKEN) {
+            visitor.visitToken(expression.getValue());
         } else {
-            resolvedSourceIncludes.unresolved();
+            visitor.visitUnresolved(expression);
         }
     }
 
-    private void resolveTokenConcatenation(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes, List<File> includePaths) {
-        String newValue = expression.getArguments().get(0).getValue() + expression.getArguments().get(1).getValue();
-        resolveExpression(sourceFile, include, visibleMacros, new SimpleExpression(newValue, IncludeType.MACRO), resolvedSourceIncludes, includePaths);
+    private void resolveTokenConcatenation(final MacroLookup visibleMacros, final Expression expression, final ExpressionVisitor visitor) {
+        final Expression left = expression.getArguments().get(0);
+        final Expression right = expression.getArguments().get(1);
+        resolveExpression(visibleMacros, left, new ExpressionVisitor() {
+            @Override
+            public void visitQuoted(String value) {
+                visitor.visitUnresolved(expression);
+            }
+
+            @Override
+            public void visitSystem(String value) {
+                visitor.visitUnresolved(expression);
+            }
+
+            @Override
+            public void visitToken(final String leftValue) {
+                resolveExpression(visibleMacros, right, new ExpressionVisitor() {
+                    @Override
+                    public void visitQuoted(String value) {
+                        visitor.visitUnresolved(expression);
+                    }
+
+                    @Override
+                    public void visitSystem(String value) {
+                        visitor.visitUnresolved(expression);
+                    }
+
+                    @Override
+                    public void visitToken(String value) {
+                        String newValue = leftValue + value;
+                        resolveExpression(visibleMacros, new SimpleExpression(newValue, IncludeType.MACRO), visitor);
+                    }
+
+                    @Override
+                    public void visitUnresolved(Expression expression) {
+                        if (expression.getType() == IncludeType.MACRO) {
+                            visitToken(expression.getValue());
+                        } else {
+                            visitor.visitUnresolved(expression);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void visitUnresolved(Expression expression) {
+                if (expression.getType() == IncludeType.MACRO) {
+                    visitToken(expression.getValue());
+                } else {
+                    visitor.visitUnresolved(expression);
+                }
+            }
+        });
     }
 
-    private void resolveMacroToIncludes(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             for (Macro macro : includeDirectives.getMacros()) {
                 if (expression.getValue().equals(macro.getName())) {
                     found = true;
-                    resolveExpression(sourceFile, include, visibleMacros, macro, resolvedSourceIncludes, includePaths);
+                    resolveExpression(visibleMacros, macro, visitor);
                 }
             }
         }
         if (!found) {
-            resolvedSourceIncludes.unresolved();
+            visitor.visitUnresolved(expression);
         }
     }
 
-    private void resolveMacroFunctionToIncludes(File sourceFile, Include include, MacroLookup visibleMacros, Expression expression, BuildableResult resolvedSourceIncludes) {
+    private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
@@ -91,12 +142,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 if (expression.getValue().equals(macro.getName()) && macro.getParameterCount() == expression.getArguments().size()) {
                     found = true;
                     Expression result = macro.evaluate(expression.getArguments());
-                    resolveExpression(sourceFile, include, visibleMacros, result, resolvedSourceIncludes, includePaths);
+                    resolveExpression(visibleMacros, result, visitor);
                 }
             }
         }
         if (!found) {
-            resolvedSourceIncludes.unresolved();
+            visitor.visitUnresolved(expression);
         }
     }
 
@@ -135,6 +186,16 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
+    private interface ExpressionVisitor {
+        void visitQuoted(String value);
+
+        void visitSystem(String value);
+
+        void visitToken(String value);
+
+        void visitUnresolved(Expression expression);
+    }
+
     private static class BuildableResult implements IncludeResolutionResult {
         private final List<File> files = new ArrayList<File>();
         private final List<File> candidates = new ArrayList<File>();
@@ -165,6 +226,37 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         @Override
         public List<File> getCheckedLocations() {
             return candidates;
+        }
+    }
+
+    private class PathResolvingVisitor implements ExpressionVisitor {
+        private final File sourceFile;
+        private final BuildableResult results;
+
+        PathResolvingVisitor(File sourceFile, BuildableResult results) {
+            this.sourceFile = sourceFile;
+            this.results = results;
+        }
+
+        @Override
+        public void visitQuoted(String value) {
+            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
+            searchForDependency(quotedSearchPath, value, results);
+        }
+
+        @Override
+        public void visitSystem(String value) {
+            searchForDependency(includePaths, value, results);
+        }
+
+        @Override
+        public void visitToken(String value) {
+            results.unresolved();
+        }
+
+        @Override
+        public void visitUnresolved(Expression expression) {
+            results.unresolved();
         }
     }
 }

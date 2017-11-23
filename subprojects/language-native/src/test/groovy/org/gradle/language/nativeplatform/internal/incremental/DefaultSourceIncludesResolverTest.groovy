@@ -17,11 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.MacroWithComplexExpression
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.MacroWithSimpleExpression
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ReturnFixedValueMacroFunction
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.UnresolveableMacro
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -298,7 +294,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
     def "macro function does not match macro function with different number of parameters"() {
         given:
-        macroFunctions << macroFunction("TEST", 1,'"test.h"')
+        macroFunctions << macroFunction("TEST(X)", '"test.h"')
 
         expect:
         def result = resolve(include('TEST()'))
@@ -338,7 +334,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations == [srcHeader, header]
     }
 
-    def "does not macro expand the arguments of token concatenation"() {
+    def "does not macro expand the arguments of token concatenation in macro"() {
         given:
         def srcHeader = sourceDirectory.file("test.h")
         def header = systemIncludeDir.createFile("test.h")
@@ -355,22 +351,70 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations == [srcHeader, header]
     }
 
+    def "resolves token concatenation inside macro function to macro then to file"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << macro("FILENAME", '"test.h"')
+        macroFunctions << macroFunction("TEST(X, Y)", "X##Y")
+
+        expect:
+        def result = resolve(include('TEST(FILE, NAME)'))
+        result.complete
+        result.files == [header]
+        result.checkedLocations == [srcHeader, header]
+    }
+
+    def "does not macro expand the arguments of token concatenation in macro function"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << unresolveableMacro("FILE")
+        macros << unresolveableMacro("NAME")
+        macros << macro("FILENAME", '"test.h"')
+        macroFunctions << macroFunction("TEST(X, Y)", "X##Y")
+
+        expect:
+        def result = resolve(include('TEST(FILE, NAME)'))
+        result.complete
+        result.files == [header]
+        result.checkedLocations == [srcHeader, header]
+    }
+
+    def "macro expands parameters of macro function that calls macro function that concatenates parameters"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << macro("A", 'FILE')
+        macros << macro("C", 'NAME')
+        macros << macro("FILENAME", '"test.h"')
+        macroFunctions << macroFunction("B(X)", "X")
+        macroFunctions << macroFunction("TEST2(X, Y)", "X##Y")
+        macroFunctions << macroFunction("TEST(X, Y)", "TEST2(X, Y)")
+
+        expect:
+        def result = resolve(include('TEST(A, B(C))'))
+        result.complete
+        result.files == [header]
+        result.checkedLocations == [srcHeader, header]
+    }
+
     def include(String value) {
-        return IncludeWithSimpleExpression.parse(value, false)
+        def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#include $value"))
+        return directives.includesOnly.first()
     }
 
     def macro(String name, String value) {
-        def expression = RegexBackedCSourceParser.parseExpression(value)
-        if (expression.arguments.empty) {
-            new MacroWithSimpleExpression(name, expression.type, expression.value)
-        } else {
-            new MacroWithComplexExpression(name, expression.type, expression.value, expression.arguments)
-        }
+        def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name} $value"))
+        return directives.macros.first()
     }
 
-    def macroFunction(String name, int parameters = 0, String value) {
-        def expression = RegexBackedCSourceParser.parseExpression(value)
-        new ReturnFixedValueMacroFunction(name, parameters, expression.type, expression.value, [])
+    def macroFunction(String name, String value) {
+        def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#define ${name}${name.contains('(') ? "" : "()"} $value"))
+        return directives.macrosFunctions.first()
     }
 
     def unresolveableMacro(String name) {

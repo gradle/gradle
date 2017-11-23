@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import groovy.transform.NotYetImplemented
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
@@ -353,12 +352,25 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with arg that returns macro function call with arg that is parameter"() {
+    def "resolves macro function with arg that returns macro function call with arg that is parameter and param is quoted string"() {
         given:
         sourceFile << """
             #define HEADER_(X, Y) X
             #define HEADER(X) HEADER_(X, ignore)
             #include HEADER("hello.h")
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with arg that returns macro function call with arg that is parameter and param is macro"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER_(X, Y) X
+            #define HEADER(X) HEADER_(X, ignore)
+            #include HEADER(HEADER_NAME)
         """
 
         expect:
@@ -392,7 +404,6 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
     def "resolves macro function with multiple args that returns concatenation of the args"() {
         given:
         sourceFile << """
@@ -407,13 +418,24 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    @NotYetImplemented
+    def "resolves macro function with multiple args that returns concatenation of arg and token"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER_ do not use this
+            #define NAME do not use this
+            #define HEADER(X, Y) Y ## NAME
+            #include HEADER(ignore(), HEADER_) // replaced with HEADER_NAME then "hello.h"
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro function with multiple args that returns result of function that concatenates the args"() {
         given:
         sourceFile << """
             #define HEADER_NAME "hello.h"
-            #define HEADER_ broken // should not be referenced
-            #define NAME broken // should not be referenced
             #define HEADER_(X, Y) X ## Y
             #define HEADER(X, Y) HEADER_(X, Y)
             #define PREFIX HEADER_
@@ -423,6 +445,35 @@ class SourceParserAndResolutionTest extends SerializerSpec {
 
         expect:
         resolve() == [header]
+    }
+
+    def "resolves macro function multiple times for different values of left and right hand sides"() {
+        given:
+        def header1 = includeDir.createFile("hello1.h")
+        def header2 = includeDir.createFile("hello2.h")
+        def header3 = includeDir.createFile("hello3.h")
+        def header4 = includeDir.createFile("hello4.h")
+        sourceFile << """
+            #define HEADER1_NAME1 "hello1.h"
+            #define HEADER1_NAME2 "hello2.h"
+            #define HEADER2_NAME1 "hello3.h"
+            #define HEADER2_NAME2 "hello4.h"
+            #if 0
+            #define HEADER HEADER1_
+            #define NAME NAME1
+            #else
+            #define HEADER HEADER2_
+            #define NAME NAME2
+            #endif
+            #define HEADER2(X, Y) X ## Y
+            #define HEADER(X, Y) HEADER2(X, Y)
+            #define PREFIX HEADER
+            #define SUFFIX NAME
+            #include HEADER(PREFIX, SUFFIX)
+        """
+
+        expect:
+        resolve() == [header1, header2, header3, header4]
     }
 
     def resolve() {

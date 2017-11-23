@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
@@ -26,23 +26,29 @@ import java.util.List;
 
 class ArgsMappingMacroFunction extends AbstractMacroFunction {
     private final int[] argsMap;
+    private final IncludeType type;
+    private final String value;
     private final List<Expression> arguments;
-    private final String macroToCall;
 
-    public ArgsMappingMacroFunction(String macroName, int parameters, int[] argsMap, String macroToCall, List<Expression> arguments) {
+    public ArgsMappingMacroFunction(String macroName, int parameters, int[] argsMap, IncludeType type,  String value, List<Expression> arguments) {
         super(macroName, parameters);
         this.argsMap = argsMap;
+        this.type = type;
+        this.value = value;
         this.arguments = arguments;
-        this.macroToCall = macroToCall;
     }
 
     @Override
     protected String getBody() {
-        return macroToCall + "(" + Joiner.on(", ").join(arguments) + ")";
+        return AbstractExpression.format(type, value, arguments);
     }
 
-    public String getMacroToCall() {
-        return macroToCall;
+    public IncludeType getType() {
+        return type;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     public List<Expression> getArguments() {
@@ -59,11 +65,15 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
         for (int i = 0; i < this.arguments.size(); i++) {
             if (argsMap[i] < 0) {
                 mapped.add(this.arguments.get(i));
+            } else if (type == IncludeType.MACRO_FUNCTION){
+                // Macro expand parameter
+                mapped.add(arguments.get(argsMap[i]).asMacroExpansion());
             } else {
+                // Do not macro expand parameter
                 mapped.add(arguments.get(argsMap[i]));
             }
         }
-        return new ComplexExpression(IncludeType.MACRO_FUNCTION, macroToCall, mapped);
+        return new ComplexExpression(type, value, mapped);
     }
 
     @Override
@@ -73,11 +83,11 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
         }
 
         ArgsMappingMacroFunction other = (ArgsMappingMacroFunction) obj;
-        return Arrays.equals(argsMap, other.argsMap) && arguments.equals(other.arguments) && macroToCall.equals(other.macroToCall);
+        return type == other.type && Objects.equal(value, other.value) && Arrays.equals(argsMap, other.argsMap) && arguments.equals(other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ macroToCall.hashCode() ^ arguments.hashCode();
+        return super.hashCode() ^ type.hashCode() ^ arguments.hashCode() ^ Arrays.hashCode(argsMap);
     }
 }

@@ -42,7 +42,7 @@ public class ReturnParameterMacroFunction extends AbstractMacroFunction {
 
     @Override
     public Expression evaluate(List<Expression> arguments) {
-        return arguments.get(parameterToReturn);
+        return arguments.get(parameterToReturn).asMacroExpansion();
     }
 
     @Override
