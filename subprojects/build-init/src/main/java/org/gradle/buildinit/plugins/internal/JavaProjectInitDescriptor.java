@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -92,12 +91,9 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
                         getTestImplementationConfigurationName(),
                         "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
-                    .configuration(
+                    .taskMethodInvocation(
                         "Use TestNG for unit tests",
-                        ImmutableMap.<BuildInitBuildScriptDsl, String>builder()
-                            .put(GROOVY, "test.useTestNG()")
-                            .put(KOTLIN, "val test by tasks.getting(Test::class)\ntest.useTestNG()")
-                            .build());
+                        "test", "Test", "useTestNG");
                 break;
             default:
                 buildScriptBuilder
