@@ -24,15 +24,11 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.model.DefaultObjectFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
@@ -45,10 +41,6 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-
-    // This must ONLY be used in the deprecated constructor, for backwards compatibility
-    private final static ObjectFactory DEPRECATED_OBJECT_FACTORY = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
-
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
@@ -64,20 +56,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
         this.attributesFactory = attributesFactory;
         this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
         this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
-    }
-
-    /**
-     * This constructor should not be used, and is maintained only for backwards
-     * compatibility with the widely used Shadow plugin.
-     */
-    @Deprecated
-    public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
-        this.artifacts.add(jarArtifact);
-        this.objectFactory = DEPRECATED_OBJECT_FACTORY;
-        this.attributesFactory = new DefaultImmutableAttributesFactory(null);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
-        this.configurations = null;
     }
 
     @VisibleForTesting
@@ -154,25 +132,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
                 dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
             }
             return dependencies.withType(ModuleDependency.class);
-        }
-    }
-
-    private class BackwardsCompatibilityUsageContext extends AbstractUsageContext {
-        private final DependencySet runtimeDependencies;
-
-        private BackwardsCompatibilityUsageContext(String usageName, DependencySet runtimeDependencies) {
-            super(usageName);
-            this.runtimeDependencies = runtimeDependencies;
-        }
-
-        @Override
-        public String getName() {
-            return getUsage().getName();
-        }
-
-        @Override
-        public Set<ModuleDependency> getDependencies() {
-            return runtimeDependencies.withType(ModuleDependency.class);
         }
     }
 }
