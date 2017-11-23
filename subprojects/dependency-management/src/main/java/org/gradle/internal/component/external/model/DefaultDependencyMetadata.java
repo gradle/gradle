@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata, ExternalOriginDependencyMetadata {
+public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata {
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
     private final boolean optional;
@@ -115,6 +115,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
             return Collections.emptySet();
         }
 
+        // TODO:DAZ This logic should be simpler for Maven dependencies: they can only set a single artifact via classifier/type.
         Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
         for (Artifact depArtifact : dependencyArtifacts) {
@@ -155,4 +156,9 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
     public abstract List<Exclude> getConfigurationExcludes(Collection<String> configurations);
+
+    /**
+     * Returns the set of source configurations that this dependency should be attached to.
+     */
+    public abstract Set<String> getModuleConfigurations();
 }

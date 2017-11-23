@@ -162,7 +162,8 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         return new ConfigurationDependencyMetadataWrapper(this, componentId, incoming);
     }
 
-    private boolean include(ExternalOriginDependencyMetadata dependency) {
+    // TODO:DAZ This logic should be simpler for Maven modules: each dependency has a single scope
+    private boolean include(DefaultDependencyMetadata dependency) {
         Collection<String> hierarchy = getHierarchy();
         for (String moduleConfiguration : dependency.getModuleConfigurations()) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
