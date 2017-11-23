@@ -27,13 +27,18 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -72,9 +77,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
      */
     @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
+        DeprecationLogger.nagUserOfDeprecatedThing("A constructor for `org.gradle.api.internal.java.JavaLibrary` is used by Shadow plugin v1.2.x, and has been preserved for compatibility",
+            "If you're using the Shadow plugin, try upgrading to v2.x");
         this.artifacts.add(jarArtifact);
         this.objectFactory = DEPRECATED_OBJECT_FACTORY;
-        this.attributesFactory = new DefaultImmutableAttributesFactory(null);
+        this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory());
         this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
         this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;
@@ -173,6 +180,32 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<ModuleDependency> getDependencies() {
             return runtimeDependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    /**
+     * This is only here to provide backward compatibility for the Shadow plugin. Remove in 5.0.
+     */
+    private static class BackwardsCompatibilityIsolatableFactory implements IsolatableFactory {
+        @Override
+        public <T> Isolatable<T> isolate(final T value) {
+            return new Isolatable<T>() {
+                @Override
+                public T isolate() {
+                    return value;
+                }
+
+                @Nullable
+                @Override
+                public <S> Isolatable<S> coerce(Class<S> type) {
+                    return null;
+                }
+
+                @Override
+                public void appendToHasher(BuildCacheHasher hasher) {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }

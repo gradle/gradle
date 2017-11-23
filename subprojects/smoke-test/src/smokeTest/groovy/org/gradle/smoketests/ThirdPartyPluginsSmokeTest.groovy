@@ -20,6 +20,7 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -27,15 +28,16 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
+    @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
-    def 'shadow plugin'() {
+    def 'shadow plugin #version'() {
         given:
         buildFile << """
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
                 id 'java' // or 'groovy' Must be explicitly applied
-                id 'com.github.johnrengelman.shadow' version '2.0.1'
+                id 'com.github.johnrengelman.shadow' version '$version'
             }
 
             ${jcenterRepository()}
@@ -58,6 +60,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
+
+        where:
+        version << ["1.2.4", "2.0.1"]
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
