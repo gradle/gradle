@@ -70,7 +70,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         replace(report, "${warnings}", renderWarnings(div));
         GFileUtils.writeFile(report.toString(), reportLocation);
 
-        LOGGER.warn("Some deprecated APIs are used in this build, which may be broken in Gradle 5.0. See the report at: " + new ConsoleRenderer().asClickableFileUrl(reportLocation));
+        LOGGER.warn("Some deprecated APIs are used in this build, which may be broken in Gradle 5.0. See the detailed report at: " + new ConsoleRenderer().asClickableFileUrl(reportLocation));
     }
 
     private String renderWarnings(String divTemplate) {
