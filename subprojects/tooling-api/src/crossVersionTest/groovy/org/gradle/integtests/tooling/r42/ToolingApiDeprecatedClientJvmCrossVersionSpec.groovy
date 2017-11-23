@@ -56,11 +56,13 @@ mainClassName = 'TestClient'
 """
         file('src/main/java/TestClient.java') << """
 import org.gradle.tooling.GradleConnector;
+import java.io.File;
 
 public class TestClient {
     public static void main(String[] args) throws Exception {
-        GradleConnector.newConnector().forProjectDirectory(new java.io.File("."))
+        GradleConnector.newConnector().forProjectDirectory(new File("."))
             .useDistribution(new java.net.URI("${buildContext.currentDevDistribution().binDistribution.toURI()}"))
+            .useGradleUserHomeDir(new File("${buildContext.gradleUserHomeDir.replace(File.separator, "/")}"))
             .connect()
             .newBuild()
             .forTasks("help")
