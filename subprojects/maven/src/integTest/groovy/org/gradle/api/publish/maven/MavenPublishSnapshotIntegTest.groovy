@@ -80,7 +80,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             snapshotBuildNumber == '1'
             lastUpdated == snapshotTimestamp.replace('.', '')
 
-            snapshotVersions == []
+            snapshotVersions == ["1.0-${snapshotTimestamp}-${snapshotBuildNumber}"]
         }
 
         and:
