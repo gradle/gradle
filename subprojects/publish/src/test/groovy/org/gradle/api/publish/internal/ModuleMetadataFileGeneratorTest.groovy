@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal
 
 import org.gradle.api.Named
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -319,6 +320,104 @@ class ModuleMetadataFileGeneratorTest extends Specification {
               "module": "*"
             }
           ]
+        }
+      ]
+    }
+  ]
+}
+"""
+    }
+
+    def "writes file for component with variants with dependency constraints"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def dc1 = Stub(DependencyConstraint)
+        dc1.group >> "g1"
+        dc1.name >> "m1"
+        dc1.versionConstraint >> prefers("v1")
+
+        def dc2 = Stub(DependencyConstraint)
+        dc2.group >> "g2"
+        dc2.name >> "m2"
+        dc2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])
+
+        def dc3 = Stub(DependencyConstraint)
+        dc3.group >> "g3"
+        dc3.name >> "m3"
+        dc3.versionConstraint >> prefers("v3")
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.dependencyConstraints >> [dc1]
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
+        v2.dependencyConstraints >> [dc2, dc3]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "module",
+    "version": "1.2",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      },
+      "dependencyConstraints": [
+        {
+          "group": "g1",
+          "module": "m1",
+          "version": {
+            "prefers": "v1",
+            "rejects": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "v2",
+      "attributes": {
+        "usage": "runtime"
+      },
+      "dependencyConstraints": [
+        {
+          "group": "g2",
+          "module": "m2",
+          "version": {
+            "prefers": "v2",
+            "rejects": [
+              "v3",
+              "v4"
+            ]
+          }
+        },
+        {
+          "group": "g3",
+          "module": "m3",
+          "version": {
+            "prefers": "v3",
+            "rejects": []
+          }
         }
       ]
     }
