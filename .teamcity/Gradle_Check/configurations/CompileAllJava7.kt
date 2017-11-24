@@ -1,6 +1,8 @@
 package configurations
 
 import model.CIBuildModel
+import model.JvmVendor
+import model.JvmVersion
 import model.OS
 
 class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
@@ -9,8 +11,10 @@ class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
     name = "Compile All Java 7"
     description = "Compiles all sources on Java 7 to populate the build cache"
 
+    val os = OS.linux
+
     params {
-        param("env.JAVA_HOME", "%windows.java7.oracle.64bit%")
+        param("env.JAVA_HOME", "%$os.${JvmVersion.java7}.${JvmVendor.oracle}.64bit%")
     }
 
     if (model.publishStatusToGitHub) {
@@ -19,5 +23,5 @@ class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
         }
     }
 
-    applyDefaults(model, this, "compileAll", os = OS.windows, extraParameters = "-DenableCodeQuality=true")
+    applyDefaults(model, this, "compileAll", os = os, extraParameters = "-DenableCodeQuality=true")
 }, usesParentBuildCache = true)
