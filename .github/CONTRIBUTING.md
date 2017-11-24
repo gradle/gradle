@@ -1,5 +1,5 @@
 # Contributing to Gradle
-Thank you for considering a contribution to Gradle! This guide explains how to: 
+Thank you for considering a contribution to Gradle! This guide explains how to:
 
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
@@ -23,7 +23,7 @@ Before we can accept any code contributions, you must electronically sign a [Gra
 
 ## Follow the Code of Conduct
 
-In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/). 
+In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/).
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
@@ -94,6 +94,6 @@ If you run into any trouble, please reach out to us on the issue you are working
 
 ## Our Thanks
 
-We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to. 
-  
-If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)? 
+We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to.
+
+If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)?
