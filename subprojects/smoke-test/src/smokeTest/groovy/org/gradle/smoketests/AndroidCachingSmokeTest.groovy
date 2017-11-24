@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.eclipse.jgit.api.Git
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
@@ -26,28 +27,26 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
         def projectDir = testProjectDir.root
 
-        println "Cloning $testRepoUri branch $testRepoBranch..."
+        println "> Cloning $testRepoUri branch $testRepoBranch..."
 
         def clone = Git.cloneRepository()
         clone.URI = testRepoUri
         clone.branch = testRepoBranch
         clone.directory = projectDir
         clone.cloneSubmodules = true
-        clone.call()
+        def git = clone.call()
 
-        // TODO Log branch / commit ID used in test
+        def commitId = git.repository.findRef("HEAD").objectId.name()
+        println "> Building commit $commitId..."
 
         expect:
         runner(
                 "check",
-                "-Dorg.gradle.android.test.gradle-installation=" + System.getProperty('integTest.gradleHomeDir'),
+                "-Dorg.gradle.android.test.gradle-installation=" + IntegrationTestBuildContext.INSTANCE.gradleHomeDir.absolutePath,
                 "-Dorg.gradle.android.test.show-output=true"
             )
             .withProjectDir(projectDir)
             .forwardOutput()
             .build()
-
-        cleanup:
-        projectDir.deleteDir()
     }
 }
