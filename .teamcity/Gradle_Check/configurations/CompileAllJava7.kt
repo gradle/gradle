@@ -17,11 +17,5 @@ class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
         param("env.JAVA_HOME", "%$os.${JvmVersion.java7}.${JvmVendor.oracle}.64bit%")
     }
 
-    if (model.publishStatusToGitHub) {
-        features {
-            publishBuildStatusToGithub()
-        }
-    }
-
     applyDefaults(model, this, "compileAll", os = os, extraParameters = "-DenableCodeQuality=true")
 }, usesParentBuildCache = true)
