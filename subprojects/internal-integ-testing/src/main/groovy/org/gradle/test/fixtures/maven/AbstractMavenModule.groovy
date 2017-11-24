@@ -280,8 +280,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    DefaultMavenMetaData getRootMetaData() {
-        new DefaultMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+    DefaultRootMavenMetaData getRootMetaData() {
+        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
     }
 
     @Override

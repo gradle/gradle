@@ -21,20 +21,19 @@ import org.gradle.test.fixtures.file.TestFile
 /**
  * http://maven.apache.org/ref/3.0.1/maven-repository-metadata/repository-metadata.html
  */
-class DefaultMavenMetaData implements MavenMetaData {
+class DefaultRootMavenMetaData implements RootMavenMetaData {
 
     String text
 
     String groupId
     String artifactId
-    String version
 
     List<String> versions = []
     String lastUpdated
     final String path
     final TestFile file
 
-    DefaultMavenMetaData(String path, TestFile file) {
+    DefaultRootMavenMetaData(String path, TestFile file) {
         this.file = file
         this.path = path
         if (!file.exists()) {
@@ -46,7 +45,6 @@ class DefaultMavenMetaData implements MavenMetaData {
 
         groupId = xml.groupId[0]?.text()
         artifactId = xml.artifactId[0]?.text()
-        version = xml.version[0]?.text()
 
         def versioning = xml.versioning[0]
 
