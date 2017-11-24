@@ -95,6 +95,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             ModuleExclusion exclusions = dependency.getExclusions();
+
+            // The above isn't quite right, since we are not applying artifact exclusions defined for the target node,
+            // to the target node itself. So a module exclusion for `type='jar'` won't exclude the jar for the module itself.
+            // While fixing this, we should be smarter about artifact exclusions: these can be completely separate from module exclusions.
+//            ModuleExclusion nodeExclusions = targetConfiguration.getExclusions(moduleExclusions);
+//            ModuleExclusion edgeExclusions = dependency.getExclusions();
+//            ModuleExclusion exclusions = moduleExclusions.intersect(edgeExclusions, nodeExclusions);
+
             ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
