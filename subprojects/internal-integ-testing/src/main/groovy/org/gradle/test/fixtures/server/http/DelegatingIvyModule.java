@@ -120,6 +120,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
+    @Override
+    public IvyModule withBranch(String branch) {
+        backingModule.withBranch(branch);
+        return t();
+    }
+
     public T dependsOn(String organisation, String module, String revision) {
         backingModule.dependsOn(organisation, module, revision);
         return t();

@@ -109,9 +109,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         this.expectedUserAgent = userAgent
     }
 
-    void resetExpectations() {
+    void resetExpectations(boolean expectFailure = false) {
         try {
             super.resetExpectations()
+        } catch (Throwable e) {
+            if (!expectFailure) {
+                throw e
+            }
         } finally {
             reset()
             expectedUserAgent = null

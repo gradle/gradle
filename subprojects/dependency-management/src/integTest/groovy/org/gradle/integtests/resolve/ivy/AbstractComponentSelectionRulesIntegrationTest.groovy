@@ -16,84 +16,101 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    Map<String, IvyHttpModule> modules = [:]
-
+abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
-        modules['1.0'] = ivyHttpRepo.module("org.utils", "api", "1.0").publish()
-        modules['1.1'] = ivyHttpRepo.module("org.utils", "api", "1.1").withBranch("test").withStatus("milestone").publish()
-        modules['1.2'] = ivyHttpRepo.module("org.utils", "api", "1.2").publish()
-        modules['2.0'] = ivyHttpRepo.module("org.utils", "api", "2.0").withBranch("test").withStatus("milestone").publish()
-        modules['2.1'] = ivyHttpRepo.module("org.utils", "api", "2.1").publish()
-        modules['1.0-lib'] = ivyHttpRepo.module("org.utils", "lib", "1.0").publish()
-        modules['1.1-lib'] = ivyHttpRepo.module("org.utils", "lib", "1.1").withBranch("test").withStatus("milestone").publish()
-    }
+        buildFile << "List<String> candidates = []\n"
 
-    String getBaseBuildFile() {
-        """
-        def candidates = []
-        configurations { conf }
-        repositories {
-            ivy { url "${ivyRepo.uri}" }
+        repository {
+            group('org.utils') {
+                module('api') {
+                    '1.0'()
+                    '1.1' {
+                        withModule(org.gradle.test.fixtures.ivy.IvyModule) {
+                            withBranch('test')
+                            withStatus('milestone')
+                        }
+                    }
+                    '1.2'()
+                    '2.0' {
+                        withModule(org.gradle.test.fixtures.ivy.IvyModule) {
+                            withBranch('test')
+                            withStatus('milestone')
+                        }
+                    }
+                    '2.1'()
+                }
+
+                module('lib') {
+                    '1.0'()
+                    '1.1' {
+                        withModule(org.gradle.test.fixtures.ivy.IvyModule) {
+                            withBranch('test')
+                            withStatus('milestone')
+                        }
+                    }
+                }
+            }
         }
-        task resolveConf { doLast { configurations.conf.files } }
-        """
     }
 
-    String getHttpBaseBuildFile() {
-        """
-        def candidates = []
-        configurations { conf }
-        repositories {
-            ivy { url "${ivyHttpRepo.uri}" }
+    void checkDependencies(boolean expectFailure, Closure<?> onSuccess = {}) {
+        checkDependencies(':checkDeps', expectFailure, onSuccess)
+    }
+
+    void checkDependencies(String task = ':checkDeps', boolean expectFailure = false, Closure<?> onSuccess = {}) {
+        try {
+            succeeds task
+            onSuccess()
+        } catch (Throwable e) {
+            // Happily ignore failures if they are allowed, which is not the same as expecting the build to fail
+            if (!expectFailure) {
+                throw e
+            }
         }
-        task resolveConf { doLast { configurations.conf.files } }
-        """
     }
 
-    static def rules = [
-            "reject all": """{ ComponentSelection selection ->
+    static Map<String, String> rules = [
+        "reject all": """{ ComponentSelection selection ->
                 selection.reject("rejecting everything")
                 candidates << selection.candidate.version
             }
             """,
-            "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
+        "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
                 selection.reject("rejecting everything")
                 candidates << selection.candidate.version
             }
             """,
-            "select 1.1": """{ ComponentSelection selection ->
+        "select 1.1": """{ ComponentSelection selection ->
                 if (selection.candidate.version != '1.1') {
                     selection.reject("not 1.1")
                 }
                 candidates << selection.candidate.version
             }
             """,
-            "select 2.0": """{ ComponentSelection selection ->
+        "select 2.0": """{ ComponentSelection selection ->
                 if (selection.candidate.version != '2.0') {
                     selection.reject("not 2.0")
                 }
                 candidates << selection.candidate.version
             }
             """,
-            "select 2.1": """{ ComponentSelection selection ->
+        "select 2.1": """{ ComponentSelection selection ->
                 if (selection.candidate.version != '2.1') {
                     selection.reject("not 2.1")
                 }
                 candidates << selection.candidate.version
             }
             """,
-            "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
+        "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
                 if (ivy.branch != 'test') {
                     selection.reject("not branch")
                 }
                 candidates << selection.candidate.version
             }
             """,
-            "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
+        "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
                 if (metadata.status != 'milestone') {
                     selection.reject("not milestone")
                 }
