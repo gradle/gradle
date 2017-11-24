@@ -17,11 +17,14 @@
 package org.gradle.plugins.ide.internal.resolver.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
 
 public class IdeRepoFileDependency extends IdeDependency {
     private final File file;
+    private ModuleComponentIdentifier componentIdentifier;
     private ModuleVersionIdentifier id;
 
     public IdeRepoFileDependency(File file) {
@@ -33,10 +36,20 @@ public class IdeRepoFileDependency extends IdeDependency {
     }
 
     public ModuleVersionIdentifier getId() {
+        if (componentIdentifier == null) {
+            return null;
+        }
+        if (id == null) {
+            id = new DefaultModuleVersionIdentifier(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
+        }
         return id;
     }
 
-    public void setId(ModuleVersionIdentifier id) {
-        this.id = id;
+    public ModuleComponentIdentifier getComponentIdentifier() {
+        return componentIdentifier;
+    }
+
+    public void setComponentIdentifier(ModuleComponentIdentifier componentIdentifier) {
+        this.componentIdentifier = componentIdentifier;
     }
 }

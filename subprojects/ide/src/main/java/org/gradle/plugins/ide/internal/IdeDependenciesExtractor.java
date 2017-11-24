@@ -75,7 +75,7 @@ public class IdeDependenciesExtractor {
         // can have multiple IDE dependencies with same component identifier (see GRADLE-1622)
         Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> resolvedDependenciesComponentMap = LinkedHashMultimap.create();
         for (IdeExtendedRepoFileDependency dep : resolvedExternalDependencies(plusConfigurations, minusConfigurations)) {
-            resolvedDependenciesComponentMap.put(toComponentIdentifier(dep.getId()), dep);
+            resolvedDependenciesComponentMap.put(dep.getComponentIdentifier(), dep);
         }
 
         List<Class<? extends Artifact>> artifactTypes = new ArrayList<Class<? extends Artifact>>(2);

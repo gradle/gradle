@@ -127,7 +127,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         for (ResolvedArtifactResult artifact : getLenientArtifacts(configuration, IS_A_MODULE_ID)) {
             ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(artifact.getFile());
-            ideRepoFileDependency.setId(new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
+            ideRepoFileDependency.setComponentIdentifier(moduleId);
             externalDependencies.add(ideRepoFileDependency);
         }
 
