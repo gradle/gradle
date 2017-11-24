@@ -18,7 +18,7 @@ class SanityCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
         }
     }
 
-    applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true --parallel")
+    applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true")
 
     artifactRules = """$artifactRules
         build/build-receipt.properties

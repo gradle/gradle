@@ -19,5 +19,5 @@ class CompileAllJava7(model: CIBuildModel) : BaseGradleBuildType(model, {
         }
     }
 
-    applyDefaults(model, this, "compileAll", os = OS.windows, extraParameters = "-DenableCodeQuality=true --parallel")
+    applyDefaults(model, this, "compileAll", os = OS.windows, extraParameters = "-DenableCodeQuality=true")
 }, usesParentBuildCache = true)
