@@ -18,20 +18,26 @@ package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.testing.performance.generator.*
 
 class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
+
+    @Internal
     boolean groovyProject
+    @Internal
     boolean scalaProject
+    @Internal
     boolean createTestComponent = true
-    Closure createPackageName = { testProject, fileNumber ->
+
+    private final Closure createPackageName = { testProject, fileNumber ->
         "org.gradle.test.performance${testProject.subprojectNumber}_${(int) (fileNumber / filesPerPackage) + 1}"
     }
-    Closure createFileName = { testProject, prefix, fileNumber ->
+    private final Closure createFileName = { testProject, prefix, fileNumber ->
         "${prefix}${testProject.subprojectNumber}_${fileNumber + 1}"
     }
-    Closure createExtendsAndImplementsClause = { testProject, prefix, fileNumber -> '' }
-    Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
+    private final Closure createExtendsAndImplementsClause = { testProject, prefix, fileNumber -> '' }
+    private final Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
 
     @InputFiles
     FileCollection testDependencies
