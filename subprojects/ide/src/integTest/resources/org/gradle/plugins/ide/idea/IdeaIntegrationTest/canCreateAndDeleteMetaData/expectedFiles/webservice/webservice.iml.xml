@@ -5,11 +5,11 @@
     <orderEntry type="inheritedJdk"/>
     <content url="file://$MODULE_DIR$/">
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false"/>
-      <excludeFolder url="file://$MODULE_DIR$/build"/>
       <excludeFolder url="file://$MODULE_DIR$/.gradle"/>
+      <excludeFolder url="file://$MODULE_DIR$/build"/>
     </content>
     <orderEntry type="sourceFolder" forTests="false"/>
-    <orderEntry module-name="api" type="module"/>
+    <orderEntry type="module" module-name="api"/>
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
@@ -56,33 +56,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4.jar!/"/>
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4-javadoc.jar!/"/>
-        </JAVADOC>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2.jar!/"/>
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-javadoc.jar!/"/>
-        </JAVADOC>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2.jar!/"/>
@@ -103,6 +77,32 @@
         <JAVADOC/>
         <SOURCES>
           <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4.jar!/"/>
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4-javadoc.jar!/"/>
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2.jar!/"/>
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-javadoc.jar!/"/>
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>

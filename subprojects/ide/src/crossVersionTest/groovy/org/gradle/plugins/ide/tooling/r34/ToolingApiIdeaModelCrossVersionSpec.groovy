@@ -87,7 +87,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=3.4 <4.4")
+    @TargetGradleVersion(">=3.4 <4.5")
     def "provides correct dependencies when using java-library plugin"() {
         given:
         settingsFile << """
@@ -138,7 +138,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
 
     @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=4.4")
+    @TargetGradleVersion(">=4.5")
     def "provides minimal set of dependencies when using java-library plugin"() {
         given:
         settingsFile << """

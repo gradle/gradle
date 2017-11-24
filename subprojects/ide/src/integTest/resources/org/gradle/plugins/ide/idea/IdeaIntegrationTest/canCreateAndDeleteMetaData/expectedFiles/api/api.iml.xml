@@ -26,6 +26,17 @@
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
+          <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar!/"/>
+        </CLASSES>
+        <JAVADOC/>
+        <SOURCES>
+          <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2.jar!/"/>
         </CLASSES>
         <JAVADOC>
@@ -33,17 +44,6 @@
         </JAVADOC>
         <SOURCES>
           <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar!/"/>
-        </CLASSES>
-        <JAVADOC/>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>

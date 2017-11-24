@@ -32,10 +32,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class ModuleLibrary implements Dependency {
 
-    private Set<Path> classes = Sets.newLinkedHashSet();
-    private Set<JarDirectory> jarDirectories = Sets.newLinkedHashSet();
-    private Set<Path> javadoc = Sets.newLinkedHashSet();
-    private Set<Path> sources = Sets.newLinkedHashSet();
+    private Set<Path> classes;
+    private Set<JarDirectory> jarDirectories;
+    private Set<Path> javadoc;
+    private Set<Path> sources;
     private String scope;
     private boolean exported;
 

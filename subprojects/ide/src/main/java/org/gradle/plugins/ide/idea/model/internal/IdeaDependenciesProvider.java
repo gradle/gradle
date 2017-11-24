@@ -16,13 +16,14 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.plugins.ide.idea.model.*;
+import org.gradle.plugins.ide.idea.model.Dependency;
+import org.gradle.plugins.ide.idea.model.FilePath;
+import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
@@ -30,7 +31,11 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
 
 public class IdeaDependenciesProvider {
 
@@ -38,6 +43,7 @@ public class IdeaDependenciesProvider {
     public static final String SCOPE_MINUS = "minus";
     private final IdeDependenciesExtractor dependenciesExtractor;
     private final ModuleDependencyBuilder moduleDependencyBuilder;
+    private final IdeaDependenciesOptimizer optimizer;
 
     public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
         this(new IdeDependenciesExtractor(), serviceRegistry);
@@ -46,6 +52,7 @@ public class IdeaDependenciesProvider {
     IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
         this.dependenciesExtractor = dependenciesExtractor;
         moduleDependencyBuilder = new ModuleDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
+        optimizer = new IdeaDependenciesOptimizer();
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -71,89 +78,37 @@ public class IdeaDependenciesProvider {
         return outputLocations;
     }
 
-    private Set<Dependency> getDependencies(final IdeaModule ideaModule) {
-        final Set<Dependency> dependencies = Sets.newLinkedHashSet();
-        Set<ModuleDependency> moduleDependencies = Sets.newLinkedHashSet();
-        Set<SingleEntryModuleLibrary> fileDependencies = Sets.newLinkedHashSet();
-
-
+    private Set<Dependency> getDependencies(IdeaModule ideaModule) {
+        Set<Dependency> dependencies = Sets.newLinkedHashSet();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            moduleDependencies.addAll(getProjectDependencies(ideaModule, scope));
-            fileDependencies.addAll(getExternalDependencies(ideaModule, scope));
-            fileDependencies.addAll(getFileDependencies(ideaModule, scope));
+            dependencies.addAll(getProjectDependencies(ideaModule, scope));
+            dependencies.addAll(getExternalDependencies(ideaModule, scope));
+            dependencies.addAll(getFileDependencies(ideaModule, scope));
         }
-
-        dependencies.addAll(optimizeDeps(moduleDependencies, new ModuleDependencyOptimizationHelper()));
-        dependencies.addAll(optimizeDeps(fileDependencies, new SingleEntryModuleLibraryOptimizationHelper(ideaModule)));
+        optimizer.optimizeDeps(dependencies);
         return dependencies;
     }
 
-    private <T extends Dependency, K> Collection<T> optimizeDeps(Collection<T> deps, OptimizationHelper<T, K> helper) {
-        Set<T> result = Sets.newLinkedHashSet();
-        Multimap<K, GeneratedIdeaScope> keysToScopes = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-        for (T dep : deps) {
-            keysToScopes.put(helper.getKey(dep), GeneratedIdeaScope.valueOf(dep.getScope()));
-        }
-
-        for (T dep : deps) {
-            K key = helper.getKey(dep);
-            Collection<GeneratedIdeaScope> ideaScopes = keysToScopes.get(key);
-            if (ideaScopes == null || ideaScopes.isEmpty()) {
-                continue;
-            }
-            optimizeScopes(ideaScopes);
-            for (GeneratedIdeaScope newScope : ideaScopes) {
-                result.add(helper.clone(dep, newScope));
-            }
-            keysToScopes.removeAll(key);
-        }
-
-        return result;
-    }
-
-    private void optimizeScopes(Collection<GeneratedIdeaScope> ideaScopes) {
-        boolean isRuntime = ideaScopes.contains(GeneratedIdeaScope.RUNTIME);
-        boolean isProvided = ideaScopes.contains(GeneratedIdeaScope.PROVIDED);
-        boolean isCompile = ideaScopes.contains(GeneratedIdeaScope.COMPILE);
-
-        if (isProvided) {
-            ideaScopes.remove(GeneratedIdeaScope.TEST);
-        }
-
-        if (isRuntime && isProvided) {
-            ideaScopes.add(GeneratedIdeaScope.COMPILE);
-            isCompile = true;
-        }
-
-        if (isCompile) {
-            ideaScopes.remove(GeneratedIdeaScope.TEST);
-            ideaScopes.remove(GeneratedIdeaScope.RUNTIME);
-            ideaScopes.remove(GeneratedIdeaScope.PROVIDED);
-        }
-    }
-
-
-
-    private Set<ModuleDependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Set<Dependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
 
         Collection<IdeProjectDependency> extractedDependencies = dependenciesExtractor.extractProjectDependencies(ideaModule.getProject(), plusConfigurations, minusConfigurations);
-        Set<ModuleDependency> dependencies = Sets.newLinkedHashSet();
+        Set<Dependency> dependencies = Sets.newLinkedHashSet();
         for (IdeProjectDependency ideProjectDependency : extractedDependencies) {
             dependencies.add(moduleDependencyBuilder.create(ideProjectDependency, scope.name()));
         }
         return dependencies;
     }
 
-    private Set<SingleEntryModuleLibrary> getExternalDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Set<Dependency> getExternalDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         if (ideaModule.isOffline()) {
             return Collections.emptySet();
         }
 
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<SingleEntryModuleLibrary> dependencies = Sets.newLinkedHashSet();
+        Set<Dependency> dependencies = Sets.newLinkedHashSet();
         Collection<IdeExtendedRepoFileDependency> ideRepoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
             ideaModule.getProject().getDependencies(), plusConfigurations, minusConfigurations,
             ideaModule.isDownloadSources(), ideaModule.isDownloadJavadoc());
@@ -178,10 +133,10 @@ public class IdeaDependenciesProvider {
         return library;
     }
 
-    private Set<SingleEntryModuleLibrary> getFileDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private Set<Dependency> getFileDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<SingleEntryModuleLibrary> dependencies = Sets.newLinkedHashSet();
+        Set<Dependency> dependencies = Sets.newLinkedHashSet();
         Collection<IdeLocalFileDependency> ideLocalFileDependencies = dependenciesExtractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations);
 
         for (IdeLocalFileDependency fileDependency : ideLocalFileDependencies) {
@@ -230,45 +185,5 @@ public class IdeaDependenciesProvider {
 
     private FilePath toPath(IdeaModule ideaModule, File file) {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
-    }
-
-
-    private interface OptimizationHelper<T, K> {
-        K getKey(T dependency);
-        T clone(T original, GeneratedIdeaScope newIdeaScope);
-    }
-
-    private static class ModuleDependencyOptimizationHelper implements IdeaDependenciesProvider.OptimizationHelper<ModuleDependency, String> {
-        @Override
-        public String getKey(ModuleDependency dependency) {
-            return dependency.getName();
-        }
-
-        @Override
-        public ModuleDependency clone(ModuleDependency original, GeneratedIdeaScope newIdeaScope) {
-            return new ModuleDependency(original.getName(), newIdeaScope.name());
-        }
-    }
-
-    private class SingleEntryModuleLibraryOptimizationHelper implements IdeaDependenciesProvider.OptimizationHelper<SingleEntryModuleLibrary, File> {
-        private final IdeaModule ideaModule;
-
-        public SingleEntryModuleLibraryOptimizationHelper(IdeaModule ideaModule) {
-            this.ideaModule = ideaModule;
-        }
-
-        @Override
-        public File getKey(SingleEntryModuleLibrary dependency) {
-            return dependency.getLibraryFile();
-        }
-
-        @Override
-        public SingleEntryModuleLibrary clone(SingleEntryModuleLibrary original, GeneratedIdeaScope newIdeaScope) {
-            SingleEntryModuleLibrary newDep = new SingleEntryModuleLibrary(toPath(ideaModule, original.getLibraryFile()), newIdeaScope.name());
-            newDep.setJavadoc(original.getJavadoc());
-            newDep.setSources(original.getSources());
-            newDep.setModuleVersion(original.getModuleVersion());
-            return newDep;
-        }
     }
 }
