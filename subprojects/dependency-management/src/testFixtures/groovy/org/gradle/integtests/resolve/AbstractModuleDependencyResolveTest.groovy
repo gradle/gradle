@@ -35,9 +35,31 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String getRootProjectName() { 'test' }
 
-    void resetExpectations() {
-        server.resetExpectations()
+    void resetExpectations(boolean expectFailure = false) {
+        server.resetExpectations(expectFailure)
         repoSpec.nextStep()
+    }
+
+    String versionListingURI(String group, String module) {
+        GradleMetadataResolveRunner.useIvy() ? "${ivyHttpRepo.uri}/$group/$module/" : "${mavenHttpRepo.uri}/${group.replace('.', '/')}/${module}/maven-metadata.xml"
+    }
+
+    String triedMetadata(String group, String module, String version) {
+        def uris = []
+        if (GradleMetadataResolveRunner.useIvy()) {
+            def httpModule = ivyHttpRepo.module(group, module, version)
+            uris << httpModule.ivy.uri
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                uris << httpModule.moduleMetadata.uri
+            }
+        } else {
+            def httpModule = mavenHttpRepo.module(group, module, version)
+            uris << httpModule.pom.uri
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                uris << httpModule.moduleMetadata.uri
+            }
+        }
+        uris.collect { "    $it" }.join('\n')
     }
 
     private String getMavenRepository() {

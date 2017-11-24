@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.publish
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -30,21 +31,14 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Closure<?>> withModule = []
-    private List<Expectation> expectGetMetadata = [Expectation.NONE]
+    private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
 
-    enum Expectation {
-        GET,
-        HEAD,
-        MAYBE,
-        NONE
-    }
-
     static class ArtifactExpectation {
-        final Expectation type
+        final InteractionExpectation type
         final Object spec
 
-        ArtifactExpectation(Expectation type, Object spec) {
+        ArtifactExpectation(InteractionExpectation type, Object spec) {
             this.type = type
             this.spec = spec
         }
@@ -62,31 +56,31 @@ class ModuleVersionSpec {
     }
 
     void expectGetMetadata() {
-        expectGetMetadata << Expectation.GET
+        expectGetMetadata << InteractionExpectation.GET
     }
 
     void expectHeadMetadata() {
-        expectGetMetadata << Expectation.HEAD
+        expectGetMetadata << InteractionExpectation.HEAD
     }
 
     void expectGetArtifact(String artifact = '') {
-        expectGetArtifact << new ArtifactExpectation(Expectation.GET, artifact)
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.GET, artifact)
     }
 
     void expectGetArtifact(Map<String, String> artifact) {
-        expectGetArtifact << new ArtifactExpectation(Expectation.GET, artifact)
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.GET, artifact)
     }
 
     void expectHeadArtifact(String artifact = '') {
-        expectGetArtifact << new ArtifactExpectation(Expectation.HEAD, artifact)
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD, artifact)
     }
 
     void expectHeadArtifact(Map<String, String> artifact) {
-        expectGetArtifact << new ArtifactExpectation(Expectation.HEAD, artifact)
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD, artifact)
     }
 
     void maybeGetMetadata() {
-        expectGetMetadata << Expectation.MAYBE
+        expectGetMetadata << InteractionExpectation.MAYBE
     }
 
     void dependsOn(coord) {
@@ -95,6 +89,15 @@ class ModuleVersionSpec {
 
     void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
         withModule << spec
+    }
+
+    public <T extends Module> void withModule(Class<T> moduleClass, @DelegatesTo(type = "T") Closure<?> spec) {
+        withModule << { ->
+            if (moduleClass.isAssignableFrom(delegate.class)) {
+                spec.delegate = delegate
+                spec()
+            }
+        }
     }
 
     void allowAll() {
@@ -111,9 +114,9 @@ class ModuleVersionSpec {
         }
         expectGetMetadata.each {
             switch (it) {
-                case Expectation.NONE:
+                case InteractionExpectation.NONE:
                     break;
-                case Expectation.MAYBE:
+                case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
@@ -123,7 +126,7 @@ class ModuleVersionSpec {
                         module.moduleMetadata.allowGetOrHead()
                     }
                     break
-                case Expectation.HEAD:
+                case InteractionExpectation.HEAD:
                     if (module instanceof MavenModule) {
                         module.pom.expectHead()
                     } else if (module instanceof IvyModule) {
@@ -158,16 +161,16 @@ class ModuleVersionSpec {
                     artifact = module.artifact
                 }
                 switch (expectation.type) {
-                    case Expectation.GET:
+                    case InteractionExpectation.GET:
                         artifact.expectGet()
                         break
-                    case Expectation.HEAD:
+                    case InteractionExpectation.HEAD:
                         artifact.expectHead()
                         break
-                    case Expectation.MAYBE:
+                    case InteractionExpectation.MAYBE:
                         artifact.allowGetOrHead()
                         break
-                    case Expectation.NONE:
+                    case InteractionExpectation.NONE:
                         break
                 }
             }

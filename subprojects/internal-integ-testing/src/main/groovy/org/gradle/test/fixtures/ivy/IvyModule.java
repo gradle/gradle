@@ -50,6 +50,8 @@ public interface IvyModule extends Module {
 
     IvyModule withStatus(String status);
 
+    IvyModule withBranch(String branch);
+
     IvyModule dependsOn(String organisation, String module, String revision);
 
     IvyModule extendsFrom(Map<String, ?> attributes);
