@@ -56,6 +56,8 @@ public class Specs {
     /**
      * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
      */
+    @SuppressWarnings("Since15") //Only here for @SafeVarargs which is just a compiler hint
+    @SafeVarargs
     public static <T> Spec<T> intersect(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return satisfyAll();
@@ -98,6 +100,8 @@ public class Specs {
     /**
      * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
      */
+    @SuppressWarnings("Since15") //Only here for @SafeVarargs which is just a compiler hint
+    @SafeVarargs
     public static <T> Spec<T> union(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return satisfyAll();

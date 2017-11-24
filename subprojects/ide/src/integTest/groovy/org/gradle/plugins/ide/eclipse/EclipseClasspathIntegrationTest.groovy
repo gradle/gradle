@@ -320,8 +320,8 @@ configure(project(":c")){
         def eclipseClasspath = classpath("a")
         assert eclipseClasspath.projects == ['/b', '/c']
         eclipseClasspath.libs[0].assertHasJar(file("a/bar.jar"))
-        eclipseClasspath.libs[1].assertHasJar(file("c/foo.jar"))
-        eclipseClasspath.libs[2].assertHasJar(file("b/baz.jar"))
+        eclipseClasspath.libs[1].assertHasJar(file("b/baz.jar"))
+        eclipseClasspath.libs[2].assertHasJar(file("c/foo.jar"))
     }
 
     @Test
