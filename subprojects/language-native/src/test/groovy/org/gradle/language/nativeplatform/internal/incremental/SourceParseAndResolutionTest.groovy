@@ -25,7 +25,7 @@ import org.junit.Rule
 /**
  * An integration test that covers source parsing and include resolution plus persistence of parsed state.
  */
-class SourceParserAndResolutionTest extends SerializerSpec {
+class SourceParseAndResolutionTest extends SerializerSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def includeDir = tmpDir.createDir("headers")
@@ -123,6 +123,19 @@ class SourceParserAndResolutionTest extends SerializerSpec {
 
         expect:
         resolve() == [header, header2]
+    }
+
+    def "resolves each include once regardless of how many times it appears in the source file"() {
+        given:
+        sourceFile << """
+            #include <hello.h>
+            #include \\
+                <hello.h>
+            #include/* */<hello.h>
+        """
+
+        expect:
+        resolve() == [header]
     }
 
     def "does not resolve macro with multiple tokens"() {
@@ -253,6 +266,29 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         doesNotResolve('#include HEADER(X)')
     }
 
+    def "provides implicit empty arg for function call if missing"() {
+        given:
+        sourceFile << """
+            #define HEADER2(X, Y, Z) "hello.h"
+            #define HEADER(X) HEADER2(, , )
+            #include HEADER()
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "ignores unresolvable macro function parameter if it is not used"() {
+        given:
+        sourceFile << """
+            #define HEADER(A, B, C, D) "hello.h"
+            #include HEADER(~, 12, unknown, ) // implicit empty arg after the ','
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro function with arg with body that is a string constant"() {
         given:
         sourceFile << """
@@ -301,9 +337,9 @@ class SourceParserAndResolutionTest extends SerializerSpec {
     def "resolves macro function with arg that returns param and param is macro function call with zero args"() {
         given:
         sourceFile << """
-            #define HEADER() "hello.h"
-            #define HEADER(X) X
-            #include HEADER(HEADER())
+            #define HEADER1() "hello.h"
+            #define HEADER2(X) X
+            #include HEADER2(HEADER1())
         """
 
         expect:
@@ -448,6 +484,18 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "resolves macro function with multiple args that returns concatenation of the args when arg is empty"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER(X, Y) X ## Y
+            #include HEADER(HEADER_NAME,)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro"() {
         given:
         sourceFile << """
@@ -540,7 +588,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         macros.append(sourceFile, directives)
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert result.complete
-        result.files
+        result.files as List
     }
 
     void doesNotResolve(String reportedAs) {

@@ -16,16 +16,19 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
+
 /**
- * An "object-like" macro #define whose body is a simple expression (not a macro function call).
+ * An "object-like" macro #define whose body is an expression with no arguments.
  */
 public class MacroWithSimpleExpression extends AbstractMacro {
     private final IncludeType includeType;
     private final String value;
 
-    public MacroWithSimpleExpression(String name, IncludeType includeType, String value) {
+    public MacroWithSimpleExpression(String name, IncludeType includeType, @Nullable String value) {
         super(name);
         this.includeType = includeType;
         this.value = value;
@@ -47,11 +50,11 @@ public class MacroWithSimpleExpression extends AbstractMacro {
             return false;
         }
         MacroWithSimpleExpression other = (MacroWithSimpleExpression) obj;
-        return value.equals(other.value);
+        return Objects.equal(value, other.value);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode();
+        return super.hashCode() ^ (value == null ? 0 : value.hashCode());
     }
 }

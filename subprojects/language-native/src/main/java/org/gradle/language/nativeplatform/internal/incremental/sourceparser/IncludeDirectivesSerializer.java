@@ -66,7 +66,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         public Expression read(Decoder decoder) throws Exception {
             byte tag = decoder.readByte();
             if (tag == SIMPLE) {
-                String expressionValue = decoder.readString();
+                String expressionValue = decoder.readNullableString();
                 IncludeType expressionType = enumSerializer.read(decoder);
                 return new SimpleExpression(expressionValue, expressionType);
             } else if (tag == COMPLEX) {
@@ -83,7 +83,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         public void write(Encoder encoder, Expression value) throws Exception {
             if (value instanceof SimpleExpression) {
                 encoder.writeByte(SIMPLE);
-                encoder.writeString(value.getValue());
+                encoder.writeNullableString(value.getValue());
                 enumSerializer.write(encoder, value.getType());
             } else if (value instanceof ComplexExpression) {
                 encoder.writeByte(COMPLEX);

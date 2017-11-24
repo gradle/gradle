@@ -351,8 +351,11 @@ public class RegexBackedCSourceParser implements CSourceParser {
     private static void consumeArgumentList(Buffer buffer, List<Expression> expressions) {
         Expression expression = readArgument(buffer);
         if (expression == null) {
-            // Not an expression
-            return;
+            if (!buffer.has(',')) {
+                // No args
+                return;
+            }
+            expression = new SimpleExpression(null, IncludeType.TOKENS);
         }
         expressions.add(expression);
         while (true) {
@@ -362,7 +365,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             }
             expression = readArgument(buffer);
             if (expression == null) {
-                return;
+                expression = new SimpleExpression(null, IncludeType.TOKENS);
             }
             expressions.add(expression);
         }
@@ -370,21 +373,40 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     private static Expression readArgument(Buffer buffer) {
         buffer.consumeWhitespace();
-        // Handle only either '(' <identifier> ')' or an expression. Should handle arbitrary sequence of tokens
+        // Handle only either '(' (<identifier> | ',')* ')', an expression or a single punctuation character. Should handle arbitrary sequence of tokens
         if (buffer.consume('(')) {
             buffer.consumeWhitespace();
-            String identifier = buffer.readIdentifier();
-            if (identifier == null) {
-                return null;
-            }
+            List<Expression> tokens = new ArrayList<Expression>();
+            tokens.add(new SimpleExpression("(", IncludeType.TOKEN));
             buffer.consumeWhitespace();
-            if (!buffer.consume(')')) {
-                return null;
+            while (!buffer.consume(')')) {
+                String identifier = buffer.readIdentifier();
+                if (identifier != null) {
+                    tokens.add(new SimpleExpression(identifier, IncludeType.IDENTIFIER));
+                } else if (buffer.consume(',')) {
+                    tokens.add(new SimpleExpression(",", IncludeType.TOKEN));
+                } else {
+                    // Not supported yet
+                    return null;
+                }
+                buffer.consumeWhitespace();
             }
-            return new ComplexExpression(IncludeType.TOKENS, null, ImmutableList.<Expression>of(new SimpleExpression("(", IncludeType.OTHER), new SimpleExpression(identifier, IncludeType.IDENTIFIER), new SimpleExpression(")", IncludeType.OTHER)));
-        } else {
-            return readExpression(buffer);
+            tokens.add(new SimpleExpression(")", IncludeType.TOKEN));
+            return new ComplexExpression(IncludeType.TOKENS, null, tokens);
         }
+
+        Expression expression = readExpression(buffer);
+        if (expression != null) {
+            return expression;
+        }
+
+        // Accept any single non-whitespace character
+        String punctuation = buffer.readAnyExcept(",)");
+        if (punctuation != null) {
+            return new SimpleExpression(punctuation, IncludeType.OTHER);
+        }
+
+        return null;
     }
 
     /**
@@ -490,6 +512,26 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 return null;
             }
             return value.substring(oldPos, pos);
+        }
+
+        /**
+         * Reads any character except the given. Does not consume anything if there is no more input or one of the given chars are at the current location.
+         *
+         * @return the character or null if none present.
+         */
+        @Nullable
+        String readAnyExcept(String chars) {
+            if (pos >= value.length()) {
+                return null;
+            }
+            char ch = value.charAt(pos);
+            for (int i = 0; i < chars.length(); i++) {
+                if (chars.charAt(i) == ch) {
+                    return null;
+                }
+            }
+            pos++;
+            return String.valueOf(ch);
         }
 
         /**

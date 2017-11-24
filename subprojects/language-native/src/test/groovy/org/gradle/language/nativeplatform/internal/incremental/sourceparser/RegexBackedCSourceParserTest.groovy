@@ -80,7 +80,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     Expression tokens(String value) {
+        if (value.empty) {
+            return new SimpleExpression(null, IncludeType.TOKENS)
+        }
         def e = RegexBackedCSourceParser.parseExpression("m($value)")
+        assert e.arguments.size() == 1 && e.arguments[0].type == IncludeType.TOKENS
         return e.arguments[0]
     }
 
@@ -244,6 +248,11 @@ class RegexBackedCSourceParserTest extends Specification {
         'A ( _b(c) )'                                      | 'A'   | [expression('_b(c)')]
         ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'   | [expression('"a.h"'), expression('<b.h>'), expression('b$(a,b,c("b.h"))'), token('Z')]
         'a( ( x ), ( a )\t )'                              | 'a'   | [tokens('(x)'), tokens('(a)')]
+        'a(,)'                                             | 'a'   | [tokens(''), tokens('')]
+        'a((a,b))'                                         | 'a'   | [tokens('(a,b)')]
+        'a((a b c))'                                       | 'a'   | [tokens('(a b c)')]
+        'a( ( a ,,, b ), c)'                               | 'a'   | [tokens('(a,,,b)'), token('c')]
+        'a(~, ~)'                                          | 'a'   | [expression('~'), expression('~')]
     }
 
     def "finds other includes that cannot be resolved"() {
@@ -271,7 +280,10 @@ class RegexBackedCSourceParserTest extends Specification {
             'A##B',
             'A#B',
             'A##.',
-            'A##'
+            'A##',
+            'a(1+2)',
+            'a((1+2))',
+            'a(~~)',
         ]
     }
 
@@ -732,6 +744,11 @@ st3"
         'a$b(X,Y)'             | 'a$b'     | [token('X'), token('Y')]
         ' A( X, Y(Z)  )'       | 'A'       | [token('X'), expression('Y(Z)')]
         ' A( (  X ) , ( y  ))' | 'A'       | [tokens('(X)'), tokens('(y)')]
+        ' A((a b c))'          | 'A'       | [tokens('(a b c)')]
+        ' A(())'               | 'A'       | [tokens('()')]
+        ' A((a, b), c)'        | 'A'       | [tokens('(a, b)'), token('c')]
+        ' A((,))'              | 'A'       | [tokens('(,)')]
+        ' A((,,,), c)'         | 'A'       | [tokens('(,,,)'), token('c')]
     }
 
     def "finds object-like macro directive whose value is token concatenation"() {
@@ -775,10 +792,10 @@ st3"
             '##B',
             'a(b()',
             'a((b + c))',
-            'a(())',
+            'a(()) more',
             'a((b) (c))',
-            'a(  ,)',
-            'a(  (,))'
+            'a(  ,',
+            'a(  (,) a b c)'
         ]
     }
 

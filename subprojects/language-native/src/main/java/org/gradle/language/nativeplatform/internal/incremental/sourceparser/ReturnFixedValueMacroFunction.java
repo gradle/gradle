@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
     private final IncludeType type;
     private final List<Expression> arguments;
 
-    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, String value, List<Expression> arguments) {
+    public ReturnFixedValueMacroFunction(String name, int parameters, IncludeType type, @Nullable String value, List<Expression> arguments) {
         super(name, parameters);
         this.value = value;
         this.type = type;
@@ -84,6 +85,6 @@ public class ReturnFixedValueMacroFunction extends AbstractMacroFunction impleme
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ value.hashCode() ^ type.hashCode() ^ arguments.hashCode();
+        return super.hashCode() ^ (value == null ? 0 : value.hashCode()) ^ type.hashCode() ^ arguments.hashCode();
     }
 }

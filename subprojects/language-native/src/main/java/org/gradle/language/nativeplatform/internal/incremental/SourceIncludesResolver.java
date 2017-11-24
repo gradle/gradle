@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import org.gradle.language.nativeplatform.internal.Include;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 public interface SourceIncludesResolver {
     interface IncludeResolutionResult {
@@ -29,12 +29,12 @@ public interface SourceIncludesResolver {
          */
         boolean isComplete();
 
-        List<File> getFiles();
+        Collection<File> getFiles();
 
         /**
          * Every file path searched as part of resolution.
          */
-        List<File> getCheckedLocations();
+        Collection<File> getCheckedLocations();
     }
 
     /**

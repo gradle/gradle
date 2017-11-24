@@ -39,6 +39,16 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         serialize(directives, new IncludeDirectivesSerializer()) == directives
     }
 
+    def "serializes nested expression"() {
+        def macroFunction = new ComplexExpression(IncludeType.MACRO_FUNCTION, "X", [new SimpleExpression("Y", IncludeType.MACRO)])
+        def concatenation = new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, [new SimpleExpression("X", IncludeType.IDENTIFIER), new SimpleExpression("Y", IncludeType.IDENTIFIER)])
+        def include = new IncludeWithMacroFunctionCallExpression("A", true, ImmutableList.of(macroFunction, concatenation))
+        def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include]), ImmutableList.of(), ImmutableList.of())
+
+        expect:
+        serialize(directives, new IncludeDirectivesSerializer()) == directives
+    }
+
     def "serializes macro directives"() {
         def macro1 = new MacroWithSimpleExpression("ONE", IncludeType.QUOTED,"one")
         def macro2 = new MacroWithSimpleExpression("TWO", IncludeType.MACRO, "two")

@@ -21,7 +21,7 @@ import org.gradle.language.nativeplatform.internal.Macro;
 public abstract class AbstractMacro extends AbstractExpression implements Macro {
     private final String name;
 
-    public AbstractMacro(String name) {
+    AbstractMacro(String name) {
         this.name = name;
     }
 

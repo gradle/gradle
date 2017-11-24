@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,7 +56,7 @@ public abstract class AbstractExpression implements Expression {
         return format(expression.getType(), expression.getValue(), expression.getArguments());
     }
 
-    static String format(IncludeType type, String value, List<Expression> arguments) {
+    static String format(IncludeType type, @Nullable String value, List<Expression> arguments) {
         switch (type) {
             case QUOTED:
                 return '"' + value + '"';
@@ -63,6 +64,7 @@ public abstract class AbstractExpression implements Expression {
                 return '<' + value + '>';
             case MACRO:
             case IDENTIFIER:
+            case TOKEN:
                 return value;
             case TOKEN_CONCATENATION:
                 return arguments.get(0).getAsSourceText() + "##" + arguments.get(1).getAsSourceText();

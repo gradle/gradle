@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class MacroWithComplexExpression extends AbstractMacro {
     private final String value;
     private final List<Expression> arguments;
 
-    public MacroWithComplexExpression(String name, IncludeType type, String value, List<Expression> arguments) {
+    public MacroWithComplexExpression(String name, IncludeType type, @Nullable String value, List<Expression> arguments) {
         super(name);
         this.type = type;
         this.value = value;
@@ -63,6 +64,6 @@ public class MacroWithComplexExpression extends AbstractMacro {
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ type.hashCode() ^ arguments.hashCode();
+        return super.hashCode() ^ type.hashCode() ^ (value == null ? 0 : value.hashCode()) ^ arguments.hashCode();
     }
 }

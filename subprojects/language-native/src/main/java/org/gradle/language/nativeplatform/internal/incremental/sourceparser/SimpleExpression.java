@@ -16,17 +16,19 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import org.gradle.language.nativeplatform.internal.Expression;
+import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
+
 /**
- * An expression that has only a type and value and is not a macro function call.
+ * An expression that has a type and value and no arguments.
  */
-public class SimpleExpression extends AbstractExpression implements Expression {
+public class SimpleExpression extends AbstractExpression {
     private final String value;
     private final IncludeType type;
 
-    public SimpleExpression(String value, IncludeType type) {
+    public SimpleExpression(@Nullable String value, IncludeType type) {
         this.value = value;
         this.type = type;
     }
@@ -50,11 +52,11 @@ public class SimpleExpression extends AbstractExpression implements Expression {
             return false;
         }
         SimpleExpression other = (SimpleExpression) obj;
-        return value.equals(other.value) && type.equals(other.type);
+        return Objects.equal(value, other.value) && type.equals(other.type);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode() ^ type.hashCode();
+        return (value == null ? 0 : value.hashCode()) ^ type.hashCode();
     }
 }

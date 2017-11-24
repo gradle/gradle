@@ -24,7 +24,7 @@ import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 /**
- * An #include directive whose body is a simple expression (not a macro function call).
+ * An #include directive whose body is an expression with no arguments.
  */
 public class IncludeWithSimpleExpression extends AbstractInclude {
 

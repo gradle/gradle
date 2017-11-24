@@ -27,10 +27,13 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Simp
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
@@ -102,8 +105,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
                     @Override
                     public void visitTokens(List<Expression> tokens) {
-                        // Handle just '(' expression ')', should handle more
-                        if (tokens.size() == 3 && "(".equals(tokens.get(0).getValue()) && ")".equals(tokens.get(2).getValue())) {
+                        // Handle just empty string and '(' expression ')', should handle more
+                        if (tokens.size() == 0) {
+                            resolveExpression(visibleMacros, new SimpleExpression(leftValue, IncludeType.MACRO), visitor);
+                        } else if (tokens.size() == 3 && "(".equals(tokens.get(0).getValue()) && ")".equals(tokens.get(2).getValue())) {
                             resolveExpression(visibleMacros, new ComplexExpression(IncludeType.MACRO_FUNCTION, leftValue, Collections.singletonList(tokens.get(1))), visitor);
                         }
                     }
@@ -116,22 +121,14 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
                     @Override
                     public void visitUnresolved(Expression expression) {
-                        if (expression.getType() == IncludeType.MACRO) {
-                            visitToken(expression.getValue());
-                        } else {
-                            visitor.visitUnresolved(expression);
-                        }
+                        visitor.visitUnresolved(right);
                     }
                 });
             }
 
             @Override
             public void visitUnresolved(Expression expression) {
-                if (expression.getType() == IncludeType.MACRO) {
-                    visitToken(expression.getValue());
-                } else {
-                    visitor.visitUnresolved(expression);
-                }
+                visitor.visitUnresolved(left);
             }
         });
     }
@@ -156,10 +153,17 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         for (IncludeDirectives includeDirectives : visibleMacros) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
                 // Currently only handle functions with no parameters
-                if (expression.getValue().equals(macro.getName()) && macro.getParameterCount() == expression.getArguments().size()) {
-                    found = true;
-                    Expression result = macro.evaluate(expression.getArguments());
-                    resolveExpression(visibleMacros, result, visitor);
+                if (expression.getValue().equals(macro.getName())) {
+                    List<Expression> arguments = expression.getArguments();
+                    if (arguments.isEmpty() && macro.getParameterCount() == 1) {
+                        // Provide an implicit empty argument
+                        arguments = Collections.<Expression>singletonList(new SimpleExpression(null, IncludeType.TOKENS));
+                    }
+                    if (macro.getParameterCount() == arguments.size()) {
+                        found = true;
+                        Expression result = macro.evaluate(arguments);
+                        resolveExpression(visibleMacros, result, visitor);
+                    }
                 }
             }
         }
@@ -216,8 +220,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private static class BuildableResult implements IncludeResolutionResult {
-        private final List<File> files = new ArrayList<File>();
-        private final List<File> candidates = new ArrayList<File>();
+        private final Set<File> files = new LinkedHashSet<File>();
+        private final Set<File> candidates = new LinkedHashSet<File>();
         private boolean missing;
 
         void searched(File candidate) {
@@ -238,12 +242,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public List<File> getFiles() {
+        public Collection<File> getFiles() {
             return files;
         }
 
         @Override
-        public List<File> getCheckedLocations() {
+        public Collection<File> getCheckedLocations() {
             return candidates;
         }
     }

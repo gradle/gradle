@@ -16,10 +16,12 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * A preprocessor expression whose value may be resolved to an include file path.
+ * All implementations should be immutable.
  */
 public interface Expression {
     /**
@@ -30,11 +32,12 @@ public interface Expression {
     IncludeType getType();
 
     /**
-     * When type is {@link IncludeType#QUOTED} or {@link IncludeType#SYSTEM}, then this returns the path, without the delimiters.
+     * When type is {@link IncludeType#QUOTED} or {@link IncludeType#SYSTEM}, then this returns the path, without the delimiters or escape characters.
      * When type is {@link IncludeType#MACRO} or {@link IncludeType#MACRO_FUNCTION}, then this returns the name of the macro.
      * When type is {@link IncludeType#IDENTIFIER}, then this returns the token.
      * When type anything else, returns null.
      */
+    @Nullable
     String getValue();
 
     /**

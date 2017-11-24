@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class ComplexExpression extends AbstractExpression {
     private final String value;
     private final List<Expression> arguments;
 
-    public ComplexExpression(IncludeType type, String value, List<Expression> arguments) {
+    public ComplexExpression(IncludeType type, @Nullable String value, List<Expression> arguments) {
         this.type = type;
         this.value = value;
         this.arguments = arguments;
