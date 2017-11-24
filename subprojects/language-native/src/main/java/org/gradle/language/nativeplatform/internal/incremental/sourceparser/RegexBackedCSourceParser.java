@@ -35,9 +35,16 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
+/**
+ * Parses a subset of the C preprocessor language, to extract details of {@code #include}, {@code #import} and {@code #define} directives. Only handles a subset of the possible expressions that can be
+ * used as the body of these directives.
+ */
 public class RegexBackedCSourceParser implements CSourceParser {
     @Override
     public IncludeDirectives parseSource(File sourceFile) {
@@ -54,7 +61,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     }
 
     protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
-        List<Include> includes = Lists.newArrayList();
+        Set<Include> includes = new LinkedHashSet<Include>();
         List<Macro> macros = Lists.newArrayList();
         List<MacroFunction> macroFunctions = Lists.newArrayList();
         BufferedReader reader = new BufferedReader(sourceReader);
@@ -84,7 +91,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parses an #include/#import directive body. Consumes all input.
      */
-    private void parseIncludeOrImportDirectiveBody(Buffer buffer, boolean isImport, List<Include> includes) {
+    private void parseIncludeOrImportDirectiveBody(Buffer buffer, boolean isImport, Collection<Include> includes) {
         if (!buffer.hasAny()) {
             // No include expression, ignore
             return;
@@ -107,7 +114,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parses a #define directive body. Consumes all input.
      */
-    private void parseDefineDirectiveBody(Buffer buffer, List<Macro> macros, List<MacroFunction> macroFunctions) {
+    private void parseDefineDirectiveBody(Buffer buffer, Collection<Macro> macros, Collection<MacroFunction> macroFunctions) {
         if (!buffer.consumeWhitespace()) {
             // No separating whitespace between the #define and the name
             return;
@@ -129,7 +136,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse an "object-like" macro directive body. Consumes all input.
      */
-    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, List<Macro> macros) {
+    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Collection<Macro> macros) {
         Expression expression = parseDirectiveBodyExpression(buffer);
         if (!expression.getArguments().isEmpty()) {
             // Body is an expression with one or more arguments
@@ -146,7 +153,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     /**
      * Parse a "function-like" macro directive body. Consumes all input.
      */
-    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, final List<MacroFunction> macroFunctions) {
+    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
         buffer.consumeWhitespace();
         List<String> paramNames = new ArrayList<String>();
         consumeParameterList(buffer, paramNames);
@@ -182,40 +189,60 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
                 return;
             }
-            final int[] argsMap = new int[expression.getArguments().size()];
-            boolean canResolve = true;
-            boolean usesArgs = false;
-            for (int i = 0; i < expression.getArguments().size(); i++) {
-                Expression argument = expression.getArguments().get(i);
-                if (!argument.getArguments().isEmpty()) {
-                    // Don't currently support parameter substitution into arguments with their own arguments
-                    canResolve = false;
-                    break;
+            List<Integer> argsMap = new ArrayList<Integer>(expression.getArguments().size());
+            boolean usesArgs = mapArgs(paramNames, expression, argsMap);
+
+            if (!usesArgs) {
+                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+            } else {
+                int[] argsMapArray = new int[argsMap.size()];
+                for (int i = 0; i < argsMap.size(); i++) {
+                    argsMapArray[i] = argsMap.get(i);
                 }
-                argsMap[i] = -1;
-                if (argument.getType() == IncludeType.TOKEN) {
-                    for (int j = 0; j < paramNames.size(); j++) {
-                        String paramName = paramNames.get(j);
-                        if (argument.getValue().equals(paramName)) {
-                            argsMap[i] = j;
-                            usesArgs = true;
-                            break;
-                        }
-                    }
-                }
+                macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMapArray, expression.getType(), expression.getValue(), expression.getArguments()));
             }
-            if (canResolve) {
-                if (!usesArgs) {
-                    macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
-                } else {
-                    macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMap, expression.getType(), expression.getValue(), expression.getArguments()));
-                }
-                return;
-            }
+            return;
         }
 
         // Not resolvable. Discard the body when the expression is not resolvable
         macroFunctions.add(new UnresolveableMacroFunction(macroName, paramNames.size()));
+    }
+
+    private boolean mapArgs(List<String> paramNames, Expression expression, List<Integer> argsMap) {
+        boolean usesParameters = false;
+        for (int i = 0; i < expression.getArguments().size(); i++) {
+            Expression argument = expression.getArguments().get(i);
+            if (argument.getType() == IncludeType.IDENTIFIER) {
+                boolean matches = false;
+                for (int j = 0; j < paramNames.size(); j++) {
+                    String paramName = paramNames.get(j);
+                    if (argument.getValue().equals(paramName)) {
+                        argsMap.add(j);
+                        usesParameters = true;
+                        matches = true;
+                        break;
+                    }
+                }
+                if (matches) {
+                    continue;
+                }
+            }
+            if (argument.getArguments().isEmpty()) {
+                // Don't map
+                argsMap.add(ArgsMappingMacroFunction.KEEP);
+                continue;
+            }
+            List<Integer> nestedMap = new ArrayList<Integer>(argument.getArguments().size());
+            boolean argUsesParameters = mapArgs(paramNames, argument, nestedMap);
+            if (argUsesParameters) {
+                argsMap.add(ArgsMappingMacroFunction.REPLACE_ARGS);
+                argsMap.addAll(nestedMap);
+            } else {
+                argsMap.add(ArgsMappingMacroFunction.KEEP);
+            }
+            usesParameters |= argUsesParameters;
+        }
+        return usesParameters;
     }
 
     private void consumeParameterList(Buffer buffer, List<String> paramNames) {
@@ -290,7 +317,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
 
         // Just an identifier, this is a token
-        return new SimpleExpression(identifier, IncludeType.TOKEN);
+        return new SimpleExpression(identifier, IncludeType.IDENTIFIER);
     }
 
     private static Expression readTokenConcatenation(Buffer buffer, String leftToken) {
@@ -300,7 +327,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             // Need another identifier
             return null;
         }
-        return new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(new SimpleExpression(leftToken, IncludeType.TOKEN), new SimpleExpression(rightToken, IncludeType.TOKEN)));
+        return new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(new SimpleExpression(leftToken, IncludeType.IDENTIFIER), new SimpleExpression(rightToken, IncludeType.IDENTIFIER)));
     }
 
     private static Expression readMacroFunctionCall(Buffer buffer, String identifier) {
@@ -322,7 +349,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
      * Parses a macro function argument list. Stops when unable to recognize any further arguments.
      */
     private static void consumeArgumentList(Buffer buffer, List<Expression> expressions) {
-        Expression expression = readExpression(buffer);
+        Expression expression = readArgument(buffer);
         if (expression == null) {
             // Not an expression
             return;
@@ -333,11 +360,30 @@ public class RegexBackedCSourceParser implements CSourceParser {
             if (!buffer.consume(',')) {
                 return;
             }
-            expression = readExpression(buffer);
+            expression = readArgument(buffer);
             if (expression == null) {
                 return;
             }
             expressions.add(expression);
+        }
+    }
+
+    private static Expression readArgument(Buffer buffer) {
+        buffer.consumeWhitespace();
+        // Handle only either '(' <identifier> ')' or an expression. Should handle arbitrary sequence of tokens
+        if (buffer.consume('(')) {
+            buffer.consumeWhitespace();
+            String identifier = buffer.readIdentifier();
+            if (identifier == null) {
+                return null;
+            }
+            buffer.consumeWhitespace();
+            if (!buffer.consume(')')) {
+                return null;
+            }
+            return new ComplexExpression(IncludeType.TOKENS, null, ImmutableList.<Expression>of(new SimpleExpression("(", IncludeType.OTHER), new SimpleExpression(identifier, IncludeType.IDENTIFIER), new SimpleExpression(")", IncludeType.OTHER)));
+        } else {
+            return readExpression(buffer);
         }
     }
 

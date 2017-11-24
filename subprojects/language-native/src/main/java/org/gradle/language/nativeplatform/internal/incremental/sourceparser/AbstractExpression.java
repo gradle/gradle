@@ -45,7 +45,7 @@ public abstract class AbstractExpression implements Expression {
     }
 
     static Expression asMacroExpansion(Expression expression) {
-        if (expression.getType() == IncludeType.TOKEN) {
+        if (expression.getType() == IncludeType.IDENTIFIER) {
             return new SimpleExpression(expression.getValue(), IncludeType.MACRO);
         }
         return expression;
@@ -62,12 +62,14 @@ public abstract class AbstractExpression implements Expression {
             case SYSTEM:
                 return '<' + value + '>';
             case MACRO:
-            case TOKEN:
+            case IDENTIFIER:
                 return value;
             case TOKEN_CONCATENATION:
                 return arguments.get(0).getAsSourceText() + "##" + arguments.get(1).getAsSourceText();
             case MACRO_FUNCTION:
                 return value + "(" + Joiner.on(", ").join(arguments) + ")";
+            case TOKENS:
+                return Joiner.on("").join(arguments);
             default:
                 return value != null ? value : "??";
         }

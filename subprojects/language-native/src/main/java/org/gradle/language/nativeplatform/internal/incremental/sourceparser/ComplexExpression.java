@@ -23,14 +23,14 @@ import org.gradle.language.nativeplatform.internal.IncludeType;
 import java.util.List;
 
 /**
- * A macro function call expression.
+ * An expression with arguments.
  */
-class ComplexExpression extends AbstractExpression {
+public class ComplexExpression extends AbstractExpression {
     private final IncludeType type;
     private final String value;
     private final List<Expression> arguments;
 
-    ComplexExpression(IncludeType type, String value, List<Expression> arguments) {
+    public ComplexExpression(IncludeType type, String value, List<Expression> arguments) {
         this.type = type;
         this.value = value;
         this.arguments = arguments;

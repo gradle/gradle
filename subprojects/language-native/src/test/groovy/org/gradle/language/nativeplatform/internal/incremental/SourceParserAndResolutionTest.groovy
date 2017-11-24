@@ -58,7 +58,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro with value that is a macro"() {
+    def "resolves macro with value that is a macro reference"() {
         given:
         sourceFile << """
             #define HEADER2 <hello.h>
@@ -95,7 +95,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro with value that is token concatenation"() {
+    def "resolves macro with value that is token concatenation that produces another macro"() {
         given:
         sourceFile << """
             #define HEADER_NAME "hello.h"
@@ -108,7 +108,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro with multiple values"() {
+    def "resolves macro with multiple values once for each value"() {
         given:
         def header2 = includeDir.createFile("hello_linux.h")
         sourceFile << """
@@ -128,12 +128,15 @@ class SourceParserAndResolutionTest extends SerializerSpec {
     def "does not resolve macro with multiple tokens"() {
         given:
         sourceFile << """
-            #define HEADER 12 + 6
+            #define HEADER ${value}
             #include HEADER
         """
 
         expect:
         doesNotResolve('#include HEADER')
+
+        where:
+        value << ["12 + 6", "(p)"]
     }
 
     def "does not resolve macro with concatenation that produces unknown macro"() {
@@ -167,6 +170,19 @@ class SourceParserAndResolutionTest extends SerializerSpec {
 
         expect:
         doesNotResolve('#include HEADER##_NAME')
+    }
+
+    def "does not resolve include with multiple tokens"() {
+        given:
+        sourceFile << """
+            #include ${value}
+        """
+
+        expect:
+        doesNotResolve("#include ${value}")
+
+        where:
+        value << ['1 + 2', '"header.h" extra', '<header.h> extra', '(p)']
     }
 
     def "resolves macro function with zero args with body that is a string constant"() {
@@ -377,6 +393,20 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "resolves macro function with arg that returns macro function call with nested arg that is parameter to produce macro"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER_(X, Y) Y
+            #define HEADER__(X) X
+            #define HEADER(X) HEADER__(HEADER_(HEADER__(ignore), X))
+            #include HEADER(HEADER(HEADER_NAME))
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro function with arg that returns macro function call with arg that is other macro"() {
         given:
         sourceFile << """
@@ -418,7 +448,7 @@ class SourceParserAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with multiple args that returns concatenation of arg and token"() {
+    def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro"() {
         given:
         sourceFile << """
             #define HEADER_NAME "hello.h"
@@ -426,6 +456,33 @@ class SourceParserAndResolutionTest extends SerializerSpec {
             #define NAME do not use this
             #define HEADER(X, Y) Y ## NAME
             #include HEADER(ignore(), HEADER_) // replaced with HEADER_NAME then "hello.h"
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro function where arg is sequence of tokens"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME(X) "hello.h"
+            #define HEADER_(X) HEADER_NAME ## X
+            #define HEADER() HEADER_((z))
+            #include HEADER() // replaced with HEADER_((z)) then HEADER_NAME(z) then "hello.h"
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro function where arg references macro parameter"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME_2 "hello.h"
+            #define HEADER_NAME(X) HEADER_NAME_ ## X
+            #define HEADER_(X) HEADER_NAME ## X
+            #define HEADER(X) HEADER_((X))
+            #include HEADER(2) // replaced with HEADER_((2)) then HEADER_NAME(2) then HEADER_NAME_2 then "hello.h"
         """
 
         expect:

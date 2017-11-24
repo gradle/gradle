@@ -22,10 +22,12 @@ import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ComplexExpression;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.SimpleExpression;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +59,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             resolveMacroFunction(visibleMacros, expression, visitor);
         } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
             resolveTokenConcatenation(visibleMacros, expression, visitor);
-        } else if (expression.getType() == IncludeType.TOKEN) {
+        } else if (expression.getType() == IncludeType.IDENTIFIER) {
             visitor.visitToken(expression.getValue());
+        } else if (expression.getType() == IncludeType.TOKENS) {
+            visitor.visitTokens(expression.getArguments());
         } else {
             visitor.visitUnresolved(expression);
         }
@@ -79,6 +83,11 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
 
             @Override
+            public void visitTokens(List<Expression> tokens) {
+                visitor.visitUnresolved(expression);
+            }
+
+            @Override
             public void visitToken(final String leftValue) {
                 resolveExpression(visibleMacros, right, new ExpressionVisitor() {
                     @Override
@@ -89,6 +98,14 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                     @Override
                     public void visitSystem(String value) {
                         visitor.visitUnresolved(expression);
+                    }
+
+                    @Override
+                    public void visitTokens(List<Expression> tokens) {
+                        // Handle just '(' expression ')', should handle more
+                        if (tokens.size() == 3 && "(".equals(tokens.get(0).getValue()) && ")".equals(tokens.get(2).getValue())) {
+                            resolveExpression(visibleMacros, new ComplexExpression(IncludeType.MACRO_FUNCTION, leftValue, Collections.singletonList(tokens.get(1))), visitor);
+                        }
                     }
 
                     @Override
@@ -130,7 +147,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
         }
         if (!found) {
-            visitor.visitUnresolved(expression);
+            visitor.visitToken(expression.getValue());
         }
     }
 
@@ -193,6 +210,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         void visitToken(String value);
 
+        void visitTokens(List<Expression> tokens);
+
         void visitUnresolved(Expression expression);
     }
 
@@ -251,6 +270,11 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         @Override
         public void visitToken(String value) {
+            results.unresolved();
+        }
+
+        @Override
+        public void visitTokens(List<Expression> tokens) {
             results.unresolved();
         }
 

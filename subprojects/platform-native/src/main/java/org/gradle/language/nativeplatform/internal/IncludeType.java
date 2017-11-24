@@ -36,13 +36,17 @@ public enum IncludeType {
     /**
      * An identifier that should not be macro expanded. These appear as the arguments to a {@link #MACRO_FUNCTION} or {@link #TOKEN_CONCATENATION} eg {@code #include ABC(X, Y)}
      */
-    TOKEN,
+    IDENTIFIER,
+    /**
+     * A sequence of expressions. These appear as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC(a b c)}
+     */
+    TOKENS,
     /**
      * A token concatenation expression. These appear in the body of macro directives eg {@code #define ABC(X, Y) X ## Y}.
      */
     TOKEN_CONCATENATION,
     /**
-     * All other expressions. These things cannot be resolve to an include path.
+     * All other expressions. These things cannot be resolved to an include path.
      */
     OTHER
 }

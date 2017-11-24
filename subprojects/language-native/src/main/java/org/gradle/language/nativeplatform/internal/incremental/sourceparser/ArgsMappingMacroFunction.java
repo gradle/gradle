@@ -25,6 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 
 class ArgsMappingMacroFunction extends AbstractMacroFunction {
+    // Keep the argument from this expression
+    static final int KEEP = -1;
+    // Map the arguments of the argument from this expression
+    static final int REPLACE_ARGS = -2;
     private final int[] argsMap;
     private final IncludeType type;
     private final String value;
@@ -62,18 +66,34 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
     @Override
     public Expression evaluate(List<Expression> arguments) {
         List<Expression> mapped = new ArrayList<Expression>(this.arguments.size());
-        for (int i = 0; i < this.arguments.size(); i++) {
-            if (argsMap[i] < 0) {
-                mapped.add(this.arguments.get(i));
-            } else if (type == IncludeType.MACRO_FUNCTION){
-                // Macro expand parameter
-                mapped.add(arguments.get(argsMap[i]).asMacroExpansion());
-            } else {
-                // Do not macro expand parameter
-                mapped.add(arguments.get(argsMap[i]));
-            }
+        int currentMapPos = 0;
+        for (Expression argument : this.arguments) {
+            currentMapPos = mapInto(argument, arguments, currentMapPos, mapped);
         }
         return new ComplexExpression(type, value, mapped);
+    }
+
+    private int mapInto(Expression expression, List<Expression> arguments, int currentMapPos, List<Expression> mapped) {
+        int replaceWith = argsMap[currentMapPos];
+        currentMapPos++;
+        if (replaceWith == KEEP) {
+            // Keep this expression
+            mapped.add(expression);
+        } else if (replaceWith == REPLACE_ARGS) {
+            // Map the arguments of this expression
+            List<Expression> mappedArgs = new ArrayList<Expression>(expression.getArguments().size());
+            for (Expression arg : expression.getArguments()) {
+                currentMapPos = mapInto(arg, arguments, currentMapPos, mappedArgs);
+            }
+            mapped.add(new ComplexExpression(expression.getType(), expression.getValue(), mappedArgs));
+        } else if (type == IncludeType.MACRO_FUNCTION) {
+            // Macro expand parameter
+            mapped.add(arguments.get(replaceWith).asMacroExpansion());
+        } else {
+            // Do not macro expand parameter
+            mapped.add(arguments.get(replaceWith));
+        }
+        return currentMapPos;
     }
 
     @Override
