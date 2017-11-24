@@ -767,6 +767,7 @@ Searched in the following locations:
         failureHasCause 'Could not find any version that matches org.test:projectA:1.2+'
 
         when:
+        resetExpectations()
         repository {
             'org.test:projectA:1.2' {
                 withModule {
@@ -890,6 +891,7 @@ Searched in the following locations:
         failureHasCause 'Could not find any version that matches org.test:projectA:[1.2,2.0]'
 
         when:
+        resetExpectations()
         repository {
             'org.test:projectA:1.2' {
                 withModule {
