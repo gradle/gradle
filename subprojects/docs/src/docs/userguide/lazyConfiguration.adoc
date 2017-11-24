@@ -77,7 +77,7 @@ If provider types are not intended to be implemented directly by build script or
 [NOTE]
 ====
 
-api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider from a `groovy.lang.Closure`. When writing a plugin with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
+api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider from a `groovy.lang.Closure`. When writing a plugin with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take care of the rest.
 
 ====
 
