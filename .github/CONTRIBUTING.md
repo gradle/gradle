@@ -7,13 +7,13 @@ Thank you for considering a contribution to Gradle! This guide explains how to:
 
 ## Get in touch
 
-Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can safe both you and us a lot of time.
+Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can save both you and us a lot of time.
 For any non-trivial change, we'll ask you to create a short design document explaining:
 
 * Why is this change done? What's the use case?
 * What will the API look like? (For new features)
 * What test cases should it have? What could go wrong?
-* How will it roughly be implemented? (We'll happily provide code pointers to safe you time)
+* How will it roughly be implemented? (We'll happily provide code pointers to save you time)
 
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
 
