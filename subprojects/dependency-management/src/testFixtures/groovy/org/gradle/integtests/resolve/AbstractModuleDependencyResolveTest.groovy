@@ -44,7 +44,27 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         GradleMetadataResolveRunner.useIvy() ? "${ivyHttpRepo.uri}/$group/$module/" : "${mavenHttpRepo.uri}/${group.replace('.', '/')}/${module}/maven-metadata.xml"
     }
 
-    String triedMetadata(String group, String module, String version) {
+    String artifactURI(String group, String module, String version) {
+        if (GradleMetadataResolveRunner.useIvy()) {
+            def httpModule = ivyHttpRepo.module(group, module, version)
+            return httpModule.artifact.uri
+        } else {
+            def httpModule = mavenHttpRepo.module(group, module, version)
+            return httpModule.artifact.uri
+        }
+    }
+
+    String metadataURI(String group, String module, String version) {
+        if (GradleMetadataResolveRunner.useIvy()) {
+            def httpModule = ivyHttpRepo.module(group, module, version)
+            return httpModule.ivy.uri
+        } else {
+            def httpModule = mavenHttpRepo.module(group, module, version)
+            return httpModule.pom.uri
+        }
+    }
+
+    String triedMetadata(String group, String module, String version, boolean includeJar = false) {
         def uris = []
         if (GradleMetadataResolveRunner.useIvy()) {
             def httpModule = ivyHttpRepo.module(group, module, version)
@@ -52,11 +72,17 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
                 uris << httpModule.moduleMetadata.uri
             }
+            if (includeJar) {
+                uris << httpModule.artifact.uri
+            }
         } else {
             def httpModule = mavenHttpRepo.module(group, module, version)
             uris << httpModule.pom.uri
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
                 uris << httpModule.moduleMetadata.uri
+            }
+            if (includeJar) {
+                uris << httpModule.artifact.uri
             }
         }
         uris.collect { "    $it" }.join('\n')
