@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -37,6 +36,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -64,7 +64,7 @@ public class WtpComponentFactory {
 
     private Set<Configuration> configOrEmptySet(Set<Configuration> configuration) {
         if (configuration == null) {
-            return Sets.newHashSet();
+            return Collections.emptySet();
         } else {
             return configuration;
         }

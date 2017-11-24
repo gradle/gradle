@@ -66,8 +66,8 @@ project(':shared:model') {
 
         //then
         def dependencies = parseIml("master/api/master-api.iml").dependencies
-        assert dependencies.modules.size() == 4
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "shared-api")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "shared-api")
         dependencies.assertHasModule("TEST", "model")
 
         dependencies = parseIml("master/shared/model/model.iml").dependencies
@@ -101,8 +101,8 @@ project(':api') {
 
         //then
         def dependencies = parseIml("api/api.iml").dependencies
-        assert dependencies.modules.size() == 3
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "root-project-1")
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule(['COMPILE'], "root-project-1")
 
         dependencies = parseIml("root-project-1.iml").dependencies
         assert dependencies.modules.size() == 0
@@ -145,16 +145,17 @@ project(":application") {
 
         //then
         def dependencies = parseIml("master/library/library.iml").dependencies
-        assert dependencies.modules.size() == 6
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "api")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "impl")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "api")
+        dependencies.assertHasModule('COMPILE', "impl")
 
         dependencies = parseIml("master/application/application.iml").dependencies
-        assert dependencies.modules.size() == 8
+        assert dependencies.modules.size() == 4
 
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "library")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "api")
-        dependencies.assertHasModule(['RUNTIME','TEST'], "impl")
+        dependencies.assertHasModule('COMPILE', "library")
+        dependencies.assertHasModule('COMPILE', "api")
+        dependencies.assertHasModule('RUNTIME', "impl")
+        dependencies.assertHasModule('TEST', "impl")
     }
 
     @Test
@@ -199,9 +200,9 @@ project(':util') {
 
         //then
         def dependencies = parseIml("api/api.iml").dependencies
-        assert dependencies.modules.size() == 6
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "util")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "other-renamed")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "util")
+        dependencies.assertHasModule('COMPILE', "other-renamed")
 
         def utilDependencies = parseIml("util/util.iml").dependencies
         assert utilDependencies.modules.size() == 1
@@ -275,16 +276,16 @@ project(':services:utilities') {
         assertIprContainsCorrectModules()
 
         def moduleDeps = parseIml("master/api/master-api.iml").dependencies
-        assert moduleDeps.modules.size() == 6
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "shared-api")
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "very-cool-model")
+        assert moduleDeps.modules.size() == 2
+        moduleDeps.assertHasModule('COMPILE', "shared-api")
+        moduleDeps.assertHasModule('COMPILE', "very-cool-model")
 
         moduleDeps = parseIml("master/services/utilities/util.iml").dependencies
-        assert moduleDeps.modules.size() == 12
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "shared-api")
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "very-cool-model")
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "master-util")
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "services-util")
+        assert moduleDeps.modules.size() == 4
+        moduleDeps.assertHasModule('COMPILE', "shared-api")
+        moduleDeps.assertHasModule('COMPILE', "very-cool-model")
+        moduleDeps.assertHasModule('COMPILE', "master-util")
+        moduleDeps.assertHasModule('COMPILE', "services-util")
     }
 
     def assertIprContainsCorrectModules() {
@@ -386,19 +387,19 @@ project(':three') {
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
-        assert dependencies.modules.size() == 6
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "two")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "three")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "two")
+        dependencies.assertHasModule('COMPILE', "three")
 
         dependencies = parseIml("master/two/two.iml").dependencies
-        assert dependencies.modules.size() == 6
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "three")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "one")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "three")
+        dependencies.assertHasModule('COMPILE', "one")
 
         dependencies = parseIml("master/three/three.iml").dependencies
-        assert dependencies.modules.size() == 6
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "one")
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "two")
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule('COMPILE', "one")
+        dependencies.assertHasModule('COMPILE', "two")
     }
 
     @Test
@@ -443,7 +444,7 @@ project(':two') {
 
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "two")
+        dependencies.assertHasModule('COMPILE', "two")
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
         dependencies = parseIml("master/two/two.iml").dependencies
@@ -453,8 +454,8 @@ project(':two') {
 
         //then
         dependencies = parseIml("master/one/one.iml").dependencies
-        assert dependencies.modules.size() == 3
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "two")
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule('COMPILE', "two")
         assert dependencies.libraries*.jarName as Set == [someLib1Jar.name] as Set
 
         dependencies = parseIml("master/two/two.iml").dependencies
@@ -576,10 +577,10 @@ project(':app') {
 
         //then
         def dependencies = parseIml("master/app/app.iml").dependencies
-        assert dependencies.modules.size() == 5
+        assert dependencies.modules.size() == 3
         dependencies.assertHasInheritedJdk()
         dependencies.assertHasSource('false')
-        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], 'api')
+        dependencies.assertHasModule('COMPILE', 'api')
         dependencies.assertHasModule(['RUNTIME','TEST'], 'impl')
     }
 }

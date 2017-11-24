@@ -43,6 +43,7 @@ public class IdeaDependenciesProvider {
     public static final String SCOPE_MINUS = "minus";
     private final IdeDependenciesExtractor dependenciesExtractor;
     private final ModuleDependencyBuilder moduleDependencyBuilder;
+    private final IdeaDependenciesOptimizer optimizer;
 
     public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
         this(new IdeDependenciesExtractor(), serviceRegistry);
@@ -51,6 +52,7 @@ public class IdeaDependenciesProvider {
     IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
         this.dependenciesExtractor = dependenciesExtractor;
         moduleDependencyBuilder = new ModuleDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
+        optimizer = new IdeaDependenciesOptimizer();
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -83,6 +85,7 @@ public class IdeaDependenciesProvider {
             dependencies.addAll(getExternalDependencies(ideaModule, scope));
             dependencies.addAll(getFileDependencies(ideaModule, scope));
         }
+        optimizer.optimizeDeps(dependencies);
         return dependencies;
     }
 
