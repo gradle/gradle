@@ -119,6 +119,8 @@ interface MavenModule extends Module {
 
     ModuleArtifact getRootMetaData()
 
+    ModuleArtifact getSnapshotMetaData()
+
     boolean getUniqueSnapshots()
 
     /**

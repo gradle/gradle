@@ -285,6 +285,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
+    DefaultSnapshotMavenMetaData getSnapshotMetaData() {
+        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
+    }
+
+    @Override
     ModuleArtifact getArtifact() {
         return getArtifact([:])
     }
@@ -315,6 +320,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     TestFile getRootMetaDataFile() {
         moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+    }
+
+    TestFile getSnapshotMetaDataFile() {
+        moduleDir.file(MAVEN_METADATA_FILE)
     }
 
     TestFile artifactFile(Map<String, ?> options) {
