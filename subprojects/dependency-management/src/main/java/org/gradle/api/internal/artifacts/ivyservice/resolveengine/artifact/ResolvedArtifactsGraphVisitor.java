@@ -82,10 +82,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        ConfigurationMetadata configuration = toConfiguration.getMetadata();
+        ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 
-        Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
+        Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
             ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts);
@@ -94,8 +94,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
-            ModuleExclusion exclusions = dependency.getExclusions(moduleExclusions);
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, configuration, exclusions);
+            ModuleExclusion exclusions = dependency.getExclusions();
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

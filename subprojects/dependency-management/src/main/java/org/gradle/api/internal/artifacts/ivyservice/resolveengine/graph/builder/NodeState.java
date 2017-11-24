@@ -251,20 +251,18 @@ class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
-    private ModuleExclusion getModuleResolutionFilter(List<EdgeState> transitiveEdges) {
-        ModuleExclusion resolutionFilter;
+    private ModuleExclusion getModuleResolutionFilter(List<EdgeState> incomingEdges) {
         ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        if (transitiveEdges.isEmpty()) {
-            resolutionFilter = ModuleExclusions.excludeNone();
-        } else {
-            resolutionFilter = transitiveEdges.get(0).getExclusions(moduleExclusions);
-            for (int i = 1; i < transitiveEdges.size(); i++) {
-                EdgeState dependencyEdge = transitiveEdges.get(i);
-                resolutionFilter = moduleExclusions.union(resolutionFilter, dependencyEdge.getExclusions(moduleExclusions));
-            }
+        ModuleExclusion nodeExclusions = metaData.getExclusions(moduleExclusions);
+        if (incomingEdges.isEmpty()) {
+            return nodeExclusions;
         }
-        resolutionFilter = moduleExclusions.intersect(resolutionFilter, metaData.getExclusions(moduleExclusions));
-        return resolutionFilter;
+        ModuleExclusion edgeExclusions = incomingEdges.get(0).getExclusions();
+        for (int i = 1; i < incomingEdges.size(); i++) {
+            EdgeState dependencyEdge = incomingEdges.get(i);
+            edgeExclusions = moduleExclusions.union(edgeExclusions, dependencyEdge.getExclusions());
+        }
+        return moduleExclusions.intersect(edgeExclusions, nodeExclusions);
     }
 
     public void removeOutgoingEdges() {

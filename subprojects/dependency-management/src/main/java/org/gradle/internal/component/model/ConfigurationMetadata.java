@@ -58,7 +58,10 @@ public interface ConfigurationMetadata extends HasAttributes {
     Set<? extends VariantMetadata> getVariants();
 
     /**
-     * Returns the exclusions to apply to outgoing dependencies from this configuration.
+     * Returns the exclusions to apply to this configuration:
+     * - Module exclusions apply to all outgoing dependencies from this configuration
+     * - Artifact exclusions apply to artifacts obtained from this configuration
+     *
      * @param moduleExclusions the module exclusions factory
      */
     ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);

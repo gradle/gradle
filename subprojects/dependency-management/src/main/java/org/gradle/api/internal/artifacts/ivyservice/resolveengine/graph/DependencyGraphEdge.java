@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -33,12 +32,16 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     DependencyGraphSelector getSelector();
 
-    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
+    ModuleExclusion getExclusions();
 
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
+    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
 
+    Iterable<? extends DependencyGraphNode> getTargets();
+
+    /**
+     * The original dependency instance declared in the build script, if any.
+     */
     @Nullable
     ModuleDependency getModuleDependency();
 
-    Iterable<? extends DependencyGraphNode> getTargets();
 }

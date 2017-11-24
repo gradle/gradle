@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -155,17 +154,13 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    public ModuleExclusion toExclusions(DependencyMetadata md, ConfigurationMetadata from) {
-        List<Exclude> excludes = md.getExcludes();
-        if (excludes.isEmpty()) {
-            return ModuleExclusions.excludeNone();
-        }
-        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
-    }
-
     @Override
-    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-        ModuleExclusion edgeExclusions = toExclusions(dependencyMetadata, from.getMetadata());
+    public ModuleExclusion getExclusions() {
+        List<Exclude> excludes = dependencyMetadata.getExcludes();
+        if (excludes.isEmpty()) {
+            return moduleExclusion;
+        }
+        ModuleExclusion edgeExclusions = resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
         return resolveState.getModuleExclusions().intersect(edgeExclusions, moduleExclusion);
     }
 
@@ -206,11 +201,11 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata metaData1) {
+    public Set<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
         return CollectionUtils.collect(dependencyMetadata.getArtifacts(), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
             @Override
             public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {
-                return metaData1.artifact(ivyArtifactName);
+                return targetConfiguration.artifact(ivyArtifactName);
             }
         });
     }
