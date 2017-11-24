@@ -192,7 +192,7 @@ public class IdeaPlugin extends IdePlugin {
 
             });
 
-            ideaProject.setWildcards(Sets.newHashSet("!?*.class", "!?*.scala", "!?*.groovy", "!?*.java"));
+            ideaProject.getWildcards().addAll(Arrays.asList("!?*.class", "!?*.scala", "!?*.groovy", "!?*.java"));
             conventionMapping.map("modules", new Callable<List<IdeaModule>>() {
                 @Override
                 public List<IdeaModule> call() throws Exception {
@@ -260,7 +260,7 @@ public class IdeaPlugin extends IdePlugin {
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return Sets.newHashSet();
+                return Sets.newLinkedHashSet();
             }
         });
         conventionMapping.map("contentRoot", new Callable<File>() {
@@ -272,7 +272,7 @@ public class IdeaPlugin extends IdePlugin {
         conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return Sets.newHashSet();
+                return Sets.newLinkedHashSet();
             }
         });
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {

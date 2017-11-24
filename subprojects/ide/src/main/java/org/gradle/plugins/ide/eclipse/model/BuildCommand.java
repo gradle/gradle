@@ -31,7 +31,7 @@ public class BuildCommand implements Serializable {
     private Map<String, String> arguments;
 
     public BuildCommand(String name) {
-        this(name, Maps.<String, String>newHashMap());
+        this(name, Maps.<String, String>newLinkedHashMap());
     }
 
     public BuildCommand(String name, Map<String, String> arguments) {

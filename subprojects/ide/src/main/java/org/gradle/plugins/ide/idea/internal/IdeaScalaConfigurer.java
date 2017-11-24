@@ -71,7 +71,7 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
-                final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newHashMap();
+                final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
                 rootProject.getTasks().getByName("ideaProject").doFirst(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
@@ -102,7 +102,7 @@ public class IdeaScalaConfigurer {
     }
 
     private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, boolean useScalaSdk) {
-        Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newHashMap();
+        Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
         for (Project scalaProject : scalaProjects) {
             IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);

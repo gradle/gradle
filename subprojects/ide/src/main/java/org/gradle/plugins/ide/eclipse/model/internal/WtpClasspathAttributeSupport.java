@@ -59,7 +59,7 @@ public class WtpClasspathAttributeSupport {
     }
 
     private static Set<File> collectFilesFromConfigs(Set<Configuration> configs, Set<Configuration> minusConfigs) {
-        Set<File> resultFiles = Sets.newHashSet();
+        Set<File> resultFiles = Sets.newLinkedHashSet();
         IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
 
         Collection<IdeExtendedRepoFileDependency> dependencies = extractor.resolvedExternalDependencies(configs, minusConfigs);
