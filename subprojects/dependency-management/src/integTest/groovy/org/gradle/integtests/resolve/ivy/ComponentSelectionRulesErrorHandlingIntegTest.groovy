@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.maven.MavenModule
+
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
     def "produces sensible error when bad code is supplied in component selection rule" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.2"
             }
@@ -36,19 +38,24 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             }
         """
 
-        expect:
-        fails 'resolveConf'
-        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
+        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(19)
+        failure.assertHasLineNumber(36)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("Could not find method foo()")
     }
 
     def "produces sensible error for invalid component selection rule" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.2"
             }
@@ -62,11 +69,18 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             }
         """
 
-        expect:
-        fails 'resolveConf'
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(35)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
@@ -80,8 +94,6 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
     def "produces sensible error when closure rule throws an exception" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.2"
             }
@@ -95,19 +107,24 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             }
         """
 
-        expect:
-        fails 'resolveConf'
-        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
+        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(35)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("From test")
     }
 
     def "produces sensible error for invalid module target id" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.2"
             }
@@ -121,18 +138,24 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             }
         """
 
-        expect:
-        fails 'resolveConf'
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(35)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
     def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
         buildFile << """
-            $baseBuildFile
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
@@ -150,18 +173,16 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         """
 
         expect:
-        fails 'resolveConf'
+        fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(13)
+        failure.assertHasLineNumber(31)
         failureHasCause("""Type BadRuleSource is not a valid rule source:
 - Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
 
     def "produces sensible error when rule source throws an exception" () {
         buildFile << """
-            $baseBuildFile
-
             dependencies {
                 conf "org.utils:api:1.2"
             }
@@ -186,18 +207,24 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
             }
         """
 
-        expect:
-        fails 'resolveConf'
-        failure.assertHasDescription("Execution failed for task ':resolveConf'.")
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
+        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(30)
+        failure.assertHasLineNumber(47)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 
     def "reports missing module when component selection rule requires meta-data"() {
         buildFile << """
-${httpBaseBuildFile}
 configurations {
     conf {
         resolutionStrategy.componentSelection {
@@ -211,35 +238,54 @@ dependencies {
 }
 """
 
+        repository {
+            'org.utils:api:2.1'()
+        }
+
         when:
-        def dirList = ivyHttpRepo.directoryList("org.utils", "api")
-        def module21 = ivyHttpRepo.module("org.utils", "api", "2.1")
-        dirList.expectGet()
-        module21.ivy.expectGetMissing()
-        module21.jar.expectHeadMissing()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '2.1' {
+                    withModule(IvyModule) {
+                        ivy.expectGetMissing()
+                    }
+                    withModule(MavenModule) {
+                        pom.expectGetMissing()
+                    }
+                    withModule {
+                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                            moduleMetadata.expectGetMissing()
+                        }
+                        artifact.expectHeadMissing()
+                    }
+                }
+            }
+        }
 
         then:
-        fails "resolveConf"
+        fails ":checkDeps"
         failure.assertHasCause("""Could not find any matches for org.utils:api:+ as no versions of org.utils:api are available.
 Searched in the following locations:
-    ${dirList.uri}
-    ${module21.ivy.uri}
-    ${module21.jar.uri}
+    ${versionListingURI('org.utils', 'api')}
+${triedMetadata('org.utils', 'api', '2.1', true)}
 Required by:
 """)
 
         when:
-        server.resetExpectations()
-        module21.ivy.expectGet()
-        module21.jar.expectGet()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api:2.1' {
+                expectResolve()
+            }
+        }
 
         then:
-        succeeds "resolveConf"
+        succeeds ":checkDeps"
     }
 
     def "reports broken module when component selection rule requires meta-data"() {
         buildFile << """
-${httpBaseBuildFile}
 configurations {
     conf {
         resolutionStrategy.componentSelection {
@@ -254,32 +300,62 @@ dependencies {
 """
 
         when:
-        def dirList = ivyHttpRepo.directoryList("org.utils", "api")
-        def module21 = ivyHttpRepo.module("org.utils", "api", "2.1")
-        dirList.expectGet()
-        module21.ivy.expectGetBroken()
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '2.1' {
+                    withModule(IvyModule) {
+                        ivy.expectGetBroken()
+                    }
+                    withModule(MavenModule) {
+                        pom.expectGetBroken()
+                    }
+                    // todo: should we try to get Gradle metadata when ivy/pom returns broken?
+                    // withModule {
+                    //    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    //        moduleMetadata.expectGetBroken()
+                    //    }
+                    //}
+                }
+            }
+        }
 
         then:
-        fails "resolveConf"
+        fails ":checkDeps"
         failure.assertHasCause("Could not resolve org.utils:api:+.")
         failure.assertHasCause("Could not resolve org.utils:api:2.1.")
-        failure.assertHasCause("Could not GET '${module21.ivy.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${metadataURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
 
         when:
-        server.resetExpectations()
-        module21.ivy.expectGet()
-        module21.jar.expectGetBroken()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api:2.1' {
+                expectGetMetadata()
+                withModule {
+                    artifact.expectGetBroken()
+                }
+            }
+        }
 
         then:
-        fails "resolveConf"
-        failure.assertHasCause("Could not download api.jar (org.utils:api:2.1)")
-        failure.assertHasCause("Could not GET '${module21.jar.uri}'. Received status code 500 from server: broken")
+        fails ":checkDeps"
+        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+            // why is the error message different?!
+            failure.assertHasCause("Could not download api-2.1.jar (org.utils:api:2.1)")
+        } else {
+            failure.assertHasCause("Could not download api.jar (org.utils:api:2.1)")
+        }
+        failure.assertHasCause("Could not GET '${artifactURI('org.utils', 'api', '2.1')}'. Received status code 500 from server: broken")
 
         when:
-        server.resetExpectations()
-        module21.jar.expectGet()
+        resetExpectations()
+        repositoryInteractions {
+            'org.utils:api:2.1' {
+                expectGetArtifact()
+            }
+        }
 
         then:
-        succeeds "resolveConf"
+        succeeds ":checkDeps"
     }
 }
