@@ -79,6 +79,7 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
+- [Nikita Skvortsov](https://github.com/nskvortsov) — Optimize generated IDEA dependencies (gradle/gradle#3460)
 - [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
 - [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
 
