@@ -850,4 +850,30 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == pomReader.parentArtifactId
         pomReader.version == pomReader.parentVersion
     }
+
+    @Issue("GRADLE-3065")
+    def "uses fallback for variables with missing properties"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>\${package.type}</packaging>
+
+    <properties>
+        <!-- missing property for package.type --> 
+    </properties>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        !pomReader.properties.containsKey('package.type')
+        pomReader.packaging == ''
+    }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
+import org.apache.ivy.core.settings.IvyVariableContainer;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -699,7 +700,8 @@ public class PomReader implements PomParent {
         if (val == null) {
             return null;
         } else {
-            return IvyPatternHelper.substituteVariables(val, effectiveProperties).trim();
+            IvyVariableContainer variableContainer = new IvyVariableContainerWithFallback(effectiveProperties, "");
+            return IvyPatternHelper.substituteVariables(val, variableContainer).trim();
         }
     }
 }
