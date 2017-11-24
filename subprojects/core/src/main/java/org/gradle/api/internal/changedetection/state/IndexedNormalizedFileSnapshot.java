@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.nio.CharBuffer;
+
 public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String absolutePath;
     private final int index;
@@ -37,5 +39,10 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
 
     public int getIndex() {
         return index;
+    }
+
+    @Override
+    protected CharSequence getNormalizedPathSequence() {
+        return CharBuffer.wrap(absolutePath, index, absolutePath.length());
     }
 }
