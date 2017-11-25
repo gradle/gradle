@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
@@ -74,14 +75,14 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
+    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
             collectArtifactsFor(parent, artifacts);
         }
 
-        return new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, excludes, ImmutableList.copyOf(artifacts));
+        return new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, excludes, ImmutableList.copyOf(artifacts), dependencyMetadataRules);
     }
 
     private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {

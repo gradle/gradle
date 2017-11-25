@@ -158,15 +158,15 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
     private T createAndPopulateConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
-        T configuration = createConfiguration(componentId, name, transitive, visible, hierarchy);
-        configuration.populateDependencies(dependencies, dependencyMetadataRules.get(name));
+        T configuration = createConfiguration(componentId, name, transitive, visible, hierarchy, dependencyMetadataRules.get(name));
+        configuration.populateDependencies(dependencies);
         return configuration;
     }
 
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy);
+    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules);
 
     private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {

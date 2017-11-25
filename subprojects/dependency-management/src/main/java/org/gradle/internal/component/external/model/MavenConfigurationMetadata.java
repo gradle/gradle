@@ -19,10 +19,11 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 
 class MavenConfigurationMetadata extends DefaultConfigurationMetadata {
-    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
-        super(componentId, name, transitive, visible, hierarchy, artifacts);
+    MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, DependencyMetadataRules dependencyMetadataRules) {
+        super(componentId, name, transitive, visible, hierarchy, artifacts, dependencyMetadataRules);
     }
 
     @Override

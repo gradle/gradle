@@ -46,17 +46,20 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
     private final boolean transitive;
     private final boolean visible;
     private final ImmutableList<String> hierarchy;
+    private final DependencyMetadataRules dependencyMetadataRules;
 
-    private DependencyMetadataRules dependencyMetadataRules;
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
-    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
+    protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                           ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                           @Nullable DependencyMetadataRules dependencyMetadataRules) {
         this.componentId = componentId;
         this.name = name;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
         this.hierarchy = hierarchy;
+        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     @Override
@@ -116,7 +119,7 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         return calculatedDependencies;
     }
 
-    protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, @Nullable DependencyMetadataRules dependencyMetadataRules) {
+    protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
         for (ModuleDependencyMetadata dependency : dependencies) {
             if (dependency instanceof DefaultDependencyMetadata) {
                 // For DefaultDependencyMetadata, need to check if it applies to this configuration, and contextualize
@@ -128,8 +131,6 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
                 this.configDependencies.add(dependency);
             }
         }
-        this.calculatedDependencies = null;
-        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     private ModuleDependencyMetadata contextualize(DefaultDependencyMetadata incoming) {

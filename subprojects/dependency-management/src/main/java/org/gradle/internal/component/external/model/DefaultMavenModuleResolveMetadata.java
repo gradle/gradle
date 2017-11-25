@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
@@ -51,14 +52,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents) {
+    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, DependencyMetadataRules dependencyMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
         } else {
             artifacts = ImmutableList.of();
         }
-        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts);
+        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules);
     }
 
     @Override
