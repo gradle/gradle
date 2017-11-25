@@ -21,14 +21,12 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.Collection;
 
 abstract class AbstractModuleExclusion implements ModuleExclusion {
-    private static final String WILDCARD = "*";
-
     private int hashCode = -1;
     private ModuleExclusion lastCheck;
     private boolean lastCheckResult;
 
     protected static boolean isWildcard(String attribute) {
-        return WILDCARD.equals(attribute);
+        return PatternMatchers.ANY_EXPRESSION.equals(attribute);
     }
 
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {

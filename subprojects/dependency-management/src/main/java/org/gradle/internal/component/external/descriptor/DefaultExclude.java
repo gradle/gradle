@@ -19,8 +19,6 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -33,25 +31,25 @@ public class DefaultExclude implements Exclude {
     private final Set<String> configurations;
     private final String patternMatcher;
 
-    public DefaultExclude(ModuleIdentifier id, String artifact, String type, String extension, String[] configurations, @Nullable String patternMatcher) {
+    public DefaultExclude(ModuleIdentifier id, IvyArtifactName artifact, String[] configurations, @Nullable String patternMatcher) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(artifact, type, extension);
-        this.configurations = ImmutableSet.copyOf(configurations);
+        this.artifact = artifact;
         this.patternMatcher = patternMatcher;
+        this.configurations = ImmutableSet.copyOf(configurations);
     }
 
     public DefaultExclude(ModuleIdentifier id, String[] configurations, @Nullable String patternMatcher) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
-        this.configurations = ImmutableSet.copyOf(configurations);
+        this.artifact = null;
         this.patternMatcher = patternMatcher;
+        this.configurations = ImmutableSet.copyOf(configurations);
     }
 
     public DefaultExclude(ModuleIdentifier id) {
         this.moduleId = id;
-        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
-        this.configurations = ImmutableSet.of();
+        this.artifact = null;
         this.patternMatcher = null;
+        this.configurations = ImmutableSet.of();
     }
 
     @Override
@@ -88,10 +86,10 @@ public class DefaultExclude implements Exclude {
             return false;
         }
         DefaultExclude that = (DefaultExclude) o;
-        return Objects.equal(moduleId, that.moduleId) &&
-            Objects.equal(artifact, that.artifact) &&
-            Objects.equal(configurations, that.configurations) &&
-            Objects.equal(patternMatcher, that.patternMatcher);
+        return Objects.equal(moduleId, that.moduleId)
+            && Objects.equal(artifact, that.artifact)
+            && Objects.equal(configurations, that.configurations)
+            && Objects.equal(patternMatcher, that.patternMatcher);
     }
 
     @Override

@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -49,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 
 public class IvyModuleDescriptorConverter {
+    private static final IvyArtifactName WILDARD_ARTIFACT = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+
     private static final String CLASSIFIER = "classifier";
     private static final Field DEPENDENCY_CONFIG_FIELD;
     static {
@@ -135,9 +138,18 @@ public class IvyModuleDescriptorConverter {
 
     private Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
         ArtifactId id = excludeRule.getId();
+        IvyArtifactName artifactExclusion = artifactForIvyExclude(id);
         return new DefaultExclude(
-            moduleIdentifierFactory.module(id.getModuleId().getOrganisation(), id.getModuleId().getName()), id.getName(), id.getType(), id.getExt(),
-            excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
+            moduleIdentifierFactory.module(id.getModuleId().getOrganisation(), id.getModuleId().getName()), artifactExclusion, excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
+    }
+
+    private IvyArtifactName artifactForIvyExclude(ArtifactId id) {
+        if (PatternMatchers.ANY_EXPRESSION.equals(id.getName())
+            && PatternMatchers.ANY_EXPRESSION.equals(id.getType())
+            && PatternMatchers.ANY_EXPRESSION.equals(id.getExt())) {
+            return null;
+        }
+        return new DefaultIvyArtifactName(id.getName(), id.getType(), id.getExt());
     }
 
     // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)

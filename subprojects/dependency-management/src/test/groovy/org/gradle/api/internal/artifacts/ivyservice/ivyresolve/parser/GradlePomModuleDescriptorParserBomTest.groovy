@@ -209,8 +209,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         def dep = single(metadata.dependencies)
         dep.allExcludes[0].moduleId.group == 'group-c'
         dep.allExcludes[0].moduleId.name == 'module-c'
-        dep.allExcludes[0].artifact.name == '*'
-        dep.allExcludes[0].artifact.extension == '*'
+        dep.allExcludes[0].artifact == null
     }
 
     def "a bom version can be relocated"() {

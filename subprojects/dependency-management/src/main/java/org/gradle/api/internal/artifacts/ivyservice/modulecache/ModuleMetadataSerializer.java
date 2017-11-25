@@ -277,12 +277,17 @@ public class ModuleMetadataSerializer {
         private void writeExcludeRules(List<Exclude> excludes) throws IOException {
             writeCount(excludes.size());
             for (Exclude exclude : excludes) {
-                IvyArtifactName artifact = exclude.getArtifact();
                 writeString(exclude.getModuleId().getGroup());
                 writeString(exclude.getModuleId().getName());
-                writeString(artifact.getName());
-                writeString(artifact.getType());
-                writeString(artifact.getExtension());
+                IvyArtifactName artifact = exclude.getArtifact();
+                if (artifact == null) {
+                    writeBoolean(false);
+                } else {
+                    writeBoolean(true);
+                    writeString(artifact.getName());
+                    writeString(artifact.getType());
+                    writeString(artifact.getExtension());
+                }
                 writeStringArray(exclude.getConfigurations().toArray(new String[0]));
                 writeNullableString(exclude.getMatcher());
             }
@@ -568,12 +573,17 @@ public class ModuleMetadataSerializer {
         private DefaultExclude readExcludeRule() throws IOException {
             String moduleOrg = readString();
             String moduleName = readString();
-            String artifact = readString();
-            String type = readString();
-            String ext = readString();
+            boolean hasArtifact = readBoolean();
+            IvyArtifactName artifactName = null;
+            if (hasArtifact) {
+                String artifact = readString();
+                String type = readString();
+                String ext = readString();
+                artifactName = new DefaultIvyArtifactName(artifact, type, ext);
+            }
             String[] confs = readStringArray();
             String matcher = readNullableString();
-            return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
+            return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifactName, confs, matcher);
         }
 
         private int readCount() throws IOException {

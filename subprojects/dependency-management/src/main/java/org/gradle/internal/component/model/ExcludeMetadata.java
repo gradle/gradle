@@ -32,9 +32,12 @@ public interface ExcludeMetadata {
     ModuleIdentifier getModuleId();
 
     /**
-     * The attributes of the artifact to be excluded.
+     * The attributes of the artifact to be excluded. A '*' value for any attribute indicates a wildcard match.
      * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     *
+     * @return The IvyArtifactName to exclude, or `null` if no artifacts are excluded.
      */
+    @Nullable
     IvyArtifactName getArtifact();
 
     /**

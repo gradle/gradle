@@ -118,10 +118,9 @@ public class ModuleExclusions {
         IvyArtifactName artifact = rule.getArtifact();
         boolean anyOrganisation = isWildcard(moduleId.getGroup());
         boolean anyModule = isWildcard(moduleId.getName());
-        boolean anyArtifact = isWildcard(artifact.getName()) && isWildcard(artifact.getType()) && isWildcard(artifact.getExtension());
 
         // Build a strongly typed (mergeable) exclude spec for each supplied rule
-        if (anyArtifact) {
+        if (artifact == null) {
             if (!anyOrganisation && !anyModule) {
                 return moduleIdExcludeSpec(moduleId);
             } else if (!anyModule) {
