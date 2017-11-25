@@ -52,7 +52,7 @@ class DependencyMetadataRulesTest extends Specification {
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyMetadata(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), [], [])
+            new MavenDependencyMetadata(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), null, [])
         }
         new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }

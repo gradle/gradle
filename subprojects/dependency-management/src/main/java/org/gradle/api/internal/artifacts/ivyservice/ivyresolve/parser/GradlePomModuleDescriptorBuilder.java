@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -39,7 +38,7 @@ import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
@@ -150,7 +149,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        List<Artifact> artifacts = Lists.newArrayList();
+        IvyArtifactName dependencyArtifact = null;
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
         boolean hasNonJarType = dep.getType() != null && !"jar".equals(dep.getType());
         if (hasClassifier || hasNonJarType) {
@@ -161,29 +160,24 @@ public class GradlePomModuleDescriptorBuilder {
             String ext = determineExtension(type);
             String classifier = hasClassifier ? dep.getClassifier() : getClassifierForType(type);
 
-            // here we have to assume a type and ext for the artifact, so this is a limitation
-            // compared to how m2 behave with classifiers
-            String optionalizedScope = optional ? "optional" : scope.toString().toLowerCase();
-
-            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getModule(), type, ext, classifier);
-            artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
+            dependencyArtifact = new DefaultIvyArtifactName(selector.getModule(), type, ext, classifier);
         }
 
         // experimentation shows the following, excluded modules are
         // inherited from parent POMs if either of the following is true:
         // the <exclusions> element is missing or the <exclusions> element
         // is present, but empty.
-        List<Exclude> excludes = Lists.newArrayList();
+        List<ExcludeMetadata> excludes = Lists.newArrayList();
         List<ModuleIdentifier> excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
         for (ModuleIdentifier excludedModule : excluded) {
-            DefaultExclude rule = new DefaultExclude(moduleIdentifierFactory.module(excludedModule.getGroup(), excludedModule.getName()));
+            DefaultExclude rule = new DefaultExclude(excludedModule);
             excludes.add(rule);
         }
 
-        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
+        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, dependencyArtifact, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {

@@ -51,9 +51,32 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), [], excludes)
     }
 
-    @Override
-    DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
+    IvyDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
         return new IvyDependencyMetadata(selector, "12", false, true, false, ImmutableListMultimap.of(), artifacts, [])
+    }
+
+    def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {
+        def metadata = createWithArtifacts(requested, [])
+        def fromConfiguration = Stub(ConfigurationMetadata)
+
+        expect:
+        metadata.getConfigurationArtifacts(fromConfiguration).empty
+    }
+
+    def "uses artifacts defined by dependency descriptor"() {
+        def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
+        def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)
+        def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
+
+        given:
+        def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])
+
+        expect:
+        metadata.dependencyArtifacts.size() == 3
+        def artifacts = metadata.dependencyArtifacts
+        artifacts[0] == artifact1
+        artifacts[1] == artifact2
+        artifacts[2] == artifact3
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {

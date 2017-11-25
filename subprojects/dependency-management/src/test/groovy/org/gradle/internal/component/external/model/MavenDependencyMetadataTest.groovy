@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.AttributeMatcher
@@ -49,6 +48,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.util.TestUtil
 
 class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
@@ -56,20 +56,15 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
 
     @Override
     DefaultDependencyMetadata create(ModuleComponentSelector selector) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], [])
-    }
-
-    @Override
-    DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, artifacts, [])
+        return mavenDependencyMetadata(MavenScope.Compile, false, selector, [])
     }
 
     DefaultDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], excludes)
+        return mavenDependencyMetadata(MavenScope.Compile, false, selector, excludes)
     }
 
     def "maps scope to module configuration"() {
-        def dep = new MavenDependencyMetadata(scope, optional, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(scope, optional, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.moduleConfigurations == moduleConfig as Set
@@ -120,7 +115,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         attributesSchema.withProducer(_) >> matcher
         matcher.matches([toMaster], attrs, _) >> [toMaster]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Runtime, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Runtime, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(attrs, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toMaster]
@@ -137,7 +132,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toCompile, toMaster]
@@ -158,7 +153,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime, toCompile, toMaster]
@@ -179,7 +174,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toRuntime.hierarchy >> ["runtime", "compile"]
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime, toMaster]
@@ -196,7 +191,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> null
         toRuntime.hierarchy >> ["compile", "runtime"]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime]
@@ -213,7 +208,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toRuntime.hierarchy >> ["compile", "runtime"]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toRuntime]
@@ -231,7 +226,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent) as List == [toDefault, toMaster]
@@ -250,7 +245,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toDefault.hierarchy >> ["compile", "default"]
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         expect:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent) as List == [toDefault, toMaster]
@@ -265,7 +260,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("default") >> null
         toComponent.getConfiguration("master") >> null
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         when:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromCompile, toComponent)
@@ -283,12 +278,16 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("default") >> null
         toComponent.getConfiguration("master") >> null
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [], [])
+        def dep = mavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleComponentSelector), [])
 
         when:
         dep.getMetadataForConfigurations(ImmutableAttributes.EMPTY, attributesSchema, fromComponent, fromRuntime, toComponent)
 
         then:
         thrown(ConfigurationNotFoundException)
+    }
+
+    private static MavenDependencyMetadata mavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
+        return new MavenDependencyMetadata(scope, optional, selector, null, excludes)
     }
 }

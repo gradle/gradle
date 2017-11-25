@@ -22,10 +22,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ConfigurationMetadata
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -41,8 +39,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     }
 
     abstract DefaultDependencyMetadata create(ModuleComponentSelector selector)
-
-    abstract DefaultDependencyMetadata createWithArtifacts(ModuleComponentSelector selector, List<Artifact> artifacts)
 
     def "creates a copy with new requested version"() {
         def metadata = create(requested)
@@ -76,30 +72,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         then:
         copy != metadata
         copy.selector == selector
-    }
-
-    def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {
-        def metadata = createWithArtifacts(requested, [])
-        def fromConfiguration = Stub(ConfigurationMetadata)
-
-        expect:
-        metadata.getConfigurationArtifacts(fromConfiguration).empty
-    }
-
-    def "uses artifacts defined by dependency descriptor"() {
-        def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
-        def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)
-        def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
-
-        given:
-        def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])
-
-        expect:
-        metadata.dependencyArtifacts.size() == 3
-        def artifacts = metadata.dependencyArtifacts
-        artifacts[0] == artifact1
-        artifacts[1] == artifact2
-        artifacts[2] == artifact3
     }
 
     def "returns a module component selector if descriptor indicates a default dependency"() {

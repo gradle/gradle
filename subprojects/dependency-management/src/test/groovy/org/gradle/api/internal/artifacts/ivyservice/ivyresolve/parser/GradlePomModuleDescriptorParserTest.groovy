@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue
@@ -1803,10 +1804,10 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        def dep = single(metadata.dependencies)
+        IvyDependencyMetadata dep = single(metadata.dependencies) as IvyDependencyMetadata
         dep.selector == moduleId('group-relocated', 'relocated', 'version-one')
         dep.confMappings.keySet() == ['default', 'master', 'compile', 'provided', 'runtime', 'system', 'sources', 'javadoc', 'optional'] as Set
-        hasDefaultDependencyArtifact(dep)
+        dep.dependencyArtifacts.empty
     }
 
     @Issue("GRADLE-2931")

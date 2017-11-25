@@ -20,15 +20,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -36,10 +35,11 @@ import java.util.Set;
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
     private final Set<String> moduleConfigurations;
-    private final ImmutableList<Exclude> excludes;
-    private final List<Artifact> dependencyArtifacts;
+    private final ImmutableList<ExcludeMetadata> excludes;
+    private final IvyArtifactName dependencyArtifact;
 
-    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<Artifact> artifacts, List<Exclude> excludes) {
+    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector,
+                                   @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
         super(selector, optional);
         this.scope = scope;
         if (isOptional() && scope != MavenScope.Test && scope != MavenScope.System) {
@@ -47,7 +47,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         } else {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
-        this.dependencyArtifacts = ImmutableList.copyOf(artifacts);
+        this.dependencyArtifact = dependencyArtifact;
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
@@ -108,25 +108,29 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
-        return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), excludes);
+        return new MavenDependencyMetadata(scope, isOptional(), newRequested, dependencyArtifact, excludes);
     }
 
-    public List<Exclude> getAllExcludes() {
+    public List<ExcludeMetadata> getAllExcludes() {
         return excludes;
     }
 
     @Override
     public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
-        return ImmutableList.<ExcludeMetadata>copyOf(excludes);
+        return excludes;
     }
 
-    public List<Artifact> getDependencyArtifacts() {
-        return dependencyArtifacts;
+    /**
+     * A Maven dependency has a 'dependency artifact' when it specifies a classifier or type attribute.
+     */
+    @Nullable
+    public IvyArtifactName getDependencyArtifact() {
+        return dependencyArtifact;
     }
 
     @Override
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         // For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
-        return dependencyArtifacts.isEmpty() ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifacts.get(0).getArtifactName());
+        return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
     }
 }

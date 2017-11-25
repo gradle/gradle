@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.external.model.MavenDependencyMetadata
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestFile
@@ -66,12 +66,12 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         parser.parseMetaData(parseContext, pomFile, true)
     }
 
-    protected void hasDefaultDependencyArtifact(DependencyMetadata descriptor) {
-        assert descriptor.dependencyArtifacts.empty
+    protected void hasDefaultDependencyArtifact(MavenDependencyMetadata descriptor) {
+        assert descriptor.dependencyArtifact == null
     }
 
-    protected void hasDependencyArtifact(DependencyMetadata descriptor, String name, String type, String ext, String classifier = null) {
-        def artifact = single(descriptor.dependencyArtifacts).artifactName
+    protected void hasDependencyArtifact(MavenDependencyMetadata descriptor, String name, String type, String ext, String classifier = null) {
+        def artifact = descriptor.dependencyArtifact
         assert artifact.name == name
         assert artifact.type == type
         assert artifact.extension == ext
