@@ -28,6 +28,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,15 +38,17 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
     private final Set<String> moduleConfigurations;
     private final ImmutableList<Exclude> excludes;
+    private final List<Artifact> dependencyArtifacts;
 
     public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(selector, artifacts, optional);
+        super(selector, optional);
         this.scope = scope;
         if (isOptional() && scope != MavenScope.Test && scope != MavenScope.System) {
             moduleConfigurations = ImmutableSet.of("optional", scope.name().toLowerCase());
         } else {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
+        this.dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
@@ -116,5 +119,15 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     @Override
     public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
         return ImmutableList.<ExcludeMetadata>copyOf(excludes);
+    }
+
+    public List<Artifact> getDependencyArtifacts() {
+        return dependencyArtifacts;
+    }
+
+    @Override
+    public Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+        // For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
+        return dependencyArtifacts.isEmpty() ? ImmutableSet.<IvyArtifactName>of() : ImmutableSet.of(dependencyArtifacts.get(0).getArtifactName());
     }
 }

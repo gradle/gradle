@@ -16,9 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -26,7 +24,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -36,18 +33,15 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public abstract class DefaultDependencyMetadata implements ModuleDependencyMetadata {
-    private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
     private final boolean optional;
 
-    protected DefaultDependencyMetadata(ModuleComponentSelector selector, List<Artifact> artifacts, boolean optional) {
+    protected DefaultDependencyMetadata(ModuleComponentSelector selector, boolean optional) {
         this.selector = selector;
-        dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.optional = optional;
     }
 
@@ -100,44 +94,9 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return selector;
     }
 
-    public List<Artifact> getDependencyArtifacts() {
-        return dependencyArtifacts;
-    }
-
     @Override
     public boolean isOptional() {
         return optional;
-    }
-
-    // TODO:DAZ Could do this when constructing the ConfigurationMetadata
-    Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
-        if (dependencyArtifacts.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        // TODO:DAZ This logic should be simpler for Maven dependencies: they can only set a single artifact via classifier/type.
-        Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
-        Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
-        for (Artifact depArtifact : dependencyArtifacts) {
-            Set<String> artifactConfigurations = depArtifact.getConfigurations();
-            if (include(artifactConfigurations, includedConfigurations)) {
-                IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
-                artifacts.add(ivyArtifactName);
-            }
-        }
-        return artifacts;
-    }
-
-    protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
-        for (String configuration : configurations) {
-            if (configuration.equals("*")) {
-                return true;
-            }
-            if (acceptedConfigurations.contains(configuration)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public Set<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
@@ -161,4 +120,6 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
      * Returns the set of source configurations that this dependency should be attached to.
      */
     public abstract Set<String> getModuleConfigurations();
+
+    public abstract Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration);
 }

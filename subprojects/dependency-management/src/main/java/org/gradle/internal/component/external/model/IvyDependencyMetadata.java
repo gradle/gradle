@@ -31,6 +31,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -43,13 +44,15 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     private final boolean transitive;
     private final SetMultimap<String, String> confs;
     private final List<Exclude> excludes;
+    private final List<Artifact> dependencyArtifacts;
 
     public IvyDependencyMetadata(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(selector, artifacts, optional);
+        super(selector, optional);
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.changing = changing;
         this.transitive = transitive;
         this.confs = ImmutableSetMultimap.copyOf(confMappings);
+        dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
@@ -184,6 +187,39 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
             }
         }
         return rules;
+    }
+
+    public List<Artifact> getDependencyArtifacts() {
+        return dependencyArtifacts;
+    }
+
+    public Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+        if (dependencyArtifacts.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
+        Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
+        for (Artifact depArtifact : dependencyArtifacts) {
+            Set<String> artifactConfigurations = depArtifact.getConfigurations();
+            if (include(artifactConfigurations, includedConfigurations)) {
+                IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
+                artifacts.add(ivyArtifactName);
+            }
+        }
+        return artifacts;
+    }
+
+    protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
+        for (String configuration : configurations) {
+            if (configuration.equals("*")) {
+                return true;
+            }
+            if (acceptedConfigurations.contains(configuration)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
