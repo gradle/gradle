@@ -50,7 +50,7 @@ class DefaultExcludeRuleConverterTest extends Specification {
         exclude.getModuleId().getName() == module
         exclude.getArtifact().getExtension() == PatternMatchers.ANY_EXPRESSION
         exclude.getArtifact().getType() == PatternMatchers.ANY_EXPRESSION
-        exclude.getMatcher() == PatternMatchers.EXACT
+        exclude.getMatcher() == null
 
         where:
         configurationName | configurations

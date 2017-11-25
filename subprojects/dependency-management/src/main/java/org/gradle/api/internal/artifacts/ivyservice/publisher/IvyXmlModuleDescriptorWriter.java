@@ -198,7 +198,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
             writer.attribute("conf", excludePair.getRight());
-            writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }
     }
@@ -212,7 +211,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("name", exclude.getArtifact().getName());
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
-            writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }
     }

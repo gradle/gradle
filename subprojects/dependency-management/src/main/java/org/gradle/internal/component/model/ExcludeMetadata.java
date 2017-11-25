@@ -17,6 +17,8 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents the complete model of an exclude rule supported by Gradle.
  * Several attributes of this model are not able to be configured in the DSL via {@link org.gradle.api.artifacts.ExcludeRule},
@@ -38,7 +40,10 @@ public interface ExcludeMetadata {
     /**
      * The name of the Ivy pattern matcher to use for this exclude.
      * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     *
+     * @return The name of an Ivy pattern matcher, or `null` if the default Gradle matching should be used.
      */
+    @Nullable
     String getMatcher();
 
 }

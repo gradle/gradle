@@ -284,7 +284,7 @@ public class ModuleMetadataSerializer {
                 writeString(artifact.getType());
                 writeString(artifact.getExtension());
                 writeStringArray(exclude.getConfigurations().toArray(new String[0]));
-                writeString(exclude.getMatcher());
+                writeNullableString(exclude.getMatcher());
             }
         }
 
@@ -572,7 +572,7 @@ public class ModuleMetadataSerializer {
             String type = readString();
             String ext = readString();
             String[] confs = readStringArray();
-            String matcher = readString();
+            String matcher = readNullableString();
             return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
         }
 
