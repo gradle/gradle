@@ -53,7 +53,12 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     private static class ExpressionSerializer implements Serializer<Expression> {
         private static final byte SIMPLE = (byte) 1;
-        private static final byte COMPLEX = (byte) 2;
+        private static final byte COMPLEX_ONE_ARG = (byte) 2;
+        private static final byte COMPLEX_MULTIPLE_ARGS = (byte) 3;
+        private static final byte EMPTY = (byte) 4;
+        private static final byte COMMA = (byte) 5;
+        private static final byte LEFT_PAREN = (byte) 6;
+        private static final byte RIGHT_PAREN = (byte) 7;
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<List<Expression>> argsSerializer;
 
@@ -69,7 +74,20 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String expressionValue = decoder.readNullableString();
                 IncludeType expressionType = enumSerializer.read(decoder);
                 return new SimpleExpression(expressionValue, expressionType);
-            } else if (tag == COMPLEX) {
+            } else if (tag == EMPTY) {
+                return SimpleExpression.EMPTY_TOKENS;
+            } else if (tag == COMMA) {
+                return SimpleExpression.COMMA;
+            } else if (tag == LEFT_PAREN) {
+                return SimpleExpression.LEFT_PAREN;
+            } else if (tag == RIGHT_PAREN) {
+                return SimpleExpression.RIGHT_PAREN;
+            } else if (tag == COMPLEX_ONE_ARG) {
+                String expressionValue = decoder.readNullableString();
+                IncludeType type = enumSerializer.read(decoder);
+                List<Expression> args = ImmutableList.of(read(decoder));
+                return new ComplexExpression(type, expressionValue, args);
+            } else if (tag == COMPLEX_MULTIPLE_ARGS) {
                 String expressionValue = decoder.readNullableString();
                 IncludeType type = enumSerializer.read(decoder);
                 List<Expression> args = ImmutableList.copyOf(argsSerializer.read(decoder));
@@ -82,14 +100,31 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         @Override
         public void write(Encoder encoder, Expression value) throws Exception {
             if (value instanceof SimpleExpression) {
-                encoder.writeByte(SIMPLE);
-                encoder.writeNullableString(value.getValue());
-                enumSerializer.write(encoder, value.getType());
+                if (value.equals(SimpleExpression.EMPTY_TOKENS)) {
+                    encoder.writeByte(EMPTY);
+                } else if (value.equals(SimpleExpression.COMMA)) {
+                    encoder.writeByte(COMMA);
+                } else if (value.equals(SimpleExpression.LEFT_PAREN)) {
+                    encoder.writeByte(LEFT_PAREN);
+                } else if (value.equals(SimpleExpression.RIGHT_PAREN)) {
+                    encoder.writeByte(RIGHT_PAREN);
+                } else {
+                    encoder.writeByte(SIMPLE);
+                    encoder.writeNullableString(value.getValue());
+                    enumSerializer.write(encoder, value.getType());
+                }
             } else if (value instanceof ComplexExpression) {
-                encoder.writeByte(COMPLEX);
-                encoder.writeNullableString(value.getValue());
-                enumSerializer.write(encoder, value.getType());
-                argsSerializer.write(encoder, value.getArguments());
+                if (value.getArguments().size() == 1) {
+                    encoder.writeByte(COMPLEX_ONE_ARG);
+                    encoder.writeNullableString(value.getValue());
+                    enumSerializer.write(encoder, value.getType());
+                    write(encoder, value.getArguments().get(0));
+                } else {
+                    encoder.writeByte(COMPLEX_MULTIPLE_ARGS);
+                    encoder.writeNullableString(value.getValue());
+                    enumSerializer.write(encoder, value.getType());
+                    argsSerializer.write(encoder, value.getArguments());
+                }
             } else {
                 throw new IllegalArgumentException();
             }
@@ -231,7 +266,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 List<Expression> arguments = ImmutableList.copyOf(expressionSerializer.read(decoder));
                 int mapCount = decoder.readSmallInt();
                 int[] argsMap = new int[mapCount];
-                for(int i = 0; i < mapCount; i++) {
+                for (int i = 0; i < mapCount; i++) {
                     argsMap[i] = decoder.readSmallInt();
                 }
                 return new ArgsMappingMacroFunction(name, parameters, argsMap, type, value, arguments);

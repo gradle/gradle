@@ -15,6 +15,8 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.internal.FileUtils;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,108 +50,120 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     @Override
     public IncludeResolutionResult resolveInclude(final File sourceFile, Include include, MacroLookup visibleMacros) {
         BuildableResult results = new BuildableResult();
-        resolveExpression(visibleMacros, include, new PathResolvingVisitor(sourceFile, results));
+        resolveExpression(visibleMacros, include, new PathResolvingVisitor(sourceFile, results), new TokenLookup());
         return results;
     }
 
-    private void resolveExpression(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
+    private void resolveExpression(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         if (expression.getType() == IncludeType.SYSTEM) {
             visitor.visitSystem(expression.getValue());
         } else if (expression.getType() == IncludeType.QUOTED) {
             visitor.visitQuoted(expression.getValue());
-        } else if (expression.getType() == IncludeType.MACRO) {
-            resolveMacro(visibleMacros, expression, visitor);
-        } else if (expression.getType() == IncludeType.MACRO_FUNCTION) {
-            resolveMacroFunction(visibleMacros, expression, visitor);
-        } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
-            resolveTokenConcatenation(visibleMacros, expression, visitor);
         } else if (expression.getType() == IncludeType.IDENTIFIER) {
-            visitor.visitToken(expression.getValue());
+            visitor.visitIdentifier(expression.getValue());
         } else if (expression.getType() == IncludeType.TOKENS) {
             visitor.visitTokens(expression.getArguments());
         } else {
-            visitor.visitUnresolved(expression);
+            if (!visitor.startVisit(expression)) {
+                // Skip, visitor is not interested
+                return;
+            }
+            if (expression.getType() == IncludeType.MACRO) {
+                resolveMacro(visibleMacros, expression, visitor, tokenLookup);
+            } else if (expression.getType() == IncludeType.MACRO_FUNCTION) {
+                resolveMacroFunction(visibleMacros, expression, visitor, tokenLookup);
+            } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+                resolveTokenConcatenation(visibleMacros, expression, visitor, tokenLookup);
+            } else {
+                visitor.visitUnresolved();
+            }
         }
     }
 
-    private void resolveTokenConcatenation(final MacroLookup visibleMacros, final Expression expression, final ExpressionVisitor visitor) {
+    private void resolveTokenConcatenation(final MacroLookup visibleMacros, final Expression expression, final ExpressionVisitor visitor, final TokenLookup tokenLookup) {
         final Expression left = expression.getArguments().get(0);
         final Expression right = expression.getArguments().get(1);
-        resolveExpression(visibleMacros, left, new ExpressionVisitor() {
-            @Override
-            public void visitQuoted(String value) {
-                visitor.visitUnresolved(expression);
+
+        if (left.getType() == IncludeType.IDENTIFIER && right.getType() == IncludeType.IDENTIFIER) {
+            // Short circuit resolution
+            resolveExpression(visibleMacros, new SimpleExpression(left.getValue() + right.getValue(), IncludeType.MACRO), visitor, tokenLookup);
+            return;
+        }
+
+        if (tokenLookup.broken.contains(left) || tokenLookup.broken.contains(right)) {
+            visitor.visitUnresolved();
+            return;
+        }
+
+        if (!tokenLookup.stringTokensFor.containsKey(left)) {
+            resolveExpression(visibleMacros, left, new CollectIdentifiers(tokenLookup, left), tokenLookup);
+            if (tokenLookup.broken.contains(left)) {
+                visitor.visitUnresolved();
+                return;
             }
-
-            @Override
-            public void visitSystem(String value) {
-                visitor.visitUnresolved(expression);
+        }
+        if (!tokenLookup.tokensFor.containsKey(right)) {
+            resolveExpression(visibleMacros, right, new CollectTokens(tokenLookup, right), tokenLookup);
+            if (tokenLookup.broken.contains(right)) {
+                visitor.visitUnresolved();
+                return;
             }
+        }
 
-            @Override
-            public void visitTokens(List<Expression> tokens) {
-                visitor.visitUnresolved(expression);
-            }
-
-            @Override
-            public void visitToken(final String leftValue) {
-                resolveExpression(visibleMacros, right, new ExpressionVisitor() {
-                    @Override
-                    public void visitQuoted(String value) {
-                        visitor.visitUnresolved(expression);
-                    }
-
-                    @Override
-                    public void visitSystem(String value) {
-                        visitor.visitUnresolved(expression);
-                    }
-
-                    @Override
-                    public void visitTokens(List<Expression> tokens) {
-                        // Handle just empty string and '(' expression ')', should handle more
-                        if (tokens.size() == 0) {
-                            resolveExpression(visibleMacros, new SimpleExpression(leftValue, IncludeType.MACRO), visitor);
-                        } else if (tokens.size() == 3 && "(".equals(tokens.get(0).getValue()) && ")".equals(tokens.get(2).getValue())) {
-                            resolveExpression(visibleMacros, new ComplexExpression(IncludeType.MACRO_FUNCTION, leftValue, Collections.singletonList(tokens.get(1))), visitor);
+        Collection<List<Expression>> rightValues = tokenLookup.tokensFor.get(right);
+        Collection<String> leftValues = tokenLookup.stringTokensFor.get(left);
+        for (String leftValue : leftValues) {
+            for (List<Expression> rightValue : rightValues) {
+                // Handle just empty string, single identifier or '(' params? ')', should handle more by parsing the tokens into an expression
+                if (rightValue.size() == 0) {
+                    resolveExpression(visibleMacros, new SimpleExpression(leftValue, IncludeType.MACRO), visitor, tokenLookup);
+                    continue;
+                }
+                if (rightValue.size() == 1 && rightValue.get(0).getType() == IncludeType.IDENTIFIER) {
+                    resolveExpression(visibleMacros, new SimpleExpression(leftValue + rightValue.get(0).getValue(), IncludeType.MACRO), visitor, tokenLookup);
+                    continue;
+                }
+                if (rightValue.size() >= 2 && "(".equals(rightValue.get(0).getValue()) && ")".equals(rightValue.get(rightValue.size() - 1).getValue())) {
+                    List<Expression> functionArgs = new ArrayList<Expression>();
+                    int pos = 1;
+                    if (rightValue.size() > 2) {
+                        functionArgs.add(rightValue.get(1));
+                        pos = 2;
+                        while (pos < rightValue.size() - 2) {
+                            if (!",".equals(rightValue.get(pos).getValue())) {
+                                break;
+                            }
+                            pos++;
+                            functionArgs.add(rightValue.get(pos));
+                            pos++;
                         }
                     }
-
-                    @Override
-                    public void visitToken(String value) {
-                        String newValue = leftValue + value;
-                        resolveExpression(visibleMacros, new SimpleExpression(newValue, IncludeType.MACRO), visitor);
+                    if (pos == rightValue.size() - 1) {
+                        resolveExpression(visibleMacros, new ComplexExpression(IncludeType.MACRO_FUNCTION, leftValue, functionArgs), visitor, tokenLookup);
+                        continue;
                     }
-
-                    @Override
-                    public void visitUnresolved(Expression expression) {
-                        visitor.visitUnresolved(right);
-                    }
-                });
+                }
+                visitor.visitUnresolved();
             }
-
-            @Override
-            public void visitUnresolved(Expression expression) {
-                visitor.visitUnresolved(left);
-            }
-        });
+        }
     }
 
-    private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
+    private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             for (Macro macro : includeDirectives.getMacros()) {
                 if (expression.getValue().equals(macro.getName())) {
                     found = true;
-                    resolveExpression(visibleMacros, macro, visitor);
+                    resolveExpression(visibleMacros, macro, visitor, tokenLookup);
                 }
             }
         }
         if (!found) {
-            visitor.visitToken(expression.getValue());
+            visitor.visitIdentifier(expression.getValue());
         }
     }
 
-    private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor) {
+    private void resolveMacroFunction(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         boolean found = false;
         for (IncludeDirectives includeDirectives : visibleMacros) {
             for (MacroFunction macro : includeDirectives.getMacrosFunctions()) {
@@ -162,13 +177,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                     if (macro.getParameterCount() == arguments.size()) {
                         found = true;
                         Expression result = macro.evaluate(arguments);
-                        resolveExpression(visibleMacros, result, visitor);
+                        resolveExpression(visibleMacros, result, visitor, tokenLookup);
                     }
                 }
             }
         }
         if (!found) {
-            visitor.visitUnresolved(expression);
+            visitor.visitUnresolved();
         }
     }
 
@@ -207,16 +222,44 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
+    private static class TokenLookup {
+        final Set<Expression> broken = new HashSet<Expression>();
+        final Multimap<Expression, String> stringTokensFor = LinkedHashMultimap.create();
+        final Multimap<Expression, List<Expression>> tokensFor = LinkedHashMultimap.create();
+    }
+
     private interface ExpressionVisitor {
+        /**
+         * Called when an expression is about to be visited. Called for each intermediate expression as macros are expanded.
+         *
+         * @return true if the visit should continue, false to skip this expression.
+         */
+        boolean startVisit(Expression expression);
+
+        /**
+         * Called when an expression resolves to a quoted path.
+         */
         void visitQuoted(String value);
 
+        /**
+         * Called when an expression resolves to a system path.
+         */
         void visitSystem(String value);
 
-        void visitToken(String value);
+        /**
+         * Called when an expression resolves to a single identifier that could not be macro expanded.
+         */
+        void visitIdentifier(String value);
 
+        /**
+         * Called when an expression resolves to zero or more tokens.
+         */
         void visitTokens(List<Expression> tokens);
 
-        void visitUnresolved(Expression expression);
+        /**
+         * Called when an expression could not be resolved to a value.
+         */
+        void visitUnresolved();
     }
 
     private static class BuildableResult implements IncludeResolutionResult {
@@ -252,9 +295,96 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
+    private static class CollectIdentifiers implements ExpressionVisitor {
+        private final Set<Expression> seen = new HashSet<Expression>();
+        private final TokenLookup tokenLookup;
+        private final Expression expression;
+
+        CollectIdentifiers(TokenLookup tokenLookup, Expression expression) {
+            this.tokenLookup = tokenLookup;
+            this.expression = expression;
+        }
+
+        @Override
+        public boolean startVisit(Expression expression) {
+            return seen.add(expression);
+        }
+
+        @Override
+        public void visitQuoted(String value) {
+            visitUnresolved();
+        }
+
+        @Override
+        public void visitSystem(String value) {
+            visitUnresolved();
+        }
+
+        @Override
+        public void visitIdentifier(String value) {
+            tokenLookup.stringTokensFor.put(expression, value);
+        }
+
+        @Override
+        public void visitTokens(List<Expression> tokens) {
+            // Should handle this, but currently don't
+            visitUnresolved();
+        }
+
+        @Override
+        public void visitUnresolved() {
+            tokenLookup.broken.add(expression);
+        }
+    }
+
+    private static class CollectTokens implements ExpressionVisitor {
+        private final Set<Expression> seen = new HashSet<Expression>();
+        private final TokenLookup tokenLookup;
+        private final Expression expression;
+
+        CollectTokens(TokenLookup tokenLookup, Expression expression) {
+            this.tokenLookup = tokenLookup;
+            this.expression = expression;
+        }
+
+        @Override
+        public boolean startVisit(Expression expression) {
+            return seen.add(expression);
+        }
+
+        @Override
+        public void visitQuoted(String value) {
+            visitUnresolved();
+        }
+
+        @Override
+        public void visitSystem(String value) {
+            visitUnresolved();
+        }
+
+        @Override
+        public void visitIdentifier(String value) {
+            visitTokens(Collections.<Expression>singletonList(new SimpleExpression(value, IncludeType.IDENTIFIER)));
+        }
+
+        @Override
+        public void visitTokens(List<Expression> tokens) {
+            tokenLookup.tokensFor.put(expression, tokens);
+        }
+
+        @Override
+        public void visitUnresolved() {
+            tokenLookup.broken.add(expression);
+        }
+    }
+
     private class PathResolvingVisitor implements ExpressionVisitor {
         private final File sourceFile;
         private final BuildableResult results;
+        private final Set<Expression> seen = new HashSet<Expression>();
+
+        Set<String> quoted = new HashSet<String>();
+        Set<String> system = new HashSet<String>();
 
         PathResolvingVisitor(File sourceFile, BuildableResult results) {
             this.sourceFile = sourceFile;
@@ -262,18 +392,29 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
+        public boolean startVisit(Expression expression) {
+            return seen.add(expression);
+        }
+
+        @Override
         public void visitQuoted(String value) {
+            if (!quoted.add(value)) {
+                return;
+            }
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
             searchForDependency(quotedSearchPath, value, results);
         }
 
         @Override
         public void visitSystem(String value) {
+            if (!system.add(value)) {
+                return;
+            }
             searchForDependency(includePaths, value, results);
         }
 
         @Override
-        public void visitToken(String value) {
+        public void visitIdentifier(String value) {
             results.unresolved();
         }
 
@@ -283,7 +424,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public void visitUnresolved(Expression expression) {
+        public void visitUnresolved() {
             results.unresolved();
         }
     }

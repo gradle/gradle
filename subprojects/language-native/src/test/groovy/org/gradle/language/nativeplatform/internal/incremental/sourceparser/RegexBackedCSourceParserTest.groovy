@@ -76,7 +76,7 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     Expression token(String value) {
-        return new SimpleExpression(value, IncludeType.IDENTIFIER)
+        return new SimpleExpression(value, value.matches('(\\w|_|\\$)(\\w|\\d|_|\\$)*') ? IncludeType.IDENTIFIER : IncludeType.TOKEN)
     }
 
     Expression tokens(String value) {
@@ -111,6 +111,10 @@ class RegexBackedCSourceParserTest extends Specification {
     MacroFunction macroFunction(String name, int parameters = 0, String value) {
         def expression = RegexBackedCSourceParser.parseExpression(value)
         return new ReturnFixedValueMacroFunction(name, parameters, expression.type, expression.value, expression.arguments)
+    }
+
+    MacroFunction macroFunction(String name, int parameters = 0, IncludeType type, String value, List<?> args) {
+        return new ReturnFixedValueMacroFunction(name, parameters, type, value, args.collect { it instanceof Expression ? it : expression(it as String) })
     }
 
     Macro unresolvedMacro(String name) {
@@ -252,7 +256,8 @@ class RegexBackedCSourceParserTest extends Specification {
         'a((a,b))'                                         | 'a'   | [tokens('(a,b)')]
         'a((a b c))'                                       | 'a'   | [tokens('(a b c)')]
         'a( ( a ,,, b ), c)'                               | 'a'   | [tokens('(a,,,b)'), token('c')]
-        'a(~, ~)'                                          | 'a'   | [expression('~'), expression('~')]
+        'a((1+2))'                                         | 'a'   | [tokens('(1+2)')]
+        'a(~, ~)'                                          | 'a'   | [token('~'), token('~')]
     }
 
     def "finds other includes that cannot be resolved"() {
@@ -282,8 +287,9 @@ class RegexBackedCSourceParserTest extends Specification {
             'A##.',
             'A##',
             'a(1+2)',
-            'a((1+2))',
             'a(~~)',
+            'a(()',
+            'a(()))',
         ]
     }
 
@@ -768,6 +774,31 @@ st3"
         '_a$##h2_'      | '_a$' | 'h2_'
     }
 
+    def "finds object-like macro directive whose value is token sequence"() {
+        when:
+        sourceFile << """
+#define SOME_STRING ${value}
+"""
+
+        then:
+        macros == [macro('SOME_STRING', IncludeType.TOKENS, null, params)]
+        macroFunctions.empty
+
+        where:
+        value             | params
+        '()'              | tokens('()').arguments
+        '( a )'           | tokens('( a )').arguments
+        '( "a.h" )'       | tokens('( "a.h" )').arguments
+        '( <a.h> )'       | tokens('( <a.h> )').arguments
+        '( , )'           | tokens('(,)').arguments
+        '( ~ )'           | tokens('(~)').arguments
+        '(a, b, c)'       | tokens('(a, b, c)').arguments
+        '(1 2 3)'         | tokens('(1 2 3)').arguments
+        '(<a.h>, "b.h")'  | [token('('), expression('<a.h>'), token(','), expression('"b.h"'), token(')')]
+        '((b + c))'       | tokens('((b + c))').arguments
+        '(a, (c, (d) e))' | tokens('(a, (c, (d) e))').arguments
+    }
+
     def "finds object-like macro directive whose value cannot be resolved"() {
         when:
         sourceFile << """
@@ -791,7 +822,6 @@ st3"
             'A##@',
             '##B',
             'a(b()',
-            'a((b + c))',
             'a(()) more',
             'a((b) (c))',
             'a(  ,',
@@ -934,6 +964,29 @@ st3"
         then:
         macros.empty
         macroFunctions == [macroFunction('A', 'A##Z')]
+    }
+
+    def "finds function-like macro directive with no parameters whose body is token sequence"() {
+        when:
+        sourceFile << """
+#define SOME_STRING() ${value}
+"""
+
+        then:
+        macroFunctions == [macroFunction('SOME_STRING', 0, IncludeType.TOKENS, null, params)]
+
+        where:
+        value             | params
+        '()'              | tokens('()').arguments
+        '( a )'           | tokens('( a )').arguments
+        '( "a.h" )'       | tokens('( "a.h" )').arguments
+        '( <a.h> )'       | tokens('( <a.h> )').arguments
+        '( , )'           | tokens('(,)').arguments
+        '( ~ )'           | tokens('(~)').arguments
+        '(a, b, c)'       | tokens('(a, b, c)').arguments
+        '(1 2 3)'         | tokens('(1 2 3)').arguments
+        '(<a.h>, "b.h")'  | [token('('), expression('<a.h>'), token(','), expression('"b.h"'), token(')')]
+        '(a, (c, (d) e))' | tokens('(a, (c, (d) e))').arguments
     }
 
     def "finds function-like macro directive with no parameters whose body cannot be resolved"() {

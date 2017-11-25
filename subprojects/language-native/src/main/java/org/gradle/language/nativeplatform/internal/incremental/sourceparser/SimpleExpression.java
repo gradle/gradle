@@ -17,6 +17,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import javax.annotation.Nullable;
@@ -25,6 +26,11 @@ import javax.annotation.Nullable;
  * An expression that has a type and value and no arguments.
  */
 public class SimpleExpression extends AbstractExpression {
+    static final Expression EMPTY_TOKENS = new SimpleExpression(null, IncludeType.TOKENS);
+    static final Expression LEFT_PAREN = new SimpleExpression("(", IncludeType.TOKEN);
+    static final Expression COMMA = new SimpleExpression(",", IncludeType.TOKEN);
+    static final Expression RIGHT_PAREN = new SimpleExpression(")", IncludeType.TOKEN);
+
     private final String value;
     private final IncludeType type;
 

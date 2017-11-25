@@ -101,8 +101,10 @@ public class RegexBackedCSourceParser implements CSourceParser {
             return;
         }
         Expression expression = parseDirectiveBodyExpression(buffer);
-        if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+        if (expression.getType() == IncludeType.TOKEN_CONCATENATION || expression.getType() == IncludeType.TOKENS) {
             // Token concatenation is only allowed inside a #define body
+            // Arbitrary tokens won't resolve to an include path
+            // Treat both these cases as an unresolvable include directive
             expression = new SimpleExpression(expression.getAsSourceText(), IncludeType.OTHER);
         }
         if (expression.getType() != IncludeType.OTHER || !expression.getValue().isEmpty()) {
@@ -181,7 +183,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             return;
         }
 
-        if (expression.getType() == IncludeType.MACRO_FUNCTION || expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+        if (expression.getType() != IncludeType.OTHER) {
             // Look for parameter substitutions
             if (paramNames.isEmpty() || expression.getArguments().isEmpty()) {
                 // When this function has no parameters, we don't need to substitute parameters, so return the expression
@@ -277,14 +279,14 @@ public class RegexBackedCSourceParser implements CSourceParser {
         Expression expression = readExpression(buffer);
         buffer.consumeWhitespace();
         if (expression == null || buffer.hasAny()) {
-            // Missing expression or extra stuff after the expression, possibly another expression
+            // Unrecognized expression or extra stuff after the expression, possibly another expression
             return new SimpleExpression(buffer.substring(startPos).trim(), IncludeType.OTHER);
         }
         return expression.asMacroExpansion();
     }
 
     /**
-     * Parses an expression that forms the body of a directive. Returns null when an expression cannot be parsed and consumes input up to the parse failure point.
+     * Parses an expression that forms the body of a directive or a macro function parameter. Returns null when an expression cannot be parsed and consumes input up to the parse failure point.
      */
     @Nullable
     private static Expression readExpression(Buffer buffer) {
@@ -294,33 +296,50 @@ public class RegexBackedCSourceParser implements CSourceParser {
             return null;
         }
 
-        if (buffer.consume('<')) {
-            return readDelimitedExpression(buffer, '>', IncludeType.SYSTEM);
-        } else if (buffer.consume('"')) {
-            return readDelimitedExpression(buffer, '"', IncludeType.QUOTED);
+        Expression expression = readPathExpression(buffer);
+        if (expression != null) {
+            return expression;
         }
 
-        final String identifier = buffer.readIdentifier();
+        expression = readTokens(buffer);
+        if (expression != null) {
+            return expression;
+        }
+
+        String identifier = buffer.readIdentifier();
         if (identifier == null) {
             // No identifier
             return null;
         }
         buffer.consumeWhitespace();
+
         if (buffer.consume('(')) {
             // A macro function call
             return readMacroFunctionCall(buffer, identifier);
         }
 
-        buffer.consumeWhitespace();
-        if (buffer.consume("##")) {
-            return readTokenConcatenation(buffer, identifier);
+        expression = readTokenConcatenation(buffer, identifier);
+        if (expression != null) {
+            return expression;
         }
 
         // Just an identifier, this is a token
         return new SimpleExpression(identifier, IncludeType.IDENTIFIER);
     }
 
+    private static Expression readPathExpression(Buffer buffer) {
+        if (buffer.consume('<')) {
+            return readDelimitedExpression(buffer, '>', IncludeType.SYSTEM);
+        } else if (buffer.consume('"')) {
+            return readDelimitedExpression(buffer, '"', IncludeType.QUOTED);
+        }
+        return null;
+    }
+
     private static Expression readTokenConcatenation(Buffer buffer, String leftToken) {
+        if (!buffer.consume("##")) {
+            return null;
+        }
         buffer.consumeWhitespace();
         final String rightToken = buffer.readIdentifier();
         if (rightToken == null) {
@@ -355,7 +374,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                 // No args
                 return;
             }
-            expression = new SimpleExpression(null, IncludeType.TOKENS);
+            expression = SimpleExpression.EMPTY_TOKENS;
         }
         expressions.add(expression);
         while (true) {
@@ -365,7 +384,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
             }
             expression = readArgument(buffer);
             if (expression == null) {
-                expression = new SimpleExpression(null, IncludeType.TOKENS);
+                expression = SimpleExpression.EMPTY_TOKENS;
             }
             expressions.add(expression);
         }
@@ -373,27 +392,6 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
     private static Expression readArgument(Buffer buffer) {
         buffer.consumeWhitespace();
-        // Handle only either '(' (<identifier> | ',')* ')', an expression or a single punctuation character. Should handle arbitrary sequence of tokens
-        if (buffer.consume('(')) {
-            buffer.consumeWhitespace();
-            List<Expression> tokens = new ArrayList<Expression>();
-            tokens.add(new SimpleExpression("(", IncludeType.TOKEN));
-            buffer.consumeWhitespace();
-            while (!buffer.consume(')')) {
-                String identifier = buffer.readIdentifier();
-                if (identifier != null) {
-                    tokens.add(new SimpleExpression(identifier, IncludeType.IDENTIFIER));
-                } else if (buffer.consume(',')) {
-                    tokens.add(new SimpleExpression(",", IncludeType.TOKEN));
-                } else {
-                    // Not supported yet
-                    return null;
-                }
-                buffer.consumeWhitespace();
-            }
-            tokens.add(new SimpleExpression(")", IncludeType.TOKEN));
-            return new ComplexExpression(IncludeType.TOKENS, null, tokens);
-        }
 
         Expression expression = readExpression(buffer);
         if (expression != null) {
@@ -403,10 +401,53 @@ public class RegexBackedCSourceParser implements CSourceParser {
         // Accept any single non-whitespace character
         String punctuation = buffer.readAnyExcept(",)");
         if (punctuation != null) {
-            return new SimpleExpression(punctuation, IncludeType.OTHER);
+            return new SimpleExpression(punctuation, IncludeType.TOKEN);
         }
 
         return null;
+    }
+
+    /**
+     * Read a sequence of tokens that is not an expression
+     */
+    private static Expression readTokens(Buffer buffer) {
+        // Handle only either '(' (<identifier> | <path> | ',' | <tokens> | <any-char>)* ')'. Should handle arbitrary sequence of tokens
+        if (!buffer.consume('(')) {
+            return null;
+        }
+        buffer.consumeWhitespace();
+        List<Expression> tokens = new ArrayList<Expression>();
+        tokens.add(SimpleExpression.LEFT_PAREN);
+        buffer.consumeWhitespace();
+        while (!buffer.consume(')')) {
+            Expression expression = readPathExpression(buffer);
+            if (expression != null) {
+                tokens.add(expression);
+            } else {
+                String identifier = buffer.readIdentifier();
+                if (identifier != null) {
+                    tokens.add(new SimpleExpression(identifier, IncludeType.IDENTIFIER));
+                } else if (buffer.consume(',')) {
+                    tokens.add(SimpleExpression.COMMA);
+                } else {
+                    expression = readTokens(buffer);
+                    if (expression != null) {
+                        tokens.add(expression);
+                    } else {
+                        String other = buffer.readAnyExcept(')');
+                        if (other != null) {
+                            tokens.add(new SimpleExpression(other, IncludeType.TOKEN));
+                        } else {
+                            // Not supported yet
+                            return null;
+                        }
+                    }
+                }
+            }
+            buffer.consumeWhitespace();
+        }
+        tokens.add(SimpleExpression.RIGHT_PAREN);
+        return new ComplexExpression(IncludeType.TOKENS, null, tokens);
     }
 
     /**
@@ -532,6 +573,19 @@ public class RegexBackedCSourceParser implements CSourceParser {
             }
             pos++;
             return String.valueOf(ch);
+        }
+
+        /**
+         * Reads any character except the given. Does not consume anything if there is no more input or the given chars is at the current location.
+         *
+         * @return the character or null if none present.
+         */
+        @Nullable
+        String readAnyExcept(char ch) {
+            if (pos < value.length() && value.charAt(pos) != ch) {
+                return value.substring(pos, ++pos);
+            }
+            return null;
         }
 
         /**

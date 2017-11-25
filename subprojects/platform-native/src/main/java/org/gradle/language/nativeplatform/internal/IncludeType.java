@@ -38,11 +38,11 @@ public enum IncludeType {
      */
     IDENTIFIER,
     /**
-     * A sequence of expressions. These appear as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC(a b c)}.
+     * A sequence of expressions. These appear in the body of a directive or as the arguments to a {@link #MACRO_FUNCTION} eg {@code #include ABC(a b c)}.
      */
     TOKENS,
     /**
-     * A token concatenation expression. These appear in the body of macro directives eg {@code #define ABC(X, Y) X ## Y}.
+     * A token concatenation expression. These appear in the body of macro directives or as the arguments to a {@kink #MACRO_FUNCTION} eg {@code #define ABC(X, Y) X ## Y}.
      */
     TOKEN_CONCATENATION,
     /**

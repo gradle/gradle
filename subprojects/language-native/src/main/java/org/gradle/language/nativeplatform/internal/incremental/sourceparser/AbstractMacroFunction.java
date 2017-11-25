@@ -33,7 +33,7 @@ public abstract class AbstractMacroFunction implements MacroFunction {
     }
 
     protected String getBody() {
-        return "???";
+        return "=> ???";
     }
 
     @Override

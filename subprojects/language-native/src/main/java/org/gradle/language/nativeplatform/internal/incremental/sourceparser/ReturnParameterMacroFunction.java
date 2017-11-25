@@ -37,7 +37,7 @@ public class ReturnParameterMacroFunction extends AbstractMacroFunction {
 
     @Override
     protected String getBody() {
-        return "return parameter " + parameterToReturn;
+        return "=> return parameter " + parameterToReturn;
     }
 
     @Override

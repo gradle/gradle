@@ -510,7 +510,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro function where arg is sequence of tokens"() {
+    def "resolves macro function with multiple args that returns concatenation of arg and token to produce a macro function call"() {
         given:
         sourceFile << """
             #define HEADER_NAME(X) "hello.h"
@@ -523,7 +523,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro function where arg references macro parameter"() {
+    def "resolves macro function with multiple args that returns concatenation of arg and token to produce a macro function call where arg references macro parameter"() {
         given:
         sourceFile << """
             #define HEADER_NAME_2 "hello.h"
@@ -546,6 +546,35 @@ class SourceParseAndResolutionTest extends SerializerSpec {
             #define PREFIX HEADER_
             #define SUFFIX NAME
             #include HEADER(PREFIX, SUFFIX) // replaced with HEADER_(HEADER_, NAME) then HEADER_NAME then "hello.h"
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "can produce a macro function call by concatenating name and args passed as param"() {
+        given:
+        sourceFile << """
+            #define FUNC(X, Y) X
+            #define HEADER_(X, Y) X ## Y
+            #define HEADER(X, Y) HEADER_(X, Y)
+            #define PREFIX FUNC
+            #define SUFFIX ("hello.h", ignore)
+            #include HEADER(PREFIX, SUFFIX) // replaced with HEADER_("hello.h", ignore) then FUNC("hello.h", ignore)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "can produce a macro function call by concatenating name and wrapping args in parens"() {
+        given:
+        sourceFile << """
+            #define FUNC(X, Y) X
+            #define HEADER_(X, Y) X ## Y
+            #define HEADER(X, Y, Z) HEADER_(X, (Y, Z))
+            #define PREFIX FUNC
+            #include HEADER(PREFIX, "hello.h", ignore) // replaced with HEADER_(FUNC, "hello.h", ignore) then FUNC("hello.h", ignore)
         """
 
         expect:
