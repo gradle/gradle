@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -180,10 +179,7 @@ public class GradlePomModuleDescriptorBuilder {
             excluded = getDependencyMgtExclusions(dep);
         }
         for (ModuleIdentifier excludedModule : excluded) {
-            DefaultExclude rule = new DefaultExclude(
-                moduleIdentifierFactory.module(excludedModule.getGroup(), excludedModule.getName()),
-                WILDCARD,
-                PatternMatchers.EXACT);
+            DefaultExclude rule = new DefaultExclude(moduleIdentifierFactory.module(excludedModule.getGroup(), excludedModule.getName()));
             excludes.add(rule);
         }
 
