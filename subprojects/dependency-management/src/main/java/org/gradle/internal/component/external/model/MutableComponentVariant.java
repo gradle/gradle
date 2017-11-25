@@ -17,12 +17,12 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.List;
 
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<Exclude> excludes);
+    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes);
 }

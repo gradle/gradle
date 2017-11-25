@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -174,8 +175,8 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     // TODO:DAZ Could do this work when constructing the ConfigurationMetadata
     @Override
-    public List<Exclude> getConfigurationExcludes(Collection<String> configurations) {
-        List<Exclude> rules = Lists.newArrayList();
+    public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
+        List<ExcludeMetadata> rules = Lists.newArrayList();
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();
             if (include(ruleConfigurations, configurations)) {

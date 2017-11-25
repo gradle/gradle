@@ -48,6 +48,7 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrap
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -1073,7 +1074,7 @@ class DependencyGraphBuilderTest extends Specification {
         boolean force = args.force
         boolean optional = args.optional ?: false
         ComponentSelector componentSelector = newSelector(dependencyId.group, dependencyId.name, new DefaultMutableVersionConstraint(dependencyId.version))
-        def excludeRules = []
+        List<ExcludeMetadata> excludeRules = []
         if (args.exclude) {
             ComponentResolveMetadata excluded = args.exclude
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.id.group, excluded.id.name))

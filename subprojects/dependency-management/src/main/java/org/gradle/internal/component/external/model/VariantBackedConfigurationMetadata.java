@@ -29,7 +29,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -55,7 +55,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
-            List<Exclude> excludes = dependency.getExcludes();
+            List<ExcludeMetadata> excludes = dependency.getExcludes();
             dependencies.add(new GradleDependencyMetadata(selector, excludes));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);

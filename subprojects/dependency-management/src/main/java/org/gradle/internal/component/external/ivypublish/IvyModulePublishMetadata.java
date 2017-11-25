@@ -17,11 +17,13 @@
 package org.gradle.internal.component.external.ivypublish;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface IvyModulePublishMetadata {
@@ -39,5 +41,5 @@ public interface IvyModulePublishMetadata {
 
     Collection<LocalOriginDependencyMetadata> getDependencies();
 
-    Collection<Exclude> getExcludes();
+    List<Pair<ExcludeMetadata, String>> getExcludes();
 }

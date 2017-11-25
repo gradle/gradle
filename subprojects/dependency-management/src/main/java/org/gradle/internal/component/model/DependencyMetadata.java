@@ -43,7 +43,7 @@ public interface DependencyMetadata {
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
      */
-    List<Exclude> getExcludes();
+    List<ExcludeMetadata> getExcludes();
 
     /**
      * Returns the artifacts referenced by this dependency, if any.

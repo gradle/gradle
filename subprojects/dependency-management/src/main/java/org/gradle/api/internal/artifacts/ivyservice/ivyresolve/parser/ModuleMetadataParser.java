@@ -36,7 +36,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.IOException;
@@ -177,7 +177,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<Exclude>of()));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -188,7 +188,7 @@ public class ModuleMetadataParser {
             String group = null;
             String module = null;
             VersionConstraint version = null;
-            ImmutableList<Exclude> excludes = ImmutableList.of();
+            ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -230,8 +230,8 @@ public class ModuleMetadataParser {
         return DefaultImmutableVersionConstraint.of(preferred, rejects);
     }
 
-    private ImmutableList<Exclude> consumeExcludes(JsonReader reader) throws IOException {
-        ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
+    private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {
+        ImmutableList.Builder<ExcludeMetadata> builder = new ImmutableList.Builder<ExcludeMetadata>();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             reader.beginObject();
@@ -248,7 +248,7 @@ public class ModuleMetadataParser {
                 }
             }
             reader.endObject();
-            Exclude exclude = excludeRuleConverter.createExcludeRule(group, module);
+            ExcludeMetadata exclude = excludeRuleConverter.createExcludeRule(group, module);
             builder.add(exclude);
         }
         reader.endArray();
@@ -320,9 +320,9 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
-        final ImmutableList<Exclude> excludes;
+        final ImmutableList<ExcludeMetadata> excludes;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<Exclude> excludes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;

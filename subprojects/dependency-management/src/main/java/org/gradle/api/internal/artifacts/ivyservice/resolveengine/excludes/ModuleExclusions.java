@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class ModuleExclusions {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
-    private final Map<ImmutableList<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
+    private final Map<ImmutableList<ExcludeMetadata>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
     private final Map<ImmutableSet<AbstractModuleExclusion>, IntersectionExclusion> intersectionCache = Maps.newConcurrentMap();
     private final Map<AbstractModuleExclusion[], Map<AbstractModuleExclusion[], MergeOperation>> mergeOperationCache = Maps.newIdentityHashMap();
     private final Map<ModuleIdentifier, ModuleIdExcludeSpec> moduleIdSpecs = Maps.newConcurrentMap();
@@ -81,7 +81,7 @@ public class ModuleExclusions {
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
-    public ModuleExclusion excludeAny(Exclude... excludes) {
+    public ModuleExclusion excludeAny(ExcludeMetadata... excludes) {
         if (excludes.length == 0) {
             return EXCLUDE_NONE;
         }
@@ -91,7 +91,7 @@ public class ModuleExclusions {
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
-    public ModuleExclusion excludeAny(ImmutableList<Exclude> excludes) {
+    public ModuleExclusion excludeAny(ImmutableList<ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
@@ -100,7 +100,7 @@ public class ModuleExclusions {
             return exclusion;
         }
         ImmutableSet.Builder<AbstractModuleExclusion> exclusions = ImmutableSet.builder();
-        for (Exclude exclude : excludes) {
+        for (ExcludeMetadata exclude : excludes) {
             exclusions.add(forExclude(exclude));
         }
         exclusion = asIntersection(exclusions.build());
@@ -108,7 +108,7 @@ public class ModuleExclusions {
         return exclusion;
     }
 
-    private AbstractModuleExclusion forExclude(Exclude rule) {
+    private AbstractModuleExclusion forExclude(ExcludeMetadata rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
         if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);

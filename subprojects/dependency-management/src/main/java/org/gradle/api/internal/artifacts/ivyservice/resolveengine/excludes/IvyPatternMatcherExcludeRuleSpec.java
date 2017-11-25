@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
@@ -30,7 +30,7 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExclusion {
     private final PatternMatcher matcher;
     private final boolean isArtifactExclude;
 
-    IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
+    IvyPatternMatcherExcludeRuleSpec(ExcludeMetadata rule) {
         this.moduleId = rule.getModuleId();
         this.ivyArtifactName = rule.getArtifact();
         this.matcher = PatternMatchers.getInstance().getMatcher(rule.getMatcher());

@@ -53,6 +53,7 @@ import org.gradle.internal.component.external.model.MutableComponentVariantResol
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.Decoder;
@@ -135,9 +136,9 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeVariantDependencyExcludes(List<Exclude> excludes) throws IOException {
+        private void writeVariantDependencyExcludes(List<ExcludeMetadata> excludes) throws IOException {
             writeCount(excludes.size());
-            for (Exclude exclude : excludes) {
+            for (ExcludeMetadata exclude : excludes) {
                 writeString(exclude.getModuleId().getGroup());
                 writeString(exclude.getModuleId().getName());
             }
@@ -403,13 +404,13 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                ImmutableList<Exclude> excludes = readVariantDependencyExcludes();
+                ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
                 variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes);
             }
         }
 
-        private ImmutableList<Exclude> readVariantDependencyExcludes() throws IOException {
-            ImmutableList.Builder<Exclude> builder = new ImmutableList.Builder<Exclude>();
+        private ImmutableList<ExcludeMetadata> readVariantDependencyExcludes() throws IOException {
+            ImmutableList.Builder<ExcludeMetadata> builder = new ImmutableList.Builder<ExcludeMetadata>();
             int len = readCount();
             for (int i = 0; i < len; i++) {
                 String group = readString();

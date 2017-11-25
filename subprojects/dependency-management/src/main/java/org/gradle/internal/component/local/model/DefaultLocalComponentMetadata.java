@@ -39,7 +39,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -58,7 +58,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
     private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
-    private final List<Exclude> allExcludes = Lists.newArrayList();
+    private final Multimap<String, ExcludeMetadata> allExcludes = ArrayListMultimap.create();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
@@ -113,7 +113,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         // Exclude rules
-        copy.allExcludes.addAll(allExcludes);
+        copy.allExcludes.putAll(allExcludes);
 
         return copy;
     }
@@ -172,8 +172,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addExclude(Exclude exclude) {
-        allExcludes.add(exclude);
+    public void addExclude(String config, ExcludeMetadata exclude) {
+        allExcludes.put(config, exclude);
     }
 
     @Override
@@ -218,10 +218,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     public List<LocalOriginDependencyMetadata> getDependencies() {
         return allDependencies;
-    }
-
-    public List<Exclude> getExcludeRules() {
-        return allExcludes;
     }
 
     @Override
@@ -399,13 +395,10 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 if (allExcludes.isEmpty()) {
                     configurationExclude = ModuleExclusions.excludeNone();
                 } else {
-                    ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
-                    for (Exclude exclude : allExcludes) {
-                        for (String config : exclude.getConfigurations()) {
-                            if (hierarchy.contains(config)) {
-                                filtered.add(exclude);
-                                break;
-                            }
+                    ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
+                    for (String conf : hierarchy) {
+                        for (ExcludeMetadata exclude : allExcludes.get(conf)) {
+                            filtered.add(exclude);
                         }
                     }
                     configurationExclude = moduleExclusions.excludeAny(filtered.build());

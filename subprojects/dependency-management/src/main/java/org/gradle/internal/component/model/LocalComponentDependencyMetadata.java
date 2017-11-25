@@ -35,7 +35,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final ComponentSelector selector;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
-    private final List<Exclude> excludes;
+    private final List<ExcludeMetadata> excludes;
     private final Set<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
@@ -48,7 +48,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
+                                            Set<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.componentId = componentId;
         this.selector = selector;
@@ -114,7 +114,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public List<Exclude> getExcludes() {
+    public List<ExcludeMetadata> getExcludes() {
         return excludes;
     }
 

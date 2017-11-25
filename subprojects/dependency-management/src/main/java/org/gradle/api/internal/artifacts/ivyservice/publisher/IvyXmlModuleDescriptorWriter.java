@@ -21,10 +21,11 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.xml.SimpleXmlWriter;
@@ -39,7 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
@@ -150,14 +150,14 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         if (dependencies.size() > 0) {
             writer.startElement("dependencies");
             for (LocalOriginDependencyMetadata dd : dependencies) {
-                printDependency(metadata, dd, writer);
+                printDependency(dd, writer);
             }
             printAllExcludes(metadata, writer);
             writer.endElement();
         }
     }
 
-    protected void printDependency(IvyModulePublishMetadata metadata, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
+    protected void printDependency(LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
         ModuleVersionSelector requested = componentSelectorConverter.getSelector(dep.getSelector());
@@ -179,7 +179,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             printDependencyArtifact(writer, dependencyArtifact, dep.getModuleConfiguration());
         }
 
-        printDependencyExcludeRules(metadata, writer, dep.getExcludes());
+        printDependencyExcludeRules(writer, dep.getExcludes());
 
         writer.endElement();
     }
@@ -189,36 +189,29 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printAllExcludes(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
-        Collection<Exclude> excludes = metadata.getExcludes();
-        for (Exclude exclude : excludes) {
+        for (Pair<ExcludeMetadata, String> excludePair : metadata.getExcludes()) {
+            ExcludeMetadata exclude = excludePair.getLeft();
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());
             writer.attribute("module", exclude.getModuleId().getName());
             writer.attribute("artifact", exclude.getArtifact().getName());
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
-            Set<String> ruleConfs = exclude.getConfigurations();
-            if (!metadata.getConfigurations().keySet().equals(ruleConfs)) {
-                writer.attribute("conf", Joiner.on(',').join(ruleConfs));
-            }
+            writer.attribute("conf", excludePair.getRight());
             writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }
     }
 
-    private static void printDependencyExcludeRules(IvyModulePublishMetadata metadata, SimpleXmlWriter writer,
-                                                    Collection<Exclude> excludes) throws IOException {
-        for (Exclude exclude : excludes) {
+    private static void printDependencyExcludeRules(SimpleXmlWriter writer,
+                                                    Collection<ExcludeMetadata> excludes) throws IOException {
+        for (ExcludeMetadata exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());
             writer.attribute("module", exclude.getModuleId().getName());
             writer.attribute("name", exclude.getArtifact().getName());
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
-            Set<String> ruleConfs = exclude.getConfigurations();
-            if (!metadata.getConfigurations().keySet().equals(ruleConfs)) {
-                writer.attribute("conf", Joiner.on(',').join(ruleConfs));
-            }
             writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }

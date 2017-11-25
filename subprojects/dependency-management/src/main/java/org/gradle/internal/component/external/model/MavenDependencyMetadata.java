@@ -27,6 +27,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Set;
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
     private final Set<String> moduleConfigurations;
-    private final List<Exclude> excludes;
+    private final ImmutableList<Exclude> excludes;
 
     public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<Artifact> artifacts, List<Exclude> excludes) {
         super(selector, artifacts, optional);
@@ -113,7 +114,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public List<Exclude> getConfigurationExcludes(Collection<String> configurations) {
-        return excludes;
+    public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
+        return ImmutableList.<ExcludeMetadata>copyOf(excludes);
     }
 }

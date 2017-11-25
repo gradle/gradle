@@ -75,7 +75,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
     protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final Exclude exclude) {
         context.checking(new Expectations() {{
-            allowing(excludeRuleConverterStub).convertExcludeRule(TEST_CONF, excludeRule);
+            allowing(excludeRuleConverterStub).convertExcludeRule(excludeRule);
             will(returnValue(exclude));
         }});
     }

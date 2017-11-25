@@ -25,19 +25,19 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -53,7 +53,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
     private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
     private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
-    private final List<Exclude> excludes = new ArrayList<Exclude>();
+    private final List<Pair<ExcludeMetadata, String>> excludes = Lists.newArrayList();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
@@ -85,7 +85,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public Collection<Exclude> getExcludes() {
+    public List<Pair<ExcludeMetadata, String>> getExcludes() {
         return excludes;
     }
 
@@ -98,8 +98,8 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addExclude(Exclude exclude) {
-        excludes.add(exclude);
+    public void addExclude(String configuration, ExcludeMetadata exclude) {
+        excludes.add(Pair.of(exclude, configuration));
     }
 
     @Override

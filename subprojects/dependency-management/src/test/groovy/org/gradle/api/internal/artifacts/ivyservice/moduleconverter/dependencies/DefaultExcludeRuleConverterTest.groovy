@@ -43,7 +43,7 @@ class DefaultExcludeRuleConverterTest extends Specification {
         def module = 'someModule'
 
         when:
-        Exclude exclude = new DefaultExcludeRuleConverter(moduleIdentifierFactory).convertExcludeRule(configurationName, new DefaultExcludeRule(group, module))
+        Exclude exclude = new DefaultExcludeRuleConverter(moduleIdentifierFactory).convertExcludeRule(new DefaultExcludeRule(group, module))
 
         then:
         exclude.getModuleId().getGroup() == group
@@ -51,7 +51,6 @@ class DefaultExcludeRuleConverterTest extends Specification {
         exclude.getArtifact().getExtension() == PatternMatchers.ANY_EXPRESSION
         exclude.getArtifact().getType() == PatternMatchers.ANY_EXPRESSION
         exclude.getMatcher() == PatternMatchers.EXACT
-        exclude.getConfigurations() == configurations
 
         where:
         configurationName | configurations

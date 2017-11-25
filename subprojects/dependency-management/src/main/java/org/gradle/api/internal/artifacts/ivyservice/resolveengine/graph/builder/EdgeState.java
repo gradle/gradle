@@ -32,7 +32,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
@@ -156,7 +156,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ModuleExclusion getExclusions() {
-        List<Exclude> excludes = dependencyMetadata.getExcludes();
+        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
             return moduleExclusion;
         }

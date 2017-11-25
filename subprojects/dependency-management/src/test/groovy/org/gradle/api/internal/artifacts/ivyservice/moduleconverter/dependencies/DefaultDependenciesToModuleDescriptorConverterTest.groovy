@@ -104,10 +104,10 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         1 * dependencySet.iterator() >> [].iterator()
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
-        1 * configuration.getName() >> "config"
+        _ * configuration.getName() >> "config"
         _ * configuration.attributes >> Stub(AttributeContainerInternal)
-        1 * excludeRuleConverter.convertExcludeRule("config", excludeRule) >> ivyExcludeRule
-        1 * metaData.addExclude(ivyExcludeRule)
+        1 * excludeRuleConverter.convertExcludeRule(excludeRule) >> ivyExcludeRule
+        1 * metaData.addExclude("config", ivyExcludeRule)
         0 * _
     }
 }

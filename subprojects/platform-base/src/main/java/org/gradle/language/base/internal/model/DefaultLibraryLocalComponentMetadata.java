@@ -28,7 +28,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -47,7 +47,7 @@ import static org.gradle.platform.base.internal.DefaultModuleDependencySpec.effe
 
 public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private static final String VERSION = "<local component>";
-    private static final List<Exclude> EXCLUDE_RULES = Collections.emptyList();
+    private static final List<ExcludeMetadata> EXCLUDE_RULES = Collections.emptyList();
     private static final String CONFIGURATION_COMPILE = "compile";
 
     public static DefaultLibraryLocalComponentMetadata newResolvedLibraryMetadata(

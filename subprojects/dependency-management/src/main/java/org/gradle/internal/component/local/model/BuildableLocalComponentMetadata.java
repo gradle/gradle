@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Set;
@@ -56,7 +57,7 @@ public interface BuildableLocalComponentMetadata {
     /**
      * Adds an exclude rule to this component. Exclude rules are attached to the configurations specified by {@link Exclude#getConfigurations()} and each of their children.
      */
-    void addExclude(Exclude exclude);
+    void addExclude(String configuration, ExcludeMetadata exclude);
 
     /**
      * Adds some files to this component.  The files are attached to the given configuration and each of its children.

@@ -32,7 +32,7 @@ import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
@@ -58,7 +58,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     }
 
     @Override
-    public List<Exclude> getExcludes() {
+    public List<ExcludeMetadata> getExcludes() {
         throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
@@ -155,7 +155,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
-    public abstract List<Exclude> getConfigurationExcludes(Collection<String> configurations);
+    public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.
