@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.language.nativeplatform.internal.Expression;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +61,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
     }
 
     protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
-        Set<Include> includes = new LinkedHashSet<Include>();
+        Set<Include> includes = Sets.newLinkedHashSet();
         List<Macro> macros = Lists.newArrayList();
         List<MacroFunction> macroFunctions = Lists.newArrayList();
         BufferedReader reader = new BufferedReader(sourceReader);
@@ -276,7 +276,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
      */
     private static Expression parseDirectiveBodyExpression(Buffer buffer) {
         int startPos = buffer.pos;
-        Expression expression = readExpression(buffer);
+        Expression expression = parseExpression(buffer);
         buffer.consumeWhitespace();
         if (expression == null || buffer.hasAny()) {
             // Unrecognized expression or extra stuff after the expression, possibly another expression
@@ -286,10 +286,12 @@ public class RegexBackedCSourceParser implements CSourceParser {
     }
 
     /**
-     * Parses an expression that forms the body of a directive or a macro function parameter. Returns null when an expression cannot be parsed and consumes input up to the parse failure point.
+     * Parses an expression that forms the body of a directive or a macro function parameter.
+     *
+     * Returns null when an expression cannot be parsed and consumes input up to the parse failure point.
      */
     @Nullable
-    private static Expression readExpression(Buffer buffer) {
+    private static Expression parseExpression(Buffer buffer) {
         buffer.consumeWhitespace();
         if (!buffer.hasAny()) {
             // Empty or only whitespace
@@ -298,24 +300,41 @@ public class RegexBackedCSourceParser implements CSourceParser {
 
         Expression expression = readPathExpression(buffer);
         if (expression != null) {
+            // A path, either "" or <> delimited
             return expression;
         }
 
-        expression = readTokens(buffer);
-        if (expression != null) {
-            return expression;
+        // A sequence of tokens that look like a function call argument list. Should support an arbitrary token sequence
+        List<Expression> arguments = readArgumentList(buffer, true);
+        if (arguments != null) {
+            if (arguments.isEmpty()) {
+                return SimpleExpression.EMPTY_TOKENS;
+            } else {
+                return new ComplexExpression(IncludeType.TOKENS, null, arguments);
+            }
         }
 
         String identifier = buffer.readIdentifier();
         if (identifier == null) {
-            // No identifier
+            // No identifier, allow anything except ',' or ')'
+            String token = buffer.readAnyExcept(",)");
+            if (token != null) {
+                return new SimpleExpression(token, IncludeType.TOKEN);
+            }
             return null;
         }
+
+        // Either a macro function, a macro or token concatenation
         buffer.consumeWhitespace();
 
-        if (buffer.consume('(')) {
+        arguments = readArgumentList(buffer, false);
+        if (arguments != null) {
             // A macro function call
-            return readMacroFunctionCall(buffer, identifier);
+            if (arguments.isEmpty()) {
+                return new SimpleExpression(identifier, IncludeType.MACRO_FUNCTION);
+            } else {
+                return new ComplexExpression(IncludeType.MACRO_FUNCTION, identifier, arguments);
+            }
         }
 
         expression = readTokenConcatenation(buffer, identifier);
@@ -336,39 +355,68 @@ public class RegexBackedCSourceParser implements CSourceParser {
         return null;
     }
 
+    /**
+     * Reads a token concatenation expression. Does not consume anything if not present.
+     */
     private static Expression readTokenConcatenation(Buffer buffer, String leftToken) {
+        int pos = buffer.pos;
         if (!buffer.consume("##")) {
             return null;
         }
         buffer.consumeWhitespace();
-        final String rightToken = buffer.readIdentifier();
-        if (rightToken == null) {
+        String right = buffer.readIdentifier();
+        if (right == null) {
             // Need another identifier
+            buffer.pos = pos;
             return null;
         }
-        return new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(new SimpleExpression(leftToken, IncludeType.IDENTIFIER), new SimpleExpression(rightToken, IncludeType.IDENTIFIER)));
+        ComplexExpression concatExpression = new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(new SimpleExpression(leftToken, IncludeType.IDENTIFIER), new SimpleExpression(right, IncludeType.IDENTIFIER)));
+
+        buffer.consumeWhitespace();
+        while (buffer.consume("##")) {
+            buffer.consumeWhitespace();
+            right = buffer.readIdentifier();
+            if (right == null) {
+                // Need another identifier
+                buffer.pos = pos;
+                return null;
+            }
+            concatExpression = new ComplexExpression(IncludeType.TOKEN_CONCATENATION, null, Arrays.<Expression>asList(concatExpression, new SimpleExpression(right, IncludeType.IDENTIFIER)));
+            buffer.consumeWhitespace();
+        }
+        return concatExpression;
     }
 
-    private static Expression readMacroFunctionCall(Buffer buffer, String identifier) {
-        buffer.consumeWhitespace();
-        List<Expression> argumentExpressions = new ArrayList<Expression>();
-        consumeArgumentList(buffer, argumentExpressions);
-        if (!buffer.consume(')')) {
-            // Badly formed arguments
+    /**
+     * Reads an argument list. Does not consume anything if an argument list is not present
+     */
+    private static List<Expression> readArgumentList(Buffer buffer, boolean keepAllTokens) {
+        int pos = buffer.pos;
+        if (!buffer.consume('(')) {
             return null;
         }
-        if (argumentExpressions.isEmpty()) {
-            return new SimpleExpression(identifier, IncludeType.MACRO_FUNCTION);
-        } else {
-            return new ComplexExpression(IncludeType.MACRO_FUNCTION, identifier, argumentExpressions);
+        List<Expression> argumentExpressions = new ArrayList<Expression>();
+        if (keepAllTokens) {
+            argumentExpressions.add(SimpleExpression.LEFT_PAREN);
         }
+        buffer.consumeWhitespace();
+        consumeArgumentList(buffer, argumentExpressions, keepAllTokens);
+        if (!buffer.consume(')')) {
+            // Badly formed arguments
+            buffer.pos = pos;
+            return null;
+        }
+        if (keepAllTokens) {
+            argumentExpressions.add(SimpleExpression.RIGHT_PAREN);
+        }
+        return argumentExpressions;
     }
 
     /**
      * Parses a macro function argument list. Stops when unable to recognize any further arguments.
      */
-    private static void consumeArgumentList(Buffer buffer, List<Expression> expressions) {
-        Expression expression = readArgument(buffer);
+    private static void consumeArgumentList(Buffer buffer, List<Expression> expressions, boolean keepCommas) {
+        Expression expression = parseExpression(buffer);
         if (expression == null) {
             if (!buffer.has(',')) {
                 // No args
@@ -382,72 +430,15 @@ public class RegexBackedCSourceParser implements CSourceParser {
             if (!buffer.consume(',')) {
                 return;
             }
-            expression = readArgument(buffer);
+            if (keepCommas) {
+                expressions.add(SimpleExpression.COMMA);
+            }
+            expression = parseExpression(buffer);
             if (expression == null) {
                 expression = SimpleExpression.EMPTY_TOKENS;
             }
             expressions.add(expression);
         }
-    }
-
-    private static Expression readArgument(Buffer buffer) {
-        buffer.consumeWhitespace();
-
-        Expression expression = readExpression(buffer);
-        if (expression != null) {
-            return expression;
-        }
-
-        // Accept any single non-whitespace character
-        String punctuation = buffer.readAnyExcept(",)");
-        if (punctuation != null) {
-            return new SimpleExpression(punctuation, IncludeType.TOKEN);
-        }
-
-        return null;
-    }
-
-    /**
-     * Read a sequence of tokens that is not an expression
-     */
-    private static Expression readTokens(Buffer buffer) {
-        // Handle only either '(' (<identifier> | <path> | ',' | <tokens> | <any-char>)* ')'. Should handle arbitrary sequence of tokens
-        if (!buffer.consume('(')) {
-            return null;
-        }
-        buffer.consumeWhitespace();
-        List<Expression> tokens = new ArrayList<Expression>();
-        tokens.add(SimpleExpression.LEFT_PAREN);
-        buffer.consumeWhitespace();
-        while (!buffer.consume(')')) {
-            Expression expression = readPathExpression(buffer);
-            if (expression != null) {
-                tokens.add(expression);
-            } else {
-                String identifier = buffer.readIdentifier();
-                if (identifier != null) {
-                    tokens.add(new SimpleExpression(identifier, IncludeType.IDENTIFIER));
-                } else if (buffer.consume(',')) {
-                    tokens.add(SimpleExpression.COMMA);
-                } else {
-                    expression = readTokens(buffer);
-                    if (expression != null) {
-                        tokens.add(expression);
-                    } else {
-                        String other = buffer.readAnyExcept(')');
-                        if (other != null) {
-                            tokens.add(new SimpleExpression(other, IncludeType.TOKEN));
-                        } else {
-                            // Not supported yet
-                            return null;
-                        }
-                    }
-                }
-            }
-            buffer.consumeWhitespace();
-        }
-        tokens.add(SimpleExpression.RIGHT_PAREN);
-        return new ComplexExpression(IncludeType.TOKENS, null, tokens);
     }
 
     /**

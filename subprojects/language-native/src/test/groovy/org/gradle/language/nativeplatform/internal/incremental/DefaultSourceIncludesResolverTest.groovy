@@ -421,7 +421,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations as List == [srcHeader, header]
     }
 
-    def "expands parameters of macro function that calls macro function that concatenates parameters to produce macro reference"() {
+    def "expands arguments of macro function that calls macro function that concatenates parameters to produce macro reference"() {
         given:
         def srcHeader = sourceDirectory.file("test.h")
         def header = systemIncludeDir.createFile("test.h")
@@ -440,24 +440,25 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations as List == [srcHeader, header]
     }
 
-    def "expands parameters of macro function that calls macro function that concatenates parameters to produce macro function call with one arg"() {
+    def "expands arguments of macro function that calls macro function that concatenates parameters to produce macro function call with one arg"() {
         given:
         def srcHeader = sourceDirectory.file("test.h")
         def header = systemIncludeDir.createFile("test.h")
 
         macros << macro("FILE_NAME", '"test.h"')
+        macros << macro("FUNCTION_NAME", 'FILENAME')
         macroFunctions << macroFunction("FILENAME(X)", "FILE##X")
         macroFunctions << macroFunction("TEST2(X, Y)", "X##Y")
         macroFunctions << macroFunction("TEST(X, Y)", "TEST2(X, (Y))")
 
         expect:
-        def result = resolve(include('TEST(FILENAME, _NAME)'))
+        def result = resolve(include('TEST(FUNCTION_NAME, _NAME)'))
         result.complete
         result.files as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
-    def "expands parameters of macro function that calls macro function that concatenates parameters to produce macro function call with multiple args"() {
+    def "expands arguments of macro function that calls macro function that concatenates parameters to produce macro function call with multiple args"() {
         given:
         def srcHeader = sourceDirectory.file("test.h")
         def header = systemIncludeDir.createFile("test.h")
@@ -469,6 +470,22 @@ class DefaultSourceIncludesResolverTest extends Specification {
 
         expect:
         def result = resolve(include('TEST(FILENAME, _NAME, ~)'))
+        result.complete
+        result.files as List == [header]
+        result.checkedLocations as List == [srcHeader, header]
+    }
+
+    def "can chain token concatenations with parameter substitutions"() {
+        given:
+        def srcHeader = sourceDirectory.file("test.h")
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << macro("FILENAME", '"test.h"')
+        macroFunctions << macroFunction("TEST2(X)", "X")
+        macroFunctions << macroFunction("TEST(X, Y)", "X ## 2 ## Y")
+
+        expect:
+        def result = resolve(include('TEST(TEST, (FILENAME))'))
         result.complete
         result.files as List == [header]
         result.checkedLocations as List == [srcHeader, header]

@@ -108,6 +108,18 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "resolves macro with value that is multiple token concatenations that produces another macro"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME "hello.h"
+            #define HEADER HEAD ## ER ## _ ## NAME // replaced with HEADER_NAME then "hello.h"
+            #include HEADER
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro with multiple values once for each value"() {
         given:
         def header2 = includeDir.createFile("hello_linux.h")
@@ -496,6 +508,18 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "resolves macro function with multiple args that returns concatenation of the args when arg is digit"() {
+        given:
+        sourceFile << """
+            #define HEADER_123 "hello.h"
+            #define HEADER(X, Y) X ## Y
+            #include HEADER(HEADER_, 123)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "resolves macro function with multiple args that returns concatenation of arg and token to produce reference to another macro"() {
         given:
         sourceFile << """
@@ -567,6 +591,21 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "can produce a macro function call by concatenating name and args that contain token concatenation"() {
+        given:
+        sourceFile << """
+            #define HEADER_3 "hello.h"
+            #define FUNC(X, Y) X
+            #define CONCAT_(X, Y) X ## Y
+            #define CONCAT(X, Y) CONCAT_(X, Y)
+            #define ARGS (HEADER_ ## 3, ~)
+            #include CONCAT(FUNC, ARGS)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "can produce a macro function call by concatenating name and wrapping args in parens"() {
         given:
         sourceFile << """
@@ -581,7 +620,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function multiple times for different values of left and right hand sides"() {
+    def "resolves token concatenation multiple times for different values of left and right hand sides"() {
         given:
         def header1 = includeDir.createFile("hello1.h")
         def header2 = includeDir.createFile("hello2.h")

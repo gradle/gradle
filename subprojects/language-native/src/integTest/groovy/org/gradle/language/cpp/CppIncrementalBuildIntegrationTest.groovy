@@ -302,6 +302,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             
             #define PREFIX MACRO_USES
             #define SUFFIX() _FUNCTION
+            #define ARGS (MACRO_FUNCTION())
             
             // Token concatenation ## does not macro expand macro function args, so is usually wrapped by another macro function
             #define CONCAT_FUNCTION2(X, Y) X ## Y
@@ -320,6 +321,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #define MACRO_USES_FUNCTION MACRO_FUNCTION()
             #define MACRO_USES_FUNCTION_WITH_ARGS FUNCTION_RETURNS_MACRO_CALL(MACRO_USES_FUNCTION)
             #define MACRO_USES_CONCAT_FUNCTION CONCAT_FUNCTION(PREFIX, SUFFIX())
+            #ifdef _MSC_VER // only for Visual C++
+                #define MACRO_PRODUCES_FUNCTION_CALL CONCAT_FUNCTION(FUNCTION_RETURNS_ARG, ARGS)
+            #else
+                #define MACRO_PRODUCES_FUNCTION_CALL "hello.h" // ignore
+            #endif                
             #include ${macro}
             #include <iostream>
 
@@ -362,6 +368,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             "MACRO_USES_FUNCTION",
             "MACRO_USES_FUNCTION_WITH_ARGS",
             "MACRO_USES_CONCAT_FUNCTION",
+            "MACRO_PRODUCES_FUNCTION_CALL",
             "MACRO_FUNCTION()",
             "FUNCTION_RETURNS_STRING(ignore)",
             "FUNCTION_RETURNS_MACRO(ignore)",
