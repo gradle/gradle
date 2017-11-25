@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -113,8 +111,8 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-        return ModuleExclusions.excludeNone();
+    public ImmutableList<ExcludeMetadata> getExcludes() {
+        return ImmutableList.of();
     }
 
     @Override

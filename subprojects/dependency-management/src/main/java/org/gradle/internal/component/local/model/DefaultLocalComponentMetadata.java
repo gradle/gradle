@@ -29,8 +29,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -263,7 +261,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private List<LocalOriginDependencyMetadata> configurationDependencies;
         private List<LocalComponentArtifactMetadata> configurationArtifacts;
         private Set<LocalFileDependencyMetadata> configurationFileDependencies;
-        private ModuleExclusion configurationExclude;
+        private ImmutableList<ExcludeMetadata> configurationExclude;
 
         private DefaultLocalConfigurationMetadata(String name,
                                                   String description,
@@ -390,10 +388,10 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+        public ImmutableList<ExcludeMetadata> getExcludes() {
             if (configurationExclude == null) {
                 if (allExcludes.isEmpty()) {
-                    configurationExclude = ModuleExclusions.excludeNone();
+                    configurationExclude = ImmutableList.of();
                 } else {
                     ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
                     for (String conf : hierarchy) {
@@ -401,7 +399,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                             filtered.add(exclude);
                         }
                     }
-                    configurationExclude = moduleExclusions.excludeAny(filtered.build());
+                    configurationExclude = filtered.build();
                 }
             }
             return configurationExclude;

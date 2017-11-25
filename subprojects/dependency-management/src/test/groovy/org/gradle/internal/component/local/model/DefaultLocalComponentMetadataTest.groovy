@@ -73,7 +73,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = metadata.getConfiguration('conf')
         conf.dependencies.empty
         conf.artifacts.empty
-        conf.getExclusions(moduleExclusions) == ModuleExclusions.excludeNone()
+        conf.excludes.empty
         conf.files.empty
     }
 
@@ -299,8 +299,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "builds and caches exclude rules for a configuration"() {
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-
         given:
         metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
         metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
@@ -315,10 +313,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
         expect:
         def config = metadata.getConfiguration("runtime")
-
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
+        def excludes = config.excludes
+        excludes == [rule1, rule2]
+        config.excludes.is(excludes)
     }
 
     def artifactName() {

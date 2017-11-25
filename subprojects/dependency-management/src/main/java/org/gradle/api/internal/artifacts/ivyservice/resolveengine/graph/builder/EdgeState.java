@@ -48,16 +48,17 @@ class EdgeState implements DependencyGraphEdge {
     private final NodeState from;
     private final SelectorState selector;
     private final ResolveState resolveState;
-    private final ModuleExclusion moduleExclusion;
+    private final ModuleExclusion transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
 
     private ComponentState targetModuleRevision;
     private ModuleVersionResolveException targetNodeSelectionFailure;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion moduleExclusion, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
         this.dependencyMetadata = dependencyState.getDependencyMetadata();
-        this.moduleExclusion = moduleExclusion;
+        // The accumulated exclusions that apply to this edge based on the path from the root
+        this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.selector = resolveState.getSelector(dependencyMetadata, dependencyState.getModuleIdentifier());
     }
@@ -158,10 +159,10 @@ class EdgeState implements DependencyGraphEdge {
     public ModuleExclusion getExclusions() {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
-            return moduleExclusion;
+            return transitiveExclusions;
         }
         ModuleExclusion edgeExclusions = resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
-        return resolveState.getModuleExclusions().intersect(edgeExclusions, moduleExclusion);
+        return resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
     }
 
     @Override

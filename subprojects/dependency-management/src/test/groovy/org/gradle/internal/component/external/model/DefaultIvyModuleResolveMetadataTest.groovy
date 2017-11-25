@@ -18,9 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -110,7 +108,6 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         configuration("compile")
         configuration("runtime", ["compile"])
         def rule1 = exclude("one", ["runtime"])
@@ -119,10 +116,9 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
         expect:
         def config = metadata.getConfiguration("runtime")
-
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
+        def excludes = config.excludes
+        excludes == [rule1, rule2]
+        config.excludes.is(excludes)
     }
 
     def exclude(String name, List<String> confs = []) {

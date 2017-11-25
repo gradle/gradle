@@ -253,7 +253,7 @@ class NodeState implements DependencyGraphNode {
 
     private ModuleExclusion getModuleResolutionFilter(List<EdgeState> incomingEdges) {
         ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        ModuleExclusion nodeExclusions = metaData.getExclusions(moduleExclusions);
+        ModuleExclusion nodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());
         if (incomingEdges.isEmpty()) {
             return nodeExclusions;
         }

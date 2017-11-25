@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
@@ -45,15 +44,8 @@ class IvyConfigurationMetadata extends DefaultConfigurationMetadata {
         this.excludes = filtered.build();
     }
 
-    public List<Exclude> getExcludes() {
-        return excludes;
-    }
-
     @Override
-    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-        if (exclusions == null) {
-            exclusions = moduleExclusions.excludeAny(ImmutableList.<ExcludeMetadata>copyOf(excludes));
-        }
-        return exclusions;
+    public ImmutableList<ExcludeMetadata> getExcludes() {
+        return ImmutableList.<ExcludeMetadata>copyOf(excludes);
     }
 }
