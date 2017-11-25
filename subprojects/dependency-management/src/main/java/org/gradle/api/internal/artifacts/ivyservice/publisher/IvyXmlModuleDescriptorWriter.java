@@ -194,9 +194,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());
             writer.attribute("module", exclude.getModuleId().getName());
-            writer.attribute("artifact", exclude.getArtifact().getName());
-            writer.attribute("type", exclude.getArtifact().getType());
-            writer.attribute("ext", exclude.getArtifact().getExtension());
+
+            IvyArtifactName artifact = exclude.getArtifact();
+            if (artifact != null) {
+                writer.attribute("artifact", artifact.getName());
+                writer.attribute("type", artifact.getType());
+                writer.attribute("ext", artifact.getExtension());
+            }
             writer.attribute("conf", excludePair.getRight());
             writer.endElement();
         }
@@ -208,9 +212,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());
             writer.attribute("module", exclude.getModuleId().getName());
-            writer.attribute("name", exclude.getArtifact().getName());
-            writer.attribute("type", exclude.getArtifact().getType());
-            writer.attribute("ext", exclude.getArtifact().getExtension());
+
+            IvyArtifactName artifact = exclude.getArtifact();
+            if (artifact != null) {
+                writer.attribute("name", artifact.getName());
+                writer.attribute("type", artifact.getType());
+                writer.attribute("ext", artifact.getExtension());
+            }
             writer.endElement();
         }
     }
