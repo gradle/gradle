@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -36,7 +37,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final List<ExcludeMetadata> excludes;
-    private final Set<IvyArtifactName> artifactNames;
+    private final ImmutableList<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
@@ -48,14 +49,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
+                                            List<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
         this.dependencyConfiguration = dependencyConfiguration;
-        this.artifactNames = artifactNames;
+        this.artifactNames = ImmutableList.copyOf(artifactNames);
         this.excludes = excludes;
         this.force = force;
         this.changing = changing;
@@ -139,7 +140,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 

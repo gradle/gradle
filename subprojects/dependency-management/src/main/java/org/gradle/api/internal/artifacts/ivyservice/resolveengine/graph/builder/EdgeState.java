@@ -202,7 +202,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
+    public List<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
         return CollectionUtils.collect(dependencyMetadata.getArtifacts(), new Transformer<ComponentArtifactMetadata, IvyArtifactName>() {
             @Override
             public ComponentArtifactMetadata transform(IvyArtifactName ivyArtifactName) {

@@ -51,7 +51,7 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return defaultDependencyMetadata.getConfigurationArtifacts(configuration);
     }
 

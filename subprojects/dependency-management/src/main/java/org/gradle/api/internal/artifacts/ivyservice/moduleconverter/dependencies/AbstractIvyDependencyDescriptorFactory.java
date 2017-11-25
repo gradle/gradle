@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -47,12 +48,12 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         });
     }
 
-    protected Set<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
-        return CollectionUtils.collect(dependencyArtifacts, new Transformer<IvyArtifactName, DependencyArtifact>() {
-            @Override
-            public IvyArtifactName transform(DependencyArtifact dependencyArtifact) {
-                return new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
-            }
-        });
+    protected ImmutableList<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
+        ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
+        for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
+            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
+            names.add(name);
+        }
+        return names.build();
     }
 }

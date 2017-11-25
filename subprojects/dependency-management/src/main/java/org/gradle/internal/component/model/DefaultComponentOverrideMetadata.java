@@ -16,17 +16,17 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
     private final boolean changing;
-    private final Set<IvyArtifactName> artifacts;
+    private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
     public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata) {
@@ -34,12 +34,12 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     }
 
     public DefaultComponentOverrideMetadata() {
-        this(false, Collections.<IvyArtifactName>emptySet(), null);
+        this(false, Collections.<IvyArtifactName>emptyList(), null);
     }
 
-    private DefaultComponentOverrideMetadata(boolean changing, Set<IvyArtifactName> artifacts, ClientModule clientModule) {
+    private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, ClientModule clientModule) {
         this.changing = changing;
-        this.artifacts = Sets.newHashSet(artifacts);
+        this.artifacts = ImmutableList.copyOf(artifacts);
         this.clientModule = clientModule;
     }
 
@@ -59,7 +59,7 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return artifacts;
     }
 

@@ -57,7 +57,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
@@ -116,10 +116,10 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 
+    public abstract List<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration);
+
     /**
      * Returns the set of source configurations that this dependency should be attached to.
      */
     public abstract Set<String> getModuleConfigurations();
-
-    public abstract Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration);
 }

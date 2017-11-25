@@ -50,7 +50,7 @@ public interface DependencyMetadata {
      * When a dependency references artifacts, those artifacts are used in place of the default artifacts of the target component.
      * In most cases, it makes sense for this set to be empty, and for all of the artifacts of the target component to be included.
      */
-    Set<IvyArtifactName> getArtifacts();
+    List<IvyArtifactName> getArtifacts();
 
     /**
      * Returns a copy of this dependency with the given target.

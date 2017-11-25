@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -50,8 +51,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
-        return ImmutableSet.of();
+    public List<IvyArtifactName> getArtifacts() {
+        return ImmutableList.of();
     }
 
     @Override

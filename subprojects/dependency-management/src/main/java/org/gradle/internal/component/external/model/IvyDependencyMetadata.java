@@ -193,13 +193,13 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return dependencyArtifacts;
     }
 
-    public Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+    public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
-            return Collections.emptySet();
+            return ImmutableList.of();
         }
 
         Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
-        Set<IvyArtifactName> artifacts = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
+        ImmutableList.Builder<IvyArtifactName> artifacts = ImmutableList.builder();
         for (Artifact depArtifact : dependencyArtifacts) {
             Set<String> artifactConfigurations = depArtifact.getConfigurations();
             if (include(artifactConfigurations, includedConfigurations)) {
@@ -207,7 +207,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
                 artifacts.add(ivyArtifactName);
             }
         }
-        return artifacts;
+        return artifacts.build();
     }
 
     protected static boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {

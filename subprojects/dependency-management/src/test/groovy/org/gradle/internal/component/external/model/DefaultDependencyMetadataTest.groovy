@@ -86,30 +86,6 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         metadata.getConfigurationArtifacts(fromConfiguration).empty
     }
 
-    def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
-        def artifact = new Artifact(new DefaultIvyArtifactName("art", "type", "ext"), ["other"] as Set)
-        def metadata = createWithArtifacts(requested, [artifact])
-        def fromConfiguration = Stub(ConfigurationMetadata)
-
-        expect:
-        metadata.getConfigurationArtifacts(fromConfiguration).empty
-    }
-
-    def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
-        def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
-        def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)
-        def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
-
-        def fromConfiguration = Stub(ConfigurationMetadata)
-
-        given:
-        fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
-        def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])
-
-        expect:
-        metadata.getConfigurationArtifacts(fromConfiguration) == [artifact1.artifactName, artifact3.artifactName] as Set
-    }
-
     def "uses artifacts defined by dependency descriptor"() {
         def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
         def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)

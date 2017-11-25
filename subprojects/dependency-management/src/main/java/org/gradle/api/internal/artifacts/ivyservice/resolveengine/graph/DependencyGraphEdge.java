@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Set;
+import java.util.List;
 
 /**
  * An edge in the dependency graph, between 2 nodes.
@@ -34,7 +34,7 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     ModuleExclusion getExclusions();
 
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
+    List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
 
     Iterable<? extends DependencyGraphNode> getTargets();
 

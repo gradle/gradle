@@ -126,8 +126,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public Set<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+    public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         // For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
-        return dependencyArtifacts.isEmpty() ? ImmutableSet.<IvyArtifactName>of() : ImmutableSet.of(dependencyArtifacts.get(0).getArtifactName());
+        return dependencyArtifacts.isEmpty() ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifacts.get(0).getArtifactName());
     }
 }

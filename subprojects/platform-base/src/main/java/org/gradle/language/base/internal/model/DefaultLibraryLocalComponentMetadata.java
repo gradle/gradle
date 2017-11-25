@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.internal.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -154,7 +155,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         return new LocalComponentDependencyMetadata(
             new OpaqueComponentIdentifier("TODO"), // TODO:DAZ
             selector, usageConfigurationName, null, mappedUsageConfiguration,
-            Collections.<IvyArtifactName>emptySet(),
+            ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
             false, false, true);
     }
