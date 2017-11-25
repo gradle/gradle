@@ -81,7 +81,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema) == [toConfig] as Set
+        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema) == [toConfig]
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")

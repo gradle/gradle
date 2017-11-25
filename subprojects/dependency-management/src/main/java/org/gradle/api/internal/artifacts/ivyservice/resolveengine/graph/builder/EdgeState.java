@@ -38,7 +38,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents the edges in the dependency graph.
@@ -141,7 +140,7 @@ class EdgeState implements DependencyGraphEdge {
         }
 
         ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
-        Set<ConfigurationMetadata> targetConfigurations;
+        List<ConfigurationMetadata> targetConfigurations;
         try {
             targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {

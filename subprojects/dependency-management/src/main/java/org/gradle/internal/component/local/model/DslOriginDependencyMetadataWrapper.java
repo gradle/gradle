@@ -27,7 +27,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
-import java.util.Set;
 
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
@@ -54,7 +53,7 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
     }
 

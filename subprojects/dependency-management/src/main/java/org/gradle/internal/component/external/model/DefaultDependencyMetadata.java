@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -47,7 +47,7 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
 
     // TODO:DAZ Get rid of these: DefaultDependencyMetadata is not a _real_ `DependencyMetadata`
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         throw new UnsupportedOperationException("Work in progress: DefaultDependencyMetadata is not really a DependencyMetadata");
     }
 
@@ -99,20 +99,20 @@ public abstract class DefaultDependencyMetadata implements ModuleDependencyMetad
         return optional;
     }
 
-    public Set<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public List<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
             // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
             // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
             // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case
             // - or the target is a component from a Maven/Ivy repo as we can assume this is well behaved
             if (!consumerAttributes.isEmpty() || targetComponent instanceof ModuleComponentResolveMetadata) {
-                return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+                return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
             }
         }
         return selectLegacyConfigurations(fromComponent, fromConfiguration, targetComponent);
     }
 
-    protected abstract Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+    protected abstract List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
     public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 

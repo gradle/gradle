@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -34,7 +33,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleComponentSelector selector;
@@ -82,8 +80,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
     }
 
     @Override

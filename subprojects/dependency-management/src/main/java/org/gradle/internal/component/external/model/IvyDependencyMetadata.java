@@ -17,12 +17,12 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -93,9 +93,10 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         return confs;
     }
 
-    public Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
+        // Use a set builder to ensure uniqueness
+        ImmutableSet.Builder<ConfigurationMetadata> targets = ImmutableSet.builder();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
@@ -132,10 +133,10 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
             }
         }
 
-        return targets;
+        return targets.build().asList();
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, ImmutableSet.Builder<ConfigurationMetadata> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {

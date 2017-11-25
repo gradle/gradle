@@ -25,7 +25,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
-import java.util.Set;
 
 public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMetadataWrapper {
     private final ConfigurationMetadata configuration;
@@ -46,7 +45,7 @@ public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMeta
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return defaultDependencyMetadata.getMetadataForConfigurations(consumerAttributes, consumerSchema, componentId, configuration, targetComponent);
     }
 

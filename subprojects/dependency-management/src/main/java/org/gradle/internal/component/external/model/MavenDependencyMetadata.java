@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -76,8 +75,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         return true;
     }
 
-    public Set<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
+    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        ImmutableList.Builder<ConfigurationMetadata> result = ImmutableList.builder();
         boolean requiresCompile = fromConfiguration.getName().equals("compile");
         if (!requiresCompile) {
             // From every configuration other than compile, include both the runtime and compile dependencies
@@ -93,7 +92,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
         if (master != null && (!master.getDependencies().isEmpty() || !master.getArtifacts().isEmpty())) {
             result.add(master);
         }
-        return result;
+        return result.build();
     }
 
     private ConfigurationMetadata findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, String target) {

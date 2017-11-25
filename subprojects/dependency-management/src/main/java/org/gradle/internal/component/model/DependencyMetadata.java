@@ -21,7 +21,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * A dependency that can participate in dependency resolution.
@@ -38,7 +37,7 @@ public interface DependencyMetadata {
     /**
      * Select the target configurations for this dependency from the given target component.
      */
-    Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
+    List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.

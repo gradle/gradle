@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -29,7 +28,6 @@ import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
 import java.util.List;
-import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentIdentifier componentId;
@@ -88,12 +86,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -111,7 +109,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
             }
         }
-        return ImmutableSet.of(toConfiguration);
+        return ImmutableList.of(toConfiguration);
     }
 
     @Override
