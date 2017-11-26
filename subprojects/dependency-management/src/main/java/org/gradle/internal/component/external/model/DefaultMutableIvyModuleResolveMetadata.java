@@ -50,10 +50,10 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<ModuleDependencyMetadata>of());
+        this(id, componentIdentifier, ImmutableList.<IvyDependencyMetadata>of());
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ModuleDependencyMetadata> dependencies) {
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends DefaultDependencyMetadata> dependencies) {
         this(id, componentIdentifier,
             ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
             ImmutableList.copyOf(dependencies),
@@ -62,7 +62,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurationDefinitions,
-                                                  Collection<? extends ModuleDependencyMetadata> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
+                                                  Collection<? extends DefaultDependencyMetadata> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);

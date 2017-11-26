@@ -48,7 +48,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    protected final List<? extends ModuleDependencyMetadata> dependencies;
+    protected final List<? extends DefaultDependencyMetadata> dependencies;
     private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
@@ -99,7 +99,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     /**
      * Creates a copy of the given metadata with the provided dependencies.
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, List<? extends ModuleDependencyMetadata> dependencies) {
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, List<? extends DefaultDependencyMetadata> dependencies) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.changing;
@@ -241,7 +241,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     }
 
     @Override
-    public List<? extends ModuleDependencyMetadata> getDependencies() {
+    public List<? extends DefaultDependencyMetadata> getDependencies() {
         return dependencies;
     }
 

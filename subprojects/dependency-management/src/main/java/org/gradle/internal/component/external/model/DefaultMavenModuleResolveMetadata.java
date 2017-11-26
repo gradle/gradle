@@ -72,8 +72,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(MavenConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (ModuleDependencyMetadata dependency : dependencies) {
-            DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+        for (DefaultDependencyMetadata dependency : dependencies) {
+            MavenDependencyMetadata defaultDependencyMetadata = (MavenDependencyMetadata) dependency;
             if (include(defaultDependencyMetadata, config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
             }

@@ -56,5 +56,6 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     HashValue getContentHash();
 
-    List<? extends ModuleDependencyMetadata> getDependencies();
+    // TODO:DAZ Push this down
+    List<? extends DefaultDependencyMetadata> getDependencies();
 }

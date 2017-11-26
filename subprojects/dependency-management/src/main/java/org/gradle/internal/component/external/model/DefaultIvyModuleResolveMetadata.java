@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -67,7 +67,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.extraAttributes = metadata.extraAttributes;
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends ModuleDependencyMetadata> dependencies) {
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends DefaultDependencyMetadata> dependencies) {
         super(metadata, dependencies);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
@@ -128,8 +128,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(IvyConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (ModuleDependencyMetadata dependency : dependencies) {
-            DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+        for (DefaultDependencyMetadata dependency : dependencies) {
+            IvyDependencyMetadata defaultDependencyMetadata = (IvyDependencyMetadata) dependency;
             if (include(defaultDependencyMetadata, config.getName(), config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
             }
@@ -198,12 +198,15 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<ModuleDependencyMetadata> transformed = CollectionUtils.collect(getDependencies(), new Transformer<ModuleDependencyMetadata, ModuleDependencyMetadata>() {
+        List<DefaultDependencyMetadata> transformed = CollectionUtils.collect(getDependencies(), new Transformer<DefaultDependencyMetadata, DefaultDependencyMetadata>() {
             @Override
-            public ModuleDependencyMetadata transform(ModuleDependencyMetadata dependency) {
+            public DefaultDependencyMetadata transform(DefaultDependencyMetadata dependency) {
                 if (dependency instanceof IvyDependencyMetadata) {
-                    String dynamicConstraintVersion = ((IvyDependencyMetadata) dependency).getDynamicConstraintVersion();
-                    return dependency.withRequestedVersion(new DefaultMutableVersionConstraint(dynamicConstraintVersion));
+                    IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dependency;
+                    ModuleComponentSelector selector = ivyDependency.getSelector();
+                    String dynamicConstraintVersion = ivyDependency.getDynamicConstraintVersion();
+                    ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), dynamicConstraintVersion);
+                    return ivyDependency.withRequested(newSelector);
                 }
 
                 return dependency;
@@ -212,7 +215,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return this.withDependencies(transformed);
     }
 
-    private IvyModuleResolveMetadata withDependencies(List<ModuleDependencyMetadata> transformed) {
+    private IvyModuleResolveMetadata withDependencies(List<DefaultDependencyMetadata> transformed) {
         return new DefaultIvyModuleResolveMetadata(this, transformed);
     }
 

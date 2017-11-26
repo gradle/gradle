@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
@@ -85,7 +86,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        List<ModuleDependencyMetadata> dependencies = mdBuilder.getDependencies();
+        List<DefaultDependencyMetadata> dependencies = mdBuilder.getDependencies();
         ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, cid, dependencies);
