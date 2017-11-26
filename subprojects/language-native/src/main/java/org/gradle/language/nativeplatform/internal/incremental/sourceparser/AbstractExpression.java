@@ -21,6 +21,7 @@ import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +50,16 @@ public abstract class AbstractExpression implements Expression {
         if (expression.getType() == IncludeType.IDENTIFIER) {
             return new SimpleExpression(expression.getValue(), IncludeType.MACRO);
         }
+        if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
+            return new ComplexExpression(IncludeType.EXPAND_TOKEN_CONCATENATION, expression.getValue(), expression.getArguments());
+        }
+        if (expression.getType() == IncludeType.ARGS_LIST && !expression.getArguments().isEmpty()) {
+            List<Expression> mapped = new ArrayList<Expression>(expression.getArguments().size());
+            for (Expression arg : expression.getArguments()) {
+                mapped.add(arg.asMacroExpansion());
+            }
+            return new ComplexExpression(IncludeType.ARGS_LIST, null, mapped);
+        }
         return expression;
     }
 
@@ -67,11 +78,14 @@ public abstract class AbstractExpression implements Expression {
             case TOKEN:
                 return value;
             case TOKEN_CONCATENATION:
+            case EXPAND_TOKEN_CONCATENATION:
                 return arguments.get(0).getAsSourceText() + "##" + arguments.get(1).getAsSourceText();
             case MACRO_FUNCTION:
                 return value + "(" + Joiner.on(", ").join(arguments) + ")";
-            case TOKENS:
-                return Joiner.on("").join(arguments);
+            case EXPRESSIONS:
+                return Joiner.on(" ").join(arguments);
+            case ARGS_LIST:
+                return "(" + Joiner.on(", ").join(arguments) + ")";
             default:
                 return value != null ? value : "??";
         }

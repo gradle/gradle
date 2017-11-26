@@ -56,12 +56,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
     private void resolveExpression(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         if (expression.getType() == IncludeType.SYSTEM) {
-            visitor.visitSystem(expression.getValue());
+            visitor.visitSystem(expression);
         } else if (expression.getType() == IncludeType.QUOTED) {
-            visitor.visitQuoted(expression.getValue());
+            visitor.visitQuoted(expression);
         } else if (expression.getType() == IncludeType.IDENTIFIER) {
-            visitor.visitIdentifier(expression.getValue());
-        } else if (expression.getType() == IncludeType.TOKENS) {
+            visitor.visitIdentifier(expression);
+        } else if (expression.getType() == IncludeType.ARGS_LIST) {
             visitor.visitTokens(expression);
         } else {
             if (!visitor.startVisit(expression)) {
@@ -74,8 +74,53 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 resolveMacroFunction(visibleMacros, expression, visitor, tokenLookup);
             } else if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
                 resolveTokenConcatenation(visibleMacros, expression, visitor, tokenLookup);
+            } else if (expression.getType() == IncludeType.EXPAND_TOKEN_CONCATENATION) {
+                resolveAndExpandTokenConcatenation(visibleMacros, expression, visitor, tokenLookup);
+            } else if (expression.getType() == IncludeType.EXPRESSIONS) {
+                resolveExpressionSequence(visibleMacros, expression, visitor, tokenLookup);
             } else {
                 visitor.visitUnresolved();
+            }
+        }
+    }
+
+    private void resolveExpressionSequence(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+        List<Expression> expressions = expression.getArguments();
+        // Only <function-call>+ <args-list> supported
+        if (expressions.size() < 2) {
+            visitor.visitUnresolved();
+            return;
+        }
+        Expression argListExpression = expressions.get(expressions.size() - 1);
+        List<Expression> headExpressions = expressions.subList(0, expressions.size() - 1);
+        Collection<Expression> args = resolveExpressionToTokens(visibleMacros, argListExpression, visitor, tokenLookup);
+        for (Expression value : args) {
+            resolveExpressionSequenceForArgs(visibleMacros, headExpressions, value, visitor, tokenLookup);
+        }
+    }
+
+    private void resolveExpressionSequenceForArgs(MacroLookup visibleMacros, List<Expression> expressions, Expression args, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+        if (args.getType() != IncludeType.ARGS_LIST) {
+            visitor.visitUnresolved();
+            return;
+        }
+
+        Expression macroFunctionExpression = expressions.get(expressions.size() - 1);
+        List<Expression> headExpressions = expressions.subList(0, expressions.size() - 1);
+        Collection<Expression> identifiers = resolveExpressionToTokens(visibleMacros, macroFunctionExpression, visitor, tokenLookup);
+        for (Expression value : identifiers) {
+            if (value.getType() != IncludeType.IDENTIFIER) {
+                visitor.visitUnresolved();
+                continue;
+            }
+            ComplexExpression macroExpression = new ComplexExpression(IncludeType.MACRO_FUNCTION, value.getValue(), args.getArguments());
+            if (headExpressions.isEmpty()) {
+                resolveExpression(visibleMacros, macroExpression, visitor, tokenLookup);
+                return;
+            }
+            Collection<Expression> resolved = resolveExpressionToTokens(visibleMacros, macroExpression, visitor, tokenLookup);
+            for (Expression newArgs : resolved) {
+                resolveExpressionSequenceForArgs(visibleMacros, headExpressions, newArgs, visitor, tokenLookup);
             }
         }
     }
@@ -83,23 +128,26 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void resolveTokenConcatenation(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         Collection<Expression> expressions = resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
         for (Expression concatExpression : expressions) {
+            resolveExpression(visibleMacros, concatExpression, visitor, tokenLookup);
+        }
+    }
+
+    private void resolveAndExpandTokenConcatenation(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
+        Collection<Expression> expressions = resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
+        for (Expression concatExpression : expressions) {
             resolveExpression(visibleMacros, concatExpression.asMacroExpansion(), visitor, tokenLookup);
         }
     }
 
     /**
-     * Resolves the given expression to zero or more {@link IncludeType#IDENTIFIER} or {@link IncludeType#TOKENS} expressions, by expanding macros and performing token concatenation.
+     * Resolves the given expression to zero or more expressions that have been macro expanded and token concatenated.
      */
     private Collection<Expression> resolveExpressionToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
-        if (expression.getType() == IncludeType.IDENTIFIER || expression.getType() == IncludeType.TOKENS) {
-            return Collections.singletonList(expression);
-        }
-        if (expression.getType() == IncludeType.SYSTEM || expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.OTHER || expression.getType() == IncludeType.TOKEN) {
-            visitor.visitUnresolved();
-            return Collections.emptyList();
-        }
         if (expression.getType() == IncludeType.TOKEN_CONCATENATION) {
             return resolveTokenConcatenationToTokens(visibleMacros, expression, visitor, tokenLookup);
+        }
+        if (expression.getType() != IncludeType.MACRO && expression.getType() != IncludeType.MACRO_FUNCTION && expression.getType() != IncludeType.EXPAND_TOKEN_CONCATENATION) {
+            return Collections.singletonList(expression);
         }
 
         // Otherwise, macro or macro function call
@@ -124,7 +172,15 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         List<Expression> expressions = new ArrayList<Expression>(leftValues.size() * rightValues.size());
         for (Expression leftValue : leftValues) {
-            if (leftValue.getType() == IncludeType.TOKENS) {
+            if (leftValue.getType() != IncludeType.IDENTIFIER) {
+                if (rightValues.size() == 1) {
+                    Expression rightValue = rightValues.iterator().next();
+                    if (rightValue.getType() == IncludeType.EXPRESSIONS && rightValue.getArguments().isEmpty()) {
+                        // Empty RHS
+                        expressions.add(leftValue);
+                        continue;
+                    }
+                }
                 // Not supported for now
                 visitor.visitUnresolved();
                 continue;
@@ -132,38 +188,17 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             String leftString = leftValue.getValue();
             for (Expression rightValue : rightValues) {
                 // Handle just empty string, single identifier or '(' params? ')', should handle more by parsing the tokens into an expression
-                if (rightValue.getType() != IncludeType.TOKENS) {
+                if (rightValue.getType() == IncludeType.IDENTIFIER) {
                     expressions.add(new SimpleExpression(leftString + rightValue.getValue(), IncludeType.IDENTIFIER));
                     continue;
                 }
-                List<Expression> arguments = rightValue.getArguments();
-                if (arguments.size() == 0) {
+                if (rightValue.getType() == IncludeType.ARGS_LIST) {
+                    expressions.add(new ComplexExpression(IncludeType.MACRO_FUNCTION, leftString, rightValue.getArguments()));
+                    continue;
+                }
+                if (rightValue.getType() == IncludeType.EXPRESSIONS && rightValue.getArguments().isEmpty()) {
                     expressions.add(new SimpleExpression(leftString, IncludeType.IDENTIFIER));
                     continue;
-                }
-                if (arguments.size() == 1 && arguments.get(0).getType() == IncludeType.IDENTIFIER) {
-                    expressions.add(new SimpleExpression(leftValue + arguments.get(0).getValue(), IncludeType.IDENTIFIER));
-                    continue;
-                }
-                if (arguments.size() >= 2 && "(".equals(arguments.get(0).getValue()) && ")".equals(arguments.get(arguments.size() - 1).getValue())) {
-                    List<Expression> functionArgs = new ArrayList<Expression>();
-                    int pos = 1;
-                    if (arguments.size() > 2) {
-                        functionArgs.add(arguments.get(1));
-                        pos = 2;
-                        while (pos < arguments.size() - 2) {
-                            if (!",".equals(arguments.get(pos).getValue())) {
-                                break;
-                            }
-                            pos++;
-                            functionArgs.add(arguments.get(pos));
-                            pos++;
-                        }
-                    }
-                    if (pos == arguments.size() - 1) {
-                        expressions.add(new ComplexExpression(IncludeType.MACRO_FUNCTION, leftString, functionArgs));
-                        continue;
-                    }
                 }
                 visitor.visitUnresolved();
             }
@@ -182,7 +217,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
         }
         if (!found) {
-            visitor.visitIdentifier(expression.getValue());
+            visitor.visitIdentifier(new SimpleExpression(expression.getValue(), IncludeType.IDENTIFIER));
         }
     }
 
@@ -195,7 +230,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                     List<Expression> arguments = expression.getArguments();
                     if (arguments.isEmpty() && macro.getParameterCount() == 1) {
                         // Provide an implicit empty argument
-                        arguments = Collections.<Expression>singletonList(new SimpleExpression(null, IncludeType.TOKENS));
+                        arguments = Collections.singletonList(SimpleExpression.EMPTY_EXPRESSIONS);
                     }
                     if (macro.getParameterCount() == arguments.size()) {
                         found = true;
@@ -261,17 +296,17 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         /**
          * Called when an expression resolves to a quoted path.
          */
-        void visitQuoted(String value);
+        void visitQuoted(Expression value);
 
         /**
          * Called when an expression resolves to a system path.
          */
-        void visitSystem(String value);
+        void visitSystem(Expression value);
 
         /**
          * Called when an expression resolves to a single identifier that could not be macro expanded.
          */
-        void visitIdentifier(String value);
+        void visitIdentifier(Expression value);
 
         /**
          * Called when an expression resolves to zero or more tokens.
@@ -333,18 +368,18 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public void visitQuoted(String value) {
-            visitUnresolved();
+        public void visitQuoted(Expression value) {
+            visitTokens(value);
         }
 
         @Override
-        public void visitSystem(String value) {
-            visitUnresolved();
+        public void visitSystem(Expression value) {
+            visitTokens(value);
         }
 
         @Override
-        public void visitIdentifier(String value) {
-            tokenLookup.tokensFor.put(expression, new SimpleExpression(value, IncludeType.IDENTIFIER));
+        public void visitIdentifier(Expression value) {
+            visitTokens(value);
         }
 
         @Override
@@ -377,24 +412,26 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public void visitQuoted(String value) {
-            if (!quoted.add(value)) {
+        public void visitQuoted(Expression value) {
+            String path = value.getValue();
+            if (!quoted.add(path)) {
                 return;
             }
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-            searchForDependency(quotedSearchPath, value, results);
+            searchForDependency(quotedSearchPath, path, results);
         }
 
         @Override
-        public void visitSystem(String value) {
-            if (!system.add(value)) {
+        public void visitSystem(Expression value) {
+            String path = value.getValue();
+            if (!system.add(path)) {
                 return;
             }
-            searchForDependency(includePaths, value, results);
+            searchForDependency(includePaths, path, results);
         }
 
         @Override
-        public void visitIdentifier(String value) {
+        public void visitIdentifier(Expression value) {
             results.unresolved();
         }
 

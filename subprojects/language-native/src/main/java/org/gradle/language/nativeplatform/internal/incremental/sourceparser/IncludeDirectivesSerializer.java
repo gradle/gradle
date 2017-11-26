@@ -55,10 +55,11 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         private static final byte SIMPLE = (byte) 1;
         private static final byte COMPLEX_ONE_ARG = (byte) 2;
         private static final byte COMPLEX_MULTIPLE_ARGS = (byte) 3;
-        private static final byte EMPTY = (byte) 4;
-        private static final byte COMMA = (byte) 5;
-        private static final byte LEFT_PAREN = (byte) 6;
-        private static final byte RIGHT_PAREN = (byte) 7;
+        private static final byte EMPTY_TOKENS = (byte) 4;
+        private static final byte EMPTY_ARGS = (byte) 5;
+        private static final byte COMMA = (byte) 6;
+        private static final byte LEFT_PAREN = (byte) 7;
+        private static final byte RIGHT_PAREN = (byte) 8;
         private final Serializer<IncludeType> enumSerializer;
         private final Serializer<List<Expression>> argsSerializer;
 
@@ -74,8 +75,10 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 String expressionValue = decoder.readNullableString();
                 IncludeType expressionType = enumSerializer.read(decoder);
                 return new SimpleExpression(expressionValue, expressionType);
-            } else if (tag == EMPTY) {
-                return SimpleExpression.EMPTY_TOKENS;
+            } else if (tag == EMPTY_TOKENS) {
+                return SimpleExpression.EMPTY_EXPRESSIONS;
+            } else if (tag == EMPTY_ARGS) {
+                return SimpleExpression.EMPTY_ARGS;
             } else if (tag == COMMA) {
                 return SimpleExpression.COMMA;
             } else if (tag == LEFT_PAREN) {
@@ -100,8 +103,10 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
         @Override
         public void write(Encoder encoder, Expression value) throws Exception {
             if (value instanceof SimpleExpression) {
-                if (value.equals(SimpleExpression.EMPTY_TOKENS)) {
-                    encoder.writeByte(EMPTY);
+                if (value.equals(SimpleExpression.EMPTY_EXPRESSIONS)) {
+                    encoder.writeByte(EMPTY_TOKENS);
+                } else if (value.equals(SimpleExpression.EMPTY_ARGS)) {
+                    encoder.writeByte(EMPTY_ARGS);
                 } else if (value.equals(SimpleExpression.COMMA)) {
                     encoder.writeByte(COMMA);
                 } else if (value.equals(SimpleExpression.LEFT_PAREN)) {
@@ -192,7 +197,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
             if (tag == SIMPLE) {
                 String name = decoder.readString();
                 IncludeType type = enumSerializer.read(decoder);
-                String value = decoder.readString();
+                String value = decoder.readNullableString();
                 return new MacroWithSimpleExpression(name, type, value);
             } else if (tag == COMPLEX) {
                 String name = decoder.readString();
@@ -214,7 +219,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
                 encoder.writeByte(SIMPLE);
                 encoder.writeString(value.getName());
                 enumSerializer.write(encoder, value.getType());
-                encoder.writeString(value.getValue());
+                encoder.writeNullableString(value.getValue());
             } else if (value instanceof MacroWithComplexExpression) {
                 encoder.writeByte(COMPLEX);
                 encoder.writeString(value.getName());

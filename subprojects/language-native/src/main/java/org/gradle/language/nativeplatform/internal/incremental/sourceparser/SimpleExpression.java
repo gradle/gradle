@@ -26,7 +26,8 @@ import javax.annotation.Nullable;
  * An expression that has a type and value and no arguments.
  */
 public class SimpleExpression extends AbstractExpression {
-    static final Expression EMPTY_TOKENS = new SimpleExpression(null, IncludeType.TOKENS);
+    public static final Expression EMPTY_EXPRESSIONS = new SimpleExpression(null, IncludeType.EXPRESSIONS);
+    static final Expression EMPTY_ARGS = new SimpleExpression(null, IncludeType.ARGS_LIST);
     static final Expression LEFT_PAREN = new SimpleExpression("(", IncludeType.TOKEN);
     static final Expression COMMA = new SimpleExpression(",", IncludeType.TOKEN);
     static final Expression RIGHT_PAREN = new SimpleExpression(")", IncludeType.TOKEN);

@@ -53,7 +53,8 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
 
     def "replaces common expressions with constants"() {
         def include = new IncludeWithMacroFunctionCallExpression("A", true, ImmutableList.of(
-            new SimpleExpression(null, IncludeType.TOKENS),
+            new SimpleExpression(null, IncludeType.EXPRESSIONS),
+            new SimpleExpression(null, IncludeType.ARGS_LIST),
             new SimpleExpression(",", IncludeType.TOKEN),
             new SimpleExpression("(", IncludeType.TOKEN),
             new SimpleExpression(")", IncludeType.TOKEN)))
@@ -61,10 +62,11 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
 
         expect:
         def expressions = serialize(directives, new IncludeDirectivesSerializer()).all.first().arguments
-        expressions[0].is(SimpleExpression.EMPTY_TOKENS)
-        expressions[1].is(SimpleExpression.COMMA)
-        expressions[2].is(SimpleExpression.LEFT_PAREN)
-        expressions[3].is(SimpleExpression.RIGHT_PAREN)
+        expressions[0].is(SimpleExpression.EMPTY_EXPRESSIONS)
+        expressions[1].is(SimpleExpression.EMPTY_ARGS)
+        expressions[2].is(SimpleExpression.COMMA)
+        expressions[3].is(SimpleExpression.LEFT_PAREN)
+        expressions[4].is(SimpleExpression.RIGHT_PAREN)
     }
 
     def "serializes macro directives"() {

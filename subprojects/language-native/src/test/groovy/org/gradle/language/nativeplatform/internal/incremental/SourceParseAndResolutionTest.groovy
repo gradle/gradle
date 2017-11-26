@@ -207,7 +207,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         doesNotResolve("#include ${value}")
 
         where:
-        value << ['1 + 2', '"header.h" extra', '<header.h> extra', '(p)']
+        value << ['1 + 2', '"header.h" extra', '<header.h> extra', '(p)', '~']
     }
 
     def "resolves macro function with zero args with body that is a string constant"() {
@@ -496,12 +496,24 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
-    def "resolves macro function with multiple args that returns concatenation of the args when arg is empty"() {
+    def "resolves macro function with multiple args that concatenates empty right hand side to produce macro"() {
         given:
         sourceFile << """
             #define HEADER_NAME "hello.h"
             #define HEADER(X, Y) X ## Y
             #include HEADER(HEADER_NAME,)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "resolves macro function with multiple args that concatenates empty right hand side to produce macro function"() {
+        given:
+        sourceFile << """
+            #define HEADER_NAME(X) X
+            #define HEADER(X, Y) X ## Y
+            #include HEADER(HEADER_NAME("hello.h"),)
         """
 
         expect:
@@ -606,6 +618,22 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         resolve() == [header]
     }
 
+    def "can produce a macro function call by nesting token concatenations"() {
+        given:
+        sourceFile << """
+            #define ARGS_3 ("hello.h")
+            #define FUNC_NAME() F
+            #define F(X) X
+            #define CONCAT_(X, Y) X ## Y
+            #define CONCAT(X, Y) CONCAT_(X, Y)
+            #define HEADER(X, Y, Z) CONCAT(X ## Y, ARGS_## Z)
+            #include HEADER(FUNC_NAME, (), 3)
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
     def "can produce a macro function call by concatenating name and wrapping args in parens"() {
         given:
         sourceFile << """
@@ -647,6 +675,36 @@ class SourceParseAndResolutionTest extends SerializerSpec {
 
         expect:
         resolve() == [header1, header2, header3, header4]
+    }
+
+    def "can produce a macro function call by returning function arg that is sequence of expressions"() {
+        given:
+        sourceFile << """
+            #define FUNC2(X) X
+            #define FUNC1(X) FUNC2
+            #define HEADER(X) X
+            #include HEADER(FUNC1 (~) ("hello.h")) // replaced by FUNC1(~)("hello.h") then FUNC2("hello.h")
+        """
+
+        expect:
+        resolve() == [header]
+    }
+
+    def "can produce a macro function call by returning function arg that is sequence of macros that expand to functions"() {
+        given:
+        sourceFile << """
+            #define FUNC1(X) X
+            #define FUNC2(X) (X)
+            #define ARGS ("hello.h")
+            
+            #define HEADER_(X) X
+            #define HEADER(X) HEADER_(FUNC1 FUNC2 X)
+            
+            #include HEADER(ARGS) // replaced by FUNC1 FUNC2 ("hello.h") then FUNC1 ("hello.h")
+        """
+
+        expect:
+        resolve() == [header]
     }
 
     def resolve() {

@@ -491,6 +491,39 @@ class DefaultSourceIncludesResolverTest extends Specification {
         result.checkedLocations as List == [srcHeader, header]
     }
 
+    def "can append expressions to produce macro function call"() {
+        given:
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << macro("FILENAME", '<test.h>')
+        macroFunctions << macroFunction("FILE(X)", "FILENAME")
+        macroFunctions << macroFunction("TEST2(X)", "X")
+        macroFunctions << macroFunction("TEST(X, Y)", "TEST2(X Y)")
+
+        expect:
+        def result = resolve(include('TEST(FILE, (~))'))
+        result.complete
+        result.files as List == [header]
+        result.checkedLocations as List == [header]
+    }
+
+    def "can append expressions to produce chain of macro function calls"() {
+        given:
+        def header = systemIncludeDir.createFile("test.h")
+
+        macros << macro("FILENAME", '<test.h>')
+        macroFunctions << macroFunction("FILE(X)", "FILENAME")
+        macroFunctions << macroFunction("FILE2(X)", "(X)")
+        macroFunctions << macroFunction("TEST2(X)", "X")
+        macroFunctions << macroFunction("TEST(X, Y, Z)", "TEST2(X Y Z)")
+
+        expect:
+        def result = resolve(include('TEST(FILE, FILE2, (~))'))
+        result.complete
+        result.files as List == [header]
+        result.checkedLocations as List == [header]
+    }
+
     def include(String value) {
         def directives = new RegexBackedCSourceParser().parseSource(new StringReader("#include $value"))
         return directives.includesOnly.first()

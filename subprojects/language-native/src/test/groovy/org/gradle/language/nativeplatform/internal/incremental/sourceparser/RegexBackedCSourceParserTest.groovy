@@ -81,10 +81,10 @@ class RegexBackedCSourceParserTest extends Specification {
 
     Expression tokens(String value) {
         if (value.empty) {
-            return new SimpleExpression(null, IncludeType.TOKENS)
+            return new SimpleExpression(null, IncludeType.EXPRESSIONS)
         }
         def e = RegexBackedCSourceParser.parseExpression("m($value)")
-        assert e.arguments.size() == 1 && e.arguments[0].type == IncludeType.TOKENS
+        assert e.arguments.size() == 1 && (e.arguments[0].type == IncludeType.EXPRESSIONS || e.arguments[0].type == IncludeType.ARGS_LIST || e.arguments[0].type == IncludeType.TOKEN_CONCATENATION)
         return e.arguments[0]
     }
 
@@ -241,22 +241,27 @@ class RegexBackedCSourceParserTest extends Specification {
         noImports()
 
         where:
-        include                                            | macro | parameters
-        'A(X)'                                             | 'A'   | [token('X')]
-        'A( X )'                                           | 'A'   | [token('X')]
-        'ABC(x,y)'                                         | 'ABC' | [token('x'), token('y')]
-        'ABC( \t x \t,  y  )'                              | 'ABC' | [token('x'), token('y')]
-        'A ( "include.h" )'                                | 'A'   | [expression('"include.h"')]
-        'A ( <include.h> )'                                | 'A'   | [expression('<include.h>')]
-        'A ( _b )'                                         | 'A'   | [token('_b')]
-        'A ( _b(c) )'                                      | 'A'   | [expression('_b(c)')]
-        ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'   | [expression('"a.h"'), expression('<b.h>'), expression('b$(a,b,c("b.h"))'), token('Z')]
-        'a( ( x ), ( a )\t )'                              | 'a'   | [tokens('(x)'), tokens('(a)')]
-        'a(,)'                                             | 'a'   | [tokens(''), tokens('')]
-        'a((a,b))'                                         | 'a'   | [tokens('(a,b)')]
-        'a((a,b,(c, d)))'                                  | 'a'   | [tokens('(a,b,(c,d))')]
-        'a( ( a ,,, b ), c)'                               | 'a'   | [tokens('(a,,,b)'), token('c')]
-        'a(~, ~)'                                          | 'a'   | [token('~'), token('~')]
+        include                                            | macro   | parameters
+        'A(X)'                                             | 'A'     | [token('X')]
+        'A( X )'                                           | 'A'     | [token('X')]
+        'ABC(x,y)'                                         | 'ABC'   | [token('x'), token('y')]
+        'ABC( \t x \t,  y  )'                              | 'ABC'   | [token('x'), token('y')]
+        'A ( "include.h" )'                                | 'A'     | [expression('"include.h"')]
+        'A ( <include.h> )'                                | 'A'     | [expression('<include.h>')]
+        'A ( _b )'                                         | 'A'     | [token('_b')]
+        'A ( _b(c) )'                                      | 'A'     | [expression('_b(c)')]
+        ' \tA ( "a.h", <b.h>, b$(a,b,c("b.h")  ), \tZ \t)' | 'A'     | [expression('"a.h"'), expression('<b.h>'), expression('b$(a,b,c("b.h"))'), token('Z')]
+        'a( a b c )'                                       | 'a'     | [tokens('a b c')]
+        'a( a b, c d + f )'                                | 'a'     | [tokens('a b'), tokens('c d + f')]
+        '_func(1+2)'                                       | '_func' | [tokens('1+2')]
+        'a(A, B(1+2))'                                     | 'a'     | [token('A'), expression('B(1+2)')]
+        'a( ( x ), ( a )\t )'                              | 'a'     | [tokens('(x)'), tokens('(a)')]
+        'a(,)'                                             | 'a'     | [tokens(''), tokens('')]
+        'a((a,b))'                                         | 'a'     | [tokens('(a,b)')]
+        'a((a,b,(c, d)))'                                  | 'a'     | [tokens('(a,b,(c,d))')]
+        'a( ( a ,,, b ), c)'                               | 'a'     | [tokens('(a,,,b)'), token('c')]
+        'a(~, ~)'                                          | 'a'     | [token('~'), token('~')]
+        'a(~ ? ~)'                                         | 'a'     | [tokens('~?~')]
     }
 
     def "finds other includes that cannot be resolved"() {
@@ -273,7 +278,6 @@ class RegexBackedCSourceParserTest extends Specification {
 
         where:
         include << [
-            'DEFINED(one two three)',
             'not an include',
             'BROKEN(',
             'broken(A,',
@@ -281,13 +285,10 @@ class RegexBackedCSourceParserTest extends Specification {
             'broken(a, ((b, c)',
             '@(X',
             '"abc.h" DEFINED',
-            'DEFINED(A, B(1+2))',
             'A##B',
             'A#B',
             'A##.',
             'A##',
-            'a(1+2)',
-            'a(~~)',
             'a(()',
             'a(()))',
         ]
@@ -755,6 +756,10 @@ st3"
         ' A((a, b), c)'        | 'A'       | [tokens('(a, b)'), token('c')]
         ' A((,))'              | 'A'       | [tokens('(,)')]
         ' A((,,,), c)'         | 'A'       | [tokens('(,,,)'), token('c')]
+        '_a ( p1 p2 p3 )'      | '_a'      | [tokens('p1 p2 p3')]
+        '_a ( 1, (2+3) )'      | '_a'      | [token('1'), tokens('(2+3)')]
+        '_a((, ) a b c)'       | '_a'      | [tokens('(,) a b c')]
+        'func( (a) ( b ))'     | 'func'    | [tokens('(a)(b)')]
     }
 
     def "finds object-like macro directive whose value is token concatenation"() {
@@ -764,7 +769,7 @@ st3"
 """
 
         then:
-        macros == [macro('SOME_STRING', IncludeType.TOKEN_CONCATENATION, null, [token(left), token(right)])]
+        macros == [macro('SOME_STRING', IncludeType.EXPAND_TOKEN_CONCATENATION, null, [token(left), token(right)])]
         macroFunctions.empty
 
         where:
@@ -774,29 +779,31 @@ st3"
         '_a$##h2_'      | '_a$' | 'h2_'
     }
 
-    def "finds object-like macro directive whose value is token sequence"() {
+    def "finds object-like macro directive whose value is argument list"() {
         when:
         sourceFile << """
 #define SOME_STRING ${value}
 """
 
         then:
-        macros == [macro('SOME_STRING', IncludeType.TOKENS, null, params)]
+        macros == [macro('SOME_STRING', IncludeType.ARGS_LIST, null, params)]
         macroFunctions.empty
 
         where:
         value              | params
-        '()'               | tokens('()').arguments
-        '( a )'            | tokens('( a )').arguments
-        '( "a.h" )'        | tokens('( "a.h" )').arguments
-        '( <a.h> )'        | tokens('( <a.h> )').arguments
-        '( , )'            | tokens('(,)').arguments
-        '( ~ )'            | tokens('(~)').arguments
-        '( ~, , ? )'       | tokens('(~,,?)').arguments
-        '(a, b, c)'        | tokens('(a, b, c)').arguments
-        '(1, 2, 3)'        | tokens('(1, 2, 3)').arguments
-        '(<a.h>, "b.h")'   | [token('('), expression('<a.h>'), token(','), expression('"b.h"'), token(')')]
-        '(a, (c, (d), e))' | tokens('(a, (c, (d), e))').arguments
+        '()'               | []
+        '( a )'            | [expression('a')]
+        '( "a.h" )'        | [expression('"a.h"')]
+        '( <a.h> )'        | [expression('<a.h>')]
+        '( , )'            | [tokens(''), tokens('')]
+        '( ~ )'            | [token('~')]
+        '( ~, , ? )'       | [token('~'), tokens(''), token('?')]
+        '(a, b, c)'        | [expression('a'), expression('b'), expression('c')]
+        '(1, 2, 3)'        | [expression('1'), expression('2'), expression('3')]
+        '(<a.h>, "b.h")'   | [expression('<a.h>'), expression('"b.h"')]
+        '( a + b )'        | [tokens('a + b')]
+        '(a, (c, (d), e))' | [expression('a'), expression('(c, (d), e)')]
+        '( x ## y )'       | [expression('x ## y')]
     }
 
     def "finds object-like macro directive whose body is a token"() {
@@ -826,20 +833,23 @@ st3"
         value << [
             "one two three",
             "a++",
-            "one(two three)",
             "-12",
             "(X) #X",
-            "A(1, B(2+2))",
+            "a(b) c(d)",
             "A(12)##@",
             "A##",
             'A##@',
             '##B',
+            'x ## y a ## b',
             'a(b()',
             'a(()) more',
-            'a((b) (c))',
             'a(  ,',
-            'a(  (,) a b c)',
-            '( 1 + 2 )',
+            '(',
+            '( A',
+            '( A ##',
+            '( A ## b',
+            '() ()',
+            '(a) (b)',
             '~ ?'
         ]
     }
@@ -962,48 +972,60 @@ st3"
     def "finds function-like macro directive with no parameters whose body is a macro function call"() {
         when:
         sourceFile << """
-#define A() ABC_H(A, Z)
+#define A() ${value}
 """
 
         then:
         macros.empty
-        macroFunctions == [macroFunction('A', 'ABC_H(A, Z)')]
+        macroFunctions == [macroFunction('A', IncludeType.MACRO_FUNCTION, function, args)]
+
+        where:
+        value          | function | args
+        'ABC_H(A, Z)'  | 'ABC_H'  | [token('A'), token('Z')]
+        'a(1+2)'       | 'a'      | [tokens('1+2')]
+        'a ( 1 + 2 ) ' | 'a'      | [tokens('1+2')]
     }
 
     def "finds function-like macro directive with no parameters whose body is token concatenation"() {
         when:
         sourceFile << """
-#define A() A ## Z
+#define A() ${value}
 """
 
         then:
         macros.empty
-        macroFunctions == [macroFunction('A', 'A##Z')]
+        macroFunctions == [macroFunction('A', IncludeType.EXPAND_TOKEN_CONCATENATION, null, params)]
+
+        where:
+        value         | params
+        'A ## Z'      | [token('A'), token('Z')]
+        'A ## B ## C' | [tokens('A##B'), token('C')]
     }
 
-    def "finds function-like macro directive with no parameters whose body is token sequence"() {
+    def "finds function-like macro directive with no parameters whose body is argument list"() {
         when:
         sourceFile << """
 #define SOME_STRING() ${value}
 """
 
         then:
-        macroFunctions == [macroFunction('SOME_STRING', 0, IncludeType.TOKENS, null, params)]
+        macroFunctions == [macroFunction('SOME_STRING', 0, IncludeType.ARGS_LIST, null, params)]
 
         where:
         value              | params
-        '()'               | tokens('()').arguments
-        '( a )'            | tokens('( a )').arguments
-        '( "a.h" )'        | tokens('( "a.h" )').arguments
-        '( <a.h> )'        | tokens('( <a.h> )').arguments
-        '( , )'            | tokens('(,)').arguments
-        '( ~ )'            | tokens('(~)').arguments
-        '(a, b, c)'        | tokens('(a, b, c)').arguments
-        '(1, 2, 3)'        | tokens('(1, 2, 3)').arguments
-        '(<a.h>, "b.h")'   | [token('('), expression('<a.h>'), token(','), expression('"b.h"'), token(')')]
-        '(a, (c, (d), e))' | tokens('(a, (c, (d), e))').arguments
-        '(a##b)'           | tokens('(a##b)').arguments
-        '( a ## b ## c )'  | tokens('(a##b##c)').arguments
+        '()'               | []
+        '( a )'            | [expression('a')]
+        '( "a.h" )'        | ['"a.h"']
+        '( <a.h> )'        | ['<a.h>']
+        '( , )'            | [tokens(''), tokens('')]
+        '( ~ )'            | [token('~')]
+        '(a, b, c)'        | ['a', 'b', 'c']
+        '(1, 2, 3)'        | ['1', '2', '3']
+        '(<a.h>, "b.h")'   | ['<a.h>', '"b.h"']
+        '(a, (c, (d), e))' | ['a', expression('(c, (d), e)')]
+        '(a##b)'           | [expression('a##b')]
+        '( a ## b ## c )'  | [expression('a##b##c')]
+        '(a b c)'          | [tokens('a b c')]
     }
 
     def "finds function-like macro directive with no parameters whose body is a token"() {
@@ -1032,16 +1054,16 @@ st3"
         where:
         definition << [
             'A(abc',
-            'A(1+2)',
+            'A(abc , ',
+            'a(b) c(d)',
             '"a12" 12 + 4',
             'x##',
             'a##~',
             'a##(b)',
             'a## b ##',
             '( a ## ',
-            '(a b c)',
             '(a b',
-            '(1 2 3)'
+            '(a b), c',
         ]
     }
 
@@ -1131,9 +1153,9 @@ st3"
         "B(Z)"                        | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [token('Z')])
         "B((Z))"                      | new ReturnFixedValueMacroFunction("A", 2, IncludeType.MACRO_FUNCTION, "B", [tokens('(Z)')])
         "B(X, Y)"                     | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], IncludeType.MACRO_FUNCTION, "B", [token('X'), token('Y')])
-        "B((X), A(Y), C(d()))"        | new ArgsMappingMacroFunction("A", 2, [-2, -1, 0, -1, -2, 1, -1] as int[], IncludeType.MACRO_FUNCTION, "B", [tokens('(X)'), expression('A(Y)'), expression('C(d())')])
+        "B((X), A(Y), C(d()))"        | new ArgsMappingMacroFunction("A", 2, [-2, 0, -2, 1, -1] as int[], IncludeType.MACRO_FUNCTION, "B", [tokens('(X)'), expression('A(Y)'), expression('C(d())')])
         "B(<a.h>, X, Y)"              | new ArgsMappingMacroFunction("A", 2, [-1, 0, 1] as int[], IncludeType.MACRO_FUNCTION, "B", [expression('<a.h>'), token('X'), token('Y')])
-        "B(<a.h>,  ( X\t ), (  Z ) )" | new ArgsMappingMacroFunction("A", 2, [-1, -2, -1, 0, -1, -1] as int[], IncludeType.MACRO_FUNCTION, "B", [expression('<a.h>'), tokens('(X)'), tokens('(Z)')])
+        "B(<a.h>,  ( X\t ), (  Z ) )" | new ArgsMappingMacroFunction("A", 2, [-1, -2, 0, -1] as int[], IncludeType.MACRO_FUNCTION, "B", [expression('<a.h>'), tokens('(X)'), tokens('(Z)')])
     }
 
     def "finds function-like macro directive with multiple parameters whose body is token concatenation of parameters"() {
@@ -1148,10 +1170,10 @@ st3"
 
         where:
         body         | expected
-        'X ## Y'     | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('X'), token('Y')])
-        'X ## OTHER' | new ArgsMappingMacroFunction("A", 2, [0, -1] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('X'), token('OTHER')])
-        'OTHER ## X' | new ArgsMappingMacroFunction("A", 2, [-1, 0] as int[], IncludeType.TOKEN_CONCATENATION, null, [token('OTHER'), token('X')])
-        'A ## B'     | new ReturnFixedValueMacroFunction("A", 2, IncludeType.TOKEN_CONCATENATION, null, [token('A'), token('B')])
+        'X ## Y'     | new ArgsMappingMacroFunction("A", 2, [0, 1] as int[], IncludeType.EXPAND_TOKEN_CONCATENATION, null, [token('X'), token('Y')])
+        'X ## OTHER' | new ArgsMappingMacroFunction("A", 2, [0, -1] as int[], IncludeType.EXPAND_TOKEN_CONCATENATION, null, [token('X'), token('OTHER')])
+        'OTHER ## X' | new ArgsMappingMacroFunction("A", 2, [-1, 0] as int[], IncludeType.EXPAND_TOKEN_CONCATENATION, null, [token('OTHER'), token('X')])
+        'A ## B'     | new ReturnFixedValueMacroFunction("A", 2, IncludeType.EXPAND_TOKEN_CONCATENATION, null, [token('A'), token('B')])
     }
 
     def "finds function-like macro directive with multiple parameters whose body cannot be resolved"() {
@@ -1165,7 +1187,7 @@ st3"
         macroFunctions == [unresolvedMacroFunction('A', 2)]
 
         where:
-        body << ['Defined(a.h)', 'A(B(C, (D()))', '"abc" 12 + 5', 'A##~']
+        body << ['Defined("a.h)', 'A(B(C, (D()))', '"abc" 12 + 5', 'A##~']
     }
 
     def "finds function-like macro directive with multiple parameters whose body is empty"() {

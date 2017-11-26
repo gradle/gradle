@@ -34,7 +34,7 @@ public interface Expression {
     /**
      * When type is {@link IncludeType#QUOTED} or {@link IncludeType#SYSTEM}, then this returns the path, without the delimiters or escape characters.
      * When type is {@link IncludeType#MACRO} or {@link IncludeType#MACRO_FUNCTION}, then this returns the name of the macro.
-     * When type is {@link IncludeType#IDENTIFIER}, then this returns the token.
+     * When type is {@link IncludeType#IDENTIFIER} or {@link IncludeType#TOKEN}, then this returns the token.
      * When type anything else, returns null.
      */
     @Nullable
@@ -43,12 +43,16 @@ public interface Expression {
     /**
      * Returns the actual arguments of this expression when type is {@link IncludeType#MACRO_FUNCTION}.
      * Returns the left and right arguments of the expression when type is {@link IncludeType#TOKEN_CONCATENATION}.
-     * Returns the sequence of expressions when type is {@link IncludeType#TOKENS}.
+     * Returns the sequence of arguments when type is {@link IncludeType#ARGS_LIST}.
+     * Returns the sequence of expressions when type is {@link IncludeType#EXPRESSIONS}.
      */
     List<Expression> getArguments();
 
     /**
-     * Returns this expression as a macro expansion expression. If the type is {@link IncludeType#IDENTIFIER} replace with a {@link IncludeType#MACRO}, otherwise return this.
+     * Returns this expression as a macro expansion expression.
+     * If the type is {@link IncludeType#IDENTIFIER} replace with a {@link IncludeType#MACRO}
+     * If the type is {@link IncludeType#TOKEN_CONCATENATION} replace with a {@link IncludeType#EXPAND_TOKEN_CONCATENATION}
+     * Otherwise return this.
      */
     Expression asMacroExpansion();
 }

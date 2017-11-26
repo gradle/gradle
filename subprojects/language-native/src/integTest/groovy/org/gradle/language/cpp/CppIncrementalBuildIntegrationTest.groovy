@@ -455,24 +455,24 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         nonSkippedTasks.empty
 
         where:
-        include                | text
-        'HELLO'                | '''            
+        include             | text
+        'HELLO'             | '''            
             #define _HELLO(X) #X
             #define HELLO _HELLO(hello.h)
             #include HELLO
         '''
-        '_HELLO(hello.h)'      | '''
+        '_HELLO(hello . h)' | '''
             #define _HELLO(X) #X
             #include _HELLO(hello.h)
         '''
-        'MISSING'              | '''
+        'MISSING'           | '''
             #ifdef MISSING
             #include MISSING
             #else
             #include "hello.h"
             #endif
         '''
-        'GARBAGE'              | '''
+        'GARBAGE'           | '''
             #if 0
             #define GARBAGE a b c
             #include GARBAGE
@@ -480,7 +480,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
             #include "hello.h"
             #endif
         '''
-        'a b c'                | '''
+        'a b c'             | '''
             #if 0
             #include a b c
             #else
