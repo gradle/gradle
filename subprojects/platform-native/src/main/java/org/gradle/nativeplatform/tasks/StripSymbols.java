@@ -52,11 +52,18 @@ public class StripSymbols extends DefaultTask {
         this.outputFile = newOutputFile();
     }
 
+    /**
+     * The file that debug symbols should be stripped from.  Note that this file remains unchanged
+     * and a new stripped binary will be written to the file specified by {{@link #getOutputFile()}}.
+     */
     @InputFile
     public RegularFileProperty getBinaryFile() {
         return binaryFile;
     }
 
+    /**
+     * The destination to write the stripped binary to.
+     */
     @OutputFile
     public RegularFileProperty getOutputFile() {
         return outputFile;

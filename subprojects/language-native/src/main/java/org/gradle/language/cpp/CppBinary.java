@@ -53,7 +53,7 @@ public interface CppBinary extends SoftwareComponent {
     boolean isDebuggable();
 
     /**
-     * Returns true if this binary has debugging enabled.
+     * Returns true if this binary is optimized.
      *
      * @since 4.5
      */

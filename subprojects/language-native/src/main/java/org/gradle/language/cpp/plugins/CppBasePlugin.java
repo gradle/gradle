@@ -146,7 +146,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
                             }
                         }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
                         executable.getExecutableFile().set(stripSymbols.getOutputFile());
                     } else {
                         executable.getExecutableFile().set(link.getBinaryFile());
@@ -154,6 +154,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                     // Add an install task
                     // TODO - should probably not add this for all executables?
+                    // TODO - add stripped symbols to the installation
                     final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
                     install.setPlatform(link.getTargetPlatform());
                     install.setToolChain(link.getToolChain());
@@ -211,7 +212,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
                             }
                         }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
                         linkFile = stripSymbols.getOutputFile();
                         runtimeFile = stripSymbols.getOutputFile();
                     }
@@ -243,7 +244,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 depend.getImportsAreIncludes().set(Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass()));
             }
 
-            private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation) {
+            private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation) {
                 ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
                 extractSymbols.getBinaryFile().set(link.getBinaryFile());
                 extractSymbols.getSymbolFile().set(symbolLocation);

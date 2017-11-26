@@ -137,7 +137,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getModule().get());
                             }
                         }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
                         executable.getExecutableFile().set(stripSymbols.getOutputFile());
                     } else {
                         executable.getExecutableFile().set(link.getBinaryFile());
@@ -190,7 +190,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
                             }
                         }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
                         library.getRuntimeFile().set(stripSymbols.getOutputFile());
                     } else {
                         library.getRuntimeFile().set(link.getBinaryFile());
@@ -201,7 +201,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation) {
+    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation) {
         ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
         extractSymbols.getBinaryFile().set(link.getBinaryFile());
         extractSymbols.getSymbolFile().set(symbolLocation);

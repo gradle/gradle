@@ -52,11 +52,17 @@ public class ExtractSymbols extends DefaultTask {
         this.symbolFile = newOutputFile();
     }
 
+    /**
+     * The file to extract debug symbols from.
+     */
     @InputFile
     public RegularFileProperty getBinaryFile() {
         return binaryFile;
     }
 
+    /**
+     * The destination file to extract debug symbols into.
+     */
     @OutputFile
     public RegularFileProperty getSymbolFile() {
         return symbolFile;
