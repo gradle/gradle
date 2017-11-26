@@ -29,6 +29,7 @@ import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
@@ -36,6 +37,7 @@ import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<IvyConfigurationMetadata> implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
+    private ImmutableList<IvyDependencyDescriptor> dependencies;
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
@@ -53,7 +55,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         this(id, componentIdentifier, ImmutableList.<IvyDependencyDescriptor>of());
     }
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ExternalDependencyDescriptor> dependencies) {
+    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<IvyDependencyDescriptor> dependencies) {
         this(id, componentIdentifier,
             ImmutableList.of(new Configuration(DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of())),
             ImmutableList.copyOf(dependencies),
@@ -62,10 +64,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurationDefinitions,
-                                                  Collection<? extends ExternalDependencyDescriptor> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
-        super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
+                                                  List<IvyDependencyDescriptor> dependencies, Collection<? extends Artifact> artifactDefinitions, Collection<? extends Exclude> excludes) {
+        super(id, componentIdentifier);
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);
+        this.dependencies = ImmutableList.copyOf(dependencies);
         this.excludes = ImmutableList.of();
         this.extraAttributes = ImmutableMap.of();
         this.excludes = ImmutableList.copyOf(excludes);
@@ -75,6 +78,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.artifactDefinitions = metadata.getArtifactDefinitions();
+        this.dependencies = ImmutableList.copyOf(metadata.getDependencies());
         this.excludes = metadata.getExcludes();
         this.branch = metadata.getBranch();
         this.extraAttributes = metadata.getExtraAttributes();
@@ -134,4 +138,8 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         return new DefaultIvyModuleResolveMetadata(this);
     }
 
+    @Override
+    public ImmutableList<IvyDependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
 
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
@@ -35,4 +37,9 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
 
     boolean isRelocated();
     void setRelocated(boolean relocated);
+
+    /**
+     * Returns the dependency declarations of this component.
+     */
+    ImmutableList<MavenDependencyDescriptor> getDependencies();
 }

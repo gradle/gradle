@@ -77,11 +77,6 @@ public interface MutableModuleComponentResolveMetadata {
     boolean definesVariant(String name);
 
     /**
-     * Returns the dependency declarations of this component.
-     */
-    List<? extends ExternalDependencyDescriptor> getDependencies();
-
-    /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);

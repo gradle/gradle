@@ -105,7 +105,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     }
 
     @Override
-    protected ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
+    protected IvyDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
         return new IvyDependencyDescriptor(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 

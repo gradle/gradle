@@ -33,7 +33,6 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -76,7 +75,7 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
-    private List<ExternalDependencyDescriptor> dependencies = Lists.newArrayList();
+    private List<MavenDependencyDescriptor> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private String status;
@@ -89,7 +88,7 @@ public class GradlePomModuleDescriptorBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public List<ExternalDependencyDescriptor> getDependencies() {
+    public List<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
     }
 

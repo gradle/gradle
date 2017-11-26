@@ -48,7 +48,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    protected final List<? extends ExternalDependencyDescriptor> dependencies;
     private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
@@ -66,7 +65,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         configurationDefinitions = metadata.getConfigurationDefinitions();
-        dependencies = metadata.getDependencies();
         dependencyMetadataRules = metadata.dependencyMetadataRules;
         contentHash = metadata.getContentHash();
 
@@ -85,36 +83,20 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         statusScheme = metadata.statusScheme;
         moduleSource = source;
         configurationDefinitions = metadata.configurationDefinitions;
-        dependencies = metadata.dependencies;
         dependencyMetadataRules = metadata.dependencyMetadataRules;
         contentHash = metadata.contentHash;
 
         variants = metadata.variants;
-
-        // Copy built-on-demand state
-        configurations.putAll(metadata.configurations);
-        this.graphVariants = metadata.graphVariants;
     }
 
     /**
-     * Creates a copy of the given metadata with the provided dependencies.
+     * Clear any cached state, for the case where the inputs are invalidated.
+     * This only happens when constructing a copy
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, List<? extends ExternalDependencyDescriptor> dependencies) {
-        this.componentIdentifier = metadata.getComponentId();
-        this.moduleVersionIdentifier = metadata.getId();
-        changing = metadata.changing;
-        missing = metadata.missing;
-        status = metadata.status;
-        statusScheme = metadata.statusScheme;
-        moduleSource = metadata.moduleSource;
-        configurationDefinitions = metadata.configurationDefinitions;
-        dependencyMetadataRules = metadata.dependencyMetadataRules;
-        contentHash = metadata.contentHash;
-
-        variants = metadata.getVariants();
-
-        // Set the dependencies, and do not copy built-on-demand state
-        this.dependencies = dependencies;
+    protected void copyCachedState(AbstractModuleComponentResolveMetadata<T> metadata) {
+        // Copy built-on-demand state
+        configurations.putAll(metadata.configurations);
+        this.graphVariants = metadata.graphVariants;
     }
 
     private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
@@ -238,11 +220,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
-    }
-
-    @Override
-    public List<? extends ExternalDependencyDescriptor> getDependencies() {
-        return dependencies;
     }
 
     @Override

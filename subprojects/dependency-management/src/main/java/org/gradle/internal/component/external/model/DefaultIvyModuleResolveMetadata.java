@@ -42,6 +42,7 @@ import java.util.Set;
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<IvyConfigurationMetadata> implements IvyModuleResolveMetadata {
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     private final ImmutableMap<String, Configuration> configurationDefinitions;
+    private final ImmutableList<IvyDependencyDescriptor> dependencies;
     private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableList<Exclude> excludes;
     private final ImmutableMap<NamespaceId, String> extraAttributes;
@@ -54,6 +55,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
         this.artifactDefinitions = metadata.getArtifactDefinitions();
+        this.dependencies = metadata.getDependencies();
         this.excludes = metadata.getExcludes();
         this.extraAttributes = metadata.getExtraAttributes();
     }
@@ -63,17 +65,23 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
+        this.dependencies = metadata.dependencies;
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
+
+        copyCachedState(metadata);
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends ExternalDependencyDescriptor> dependencies) {
-        super(metadata, dependencies);
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
+        super(metadata, metadata.getSource());
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
+        this.dependencies = ImmutableList.copyOf(dependencies);
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
+
+        // Cached state is not copied, since dependency inputs are different.
     }
 
     @Override
@@ -198,24 +206,19 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<ExternalDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<ExternalDependencyDescriptor, ExternalDependencyDescriptor>() {
+        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<IvyDependencyDescriptor, IvyDependencyDescriptor>() {
             @Override
-            public ExternalDependencyDescriptor transform(ExternalDependencyDescriptor dependency) {
-                if (dependency instanceof IvyDependencyDescriptor) {
-                    IvyDependencyDescriptor ivyDependency = (IvyDependencyDescriptor) dependency;
-                    ModuleComponentSelector selector = ivyDependency.getSelector();
-                    String dynamicConstraintVersion = ivyDependency.getDynamicConstraintVersion();
+            public IvyDependencyDescriptor transform(IvyDependencyDescriptor dependency) {
+                ModuleComponentSelector selector = dependency.getSelector();
+                    String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
                     ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), dynamicConstraintVersion);
-                    return ivyDependency.withRequested(newSelector);
-                }
-
-                return dependency;
+                    return dependency.withRequested(newSelector);
             }
         });
         return this.withDependencies(transformed);
     }
 
-    private IvyModuleResolveMetadata withDependencies(List<ExternalDependencyDescriptor> transformed) {
+    private IvyModuleResolveMetadata withDependencies(List<IvyDependencyDescriptor> transformed) {
         return new DefaultIvyModuleResolveMetadata(this, transformed);
     }
 
@@ -223,5 +226,10 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return SCHEMA_DEFAULT_JAVA_VARIANTS;
+    }
+
+    @Override
+    public ImmutableList<IvyDependencyDescriptor> getDependencies() {
+        return dependencies;
     }
 }

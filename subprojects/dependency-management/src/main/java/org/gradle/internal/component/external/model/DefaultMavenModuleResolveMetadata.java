@@ -34,6 +34,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
 
+    private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
@@ -43,6 +44,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
+        dependencies = metadata.getDependencies();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
@@ -50,6 +52,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
+        dependencies = metadata.dependencies;
+
+        copyCachedState(metadata);
     }
 
     @Override
@@ -72,10 +77,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(MavenConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (ExternalDependencyDescriptor dependency : dependencies) {
-            MavenDependencyDescriptor mavenDependency = (MavenDependencyDescriptor) dependency;
-            if (include(mavenDependency, config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), mavenDependency));
+        for (MavenDependencyDescriptor dependency : dependencies) {
+            if (include(dependency, config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
         return filteredDependencies.build();
@@ -131,4 +135,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return SCHEMA_DEFAULT_JAVA_VARIANTS;
     }
 
+    @Override
+    public ImmutableList<MavenDependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
 }

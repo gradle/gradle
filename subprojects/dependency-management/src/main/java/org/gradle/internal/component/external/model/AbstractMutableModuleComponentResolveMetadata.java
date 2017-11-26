@@ -58,7 +58,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private List<? extends ExternalDependencyDescriptor> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
@@ -69,10 +68,9 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private ImmutableList<? extends ComponentVariant> variants;
 
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ExternalDependencyDescriptor> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this.componentId = componentIdentifier;
         this.id = id;
-        this.dependencies = dependencies;
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -83,7 +81,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
     }
@@ -191,11 +188,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
         dependencyMetadataRules.get(variantName).addAction(action);
-    }
-
-    @Override
-    public List<? extends ExternalDependencyDescriptor> getDependencies() {
-        return dependencies;
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {

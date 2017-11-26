@@ -33,6 +33,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
+    private ImmutableList<MavenDependencyDescriptor> dependencies;
 
     /**
      * Creates default metadata for a Maven module with no POM.
@@ -47,8 +48,9 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this(id, componentIdentifier, ImmutableList.<MavenDependencyDescriptor>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ExternalDependencyDescriptor> dependencies) {
-        super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies) {
+        super(id, componentIdentifier);
+        this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
@@ -56,6 +58,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+        this.dependencies = metadata.getDependencies();
     }
 
     @Override
@@ -109,4 +112,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    @Override
+    public ImmutableList<MavenDependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
 }

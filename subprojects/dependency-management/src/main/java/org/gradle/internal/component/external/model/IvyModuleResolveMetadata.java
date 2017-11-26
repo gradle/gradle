@@ -75,4 +75,6 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
      * Returns this metadata with all dependencies transformed to use the dynamic constraint version.
      */
     IvyModuleResolveMetadata withDynamicConstraintVersions();
+
+    ImmutableList<IvyDependencyDescriptor> getDependencies();
 }
