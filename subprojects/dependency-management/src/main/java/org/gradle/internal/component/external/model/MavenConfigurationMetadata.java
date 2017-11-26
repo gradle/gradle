@@ -21,13 +21,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 
+// TODO:DAZ Unnecessary subtype
 class MavenConfigurationMetadata extends DefaultConfigurationMetadata {
     MavenConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, DependencyMetadataRules dependencyMetadataRules) {
-        super(componentId, name, transitive, visible, hierarchy, artifacts, dependencyMetadataRules);
-    }
-
-    @Override
-    public ImmutableList<ExcludeMetadata> getExcludes() {
-        return ImmutableList.of();
+        super(componentId, name, transitive, visible, hierarchy, artifacts, dependencyMetadataRules, ImmutableList.<ExcludeMetadata>of());
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ModuleSource;
@@ -53,13 +54,44 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, DependencyMetadataRules dependencyMetadataRules) {
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
+        MavenConfigurationMetadata mavenConfigurationMetadata = new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules);
+        mavenConfigurationMetadata.setDependencies(filterDependencies(mavenConfigurationMetadata));
+        return mavenConfigurationMetadata;
+    }
+
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getComponentId(), new DefaultIvyArtifactName(getComponentId().getModule(), "jar", "jar")));
         } else {
             artifacts = ImmutableList.of();
         }
-        return new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules);
+        return artifacts;
+    }
+
+    private ImmutableList<ModuleDependencyMetadata> filterDependencies(MavenConfigurationMetadata config) {
+        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        for (ModuleDependencyMetadata dependency : dependencies) {
+            DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+            if (include(defaultDependencyMetadata, config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
+            }
+        }
+        return filteredDependencies.build();
+    }
+
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, DefaultDependencyMetadata incoming) {
+        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+    }
+
+    private boolean include(DefaultDependencyMetadata dependency, Collection<String> hierarchy) {
+        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+            if (hierarchy.contains(moduleConfiguration)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

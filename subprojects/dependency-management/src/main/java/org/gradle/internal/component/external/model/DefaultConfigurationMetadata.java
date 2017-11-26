@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -27,6 +26,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
@@ -41,18 +41,20 @@ import java.util.Set;
 public abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
-    private final List<ModuleDependencyMetadata> configDependencies = Lists.newArrayList();
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
     private final ImmutableList<String> hierarchy;
     private final DependencyMetadataRules dependencyMetadataRules;
+    private final ImmutableList<ExcludeMetadata> excludes;
 
+    // Should be final, and set in constructor
+    private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                           @Nullable DependencyMetadataRules dependencyMetadataRules) {
+                                           @Nullable DependencyMetadataRules dependencyMetadataRules, ImmutableList<ExcludeMetadata> excludes) {
         this.componentId = componentId;
         this.name = name;
         this.transitive = transitive;
@@ -60,6 +62,7 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         this.artifacts = artifacts;
         this.hierarchy = hierarchy;
         this.dependencyMetadataRules = dependencyMetadataRules;
+        this.excludes = excludes;
     }
 
     @Override
@@ -119,45 +122,15 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
         return calculatedDependencies;
     }
 
+    protected void setDependencies(List<ModuleDependencyMetadata> dependencies) {
+        assert this.configDependencies == null; // Can only set once: should really be part of the constructor
+        this.configDependencies = ImmutableList.copyOf(dependencies);
+    }
+
     protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
         for (ModuleDependencyMetadata dependency : dependencies) {
-            if (dependency instanceof DefaultDependencyMetadata) {
-                // For DefaultDependencyMetadata, need to check if it applies to this configuration, and contextualize
-                DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
-                if (include(defaultDependencyMetadata)) {
-                    this.configDependencies.add(contextualize(defaultDependencyMetadata));
-                }
-            } else {
-                this.configDependencies.add(dependency);
-            }
+            this.configDependencies.add(dependency);
         }
-    }
-
-    private ModuleDependencyMetadata contextualize(DefaultDependencyMetadata incoming) {
-        return new ConfigurationDependencyMetadataWrapper(this, componentId, incoming);
-    }
-
-    // TODO:DAZ This logic should be simpler for Maven modules: each dependency has a single scope
-    private boolean include(DefaultDependencyMetadata dependency) {
-        Collection<String> hierarchy = getHierarchy();
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
-            if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                return true;
-            }
-            if (moduleConfiguration.equals("*")) {
-                boolean include = true;
-                for (String conf2 : dependency.getModuleConfigurations()) {
-                    if (conf2.startsWith("!") && conf2.substring(1).equals(getName())) {
-                        include = false;
-                        break;
-                    }
-                }
-                if (include) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override
@@ -168,6 +141,11 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
     @Override
     public Set<? extends VariantMetadata> getVariants() {
         return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts()));
+    }
+
+    @Override
+    public ImmutableList<ExcludeMetadata> getExcludes() {
+        return excludes;
     }
 
     @Override

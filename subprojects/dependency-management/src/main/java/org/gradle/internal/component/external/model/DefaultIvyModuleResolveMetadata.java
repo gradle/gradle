@@ -24,8 +24,10 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
@@ -76,13 +78,22 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules) {
+        ImmutableList<ModuleComponentArtifactMetadata> artifacts = filterArtifacts(name, hierarchy);
+        ImmutableList<ExcludeMetadata> excludesForConfiguration = filterExcludes(hierarchy);
+
+        IvyConfigurationMetadata ivyConfigurationMetadata = new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), dependencyMetadataRules, excludesForConfiguration);
+        ivyConfigurationMetadata.setDependencies(filterDependencies(ivyConfigurationMetadata));
+        return ivyConfigurationMetadata;
+    }
+
+    private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
+        // TODO:DAZ This implementation seems inefficient, but we are preserving the hierarchy order in the artifact order. Is this important?
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
             collectArtifactsFor(parent, artifacts);
         }
-
-        return new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, excludes, ImmutableList.copyOf(artifacts), dependencyMetadataRules);
+        return ImmutableList.copyOf(artifacts);
     }
 
     private void collectArtifactsFor(String name, Collection<ModuleComponentArtifactMetadata> dest) {
@@ -101,6 +112,56 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
             }
         }
     }
+
+    private ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
+        ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
+        for (Exclude exclude : excludes) {
+            for (String config : exclude.getConfigurations()) {
+                if (hierarchy.contains(config)) {
+                    filtered.add(exclude);
+                    break;
+                }
+            }
+        }
+        return filtered.build();
+    }
+
+    private ImmutableList<ModuleDependencyMetadata> filterDependencies(IvyConfigurationMetadata config) {
+        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        for (ModuleDependencyMetadata dependency : dependencies) {
+            DefaultDependencyMetadata defaultDependencyMetadata = (DefaultDependencyMetadata) dependency;
+            if (include(defaultDependencyMetadata, config.getName(), config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
+            }
+        }
+        return filteredDependencies.build();
+    }
+
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, DefaultDependencyMetadata incoming) {
+        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+    }
+
+    private boolean include(DefaultDependencyMetadata dependency, String configName, Collection<String> hierarchy) {
+        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+            if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+                return true;
+            }
+            if (moduleConfiguration.equals("*")) {
+                boolean include = true;
+                for (String conf2 : dependency.getModuleConfigurations()) {
+                    if (conf2.startsWith("!") && conf2.substring(1).equals(configName)) {
+                        include = false;
+                        break;
+                    }
+                }
+                if (include) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {

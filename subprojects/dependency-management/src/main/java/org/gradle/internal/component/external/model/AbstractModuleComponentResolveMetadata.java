@@ -48,7 +48,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final List<? extends ModuleDependencyMetadata> dependencies;
+    protected final List<? extends ModuleDependencyMetadata> dependencies;
     private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
@@ -131,7 +131,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createAndPopulateConfiguration(componentIdentifier, name, transitive, visible, hierarchy);
+        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, dependencyMetadataRules.get(name));
         configurations.put(name, populated);
         return populated;
     }
@@ -152,15 +152,6 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
             Configuration parent = configurationDefinitions.get(parentName);
             populateHierarchy(parent, accumulator);
         }
-    }
-
-    /**
-     * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
-     */
-    private T createAndPopulateConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy) {
-        T configuration = createConfiguration(componentId, name, transitive, visible, hierarchy, dependencyMetadataRules.get(name));
-        configuration.populateDependencies(dependencies);
-        return configuration;
     }
 
     /**
