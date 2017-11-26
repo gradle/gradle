@@ -34,9 +34,9 @@ import java.util.List;
 public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final ConfigurationMetadata configuration;
     private final ModuleComponentIdentifier componentId;
-    private final DefaultDependencyMetadata delegate;
+    private final ExternalDependencyDescriptor delegate;
 
-    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, DefaultDependencyMetadata delegate) {
+    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.delegate = delegate;
@@ -85,7 +85,7 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
-        DefaultDependencyMetadata newDelegate = delegate.withRequested(newSelector);
+        ExternalDependencyDescriptor newDelegate = delegate.withRequested(newSelector);
         return new ConfigurationDependencyMetadataWrapper(configuration, componentId, newDelegate);
     }
 

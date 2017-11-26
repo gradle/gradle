@@ -67,7 +67,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.extraAttributes = metadata.extraAttributes;
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends DefaultDependencyMetadata> dependencies) {
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<? extends ExternalDependencyDescriptor> dependencies) {
         super(metadata, dependencies);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
@@ -128,8 +128,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(IvyConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (DefaultDependencyMetadata dependency : dependencies) {
-            IvyDependencyMetadata defaultDependencyMetadata = (IvyDependencyMetadata) dependency;
+        for (ExternalDependencyDescriptor dependency : dependencies) {
+            IvyDependencyDescriptor defaultDependencyMetadata = (IvyDependencyDescriptor) dependency;
             if (include(defaultDependencyMetadata, config.getName(), config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
             }
@@ -137,11 +137,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, DefaultDependencyMetadata incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(DefaultDependencyMetadata dependency, String configName, Collection<String> hierarchy) {
+    private boolean include(ExternalDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
         for (String moduleConfiguration : dependency.getModuleConfigurations()) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                 return true;
@@ -198,11 +198,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<DefaultDependencyMetadata> transformed = CollectionUtils.collect(getDependencies(), new Transformer<DefaultDependencyMetadata, DefaultDependencyMetadata>() {
+        List<ExternalDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<ExternalDependencyDescriptor, ExternalDependencyDescriptor>() {
             @Override
-            public DefaultDependencyMetadata transform(DefaultDependencyMetadata dependency) {
-                if (dependency instanceof IvyDependencyMetadata) {
-                    IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dependency;
+            public ExternalDependencyDescriptor transform(ExternalDependencyDescriptor dependency) {
+                if (dependency instanceof IvyDependencyDescriptor) {
+                    IvyDependencyDescriptor ivyDependency = (IvyDependencyDescriptor) dependency;
                     ModuleComponentSelector selector = ivyDependency.getSelector();
                     String dynamicConstraintVersion = ivyDependency.getDynamicConstraintVersion();
                     ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), dynamicConstraintVersion);
@@ -215,7 +215,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return this.withDependencies(transformed);
     }
 
-    private IvyModuleResolveMetadata withDependencies(List<DefaultDependencyMetadata> transformed) {
+    private IvyModuleResolveMetadata withDependencies(List<ExternalDependencyDescriptor> transformed) {
         return new DefaultIvyModuleResolveMetadata(this, transformed);
     }
 

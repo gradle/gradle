@@ -17,16 +17,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.AttributeConfigurationSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -34,28 +31,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public abstract class DefaultDependencyMetadata {
-    private final ModuleComponentSelector selector;
-    private final boolean optional;
+/**
+ * Represents dependency information as stored in an external descriptor file.
+ * This information is able to be transformed into a `ModuleDependencyMetadata` instance.
+ */
+public abstract class ExternalDependencyDescriptor {
 
-    protected DefaultDependencyMetadata(ModuleComponentSelector selector, boolean optional) {
-        this.selector = selector;
-        this.optional = optional;
-    }
+    public abstract ModuleComponentSelector getSelector();
 
-    public ModuleComponentSelector getSelector() {
-        return selector;
-    }
-
-    public boolean isOptional() {
-        return optional;
-    }
+    public abstract boolean isOptional();
 
     public abstract boolean isChanging();
 
     public abstract boolean isTransitive();
 
-    protected abstract DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested);
+    protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
 
     public List<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {

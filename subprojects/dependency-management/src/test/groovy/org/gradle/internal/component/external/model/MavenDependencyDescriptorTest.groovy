@@ -51,15 +51,15 @@ import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.util.TestUtil
 
-class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
+class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     final ModuleExclusions moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
     @Override
-    DefaultDependencyMetadata create(ModuleComponentSelector selector) {
+    ExternalDependencyDescriptor create(ModuleComponentSelector selector) {
         return mavenDependencyMetadata(MavenScope.Compile, false, selector, [])
     }
 
-    DefaultDependencyMetadata createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
+    ExternalDependencyDescriptor createWithExcludes(ModuleComponentSelector selector, List<Exclude> excludes) {
         return mavenDependencyMetadata(MavenScope.Compile, false, selector, excludes)
     }
 
@@ -287,7 +287,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         thrown(ConfigurationNotFoundException)
     }
 
-    private static MavenDependencyMetadata mavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
-        return new MavenDependencyMetadata(scope, optional, selector, null, excludes)
+    private static MavenDependencyDescriptor mavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
+        return new MavenDependencyDescriptor(scope, optional, selector, null, excludes)
     }
 }

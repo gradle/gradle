@@ -79,7 +79,7 @@ public interface MutableModuleComponentResolveMetadata {
     /**
      * Returns the dependency declarations of this component.
      */
-    List<? extends DefaultDependencyMetadata> getDependencies();
+    List<? extends ExternalDependencyDescriptor> getDependencies();
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

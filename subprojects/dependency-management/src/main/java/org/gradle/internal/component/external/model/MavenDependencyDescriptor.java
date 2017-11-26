@@ -32,23 +32,35 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class MavenDependencyMetadata extends DefaultDependencyMetadata {
+/**
+ * Represents a dependency as represented in a Maven POM file.
+ */
+public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
+    private final ModuleComponentSelector selector;
     private final MavenScope scope;
-    private final Set<String> moduleConfigurations;
+    private final boolean optional;
     private final ImmutableList<ExcludeMetadata> excludes;
+
+    // A dependency artifact will be defined if the descriptor specified a classifier or non-default type attribute.
+    @Nullable
     private final IvyArtifactName dependencyArtifact;
 
-    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleComponentSelector selector,
-                                   @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
-        super(selector, optional);
+    // The module configurations that this dependency applies to: should not be necessary.
+    private final Set<String> moduleConfigurations;
+
+    public MavenDependencyDescriptor(MavenScope scope, boolean optional, ModuleComponentSelector selector,
+                                     @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
         this.scope = scope;
-        if (isOptional() && scope != MavenScope.Test && scope != MavenScope.System) {
+        this.selector = selector;
+        this.optional = optional;
+        this.dependencyArtifact = dependencyArtifact;
+        this.excludes = ImmutableList.copyOf(excludes);
+
+        if (optional && scope != MavenScope.Test && scope != MavenScope.System) {
             moduleConfigurations = ImmutableSet.of("optional", scope.name().toLowerCase());
         } else {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
-        this.dependencyArtifact = dependencyArtifact;
-        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     @Override
@@ -107,8 +119,8 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
-        return new MavenDependencyMetadata(scope, isOptional(), newRequested, dependencyArtifact, excludes);
+    protected ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
+        return new MavenDependencyDescriptor(scope, isOptional(), newRequested, dependencyArtifact, excludes);
     }
 
     public List<ExcludeMetadata> getAllExcludes() {
@@ -132,5 +144,15 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         // For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
         return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
+    }
+
+    @Override
+    public ModuleComponentSelector getSelector() {
+        return selector;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return optional;
     }
 }

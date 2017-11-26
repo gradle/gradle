@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.internal.component.external.descriptor.MavenScope
-import org.gradle.internal.component.external.model.MavenDependencyMetadata
+import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
@@ -174,7 +173,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
-            dependenciesMetadata += [ new MavenDependencyMetadata(MavenScope.Compile, false, requested, null, []) ]
+            dependenciesMetadata += [ new GradleDependencyMetadata(requested, []) ]
         }
         adapter = new DependenciesMetadataAdapter(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE))
     }

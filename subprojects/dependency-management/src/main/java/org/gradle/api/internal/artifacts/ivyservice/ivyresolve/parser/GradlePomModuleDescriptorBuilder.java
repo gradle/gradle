@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -32,11 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.IvyDependencyMetadata;
-import org.gradle.internal.component.external.model.MavenDependencyMetadata;
+import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -78,7 +76,7 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
-    private List<DefaultDependencyMetadata> dependencies = Lists.newArrayList();
+    private List<ExternalDependencyDescriptor> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private String status;
@@ -91,7 +89,7 @@ public class GradlePomModuleDescriptorBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public List<DefaultDependencyMetadata> getDependencies() {
+    public List<ExternalDependencyDescriptor> getDependencies() {
         return dependencies;
     }
 
@@ -177,7 +175,7 @@ public class GradlePomModuleDescriptorBuilder {
             excludes.add(rule);
         }
 
-        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, dependencyArtifact, excludes));
+        dependencies.add(new MavenDependencyDescriptor(scope, optional, selector, dependencyArtifact, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -266,7 +264,6 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependencyForRelocation(ModuleComponentSelector selector) {
-
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
@@ -275,16 +272,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        // TODO - this is a constant
-        ListMultimap<String, String> confMappings = ArrayListMultimap.create();
-        // Map dependency on all public configurations
-        for (Configuration m2Conf : GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS.values()) {
-            if (m2Conf.isVisible()) {
-                confMappings.put(m2Conf.getName(), m2Conf.getName());
-            }
-        }
-
-        dependencies.add(new IvyDependencyMetadata(selector, confMappings));
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.Runtime, false, selector, null, ImmutableList.<ExcludeMetadata>of()));
     }
 
     private String getDefaultVersion(PomDependencyMgt dep) {

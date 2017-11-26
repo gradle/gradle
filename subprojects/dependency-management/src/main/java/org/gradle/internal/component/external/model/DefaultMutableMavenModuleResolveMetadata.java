@@ -44,10 +44,10 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<MavenDependencyMetadata>of());
+        this(id, componentIdentifier, ImmutableList.<MavenDependencyDescriptor>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends DefaultDependencyMetadata> dependencies) {
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ExternalDependencyDescriptor> dependencies) {
         super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
     }
 

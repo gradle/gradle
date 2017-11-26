@@ -72,20 +72,20 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(MavenConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (DefaultDependencyMetadata dependency : dependencies) {
-            MavenDependencyMetadata defaultDependencyMetadata = (MavenDependencyMetadata) dependency;
-            if (include(defaultDependencyMetadata, config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
+        for (ExternalDependencyDescriptor dependency : dependencies) {
+            MavenDependencyDescriptor mavenDependency = (MavenDependencyDescriptor) dependency;
+            if (include(mavenDependency, config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), mavenDependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, DefaultDependencyMetadata incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(DefaultDependencyMetadata dependency, Collection<String> hierarchy) {
+    private boolean include(ExternalDependencyDescriptor dependency, Collection<String> hierarchy) {
         for (String moduleConfiguration : dependency.getModuleConfigurations()) {
             if (hierarchy.contains(moduleConfiguration)) {
                 return true;

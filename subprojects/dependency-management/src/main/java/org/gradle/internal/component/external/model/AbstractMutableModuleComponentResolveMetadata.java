@@ -58,7 +58,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private List<? extends DefaultDependencyMetadata> dependencies;
+    private List<? extends ExternalDependencyDescriptor> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
 
     protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
@@ -69,7 +69,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private ImmutableList<? extends ComponentVariant> variants;
 
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DefaultDependencyMetadata> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ExternalDependencyDescriptor> dependencies) {
         this.componentId = componentIdentifier;
         this.id = id;
         this.dependencies = dependencies;
@@ -194,7 +194,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     }
 
     @Override
-    public List<? extends DefaultDependencyMetadata> getDependencies() {
+    public List<? extends ExternalDependencyDescriptor> getDependencies() {
         return dependencies;
     }
 

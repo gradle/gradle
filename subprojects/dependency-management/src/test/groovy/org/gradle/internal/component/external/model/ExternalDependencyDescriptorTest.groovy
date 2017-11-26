@@ -22,13 +22,12 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ConfigurationMetadata
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-abstract class DefaultDependencyMetadataTest extends Specification {
+abstract class ExternalDependencyDescriptorTest extends Specification {
     def attributesSchema = Stub(AttributesSchemaInternal)
 
     def requested = newSelector("org", "module", v("1.2+"))
@@ -38,7 +37,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         new DefaultMutableVersionConstraint(version)
     }
 
-    abstract DefaultDependencyMetadata create(ModuleComponentSelector selector)
+    abstract ExternalDependencyDescriptor create(ModuleComponentSelector selector)
 
     def "creates a copy with new requested version"() {
         def metadata = create(requested)
@@ -46,32 +45,12 @@ abstract class DefaultDependencyMetadataTest extends Specification {
         given:
 
         when:
-        def copy = metadata.withRequestedVersion(v("1.3+"))
-        def expected = newSelector("org", "module", v("1.3+"))
+        def target = newSelector("org", "module", v("1.3+"))
+        def copy = metadata.withRequested(target)
 
         then:
         copy != metadata
-        copy.selector == expected
-    }
-
-    def "returns this if new requested version is the same as current requested version"() {
-        def metadata = create(requested)
-
-        expect:
-        metadata.withRequestedVersion(v("1.2+")).is(metadata)
-        metadata.withTarget(newSelector("org", "module", v("1.2+"))).is(metadata)
-    }
-
-    def "creates a copy with new requested project selector"() {
-        def metadata = create(requested)
-        def selector = TestComponentIdentifiers.newSelector(":project")
-
-        when:
-        def copy = metadata.withTarget(selector)
-
-        then:
-        copy != metadata
-        copy.selector == selector
+        copy.selector == target
     }
 
     def "returns a module component selector if descriptor indicates a default dependency"() {

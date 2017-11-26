@@ -38,25 +38,31 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class IvyDependencyMetadata extends DefaultDependencyMetadata {
+/**
+ * Represents a dependency as represented in an Ivy module descriptor file.
+ */
+public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
+    private final ModuleComponentSelector selector;
     private final String dynamicConstraintVersion;
     private final boolean changing;
     private final boolean transitive;
+    private final boolean optional;
     private final SetMultimap<String, String> confs;
     private final List<Exclude> excludes;
     private final List<Artifact> dependencyArtifacts;
 
-    public IvyDependencyMetadata(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(selector, optional);
+    public IvyDependencyDescriptor(ModuleComponentSelector selector, String dynamicConstraintVersion, boolean changing, boolean transitive, boolean optional, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+        this.selector = selector;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.changing = changing;
         this.transitive = transitive;
+        this.optional = optional;
         this.confs = ImmutableSetMultimap.copyOf(confMappings);
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
-    public IvyDependencyMetadata(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
+    public IvyDependencyDescriptor(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
         this(requested, requested.getVersionConstraint().getPreferredVersion(), false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
     }
 
@@ -66,8 +72,13 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    protected DefaultDependencyMetadata withRequested(ModuleComponentSelector newRequested) {
-        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
+    public ModuleComponentSelector getSelector() {
+        return selector;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return optional;
     }
 
     @Override
@@ -91,6 +102,11 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     public SetMultimap<String, String> getConfMappings() {
         return confs;
+    }
+
+    @Override
+    protected ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
+        return new IvyDependencyDescriptor(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 
     public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
@@ -222,5 +238,4 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         }
         return false;
     }
-
 }

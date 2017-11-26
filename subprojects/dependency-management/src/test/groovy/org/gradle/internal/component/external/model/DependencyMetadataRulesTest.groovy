@@ -46,13 +46,13 @@ class DependencyMetadataRulesTest extends Specification {
 
     private ivyComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new IvyDependencyMetadata(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+            new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
         }
         new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyMetadata(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), null, [])
+            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), null, [])
         }
         new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
