@@ -60,20 +60,17 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private ModuleSource moduleSource;
     private HashValue contentHash = EMPTY_CONTENT;
 
-    protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
+    final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
     private List<MutableVariantImpl> newVariants;
-
-    // TODO:DAZ Maybe only construct these once immutable
     private ImmutableList<? extends ComponentVariant> variants;
 
-
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
+    AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this.componentId = componentIdentifier;
         this.id = id;
     }
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
+    AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
         this.componentId = metadata.getComponentId();
         this.id = metadata.getId();
         this.changing = metadata.isChanging();

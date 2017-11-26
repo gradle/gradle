@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,8 +29,11 @@ import java.util.Set;
 public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
+     *
+     * It would be good to remove this from the API, as consumers of this interface generally have no need
+     * for this information. However it _is_ currently used by {@link MavenDependencyDescriptor#selectLegacyConfigurations}
+     * to determine if the target 'runtime' configuration includes the target 'compile' configuration.
      */
-    // TODO:DAZ Remove this from this API: it's only required by implementors, not consumers
     Collection<String> getHierarchy();
 
     String getName();
@@ -82,6 +86,5 @@ public interface ConfigurationMetadata extends HasAttributes {
      * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
      * (For external module components, we just instantiate a new artifact metadata).
      */
-    // TODO:DAZ Try to remove this from the ConfigurationMetadata API
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 }

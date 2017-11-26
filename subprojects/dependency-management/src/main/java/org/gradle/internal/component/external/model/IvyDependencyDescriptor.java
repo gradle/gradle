@@ -193,7 +193,6 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return excludes;
     }
 
-    // TODO:DAZ Could do this work when constructing the ConfigurationMetadata
     @Override
     public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
         List<ExcludeMetadata> rules = Lists.newArrayList();

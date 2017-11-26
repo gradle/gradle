@@ -95,7 +95,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
-        // TODO:DAZ This implementation seems inefficient, but we are preserving the hierarchy order in the artifact order. Is this important?
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
@@ -109,7 +108,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }
         for (Artifact artifact : artifactDefinitions) {
-            // TODO:DAZ I think this is a bug: we should be checking for '*' here
             if (artifact.getConfigurations().contains(name)) {
                 ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
                 if (artifactMetadata == null) {

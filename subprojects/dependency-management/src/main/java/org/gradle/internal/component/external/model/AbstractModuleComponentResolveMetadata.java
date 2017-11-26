@@ -118,7 +118,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return populated;
     }
 
-    // TODO:DAZ We might be better off constructing the tree once
     private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableList.of(descriptorConfiguration.getName());
@@ -229,7 +228,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
-        // TODO:DAZ Try `CacheBuilder` or similar
         return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
     }
 }
