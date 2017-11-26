@@ -49,7 +49,7 @@ import java.util.Map;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;

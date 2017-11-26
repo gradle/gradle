@@ -34,7 +34,7 @@ import java.util.Map;
 
 import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
-public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<IvyConfigurationMetadata> implements MutableIvyModuleResolveMetadata {
+public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifactDefinitions;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private ImmutableList<IvyDependencyDescriptor> dependencies;

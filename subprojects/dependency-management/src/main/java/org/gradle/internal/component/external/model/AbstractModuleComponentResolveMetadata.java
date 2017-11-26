@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements ModuleComponentResolveMetadata {
+abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
@@ -53,10 +53,10 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     private final HashValue contentHash;
 
     // Configurations are built on-demand, but only once.
-    private final Map<String, T> configurations = Maps.newHashMap();
+    private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
-    protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata<T> metadata) {
+    protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -74,7 +74,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata<T> metadata, @Nullable ModuleSource source) {
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.changing;
@@ -93,14 +93,14 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
      * Clear any cached state, for the case where the inputs are invalidated.
      * This only happens when constructing a copy
      */
-    protected void copyCachedState(AbstractModuleComponentResolveMetadata<T> metadata) {
+    protected void copyCachedState(AbstractModuleComponentResolveMetadata metadata) {
         // Copy built-on-demand state
         configurations.putAll(metadata.configurations);
         this.graphVariants = metadata.graphVariants;
     }
 
-    private T populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, T> configurations) {
-        T populated = configurations.get(name);
+    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, DefaultConfigurationMetadata> configurations) {
+        DefaultConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
@@ -139,7 +139,7 @@ abstract class AbstractModuleComponentResolveMetadata<T extends DefaultConfigura
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract T createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules);
 
     private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {

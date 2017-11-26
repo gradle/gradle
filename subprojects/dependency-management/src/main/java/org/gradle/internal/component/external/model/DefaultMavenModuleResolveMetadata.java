@@ -22,13 +22,14 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<MavenConfigurationMetadata> implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -58,11 +59,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    protected MavenConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, DependencyMetadataRules dependencyMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, DependencyMetadataRules dependencyMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        MavenConfigurationMetadata mavenConfigurationMetadata = new MavenConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules);
-        mavenConfigurationMetadata.setDependencies(filterDependencies(mavenConfigurationMetadata));
-        return mavenConfigurationMetadata;
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules, ImmutableList.<ExcludeMetadata>of());
+        configuration.setDependencies(filterDependencies(configuration));
+        return configuration;
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -75,7 +76,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return artifacts;
     }
 
-    private ImmutableList<ModuleDependencyMetadata> filterDependencies(MavenConfigurationMetadata config) {
+    private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (include(dependency, config.getHierarchy())) {

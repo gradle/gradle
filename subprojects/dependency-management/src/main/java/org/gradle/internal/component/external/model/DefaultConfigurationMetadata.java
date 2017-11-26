@@ -36,9 +36,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This should be made immutable. It is currently effectively immutable. Should also be specialized for Maven, Ivy and Gradle metadata as much of this state is required only for Ivy.
+ * Effectively immutable implementation of ConfigurationMetadata.
+ * Used to represent Ivy and Maven modules in the dependency graph.
  */
-public abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
+public class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -125,12 +126,6 @@ public abstract class DefaultConfigurationMetadata implements ConfigurationMetad
     protected void setDependencies(List<ModuleDependencyMetadata> dependencies) {
         assert this.configDependencies == null; // Can only set once: should really be part of the constructor
         this.configDependencies = ImmutableList.copyOf(dependencies);
-    }
-
-    protected void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies) {
-        for (ModuleDependencyMetadata dependency : dependencies) {
-            this.configDependencies.add(dependency);
-        }
     }
 
     @Override

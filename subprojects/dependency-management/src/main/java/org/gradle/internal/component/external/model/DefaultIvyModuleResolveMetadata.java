@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata<IvyConfigurationMetadata> implements IvyModuleResolveMetadata {
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
     private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<IvyDependencyDescriptor> dependencies;
@@ -85,13 +85,13 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    protected IvyConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules) {
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = filterArtifacts(name, hierarchy);
         ImmutableList<ExcludeMetadata> excludesForConfiguration = filterExcludes(hierarchy);
 
-        IvyConfigurationMetadata ivyConfigurationMetadata = new IvyConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), dependencyMetadataRules, excludesForConfiguration);
-        ivyConfigurationMetadata.setDependencies(filterDependencies(ivyConfigurationMetadata));
-        return ivyConfigurationMetadata;
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), dependencyMetadataRules, excludesForConfiguration);
+        configuration.setDependencies(filterDependencies(configuration));
+        return configuration;
     }
 
     private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
@@ -134,7 +134,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return filtered.build();
     }
 
-    private ImmutableList<ModuleDependencyMetadata> filterDependencies(IvyConfigurationMetadata config) {
+    private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         for (ExternalDependencyDescriptor dependency : dependencies) {
             IvyDependencyDescriptor defaultDependencyMetadata = (IvyDependencyDescriptor) dependency;
