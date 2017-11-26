@@ -67,7 +67,22 @@ class OtoolBinaryInfo implements BinaryInfo {
 
     @Override
     List<BinaryInfo.Symbol> listDebugSymbols() {
-        return listSymbols()
+        return listSymbols() + listDwarfSymbols()
+    }
+
+    List<BinaryInfo.Symbol> listDwarfSymbols() {
+        def process = ['dwarfdump', '--diff', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        def symbols = []
+
+        lines.each { line ->
+            def findSymbol = (line =~ /.*AT_name\(\s+"(.*)"\s+\)/)
+            if (findSymbol.matches()) {
+                def name = new File(findSymbol[0][1] as String).name.trim()
+                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+            }
+        }
+        return symbols
     }
 
     String getSoName() {
