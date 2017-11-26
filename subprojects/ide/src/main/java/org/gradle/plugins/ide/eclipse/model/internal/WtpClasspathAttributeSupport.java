@@ -20,22 +20,23 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtp;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
-import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -54,25 +55,14 @@ public class WtpClasspathAttributeSupport {
         Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();
         Set<Configuration> libConfigs = wtpComponent.getLibConfigurations();
         Set<Configuration> minusConfigs = wtpComponent.getMinusConfigurations();
-        rootConfigFiles = collectFilesFromConfigs(rootConfigs, minusConfigs);
-        libConfigFiles = collectFilesFromConfigs(libConfigs, minusConfigs);
+        rootConfigFiles = collectFilesFromConfigs(model.getClasspath(), rootConfigs, minusConfigs);
+        libConfigFiles = collectFilesFromConfigs(model.getClasspath(), libConfigs, minusConfigs);
     }
 
-    private static Set<File> collectFilesFromConfigs(Set<Configuration> configs, Set<Configuration> minusConfigs) {
-        Set<File> resultFiles = Sets.newLinkedHashSet();
-        IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
-
-        Collection<IdeExtendedRepoFileDependency> dependencies = extractor.resolvedExternalDependencies(configs, minusConfigs);
-        for (IdeExtendedRepoFileDependency dependency : dependencies) {
-            resultFiles.add(dependency.getFile());
-        }
-
-        Collection<IdeLocalFileDependency> localDependencies = extractor.extractLocalFileDependencies(configs, minusConfigs);
-        for (IdeLocalFileDependency dependency : localDependencies) {
-            resultFiles.add(dependency.getFile());
-        }
-
-        return resultFiles;
+    private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
+        WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
+        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs).visit(visitor);
+        return visitor.getFiles();
     }
 
     public void enhance(Classpath classpath) {
@@ -89,7 +79,7 @@ public class WtpClasspathAttributeSupport {
         if (entry instanceof AbstractLibrary) {
             return createDeploymentAttribute((AbstractLibrary) entry);
         } else if (entry instanceof ProjectDependency) {
-            return createDeploymentAttribute((ProjectDependency)entry);
+            return createDeploymentAttribute((ProjectDependency) entry);
         } else {
             return Collections.emptyMap();
         }
@@ -113,5 +103,53 @@ public class WtpClasspathAttributeSupport {
 
     private static Map<String, Object> singleEntryMap(String key, String value) {
         return ImmutableMap.<String, Object>of(key, value);
+    }
+
+    private static class WtpClasspathAttributeDependencyVisitor implements IdeDependencyVisitor {
+        private final EclipseClasspath classpath;
+        private final Set<File> files = Sets.newLinkedHashSet();
+
+        private WtpClasspathAttributeDependencyVisitor(EclipseClasspath classpath) {
+            this.classpath = classpath;
+        }
+
+        @Override
+        public boolean isOffline() {
+            return classpath.isProjectDependenciesOnly();
+        }
+
+        @Override
+        public boolean downloadSources() {
+            return false;
+        }
+
+        @Override
+        public boolean downloadJavaDoc() {
+            return false;
+        }
+
+        @Override
+        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
+            //already handled elsewhere
+        }
+
+        @Override
+        public void visitProjectDependency(ResolvedArtifactResult artifact) {
+
+        }
+
+        @Override
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
+            files.add(artifact.getFile());
+        }
+
+        @Override
+        public void visitFileDependency(ResolvedArtifactResult artifact) {
+            files.add(artifact.getFile());
+        }
+
+        public Set<File> getFiles() {
+            return files;
+        }
     }
 }

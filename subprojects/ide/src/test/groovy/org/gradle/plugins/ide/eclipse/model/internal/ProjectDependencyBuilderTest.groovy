@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
@@ -28,11 +27,10 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
     def ProjectComponentIdentifier projectId = newProjectId(":nested:project-name")
     def localComponentRegistry = Mock(LocalComponentRegistry)
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(localComponentRegistry)
-    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId)
 
     def "should create dependency using project name for project without eclipse plugin applied"() {
         when:
-        def dependency = builder.build(ideProjectDependency)
+        def dependency = builder.build(projectId)
 
         then:
         dependency.path == "/project-name"
@@ -49,7 +47,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         localComponentRegistry.findAdditionalArtifact(projectId, "eclipse.project") >> projectArtifact
 
         when:
-        def dependency = builder.build(ideProjectDependency)
+        def dependency = builder.build(projectId)
 
         then:
         dependency.path == '/foo'

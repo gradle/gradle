@@ -19,32 +19,32 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
 import org.gradle.plugins.ide.eclipse.model.WbModuleEntry;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
-import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class WtpComponentFactory {
-    private final LocalComponentRegistry localComponentRegistry;
+    private final ProjectDependencyBuilder projectDependencyBuilder;
 
     public WtpComponentFactory(Project project) {
-        localComponentRegistry = ((ProjectInternal) project).getServices().get(LocalComponentRegistry.class);
+        projectDependencyBuilder = new ProjectDependencyBuilder(((ProjectInternal) project).getServices().get(LocalComponentRegistry.class));
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
@@ -81,63 +81,93 @@ public class WtpComponentFactory {
         }
         return result;
     }
+
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
-        List<WbDependentModule> entries = Lists.newArrayList();
-        entries.addAll(getEntriesFromProjectDependencies(project, plusConfigurations, minusConfigurations, deployPath));
-        // All dependencies should be declared as Eclipse classpath entries by default. However if the project is not a Java
-        // project, then as a fallback the dependencies are added to the component descriptor. This is useful for EAR
-        // projects which typically are not Java projects.
-        if (!project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            entries.addAll(getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath));
-        }
-        return entries;
+        WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
+        new IdeDependencySet(project.getDependencies(), plusConfigurations, minusConfigurations).visit(visitor);
+        return visitor.getEntries();
     }
 
-    private List<WbDependentModule> getEntriesFromProjectDependencies(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath) {
-        IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
-        Collection<IdeProjectDependency> dependencies = extractor.extractProjectDependencies(project, plusConfigurations, minusConfigurations);
+    private class WtpDependenciesVisitor implements IdeDependencyVisitor {
+        private final Project project;
+        private final EclipseWtpComponent wtp;
+        private final String deployPath;
+        private final List<WbDependentModule> projectEntries = Lists.newArrayList();
+        private final List<WbDependentModule> moduleEntries = Lists.newArrayList();
+        private final List<WbDependentModule> fileEntries = Lists.newArrayList();
 
-        List<WbDependentModule> projectDependencies = Lists.newArrayList();
-        for (IdeProjectDependency dependency : dependencies) {
-            String moduleName = determineProjectName(dependency);
-            projectDependencies.add(new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName));
-        }
-        return projectDependencies;
-    }
+        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
 
-    private String determineProjectName(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "eclipse.project");
-        return eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
-    }
-
-    private List<WbDependentModule> getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
-        IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
-        //below is not perfect because we're skipping the unresolved dependencies completely
-        //however, it should be better anyway. Sometime soon we will hopefully change the wtp component stuff
-        Collection<IdeExtendedRepoFileDependency> externals = extractor.resolvedExternalDependencies(plusConfigurations, minusConfigurations);
-        Collection<IdeLocalFileDependency> locals = extractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations);
-
-        Collection<File> libFiles = Lists.newArrayList();
-        for (IdeExtendedRepoFileDependency dependency : externals) {
-            libFiles.add(dependency.getFile());
+        private WtpDependenciesVisitor(Project project, EclipseWtpComponent wtp, String deployPath) {
+            this.project = project;
+            this.wtp = wtp;
+            this.deployPath = deployPath;
         }
 
-        for (IdeLocalFileDependency dependency :locals) {
-            libFiles.add(dependency.getFile());
+        @Override
+        public boolean isOffline() {
+            return !includeLibraries();
         }
 
-        List<WbDependentModule> libraryEntries = Lists.newArrayList();
-        for(File file : libFiles) {
-            libraryEntries.add(createWbDependentModuleEntry(file, wtp.getFileReferenceFactory(), deployPath));
+        private boolean includeLibraries() {
+            return !project.getPlugins().hasPlugin(JavaPlugin.class);
         }
-        return libraryEntries;
-    }
 
-    private WbDependentModule createWbDependentModuleEntry(File file, FileReferenceFactory fileReferenceFactory, String deployPath) {
-        FileReference ref = fileReferenceFactory.fromFile(file);
-        String handleSnippet = ref.isRelativeToPathVariable() ? "var/" + ref.getPath() : "lib/" + ref.getPath();
-        return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
-    }
+        @Override
+        public boolean downloadSources() {
+            return false;
+        }
 
+        @Override
+        public boolean downloadJavaDoc() {
+            return false;
+        }
+
+        @Override
+        public void visitProjectDependency(ResolvedArtifactResult artifact) {
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+            String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
+            projectEntries.add(new WbDependentModule(deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+        }
+
+        @Override
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
+            if (includeLibraries()) {
+                moduleEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
+            }
+        }
+
+        @Override
+        public void visitFileDependency(ResolvedArtifactResult artifact) {
+            if (includeLibraries()) {
+                fileEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
+            }
+        }
+
+        @Override
+        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
+            unresolvedIdeDependencyHandler.log(unresolvedDependency);
+        }
+
+        /*
+         * This method returns the dependencies in buckets (projects first, then modules, then files),
+         * because that's what we used to do since 1.0. It would be better to return the dependencies
+         * in the same order as they come from the resolver, but we'll need to change all the tests for
+         * that, so defer that until later.
+         */
+        public List<WbDependentModule> getEntries() {
+            List<WbDependentModule> entries = Lists.newArrayListWithCapacity(projectEntries.size() + moduleEntries.size() + fileEntries.size());
+            entries.addAll(projectEntries);
+            entries.addAll(moduleEntries);
+            entries.addAll(fileEntries);
+            return entries;
+        }
+
+        private WbDependentModule createWbDependentModuleEntry(File file, FileReferenceFactory fileReferenceFactory, String deployPath) {
+            FileReference ref = fileReferenceFactory.fromFile(file);
+            String handleSnippet = ref.isRelativeToPathVariable() ? "var/" + ref.getPath() : "lib/" + ref.getPath();
+            return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
+        }
+    }
 
 }

@@ -16,24 +16,33 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
-import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
-import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
+import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,16 +50,10 @@ public class IdeaDependenciesProvider {
 
     public static final String SCOPE_PLUS = "plus";
     public static final String SCOPE_MINUS = "minus";
-    private final IdeDependenciesExtractor dependenciesExtractor;
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
 
     public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
-        this(new IdeDependenciesExtractor(), serviceRegistry);
-    }
-
-    IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
-        this.dependenciesExtractor = dependenciesExtractor;
         moduleDependencyBuilder = new ModuleDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
         optimizer = new IdeaDependenciesOptimizer();
     }
@@ -80,89 +83,25 @@ public class IdeaDependenciesProvider {
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
         Set<Dependency> dependencies = Sets.newLinkedHashSet();
+        Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            dependencies.addAll(getProjectDependencies(ideaModule, scope));
-            dependencies.addAll(getExternalDependencies(ideaModule, scope));
-            dependencies.addAll(getFileDependencies(ideaModule, scope));
+            IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope);
+            dependencies.addAll(visitor.getDependencies());
+            unresolvedDependencies.putAll(visitor.getUnresolvedDependencies());
         }
         optimizer.optimizeDeps(dependencies);
+        new UnresolvedIdeDependencyHandler().log(unresolvedDependencies.values());
         return dependencies;
     }
 
-    private Set<Dependency> getProjectDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+    private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+        DependencyHandler handler = ideaModule.getProject().getDependencies();
         Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
 
-        Collection<IdeProjectDependency> extractedDependencies = dependenciesExtractor.extractProjectDependencies(ideaModule.getProject(), plusConfigurations, minusConfigurations);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
-        for (IdeProjectDependency ideProjectDependency : extractedDependencies) {
-            dependencies.add(moduleDependencyBuilder.create(ideProjectDependency, scope.name()));
-        }
-        return dependencies;
-    }
-
-    private Set<Dependency> getExternalDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        if (ideaModule.isOffline()) {
-            return Collections.emptySet();
-        }
-
-        Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
-        Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
-        Collection<IdeExtendedRepoFileDependency> ideRepoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-            ideaModule.getProject().getDependencies(), plusConfigurations, minusConfigurations,
-            ideaModule.isDownloadSources(), ideaModule.isDownloadJavadoc());
-
-        for (IdeExtendedRepoFileDependency dependency : ideRepoFileDependencies) {
-            dependencies.add(toLibraryDependency(dependency, ideaModule, scope));
-        }
-        return dependencies;
-    }
-
-    private SingleEntryModuleLibrary toLibraryDependency(IdeExtendedRepoFileDependency dependency, IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        Set<FilePath> javadoc = Sets.newLinkedHashSet();
-        for (File javaDocFile : dependency.getJavadocFiles()) {
-            javadoc.add(toPath(ideaModule, javaDocFile));
-        }
-        Set<FilePath> source = Sets.newLinkedHashSet();
-        for (File sourceFile : dependency.getSourceFiles()) {
-            source.add(toPath(ideaModule, sourceFile));
-        }
-        SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, dependency.getFile()), javadoc, source, scope.name());
-        library.setModuleVersion(dependency.getId());
-        return library;
-    }
-
-    private Set<Dependency> getFileDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
-        Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        Set<Dependency> dependencies = Sets.newLinkedHashSet();
-        Collection<IdeLocalFileDependency> ideLocalFileDependencies = dependenciesExtractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations);
-
-        for (IdeLocalFileDependency fileDependency : ideLocalFileDependencies) {
-            dependencies.add(toLibraryDependency(fileDependency, ideaModule, scope));
-        }
-        return dependencies;
-    }
-
-    private SingleEntryModuleLibrary toLibraryDependency(IdeLocalFileDependency fileDependency, IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        return new SingleEntryModuleLibrary(toPath(ideaModule, fileDependency.getFile()), scope.name());
-    }
-
-    public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(IdeaModule ideaModule) {
-        Set<UnresolvedIdeRepoFileDependency> usedUnresolvedDependencies = Sets.newTreeSet(new Comparator<UnresolvedIdeRepoFileDependency>() {
-            @Override
-            public int compare(UnresolvedIdeRepoFileDependency left, UnresolvedIdeRepoFileDependency right) {
-                return left.getDisplayName().compareTo(right.getDisplayName());
-            }
-        });
-
-        for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
-            Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-            usedUnresolvedDependencies.addAll(dependenciesExtractor.unresolvedExternalDependencies(plusConfigurations, minusConfigurations));
-        }
-        return usedUnresolvedDependencies;
+        IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
+        new IdeDependencySet(handler, plusConfigurations, minusConfigurations).visit(visitor);
+        return visitor;
     }
 
     private Collection<Configuration> getPlusConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope) {
@@ -185,5 +124,105 @@ public class IdeaDependenciesProvider {
 
     private FilePath toPath(IdeaModule ideaModule, File file) {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
+    }
+
+    private class IdeaDependenciesVisitor implements IdeDependencyVisitor {
+        private final IdeaModule ideaModule;
+        private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
+        private final ProjectComponentIdentifier currentProjectId;
+        private final String scope;
+
+        private final List<Dependency> projectDependencies = Lists.newLinkedList();
+        private final List<Dependency> moduleDependencies = Lists.newLinkedList();
+        private final List<Dependency> fileDependencies = Lists.newLinkedList();
+        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
+
+        private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
+            this.ideaModule = ideaModule;
+            this.currentProjectId = DefaultProjectComponentIdentifier.newProjectId(ideaModule.getProject());
+            this.scope = scope;
+        }
+
+        @Override
+        public boolean isOffline() {
+            return ideaModule.isOffline();
+        }
+
+        @Override
+        public boolean downloadSources() {
+            return ideaModule.isDownloadSources();
+        }
+
+        @Override
+        public boolean downloadJavaDoc() {
+            return ideaModule.isDownloadJavadoc();
+        }
+
+        @Override
+        public void visitProjectDependency(ResolvedArtifactResult artifact) {
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+            if (!projectId.equals(currentProjectId)) {
+                projectDependencies.add(moduleDependencyBuilder.create(projectId, scope));
+            }
+        }
+
+        @Override
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc) {
+            ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+            SingleEntryModuleLibrary library = new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope);
+            library.setModuleVersion(new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
+            Set<Path> sourcePaths = Sets.newLinkedHashSet();
+            for (ResolvedArtifactResult sourceArtifact : sources) {
+                sourcePaths.add(toPath(ideaModule, sourceArtifact.getFile()));
+            }
+            library.setSources(sourcePaths);
+            Set<Path> javaDocPaths = Sets.newLinkedHashSet();
+            for (ResolvedArtifactResult javaDocArtifcat : javaDoc) {
+                javaDocPaths.add(toPath(ideaModule, javaDocArtifcat.getFile()));
+            }
+            library.setJavadoc(javaDocPaths);
+            moduleDependencies.add(library);
+        }
+
+        @Override
+        public void visitFileDependency(ResolvedArtifactResult artifact) {
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, artifact.getFile()), scope));
+        }
+
+        /*
+         * Remembers the unresolved dependency for later logging and also adds a fake
+         * file dependency, with the file path pointing to the attempted component selector.
+         * This shows up in the IDE as a red flag in the dependencies view. That's not the best
+         * usability and it also muddies the API contract, because we disguise an unresolved
+         * dependency as a file dependency, even though that file really doesn't exist.
+         *
+         * Instead, when generating files on the command line, the logged warning is enough.
+         * When using the Tooling API, a dedicated "unresolved dependency" object would be better
+         * and could be shown in a notification. The command line warning should probably be omitted in that case.
+         */
+        @Override
+        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
+            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency);
+            fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, unresolvedFile), scope));
+            unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
+        }
+
+        /*
+         * This method returns the dependencies in buckets (projects first, then modules, then files),
+         * because that's what we used to do since 1.0. It would be better to return the dependencies
+         * in the same order as they come from the resolver, but we'll need to change all the tests for
+         * that, so defer that until later.
+         */
+        public Collection<Dependency> getDependencies() {
+            Collection<Dependency> dependencies = Sets.newLinkedHashSet();
+            dependencies.addAll(projectDependencies);
+            dependencies.addAll(moduleDependencies);
+            dependencies.addAll(fileDependencies);
+            return dependencies;
+        }
+
+        public Map<ComponentSelector, UnresolvedDependencyResult> getUnresolvedDependencies() {
+            return unresolvedDependencies;
+        }
     }
 }

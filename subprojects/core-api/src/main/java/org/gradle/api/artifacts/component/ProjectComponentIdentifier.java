@@ -37,4 +37,10 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
      * @since 1.10
      */
     String getProjectPath();
+
+    /**
+     * Returns the simple name of the project.
+     * @since 4.5
+     */
+    String getProjectName();
 }

@@ -58,6 +58,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.gradle.util.CollectionUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -95,11 +96,15 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
+        return withArtifacts(componentType, Arrays.asList(artifactTypes));
+    }
+
+    public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes) {
         if (this.componentType != null) {
             throw new IllegalStateException("Cannot specify component type multiple times.");
         }
         this.componentType = componentType;
-        this.artifactTypes.addAll(Arrays.asList(artifactTypes));
+        this.artifactTypes.addAll(artifactTypes);
         return this;
     }
 
