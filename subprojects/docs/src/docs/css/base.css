@@ -230,9 +230,9 @@ blockquote p:last-child {
     width: 12.5rem;
 }
 
-@media screen and (max-width: 38em) {
+@media screen and (max-width: 44.3125em) {
     .container, .footer {
-        max-width: 44.3125rem;
+        max-width: 100%;
     }
     .content {
         display: block;
