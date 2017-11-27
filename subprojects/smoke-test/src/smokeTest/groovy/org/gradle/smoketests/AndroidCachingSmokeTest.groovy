@@ -43,7 +43,8 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         runner(
                 "check",
                 "-Dorg.gradle.android.test.gradle-installation=" + IntegrationTestBuildContext.INSTANCE.gradleHomeDir.absolutePath,
-                "-Dorg.gradle.android.test.show-output=true"
+                "-Dorg.gradle.android.test.show-output=true",
+                "-Dorg.gradle.android.test.scan-url=https://e.grdev.net/"
             )
             .withProjectDir(projectDir)
             .forwardOutput()
