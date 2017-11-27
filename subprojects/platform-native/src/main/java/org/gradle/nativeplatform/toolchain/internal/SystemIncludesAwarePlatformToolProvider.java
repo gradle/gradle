@@ -20,5 +20,5 @@ import java.io.File;
 import java.util.List;
 
 public interface SystemIncludesAwarePlatformToolProvider extends PlatformToolProvider {
-    List<File> getSystemIncludes();
+    List<File> getSystemIncludes(ToolType compilerType);
 }

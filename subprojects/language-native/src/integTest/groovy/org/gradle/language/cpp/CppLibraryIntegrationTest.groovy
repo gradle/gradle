@@ -59,6 +59,24 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    def "finds C++ system headers"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        file("src/main/cpp/includingIoStream.cpp") << """
+            #include <iostream>
+        """
+
+        when:
+        run "assemble"
+
+        then:
+        file('build/dependDebugCpp/inputs.txt').text.contains('iostream')
+    }
+
     def "sources are compiled with C++ compiler"() {
         given:
         settingsFile << "rootProject.name = 'hello'"

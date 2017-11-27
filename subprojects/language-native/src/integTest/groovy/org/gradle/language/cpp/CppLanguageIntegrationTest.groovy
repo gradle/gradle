@@ -17,10 +17,10 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
 
@@ -52,6 +52,30 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    def "finds C++ system headers"() {
+        // https://github.com/gradle/gradle-native/issues/282
+        Assume.assumeFalse(toolChain.id == "gcccygwin")
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeLibrarySpec)
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/includeIoStream.cpp") << """
+            #include <iostream>
+        """
+
+        when:
+        run 'mainSharedLibrary'
+
+        then:
+        file('build/dependMainSharedLibraryMainCpp/inputs.txt').text.contains('iostream')
+    }
+
     def "sources are compiled with C++ compiler"() {
         def app = new CppCompilerDetectingTestApp()
 
@@ -69,7 +93,7 @@ model {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/exe/main/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 
     def "can manually define C++ source sets"() {

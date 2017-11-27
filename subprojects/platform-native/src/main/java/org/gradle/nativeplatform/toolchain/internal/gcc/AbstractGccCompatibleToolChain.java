@@ -15,8 +15,10 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,6 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
@@ -44,6 +47,7 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +59,7 @@ import static java.util.Arrays.asList;
 /**
  * A tool chain that has GCC semantics.
  */
+@NonNullApi
 public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain<GccPlatformToolChain> implements GccCompatibleToolChain {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGccCompatibleToolChain.class);
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
@@ -157,30 +162,29 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
 
-        GccMetadata gccMetadata = initTools(configurableToolChain, result);
+        initTools(configurableToolChain, result);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, metaDataProvider.getCompilerType(), gccMetadata);
+        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, new CompilerMetaDataProviderWithDefaultArgs(configurableToolChain.getCompilerProbeArgs(), metaDataProvider));
     }
 
-    protected GccMetadata initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
+    protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
         // Attempt to determine whether the compiler is the correct implementation
         boolean found = false;
-        GccMetadata versionResult = null;
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                versionResult = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
-                availability.mustBeAvailable(versionResult);
-                if (!versionResult.isAvailable()) {
-                    return versionResult;
+                GccMetadata gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
+                availability.mustBeAvailable(gccMetadata);
+                if (!gccMetadata.isAvailable()) {
+                    return;
                 }
                 // Assume all the other compilers are ok, if they happen to be installed
-                LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
+                LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), gccMetadata);
                 found = true;
-                initForImplementation(platformToolChain, versionResult);
+                initForImplementation(platformToolChain, gccMetadata);
                 break;
             }
         }
@@ -195,7 +199,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             GccCommandLineToolConfigurationInternal cCompiler = platformToolChain.getcCompiler();
             availability.mustBeAvailable(locate(cCompiler));
         }
-        return versionResult;
     }
 
     protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccMetadata versionResult) {
@@ -214,6 +217,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     protected void configureDefaultTools(DefaultGccPlatformToolChain toolChain) {
     }
 
+    @Nullable
     protected TargetPlatformConfiguration getPlatformConfiguration(NativePlatformInternal targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {
@@ -292,4 +296,26 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             configurationAction.execute(platformToolChain);
         }
     }
+
+    private static class CompilerMetaDataProviderWithDefaultArgs implements CompilerMetaDataProvider<GccMetadata> {
+
+        private final List<String> compilerProbeArgs;
+        private final CompilerMetaDataProvider<GccMetadata> delegate;
+
+        public CompilerMetaDataProviderWithDefaultArgs(List<String> compilerProbeArgs, CompilerMetaDataProvider<GccMetadata> delegate) {
+            this.compilerProbeArgs = compilerProbeArgs;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public GccMetadata getCompilerMetaData(File binary, List<String> additionalArgs) {
+            return delegate.getCompilerMetaData(binary, ImmutableList.<String>builder().addAll(compilerProbeArgs).addAll(additionalArgs).build());
+        }
+
+        @Override
+        public CompilerType getCompilerType() {
+            return delegate.getCompilerType();
+        }
+    }
+
 }
