@@ -63,8 +63,8 @@ th {
     text-align: left;
 }
 
-tbody tr:nth-child(odd) td,
-tbody tr:nth-child(odd) th {
+.content tbody tr:nth-child(odd) td,
+.content tbody tr:nth-child(odd) th {
     background-color: #f9f9f9;
 }
 
