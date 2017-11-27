@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.LogFiles
 import org.gradle.performance.measure.MeasuredOperation
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -59,6 +60,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         "nativeMonolithicOverlapping" | 12
     }
 
+    @Ignore("TODO: @wolfs to rebaseline the test")
     @Unroll
     def "build with #changeType change on #testProject"() {
         given:

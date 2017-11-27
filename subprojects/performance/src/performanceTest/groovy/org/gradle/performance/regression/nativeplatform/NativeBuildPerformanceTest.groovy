@@ -18,6 +18,7 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -27,6 +28,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["4.5-20171117235935+0000"]
     }
 
+    @Ignore("TODO: @wolfs to rebaseline the test")
     @Unroll
     def "clean assemble on #testProject"() {
         given:
