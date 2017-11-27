@@ -115,16 +115,14 @@ class ModuleVersionSpec {
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
-                    break;
+                    break
                 case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
-                    }
+                    module.moduleMetadata.allowGetOrHead()
                     break
                 case InteractionExpectation.HEAD:
                     if (module instanceof MavenModule) {
@@ -134,6 +132,8 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectHead()
+                    } else {
+                        module.moduleMetadata.allowGetOrHead()
                     }
                     break
                 default:
@@ -144,6 +144,8 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectGet()
+                    } else {
+                        module.moduleMetadata.allowGetOrHead()
                     }
             }
         }

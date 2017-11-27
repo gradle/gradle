@@ -254,9 +254,7 @@ dependencies {
                         pom.expectGetMissing()
                     }
                     withModule {
-                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-                            moduleMetadata.expectGetMissing()
-                        }
+                        moduleMetadata.expectGetMissing()
                         artifact.expectHeadMissing()
                     }
                 }
