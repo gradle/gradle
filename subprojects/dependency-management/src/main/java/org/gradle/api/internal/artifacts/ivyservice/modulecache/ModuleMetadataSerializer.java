@@ -42,12 +42,11 @@ import org.gradle.internal.component.external.model.ComponentVariantResolveMetad
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.IvyDependencyMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MavenDependencyMetadata;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -110,7 +109,7 @@ public class ModuleMetadataSerializer {
         private void write(MavenModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_MAVEN);
             writeInfoSection(metadata);
-            writeDependencies(metadata.getDependencies());
+            writeMavenDependencies(metadata.getDependencies());
             writeSharedInfo(metadata);
             writeNullableString(metadata.getSnapshotTimestamp());
             writeNullableString(metadata.getPackaging());
@@ -172,7 +171,7 @@ public class ModuleMetadataSerializer {
             writeInfoSection(metadata);
             writeExtraInfo(metadata.getExtraAttributes());
             writeConfigurations(metadata.getConfigurationDefinitions().values());
-            writeDependencies(metadata.getDependencies());
+            writeIvyDependencies(metadata.getDependencies());
             writeArtifacts(metadata.getArtifactDefinitions());
             writeExcludeRules(metadata.getExcludes());
             writeSharedInfo(metadata);
@@ -232,40 +231,32 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void writeDependencies(List<? extends ModuleDependencyMetadata> dependencies) throws IOException {
+        private void writeIvyDependencies(List<IvyDependencyDescriptor> dependencies) throws IOException {
             writeCount(dependencies.size());
-            for (ModuleDependencyMetadata dd : dependencies) {
-                writeDependency(dd);
+            for (IvyDependencyDescriptor dd : dependencies) {
+                writeIvyDependency(dd);
             }
         }
 
-        private void writeDependency(ModuleDependencyMetadata dep) throws IOException {
-            ModuleComponentSelector selector = dep.getSelector();
-            COMPONENT_SELECTOR_SERIALIZER.write(encoder, selector);
-
-            if (dep instanceof IvyDependencyMetadata) {
-                IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dep;
-                encoder.writeByte(TYPE_IVY);
-                writeDependencyConfigurationMapping(ivyDependency);
-                writeArtifacts(ivyDependency.getDependencyArtifacts());
-                writeExcludeRules(ivyDependency.getAllExcludes());
-                writeString(ivyDependency.getDynamicConstraintVersion());
-                writeBoolean(ivyDependency.isChanging());
-                writeBoolean(ivyDependency.isTransitive());
-                writeBoolean(ivyDependency.isOptional());
-            } else if (dep instanceof MavenDependencyMetadata) {
-                MavenDependencyMetadata mavenDependency = (MavenDependencyMetadata) dep;
-                encoder.writeByte(TYPE_MAVEN);
-                writeArtifacts(mavenDependency.getDependencyArtifacts());
-                writeExcludeRules(mavenDependency.getAllExcludes());
-                encoder.writeSmallInt(mavenDependency.getScope().ordinal());
-                encoder.writeBoolean(mavenDependency.isOptional());
-            } else {
-                throw new IllegalStateException("Unexpected dependency type");
+        private void writeMavenDependencies(List<MavenDependencyDescriptor> dependencies) throws IOException {
+            writeCount(dependencies.size());
+            for (MavenDependencyDescriptor dd : dependencies) {
+                writeMavenDependency(dd);
             }
         }
 
-        private void writeDependencyConfigurationMapping(IvyDependencyMetadata dep) throws IOException {
+        private void writeIvyDependency(IvyDependencyDescriptor ivyDependency) throws IOException {
+            COMPONENT_SELECTOR_SERIALIZER.write(encoder, ivyDependency.getSelector());
+            writeDependencyConfigurationMapping(ivyDependency);
+            writeArtifacts(ivyDependency.getDependencyArtifacts());
+            writeExcludeRules(ivyDependency.getAllExcludes());
+            writeString(ivyDependency.getDynamicConstraintVersion());
+            writeBoolean(ivyDependency.isChanging());
+            writeBoolean(ivyDependency.isTransitive());
+            writeBoolean(ivyDependency.isOptional());
+        }
+
+        private void writeDependencyConfigurationMapping(IvyDependencyDescriptor dep) throws IOException {
             SetMultimap<String, String> confMappings = dep.getConfMappings();
             writeCount(confMappings.keySet().size());
             for (String conf : confMappings.keySet()) {
@@ -280,16 +271,37 @@ public class ModuleMetadataSerializer {
                 writeString(exclude.getModuleId().getGroup());
                 writeString(exclude.getModuleId().getName());
                 IvyArtifactName artifact = exclude.getArtifact();
-                if (artifact == null) {
-                    writeBoolean(false);
-                } else {
-                    writeBoolean(true);
-                    writeString(artifact.getName());
-                    writeString(artifact.getType());
-                    writeString(artifact.getExtension());
-                }
+                writeNullableArtifact(artifact);
                 writeStringArray(exclude.getConfigurations().toArray(new String[0]));
                 writeNullableString(exclude.getMatcher());
+            }
+        }
+
+        private void writeMavenDependency(MavenDependencyDescriptor mavenDependency) throws IOException {
+            COMPONENT_SELECTOR_SERIALIZER.write(encoder, mavenDependency.getSelector());
+            writeNullableArtifact(mavenDependency.getDependencyArtifact());
+            writeMavenExcludeRules(mavenDependency.getAllExcludes());
+            encoder.writeSmallInt(mavenDependency.getScope().ordinal());
+            encoder.writeBoolean(mavenDependency.isOptional());
+        }
+
+        private void writeNullableArtifact(IvyArtifactName artifact) throws IOException {
+            if (artifact == null) {
+                writeBoolean(false);
+            } else {
+                writeBoolean(true);
+                writeString(artifact.getName());
+                writeString(artifact.getType());
+                writeNullableString(artifact.getExtension());
+                writeNullableString(artifact.getClassifier());
+            }
+        }
+
+        private void writeMavenExcludeRules(List<ExcludeMetadata> excludes) throws IOException {
+            writeCount(excludes.size());
+            for (ExcludeMetadata exclude : excludes) {
+                writeString(exclude.getModuleId().getGroup());
+                writeString(exclude.getModuleId().getName());
             }
         }
 
@@ -368,7 +380,7 @@ public class ModuleMetadataSerializer {
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
-            List<ModuleDependencyMetadata> dependencies = readDependencies();
+            List<MavenDependencyDescriptor> dependencies = readMavenDependencies();
             DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, dependencies);
             readSharedInfo(metadata);
             metadata.setSnapshotTimestamp(readNullableString());
@@ -436,7 +448,7 @@ public class ModuleMetadataSerializer {
             readInfoSection();
             Map<NamespaceId, String> extraAttributes = readExtraInfo();
             List<Configuration> configurations = readConfigurations();
-            List<ModuleDependencyMetadata> dependencies = readDependencies();
+            List<IvyDependencyDescriptor> dependencies = readIvyDependencies();
             List<Artifact> artifacts = readArtifacts();
             List<Exclude> excludes = readModuleExcludes();
             DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, configurations, dependencies, artifacts, excludes);
@@ -496,38 +508,25 @@ public class ModuleMetadataSerializer {
             return result;
         }
 
-        private List<ModuleDependencyMetadata> readDependencies() throws IOException {
+        private List<IvyDependencyDescriptor> readIvyDependencies() throws IOException {
             int len = readCount();
-            List<ModuleDependencyMetadata> result = Lists.newArrayListWithCapacity(len);
+            List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
             for (int i = 0; i < len; i++) {
-                result.add(readDependency());
+                result.add(readIvyDependency());
             }
             return result;
         }
 
-        private ModuleDependencyMetadata readDependency() throws IOException {
+        private IvyDependencyDescriptor readIvyDependency() throws IOException {
             ModuleComponentSelector requested = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-
-            byte type = decoder.readByte();
-            switch (type) {
-                case TYPE_IVY:
-                    SetMultimap<String, String> configMappings = readDependencyConfigurationMapping();
-                    List<Artifact> artifacts = readDependencyArtifactDescriptors();
-                    List<Exclude> excludes = readDependencyExcludes();
-                    String dynamicConstraintVersion = readString();
-                    boolean changing = readBoolean();
-                    boolean transitive = readBoolean();
-                    boolean optional = readBoolean();
-                    return new IvyDependencyMetadata(requested, dynamicConstraintVersion, changing, transitive,  optional, configMappings, artifacts, excludes);
-                case TYPE_MAVEN:
-                    artifacts = readDependencyArtifactDescriptors();
-                    excludes = readDependencyExcludes();
-                    MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-                    optional = decoder.readBoolean();
-                    return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes);
-                default:
-                    throw new IllegalArgumentException("Unexpected dependency type found.");
-            }
+            SetMultimap<String, String> configMappings = readDependencyConfigurationMapping();
+            List<Artifact> artifacts = readDependencyArtifactDescriptors();
+            List<Exclude> excludes = readDependencyExcludes();
+            String dynamicConstraintVersion = readString();
+            boolean changing = readBoolean();
+            boolean transitive = readBoolean();
+            boolean optional = readBoolean();
+            return new IvyDependencyDescriptor(requested, dynamicConstraintVersion, changing, transitive,  optional, configMappings, artifacts, excludes);
         }
 
         private SetMultimap<String, String> readDependencyConfigurationMapping() throws IOException {
@@ -573,17 +572,53 @@ public class ModuleMetadataSerializer {
         private DefaultExclude readExcludeRule() throws IOException {
             String moduleOrg = readString();
             String moduleName = readString();
+            IvyArtifactName artifactName = readNullableArtifact();
+            String[] confs = readStringArray();
+            String matcher = readNullableString();
+            return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifactName, confs, matcher);
+        }
+
+        private IvyArtifactName readNullableArtifact() throws IOException {
             boolean hasArtifact = readBoolean();
             IvyArtifactName artifactName = null;
             if (hasArtifact) {
                 String artifact = readString();
                 String type = readString();
-                String ext = readString();
-                artifactName = new DefaultIvyArtifactName(artifact, type, ext);
+                String ext = readNullableString();
+                String classifier = readNullableString();
+                artifactName = new DefaultIvyArtifactName(artifact, type, ext, classifier);
             }
-            String[] confs = readStringArray();
-            String matcher = readNullableString();
-            return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifactName, confs, matcher);
+            return artifactName;
+        }
+
+        private List<MavenDependencyDescriptor> readMavenDependencies() throws IOException {
+            int len = readCount();
+            List<MavenDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
+            for (int i = 0; i < len; i++) {
+                result.add(readMavenDependency());
+            }
+            return result;
+        }
+
+        private MavenDependencyDescriptor readMavenDependency() throws IOException {
+            ModuleComponentSelector requested = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
+            IvyArtifactName artifactName = readNullableArtifact();
+            List<ExcludeMetadata> mavenExcludes = readMavenDependencyExcludes();
+            MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
+            boolean optional = decoder.readBoolean();
+            return new MavenDependencyDescriptor(scope, optional, requested, artifactName, mavenExcludes);
+        }
+
+        private List<ExcludeMetadata> readMavenDependencyExcludes() throws IOException {
+            int len = readCount();
+            List<ExcludeMetadata> result = Lists.newArrayListWithCapacity(len);
+            for (int i = 0; i < len; i++) {
+                String moduleOrg = readString();
+                String moduleName = readString();
+                DefaultExclude rule = new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName));
+                result.add(rule);
+            }
+            return result;
         }
 
         private int readCount() throws IOException {

@@ -21,7 +21,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * The meta-data for a component that is resolved from a module in a binary repository.
@@ -55,6 +54,4 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      * Returns the hash of the resource(s) from which this metadata was created.
      */
     HashValue getContentHash();
-
-    List<? extends ModuleDependencyMetadata> getDependencies();
 }

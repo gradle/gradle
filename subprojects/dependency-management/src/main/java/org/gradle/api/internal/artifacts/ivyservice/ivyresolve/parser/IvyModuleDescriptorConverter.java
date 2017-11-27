@@ -39,7 +39,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.IvyDependencyMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -81,8 +81,8 @@ public class IvyModuleDescriptorConverter {
         return result;
     }
 
-    public List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
-        List<IvyDependencyMetadata> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
+    public List<IvyDependencyDescriptor> extractDependencies(ModuleDescriptor ivyDescriptor) {
+        List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
         for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
             addDependency(result, dependencyDescriptor);
         }
@@ -105,7 +105,7 @@ public class IvyModuleDescriptorConverter {
         result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 
-    private void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
+    private void addDependency(List<IvyDependencyDescriptor> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
         ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), new DefaultImmutableVersionConstraint(revisionId.getRevision()));
 
@@ -125,7 +125,7 @@ public class IvyModuleDescriptorConverter {
             excludes.add(forIvyExclude(excludeRule));
         }
 
-        result.add(new IvyDependencyMetadata(
+        result.add(new IvyDependencyDescriptor(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
             dependencyDescriptor.isChanging(),

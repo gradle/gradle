@@ -257,4 +257,41 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    /**
+     * @see org.gradle.internal.component.external.model.MavenDependencyDescriptor#getArtifactsForOptionalDependency
+     */
+    void "classifier on optional dependency is ignored"() {
+        given:
+        def foo10 = mavenRepo.module("org", "foo", '1.0').publish()
+
+        mavenRepo.module("org", "root1", "1.0")
+            .dependsOn(foo10, optional:true, classifier: 'classy')
+            .publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:root1:1.0'
+                conf 'org:foo'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.0.jar', 'root1-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
 }

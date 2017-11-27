@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ClientModule;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Metadata about a component that will override the information obtained when resolving, typically specified by a dependency descriptor.
@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public interface ComponentOverrideMetadata {
 
-    Set<IvyArtifactName> getArtifacts();
+    List<IvyArtifactName> getArtifacts();
 
     /**
      * If the request originated from a ClientModule, return it. Null otherwise.

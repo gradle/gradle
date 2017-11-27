@@ -29,10 +29,11 @@ import java.util.Collection;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
-public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata<MavenConfigurationMetadata> implements MutableMavenModuleResolveMetadata {
+public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
     private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
+    private ImmutableList<MavenDependencyDescriptor> dependencies;
 
     /**
      * Creates default metadata for a Maven module with no POM.
@@ -44,11 +45,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<ModuleDependencyMetadata>of());
+        this(id, componentIdentifier, ImmutableList.<MavenDependencyDescriptor>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends ModuleDependencyMetadata> dependencies) {
-        super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies) {
+        super(id, componentIdentifier);
+        this.dependencies = ImmutableList.copyOf(dependencies);
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
@@ -56,6 +58,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+        this.dependencies = metadata.getDependencies();
     }
 
     @Override
@@ -109,4 +112,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    @Override
+    public ImmutableList<MavenDependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
 }

@@ -337,7 +337,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def dependency(String org, String module, String version, List<String> confs = []) {
         def builder = ImmutableListMultimap.builder()
         confs.each { builder.put(it, it) }
-        def dependency = new IvyDependencyMetadata(newSelector(org, module, v(version)), builder.build())
+        def dependency = new IvyDependencyDescriptor(newSelector(org, module, v(version)), builder.build())
         dependencies.add(dependency)
         return dependency
     }

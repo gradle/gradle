@@ -77,7 +77,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     def addDependencyDescriptor(BuildableIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
         def dep = new LocalComponentDependencyMetadata(metadata.getComponentId(),
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
-            "default", null, "default", [] as Set, [], false, false, true)
+            "default", null, "default", [] as List, [], false, false, true)
         metadata.addDependency(dep)
     }
 

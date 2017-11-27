@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.IvyDependencyMetadata
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -710,7 +710,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert artifactName.classifier == classifier
     }
 
-    def verifyFullDependencies(Collection<IvyDependencyMetadata> dependencies) {
+    def verifyFullDependencies(Collection<IvyDependencyDescriptor> dependencies) {
         // no conf def => equivalent to *->*
         def dd = getDependency(dependencies, "mymodule2")
         assert dd.selector == newSelector("myorg", "mymodule2", new DefaultMutableVersionConstraint("2.0"))
@@ -818,13 +818,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert conf.extendsFrom as Set == exts as Set
     }
 
-    protected static IvyDependencyMetadata getDependency(Collection<IvyDependencyMetadata> dependencies, String name) {
+    protected static IvyDependencyDescriptor getDependency(Collection<IvyDependencyDescriptor> dependencies, String name) {
         def found = dependencies.find { it.selector.module == name }
         assert found != null
         return found
     }
 
-    protected static void assertDependencyArtifact(IvyDependencyMetadata dd, String name, List<String> confs) {
+    protected static void assertDependencyArtifact(IvyDependencyDescriptor dd, String name, List<String> confs) {
         def artifact = dd.dependencyArtifacts.find { it.artifactName.name == name }
         assert artifact != null
         assert artifact.configurations == confs as Set

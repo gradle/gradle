@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -28,7 +28,6 @@ import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
 import java.util.List;
-import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentIdentifier componentId;
@@ -36,7 +35,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final List<ExcludeMetadata> excludes;
-    private final Set<IvyArtifactName> artifactNames;
+    private final ImmutableList<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
@@ -48,14 +47,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
+                                            List<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
         this.dependencyConfiguration = dependencyConfiguration;
-        this.artifactNames = artifactNames;
+        this.artifactNames = ImmutableList.copyOf(artifactNames);
         this.excludes = excludes;
         this.force = force;
         this.changing = changing;
@@ -87,12 +86,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            return ImmutableSet.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -110,7 +109,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
             }
         }
-        return ImmutableSet.of(toConfiguration);
+        return ImmutableList.of(toConfiguration);
     }
 
     @Override
@@ -139,7 +138,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 

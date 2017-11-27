@@ -49,7 +49,7 @@ import java.util.Map;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultConfigurationMetadata> implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
@@ -58,24 +58,19 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
     private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private List<? extends ModuleDependencyMetadata> dependencies;
     private HashValue contentHash = EMPTY_CONTENT;
 
-    protected final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
+    final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
 
     private List<MutableVariantImpl> newVariants;
-
-    // TODO:DAZ Maybe only construct these once immutable
     private ImmutableList<? extends ComponentVariant> variants;
 
-
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends ModuleDependencyMetadata> dependencies) {
+    AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this.componentId = componentIdentifier;
         this.id = id;
-        this.dependencies = dependencies;
     }
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
+    AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
         this.componentId = metadata.getComponentId();
         this.id = metadata.getId();
         this.changing = metadata.isChanging();
@@ -83,7 +78,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
     }
@@ -191,11 +185,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata<T extends DefaultCo
             dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
         }
         dependencyMetadataRules.get(variantName).addAction(action);
-    }
-
-    @Override
-    public List<? extends ModuleDependencyMetadata> getDependencies() {
-        return dependencies;
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {

@@ -19,14 +19,40 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
+
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
     @Override
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
         return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies))
+    }
+
+    def "builds and caches dependencies for a scope"() {
+        given:
+        configuration("compile")
+        configuration("runtime", ["compile"])
+        dependency("org", "module", "1.1", "Compile")
+        dependency("org", "module", "1.2", "Runtime")
+        dependency("org", "module", "1.3", "Test")
+        dependency("org", "module", "1.4", "System")
+
+        when:
+        def md = metadata
+        def runtime = md.getConfiguration("runtime")
+        def compile = md.getConfiguration("compile")
+
+        then:
+        runtime.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1", "1.2"]
+        runtime.dependencies.is(runtime.dependencies)
+
+        compile.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1"]
+        compile.dependencies.is(compile.dependencies)
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -96,4 +122,10 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         "war"          | false | false
         "maven-plugin" | false | true
     }
+
+    def dependency(String org, String module, String version, String scope) {
+        def selector = newSelector(org, module, new DefaultMutableVersionConstraint(version))
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.valueOf(scope), false, selector, null, []))
+    }
+
 }

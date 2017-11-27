@@ -52,29 +52,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         metadata.getConfiguration("conf") == null
     }
 
-    def "builds and caches dependencies for a configuration"() {
-        given:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        dependency("org", "module", "1.1", "runtime", "a")
-        dependency("org", "module", "1.2", "*", "b")
-        dependency("org", "module", "1.3", "compile", "c")
-        dependency("org", "module", "1.4", "other", "d")
-        dependency("org", "module", "1.5", "%", "e")
-
-        when:
-        def md = metadata
-        def runtime = md.getConfiguration("runtime")
-        def compile = md.getConfiguration("compile")
-
-        then:
-        runtime.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1", "1.2", "1.3", "1.5"]
-        runtime.dependencies.is(runtime.dependencies)
-
-        compile.dependencies*.selector*.versionConstraint.preferredVersion == ["1.2", "1.3", "1.5"]
-        compile.dependencies.is(compile.dependencies)
-    }
-
     def "can make a copy with different source"() {
         given:
         configuration("compile")
@@ -99,10 +76,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def dependency(String org, String module, String version) {
-        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of()))
-    }
-
-    def dependency(String org, String module, String version, String fromConf, String toConf) {
-        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of(fromConf, toConf)))
+        dependencies.add(new IvyDependencyDescriptor(newSelector(org, module, new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of()))
     }
 }

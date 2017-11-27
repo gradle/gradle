@@ -16,47 +16,96 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
-import java.util.Set;
 
-public class ConfigurationDependencyMetadataWrapper extends ModuleDependencyMetadataWrapper {
+public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final ConfigurationMetadata configuration;
     private final ModuleComponentIdentifier componentId;
-    private final DefaultDependencyMetadata defaultDependencyMetadata;
+    private final ExternalDependencyDescriptor delegate;
 
-    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, DefaultDependencyMetadata delegate) {
-        super(delegate);
+    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate) {
         this.configuration = configuration;
         this.componentId = componentId;
-        this.defaultDependencyMetadata = delegate;
+        this.delegate = delegate;
     }
 
     @Override
-    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        DefaultDependencyMetadata newDelegate = defaultDependencyMetadata.withRequestedVersion(requestedVersion);
-        return new ConfigurationDependencyMetadataWrapper(configuration, componentId, newDelegate);
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        return delegate.getMetadataForConfigurations(consumerAttributes, consumerSchema, componentId, configuration, targetComponent);
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return defaultDependencyMetadata.getMetadataForConfigurations(consumerAttributes, consumerSchema, componentId, configuration, targetComponent);
-    }
-
-    @Override
-    public Set<IvyArtifactName> getArtifacts() {
-        return defaultDependencyMetadata.getConfigurationArtifacts(configuration);
+    public List<IvyArtifactName> getArtifacts() {
+        return delegate.getConfigurationArtifacts(configuration);
     }
 
     @Override
     public List<ExcludeMetadata> getExcludes() {
-        return defaultDependencyMetadata.getConfigurationExcludes(configuration.getHierarchy());
+        return delegate.getConfigurationExcludes(configuration.getHierarchy());
+    }
+
+    @Override
+    public DependencyMetadata withTarget(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
+            if (newSelector.equals(getSelector())) {
+                return this;
+            }
+            return withRequested(newSelector);
+        } else if (target instanceof ProjectComponentSelector) {
+            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
+            return new DefaultProjectDependencyMetadata(projectTarget, this);
+        } else {
+            throw new IllegalArgumentException("Unexpected selector provided: " + target);
+        }
+    }
+
+    @Override
+    public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+        ModuleComponentSelector selector = getSelector();
+        if (requestedVersion.equals(selector.getVersionConstraint())) {
+            return this;
+        }
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        return withRequested(newSelector);
+    }
+
+    private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
+        ExternalDependencyDescriptor newDelegate = delegate.withRequested(newSelector);
+        return new ConfigurationDependencyMetadataWrapper(configuration, componentId, newDelegate);
+    }
+
+    @Override
+    public ModuleComponentSelector getSelector() {
+        return delegate.getSelector();
+    }
+
+    @Override
+    public boolean isChanging() {
+        return delegate.isChanging();
+    }
+
+    @Override
+    public boolean isTransitive() {
+        return delegate.isTransitive();
+    }
+
+    @Override
+    public boolean isOptional() {
+        return delegate.isOptional();
     }
 }

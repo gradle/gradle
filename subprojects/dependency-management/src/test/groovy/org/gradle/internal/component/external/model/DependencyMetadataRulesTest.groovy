@@ -46,13 +46,13 @@ class DependencyMetadataRulesTest extends Specification {
 
     private ivyComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new IvyDependencyMetadata(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+            new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
         }
         new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyMetadata(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), [], [])
+            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), null, [])
         }
         new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
@@ -215,8 +215,7 @@ class DependencyMetadataRulesTest extends Specification {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumerResolveMetadata = new DefaultMutableMavenModuleResolveMetadata(consumerIdentifier, componentIdentifier).asImmutable()
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as Set, [], false, false, true)
+        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as List, [], false, false, true)
 
         consumer.selectConfigurations(attributes, immutable, schema)[0]
     }
