@@ -83,7 +83,6 @@ class ForkingGradleSession implements GradleSession {
         }
         args << new File(invocation.gradleDistribution.gradleHomeDir, "bin/gradle").absolutePath
         args << "--gradle-user-home" << invocationInfo.gradleUserHome.absolutePath
-        args << "--no-search-upward"
         args << "--stacktrace"
         if (invocation.useDaemon) {
             args << "--daemon"
