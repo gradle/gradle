@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -41,11 +42,23 @@ public abstract class GradleMetadataAwareExternalResourceResolver<T extends Modu
     private final ModuleMetadataParser metadataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    protected GradleMetadataAwareExternalResourceResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory1) {
-        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository);
+    protected GradleMetadataAwareExternalResourceResolver(
+        String name,
+        boolean local,
+        ExternalResourceRepository repository,
+        CacheAwareExternalResourceAccessor cachingResourceAccessor,
+        VersionLister versionLister,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        FileResourceRepository fileResourceRepository,
+        boolean useGradleMetadata,
+        ModuleMetadataParser metadataParser,
+        ImmutableRepositoryContentFilter contentFilter) {
+        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, contentFilter);
         this.useGradleMetadata = useGradleMetadata;
         this.metadataParser = metadataParser;
-        this.moduleIdentifierFactory = moduleIdentifierFactory1;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public boolean isUseGradleMetadata() {

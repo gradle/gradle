@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.Describable;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface ArtifactRepositoryInternal extends ArtifactRepository, Describable {
+/**
+ * Represents the configuration of content filter for a repository. The filter
+ * forms part of the identity of the repository. As such it is important not to allow
+ * arbitrary code, but rather provide a "serializable" form of filter.
+ */
+public interface ImmutableRepositoryContentFilter {
+    boolean isAlwaysProvidesMetadataForModules();
 
-    void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
-
-    RepositoryContentFilterInternal getContentFilter();
-
+    void appendId(BuildCacheHasher hasher);
 }

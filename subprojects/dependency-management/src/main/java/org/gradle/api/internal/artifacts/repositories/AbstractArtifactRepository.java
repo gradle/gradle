@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.RepositoryContentFilter;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
 
     private String name;
     private boolean isPartOfContainer;
+    private final RepositoryContentFilterInternal repositoryContentFilter = new DefaultRepositoryContentFilter();
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -42,5 +45,15 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     @Override
     public String getDisplayName() {
         return getName();
+    }
+
+    @Override
+    public RepositoryContentFilterInternal getContentFilter() {
+        return repositoryContentFilter;
+    }
+
+    @Override
+    public void contentFilter(Action<? super RepositoryContentFilter> configureAction) {
+        configureAction.execute(repositoryContentFilter);
     }
 }

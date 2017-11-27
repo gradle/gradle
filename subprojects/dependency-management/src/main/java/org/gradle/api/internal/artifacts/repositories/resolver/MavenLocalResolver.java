@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -46,8 +47,9 @@ public class MavenLocalResolver extends MavenResolver {
                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                               CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                               FileResourceRepository fileResourceRepository,
-                              boolean preferGradleMetadata) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileResourceRepository, preferGradleMetadata);
+                              boolean preferGradleMetadata,
+                              ImmutableRepositoryContentFilter repositoryContentFilter) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileResourceRepository, preferGradleMetadata, repositoryContentFilter);
     }
 
     @Override

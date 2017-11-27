@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -63,8 +64,9 @@ public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<Ivy
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                        boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
-                       FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser, boolean useGradleMetadata) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, moduleIdentifierFactory);
+                       FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser, boolean useGradleMetadata,
+                       ImmutableRepositoryContentFilter repositoryContentFilter) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, repositoryContentFilter);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
@@ -80,6 +82,7 @@ public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<Ivy
 
     @Override
     protected void appendId(BuildCacheHasher hasher) {
+        super.appendId(hasher);
         hasher.putBoolean(isM2compatible());
         hasher.putBoolean(isUseGradleMetadata());
     }

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
+import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
@@ -38,7 +39,7 @@ import spock.lang.Specification
 
 import java.lang.reflect.Field
 
-public class DependencyResolverIdentifierTest extends Specification {
+class DependencyResolverIdentifierTest extends Specification {
     private final static Field IVY = ExternalResourceResolver.getDeclaredField('ivyPatterns')
     private final static Field ARTIFACT = ExternalResourceResolver.getDeclaredField('artifactPatterns')
 
@@ -77,16 +78,17 @@ public class DependencyResolverIdentifierTest extends Specification {
     }
 
     def resolver() {
-        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository))
+        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository), Stub(ImmutableRepositoryContentFilter))
     }
 
     static class TestResolver extends ExternalResourceResolver {
-        TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
-            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository)
+        TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, ImmutableRepositoryContentFilter repositoryContentFilter) {
+            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, repositoryContentFilter)
         }
 
         @Override
         protected void appendId(BuildCacheHasher hasher) {
+            super.appendId(hasher)
         }
 
         @Override

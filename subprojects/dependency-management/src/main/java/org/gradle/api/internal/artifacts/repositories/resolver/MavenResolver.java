@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
@@ -81,7 +82,8 @@ public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<M
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                          FileStore<String> resourcesFileStore,
                          FileResourceRepository fileResourceRepository,
-                         boolean preferGradleMetadata) {
+                         boolean preferGradleMetadata,
+                         ImmutableRepositoryContentFilter repositoryContentFilter) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -92,7 +94,7 @@ public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<M
             fileResourceRepository,
             preferGradleMetadata,
             metadataParser,
-            moduleIdentifierFactory);
+            repositoryContentFilter);
         this.pomParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
@@ -107,6 +109,7 @@ public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<M
 
     @Override
     protected void appendId(BuildCacheHasher hasher) {
+        super.appendId(hasher);
         hasher.putBoolean(isUseGradleMetadata());
     }
 
