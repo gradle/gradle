@@ -838,20 +838,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
-        if (!searchUpwards) {
-            boolean settingsFoundAboveInTestDir = false;
-            TestFile dir = new TestFile(getWorkingDir());
-            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-                if (dir.file("settings.gradle").isFile()) {
-                    settingsFoundAboveInTestDir = true;
-                    break;
-                }
-                dir = dir.getParentFile();
-            }
-
-            if (!settingsFoundAboveInTestDir) {
-                allArgs.add("--no-search-upward");
-            }
+        if (searchUpwards) {
+            allArgs.add("--no-search-upward");
         }
 
         // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
