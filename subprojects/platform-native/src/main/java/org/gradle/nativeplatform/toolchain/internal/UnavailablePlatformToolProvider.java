@@ -17,12 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
+
+import static org.gradle.internal.FileUtils.withExtension;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     private final ToolSearchResult failure;
@@ -82,6 +85,16 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+    }
+
+    @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String libraryPath) {
+        return withExtension(getExecutableName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override

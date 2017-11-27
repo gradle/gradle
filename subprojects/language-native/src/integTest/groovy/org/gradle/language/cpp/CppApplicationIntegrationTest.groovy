@@ -100,10 +100,7 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
         result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), stripSymbolsTasksRelease(toolChain), installTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
-        if (!toolChain.visualCpp) {
-            assertHasDebugSymbolsForSources(executable("build/exe/main/release/app"), app)
-            assertDoesNotHaveDebugSymbolsForSources(executable("build/exe/main/release/stripped/app"), app)
-        }
+        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds "installDebug"

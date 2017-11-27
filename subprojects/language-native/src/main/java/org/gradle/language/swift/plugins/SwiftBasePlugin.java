@@ -47,7 +47,6 @@ import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
 import java.util.concurrent.Callable;
@@ -128,7 +127,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getModule().get()) + SymbolExtractorOsConfig.current().getExtension();
+                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getModule().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -181,7 +180,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get()) + SymbolExtractorOsConfig.current().getExtension();
+                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {

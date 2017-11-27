@@ -56,6 +56,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.FileUtils.withExtension;
+
 @NonNullApi
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider implements SystemIncludesAwarePlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
@@ -86,7 +88,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
 
     @Override
     public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
+        return withExtension(getSharedLibraryName(libraryName),".lib");
     }
 
     @Override
@@ -245,5 +247,15 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
 
     public String getPCHFileExtension() {
         return ".pch";
+    }
+
+    @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), ".pdb");
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String libraryPath) {
+        return withExtension(getExecutableName(libraryPath), ".pdb");
     }
 }

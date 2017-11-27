@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -36,6 +37,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppComp
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.util.TreeVisitor;
+
+import static org.gradle.internal.FileUtils.withExtension;
 
 public abstract class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
@@ -83,6 +86,16 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String libraryPath) {
+        return withExtension(getExecutableName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override

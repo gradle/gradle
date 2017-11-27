@@ -53,7 +53,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
@@ -137,13 +136,13 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.current().getExtension();
+                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
+                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
@@ -203,7 +202,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get()) + SymbolExtractorOsConfig.current().getExtension();
+                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
