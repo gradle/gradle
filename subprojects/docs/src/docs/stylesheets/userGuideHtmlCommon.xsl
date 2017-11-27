@@ -32,9 +32,9 @@
     <xsl:param name="css.decoration">0</xsl:param>
     <xsl:param name="highlight.source" select="1"/>
 
-    <!-- Customize the metadata and stylesheets to add to the <head> element -->
-    <xsl:template name="head.content">
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <!-- Use custom style sheet content -->
+    <xsl:param name="html.stylesheet">DUMMY</xsl:param>
+    <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="docs.css" rel="stylesheet" type="text/css"/>
         <link href="userguide.css" rel="stylesheet" type="text/css"/>
