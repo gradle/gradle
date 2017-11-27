@@ -1,5 +1,5 @@
 # Contributing to Gradle
-Thank you for considering a contribution to Gradle! This guide explains how to: 
+Thank you for considering a contribution to Gradle! This guide explains how to:
 
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
@@ -7,13 +7,13 @@ Thank you for considering a contribution to Gradle! This guide explains how to:
 
 ## Get in touch
 
-Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can safe both you and us a lot of time.
+Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can save both you and us a lot of time.
 For any non-trivial change, we'll ask you to create a short design document explaining:
 
 * Why is this change done? What's the use case?
 * What will the API look like? (For new features)
 * What test cases should it have? What could go wrong?
-* How will it roughly be implemented? (We'll happily provide code pointers to safe you time)
+* How will it roughly be implemented? (We'll happily provide code pointers to save you time)
 
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
 
@@ -23,7 +23,7 @@ Before we can accept any code contributions, you must electronically sign a [Gra
 
 ## Follow the Code of Conduct
 
-In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/). 
+In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/).
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
@@ -94,6 +94,6 @@ If you run into any trouble, please reach out to us on the issue you are working
 
 ## Our Thanks
 
-We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to. 
-  
-If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)? 
+We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to.
+
+If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)?
