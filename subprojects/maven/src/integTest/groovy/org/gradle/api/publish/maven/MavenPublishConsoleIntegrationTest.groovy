@@ -111,8 +111,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
 
         then:
         ConcurrentTestUtil.poll {
-            // TODO - where did this one go?
-            // assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module"))
+             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded"))
         }
 
         when:
