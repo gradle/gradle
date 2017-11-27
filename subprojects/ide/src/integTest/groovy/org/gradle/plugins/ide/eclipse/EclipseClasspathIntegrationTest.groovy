@@ -1014,8 +1014,8 @@ dependencies {
         def libraries = classpath.libs
         assert libraries.size() == 3
         libraries[0].assertHasJar(repoJar)
-        libraries[1].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
-        libraries[2].assertHasJar(localJar)
+        libraries[1].assertHasJar(localJar)
+        libraries[2].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
     }
 
     @Test

@@ -50,6 +50,14 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return projectPath;
     }
 
+    public String getProjectName() {
+        if (projectPath.equals(":")) {
+            return buildIdentifier.getName();
+        }
+        int index = projectPath.lastIndexOf(':');
+        return projectPath.substring(index + 1);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

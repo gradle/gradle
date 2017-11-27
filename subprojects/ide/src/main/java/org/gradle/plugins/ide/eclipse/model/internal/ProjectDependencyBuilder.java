@@ -16,10 +16,10 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 public class ProjectDependencyBuilder {
     private final LocalComponentRegistry localComponentRegistry;
@@ -28,14 +28,17 @@ public class ProjectDependencyBuilder {
         this.localComponentRegistry = localComponentRegistry;
     }
 
-    public ProjectDependency build(IdeProjectDependency dependency) {
-        return buildProjectDependency(determineTargetProjectPath(dependency));
+    public ProjectDependency build(ProjectComponentIdentifier id) {
+        return buildProjectDependency(determineTargetProjectPath(id));
     }
 
-    private String determineTargetProjectPath(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "eclipse.project");
-        String targetProjectName = eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
-        return "/" + targetProjectName;
+    private String determineTargetProjectPath(ProjectComponentIdentifier id) {
+        return "/" + determineTargetProjectName(id);
+    }
+
+    public String determineTargetProjectName(ProjectComponentIdentifier id) {
+        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(id, "eclipse.project");
+        return eclipseProjectArtifact == null ? id.getProjectName() : eclipseProjectArtifact.getName().getName();
     }
 
     private ProjectDependency buildProjectDependency(String path) {

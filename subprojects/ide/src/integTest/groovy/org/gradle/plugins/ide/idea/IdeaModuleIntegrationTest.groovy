@@ -578,8 +578,8 @@ dependencies {
 }
 """
         String expected = """:ideaModule
-Could not resolve: myGroup:missing-artifact:1.0
 Could not resolve: myGroup:missing-extra-artifact:1.0
+Could not resolve: myGroup:missing-artifact:1.0
 :ideaProject
 :ideaWorkspace
 :idea
