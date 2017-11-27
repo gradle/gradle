@@ -60,9 +60,15 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     private void renderDeprecationReport(GradleLauncher launcher) {
-        ProjectInternal project = launcher.getGradle().getDefaultProject();
-        if (project != null) {
+        try {
+            ProjectInternal project = launcher.getGradle().getRootProject();
             SingleMessageLogger.renderDeprecationReport(new File(project.getBuildDir(), "reports/deprecations/report.html"));
+        } catch (IllegalStateException e) {
+            // root project is not ready, e.g. in case of building buildSrc or failure in init script
+            ProjectInternal project = launcher.getGradle().getDefaultProject();
+            if (project != null) {
+                SingleMessageLogger.renderDeprecationReport(new File(project.getBuildDir(), "reports/deprecations/report.html"));
+            }
         }
     }
 }

@@ -158,8 +158,12 @@ class UserGuideSamplesRunner extends Runner {
                 executer.withArgument("--no-daemon")
             }
 
-            // We don't care deprecation warnings in these tests
-            executer.noDeprecationChecks()
+            if (run.expectDeprecationWarning) {
+                executer.expectDeprecationWarning()
+            }
+            if (run.noDeprecationCheck) {
+                executer.noDeprecationChecks()
+            }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
@@ -296,6 +300,9 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
+        samplesByDir.get('userguide/tutorial/helloShortcut')*.expectDeprecationWarning = true
+        // under java 7, a project can't be really "cleaned" because deprecation reports would be generated in build dir after the build finishes
+        samplesByDir.get('userguide/tasks/incrementalBuild/incrementalBuildAdvanced')*.noDeprecationCheck = true
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
         }
@@ -359,6 +366,8 @@ Please run 'gradle docs:extractSamples' first"""
         boolean ignoreExtraLines
         boolean ignoreLineOrder
         boolean brokenForParallel
+        boolean expectDeprecationWarning
+        boolean noDeprecationCheck
         List files = []
         List dirs = []
         int index

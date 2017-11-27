@@ -63,6 +63,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * launcher.getGradle() >> gradle
         _ * gradle.services >> sessionServices
+        _ * gradle.getRootProject() >> { throw new IllegalStateException() }
     }
 
     def "creates launcher and forwards action to action runner after notifying listeners"() {

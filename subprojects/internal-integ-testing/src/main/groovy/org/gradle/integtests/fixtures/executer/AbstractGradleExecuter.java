@@ -75,6 +75,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.DEPRECATION_REPORT_PATTERN;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
@@ -1181,7 +1182,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
 
             private boolean isDeprecationsPrompt(String line) {
-                return line.startsWith("Some deprecated APIs are used in this build");
+                return DEPRECATION_REPORT_PATTERN.matcher(line).matches();
             }
 
             private boolean isDeprecationMessageInHelpDescription(String s) {

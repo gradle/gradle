@@ -51,9 +51,9 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.deprecationUsages.keySet() == ['feature1', 'feature2'] as Set
     }
 
-    def assertSingleWarning() {
+    def assertWarning(int count) {
         assert outputEventListener.events.size() == 1
-        assert outputEventListener.events[0].message.startsWith("Some deprecated APIs are used in this build")
+        assert outputEventListener.events[0].message.startsWith("There are ${count} deprecation warnings.")
         assert outputEventListener.events[0].logLevel == LogLevel.WARN
         return true
     }
@@ -78,7 +78,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         renderDeprecationReport()
 
         then:
-        assertSingleWarning()
+        assertWarning(2)
 
         and:
         def html = temporaryFolder.file(REPORT_LOCATION).readLines()*.trim().join('\n')
@@ -176,7 +176,7 @@ at java.lang.reflect.Method.invoke(Method.java:498)
         }
 
         and:
-        assertSingleWarning()
+        assertWarning(1)
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String message) {

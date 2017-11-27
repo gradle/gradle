@@ -16,19 +16,19 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     public static final String RENDER_REPORT_SYSTEM_PROPERTY = "org.gradle.internal.deprecation.report";
@@ -68,11 +68,20 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         StringBuilder report = new StringBuilder(load("/templates/deprecation-report.template"));
         String div = load("/templates/deprecation-report-div.template");
 
-
         replace(report, "${warnings}", renderWarnings(div));
-        GFileUtils.writeFile(report.toString(), reportLocation);
 
-        LOGGER.warn("Some deprecated APIs are used in this build, which may be broken in Gradle 5.0. See the detailed report at: " + new ConsoleRenderer().asClickableFileUrl(reportLocation));
+        writeToFile(report.toString(), reportLocation);
+
+        LOGGER.warn(String.format("There are %d deprecation warnings. See the detailed report at: %s", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation)));
+    }
+
+    private void writeToFile(String content, File file) {
+        try {
+            Files.createDirectories(file.getParentFile().toPath());
+            Files.write(file.toPath(), content.getBytes("UTF-8"));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private boolean shouldRenderReport() {
@@ -121,8 +130,8 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     private String load(String resourceName) {
         try {
-            return IOUtils.toString(getClass().getResourceAsStream(resourceName));
-        } catch (IOException e) {
+            return new Scanner(getClass().getResourceAsStream(resourceName)).useDelimiter("\\A").next();
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
