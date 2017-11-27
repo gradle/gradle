@@ -117,30 +117,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.getReports()",
-            "acceptation": "Extracted super class out of Test which was already stable",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.reports(groovy.lang.Closure)",
-            "acceptation": "Extracted super class out of Test which was already stable",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.reports(org.gradle.api.Action)",
-            "acceptation": "Extracted super class out of Test which was already stable",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getInetAddressFactory()",
             "acceptation": "Extracted super class out of Test which was already stable"
