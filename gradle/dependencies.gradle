@@ -26,7 +26,7 @@ versions.bouncycastle = '1.58'
 versions.maven = '3.0.4'
 
 libraries.ant = 'org.apache.ant:ant:1.9.9'
-libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_ALPHA'
+libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_BETA'
 libraries.cglib = 'cglib:cglib:3.2.5'
 libraries.bndlib = 'biz.aQute.bnd:biz.aQute.bndlib:3.4.0'
 libraries.commons_cli = 'commons-cli:commons-cli:1.2'
