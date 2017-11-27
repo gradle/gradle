@@ -140,9 +140,41 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         return dependencyArtifact;
     }
 
+    /**
+     * When a Maven dependency declares a classifier or type attribute, this is modelled as a 'dependency artifact'.
+     * This means that instead of resolving the default artifacts for the target dependency, we'll use the one defined
+     * for the dependency.
+     */
     @Override
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
-        // For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
+        // Special handling for artifacts declared for optional dependencies
+        if (isOptional()) {
+            return getArtifactsForOptionalDependency(fromConfiguration);
+        }
+        return getDependencyArtifacts();
+    }
+
+    /**
+     * When an optional dependency declares a classifier, that classifier is effectively ignored, and the optional
+     * dependency will update the version of any dependency with matching GAV.
+     * (Same goes for <type> on optional dependencies: they are effectively ignored).
+     *
+     * The exception to the optional case is when the magic "optional" configuration is being resolved.
+     *
+     * Note that this doesn't really match with Maven, where an optional dependency with classifier will
+     * provide a version for any other dependency with matching GAV + classifier.
+     */
+    private ImmutableList<IvyArtifactName> getArtifactsForOptionalDependency(ConfigurationMetadata fromConfiguration) {
+        if ("optional".equals(fromConfiguration.getName())) {
+            return getDependencyArtifacts();
+        }
+        return ImmutableList.of();
+    }
+
+    /**
+     * For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
+     */
+    private ImmutableList<IvyArtifactName> getDependencyArtifacts() {
         return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
     }
 
