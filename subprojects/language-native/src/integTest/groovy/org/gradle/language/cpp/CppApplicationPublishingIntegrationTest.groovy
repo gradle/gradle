@@ -113,11 +113,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
         release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2.module")
-        if (toolChain.visualCpp) {
-            release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
-        } else {
-            release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/stripped/test").file)
-        }
+        release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").strippedRuntimeFile)
 
         release.parsedPom.scopes.isEmpty()
 

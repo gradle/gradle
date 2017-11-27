@@ -74,7 +74,7 @@ class NativeBinaryFixture {
         if (toolChain?.visualCpp) {
             return file.withExtension(".pdb")
         } else {
-            return strippedBinary.withExtension(SymbolExtractorOsConfig.current().extension)
+            return strippedRuntimeFile.withExtension(SymbolExtractorOsConfig.current().extension)
         }
     }
 
@@ -83,12 +83,16 @@ class NativeBinaryFixture {
         file.delete()
     }
 
-    private TestFile getStrippedBinary() {
-        return file.parentFile.file("stripped/${file.name}")
+    public TestFile getStrippedRuntimeFile() {
+        if (toolChain?.visualCpp) {
+            return file
+        } else {
+            return file.parentFile.file("stripped/${file.name}")
+        }
     }
 
     private NativeBinaryFixture getStrippedBinaryFixture() {
-        return new NativeBinaryFixture(strippedBinary, toolChain)
+        return new NativeBinaryFixture(strippedRuntimeFile, toolChain)
     }
 
     private NativeBinaryFixture getSymbolFileFixture() {
