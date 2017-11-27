@@ -319,6 +319,25 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         supplier.s == "a"
     }
 
+    def "can opt-out of Ivy legacy behavior of fetching jar when metadata isn't found"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+
+        when:
+        repository.contentFilter {
+            it.alwaysProvidesMetadataForModules()
+        }
+        def resolver = repository.createResolver()
+
+        then:
+        with(resolver) {
+            it instanceof IvyResolver
+            it.contentFilter.alwaysProvidesMetadataForModules
+        }
+    }
+
     static class CustomMetadataSupplier implements ComponentMetadataSupplier {
         @Override
         void execute(ComponentMetadataSupplierDetails details) {

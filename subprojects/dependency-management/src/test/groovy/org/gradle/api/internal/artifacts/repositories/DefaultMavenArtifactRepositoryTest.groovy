@@ -158,6 +158,28 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.root == uri
     }
 
+    def "can opt-out of Maven legacy behavior of fetching jar when metadata isn't found"() {
+        given:
+        def uri = new URI("http://localhost:9090/repo")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        transportFactory.createTransport('http', 'repo', _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+        repository.contentFilter {
+            it.alwaysProvidesMetadataForModules()
+        }
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == uri
+        repo.contentFilter.alwaysProvidesMetadataForModules
+    }
+
     private RepositoryTransport transport() {
         return Mock(RepositoryTransport) {
             getRepository() >> resourceRepository
