@@ -17,27 +17,18 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
-
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 /**
  * This is a variation of {@link OptionalDependenciesIntegrationTest} that tests dependency constraints
  * declared in the build script (instead of published optional dependencies)
  */
 class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
         ExperimentalFeaturesFixture.enable(settingsFile)
         settingsFile << "rootProject.name = 'test'"
-    }
-
-    void "dependency constraint is ignored when feature not enabled"() {
-        given:
-        mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module("org", "foo", '1.1').publish()
-
-        // Do not enable feature
-        settingsFile.text = """
-            rootProject.name = 'test'
-"""
+        resolve.prepare()
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -45,16 +36,23 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 conf
             }
+        """
+    }
+
+    void "dependency constraint is ignored when feature not enabled"() {
+        given:
+        // Do not enable feature
+        settingsFile.text = """
+            rootProject.name = 'test'
+        """
+        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+
+        buildFile << """
             dependencies {
                 conf 'org:foo:1.0'
                 constraints {
                     conf 'org:foo:1.1'
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.0.jar']
                 }
             }
         """
@@ -63,7 +61,32 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.0")
+            }
+        }
+    }
+
+    void "dependency constraint is not included in resolution without a hard dependency"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').publish()
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf 'org:foo:1.0'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") { }
+        }
     }
 
     void "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
@@ -71,22 +94,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.1').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:foo'
                 constraints {
                     conf 'org:foo:1.1'
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
                 }
             }
         """
@@ -95,7 +106,12 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:","org:foo:1.1")
+                module("org:foo:1.1")
+            }
+        }
     }
 
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
@@ -105,22 +121,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "bar", "1.0").dependsOn("org", "foo", "1.0").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:bar:1.0'
                 constraints {
                     conf 'org:foo:1.1'
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.1.jar']
                 }
             }
         """
@@ -129,7 +133,14 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:bar:1.0") {
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                }
+                module("org:foo:1.1")
+            }
+        }
     }
 
     void "range resolution kicks in with dependency constraints"() {
@@ -141,22 +152,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
 
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:bar:1.0'
                 constraints {
                     conf 'org:foo:[1.0,1.1]'
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar', 'foo-1.1.jar']
                 }
             }
         """
@@ -165,7 +164,14 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:bar:1.0") {
+                    edge("org:foo:[1.0,1.2]", "org:foo:1.1")
+                }
+                edge("org:foo:[1.0,1.1]", "org:foo:1.1")
+            }
+        }
     }
 
     void "transitive dependencies of an dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
@@ -175,22 +181,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "bar", '1.1').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:bar:1.0'
                 constraints {
                     conf 'org:foo:1.0'
-                }
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['bar-1.0.jar']
                 }
             }
         """
@@ -199,7 +193,11 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:bar:1.0")
+            }
+        }
     }
 
     void "dependency constraints on substituted module is recognized properly"() {
@@ -209,9 +207,6 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "bar", '1.1').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
             configurations {
                 conf {
                    resolutionStrategy.dependencySubstitution {
@@ -229,19 +224,18 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     conf 'org:bar:1.1'
                 }
             }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
-                }
-            }
         """
 
         when:
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:bar:1.1", "org:foo:1.1").selectedByRule().byConflictResolution()
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+            }
+        }
     }
 
     void "dependency constraints are inherited"() {
@@ -250,9 +244,6 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.1').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
             configurations {
                 confSuper
                 conf { extendsFrom confSuper }
@@ -264,19 +255,18 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     confSuper 'org:foo:1.1'
                 }
             }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
-                }
-            }
         """
 
         when:
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                module("org:foo:1.1")
+            }
+        }
     }
 
     void "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
@@ -285,46 +275,43 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.1').publish()
 
         settingsFile << """
-            include 'a', 'b'
+            include 'b'
         """
         buildFile << """
-            subprojects {
+            dependencies {
+                conf project(path: ':b', configuration: 'conf')
+                conf 'org:foo:1.0'
+            }
+            
+            project(':b') {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-            }
-            project(':a') {
                 configurations {
-                    confA
-                }
-                dependencies {
-                    confA project(path: ':b', configuration: 'confB')
-                    confA 'org:foo:1.0'
-                }
-                task checkDeps {
-                    doLast {
-                        def files = configurations.confA*.name.sort()
-                        assert files == ['foo-1.1.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    confB
+                    conf
                 }
                 dependencies {
                     constraints {
-                        confB 'org:foo:1.1'
+                        conf 'org:foo:1.1'
                     }
                 }
             }
         """
 
         when:
-        run 'checkDeps'
+        run ':checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                project(":b", "test:b:") {
+                    configuration = "conf"
+                    noArtifacts()
+                    module("org:foo:1.1")
+                }
+            }
+        }
     }
 
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
@@ -352,21 +339,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             includeBuild 'includeBuild'
         """
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
             dependencies {
                 conf 'org:included:1.0'
                 conf 'org:foo:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['foo-1.1.jar']
-                }
             }
         """
 
@@ -374,6 +349,14 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         run 'checkDeps'
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:included:1.0", "project :included", "org:included:1.0") {
+                    noArtifacts()
+                    module("org:foo:1.1")
+                }.compositeSubstitute()
+            }
+        }
     }
 }
