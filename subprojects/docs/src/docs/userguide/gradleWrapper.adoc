@@ -15,7 +15,7 @@
 [[gradle_wrapper]]
 == The Gradle Wrapper
 
-The recommended way to execute any Gradle build is with the help of the Gradle Wrapper (in short just “Wrapper”). The Wrapper is a feature that makes is extremely easy to bootstrap a Gradle project. Upon invocation, it can _automatically download, unpack and install the Gradle runtime with a predefined version_ and use it to execute the build. As a result, developers can get up and running with a Gradle project in no-time without having to follow manual installation processes saving your company time and money.
+The recommended way to execute any Gradle build is with the help of the Gradle Wrapper (in short just “Wrapper”). The Wrapper is a feature that makes is extremely easy to execute a Gradle project without a Gradle installation. Upon invocation, it can _automatically download, unpack and install the Gradle runtime with a predefined version_ and use it to execute the build. As a result, developers can get up and running with a Gradle project in no-time without having to follow manual installation processes saving your company time and money.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
