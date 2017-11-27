@@ -58,11 +58,6 @@ public class XCTestSelection {
                 }
             }
         }
-
-        if (includedTests.contains(INCLUDE_ALL_TESTS)) {
-            includedTests.clear();
-            includedTests.add(INCLUDE_ALL_TESTS);
-        }
     }
 
     private static boolean isIncludedTestCase(String includedTest) {
@@ -81,8 +76,15 @@ public class XCTestSelection {
 
     private void prepareIncludedTestList(Collection<String> testFilters, Set<String> testSuiteCache) {
         for (String testFilter : testFilters) {
-            includedTests.add(prepareIncludedTest(testFilter, testSuiteCache));
+            includedTests.add(prepareIncludedTest(disallowForwardSlash(testFilter), testSuiteCache));
         }
+    }
+
+    private String disallowForwardSlash(String testFilter) {
+        if (testFilter.contains("/")) {
+            throw new IllegalArgumentException(String.format("'%s' is an invalid pattern. Patterns cannot contain forward slash.", testFilter));
+        }
+        return testFilter;
     }
 
     private String prepareIncludedTest(String testFilter, Set<String> testSuiteCache) {

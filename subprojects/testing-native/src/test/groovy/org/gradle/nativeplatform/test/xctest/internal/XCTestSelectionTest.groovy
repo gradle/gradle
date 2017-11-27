@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest.internal
 
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 @Subject(XCTestSelection)
 class XCTestSelectionTest extends Specification {
@@ -74,6 +75,19 @@ class XCTestSelectionTest extends Specification {
     def "conserve order of filters"() {
         expect:
         select('a.1', 'a.2', 'a.3', 'a.4').includedTests == ['a.1', 'a.2', 'a.3', 'a.4']
+    }
+
+    @Unroll
+    def "throws IllegalArgumentException when filter contains forward slash [#testFilter]"() {
+        when:
+        select(testFilter)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "'$testFilter' is an invalid pattern. Patterns cannot contain forward slash."
+
+        where:
+        testFilter << ['/abc', 'a/bc', 'ab/c', 'a/b/c', 'a/bc', 'a.b/c']
     }
 
     private static XCTestSelection select(String... commandLinePattern) {
