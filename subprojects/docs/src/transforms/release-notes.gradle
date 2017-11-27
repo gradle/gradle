@@ -28,6 +28,7 @@ transformDocument {
 
     head().
             append("<meta charset='utf-8'>").
+            append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
             append("<title>Gradle @version@ Release Notes</title>")
 
     head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
