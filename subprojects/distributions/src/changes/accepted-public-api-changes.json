@@ -11,11 +11,19 @@
             "acceptation": "Method was pulled up from Test class"
         },
         {
-            "type": "org.gradle.api.artifacts.DirectDependency",
-            "member": "Class org.gradle.api.artifacts.DirectDependency",
-            "acceptation": "This new interface, which does not contain any additional methods at this point, is inserted into an existing stable interface hierarchy.",
+            "type": "org.gradle.api.artifacts.ModuleDependency",
+            "member": "Class org.gradle.api.artifacts.ModuleDependency",
+            "acceptation": "Inserted new interface in hierarchy to distinguish direct dependencies and dependency constraints",
             "changes": [
-                "Interface has been added"
+                "org.gradle.api.artifacts.DirectDependency"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.SelfResolvingDependency",
+            "member": "Class org.gradle.api.artifacts.SelfResolvingDependency",
+            "acceptation": "Inserted new interface in hierarchy to distinguish direct dependencies and dependency constraints",
+            "changes": [
+                "org.gradle.api.artifacts.DirectDependency"
             ]
         }
     ]

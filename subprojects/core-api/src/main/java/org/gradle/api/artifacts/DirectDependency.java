@@ -17,11 +17,14 @@
 package org.gradle.api.artifacts;
 
 
+import org.gradle.api.Incubating;
+
 /**
  * Implementations of this interface always describe direct dependencies and not
  * constraints may optionally considered as dependency.
  *
  * @since 4.5
  */
+@Incubating
 public interface DirectDependency extends Dependency {
 }

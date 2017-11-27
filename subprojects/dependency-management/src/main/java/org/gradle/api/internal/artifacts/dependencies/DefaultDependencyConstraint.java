@@ -92,7 +92,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     @Override
-    public Dependency copy() {
+    public DependencyConstraint copy() {
         return new DefaultDependencyConstraint(group, name, versionConstraint);
     }
 
