@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -42,6 +42,6 @@ public interface DependencyGraphEdge extends DependencyResult {
      * The original dependency instance declared in the build script, if any.
      */
     @Nullable
-    ModuleDependency getModuleDependency();
+    Dependency getOriginalDependency();
 
 }

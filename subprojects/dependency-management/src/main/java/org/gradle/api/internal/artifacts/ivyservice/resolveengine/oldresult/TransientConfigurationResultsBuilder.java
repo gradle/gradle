@@ -17,7 +17,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -150,7 +150,7 @@ public class TransientConfigurationResultsBuilder {
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
-        Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
+        Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<Dependency, DependencyGraphNodeResult>();
         DependencyGraphNodeResult root;
         int valuesRead = 0;
         byte type = -1;

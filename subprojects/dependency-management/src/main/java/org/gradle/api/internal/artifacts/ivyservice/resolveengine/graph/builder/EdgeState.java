@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -188,7 +188,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ModuleDependency getModuleDependency() {
+    public Dependency getOriginalDependency() {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
         }

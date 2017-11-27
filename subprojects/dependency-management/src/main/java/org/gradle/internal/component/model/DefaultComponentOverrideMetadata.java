@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
 import java.util.Collections;
@@ -45,7 +45,7 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
 
     private static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
-            ModuleDependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
+            Dependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
             if (source instanceof ClientModule) {
                 return (ClientModule) source;
             }

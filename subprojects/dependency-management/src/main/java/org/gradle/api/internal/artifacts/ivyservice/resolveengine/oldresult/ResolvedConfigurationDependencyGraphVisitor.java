@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -41,7 +41,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
         builder.newResolvedDependency(node);
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
-                ModuleDependency moduleDependency = dependency.getModuleDependency();
+                Dependency moduleDependency = dependency.getOriginalDependency();
                 builder.addFirstLevelDependency(moduleDependency, node);
             }
         }
