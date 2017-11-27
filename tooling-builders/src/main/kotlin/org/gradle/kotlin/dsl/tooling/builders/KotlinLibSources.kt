@@ -75,6 +75,7 @@ fun classpathDependenciesOf(buildscript: ScriptHandler): List<ComponentIdentifie
 internal
 fun kotlinLibSourcesFor(scriptHandlers: List<ScriptHandler>): ClassPath =
     scriptHandlers
+        .asSequence()
         .filter { it.repositories.isNotEmpty() }
         .map { resolveKotlinLibSourcesUsing(it.dependencies) }
         .find { !it.isEmpty } ?: ClassPath.EMPTY
