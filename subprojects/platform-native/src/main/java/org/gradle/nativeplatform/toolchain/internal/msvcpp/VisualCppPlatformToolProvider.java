@@ -88,7 +88,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
 
     @Override
     public String getSharedLibraryLinkFileName(String libraryName) {
-        return withExtension(getSharedLibraryName(libraryName),".lib");
+        return withExtension(getSharedLibraryName(libraryName), ".lib");
     }
 
     @Override

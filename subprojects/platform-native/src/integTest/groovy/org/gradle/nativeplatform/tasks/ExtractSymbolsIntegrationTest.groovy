@@ -17,16 +17,17 @@
 package org.gradle.nativeplatform.tasks
 
 import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
-import org.gradle.nativeplatform.fixtures.debug.DebugInfo
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DebugInfo {
+class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new IncrementalCppStaleCompileOutputApp()
 
     def setup() {
@@ -52,7 +53,7 @@ class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegra
 
         then:
         executedAndNotSkipped":extractSymbolsDebug"
-        assertHasDebugSymbolsForSources(file("build/symbols"), app.original)
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "extract is skipped when there are no changes"() {
@@ -67,7 +68,7 @@ class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegra
 
         then:
         skipped":extractSymbolsDebug"
-        assertHasDebugSymbolsForSources(file("build/symbols"), app.original)
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "extract is re-executed when changes are made"() {
@@ -83,6 +84,14 @@ class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegra
 
         then:
         executedAndNotSkipped":extractSymbolsDebug"
-        assertHasDebugSymbolsForSources(file("build/symbols"), app.alternate)
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.alternate))
+    }
+
+    NativeBinaryFixture fixture(String path) {
+        return new NativeBinaryFixture(file(path), toolChain)
+    }
+
+    List<String> withoutHeaders(SourceElement sourceElement) {
+        return sourceElement.sourceFileNames.findAll { !it.endsWith(".h") }
     }
 }

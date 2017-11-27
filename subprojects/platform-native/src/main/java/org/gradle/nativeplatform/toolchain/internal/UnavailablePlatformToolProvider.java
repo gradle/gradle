@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;

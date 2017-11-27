@@ -19,10 +19,10 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.debug.DebugInfo
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements DebugInfo {
+class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
 allprojects {
@@ -36,6 +36,14 @@ rootProject.name = "${rootProjectName}"
 
     protected String getRootProjectName() {
         'app'
+    }
+
+    protected NativeBinaryFixture fixture(String path) {
+        fixture(file(path))
+    }
+
+    protected NativeBinaryFixture fixture(TestFile binary) {
+        new NativeBinaryFixture(binary, null)
     }
 
     protected TestFile exe(String str) {

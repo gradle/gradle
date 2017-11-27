@@ -356,7 +356,7 @@ apply plugin: 'swift-application'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
-        assertHasDebugSymbolsForSources(debugBinary, app)
+        fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
         when:
         releaseBinary.assertDoesNotExist()
@@ -370,7 +370,7 @@ apply plugin: 'swift-application'
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
-        assertHasDebugSymbolsForSources(releaseBinary, app)
+        fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -453,7 +453,7 @@ apply plugin: 'swift-library'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
-        assertHasDebugSymbolsForSources(debugBinary, lib)
+        fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
         when:
         releaseBinary.assertDoesNotExist()
@@ -467,7 +467,7 @@ apply plugin: 'swift-library'
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
-        assertHasDebugSymbolsForSources(debugBinary, lib)
+        fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
 
     def "adds new source files in the project"() {

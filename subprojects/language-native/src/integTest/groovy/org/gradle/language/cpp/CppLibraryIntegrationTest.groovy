@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
@@ -25,7 +24,7 @@ import org.hamcrest.Matchers
 
 import static org.gradle.util.Matchers.containsText
 
-class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames, DebugInfo {
+class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
 
     def "skip compile and link tasks when no source"() {
         given:
@@ -114,10 +113,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         result.assertTasksExecuted(compileAndLinkTasks(release), stripSymbolsTasksRelease(toolChain))
         sharedLibrary("build/lib/main/release/hello").assertExists()
-        if (!toolChain.visualCpp) {
-            assertHasDebugSymbolsForSources(sharedLibrary("build/lib/main/release/hello"), lib)
-            assertDoesNotHaveDebugSymbolsForSources(sharedLibrary("build/lib/main/release/stripped/hello"), lib)
-        }
+        sharedLibrary("build/lib/main/release/hello").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
@@ -125,6 +121,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         result.assertTasksExecuted(compileAndLinkTasks(debug))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
+        sharedLibrary("build/lib/main/debug/hello").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         !output.contains('compiling with feature enabled')
     }
 
@@ -454,5 +451,4 @@ project(':greeter') {
         sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
     }
-
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.debug.DebugInfo
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -29,7 +28,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DebugInfo {
+class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile, link and install tasks when no source"() {
         given:
         buildFile << """
@@ -156,7 +155,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         given:
         def app = new SwiftAppWithOptionalFeature()
         def debugBinary = executable("build/exe/main/debug/App")
-        def releaseBinary = executable("build/exe/main/release/stripped/App")
+        def releaseBinary = executable("build/exe/main/release/App")
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
 
@@ -173,8 +172,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         releaseBinary.assertExists()
         releaseBinary.exec().out == app.withFeatureEnabled().expectedOutput
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
-        assertDoesNotHaveDebugSymbolsForSources(releaseBinary, app)
-        assertHasDebugSymbolsForSources(executable("build/exe/main/release/App"), app)
+        releaseBinary.assertHasStrippedDebugSymbolsFor(app.sourceFileNames)
 
         succeeds "installDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug")
@@ -183,7 +181,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         debugBinary.assertExists()
         debugBinary.exec().out == app.withFeatureDisabled().expectedOutput
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
-        assertHasDebugSymbolsForSources(debugBinary, app)
+        debugBinary.assertHasDebugSymbolsFor(app.sourceFileNames)
     }
 
     def "can use executable file as task dependency"() {
@@ -508,6 +506,8 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         sharedLibrary("hello/build/lib/main/release/Greeter").assertExists()
+        sharedLibrary("hello/build/lib/main/release/Greeter").assertHasStrippedDebugSymbolsFor(app.library.sourceFileNames)
+        executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds ":app:linkDebug"
@@ -515,6 +515,8 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":app:compileDebugSwift", ":app:linkDebug")
 
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
+        executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
