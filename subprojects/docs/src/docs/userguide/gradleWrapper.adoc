@@ -69,6 +69,24 @@ A Gradle project typically provides a `build.gradle` and a `settings.gradle` fil
 
 If you happen to find those files in your project then you are all set. You can go ahead and <<sec:executing_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<sec:adding_wrapper,generate them>>.
 
+[[sec:executing_wrapper]]
+=== Executing the build with the Wrapper
+
+It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operation system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperBatchFileExecution" title="Executing the build with the Wrapper batch file">
+    <output executable="gradlew.bat" args="build" />
+</sample>
+++++
+
+In case the Gradle distribution is not available on the machine, the Wrapper will download it and store in the local file system. Any subsequent build invocation is going to reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
+
+[NOTE]
+====
+The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
+====
+
 [[sec:adding_wrapper]]
 === Adding a Wrapper to a project
 
@@ -131,24 +149,6 @@ As a result you can find the desired information in the Wrapper properties file.
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-4.0-all.zip
 ----
-====
-
-[[sec:executing_wrapper]]
-=== Executing the build with the Wrapper
-
-It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operation system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" dir="userguide/wrapper" id="wrapperBatchFileExecution" title="Executing the build with the Wrapper batch file">
-    <output executable="gradlew.bat" args="build" />
-</sample>
-++++
-
-In case the Gradle distribution is not available on the machine, the Wrapper will download it and store in the local file system. Any subsequent build invocation is going to reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
-
-[NOTE]
-====
-The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
 ====
 
 [[sec:upgrading_wrapper]]
