@@ -173,6 +173,11 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         return "Tool chain '" + getName() + "' (" + getTypeName() + ")";
     }
 
+    @Override
+    public boolean requiresDebugBinaryStripping() {
+        return false;
+    }
+
     public boolean isVisualCpp2015() {
         return visualCpp != null && visualCpp.getVersion().getMajor() >= 14;
     }

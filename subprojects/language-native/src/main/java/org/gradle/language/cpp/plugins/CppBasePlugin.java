@@ -55,7 +55,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
 import java.io.File;
@@ -132,7 +131,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    if (executable.isDebuggable() && executable.isOptimized() && !(toolChain instanceof VisualCppToolChain)) {
+                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
@@ -198,7 +197,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         linkFile = link.getImportLibrary();
                     }
 
-                    if (library.isDebuggable() && library.isOptimized() && !(toolChain instanceof VisualCppToolChain)) {
+                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
