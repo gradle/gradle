@@ -62,11 +62,6 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
-        return scriptDsl == BuildInitBuildScriptDsl.GROOVY || scriptDsl == BuildInitBuildScriptDsl.KOTLIN;
-    }
-
-    @Override
     public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }

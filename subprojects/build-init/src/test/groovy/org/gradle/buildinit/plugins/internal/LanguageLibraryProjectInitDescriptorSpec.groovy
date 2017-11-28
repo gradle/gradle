@@ -87,10 +87,6 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
         }
 
-        @Override
-        boolean supports(BuildInitBuildScriptDsl scriptDsl) {
-            return true
-        }
 
         @Override
         boolean supports(BuildInitTestFramework testFramework) {

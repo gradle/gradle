@@ -29,9 +29,6 @@ import org.gradle.util.SingleMessageLogger;
 import java.io.File;
 import java.util.Set;
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
-
 public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     private final MavenSettingsProvider settingsProvider;
     private final PathToFileResolver fileResolver;
@@ -53,11 +50,6 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
 
-    }
-
-    @Override
-    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
-        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
     }
 
     @Override

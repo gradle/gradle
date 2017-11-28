@@ -63,7 +63,6 @@ class InitBuildSpec extends Specification {
     def "delegates task action to referenced setupDescriptor"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.supports(GROOVY) >> true
 
         when:
         init.setupProjectLayout()
@@ -75,7 +74,6 @@ class InitBuildSpec extends Specification {
     def "should delegate to setup descriptor with specified type and modifier"() {
         given:
         supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
-        projectSetupDescriptor.supports(GROOVY) >> true
         projectSetupDescriptor.supports(SPOCK) >> true
         init.type = "java-library"
         init.testFramework = "spock"
@@ -103,7 +101,6 @@ class InitBuildSpec extends Specification {
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.supports(GROOVY) >> true
         projectSetupDescriptor.supports(SPOCK) >> false
         init.testFramework = "spock"
 
