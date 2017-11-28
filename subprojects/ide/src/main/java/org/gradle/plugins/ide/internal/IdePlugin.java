@@ -15,15 +15,30 @@
  */
 package org.gradle.plugins.ide.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
+import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.Path;
+
+import java.util.List;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public abstract class IdePlugin implements Plugin<Project> {
 
@@ -94,5 +109,32 @@ public abstract class IdePlugin implements Plugin<Project> {
             });
             rootExtraProperties.set(extraPropertyName, true);
         }
+    }
+
+    protected void registerIdeArtifact(PublishArtifact ideArtifact) {
+        ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+        ProjectComponentIdentifier projectId = newProjectId(project);
+        projectComponentProvider.registerAdditionalArtifact(projectId, new PublishArtifactLocalArtifactMetadata(projectId, ideArtifact));
+    }
+
+    public List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type) {
+        ServiceRegistry serviceRegistry = ((ProjectInternal)project).getServices();
+        List<LocalComponentArtifactMetadata> artifactMetadata = Lists.newArrayList();
+        ProjectPathRegistry projectPathRegistry = serviceRegistry.get(ProjectPathRegistry.class);
+        LocalComponentRegistry localComponentRegistry = serviceRegistry.get(LocalComponentRegistry.class);
+
+        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
+            ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+            LocalComponentArtifactMetadata xcodeprojArtifact = localComponentRegistry.findAdditionalArtifact(projectId, type);
+            if (xcodeprojArtifact != null) {
+                artifactMetadata.add(xcodeprojArtifact);
+            }
+        }
+
+        return artifactMetadata;
+    }
+
+    public boolean isRoot() {
+        return project.getParent() == null;
     }
 }
