@@ -8,6 +8,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -40,6 +41,7 @@ class SamplesSmokeTest(
     }
 
     @Test
+    @Ignore
     fun `uses the right Kotlin Gradle Plugin version on `() {
 
         val projectPaths = listOf(":") + listSubProjectPaths().map { "$it:" }
