@@ -248,21 +248,17 @@ public class BuildScriptBuilder {
         private final ConfigBlockSpec block;
         private List<ConfigCodeSpec> codeSpecs = new ArrayList<ConfigCodeSpec>();
 
-        private ConfigSpec(@Nullable ConfigBlockSpec block, ConfigCodeSpec codeSpec) {
+        private ConfigSpec(ConfigBlockSpec block, ConfigCodeSpec codeSpec) {
             this.block = block;
             this.codeSpecs.add(codeSpec);
         }
 
         public void accept(ConfigSpecVisitor visitor) {
-            if (block != null) {
-                visitor.visitOpenBlock(block);
-            }
+            visitor.visitOpenBlock(block);
             for (ConfigCodeSpec codeSpec : codeSpecs) {
                 visitor.visitCode(codeSpec);
             }
-            if (block != null) {
-                visitor.visitCloseBlock(block);
-            }
+            visitor.visitCloseBlock(block);
         }
     }
 
