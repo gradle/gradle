@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.equalTo
 
 class BuildScriptBuilderTest extends Specification {
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def outputFile = tmpDir.file("build.gradle")
@@ -265,7 +266,9 @@ dependencies {
             test {
                 // Use TestNG
                 useTestNG()
+            }
 
+            test {
                 // Disable tests
                 enabled = false
             }
@@ -284,15 +287,19 @@ dependencies {
             application {
                 // Convention configuration A
                 mainClassName = "com.example.Main"
+            }
 
+            application {
                 // Convention configuration B
                 applicationName = "My Application"
             }
-
+            
             val test by tasks.getting(Test::class) {
                 // Use TestNG
                 useTestNG()
+            }
 
+            val test by tasks.getting(Test::class) {
                 // Disable tests
                 isEnabled = false
             }
