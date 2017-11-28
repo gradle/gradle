@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
@@ -838,22 +839,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
-        if (!searchUpwards) {
-            boolean settingsFoundAboveInTestDir = false;
-            TestFile dir = new TestFile(getWorkingDir());
-            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-                if (dir.file("settings.gradle").isFile()) {
-                    settingsFoundAboveInTestDir = true;
-                    break;
-                }
-                dir = dir.getParentFile();
-            }
-
-            if (!settingsFoundAboveInTestDir) {
-                allArgs.add("--no-search-upward");
-            }
-        }
-
         // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
         // This is fundamentally a windows issue: You can't have arguments with spaces in them if the path to the batch script has a space
         // We could work around this by setting -Dgradle.user.home but GRADLE-1730 (which affects 1.0-milestone-3) means that that
@@ -917,6 +902,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (interactive) {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
+        }
+
+        if (!searchUpwards) {
+            boolean settingsFoundAboveInTestDir = false;
+            TestFile dir = new TestFile(getWorkingDir());
+            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+                if (dir.file("settings.gradle").isFile()) {
+                    settingsFoundAboveInTestDir = true;
+                    break;
+                }
+                dir = dir.getParentFile();
+            }
+
+            if (!settingsFoundAboveInTestDir) {
+                properties.put(BuildLayoutParameters.NO_SEARCH_UPWARDS_PROPERTY_KEY, "true");
+            }
         }
 
         return properties;

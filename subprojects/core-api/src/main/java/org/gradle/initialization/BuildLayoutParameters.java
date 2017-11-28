@@ -25,6 +25,7 @@ import static org.gradle.internal.FileUtils.canonicalize;
 
 public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
+    public static final String NO_SEARCH_UPWARDS_PROPERTY_KEY = "gradle.internal.noSearchUpwards";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
 
     private boolean searchUpwards = true;
@@ -41,6 +42,11 @@ public class BuildLayoutParameters {
             }
         }
         gradleUserHomeDir = canonicalize(new File(gradleUserHome));
+
+        String noSearchUpwards = System.getProperty(NO_SEARCH_UPWARDS_PROPERTY_KEY);
+        if (noSearchUpwards != null) {
+            searchUpwards = !Boolean.valueOf(noSearchUpwards);
+        }
     }
 
     public BuildLayoutParameters setSearchUpwards(boolean searchUpwards) {
