@@ -242,7 +242,9 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
                 void apply(Project project) {
                     project.apply plugin: 'java'
                     Test test = (Test) project.tasks.getByName("test")
-                    println test.reports.junitXml.destination
+                    if (test.reports.junitXml.destination.exists()) {
+                        println 'JUnit XML report exists!'
+                    }
                 }
             }
 
