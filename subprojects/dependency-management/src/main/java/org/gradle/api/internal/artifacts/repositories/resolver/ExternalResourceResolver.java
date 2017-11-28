@@ -135,7 +135,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return id;
     }
 
-    protected ImmutableMetadataSources getMetadataSources() {
+    public ImmutableMetadataSources getMetadataSources() {
         return metadataSources;
     }
 

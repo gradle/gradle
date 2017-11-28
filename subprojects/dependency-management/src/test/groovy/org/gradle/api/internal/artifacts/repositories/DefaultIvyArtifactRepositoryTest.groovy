@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
@@ -320,8 +319,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         supplier.s == "a"
     }
 
-    @NotYetImplemented
-    // TODO CC: reimplement this
     def "can opt-out of Ivy legacy behavior of fetching jar when metadata isn't found"() {
         repository.name = 'name'
         repository.url = 'http://host'
@@ -330,14 +327,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         when:
         repository.metadataSources {
-            it.alwaysProvidesMetadataForModules()
         }
         def resolver = repository.createResolver()
 
         then:
         with(resolver) {
             it instanceof IvyResolver
-            it.metadataSources.alwaysProvidesMetadataForModules
+            it.metadataSources.sources().empty
         }
     }
 

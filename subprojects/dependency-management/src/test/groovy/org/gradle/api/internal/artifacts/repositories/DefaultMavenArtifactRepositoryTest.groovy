@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.ExperimentalFeatures
@@ -159,8 +158,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.root == uri
     }
 
-    @NotYetImplemented
-    // TODO CC : reimplement this
     def "can opt-out of Maven legacy behavior of fetching jar when metadata isn't found"() {
         given:
         def uri = new URI("http://localhost:9090/repo")
@@ -171,7 +168,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.name = 'repo'
         repository.url = 'repo-dir'
         repository.metadataSources {
-            it.alwaysProvidesMetadataForModules()
         }
 
         when:
@@ -180,7 +176,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         repo instanceof MavenResolver
         repo.root == uri
-        repo.metadataSources.alwaysProvidesMetadataForModules
+        repo.metadataSources.sources().empty
     }
 
     private RepositoryTransport transport() {

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import groovy.transform.NotYetImplemented
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.MetadataSourceInternal
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -124,8 +126,6 @@ class ExternalResourceResolverTest extends Specification {
         _ * moduleSource.timestamp >> "1.0-20100101.120001-1"
     }
 
-    @NotYetImplemented
-    // TODO CC: reimplement
     def "doesn't try to fetch artifact when module metadata file is missing"() {
         given:
         def id = Stub(ModuleComponentIdentifier)
@@ -134,14 +134,11 @@ class ExternalResourceResolverTest extends Specification {
         resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
 
         then:
-        1 * artifactResolver.resolveArtifact({ it.componentId.is(id) }, _)
-        1 * metadataSources.isAlwaysProvidesMetadataForModules() >> true
+        1 * metadataSources.sources() >> ImmutableList.of(Stub(MetadataSourceInternal) { create(_, _, _, _, _, _) >> null })
         1 * metadataResult.missing()
         0 * _
     }
 
-    @NotYetImplemented
-    // TODO CC: reimplement
     def "tries to fetch artifact when module metadata file is missing and legacy mode is active"() {
         given:
         def id = Stub(ModuleComponentIdentifier)
@@ -150,8 +147,7 @@ class ExternalResourceResolverTest extends Specification {
         resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
 
         then:
-        1 * artifactResolver.resolveArtifact({ it.componentId.is(id) }, _)
-        1 * metadataSources.isAlwaysProvidesMetadataForModules() >> false
+        1 * metadataSources.sources() >> ImmutableList.of(new DefaultMavenArtifactMetadataSource(Mock(ImmutableModuleIdentifierFactory)))
         1 * artifactResolver.artifactExists({ it.componentId.is(id) && it.name.type == 'jar'}, _)
         1 * metadataResult.missing()
         0 * _
