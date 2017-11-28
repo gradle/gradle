@@ -19,21 +19,11 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A repository content filter is a helper that allows specifying what kind of contents
- * the repository contains. It can be used to specify if metadata is mandatory, or if
- * some modules will never be found there, in which case it will never be queried.
- *
- * All of those filters should not influence dependency resolution, but only make it faster.
+ * Sources module metadata from Maven POM files.
  *
  * @since 4.5
- *
  */
 @Incubating
 @HasInternalProtocol
-public interface RepositoryContentFilter {
-    /**
-     * Indicates that this repository will never contain artifact without an associated
-     * metadata file. For example, a jar file without a corresponding pom.xml file.
-     */
-    void alwaysProvidesMetadataForModules();
+public interface MavenPomMetadataSource extends MetadataSource {
 }

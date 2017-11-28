@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
@@ -30,7 +31,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -40,9 +40,10 @@ import java.net.URI;
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileResourceRepository fileResourceRepository;
+    private final InstantiatorFactory instantiatorFactory;
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
-                                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
+                                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
                                                FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                ModuleMetadataParser metadataParser,
@@ -50,9 +51,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
                                                ExperimentalFeatures experimentalFeatures) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.fileResourceRepository = fileResourceRepository;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     protected MavenResolver createRealResolver() {
@@ -62,7 +64,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), getMetadataParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata(), getContentFilter().asImmutable());
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), getMetadataParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(instantiatorFactory.inject()));
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

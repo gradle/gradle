@@ -1,0 +1,81 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.artifacts.repositories;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.repositories.MetadataSource;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
+
+import java.util.List;
+
+public class DefaultMetadataSources implements MetadataSourcesInternal {
+    private final List<Class<? extends MetadataSourceInternal<?>>> metadataSources = Lists.newArrayListWithExpectedSize(3);
+
+    @Override
+    public void reset() {
+        metadataSources.clear();
+    }
+
+    @Override
+    public ImmutableMetadataSources asImmutable(Instantiator instantiator) {
+        return new DefaultImmutableMetadataSources(instantiator, metadataSources);
+    }
+
+    @Override
+    public void use(Class<? extends MetadataSource> metadataSource) {
+        metadataSources.add(concreteTypeFor(metadataSource));
+    }
+
+    private Class<? extends MetadataSourceInternal<?>> concreteTypeFor(Class<? extends MetadataSource> publicType) {
+        ClassLoader classLoader = publicType.getClassLoader();
+        String fqn = "org.gradle.api.internal.artifacts.repositories.Default" + publicType.getSimpleName();
+        try {
+            return Cast.uncheckedCast(classLoader.loadClass(fqn));
+        } catch (ClassNotFoundException e) {
+            throw new GradleException("Unable to load public type for " + publicType.getName(), e);
+        }
+    }
+
+    private static class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
+        private final ImmutableList<MetadataSourceInternal<?>> sources;
+
+        private DefaultImmutableMetadataSources(Instantiator instantiator, List<Class<? extends MetadataSourceInternal<?>>> sourceTypes) {
+            ImmutableList.Builder<MetadataSourceInternal<?>> builder = new ImmutableList.Builder<MetadataSourceInternal<?>>();
+            for (Class<? extends MetadataSourceInternal<?>> sourceType : sourceTypes) {
+                builder.add(instantiator.newInstance(sourceType));
+            }
+            this.sources = builder.build();
+        }
+
+
+        @Override
+        public ImmutableList<MetadataSourceInternal<?>> sources() {
+            return sources;
+        }
+
+        @Override
+        public void appendId(BuildCacheHasher hasher) {
+            hasher.putInt(sources.size());
+            for (MetadataSourceInternal<?> source : sources) {
+                source.appendId(hasher);
+            }
+        }
+    }
+}

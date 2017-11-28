@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
@@ -83,7 +83,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          FileStore<String> resourcesFileStore,
                          FileResourceRepository fileResourceRepository,
                          boolean preferGradleMetadata,
-                         ImmutableRepositoryContentFilter repositoryContentFilter) {
+                         ImmutableMetadataSources metadataSources) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -94,7 +94,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             fileResourceRepository,
             preferGradleMetadata,
             metadataParser,
-            repositoryContentFilter);
+            metadataSources);
         this.pomParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;

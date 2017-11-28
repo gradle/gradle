@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -37,6 +38,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -58,10 +60,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final ExperimentalFeatures experimentalFeatures;
+    private final InstantiatorFactory instantiatorFactory;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                          Instantiator instantiator,
+                                          InstantiatorFactory instantiatorFactory,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           ModuleMetadataParser metadataParser,
@@ -70,16 +73,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           ExperimentalFeatures experimentalFeatures) {
-        this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator,
+        this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
             resourcesFileStore, fileResourceRepository, experimentalFeatures);
-
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
                                           FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                          Instantiator instantiator,
+                                          InstantiatorFactory instantiatorFactory,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           ModuleMetadataParser metadataParser,
@@ -88,7 +90,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           ExperimentalFeatures experimentalFeatures) {
-        super(instantiator, authenticationContainer);
+        super(instantiatorFactory.decorate(), authenticationContainer);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -100,6 +102,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
         this.experimentalFeatures = experimentalFeatures;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
@@ -168,7 +171,13 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, isPreferGradleMetadata(), getContentFilter().asImmutable());
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(createMetadataSourcesInstantiator()));
+    }
+
+    private Instantiator createMetadataSourcesInstantiator() {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new MetadataSourcesServices());
+        return instantiatorFactory.inject(registry);
     }
 
     protected MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {
@@ -199,6 +208,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                 return repository.getName();
             }
             return repository.getName() + '(' + url + ')';
+        }
+    }
+
+    private class MetadataSourcesServices {
+        MetaDataParser<MutableMavenModuleResolveMetadata> createPomParser() {
+            return pomParser;
+        }
+
+        ExperimentalFeatures createExperimentalFeatures() {
+            return experimentalFeatures;
         }
     }
 }

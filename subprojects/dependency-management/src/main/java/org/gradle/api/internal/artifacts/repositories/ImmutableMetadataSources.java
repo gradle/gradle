@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
- * Represents the configuration of content filter for a repository. The filter
- * forms part of the identity of the repository. As such it is important not to allow
- * arbitrary code, but rather provide a "serializable" form of filter.
+ * An immutable, usable representation of metadata sources.
  */
-public interface ImmutableRepositoryContentFilter {
-    boolean isAlwaysProvidesMetadataForModules();
+public interface ImmutableMetadataSources {
+    ImmutableList<MetadataSourceInternal<?>> sources();
 
     void appendId(BuildCacheHasher hasher);
 }

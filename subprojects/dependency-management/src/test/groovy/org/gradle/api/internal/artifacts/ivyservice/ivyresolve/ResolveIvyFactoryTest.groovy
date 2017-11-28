@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
@@ -121,7 +121,7 @@ class ResolveIvyFactoryTest extends Specification {
         VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
-        ImmutableRepositoryContentFilter contentFilter = Stub()
+        ImmutableMetadataSources metadataSources = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -136,7 +136,7 @@ class ResolveIvyFactoryTest extends Specification {
                 TestFiles.fileRepository(),
                 false,
                 null,
-                contentFilter
+                metadataSources
             ]
         ) {
             appendId(_) >> { }

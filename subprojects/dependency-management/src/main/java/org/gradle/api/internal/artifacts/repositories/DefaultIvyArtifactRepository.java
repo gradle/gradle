@@ -156,8 +156,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
-        Instantiator instantiator = createDependencyInjectingInstantiator(transport);
-        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplierFactory(instantiator), fileResourceRepository, moduleMetadataParser, experimentalFeatures.isEnabled(), getContentFilter().asImmutable());
+        Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(createInjectorForMetadataSupplier(transport));
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, supplierFactory, fileResourceRepository, moduleMetadataParser, experimentalFeatures.isEnabled(), getMetadataSources().asImmutable(createInjectorForMetadataSources()));
     }
 
     /**
@@ -166,13 +166,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
      * @param transport the transport used to create the repository accessor
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
-    private Instantiator createDependencyInjectingInstantiator(final RepositoryTransport transport) {
+    private Instantiator createInjectorForMetadataSupplier(final RepositoryTransport transport) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
                 return createRepositoryAccessor(transport);
             }
         });
+        return instantiatorFactory.inject(registry);
+    }
+
+    private Instantiator createInjectorForMetadataSources() {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new MetadataSourcesServices());
         return instantiatorFactory.inject(registry);
     }
 
@@ -298,5 +304,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
         }
+    }
+
+    private class MetadataSourcesServices {
+
     }
 }

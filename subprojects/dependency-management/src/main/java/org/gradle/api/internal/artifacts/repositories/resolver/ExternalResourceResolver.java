@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -107,7 +107,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final FileResourceRepository fileResourceRepository;
 
     private final VersionLister versionLister;
-    private final ImmutableRepositoryContentFilter contentFilter;
+    private final ImmutableMetadataSources metadataSources;
     private final ModuleMetadataParser metadataParser;
 
     private String id;
@@ -125,7 +125,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        FileResourceRepository fileResourceRepository,
                                        boolean useGradleMetadata,
                                        ModuleMetadataParser metadataParser,
-                                       ImmutableRepositoryContentFilter contentFilter) {
+                                       ImmutableMetadataSources metadataSources) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -137,7 +137,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.fileResourceRepository = fileResourceRepository;
         this.useGradleMetadata = useGradleMetadata;
         this.metadataParser = metadataParser;
-        this.contentFilter = contentFilter;
+        this.metadataSources = metadataSources;
     }
 
     public String getId() {
@@ -148,8 +148,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return id;
     }
 
-    public ImmutableRepositoryContentFilter getContentFilter() {
-        return contentFilter;
+    protected ImmutableMetadataSources getMetadataSources() {
+        return metadataSources;
     }
 
     public String getName() {
@@ -214,7 +214,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return;
         }
 
-        if (!getContentFilter().isAlwaysProvidesMetadataForModules()) {
+        /*if (!getMetadataSources().isAlwaysProvidesMetadataForModules()) { */
             MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
             if (metaDataFromDefaultArtifact != null) {
                 LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
@@ -222,7 +222,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                 result.resolved(metaDataFromDefaultArtifact.asImmutable());
                 return;
             }
-        }
+        /*}*/
 
         LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
         result.missing();
@@ -568,7 +568,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected void appendId(BuildCacheHasher hasher) {
-        getContentFilter().appendId(hasher);
+        getMetadataSources().appendId(hasher);
     }
 
     private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {

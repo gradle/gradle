@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -147,14 +147,14 @@ class IvyResolverTest extends Specification {
         def transport = Stub(RepositoryTransport)
         transport.resourceAccessor >> externalResourceAccessor
 
-        ImmutableRepositoryContentFilter contentFilter = Mock() {
+        ImmutableMetadataSources metadataSources = Mock() {
             isAlwaysProvidesMetadataForModules() >> alwaysProvidesMetadataForModules
             appendId(_) >> { args ->
                 args[0].putBoolean(alwaysProvidesMetadataForModules)
             }
         }
 
-        new IvyResolver("repo", transport, Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Stub(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository), null, useGradleMetadata, contentFilter).with {
+        new IvyResolver("repo", transport, Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Stub(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository), null, useGradleMetadata, metadataSources).with {
             if (ivyPattern) {
                 it.addDescriptorLocation(URI.create(""), ivyPattern)
             }

@@ -98,7 +98,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyContextManager, moduleIdentifierFactory, fileResourceRepository, metadataParser);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyContextManager, moduleIdentifierFactory, fileResourceRepository, metadataParser, instantiatorFactory);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
-        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, fileResourceRepository, experimentalFeatures);
+        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, fileResourceRepository, experimentalFeatures);
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -138,11 +138,11 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository, experimentalFeatures);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository, experimentalFeatures);
     }
 
     public MavenArtifactRepository createMavenRepository(Transformer<String, MavenArtifactRepository> describer) {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, describer, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository, experimentalFeatures);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, describer, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), moduleIdentifierFactory, externalResourcesFileStore, fileResourceRepository, experimentalFeatures);
     }
 
     protected AuthenticationContainer createAuthenticationContainer() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.Describable;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.MetadataSources;
+import org.gradle.internal.reflect.Instantiator;
 
-public interface ArtifactRepositoryInternal extends ArtifactRepository, Describable {
+public interface MetadataSourcesInternal extends MetadataSources {
+    /**
+     * Resets internal state to an empty collection of sources.
+     */
+    void reset();
 
-    void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
-
-    MetadataSourcesInternal getMetadataSources();
-
+    ImmutableMetadataSources asImmutable(Instantiator instantiator);
 }

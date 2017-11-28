@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.artifacts.repositories.RepositoryContentFilter;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-public interface RepositoryContentFilterInternal extends RepositoryContentFilter {
-    ImmutableRepositoryContentFilter asImmutable();
+/**
+ * Represents a source of metadata. The kind of metadata source depends on the
+ * repository on which it is found.
+ *
+ * @since 4.5
+ */
+@Incubating
+@HasInternalProtocol
+public interface MetadataSource {
 }

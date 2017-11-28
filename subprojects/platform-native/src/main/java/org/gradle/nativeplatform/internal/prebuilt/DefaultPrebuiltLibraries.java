@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.RepositoryContentFilter;
+import org.gradle.api.artifacts.repositories.MetadataSources;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,7 +47,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     }
 
     @Override
-    public void contentFilter(Action<? super RepositoryContentFilter> configureAction) {
+    public void metadataSources(Action<? super MetadataSources> configureAction) {
         throw new UnsupportedOperationException();
     }
 

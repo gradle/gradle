@@ -31,6 +31,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
@@ -44,7 +45,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final ModuleMetadataParser metadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository), metadataParser)
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository), metadataParser, TestUtil.instantiatorFactory())
 
     def "creates a repository with multiple root directories"() {
         given:

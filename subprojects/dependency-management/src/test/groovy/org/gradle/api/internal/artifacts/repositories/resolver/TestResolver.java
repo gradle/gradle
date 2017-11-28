@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -45,9 +45,10 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata, TestResolver.MutableTestResolveMetadata> {
     ExternalResourceArtifactResolver artifactResolver;
 
-    protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableRepositoryContentFilter contentFilter) {
-        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, contentFilter);
+    protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableMetadataSources metadataSources) {
+        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, metadataSources);
     }
+
 
     @Override
     protected Class<ModuleComponentResolveMetadata> getSupportedMetadataType() {

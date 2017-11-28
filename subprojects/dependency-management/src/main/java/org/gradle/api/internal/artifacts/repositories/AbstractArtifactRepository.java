@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.RepositoryContentFilter;
+import org.gradle.api.artifacts.repositories.MetadataSources;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
 
     private String name;
     private boolean isPartOfContainer;
-    private final RepositoryContentFilterInternal repositoryContentFilter = new DefaultRepositoryContentFilter();
+    private final MetadataSourcesInternal metadataSources = new DefaultMetadataSources();
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -48,12 +48,13 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public RepositoryContentFilterInternal getContentFilter() {
-        return repositoryContentFilter;
+    public MetadataSourcesInternal getMetadataSources() {
+        return metadataSources;
     }
 
     @Override
-    public void contentFilter(Action<? super RepositoryContentFilter> configureAction) {
-        configureAction.execute(repositoryContentFilter);
+    public void metadataSources(Action<? super MetadataSources> configureAction) {
+        metadataSources.reset();
+        configureAction.execute(metadataSources);
     }
 }

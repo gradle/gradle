@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.Describable;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-public interface ArtifactRepositoryInternal extends ArtifactRepository, Describable {
-
-    void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
-
-    MetadataSourcesInternal getMetadataSources();
-
+/**
+ * Allows configuring the sources of metadata for a specific repository.
+ *
+ * @since 4.5
+ *
+ */
+@Incubating
+@HasInternalProtocol
+public interface MetadataSources {
+    void use(Class<? extends MetadataSource> metadataSource);
 }

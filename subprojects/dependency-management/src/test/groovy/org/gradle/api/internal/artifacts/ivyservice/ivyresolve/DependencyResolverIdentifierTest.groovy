@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
-import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
@@ -78,14 +78,13 @@ class DependencyResolverIdentifierTest extends Specification {
     }
 
     def resolver() {
-        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository), false, null, Stub(ImmutableRepositoryContentFilter))
+        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository), false, null, Stub(ImmutableMetadataSources))
     }
 
     static class TestResolver extends ExternalResourceResolver {
 
-
-        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableRepositoryContentFilter contentFilter) {
-            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, contentFilter)
+        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableMetadataSources metadataSources) {
+            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, metadataSources)
         }
 
         @Override

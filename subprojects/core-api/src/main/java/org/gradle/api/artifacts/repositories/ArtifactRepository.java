@@ -47,11 +47,13 @@ public interface ArtifactRepository {
     void setName(String name);
 
     /**
-     * Configures the content filter for this repository.
-     * @param configureAction the configuration of the filter.
+     * Configures the metadata sources for this repository. This method will replace any previously configured sources
+     * of metadata.
+     *
+     * @param configureAction the configuration of metadata sources.
      *
      * @since 4.5
      */
     @Incubating
-    void contentFilter(Action<? super RepositoryContentFilter> configureAction);
+    void metadataSources(Action<? super MetadataSources> configureAction);
 }

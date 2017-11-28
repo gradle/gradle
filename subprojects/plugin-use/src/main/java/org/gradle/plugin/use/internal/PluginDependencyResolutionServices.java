@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.RepositoryContentFilter;
+import org.gradle.api.artifacts.repositories.MetadataSources;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.api.internal.artifacts.repositories.DefaultRepositoryContentFilter;
-import org.gradle.api.internal.artifacts.repositories.RepositoryContentFilterInternal;
+import org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.MetadataSourcesInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 
@@ -93,7 +93,7 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ResolutionAwareRepository {
         private final ArtifactRepositoryInternal delegate;
         private final ResolutionAwareRepository resolutionAwareDelegate;
-        private final RepositoryContentFilterInternal repositoryContentFilter = new DefaultRepositoryContentFilter();
+        private final MetadataSourcesInternal metadataSources = new DefaultMetadataSources();
 
         private PluginArtifactRepository(ArtifactRepository delegate) {
             this.delegate = (ArtifactRepositoryInternal) delegate;
@@ -111,8 +111,9 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         }
 
         @Override
-        public void contentFilter(Action<? super RepositoryContentFilter> configureAction) {
-            configureAction.execute(repositoryContentFilter);
+        public void metadataSources(Action<? super MetadataSources> configureAction) {
+            metadataSources.reset();
+            configureAction.execute(metadataSources);
         }
 
         @Override
@@ -131,8 +132,8 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         }
 
         @Override
-        public RepositoryContentFilterInternal getContentFilter() {
-            return repositoryContentFilter;
+        public MetadataSourcesInternal getMetadataSources() {
+            return metadataSources;
         }
     }
 }
