@@ -88,16 +88,16 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         debugRuntimeElements.extendsFrom(application.getImplementationDependencies());
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, false);
+        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getDebugExecutable().isDebuggable());
+        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getDebugExecutable().isOptimized());
         debugRuntimeElements.getOutgoing().artifact(application.getDebugExecutable().getExecutableFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(application.getImplementationDependencies());
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
-        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, true);
+        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getReleaseExecutable().isDebuggable());
+        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getReleaseExecutable().isOptimized());
         releaseRuntimeElements.getOutgoing().artifact(application.getReleaseExecutable().getExecutableFile());
 
         final MainExecutableVariant mainVariant = new MainExecutableVariant();

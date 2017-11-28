@@ -126,30 +126,32 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+        debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
         debugLinkElements.getOutgoing().artifact(library.getDebugSharedLibrary().getLinkFile());
 
         final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(implementation);
         debugRuntimeElements.setCanBeResolved(false);
         debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
         debugRuntimeElements.getOutgoing().artifact(library.getDebugSharedLibrary().getRuntimeFile());
 
         final Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, true);
+        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
+        releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
         releaseLinkElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getLinkFile());
 
         final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
         releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
-        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, true);
+        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
+        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
         releaseRuntimeElements.getOutgoing().artifact(library.getReleaseSharedLibrary().getRuntimeFile());
 
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
