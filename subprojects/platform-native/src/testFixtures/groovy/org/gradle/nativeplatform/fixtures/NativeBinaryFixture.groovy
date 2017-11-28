@@ -111,18 +111,25 @@ class NativeBinaryFixture {
     }
 
     void assertHasDebugSymbolsFor(List<String> sourceFileNames) {
-        def symbols = binaryInfo.listDebugSymbols()
-        def symbolNames = symbols.collect { it.name }
-        sourceFileNames.each { sourceFileName ->
-            assert sourceFileName in symbolNames
+        if (toolChain?.visualCpp) {
+            // There is not a built-in tool for querying pdb files, so we just check that the debug file exists
+            assertDebugFileExists()
+        } else {
+            def symbols = binaryInfo.listDebugSymbols()
+            def symbolNames = symbols.collect { it.name }
+            sourceFileNames.each { sourceFileName ->
+                assert sourceFileName in symbolNames
+            }
         }
     }
 
     void assertDoesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
-        def symbols = binaryInfo.listDebugSymbols()
-        def symbolNames = symbols.collect { it.name }
-        sourceFileNames.each { sourceFileName ->
-            assert !(sourceFileName in symbolNames)
+        if (toolChain?.visualCpp) {
+            def symbols = binaryInfo.listDebugSymbols()
+            def symbolNames = symbols.collect { it.name }
+            sourceFileNames.each { sourceFileName ->
+                assert !(sourceFileName in symbolNames)
+            }
         }
     }
 
