@@ -18,7 +18,7 @@ package org.gradle.language.c.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.language.c.internal.DefaultCCompileSpec;
-import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
+import org.gradle.language.nativeplatform.tasks.AbstractCacheableNativeSourceCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
  */
 @Incubating
 @CacheableTask
-public class CCompile extends AbstractNativeSourceCompileTask {
+public class CCompile extends AbstractCacheableNativeSourceCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultCCompileSpec();

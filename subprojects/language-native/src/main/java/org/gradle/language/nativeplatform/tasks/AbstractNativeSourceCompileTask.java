@@ -17,8 +17,6 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -41,23 +39,6 @@ import java.io.File;
 @Incubating
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
-
-    public AbstractNativeSourceCompileTask() {
-        super();
-        getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return getPreCompiledHeader() != null;
-            }
-        });
-        getOutputs().doNotCacheIf("Could not determine compiler version", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                CompilerVersion compilerVersion = getCompilerVersion();
-                return compilerVersion == null;
-            }
-        });
-    }
 
     @Override
     protected void configureSpec(NativeCompileSpec spec) {
