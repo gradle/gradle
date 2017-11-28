@@ -28,8 +28,10 @@ class DefaultSwiftApplicationTest extends Specification {
         def app = new DefaultSwiftApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
         app.debugExecutable.name == "mainDebug"
         app.debugExecutable.debuggable
+        !app.debugExecutable.optimized
         app.releaseExecutable.name == "mainRelease"
-        !app.releaseExecutable.debuggable
+        app.releaseExecutable.debuggable
+        app.releaseExecutable.optimized
         app.developmentBinary == app.debugExecutable
     }
 }

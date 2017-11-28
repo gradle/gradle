@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,5 +108,14 @@ public abstract class SourceElement extends Element {
                 return files;
             }
         };
+    }
+
+    public List<String> getSourceFileNames() {
+        return CollectionUtils.collect(getFiles(), new Transformer<String, SourceFile>() {
+            @Override
+            public String transform(SourceFile sourceFile) {
+                return sourceFile.getName();
+            }
+        });
     }
 }

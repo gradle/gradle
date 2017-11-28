@@ -200,7 +200,7 @@ public class AvailableToolChains {
     static ToolChainCandidate findSwiftc() {
         File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
         if (compilerExe.isFile()) {
-            return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile());
+            return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile(), new File("/usr/bin"));
         }
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
@@ -396,7 +396,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
             }
             return config;
         }
@@ -477,7 +477,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+                config += String.format("%s.path file('%s')\n", getId(), pathEntry.toURI());
             }
             return config;
         }

@@ -30,5 +30,4 @@ class AbstractCppInstalledToolChainIntegrationTest extends AbstractInstalledTool
     static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
         toolChain.id != "mingw" && toolChain.id != "gcccygwin"
     }
-
 }

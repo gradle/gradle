@@ -24,6 +24,8 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
+import static org.gradle.internal.FileUtils.withExtension;
+
 public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     private final ToolSearchResult failure;
     private final OperatingSystemInternal targetOperatingSystem;
@@ -82,6 +84,16 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+    }
+
+    @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String executablePath) {
+        return withExtension(getExecutableName(executablePath), SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override

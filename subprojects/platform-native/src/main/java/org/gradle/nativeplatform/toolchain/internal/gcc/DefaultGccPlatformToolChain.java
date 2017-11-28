@@ -106,4 +106,12 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
     public GccCommandLineToolConfigurationInternal getStaticLibArchiver() {
         return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }
+
+    public GccCommandLineToolConfigurationInternal getSymbolExtractor() {
+        return tools.get(ToolType.SYMBOL_EXTRACTOR);
+    }
+
+    public GccCommandLineToolConfigurationInternal getStripper() {
+        return tools.get(ToolType.STRIPPER);
+    }
 }

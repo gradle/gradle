@@ -36,7 +36,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     public DefaultCppTestSuite(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
         this.testedComponent = objectFactory.property(CppComponent.class);
-        this.testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, name + "Executable", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent());
+        this.testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, name + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent());
         getBaseName().set(name);
     }
 

@@ -49,6 +49,16 @@ public class DefaultSwiftcPlatformToolChain implements SwiftcPlatformToolChain {
     }
 
     @Override
+    public CommandLineToolConfiguration getSymbolExtractor() {
+        return tools.get(ToolType.SYMBOL_EXTRACTOR);
+    }
+
+    @Override
+    public CommandLineToolConfiguration getStripper() {
+        return tools.get(ToolType.STRIPPER);
+    }
+
+    @Override
     public NativePlatform getPlatform() {
         return platform;
     }

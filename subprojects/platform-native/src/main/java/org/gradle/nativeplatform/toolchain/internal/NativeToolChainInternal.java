@@ -32,6 +32,11 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
      */
     String getOutputType();
 
+    /**
+     * Whether or not this tool chain requires a debuggable binary to be stripped or whether the binary is stripped by default.
+     */
+    boolean requiresDebugBinaryStripping();
+
     class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
             return toolChain.getOutputType() + ":" + platform.getArchitecture().getName() + ":" + platform.getOperatingSystem().getName();

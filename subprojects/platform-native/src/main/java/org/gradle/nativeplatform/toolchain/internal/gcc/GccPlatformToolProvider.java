@@ -31,6 +31,8 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.Stripper;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
@@ -177,6 +179,18 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
         GccCommandLineToolConfigurationInternal staticLibArchiverTool = toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER);
         return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(staticLibArchiverTool), context(staticLibArchiverTool), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createSymbolExtractor() {
+        GccCommandLineToolConfigurationInternal symbolExtractor = toolRegistry.getTool(ToolType.SYMBOL_EXTRACTOR);
+        return new SymbolExtractor(buildOperationExecutor, commandLineTool(symbolExtractor), context(symbolExtractor), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createStripper() {
+        GccCommandLineToolConfigurationInternal stripper = toolRegistry.getTool(ToolType.STRIPPER);
+        return new Stripper(buildOperationExecutor, commandLineTool(stripper), context(stripper), workerLeaseService);
     }
 
     private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {

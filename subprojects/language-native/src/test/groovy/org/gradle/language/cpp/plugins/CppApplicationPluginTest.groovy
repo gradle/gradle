@@ -87,13 +87,13 @@ class CppApplicationPluginTest extends Specification {
         compileReleaseCpp.includes.files.first() == project.file("src/main/headers")
         compileReleaseCpp.source.files == [src] as Set
         compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
-        !compileReleaseCpp.debuggable
+        compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
-        !linkRelease.debuggable
+        linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable

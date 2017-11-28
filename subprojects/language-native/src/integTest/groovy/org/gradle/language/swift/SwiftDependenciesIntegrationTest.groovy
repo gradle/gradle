@@ -87,7 +87,11 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
     }
 
     private void assertTasksExecutedFor(String buildType) {
-        assert result.assertTasksExecuted(":hello:compile${buildType}Swift", ":hello:link${buildType}", ":log:compile${buildType}Swift", ":log:link${buildType}", ":app:compile${buildType}Swift", ":app:link${buildType}", ":app:install${buildType}")
+        def tasks = [":hello:compile${buildType}Swift", ":hello:link${buildType}", ":log:compile${buildType}Swift", ":log:link${buildType}", ":app:compile${buildType}Swift", ":app:link${buildType}", ":app:install${buildType}"]
+        if (buildType == "Release") {
+            tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
+        }
+        assert result.assertTasksExecuted(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {

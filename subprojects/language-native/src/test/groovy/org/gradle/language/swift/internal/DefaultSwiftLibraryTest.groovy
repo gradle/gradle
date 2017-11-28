@@ -44,8 +44,10 @@ class DefaultSwiftLibraryTest extends Specification {
         expect:
         library.debugSharedLibrary.name == "mainDebug"
         library.debugSharedLibrary.debuggable
+        !library.debugSharedLibrary.optimized
         library.releaseSharedLibrary.name == "mainRelease"
-        !library.releaseSharedLibrary.debuggable
+        library.releaseSharedLibrary.debuggable
+        library.releaseSharedLibrary.optimized
         library.developmentBinary == library.debugSharedLibrary
     }
 

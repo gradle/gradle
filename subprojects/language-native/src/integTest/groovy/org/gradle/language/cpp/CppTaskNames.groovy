@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+
 trait CppTaskNames {
 
     private static final String DEBUG = 'Debug'
@@ -33,6 +35,10 @@ trait CppTaskNames {
         installTask(project, DEBUG)
     }
 
+    String assembleTaskDebug(String project = '') {
+        assembleTask(project, DEBUG)
+    }
+
     String[] compileTasksRelease(String project = '') {
         compileTasks(project, RELEASE)
     }
@@ -43,6 +49,10 @@ trait CppTaskNames {
 
     String installTaskRelease(String project = '') {
         installTask(project, RELEASE)
+    }
+
+    String assembleTaskRelease(String project = '') {
+        assembleTask(project, RELEASE)
     }
 
     String[] compileTasks(String project = '', String buildType) {
@@ -61,9 +71,49 @@ trait CppTaskNames {
         "${project}:install${buildType}"
     }
 
+    String assembleTask(String project = '', String buildType) {
+        "${project}:assemble${buildType}"
+    }
+
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
             [*compileTasks(project, buildType), linkTask(project, buildType)]
+        }.flatten()
+    }
+
+    String[] extractAndStripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
+        return extractAndStripSymbolsTasks(project, RELEASE, toolChain)
+    }
+
+    String[] extractAndStripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        if (toolChain.visualCpp) {
+            return []
+        } else {
+            return stripSymbolsTasks(project, buildType, toolChain) + ["${project}:extractSymbols${buildType}"]
+        }
+    }
+
+    String[] extractAndStripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        projects.collect { project ->
+            [*extractAndStripSymbolsTasks(project, buildType, toolChain)]
+        }.flatten()
+    }
+
+    String[] stripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
+        return stripSymbolsTasks(project, RELEASE, toolChain)
+    }
+
+    String[] stripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        if (toolChain.visualCpp) {
+            return []
+        } else {
+            return ["${project}:stripSymbols${buildType}"]
+        }
+    }
+
+    String[] stripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        projects.collect { project ->
+            [*stripSymbolsTasks(project, buildType, toolChain)]
         }.flatten()
     }
 

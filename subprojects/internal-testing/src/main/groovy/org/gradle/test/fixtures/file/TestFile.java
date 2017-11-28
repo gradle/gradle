@@ -134,7 +134,7 @@ public class TestFile extends File {
     }
 
     public TestFile withExtension(String extension) {
-        return getParentFile().file(getName().replaceAll("\\..*$", "." + extension));
+        return getParentFile().file(org.gradle.internal.FileUtils.withExtension(getName(), extension));
     }
 
     public TestFile writelns(String... lines) {

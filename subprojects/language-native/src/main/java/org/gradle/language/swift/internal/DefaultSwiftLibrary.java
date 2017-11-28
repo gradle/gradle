@@ -34,8 +34,8 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     @Inject
     public DefaultSwiftLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getModule(), true, true, getSwiftSource(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", projectLayout, objectFactory, getModule(), false, false, getSwiftSource(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", projectLayout, objectFactory, getModule(), true, true, false, getSwiftSource(), configurations, getImplementationDependencies());
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);

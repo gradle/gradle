@@ -129,7 +129,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
     }
 
     boolean isAbsolutePathsInFile(String buildType) {
-        buildType == debug || clangOnLinux
+        // TODO Making release also debuggable means the object files always have paths - we need a strategy for this
+        (buildType == release || debug) || clangOnLinux
     }
 
     static boolean isClangOnLinux() {

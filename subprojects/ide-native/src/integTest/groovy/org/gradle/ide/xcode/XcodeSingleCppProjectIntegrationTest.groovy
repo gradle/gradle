@@ -183,6 +183,8 @@ apply plugin: 'cpp-library'
     def "can build C++ executable from Xcode"() {
         useXcodebuildTool()
         def app = new CppApp()
+        def debugBinary = exe("build/exe/main/debug/App")
+        def releaseBinary = exe("build/exe/main/release/App")
 
         given:
         buildFile << """
@@ -193,7 +195,7 @@ apply plugin: 'cpp-application'
         succeeds("xcode")
 
         when:
-        exe("build/exe/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
@@ -202,10 +204,11 @@ apply plugin: 'cpp-application'
         then:
         resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        exe("build/exe/main/debug/App").exec().out == app.expectedOutput
+        debugBinary.exec().out == app.expectedOutput
+        fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
 
         when:
-        exe("build/exe/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
@@ -215,13 +218,16 @@ apply plugin: 'cpp-application'
         then:
         resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        exe("build/exe/main/release/App").exec().out == app.expectedOutput
+        releaseBinary.exec().out == app.expectedOutput
+        fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can build C++ library from Xcode"() {
         useXcodebuildTool()
         def lib = new CppLib()
+        def debugBinary = sharedLib("build/lib/main/debug/App")
+        def releaseBinary = sharedLib("build/lib/main/release/App")
 
         given:
         buildFile << """
@@ -232,7 +238,7 @@ apply plugin: 'cpp-library'
         succeeds("xcode")
 
         when:
-        sharedLib("build/lib/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
@@ -241,10 +247,11 @@ apply plugin: 'cpp-library'
         then:
         resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        sharedLib("build/lib/main/debug/App").assertExists()
+        debugBinary.assertExists()
+        fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
 
         when:
-        sharedLib("build/lib/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
@@ -254,7 +261,8 @@ apply plugin: 'cpp-library'
         then:
         resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
         resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        sharedLib("build/lib/main/release/App").assertExists()
+        releaseBinary.assertExists()
+        fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
     def "adds new source files in the project"() {
