@@ -64,8 +64,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
 
         and:
         existingDslFixture.buildFile.createFile()
@@ -88,8 +88,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
 
         and:
         existingDslFixture.settingsFile.createFile()
@@ -112,8 +112,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
 
         and:
         def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
@@ -138,8 +138,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
         def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
 
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
