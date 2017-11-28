@@ -86,6 +86,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         for (IncludedBuild includedBuild : includedBuildRegistry.getIncludedBuilds().values()) {
             ((IncludedBuildInternal) includedBuild).finishBuild();
         }
+        includedBuildRegistry.getIncludedBuilds().clear();
     }
 
     @Override

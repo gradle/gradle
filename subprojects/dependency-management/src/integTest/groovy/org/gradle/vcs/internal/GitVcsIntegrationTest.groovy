@@ -25,6 +25,9 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
 
+    @Rule
+    GitRepository deeperRepo = new GitRepository('deeperDep', temporaryFolder.getTestDirectory())
+
     def 'can define and use source repositories'() {
         given:
         def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
@@ -215,6 +218,57 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
         def gitCheckout2 = checkoutDir('dep', commit2.id.name, "git-repo:${repo.url.toASCIIString()}")
         gitCheckout2.file('.git').assertExists()
+    }
+
+    def 'uses root project cache directory'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        singleProjectBuild("deeperDep") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+            file("src/main/java/DeeperDep.java") << "public class DeeperDep {}"
+        }
+
+        depProject.buildFile << """
+            dependencies {
+                implementation "org.test:deeperDep:latest.integration"
+            }
+        """
+        depProject.settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:deeperDep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${deeperRepo.url}"
+                        }
+                    }
+                }
+             }
+        """
+
+        def depCommit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def deeperCommit = deeperRepo.commit('initial commit', GFileUtils.listFiles(file('deeperDep'), null, true))
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir('dep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+        def deeperCheckout = checkoutDir('deeperDep', deeperCommit.id.name, "git-repo:${deeperRepo.url.toASCIIString()}")
+        deeperCheckout.file('.git').assertExists()
     }
 
     // TODO: Use HTTP hosting for git repo
