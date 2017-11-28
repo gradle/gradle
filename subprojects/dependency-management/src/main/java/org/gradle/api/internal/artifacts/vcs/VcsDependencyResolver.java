@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
-    private static final String LATEST_INTEGRATION = "latest.integration";
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
