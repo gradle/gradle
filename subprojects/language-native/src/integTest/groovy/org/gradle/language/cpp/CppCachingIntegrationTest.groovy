@@ -50,12 +50,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
     }
 
     @Unroll
-    def 'compilation can be cached (#buildType, flagRequired: #flagRequired)'() {
+    def 'compilation can be cached (#buildType)'() {
         setupProject()
-
-        if (flagRequired) {
-            enableExperimentalNativeCaching()
-        }
 
         when:
         withBuildCache().run compileTask(buildType)
@@ -71,18 +67,11 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
 
         where:
-        buildType | flagRequired
-        debug | true
-        release | false
-    }
-
-    private enableExperimentalNativeCaching() {
-        executer.beforeExecute {
-            withArgument("-Dorg.gradle.caching.native=true")
-        }
+        buildType << [debug, release]
     }
 
     def "compilation task is relocatable for release"() {
+
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
         setupProject(originalLocation)
@@ -103,7 +92,7 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         }
         run compileTask(release)
 
-        then:
+            then:
         compileIsNotCached(release)
         assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
 
@@ -117,21 +106,6 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
     }
 
-    def "compilation is not cacheable for debug without the experimental flag"() {
-        setupProject()
-
-        when:
-        withBuildCache().run compileTask(debug)
-
-        then:
-        compileIsNotCached(debug)
-
-        when:
-        withBuildCache().run 'clean', compileTask(debug)
-
-        then:
-        compileIsNotCached(debug)
-    }
 
     String getSourceType() {
         return 'Cpp'

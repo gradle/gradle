@@ -75,12 +75,6 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
                 return compilerVersion == null;
             }
         });
-        getOutputs().doNotCacheIf("Debug is enabled", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return isDebuggable() && !Boolean.getBoolean("org.gradle.caching.native");
-            }
-        });
     }
 
     /**
