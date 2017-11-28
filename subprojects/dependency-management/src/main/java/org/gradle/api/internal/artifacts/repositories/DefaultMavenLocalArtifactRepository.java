@@ -23,6 +23,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -31,13 +32,18 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
+
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileResourceRepository fileResourceRepository;
     private final InstantiatorFactory instantiatorFactory;
@@ -64,10 +70,46 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), getMetadataParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(instantiatorFactory.inject()));
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), getMetadataParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(createMetadataSourcesInstantiator()), DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }
         return resolver;
+    }
+
+    protected Object getMetadataValidationServices() {
+        return MavenLocalMetadataValidator.AS_SERVICE_PROVIDER;
+    }
+
+    private static class MavenLocalMetadataValidator implements DefaultMavenPomMetadataSource.MavenMetadataValidator {
+        private static final Object AS_SERVICE_PROVIDER = new Object() {
+            DefaultMavenPomMetadataSource.MavenMetadataValidator createMavenMetadataValidator() {
+                return new MavenLocalMetadataValidator();
+            }
+        };
+
+        @Override
+        public boolean validate(String repoName, MutableMavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {
+
+            if (metaData.isPomPackaging()) {
+                return true;
+            }
+
+            // check custom packaging
+            ModuleComponentArtifactMetadata artifact;
+            if (metaData.isKnownJarPackaging()) {
+                artifact = metaData.artifact("jar", "jar", null);
+            } else {
+                artifact = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
+            }
+
+            if (artifactResolver.artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
+                return true;
+            }
+
+            LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), repoName);
+            return false;
+
+        }
     }
 }

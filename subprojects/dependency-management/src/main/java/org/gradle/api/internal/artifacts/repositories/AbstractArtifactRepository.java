@@ -25,7 +25,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     private String name;
     private boolean isPartOfContainer;
-    private final MetadataSourcesInternal metadataSources = new DefaultMetadataSources();
+    private final MetadataSourcesInternal metadataSources;
+
+    protected AbstractArtifactRepository(MetadataSourcesInternal metadataSources) {
+        this.metadataSources = metadataSources;
+    }
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;

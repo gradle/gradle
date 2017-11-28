@@ -28,23 +28,28 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
+import org.gradle.api.artifacts.repositories.MavenArtifactMetadataSource;
+import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.MetadataSourcesInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -67,11 +72,20 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
                                  LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        super(createMetadataSources());
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
+    }
+
+    private static MetadataSourcesInternal createMetadataSources() {
+        DefaultMetadataSources sources = new DefaultMetadataSources();
+        sources.use(GradleModuleMetadataSource.class);
+        sources.use(MavenPomMetadataSource.class);
+        sources.use(MavenArtifactMetadataSource.class);
+        return sources;
     }
 
     public ConfiguredModuleComponentRepository createResolver() {

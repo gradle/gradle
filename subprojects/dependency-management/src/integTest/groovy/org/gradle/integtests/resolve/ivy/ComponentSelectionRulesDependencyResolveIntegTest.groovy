@@ -22,10 +22,14 @@ import spock.lang.Unroll
 
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+    boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
+        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataEnabled || gradleCompatible)
+    }
+
     @Unroll
     def "uses '#rule' rule to choose component for #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        boolean expectWellBehaved = isWellBehaved(mavenCompatible, gradleCompatible)
 
         buildFile << """
             dependencies {
@@ -67,17 +71,17 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         resetExpectations(!expectWellBehaved)
 
         where:
-        selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible
-        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true
-        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false
-        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false
-        "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true
-        "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "latest.milestone"   | "select branch" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "1.1"                | "select 1.1"    | "1.1"         | '["1.1"]'        | ['1.1']            | true
-        "1.1"                | "select status" | "1.1"         | '["1.1"]'        | ['1.1']            | false
-        "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false
+        selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | true
+        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | false
+        "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true            | true
+        "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select branch" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | false
+        "1.1"                | "select 1.1"    | "1.1"         | '["1.1"]'        | ['1.1']            | true            | true
+        "1.1"                | "select status" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | true
+        "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | false
     }
 
     private String setupInterations(String selector, String chosenVersion, List<String> downloadedMetadata, Closure<Void> more = {}) {
@@ -112,7 +116,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     @Unroll
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        boolean expectWellBehaved = isWellBehaved(mavenCompatible)
         buildFile << """
 
             dependencies {
@@ -250,7 +254,7 @@ Required by:
     @Unroll
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        boolean expectWellBehaved = isWellBehaved(mavenCompatible, gradleCompatible)
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -298,12 +302,12 @@ Required by:
         }
 
         where:
-        selector | rule            | candidates | downloadedMetadata | mavenCompatible
-        "1.0"    | "reject all"    | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select 1.1"    | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select status" | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select branch" | '["1.0"]'  | ['1.0']            | false
-        "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true
+        selector | rule            | candidates | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.0"    | "reject all"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select 1.1"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select status" | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select branch" | '["1.0"]'  | ['1.0']            | false           | false
+        "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true            | true
     }
 
     @Unroll
@@ -361,7 +365,7 @@ Required by:
         then:
         if (GradleMetadataResolveRunner.useIvy()) {
             file("libs").assertHasDescendants("api-1.1.jar")
-            file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api','1.1').jarFile)
+            file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api', '1.1').jarFile)
             file("libs/api-1.1.jar").assertIsCopyOf(module2.jarFile)
         }
 
@@ -372,7 +376,7 @@ Required by:
     @Unroll
     def "can control selection of components by module rule #rule for #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        boolean expectWellBehaved = isWellBehaved(mavenCompatible, gradleCompatible)
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -422,10 +426,10 @@ Required by:
         resetExpectations(!expectWellBehaved)
 
         where:
-        selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible
-        "1.+"              | "select 1.1"    | "1.1"  | '["1.2", "1.1"]' | ['1.1']            | true
-        "latest.milestone" | "select status" | "2.0"  | '["2.0"]'        | ['2.1', '2.0']     | false
-        "1.1"              | "select branch" | "1.1"  | '["1.1"]'        | ['1.1']            | false
+        selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"              | "select 1.1"    | "1.1"  | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "latest.milestone" | "select status" | "2.0"  | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "1.1"              | "select branch" | "1.1"  | '["1.1"]'        | ['1.1']            | false           | false
     }
 
     @Issue("GRADLE-3236")

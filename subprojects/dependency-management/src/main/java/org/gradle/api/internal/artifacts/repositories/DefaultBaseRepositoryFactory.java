@@ -98,7 +98,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyContextManager, moduleIdentifierFactory, fileResourceRepository, metadataParser, instantiatorFactory);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyContextManager, moduleIdentifierFactory, fileResourceRepository, metadataParser, instantiatorFactory, experimentalFeatures);
     }
 
     @Override

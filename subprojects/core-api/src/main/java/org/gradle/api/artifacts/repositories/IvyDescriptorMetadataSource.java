@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.artifacts.repositories;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-public abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSourceInternal<S> {
-    @Override
-    public void appendId(BuildCacheHasher hasher) {
-        hasher.putString(this.getClass().getName());
-    }
+/**
+ * Sources module metadata from Ivy descriptor files.
+ *
+ * @since 4.5
+ */
+@Incubating
+@HasInternalProtocol
+public interface IvyDescriptorMetadataSource extends MetadataSource {
 }

@@ -34,7 +34,7 @@ import spock.lang.Unroll
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     AuthSupportedRepository repo() {
-        new AuthSupportedRepository(DirectInstantiator.INSTANCE, new DefaultAuthenticationContainer(DirectInstantiator.INSTANCE))
+        new AuthSupportedRepository(DirectInstantiator.INSTANCE, new DefaultAuthenticationContainer(DirectInstantiator.INSTANCE), Stub(MetadataSourcesInternal))
     }
 
     def "should configure default password credentials using an action only"() {
@@ -46,7 +46,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         AuthenticationContainer authenticationContainer = Stub()
         instantiator.newInstance(DefaultPasswordCredentials) >> passwordCredentials
 
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
 
         def configAction = new Action<PasswordCredentials>() {
             @Override
@@ -65,6 +65,10 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getCredentials(PasswordCredentials.class).password == 'myPassword'
     }
 
+    private AuthSupportedRepository authRepo(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
+        new AuthSupportedRepository(instantiator, authenticationContainer, Stub(MetadataSourcesInternal))
+    }
+
     def "getCredentials(Class) instantiates credentials if not yet configured"() {
         given:
         DefaultAwsCredentials enhancedCredentials = new DefaultAwsCredentials()
@@ -74,7 +78,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         AuthenticationContainer authenticationContainer = Mock()
         instantiator.newInstance(DefaultAwsCredentials) >> enhancedCredentials
 
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
 
         def action = new ClosureBackedAction<DefaultAwsCredentials>({
             accessKey = 'key'
@@ -91,7 +95,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     def "getCredentials(Class) instantiates the correct credential types "() {
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
 
         when:
         repo.getCredentials(credentialType) == credentials
@@ -108,7 +112,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     def "getCredentials(Class) throws IllegalArgumentException when setting credentials with different type than already set"() {
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
         1 * instantiator.newInstance(_) >> credentials
 
         when:
@@ -125,7 +129,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     def "getCredentials(Class) throws IllegalArgumentException when setting credentials with unknown type"() {
-        AuthSupportedRepository repo = new AuthSupportedRepository(Mock(Instantiator), Mock(AuthenticationContainer))
+        AuthSupportedRepository repo = new AuthSupportedRepository(Mock(Instantiator), Mock(AuthenticationContainer), Mock(MetadataSourcesInternal))
         when:
         repo.getCredentials(UnsupportedCredentials)
         then:
@@ -138,7 +142,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         AuthenticationContainer authenticationContainer = Stub()
 
         Action action = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
 
         when:
         repo.credentials(credentialType, action)
@@ -164,7 +168,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         1 * instantiator.newInstance(_) >> credentials
         1 * action.execute(credentials)
 
-        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
+        AuthSupportedRepository repo = authRepo(instantiator, authenticationContainer)
         when:
         repo.credentials(AwsCredentials, action)
 
@@ -220,8 +224,8 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
-        AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
-            super(instantiator, authenticationContainer)
+        AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, MetadataSourcesInternal metadataSourceInternal) {
+            super(instantiator, authenticationContainer, metadataSourceInternal)
         }
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -59,7 +60,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository), false, null, metadataSources)
+        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository), false, null, metadataSources, Stub(MetadataArtifactProvider))
         resolver.artifactResolver = artifactResolver
     }
 

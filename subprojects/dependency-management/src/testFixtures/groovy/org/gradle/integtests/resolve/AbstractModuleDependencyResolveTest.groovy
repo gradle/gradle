@@ -61,31 +61,41 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     String metadataURI(String group, String module, String version) {
         if (GradleMetadataResolveRunner.useIvy()) {
             def httpModule = ivyHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                return httpModule.moduleMetadata.uri
+            }
             return httpModule.ivy.uri
         } else {
             def httpModule = mavenHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                return httpModule.moduleMetadata.uri
+            }
             return httpModule.pom.uri
         }
     }
 
-    String triedMetadata(String group, String module, String version, boolean includeJar = false) {
-        def uris = []
+    String triedMetadata(String group, String module, String version, boolean fallbackToArtifact = false) {
+        Set uris = []
         if (GradleMetadataResolveRunner.useIvy()) {
             def httpModule = ivyHttpRepo.module(group, module, version)
-            uris << httpModule.ivy.uri
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
                 uris << httpModule.moduleMetadata.uri
+            } else {
+                uris << httpModule.ivy.uri
             }
-            if (includeJar) {
+            if (fallbackToArtifact) {
+                uris << httpModule.ivy.uri
                 uris << httpModule.artifact.uri
             }
         } else {
             def httpModule = mavenHttpRepo.module(group, module, version)
-            uris << httpModule.pom.uri
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
                 uris << httpModule.moduleMetadata.uri
+            } else {
+                uris << httpModule.pom.uri
             }
-            if (includeJar) {
+            if (fallbackToArtifact) {
+                uris << httpModule.pom.uri
                 uris << httpModule.artifact.uri
             }
         }

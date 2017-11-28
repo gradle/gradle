@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
@@ -136,7 +137,8 @@ class ResolveIvyFactoryTest extends Specification {
                 TestFiles.fileRepository(),
                 false,
                 null,
-                metadataSources
+                metadataSources,
+                Stub(MetadataArtifactProvider)
             ]
         ) {
             appendId(_) >> { }

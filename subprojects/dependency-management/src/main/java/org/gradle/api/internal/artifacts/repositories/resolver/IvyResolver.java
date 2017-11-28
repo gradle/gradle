@@ -16,36 +16,25 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -53,22 +42,26 @@ import java.net.URI;
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
-    private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
-    public IvyResolver(String name, RepositoryTransport transport,
+    public IvyResolver(String name,
+                       RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
-                       FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser, boolean useGradleMetadata,
-                       ImmutableMetadataSources repositoryContentFilter) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, repositoryContentFilter);
+                       boolean dynamicResolve,
+                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                       Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
+                       FileResourceRepository fileResourceRepository,
+                       ModuleMetadataParser moduleMetadataParser,
+                       boolean useGradleMetadata,
+                       ImmutableMetadataSources repositoryContentFilter,
+                       MetadataArtifactProvider metadataArtifactProvider) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, repositoryContentFilter, metadataArtifactProvider);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
-        this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
@@ -88,11 +81,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     @Override
-    protected MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
-    }
-
-    @Override
     protected Class<IvyModuleResolveMetadata> getSupportedMetadataType() {
         return IvyModuleResolveMetadata.class;
     }
@@ -105,11 +93,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
         return artifactType == ArtifactType.IVY_DESCRIPTOR;
-    }
-
-    @Override
-    protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
     }
 
     public boolean isM2compatible() {
@@ -148,19 +131,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     public ComponentMetadataSupplier createMetadataSupplier() {
         return componentMetadataSupplierFactory.create();
-    }
-
-    @Override
-    protected MutableIvyModuleResolveMetadata createMissingComponentMetadata(ModuleComponentIdentifier moduleComponentIdentifier) {
-        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-        return DefaultMutableIvyModuleResolveMetadata.missing(mvi, moduleComponentIdentifier);
-    }
-
-    @Override
-    protected MutableIvyModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        MutableIvyModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
-        checkMetadataConsistency(moduleComponentIdentifier, metaData);
-        return metaData;
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {

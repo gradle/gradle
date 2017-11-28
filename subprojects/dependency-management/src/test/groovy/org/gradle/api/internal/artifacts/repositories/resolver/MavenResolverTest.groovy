@@ -19,7 +19,10 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenPomMetadataSource
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
@@ -117,13 +120,24 @@ class MavenResolverTest extends Specification {
     }
 
     private MavenResolver resolver(boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {
-        ImmutableMetadataSources metadataSources = Mock() {
-            isAlwaysProvidesMetadataForModules() >> alwaysProvidesMetadataForModules
+        MetadataArtifactProvider metadataArtifactProvider = new DefaultMavenArtifactRepository.MavenMetadataArtifactProvider()
+        def fileResourceRepository = Stub(FileResourceRepository)
+        def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
+        ImmutableMetadataSources metadataSources = Stub() {
+            sources() >> {
+                ImmutableList.of(new DefaultMavenPomMetadataSource(
+                    metadataArtifactProvider,
+                    null,
+                    fileResourceRepository,
+                    moduleIdentifierFactory, validator
+                ))
+            }
             appendId(_) >> { args ->
                 args[0].putBoolean(alwaysProvidesMetadataForModules)
             }
         }
 
-        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ModuleMetadataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository), useGradleMetadata, metadataSources)
+
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ModuleMetadataParser), moduleIdentifierFactory, Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), fileResourceRepository, useGradleMetadata, metadataSources, metadataArtifactProvider)
     }
 }

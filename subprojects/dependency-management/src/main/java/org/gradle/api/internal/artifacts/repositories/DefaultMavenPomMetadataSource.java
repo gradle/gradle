@@ -17,23 +17,55 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import javax.inject.Inject;
 
-public class DefaultMavenPomMetadataSource extends AbstractMetadataSource implements MavenPomMetadataSource {
+public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSource<MutableMavenModuleResolveMetadata> implements MavenPomMetadataSource {
+
+    private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
+    private final MavenMetadataValidator validator;
 
     @Inject
-    public DefaultMavenPomMetadataSource(ExperimentalFeatures features) {
-        System.err.println(features);
+    public DefaultMavenPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider,
+                                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                         FileResourceRepository fileResourceRepository,
+                                         MavenMetadataValidator validator) {
+        super(metadataArtifactProvider, fileResourceRepository);
+        this.pomParser = pomParser;
+        this.validator = validator;
     }
 
-    @Override
-    public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+    protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
+        MutableMavenModuleResolveMetadata metaData = pomParser.parseMetaData(context, cachedResource);
+        if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+            // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
+            MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
+            checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
+            // Use the requested id. Currently we're discarding the MavenUniqueSnapshotComponentIdentifier and replacing with DefaultModuleComponentIdentifier as pretty
+            // much every consumer of the meta-data is expecting a DefaultModuleComponentIdentifier.
+            ModuleComponentIdentifier lossyId = DefaultModuleComponentIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+            metaData.setComponentId(lossyId);
+            metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
+        } else {
+            checkMetadataConsistency(moduleComponentIdentifier, metaData);
+        }
+        MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
+        if (validator.validate(repoName, result, artifactResolver)) {
+            return result;
+        }
         return null;
     }
 
+    public interface MavenMetadataValidator {
+        boolean validate(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver);
+    }
 }

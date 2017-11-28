@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
-    def "produces sensible error when bad code is supplied in component selection rule" () {
+    def "produces sensible error when bad code is supplied in component selection rule"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -54,7 +54,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("Could not find method foo()")
     }
 
-    def "produces sensible error for invalid component selection rule" () {
+    def "produces sensible error for invalid component selection rule"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -88,11 +88,11 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         parameters                           | message
         "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentSelection'."
         "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String. " +
-                                               "Valid types (for the second and subsequent parameters) are: " +
-                                               "[org.gradle.api.artifacts.ComponentMetadata, org.gradle.api.artifacts.ivy.IvyModuleDescriptor]."
+            "Valid types (for the second and subsequent parameters) are: " +
+            "[org.gradle.api.artifacts.ComponentMetadata, org.gradle.api.artifacts.ivy.IvyModuleDescriptor]."
     }
 
-    def "produces sensible error when closure rule throws an exception" () {
+    def "produces sensible error when closure rule throws an exception"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -123,7 +123,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("From test")
     }
 
-    def "produces sensible error for invalid module target id" () {
+    def "produces sensible error for invalid module target id"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -154,7 +154,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
-    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
+    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter"() {
         buildFile << """
             configurations.all {
                 resolutionStrategy {
@@ -181,7 +181,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 - Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
 
-    def "produces sensible error when rule source throws an exception" () {
+    def "produces sensible error when rule source throws an exception"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -304,18 +304,18 @@ dependencies {
             'org.utils:api' {
                 expectVersionListing()
                 '2.1' {
-                    withModule(IvyModule) {
-                        ivy.expectGetBroken()
+                    if (!GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        withModule(IvyModule) {
+                            ivy.expectGetBroken()
+                        }
+                        withModule(MavenModule) {
+                            pom.expectGetBroken()
+                        }
+                    } else {
+                        withModule {
+                            moduleMetadata.expectGetBroken()
+                        }
                     }
-                    withModule(MavenModule) {
-                        pom.expectGetBroken()
-                    }
-                    // todo: should we try to get Gradle metadata when ivy/pom returns broken?
-                    // withModule {
-                    //    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-                    //        moduleMetadata.expectGetBroken()
-                    //    }
-                    //}
                 }
             }
         }

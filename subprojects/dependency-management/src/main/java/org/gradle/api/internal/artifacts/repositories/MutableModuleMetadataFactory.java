@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
-public abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSourceInternal<S> {
-    @Override
-    public void appendId(BuildCacheHasher hasher) {
-        hasher.putString(this.getClass().getName());
-    }
+public interface MutableModuleMetadataFactory<S extends MutableModuleComponentResolveMetadata> {
+    S create(ModuleComponentIdentifier from);
 }

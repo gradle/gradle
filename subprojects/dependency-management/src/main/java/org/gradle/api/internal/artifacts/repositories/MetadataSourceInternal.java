@@ -17,14 +17,17 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.MetadataSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 public interface MetadataSourceInternal<S extends MutableModuleComponentResolveMetadata> extends MetadataSource {
 
-    S create(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result);
+    // TODO: ComponentResolvers should be @Injected but currently cannot because they are lazily set in ResolveIvyFactory
+    S create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result);
 
     void appendId(BuildCacheHasher hasher);
 }
