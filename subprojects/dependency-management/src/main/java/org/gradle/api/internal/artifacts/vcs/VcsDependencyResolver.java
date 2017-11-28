@@ -56,8 +56,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VersionControlSystemFactory versionControlSystemFactory;
     private final File baseWorkingDir;
 
-    public VcsDependencyResolver(File projectCacheDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
-        this.baseWorkingDir = new File(projectCacheDir, "vcsWorkingDirs");
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+        this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
