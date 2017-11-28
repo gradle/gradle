@@ -30,7 +30,11 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
-
+        /**
+         * The build path the calculated task graph belongs too)
+         * @since 4.5
+         */
+        String getBuildPath();
     }
 
     @UsedByScanPlugin
@@ -49,7 +53,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * Never contains duplicates.
          */
         List<String> getExcludedTaskPaths();
-
     }
 
     private CalculateTaskGraphBuildOperationType() {
