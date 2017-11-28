@@ -319,7 +319,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         def block = server.expectAndBlock("block")
 
         when:
-        // Start the build then wait until the first configuration is resolve.
+        // Start the build then wait until the first configuration is resolved.
         executer.withTasks("assemble")
         def build = executer.start()
         block.waitForAllPendingCalls()

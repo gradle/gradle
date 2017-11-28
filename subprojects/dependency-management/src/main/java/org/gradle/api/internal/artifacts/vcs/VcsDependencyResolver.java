@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
+    private static final String LATEST_INTEGRATION = "latest.integration";
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
@@ -57,7 +58,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
     private final File baseWorkingDir;
-    private final Map<String, VersionRef> latestIntegrationVersionCache = new HashMap<String, VersionRef>();
+    private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
 
     public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
@@ -85,7 +86,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionRef selectedVersion = selectVersionFromCache(spec, depSelector.getVersion());
                 if (selectedVersion == null) {
                     selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersion());
-                    cacheSelectedVersionIfLatestIntegration(selectedVersion, spec, depSelector.getVersion());
                 }
                 if (selectedVersion == null) {
                     result.failed(new ModuleVersionResolveException(depSelector,
@@ -130,10 +130,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private VersionRef selectVersionFromCache(VersionControlSpec spec, String version) {
-        if (VersionRef.LATEST_INTEGRATION.equals(version)) {
-            return latestIntegrationVersionCache.get(spec.getUniqueId());
-        }
-        return null;
+        return selectedVersionCache.get(cacheKey(spec, version));
     }
 
     private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, String version) {
@@ -141,16 +138,15 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         Set<VersionRef> versions = versionControlSystem.getAvailableVersions(spec);
         for (VersionRef candidate : versions) {
             if (candidate.getVersion().equals(version)) {
+                selectedVersionCache.put(cacheKey(spec, version), candidate);
                 return candidate;
             }
         }
         return null;
     }
 
-    private void cacheSelectedVersionIfLatestIntegration(VersionRef selectedVersion, VersionControlSpec spec, String version) {
-        if (VersionRef.LATEST_INTEGRATION.equals(version)) {
-            latestIntegrationVersionCache.put(spec.getUniqueId(), selectedVersion);
-        }
+    private String cacheKey(VersionControlSpec spec, String version) {
+        return spec.getUniqueId() + version;
     }
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {

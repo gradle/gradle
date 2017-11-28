@@ -77,7 +77,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
             // The HEAD reference in a Git Repository is a logical choice if the user is looking
             // for the 'latest.integration' version of a dependency.
             if (gitRef.getVersion().equals("HEAD")) {
-                versions.add(GitVersionRef.from(VersionRef.LATEST_INTEGRATION, gitRef.getCanonicalId()));
+                versions.add(GitVersionRef.from("latest.integration", gitRef.getCanonicalId()));
             }
         }
         return versions;
