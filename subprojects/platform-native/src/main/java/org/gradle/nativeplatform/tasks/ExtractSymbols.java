@@ -32,7 +32,9 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.internal.DefaultSymbolExtractorSpec;
 import org.gradle.nativeplatform.internal.SymbolExtractorSpec;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 /**
@@ -69,21 +71,21 @@ public class ExtractSymbols extends DefaultTask {
     }
 
     @Internal
-    public NativeToolChainInternal getToolChain() {
+    public NativeToolChain getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChainInternal toolChain) {
-        this.toolChain = toolChain;
+    public void setToolChain(NativeToolChain toolChain) {
+        this.toolChain = (NativeToolChainInternal) toolChain;
     }
 
     @Nested
-    public NativePlatformInternal getTargetPlatform() {
+    public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
-    public void setTargetPlatform(NativePlatformInternal targetPlatform) {
-        this.targetPlatform = targetPlatform;
+    public void setTargetPlatform(NativePlatform targetPlatform) {
+        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     @TaskAction
