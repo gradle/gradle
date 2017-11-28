@@ -102,7 +102,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry to '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
+        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry at '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
     private static BuildCacheEntryWriter writer(byte[] content) {

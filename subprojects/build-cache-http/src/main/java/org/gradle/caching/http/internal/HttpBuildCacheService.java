@@ -180,7 +180,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             if (!isHttpSuccess(statusCode)) {
                 String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
                 if (isRedirect(statusCode)) {
-                    handleRedirect(uri, response, statusCode, defaultMessage, "storing entry to");
+                    handleRedirect(uri, response, statusCode, defaultMessage, "storing entry at");
                 } else {
                     throwHttpStatusCodeException(statusCode, defaultMessage);
                 }
