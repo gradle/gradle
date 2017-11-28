@@ -96,6 +96,8 @@ public class XCTestSelection {
                 String filter = tokens[0] + "." + tokens[1];
                 testSuiteCache.add(filter);
                 return filter;
+            } else if (tokens[2].isEmpty()) {
+                return testFilter;
             }
             return tokens[0] + "." + tokens[1] + "/" + tokens[2];
         } else if (tokens.length == 2 && !WILDCARD.equals(tokens[1])) {

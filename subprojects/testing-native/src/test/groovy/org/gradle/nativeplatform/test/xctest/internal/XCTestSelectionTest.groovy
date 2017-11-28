@@ -90,6 +90,11 @@ class XCTestSelectionTest extends Specification {
         testFilter << ['/abc', 'a/bc', 'ab/c', 'a/b/c', 'a/bc', 'a.b/c']
     }
 
+    def "leaves filter as-is when filter has tailing dot"() {
+        expect:
+        select('a.b.').includedTests == ['a.b.']
+    }
+
     private static XCTestSelection select(String... commandLinePattern) {
         new XCTestSelection([], Arrays.asList(commandLinePattern))
     }
