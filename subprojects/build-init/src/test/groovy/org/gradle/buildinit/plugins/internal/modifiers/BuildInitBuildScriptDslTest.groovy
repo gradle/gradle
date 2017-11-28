@@ -47,7 +47,7 @@ class BuildInitBuildScriptDslTest extends Specification {
 
     def "should list all supported build script DSLs"() {
         when:
-        def result = BuildInitBuildScriptDsl.listSupported();
+        def result = BuildInitBuildScriptDsl.listSupported()
 
         then:
         result.size() == 2
