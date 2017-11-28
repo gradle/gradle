@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
@@ -53,11 +51,6 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
 
         TemplateOperation groovySourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();
-    }
-
-    @Override
-    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
-        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
     }
 
     @Override
