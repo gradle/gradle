@@ -247,10 +247,6 @@ dependencies {
 
         then:
         assertOutputFileContains("""
-            test {
-                maxParallelForks = 23
-            }
-
             // Convention configuration A
             mainClassName = 'com.example.Main'
 
@@ -258,11 +254,12 @@ dependencies {
             applicationName = 'My Application'
 
             test {
+
+                maxParallelForks = 23
+
                 // Use TestNG
                 useTestNG()
-            }
 
-            test {
                 // Disable tests
                 enabled = false
             }
@@ -273,26 +270,22 @@ dependencies {
 
         then:
         assertOutputFileContains("""
-            val test by tasks.getting(Test::class) {
-                maxParallelForks = 23
-            }
-
             application {
+
                 // Convention configuration A
                 mainClassName = "com.example.Main"
-            }
-
-            application {
+                
                 // Convention configuration B
                 applicationName = "My Application"
             }
             
             val test by tasks.getting(Test::class) {
+            
+                maxParallelForks = 23
+                
                 // Use TestNG
                 useTestNG()
-            }
-
-            val test by tasks.getting(Test::class) {
+                
                 // Disable tests
                 isEnabled = false
             }
