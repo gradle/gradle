@@ -2,11 +2,12 @@ The Gradle team is pleased to announce Gradle 4.4.
 
 First and foremost, this release of Gradle features some exciting improvements for IDE users:
 
- * Faster sync times are possible when IDEs take advantage of new [parametrized tooling model builders](#parametrized-tooling-model-builders-for-faster-ide-sync) in the Gradle Tooling API.
- * The `eclipse` plugin now provides separate output folders. This removes test dependencies from the runtime classpath in Eclipse and should make developing applications with STS and [Buildship](http://eclipse.org/buildship) much more pleasant.
  * [Visual Studio 2017 is now supported](#visual-studio-2017-support). Please read details about `vswhere` and [VS toolchain discovery changes](#changes-to-visual-studio-toolchain-discovery) if you plan to use Gradle with VS 2017.
+ * The `eclipse` plugin now provides separate output folders. This allows Eclipse plugins to provide more sophisticated classpath management. [Buildship 2.2](https://projects.eclipse.org/projects/tools.buildship/reviews/2.2.0-release-review) will take advantage of this feature to avoid one large global classpath when running Java applications or executing tests in Eclipse IDE.
 
 No discussion about IDE support for Gradle would be complete without mentioning improvements to the Kotlin DSL. Version 0.13 is included in Gradle 4.4 and provides support for writing `settings.gradle.kts` files, Kotlin standard library extensions to the Java 7 and Java 8 APIs for use in build scripts, improvements to the `plugins {}` DSL, and more! See the [Kotlin DSL 0.13 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.13.1) for more details.
+
+This version of Gradle supports version ranges in parent elements of a POM. You can see an [example below](#support-version-ranges-in-parent-elements).
 
 C and C++ developers will enjoy better [incremental builds and build cache support for C/C++](#c/c++-incremental-build-improvements) because this version of Gradle takes compiler version and system headers into account for up-to-date checks. 
 
@@ -14,21 +15,11 @@ This version of Gradle fully supports the combination of Play 2.6 and Scala 2.12
 
 Previous versions of Gradle required that all transitive dependencies of a given plugin were present in the same repository as the plugin. Gradle 4.4 takes all plugin repositories into account and can resolve transitive plugin dependencies across them. Learn about this and other plugin repository handling improvements [in the details](#plugin-repositories-enhancements). 
 
-Gradle now supports version ranges in parent elements of a POM. See an example [below](#support-version-ranges-in-parent-elements).
-
 Last but not least, [several 3rd party dependencies](#upgrade-of-third-party-dependencies) including Ant were updated to their latest versions containing security and other bug fixes.
 
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
-
-### Parametrized tooling model builders for faster IDE sync
-
-The Tooling API now allows model builders to accept parameters from the tooling client. This is useful when there are multiple possible mappings from the Gradle project to the tooling model and the decision depends on some user-provided value.
-
-Android Studio, for instance, will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
-
-For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParameterizedToolingModelBuilder.html) of the new API.
 
 ### Eclipse plugin separates output folders
 
@@ -36,26 +27,18 @@ The `eclipse` plugin now defines separate output directories for each source fol
 
 The plugin also records which Eclipse classpath entries are needed for running classes from each source folder through the new `gradle_scope` and `gradle_used_by_scope` attributes. Future [Buildship](http://eclipse.org/buildship) versions will use this information to provide a more accurate classpath when launching applications and tests.
 
-### Visual Studio 2017 Support
+### Visual Studio 2017 support
 
 It is now possible to compile native applications with the Visual C++ toolchain packaged with all versions of Visual Studio 2017.
   Note that discovery of a Visual Studio 2017 installation requires the [vswhere utility](https://github.com/Microsoft/vswhere).  Visual Studio 2017 versions earlier than update 2 do not install `vswhere` automatically, and so to use one of these earlier versions of Visual Studio 2017 when `vswhere` is not installed, you'll need to set [the installation directory on the VisualCpp toolchain](userguide/native_software.html#sec:defining_tool_chains).
   
-### C/C++ incremental build improvements
+### Parametrized tooling model builders
 
-C/C++ compilation now takes system headers, and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+The Tooling API now allows model builders to accept parameters from the tooling client. This is useful when there are multiple possible mappings from the Gradle project to the tooling model and the decision depends on some user-provided value.
 
-Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
-Changing system headers were not detected either, so updating a system library would not have caused recompilation.
+Android Studio, for instance, will use this API to request just the dependencies for the variant that the user currently selected in the UI. This will greatly reduce synchronization times.
 
-### Improved Play 2.6 support
-
-This version of Gradle improves the `runPlayBinary` task to work with Play 2.6.
-
-* The combination of Play 2.6 and Scala 2.12 should now have full support
-* Play plugin's `dist` task fixes the generated start script
-
-You can read more in the improved [Play plugin user guide chapter](userguide/play_plugin.html). Special thanks to [Marcos Pereira](https://github.com/marcospereira) for extraordinary contributions here.
+For more information see the [documentation](javadoc/org/gradle/tooling/provider/model/ParameterizedToolingModelBuilder.html) of the new API.
 
 ### Support version ranges in parent elements
 
@@ -73,6 +56,22 @@ When resolving an external dependency from Maven repository, Gradle now supports
       <version>1</version>
       <packaging>pom</packaging>
     </project>
+  
+### C/C++ incremental build improvements
+
+C/C++ compilation now takes system headers, and the compiler vendor and version into account, making it safer to use those tasks with incremental build and [experimental native caching](userguide/build_cache.html#sec:task_output_caching_native_tasks).
+
+Before Gradle 4.4 changing the compiler did not make the compilation task out of date, even though different compilers may produce different outputs.
+Changing system headers were not detected either, so updating a system library would not have caused recompilation.
+
+### Improved Play 2.6 support
+
+This version of Gradle improves the `runPlayBinary` task to work with Play 2.6.
+
+* The combination of Play 2.6 and Scala 2.12 should now have full support
+* Play plugin's `dist` task fixes the generated start script
+
+You can read more in the improved [Play plugin user guide chapter](userguide/play_plugin.html). Special thanks to [Marcos Pereira](https://github.com/marcospereira) for extraordinary contributions here.
 
 ### Plugin repositories enhancements
 
