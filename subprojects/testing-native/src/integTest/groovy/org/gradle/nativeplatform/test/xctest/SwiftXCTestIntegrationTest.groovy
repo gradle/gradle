@@ -588,6 +588,26 @@ apply plugin: 'swift-library'
             ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
+    @Unroll
+    def "can use broken test filter [#testFilter]"() {
+        given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << "apply plugin: 'swift-library'"
+        lib.writeToProject(testDirectory)
+
+        when:
+        runAndFail('xcTest', '--tests', testFilter)
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        failure.assertHasCause("No tests found for given includes: [$testFilter](--tests filter)")
+
+        where:
+        testFilter << ['.SumTestSuite.testCanAddSumOf42', 'GreeterTest.SumTestSuite.', 'GreeterTest..testCanAddSumOf42']
+    }
+
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
         binaries.each {
             assertMainSymbolIsAbsent(it)
