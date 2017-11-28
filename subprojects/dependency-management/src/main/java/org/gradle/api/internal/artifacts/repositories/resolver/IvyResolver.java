@@ -50,7 +50,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 
-public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
+public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
@@ -88,7 +88,7 @@ public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<Ivy
     }
 
     @Override
-    MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
+    protected MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
         return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
     }
 

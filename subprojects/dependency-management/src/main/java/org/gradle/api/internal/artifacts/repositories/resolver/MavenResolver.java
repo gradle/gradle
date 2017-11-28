@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata> {
+public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata> {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
@@ -158,7 +158,7 @@ public class MavenResolver extends GradleMetadataAwareExternalResourceResolver<M
     }
 
     @Override
-    MutableMavenModuleResolveMetadata metadata(ModuleVersionIdentifier id, ModuleComponentIdentifier cid) {
+    protected MutableMavenModuleResolveMetadata metadata(ModuleVersionIdentifier id, ModuleComponentIdentifier cid) {
         return new DefaultMutableMavenModuleResolveMetadata(id, cid);
     }
 

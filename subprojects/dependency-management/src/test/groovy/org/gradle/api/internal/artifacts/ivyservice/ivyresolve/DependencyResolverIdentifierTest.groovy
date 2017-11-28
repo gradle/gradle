@@ -16,17 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.caching.internal.BuildCacheHasher
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -78,12 +78,14 @@ class DependencyResolverIdentifierTest extends Specification {
     }
 
     def resolver() {
-        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository), Stub(ImmutableRepositoryContentFilter))
+        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(VersionLister), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(FileResourceRepository), false, null, Stub(ImmutableRepositoryContentFilter))
     }
 
     static class TestResolver extends ExternalResourceResolver {
-        TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, ImmutableRepositoryContentFilter repositoryContentFilter) {
-            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, repositoryContentFilter)
+
+
+        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableRepositoryContentFilter contentFilter) {
+            super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, contentFilter)
         }
 
         @Override
@@ -94,6 +96,11 @@ class DependencyResolverIdentifierTest extends Specification {
         @Override
         protected Class getSupportedMetadataType() {
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        protected MutableModuleComponentResolveMetadata metadata(ModuleVersionIdentifier id, ModuleComponentIdentifier cid) {
+            return null
         }
 
         @Override

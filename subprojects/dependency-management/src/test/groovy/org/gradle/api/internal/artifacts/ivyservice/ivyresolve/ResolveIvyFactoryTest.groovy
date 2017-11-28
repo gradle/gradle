@@ -134,6 +134,8 @@ class ResolveIvyFactoryTest extends Specification {
                 artifactFileStore,
                 moduleIdentifierFactory,
                 TestFiles.fileRepository(),
+                false,
+                null,
                 contentFilter
             ]
         ) {

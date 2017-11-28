@@ -58,7 +58,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository), contentFilter)
+        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository), false, null, contentFilter)
         resolver.artifactResolver = artifactResolver
     }
 

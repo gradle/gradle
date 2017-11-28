@@ -17,16 +17,19 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.ImmutableRepositoryContentFilter;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -39,11 +42,11 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
-public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata, MutableModuleComponentResolveMetadata> {
+public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata, TestResolver.MutableTestResolveMetadata> {
     ExternalResourceArtifactResolver artifactResolver;
 
-    public TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, ImmutableRepositoryContentFilter repositoryContentFilter) {
-        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, repositoryContentFilter);
+    protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableRepositoryContentFilter contentFilter) {
+        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, contentFilter);
     }
 
     @Override
@@ -52,13 +55,18 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     }
 
     @Override
-    protected MutableModuleComponentResolveMetadata createMissingComponentMetadata(ModuleComponentIdentifier moduleComponentIdentifier) {
+    protected MutableTestResolveMetadata metadata(ModuleVersionIdentifier id, ModuleComponentIdentifier cid) {
+        return null;
+    }
+
+    @Override
+    protected MutableTestResolveMetadata createMissingComponentMetadata(ModuleComponentIdentifier moduleComponentIdentifier) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected MutableModuleComponentResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        throw new UnsupportedOperationException();
+    protected MutableTestResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        return null;
     }
 
     @Override
@@ -110,4 +118,6 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     public ComponentMetadataSupplier createMetadataSupplier() {
         throw new UnsupportedOperationException();
     }
+
+    interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {}
 }
