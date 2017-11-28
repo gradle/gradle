@@ -86,7 +86,7 @@ trait CppTaskNames {
     }
 
     String[] extractAndStripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
-        if (toolChain instanceof AvailableToolChains.InstalledVisualCpp) {
+        if (toolChain.visualCpp) {
             return []
         } else {
             return stripSymbolsTasks(project, buildType, toolChain) + ["${project}:extractSymbols${buildType}"]
@@ -104,7 +104,7 @@ trait CppTaskNames {
     }
 
     String[] stripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
-        if (toolChain instanceof AvailableToolChains.InstalledVisualCpp) {
+        if (toolChain.visualCpp) {
             return []
         } else {
             return ["${project}:stripSymbols${buildType}"]

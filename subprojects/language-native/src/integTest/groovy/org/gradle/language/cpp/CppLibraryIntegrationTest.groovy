@@ -336,11 +336,10 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
-        if (!toolChain.visualCpp) {
-            sharedLibrary("lib1/build/lib/main/release/stripped/lib1").assertExists()
-            sharedLibrary("lib2/build/lib/main/release/stripped/lib2").assertExists()
-            sharedLibrary("lib3/build/lib/main/release/stripped/lib3").assertExists()
-        }
+
+        sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
+        sharedLibrary("lib2/build/lib/main/release/lib2").strippedRuntimeFile.assertExists()
+        sharedLibrary("lib3/build/lib/main/release/lib3").strippedRuntimeFile.assertExists()
     }
 
     def "private headers are not visible to consumer"() {
