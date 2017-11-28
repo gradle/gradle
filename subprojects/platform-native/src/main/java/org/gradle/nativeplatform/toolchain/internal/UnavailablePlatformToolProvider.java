@@ -92,8 +92,8 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
-    public String getExecutableSymbolFileName(String libraryPath) {
-        return withExtension(getExecutableName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    public String getExecutableSymbolFileName(String executablePath) {
+        return withExtension(getExecutableName(executablePath), SymbolExtractorOsConfig.current().getExtension());
     }
 
     @Override

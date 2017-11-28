@@ -255,7 +255,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
-    public String getExecutableSymbolFileName(String libraryPath) {
-        return withExtension(getExecutableName(libraryPath), ".pdb");
+    public String getExecutableSymbolFileName(String executablePath) {
+        return withExtension(getExecutableName(executablePath), ".pdb");
     }
 }

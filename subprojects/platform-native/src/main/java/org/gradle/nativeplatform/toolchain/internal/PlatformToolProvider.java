@@ -33,7 +33,7 @@ public interface PlatformToolProvider extends ToolProvider {
 
     String getStaticLibraryName(String libraryPath);
 
-    String getExecutableSymbolFileName(String libraryPath);
+    String getExecutableSymbolFileName(String executablePath);
 
     String getLibrarySymbolFileName(String libraryPath);
 }
