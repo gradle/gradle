@@ -265,8 +265,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         succeeds('assemble')
 
         then:
-        def gitCheckout = checkoutDir('dep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}")
-        gitCheckout.file('.git').assertExists()
+        def depCheckout = checkoutDir('dep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}")
+        depCheckout.file('.git').assertExists()
+
+        def depDeeperCheckout = checkoutDir('deeperDep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}", depCheckout)
+        depDeeperCheckout.assertDoesNotExist()
+
         def deeperCheckout = checkoutDir('deeperDep', deeperCommit.id.name, "git-repo:${deeperRepo.url.toASCIIString()}")
         deeperCheckout.file('.git').assertExists()
     }
