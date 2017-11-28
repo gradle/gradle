@@ -22,8 +22,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY;
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
@@ -112,11 +110,6 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     protected abstract TemplateOperation sourceTemplateOperation();
 
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
-
-    @Override
-    public boolean supports(BuildInitBuildScriptDsl scriptDsl) {
-        return scriptDsl == GROOVY || scriptDsl == KOTLIN;
-    }
 
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
