@@ -31,7 +31,6 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                     def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
                     
                     assert component instanceof ${BuildableJavaComponent.canonicalName}
-                    assert component.rebuildTasks == [ BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
                     assert component.buildTasks == [ JavaBasePlugin.BUILD_TASK_NAME ]
                     assert component.runtimeClasspath != null
                     assert component.compileDependencies == project.configurations.compileClasspath
