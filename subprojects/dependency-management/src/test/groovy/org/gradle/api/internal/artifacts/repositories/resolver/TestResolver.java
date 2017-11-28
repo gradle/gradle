@@ -41,7 +41,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     ExternalResourceArtifactResolver artifactResolver;
 
     protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, boolean useGradleMetadata, ModuleMetadataParser metadataParser, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, metadataParser, metadataSources, metadataArtifactProvider);
+        super(name, local, repository, cachingResourceAccessor, versionLister, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, metadataArtifactProvider);
     }
 
 

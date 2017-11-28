@@ -202,7 +202,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, metadataParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(createMetadataSourcesInstantiator()), MavenMetadataArtifactProvider.INSTANCE);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, getMetadataSources().asImmutable(createMetadataSourcesInstantiator()), MavenMetadataArtifactProvider.INSTANCE);
     }
 
     protected Instantiator createMetadataSourcesInstantiator() {
@@ -226,6 +226,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     protected FileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {
         return artifactFileStore;
+    }
+
+    protected FileStore<String> getResourcesFileStore() {
+        return resourcesFileStore;
     }
 
     protected RepositoryTransport getTransport(String scheme) {

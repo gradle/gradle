@@ -163,6 +163,7 @@ class IvyResolverTest extends Specification {
                 ))
             }
             appendId(_) >> { args ->
+                args[0].putBoolean(useGradleMetadata)
                 args[0].putBoolean(alwaysProvidesMetadataForModules)
             }
         }
@@ -174,10 +175,8 @@ class IvyResolverTest extends Specification {
             false,
             Stub(FileStore),
             moduleIdentifierFactory,
-            Stub(org.gradle.internal.Factory),
-            fileResourceRepository,
-            null,
-            useGradleMetadata,
+            Stub(org.gradle.internal.Factory)
+            ,
             metadataSources,
             metadataArtifactProvider).with {
             if (ivyPattern) {

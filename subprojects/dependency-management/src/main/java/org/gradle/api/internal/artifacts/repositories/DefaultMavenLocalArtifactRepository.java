@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
-import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -45,8 +44,6 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final FileResourceRepository fileResourceRepository;
-    private final InstantiatorFactory instantiatorFactory;
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
@@ -59,8 +56,6 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                ExperimentalFeatures experimentalFeatures) {
         super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.fileResourceRepository = fileResourceRepository;
-        this.instantiatorFactory = instantiatorFactory;
     }
 
     protected MavenResolver createRealResolver() {
@@ -70,7 +65,17 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), getMetadataParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata(), getMetadataSources().asImmutable(createMetadataSourcesInstantiator()), DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE);
+        MavenResolver resolver = new MavenResolver(
+            getName(),
+            rootUri,
+            transport,
+            getLocallyAvailableResourceFinder(),
+            getArtifactFileStore(),
+            moduleIdentifierFactory,
+            transport.getResourceAccessor(),
+            getResourcesFileStore(),
+            getMetadataSources().asImmutable(createMetadataSourcesInstantiator()),
+            DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

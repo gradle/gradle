@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
@@ -67,7 +66,6 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
 import org.gradle.internal.resource.local.FileReadableContent;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -99,15 +97,12 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final FileResourceRepository fileResourceRepository;
 
     private final VersionLister versionLister;
     private final ImmutableMetadataSources metadataSources;
-    private final ModuleMetadataParser metadataParser;
 
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
-    private final boolean useGradleMetadata;
     private final MetadataArtifactProvider metadataArtifactProvider;
 
     protected ExternalResourceResolver(String name,
@@ -118,9 +113,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                       FileResourceRepository fileResourceRepository,
-                                       boolean useGradleMetadata,
-                                       ModuleMetadataParser metadataParser,
                                        ImmutableMetadataSources metadataSources,
                                        MetadataArtifactProvider metadataArtifactProvider) {
         this.name = name;
@@ -131,9 +123,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.fileResourceRepository = fileResourceRepository;
-        this.useGradleMetadata = useGradleMetadata;
-        this.metadataParser = metadataParser;
         this.metadataSources = metadataSources;
         this.metadataArtifactProvider = metadataArtifactProvider;
     }
@@ -223,10 +212,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
         result.missing();
-    }
-
-    protected boolean isUseGradleMetadata() {
-        return useGradleMetadata;
     }
 
     protected abstract boolean isMetaDataArtifact(ArtifactType artifactType);

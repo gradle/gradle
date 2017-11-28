@@ -20,14 +20,11 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
@@ -43,7 +40,6 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
@@ -60,23 +56,18 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
-    private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
+    public MavenResolver(String name, URI rootUri,
+                         RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                         ModuleMetadataParser metadataParser,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                          FileStore<String> resourcesFileStore,
-                         FileResourceRepository fileResourceRepository,
-                         boolean preferGradleMetadata,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider) {
         super(name, transport.isLocal(),
@@ -86,27 +77,16 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             locallyAvailableResourceFinder,
             artifactFileStore,
             moduleIdentifierFactory,
-            fileResourceRepository,
-            preferGradleMetadata,
-            metadataParser,
             metadataSources,
             metadataArtifactProvider);
-        this.pomParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         updatePatterns();
     }
 
     @Override
     public String toString() {
         return "Maven repository '" + getName() + "'";
-    }
-
-    @Override
-    protected void appendId(BuildCacheHasher hasher) {
-        super.appendId(hasher);
-        hasher.putBoolean(isUseGradleMetadata());
     }
 
     @Override

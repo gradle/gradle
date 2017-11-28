@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedArtifactIndex
@@ -134,9 +133,6 @@ class ResolveIvyFactoryTest extends Specification {
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                TestFiles.fileRepository(),
-                false,
-                null,
                 metadataSources,
                 Stub(MetadataArtifactProvider)
             ]

@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenPomMetadataSource
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
@@ -133,11 +131,12 @@ class MavenResolverTest extends Specification {
                 ))
             }
             appendId(_) >> { args ->
+                args[0].putBoolean(useGradleMetadata)
                 args[0].putBoolean(alwaysProvidesMetadataForModules)
             }
         }
 
 
-        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ModuleMetadataParser), moduleIdentifierFactory, Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), fileResourceRepository, useGradleMetadata, metadataSources, metadataArtifactProvider)
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), metadataSources, metadataArtifactProvider)
     }
 }

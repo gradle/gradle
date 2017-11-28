@@ -21,6 +21,7 @@ import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -61,5 +62,11 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
             }
         }
         return null;
+    }
+
+    @Override
+    public void appendId(BuildCacheHasher hasher) {
+        super.appendId(hasher);
+        hasher.putBoolean(experimentalFeatures.isEnabled());
     }
 }

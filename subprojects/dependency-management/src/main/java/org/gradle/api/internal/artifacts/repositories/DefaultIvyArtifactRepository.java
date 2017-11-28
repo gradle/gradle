@@ -181,7 +181,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private IvyResolver createResolver(RepositoryTransport transport) {
         Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(createInjectorForMetadataSupplier(transport));
-        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, fileResourceRepository, moduleMetadataParser, experimentalFeatures.isEnabled(), getMetadataSources().asImmutable(createInjectorForMetadataSources()), IvyMetadataArtifactProvider.INSTANCE);
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, getMetadataSources().asImmutable(createInjectorForMetadataSources()), IvyMetadataArtifactProvider.INSTANCE);
     }
 
     /**

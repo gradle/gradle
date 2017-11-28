@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -33,7 +32,6 @@ import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetad
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
@@ -42,7 +40,6 @@ import java.net.URI;
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
@@ -55,15 +52,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                        Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
-                       FileResourceRepository fileResourceRepository,
-                       ModuleMetadataParser moduleMetadataParser,
-                       boolean useGradleMetadata,
                        ImmutableMetadataSources repositoryContentFilter,
                        MetadataArtifactProvider metadataArtifactProvider) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, repositoryContentFilter, metadataArtifactProvider);
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.dynamicResolve = dynamicResolve;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
     }
@@ -77,7 +70,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     protected void appendId(BuildCacheHasher hasher) {
         super.appendId(hasher);
         hasher.putBoolean(isM2compatible());
-        hasher.putBoolean(isUseGradleMetadata());
     }
 
     @Override

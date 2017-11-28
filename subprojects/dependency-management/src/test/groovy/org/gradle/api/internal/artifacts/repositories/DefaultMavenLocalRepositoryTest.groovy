@@ -20,7 +20,7 @@ import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
-import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
@@ -62,7 +62,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         def repo = repository.createRealResolver()
 
         then:
-        repo instanceof MavenLocalResolver
+        repo instanceof MavenResolver
         repo.root == uri
     }
 
