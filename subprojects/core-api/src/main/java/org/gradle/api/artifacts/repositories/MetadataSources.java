@@ -27,5 +27,5 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface MetadataSources {
-    void use(Class<? extends MetadataSource> metadataSource);
+    void using(Class<? extends MetadataSource> metadataSource);
 }

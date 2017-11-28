@@ -88,9 +88,9 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
 
     private static MetadataSourcesInternal createMetadataSources() {
         DefaultMetadataSources metadataSources = new DefaultMetadataSources();
-        metadataSources.use(GradleModuleMetadataSource.class);
-        metadataSources.use(IvyDescriptorMetadataSource.class);
-        metadataSources.use(IvyArtifactMetadataSource.class);
+        metadataSources.using(GradleModuleMetadataSource.class);
+        metadataSources.using(IvyDescriptorMetadataSource.class);
+        metadataSources.using(IvyArtifactMetadataSource.class);
         return metadataSources;
     }
 

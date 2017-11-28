@@ -39,7 +39,7 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
     }
 
     @Override
-    public void use(Class<? extends MetadataSource> metadataSource) {
+    public void using(Class<? extends MetadataSource> metadataSource) {
         metadataSources.add(concreteTypeFor(metadataSource));
     }
 

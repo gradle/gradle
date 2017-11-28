@@ -82,9 +82,9 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     private static MetadataSourcesInternal createMetadataSources() {
         DefaultMetadataSources sources = new DefaultMetadataSources();
-        sources.use(GradleModuleMetadataSource.class);
-        sources.use(MavenPomMetadataSource.class);
-        sources.use(MavenArtifactMetadataSource.class);
+        sources.using(GradleModuleMetadataSource.class);
+        sources.using(MavenPomMetadataSource.class);
+        sources.using(MavenArtifactMetadataSource.class);
         return sources;
     }
 

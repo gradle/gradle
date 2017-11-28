@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.maven.MavenModule
 
-@Ignore
 class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def "tries to fetch the jar whenever the metadata artifact isn't found"() {
         buildFile << """
@@ -32,6 +33,15 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
         repositoryInteractions {
             'org:notfound:1.0' {
                 expectGetMetadataMissing()
+                if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                    // this is because the default is to look for Gradle first, then Ivy
+                    withModule(IvyModule) {
+                        ivy.expectGetMissing()
+                    }
+                    withModule(MavenModule) {
+                        pom.expectGetMissing()
+                    }
+                }
                 expectHeadArtifact()
             }
         }
@@ -40,12 +50,13 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
         fails 'checkDeps'
     }
 
-    // TODO CC: reimplement this
     def "does not try to fetch the jar whenever the metadata artifact isn't found and legacy mode is disabled"() {
+        def source = GradleMetadataResolveRunner.useIvy() ? 'IvyDescriptor' : 'MavenPom'
         buildFile << """
             repositories.all {
                 metadataSources {
-                    alwaysProvidesMetadataForModules()
+                    using(GradleModuleMetadataSource)
+                    using(${source}MetadataSource)
                 }
             }
 
@@ -58,6 +69,15 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
         repositoryInteractions {
             'org:notfound:1.0' {
                 expectGetMetadataMissing()
+                if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                    // this is because we configured a 2d source
+                    withModule(IvyModule) {
+                        ivy.expectGetMissing()
+                    }
+                    withModule(MavenModule) {
+                        pom.expectGetMissing()
+                    }
+                }
             }
         }
 
