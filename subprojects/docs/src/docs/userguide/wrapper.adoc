@@ -240,7 +240,7 @@ To enable this feature, download the `.sha256` file associated with the Gradle d
 
 ===== Downloading the SHA-256 file
 
-You can download the `.sha256` file from https://services.gradle.org/distributions/ (stable releases) or https://services.gradle.org/distributions-snapshots/ (release candidate and nightly releases). The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
+You can download the `.sha256` file from the link:https://services.gradle.org/distributions/[stable releases] or link:https://services.gradle.org/distributions-snapshots/[release candidate and nightly releases]. The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
 
 ===== Configuring checksum verification
 
