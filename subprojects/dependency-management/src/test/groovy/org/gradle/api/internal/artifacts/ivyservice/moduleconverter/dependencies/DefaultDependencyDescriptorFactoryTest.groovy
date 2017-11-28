@@ -75,7 +75,7 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
         def selector = created.selector as ModuleComponentSelector
 
         then:
-        created.optional
+        created.pending
         selector.group == "g"
         selector.module == "m"
         selector.version == "1"

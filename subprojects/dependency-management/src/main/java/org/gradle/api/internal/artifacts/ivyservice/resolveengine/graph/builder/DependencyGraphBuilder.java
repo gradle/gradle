@@ -122,11 +122,11 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependenciesMissingLocalMetadata = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
-        final OptionalDependenciesHandler optionalDependenciesHandler;
+        final PendingDependenciesHandler pendingDependenciesHandler;
         if (experimentalFeatures.isEnabled()) {
-            optionalDependenciesHandler = new DefaultOptionalDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
+            pendingDependenciesHandler = new DefaultPendingDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
         } else {
-            optionalDependenciesHandler = OptionalDependenciesHandler.IGNORE;
+            pendingDependenciesHandler = PendingDependenciesHandler.IGNORE;
         }
 
         while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
@@ -137,7 +137,7 @@ public class DependencyGraphBuilder {
                 // Calculate the outgoing edges of this configuration
                 dependencies.clear();
                 dependenciesMissingLocalMetadata.clear();
-                node.visitOutgoingDependencies(dependencies, optionalDependenciesHandler);
+                node.visitOutgoingDependencies(dependencies, pendingDependenciesHandler);
 
                 resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
             } else {

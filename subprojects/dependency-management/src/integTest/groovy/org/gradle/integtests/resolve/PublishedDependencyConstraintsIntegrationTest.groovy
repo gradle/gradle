@@ -225,7 +225,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "range resolution kicks in with optional dependencies"() {
+    void "range resolution kicks in with dependency constraints"() {
         given:
         def available = featureAvailable()
         repository {

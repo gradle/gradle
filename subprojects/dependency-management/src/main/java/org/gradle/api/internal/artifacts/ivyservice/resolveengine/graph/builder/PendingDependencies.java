@@ -20,38 +20,38 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Set;
 
-public class PendingOptionalDependencies {
-    private boolean noLongerOptional;
+public class PendingDependencies {
+    private boolean noLongerPending;
     private final Set<NodeState> affectedComponents;
 
-    public static PendingOptionalDependencies pending() {
-        return new PendingOptionalDependencies(Sets.<NodeState>newLinkedHashSet(), false);
+    public static PendingDependencies pending() {
+        return new PendingDependencies(Sets.<NodeState>newLinkedHashSet(), false);
     }
 
-    public static PendingOptionalDependencies notOptional() {
-        return new PendingOptionalDependencies(Collections.<NodeState>emptySet(), true);
+    public static PendingDependencies notPending() {
+        return new PendingDependencies(Collections.<NodeState>emptySet(), true);
     }
 
-    private PendingOptionalDependencies(Set<NodeState> nodeStates, boolean noLongerOptional) {
+    private PendingDependencies(Set<NodeState> nodeStates, boolean noLongerPending) {
         this.affectedComponents = nodeStates;
-        this.noLongerOptional = noLongerOptional;
+        this.noLongerPending = noLongerPending;
     }
 
     void addNode(NodeState state) {
-        if (noLongerOptional) {
-            throw new IllegalStateException("Cannot add a pending node for a dependency which is not optional");
+        if (noLongerPending) {
+            throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
         affectedComponents.add(state);
     }
 
     void turnIntoHardDependencies() {
-        noLongerOptional = true;
+        noLongerPending = true;
         for (NodeState affectedComponent : affectedComponents) {
             affectedComponent.resetSelectionState();
         }
     }
 
     public boolean isPending() {
-        return !noLongerOptional;
+        return !noLongerPending;
     }
 }

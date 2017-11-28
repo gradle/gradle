@@ -15,33 +15,33 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-public interface OptionalDependenciesHandler {
-    OptionalDependenciesHandler IGNORE = new IgnoreOptionalDependenciesHandler();
+public interface PendingDependenciesHandler {
+    PendingDependenciesHandler IGNORE = new IgnorePendingDependenciesHandler();
 
     Visitor start(boolean isOptionalConfiguration);
 
     interface Visitor {
-        boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState);
+        boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 
         void complete();
     }
 
-    class IgnoreOptionalDependenciesHandler implements OptionalDependenciesHandler {
+    class IgnorePendingDependenciesHandler implements PendingDependenciesHandler {
         @Override
         public Visitor start(boolean isOptionalConfiguration) {
-            return new IgnoreOptionalDependenciesVisitor(isOptionalConfiguration);
+            return new IgnorePendingDependenciesVisitor(isOptionalConfiguration);
         }
 
-        static class IgnoreOptionalDependenciesVisitor implements OptionalDependenciesHandler.Visitor {
+        static class IgnorePendingDependenciesVisitor implements PendingDependenciesHandler.Visitor {
             private final boolean isOptionalConfiguration;
 
-            IgnoreOptionalDependenciesVisitor(boolean isOptionalConfiguration) {
+            IgnorePendingDependenciesVisitor(boolean isOptionalConfiguration) {
                 this.isOptionalConfiguration = isOptionalConfiguration;
             }
 
             @Override
-            public boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState) {
-                return !isOptionalConfiguration && dependencyState.getDependencyMetadata().isOptional();
+            public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
+                return !isOptionalConfiguration && dependencyState.getDependencyMetadata().isPending();
             }
 
             @Override

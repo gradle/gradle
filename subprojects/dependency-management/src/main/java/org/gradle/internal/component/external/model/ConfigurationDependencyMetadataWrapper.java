@@ -105,7 +105,7 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
     }
 
     @Override
-    public boolean isOptional() {
+    public boolean isPending() {
         return delegate.isOptional();
     }
 }
