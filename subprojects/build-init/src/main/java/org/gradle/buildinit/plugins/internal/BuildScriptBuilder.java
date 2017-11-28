@@ -207,8 +207,8 @@ public class BuildScriptBuilder {
 
     private static class TaskSelector implements ConfigSelector {
 
-        private final String taskName;
-        private final String taskType;
+        final String taskName;
+        final String taskType;
 
         private TaskSelector(String taskName, String taskType) {
             this.taskName = taskName;
@@ -235,7 +235,7 @@ public class BuildScriptBuilder {
 
     private static class ConventionSelector implements ConfigSelector {
 
-        private final String conventionName;
+        final String conventionName;
 
         private ConventionSelector(String conventionName) {
             this.conventionName = conventionName;
@@ -280,8 +280,8 @@ public class BuildScriptBuilder {
 
     private static class PropertyAssignment extends ConfigExpression {
 
-        private final String propertyName;
-        private final Object propertyValue;
+        final String propertyName;
+        final Object propertyValue;
 
         private PropertyAssignment(String comment, String propertyName, Object propertyValue) {
             super(comment);
