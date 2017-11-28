@@ -234,7 +234,7 @@ fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it 
                 "${severity.presentableName[0]}: ${msg()}"
 
             when (severity) {
-                in CompilerMessageSeverity.ERRORS -> {
+                CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
                     errors++
                     log.error { taggedMsg() }
                 }
