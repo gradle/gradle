@@ -56,6 +56,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -95,7 +96,7 @@ import java.util.Map;
  *
  * @since 4.4
  */
-public abstract class AbstractTestTask extends ConventionTask implements VerificationTask {
+public abstract class AbstractTestTask extends ConventionTask implements VerificationTask, Reporting<TestTaskReports> {
     private final DefaultTestFilter filter;
     private final TestTaskReports reports;
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
