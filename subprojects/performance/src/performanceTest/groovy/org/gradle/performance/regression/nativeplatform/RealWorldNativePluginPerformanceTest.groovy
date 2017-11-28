@@ -24,13 +24,12 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.LogFiles
 import org.gradle.performance.measure.MeasuredOperation
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.5-20171117235935+0000"]
+        runner.targetVersions = ["4.5-20171128024033+0000"]
     }
 
     @Unroll
@@ -60,7 +59,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         "nativeMonolithicOverlapping" | 12
     }
 
-    @Ignore("TODO: @wolfs to rebaseline the test")
     @Unroll
     def "build with #changeType change on #testProject"() {
         given:
