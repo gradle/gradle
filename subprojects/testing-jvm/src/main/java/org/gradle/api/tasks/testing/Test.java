@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
-import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -121,7 +120,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable, Reporting<TestTaskReports> {
+public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;

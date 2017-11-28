@@ -231,6 +231,30 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("The setTestClassesDir(File) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the setTestClassesDirs(FileCollection) method instead.")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/3627")
+    def "can reference properties from TestTaskReports when using @CompileStatic"() {
+        buildFile << """
+            import groovy.transform.CompileStatic
+
+            @CompileStatic
+            class StaticallyCompiledPlugin implements Plugin<Project> {
+                @Override
+                void apply(Project project) {
+                    project.apply plugin: 'java'
+                    Test test = (Test) project.tasks.getByName("test")
+                    if (test.reports.junitXml.destination.exists()) {
+                        println 'JUnit XML report exists!'
+                    }
+                }
+            }
+
+            apply plugin: StaticallyCompiledPlugin
+        """
+
+        expect:
+        succeeds("tasks")
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }
