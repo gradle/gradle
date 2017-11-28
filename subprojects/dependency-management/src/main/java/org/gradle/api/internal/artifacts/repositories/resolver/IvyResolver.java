@@ -49,7 +49,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 
-public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
+public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
@@ -64,7 +64,7 @@ public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<Ivy
                        boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                        FileResourceRepository fileResourceRepository, ModuleMetadataParser moduleMetadataParser, boolean useGradleMetadata) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser, moduleIdentifierFactory);
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ChainedVersionLister(new ResourceVersionLister(transport.getRepository())), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository, useGradleMetadata, moduleMetadataParser);
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
@@ -85,7 +85,7 @@ public class IvyResolver extends GradleMetadataAwareExternalResourceResolver<Ivy
     }
 
     @Override
-    MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
+    protected MutableIvyModuleResolveMetadata metadata(ModuleVersionIdentifier mvi, ModuleComponentIdentifier moduleComponentIdentifier) {
         return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
     }
 

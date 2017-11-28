@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -35,7 +34,6 @@ class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
     VersionLister versionLister = Mock()
-    LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> '<some-artifact>'
@@ -46,13 +44,14 @@ class ExternalResourceResolverTest extends Specification {
     ModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
-    FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
+    FileStore<ModuleComponentArtifactIdentifier> fileStore = Stub()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
     ExternalResourceArtifactResolver artifactResolver = Mock()
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository))
+        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, Mock(FileResourceRepository), false, null)
         resolver.artifactResolver = artifactResolver
     }
 

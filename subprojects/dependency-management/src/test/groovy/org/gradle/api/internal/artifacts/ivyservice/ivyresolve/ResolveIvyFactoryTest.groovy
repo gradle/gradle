@@ -131,7 +131,9 @@ class ResolveIvyFactoryTest extends Specification {
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                TestFiles.fileRepository()
+                TestFiles.fileRepository(),
+                false,
+                null,
             ]
         ) {
             appendId(_) >> { }
