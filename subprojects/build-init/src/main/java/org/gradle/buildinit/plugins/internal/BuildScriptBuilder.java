@@ -473,12 +473,26 @@ public class BuildScriptBuilder {
             String propertyName = expression.propertyName;
             Object propertyValue = expression.propertyValue;
             if (propertyValue instanceof Boolean) {
-                return "is" + StringUtils.capitalize(propertyName) + " = " + propertyValue;
+                return booleanPropertyNameFor(propertyName) + " = " + propertyValue;
             }
             if (propertyValue instanceof CharSequence) {
                 return propertyName + " = \"" + propertyValue + '\"';
             }
             return propertyName + " = " + propertyValue;
+        }
+
+        // In Kotlin:
+        //
+        // > Boolean accessor methods (where the name of the getter starts with is and the name of
+        // > the setter starts with set) are represented as properties which have the same name as
+        // > the getter method. Boolean properties are visibile with a `is` prefix in Kotlin
+        //
+        // https://kotlinlang.org/docs/reference/java-interop.html#getters-and-setters
+        //
+        // This code assumes all configurable Boolean property getters follow the `is` prefix convention.
+        //
+        private String booleanPropertyNameFor(String propertyName) {
+            return "is" + StringUtils.capitalize(propertyName);
         }
 
         @Override
