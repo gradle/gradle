@@ -108,18 +108,17 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         expect:
         executer.withArgument("--info")
-        def releaseTask = toolChain.visualCpp ? "linkRelease" : "stripSymbolsRelease"
-        succeeds releaseTask
+        succeeds assembleTaskRelease()
 
-        result.assertTasksExecuted(compileAndLinkTasks(release), stripSymbolsTasksRelease(toolChain))
+        result.assertTasksExecuted(compileAndLinkTasks(release), extractAndStripSymbolsTasksRelease(toolChain), assembleTaskRelease())
         sharedLibrary("build/lib/main/release/hello").assertExists()
         sharedLibrary("build/lib/main/release/hello").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
-        succeeds "linkDebug"
+        succeeds assembleTaskDebug()
 
-        result.assertTasksExecuted(compileAndLinkTasks(debug))
+        result.assertTasksExecuted(compileAndLinkTasks(debug), assembleTaskDebug())
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         sharedLibrary("build/lib/main/debug/hello").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         !output.contains('compiling with feature enabled')
@@ -135,7 +134,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildFile << """
             apply plugin: 'cpp-library'
             
-            task assembleDebug {
+            task assembleLinktimeDebug {
                 dependsOn library.debugSharedLibrary.linkFile
             }
             task assembleRuntimeDebug {
@@ -144,8 +143,8 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
          """
 
         expect:
-        succeeds "assembleDebug"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleDebug")
+        succeeds "assembleLinktimeDebug"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleLinktimeDebug")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
 
         succeeds "assembleRuntimeDebug"
@@ -324,17 +323,16 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         app.shuffle.writeToProject(file("lib3"))
 
         expect:
-        succeeds ":lib1:assemble"
+        succeeds assembleTaskDebug(':lib1')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), ":lib1:assemble")
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], debug), assembleTaskDebug(':lib1'))
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
-        def releaseTask = toolChain.visualCpp ? "linkRelease" : "stripSymbolsRelease"
-        succeeds ":lib1:${releaseTask}"
+        succeeds assembleTaskRelease(':lib1')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2', ':lib1'], release, toolChain))
+        result.assertTasksExecuted(compileAndLinkTasks([':lib3', ':lib2', ':lib1'], release), stripSymbolsTasks([':lib3', ':lib2'], release, toolChain), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()

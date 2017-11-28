@@ -35,6 +35,10 @@ trait CppTaskNames {
         installTask(project, DEBUG)
     }
 
+    String assembleTaskDebug(String project = '') {
+        assembleTask(project, DEBUG)
+    }
+
     String[] compileTasksRelease(String project = '') {
         compileTasks(project, RELEASE)
     }
@@ -45,6 +49,10 @@ trait CppTaskNames {
 
     String installTaskRelease(String project = '') {
         installTask(project, RELEASE)
+    }
+
+    String assembleTaskRelease(String project = '') {
+        assembleTask(project, RELEASE)
     }
 
     String[] compileTasks(String project = '', String buildType) {
@@ -63,9 +71,31 @@ trait CppTaskNames {
         "${project}:install${buildType}"
     }
 
+    String assembleTask(String project = '', String buildType) {
+        "${project}:assemble${buildType}"
+    }
+
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
             [*compileTasks(project, buildType), linkTask(project, buildType)]
+        }.flatten()
+    }
+
+    String[] extractAndStripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
+        return extractAndStripSymbolsTasks(project, RELEASE, toolChain)
+    }
+
+    String[] extractAndStripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        if (toolChain instanceof AvailableToolChains.InstalledVisualCpp) {
+            return []
+        } else {
+            return stripSymbolsTasks(project, buildType, toolChain) + ["${project}:extractSymbols${buildType}"]
+        }
+    }
+
+    String[] extractAndStripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+        projects.collect { project ->
+            [*extractAndStripSymbolsTasks(project, buildType, toolChain)]
         }.flatten()
     }
 
@@ -77,7 +107,7 @@ trait CppTaskNames {
         if (toolChain instanceof AvailableToolChains.InstalledVisualCpp) {
             return []
         } else {
-            return ["${project}:extractSymbols${buildType}", "${project}:stripSymbols${buildType}"]
+            return ["${project}:stripSymbols${buildType}"]
         }
     }
 

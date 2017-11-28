@@ -19,6 +19,7 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -105,6 +106,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
                 ((DefaultSwiftBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
 
+                Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
+
                 if (binary instanceof SwiftExecutable) {
                     DefaultSwiftExecutable executable = (DefaultSwiftExecutable) binary;
                     // Add a link task
@@ -136,7 +139,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getModule().get());
                             }
                         }));
-                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
                         executable.getExecutableFile().set(stripSymbols.getOutputFile());
                     } else {
                         executable.getExecutableFile().set(link.getBinaryFile());
@@ -153,6 +156,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.lib(binary.getRuntimeLibraries());
                     executable.getInstallDirectory().set(install.getInstallDirectory());
                     executable.getRunScriptFile().set(install.getRunScriptFile());
+
+                    lifecycleTask.dependsOn(install.getInstallDirectory());
                 } else if (binary instanceof SwiftSharedLibrary) {
                     DefaultSwiftSharedLibrary library = (DefaultSwiftSharedLibrary) binary;
 
@@ -189,31 +194,31 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                                 return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
                             }
                         }));
-                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation);
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
                         library.getRuntimeFile().set(stripSymbols.getOutputFile());
                     } else {
                         library.getRuntimeFile().set(link.getBinaryFile());
                     }
-
+                    lifecycleTask.dependsOn(library.getRuntimeFile());
                 }
             }
         });
     }
 
-    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation) {
+    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
         ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
         extractSymbols.getBinaryFile().set(link.getBinaryFile());
         extractSymbols.getSymbolFile().set(symbolLocation);
         extractSymbols.setTargetPlatform(currentPlatform);
         extractSymbols.setToolChain(toolChain);
+        lifecycleTask.dependsOn(extractSymbols);
 
         StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
-        // TODO This is not technically correct - these two tasks don't actually have a dependency relationship - we do this because we don't have a lifecycle task to hook into
-        stripSymbols.dependsOn(extractSymbols);
         stripSymbols.getBinaryFile().set(link.getBinaryFile());
         stripSymbols.getOutputFile().set(strippedLocation);
         stripSymbols.setTargetPlatform(currentPlatform);
         stripSymbols.setToolChain(toolChain);
+        lifecycleTask.dependsOn(stripSymbols);
 
         return stripSymbols;
     }

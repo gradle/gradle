@@ -166,16 +166,16 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
          """
 
         expect:
-        succeeds "installRelease"
-        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease")
+        succeeds "assembleRelease"
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease", ":assembleRelease")
 
         releaseBinary.assertExists()
         releaseBinary.exec().out == app.withFeatureEnabled().expectedOutput
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
         releaseBinary.assertHasStrippedDebugSymbolsFor(app.sourceFileNames)
 
-        succeeds "installDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug")
+        succeeds "assembleDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assembleDebug")
 
         file("build/modules/main/release/App.swiftmodule").assertIsFile()
         debugBinary.assertExists()
@@ -466,11 +466,11 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         sharedLibrary("app/build/install/main/debug/lib/Hello").assertExists()
         sharedLibrary("app/build/install/main/debug/lib/Log").assertExists()
 
-        succeeds ":app:installRelease"
+        succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease",
-            ":log:compileReleaseSwift", ":log:linkRelease", ":log:extractSymbolsRelease", ":log:stripSymbolsRelease",
-            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease")
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
+            ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
@@ -503,10 +503,10 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         expect:
         succeeds ":app:linkRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         sharedLibrary("hello/build/lib/main/release/Greeter").assertExists()
-        sharedLibrary("hello/build/lib/main/release/Greeter").assertHasStrippedDebugSymbolsFor(app.library.sourceFileNames)
+        sharedLibrary("hello/build/lib/main/release/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
         executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
 
