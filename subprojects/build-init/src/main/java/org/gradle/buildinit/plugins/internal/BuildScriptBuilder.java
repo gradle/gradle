@@ -22,7 +22,9 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -31,10 +33,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.sort;
+import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.groupBy;
 
 /**
  * Assembles the parts of a build script.
@@ -360,11 +367,7 @@ public class BuildScriptBuilder {
             boolean firstDep = true;
             for (String config : dependencies.keySet()) {
                 for (DepSpec depSpec : dependencies.get(config)) {
-                    if (firstDep) {
-                        firstDep = false;
-                    } else {
-                        println();
-                    }
+                    firstDep = printNewLineExceptTheFirstTime(firstDep);
                     println("    // " + depSpec.comment);
                     for (String dep : depSpec.deps) {
                         println("    " + dependencySpecFor(config, dep));
@@ -376,26 +379,104 @@ public class BuildScriptBuilder {
 
         @Override
         public void printConfigSpecs(List<ConfigSpec> configSpecs) {
-            // Arbitrary configuration
-            for (ConfigSpec configSpec : configSpecs) {
+            for (Pair<ConfigSelector, List<ConfigExpression>> configGroup : sortedConfigGroups(configSpecs)) {
                 writer.println();
-                printConfigSpec(configSpec);
+                printConfigGroup(configGroup.left, configGroup.right);
             }
             writer.println();
         }
 
-        private void printConfigSpec(ConfigSpec configSpec) {
-            String blockSelector = codeBlockSelectorFor(configSpec.selector);
+        private Iterable<Pair<ConfigSelector, List<ConfigExpression>>> sortedConfigGroups(List<ConfigSpec> configSpecs) {
+            return sortBySelector(groupBySelector(configSpecs));
+        }
+
+        private Iterable<Pair<ConfigSelector, List<ConfigExpression>>> sortBySelector(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
+            List<Pair<ConfigSelector, List<ConfigExpression>>> result = toListOfExpressionsBySelector(groupedConfigSpecs);
+            sort(result, new Comparator<Pair<ConfigSelector, List<ConfigExpression>>>() {
+                @Override
+                public int compare(Pair<ConfigSelector, List<ConfigExpression>> group1, Pair<ConfigSelector, List<ConfigExpression>> group2) {
+                    return compareSelectors(group1.left, group2.left);
+                }
+            });
+            return result;
+        }
+
+        private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
+            if (s1 instanceof ConventionSelector) {
+                if (s2 instanceof ConventionSelector) {
+                    return conventionNameOf(s1).compareTo(conventionNameOf(s2));
+                }
+                return -1; // conventions come first
+            }
+            if (s1 instanceof TaskSelector) {
+                if (s2 instanceof TaskSelector) {
+                    return taskNameOf(s1).compareTo(taskNameOf(s2));
+                }
+                return 1; // tasks come last
+            }
+            throw new IllegalStateException();
+        }
+
+        private String conventionNameOf(ConfigSelector selector) {
+            return ((ConventionSelector) selector).conventionName;
+        }
+
+        private String taskNameOf(ConfigSelector selector) {
+            return ((TaskSelector) selector).taskName;
+        }
+
+        private List<Pair<ConfigSelector, List<ConfigExpression>>> toListOfExpressionsBySelector(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
+            ArrayList<Pair<ConfigSelector, List<ConfigExpression>>> result = new ArrayList<Pair<ConfigSelector, List<ConfigExpression>>>(groupedConfigSpecs.size());
+            for (Map.Entry<ConfigSelector, Collection<ConfigSpec>> group : groupedConfigSpecs.entrySet()) {
+                ConfigSelector selector = group.getKey();
+                Collection<ConfigSpec> specs = group.getValue();
+                result.add(Pair.of(selector, expressionsOf(specs)));
+            }
+            return result;
+        }
+
+        private List<ConfigExpression> expressionsOf(Collection<ConfigSpec> specs) {
+            return collect(specs, new Transformer<ConfigExpression, ConfigSpec>() {
+                @Override
+                public ConfigExpression transform(ConfigSpec configSpec) {
+                    return configSpec.expression;
+                }
+            });
+        }
+
+        private Map<ConfigSelector, Collection<ConfigSpec>> groupBySelector(List<ConfigSpec> configSpecs) {
+            return groupBy(configSpecs, new Transformer<ConfigSelector, ConfigSpec>() {
+                @Override
+                public ConfigSelector transform(ConfigSpec configSpec) {
+                    return configSpec.selector;
+                }
+            });
+        }
+
+        private void printConfigGroup(ConfigSelector selector, Collection<ConfigExpression> expressions) {
+            String blockSelector = codeBlockSelectorFor(selector);
             if (blockSelector != null) {
                 println(blockSelector + " {");
+                println();
             }
 
             String indent = blockSelector != null ? "    " : "";
-            printExpression(indent, configSpec.expression);
+            boolean firstExpression = true;
+            for (ConfigExpression expression : expressions) {
+                firstExpression = printNewLineExceptTheFirstTime(firstExpression);
+                printExpression(indent, expression);
+            }
 
             if (blockSelector != null) {
                 println("}");
             }
+        }
+
+        private boolean printNewLineExceptTheFirstTime(boolean firstTime) {
+            if (!firstTime) {
+                println();
+            }
+            return false;
         }
 
         private void printExpression(String indent, ConfigExpression expression) {
