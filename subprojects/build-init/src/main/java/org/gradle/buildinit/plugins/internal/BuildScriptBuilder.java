@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
-import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -33,7 +32,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -379,58 +377,84 @@ public class BuildScriptBuilder {
 
         @Override
         public void printConfigSpecs(List<ConfigSpec> configSpecs) {
-            for (Pair<ConfigSelector, List<ConfigExpression>> configGroup : sortedConfigGroups(configSpecs)) {
+            for (ConfigGroup group : sortedConfigGroups(configSpecs)) {
                 writer.println();
-                printConfigGroup(configGroup.left, configGroup.right);
+                printConfigGroup(group);
             }
             writer.println();
         }
 
-        private Iterable<Pair<ConfigSelector, List<ConfigExpression>>> sortedConfigGroups(List<ConfigSpec> configSpecs) {
-            return sortBySelector(groupBySelector(configSpecs));
-        }
-
-        private Iterable<Pair<ConfigSelector, List<ConfigExpression>>> sortBySelector(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
-            List<Pair<ConfigSelector, List<ConfigExpression>>> result = toListOfExpressionsBySelector(groupedConfigSpecs);
-            sort(result, new Comparator<Pair<ConfigSelector, List<ConfigExpression>>>() {
-                @Override
-                public int compare(Pair<ConfigSelector, List<ConfigExpression>> group1, Pair<ConfigSelector, List<ConfigExpression>> group2) {
-                    return compareSelectors(group1.left, group2.left);
-                }
-            });
-            return result;
-        }
-
-        private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
-            if (s1 instanceof ConventionSelector) {
-                if (s2 instanceof ConventionSelector) {
-                    return conventionNameOf(s1).compareTo(conventionNameOf(s2));
-                }
-                return -1; // conventions come first
+        private void printConfigGroup(ConfigGroup configGroup) {
+            String blockSelector = codeBlockSelectorFor(configGroup.selector);
+            if (blockSelector != null) {
+                println(blockSelector + " {");
+                println();
             }
-            if (s1 instanceof TaskSelector) {
-                if (s2 instanceof TaskSelector) {
-                    return taskNameOf(s1).compareTo(taskNameOf(s2));
-                }
-                return 1; // tasks come last
+
+            String indent = blockSelector != null ? "    " : "";
+            boolean firstExpression = true;
+            for (ConfigExpression expression : configGroup.expressions) {
+                firstExpression = printNewLineExceptTheFirstTime(firstExpression);
+                printExpression(indent, expression);
             }
-            throw new IllegalStateException();
+
+            if (blockSelector != null) {
+                println("}");
+            }
         }
 
-        private String conventionNameOf(ConfigSelector selector) {
-            return ((ConventionSelector) selector).conventionName;
+        private List<ConfigGroup> sortedConfigGroups(List<ConfigSpec> configSpecs) {
+            List<ConfigGroup> configGroups = configGroupsFrom(groupBySelector(configSpecs));
+            sort(configGroups);
+            return configGroups;
         }
 
-        private String taskNameOf(ConfigSelector selector) {
-            return ((TaskSelector) selector).taskName;
+        private static class ConfigGroup implements Comparable<ConfigGroup> {
+
+            final ConfigSelector selector;
+            final List<ConfigExpression> expressions;
+
+            ConfigGroup(ConfigSelector selector, List<ConfigExpression> expressions) {
+                this.selector = selector;
+                this.expressions = expressions;
+            }
+
+            @Override
+            public int compareTo(ConfigGroup other) {
+                return compareSelectors(selector, other.selector);
+            }
+
+            private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
+                if (s1 instanceof ConventionSelector) {
+                    if (s2 instanceof ConventionSelector) {
+                        return conventionNameOf(s1).compareTo(conventionNameOf(s2));
+                    }
+                    return -1; // conventions come first
+                }
+                if (s1 instanceof TaskSelector) {
+                    if (s2 instanceof TaskSelector) {
+                        return taskNameOf(s1).compareTo(taskNameOf(s2));
+                    }
+                    return 1; // tasks come last
+                }
+                throw new IllegalStateException();
+            }
+
+            private String conventionNameOf(ConfigSelector selector) {
+                return ((ConventionSelector) selector).conventionName;
+            }
+
+            private String taskNameOf(ConfigSelector selector) {
+                return ((TaskSelector) selector).taskName;
+            }
         }
 
-        private List<Pair<ConfigSelector, List<ConfigExpression>>> toListOfExpressionsBySelector(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
-            ArrayList<Pair<ConfigSelector, List<ConfigExpression>>> result = new ArrayList<Pair<ConfigSelector, List<ConfigExpression>>>(groupedConfigSpecs.size());
+        private List<ConfigGroup> configGroupsFrom(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
+            ArrayList<ConfigGroup> result = new ArrayList<ConfigGroup>(groupedConfigSpecs.size());
             for (Map.Entry<ConfigSelector, Collection<ConfigSpec>> group : groupedConfigSpecs.entrySet()) {
                 ConfigSelector selector = group.getKey();
                 Collection<ConfigSpec> specs = group.getValue();
-                result.add(Pair.of(selector, expressionsOf(specs)));
+                result.add(new ConfigGroup(selector, expressionsOf(specs)));
             }
             return result;
         }
@@ -451,25 +475,6 @@ public class BuildScriptBuilder {
                     return configSpec.selector;
                 }
             });
-        }
-
-        private void printConfigGroup(ConfigSelector selector, Collection<ConfigExpression> expressions) {
-            String blockSelector = codeBlockSelectorFor(selector);
-            if (blockSelector != null) {
-                println(blockSelector + " {");
-                println();
-            }
-
-            String indent = blockSelector != null ? "    " : "";
-            boolean firstExpression = true;
-            for (ConfigExpression expression : expressions) {
-                firstExpression = printNewLineExceptTheFirstTime(firstExpression);
-                printExpression(indent, expression);
-            }
-
-            if (blockSelector != null) {
-                println("}");
-            }
         }
 
         private boolean printNewLineExceptTheFirstTime(boolean firstTime) {
