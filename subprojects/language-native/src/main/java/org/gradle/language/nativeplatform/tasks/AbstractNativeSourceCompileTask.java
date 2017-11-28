@@ -17,6 +17,8 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -50,6 +52,35 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
             spec.setPreCompiledHeader(IncludeWithSimpleExpression.parse(preCompiledHeader.getIncludeString(), true).getValue());
         }
+    }
+
+    public AbstractNativeSourceCompileTask() {
+        super();
+        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return !getHeaderDependenciesFile().isPresent();
+            }
+        });
+        getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return getPreCompiledHeader() != null;
+            }
+        });
+        getOutputs().doNotCacheIf("Could not determine compiler version", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                CompilerVersion compilerVersion = getCompilerVersion();
+                return compilerVersion == null;
+            }
+        });
+        getOutputs().doNotCacheIf("Debug is enabled", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return isDebuggable() && !Boolean.getBoolean("org.gradle.caching.native");
+            }
+        });
     }
 
     /**
