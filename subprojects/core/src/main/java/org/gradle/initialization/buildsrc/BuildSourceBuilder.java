@@ -106,7 +106,7 @@ public class BuildSourceBuilder {
         try {
             BuildController buildController = createBuildController(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, buildController, buildSrcBuildListenerFactory));
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory));
             } finally {
                 buildController.stop();
             }

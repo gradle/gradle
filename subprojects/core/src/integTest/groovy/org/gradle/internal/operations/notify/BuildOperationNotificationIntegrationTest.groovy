@@ -217,7 +217,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         then:
         output.contains(":buildSrc:compileJava") // executedTasks check fails with in process executer
         output.count(ConfigureProjectBuildOperationType.Details.name) == 2
-        output.count(ExecuteTaskBuildOperationType.Details.name) == 15 // including all buildSrc task execution events
+        output.count(ExecuteTaskBuildOperationType.Details.name) == 14 // including all buildSrc task execution events
     }
 
     void started(Class<?> type, Map<String, ?> payload = null) {
