@@ -28,17 +28,12 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources;
-import org.gradle.api.internal.artifacts.repositories.MetadataSourcesInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
@@ -57,6 +52,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.mavenDefaults;
+
 abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, ModuleVersionPublisher, ResolutionAwareRepository, PublicationAwareRepository {
 
     private ArtifactPomContainer artifactPomContainer;
@@ -72,20 +69,12 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
                                  LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(createMetadataSources());
+        super(mavenDefaults());
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
-    }
-
-    private static MetadataSourcesInternal createMetadataSources() {
-        DefaultMetadataSources sources = new DefaultMetadataSources();
-        sources.using(GradleModuleMetadataSource.class);
-        sources.using(MavenPomMetadataSource.class);
-        sources.using(ArtifactMetadataSource.class);
-        return sources;
     }
 
     public ConfiguredModuleComponentRepository createResolver() {

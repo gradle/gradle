@@ -22,11 +22,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
-import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.DefaultActionConfiguration;
@@ -73,6 +70,8 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.ivyDefaults;
+
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final static Factory<ComponentMetadataSupplier> NO_METADATA_SUPPLIER = new Factory<ComponentMetadataSupplier>() {
         @Override
@@ -113,7 +112,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         FileResourceRepository fileResourceRepository,
                                         ModuleMetadataParser moduleMetadataParser,
                                         ExperimentalFeatures experimentalFeatures) {
-        super(instantiatorFactory.decorate(), authenticationContainer, createMetadataSources());
+        super(instantiatorFactory.decorate(), authenticationContainer, ivyDefaults());
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -130,14 +129,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.ivyContextManager = ivyContextManager;
         this.experimentalFeatures = experimentalFeatures;
         this.metadataSourcesServices = new MetadataSourcesServices();
-    }
-
-    private static MetadataSourcesInternal createMetadataSources() {
-        DefaultMetadataSources metadataSources = new DefaultMetadataSources();
-        metadataSources.using(GradleModuleMetadataSource.class);
-        metadataSources.using(IvyDescriptorMetadataSource.class);
-        metadataSources.using(ArtifactMetadataSource.class);
-        return metadataSources;
     }
 
     @Override

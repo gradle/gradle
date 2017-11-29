@@ -32,6 +32,22 @@ import java.util.List;
 public class DefaultMetadataSources implements MetadataSourcesInternal {
     private final List<Class<? extends MetadataSource>> metadataSources = Lists.newArrayListWithExpectedSize(3);
 
+    public static MetadataSourcesInternal ivyDefaults() {
+        DefaultMetadataSources metadataSources = new DefaultMetadataSources();
+        metadataSources.using(GradleModuleMetadataSource.class);
+        metadataSources.using(IvyDescriptorMetadataSource.class);
+        metadataSources.using(ArtifactMetadataSource.class);
+        return metadataSources;
+    }
+
+    public static MetadataSourcesInternal mavenDefaults() {
+        DefaultMetadataSources sources = new DefaultMetadataSources();
+        sources.using(GradleModuleMetadataSource.class);
+        sources.using(MavenPomMetadataSource.class);
+        sources.using(ArtifactMetadataSource.class);
+        return sources;
+    }
+
     @Override
     public void reset() {
         metadataSources.clear();

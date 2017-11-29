@@ -19,11 +19,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -55,6 +52,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.mavenDefaults;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private static final Object NO_OP_VALIDATION_SERVICES = new Object() {
@@ -112,7 +111,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           ExperimentalFeatures experimentalFeatures) {
-        super(instantiatorFactory.decorate(), authenticationContainer, createMetadataSources());
+        super(instantiatorFactory.decorate(), authenticationContainer, mavenDefaults());
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -126,14 +125,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.experimentalFeatures = experimentalFeatures;
         this.instantiatorFactory = instantiatorFactory;
         this.metadataSourcesServices = new MetadataSourcesServices();
-    }
-
-    private static MetadataSourcesInternal createMetadataSources() {
-        DefaultMetadataSources sources = new DefaultMetadataSources();
-        sources.using(GradleModuleMetadataSource.class);
-        sources.using(MavenPomMetadataSource.class);
-        sources.using(ArtifactMetadataSource.class);
-        return sources;
     }
 
     @Override

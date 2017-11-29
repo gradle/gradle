@@ -19,9 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
-import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -53,6 +50,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.ivyDefaults;
+
 public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
@@ -73,7 +72,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository,
                                             ModuleMetadataParser moduleMetadataParser, InstantiatorFactory instantiatorFactory,
                                             ExperimentalFeatures experimentalFeatures) {
-        super(createMetadataSources());
+        super(ivyDefaults());
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -84,14 +83,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         this.moduleMetadataParser = moduleMetadataParser;
         this.instantiatorFactory = instantiatorFactory;
         this.experimentalFeatures = experimentalFeatures;
-    }
-
-    private static MetadataSourcesInternal createMetadataSources() {
-        DefaultMetadataSources metadataSources = new DefaultMetadataSources();
-        metadataSources.using(GradleModuleMetadataSource.class);
-        metadataSources.using(IvyDescriptorMetadataSource.class);
-        metadataSources.using(ArtifactMetadataSource.class);
-        return metadataSources;
     }
 
     @Override
