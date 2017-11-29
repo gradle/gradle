@@ -840,7 +840,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!searchUpwards) {
-            if (!isSettingsFileAvailable() && gradleVersion.compareTo(GradleVersion.version("4.5")) <= 0) {
+            // needed for cross-version tests with older versions
+            if (!isSettingsFileAvailable() && gradleVersion.compareTo(GradleVersion.version("4.5")) < 0) {
                 allArgs.add("--no-search-upward");
             }
         }
