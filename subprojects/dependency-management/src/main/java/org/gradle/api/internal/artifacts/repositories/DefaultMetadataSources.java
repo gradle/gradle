@@ -26,7 +26,7 @@ import org.gradle.internal.reflect.Instantiator;
 import java.util.List;
 
 public class DefaultMetadataSources implements MetadataSourcesInternal {
-    private final List<Class<? extends MetadataSourceInternal<?>>> metadataSources = Lists.newArrayListWithExpectedSize(3);
+    private final List<Class<? extends MetadataSource>> metadataSources = Lists.newArrayListWithExpectedSize(3);
 
     @Override
     public void reset() {
@@ -40,30 +40,31 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
 
     @Override
     public void using(Class<? extends MetadataSource> metadataSource) {
-        metadataSources.add(concreteTypeFor(metadataSource));
-    }
-
-    private Class<? extends MetadataSourceInternal<?>> concreteTypeFor(Class<? extends MetadataSource> publicType) {
-        ClassLoader classLoader = publicType.getClassLoader();
-        String fqn = "org.gradle.api.internal.artifacts.repositories.Default" + publicType.getSimpleName();
-        try {
-            return Cast.uncheckedCast(classLoader.loadClass(fqn));
-        } catch (ClassNotFoundException e) {
-            throw new GradleException("Unable to load public type for " + publicType.getName(), e);
-        }
+        metadataSources.add(metadataSource);
     }
 
     private static class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
         private final ImmutableList<MetadataSourceInternal<?>> sources;
 
-        private DefaultImmutableMetadataSources(Instantiator instantiator, List<Class<? extends MetadataSourceInternal<?>>> sourceTypes) {
+        private DefaultImmutableMetadataSources(Instantiator instantiator, List<Class<? extends MetadataSource>> sourceTypes) {
             ImmutableList.Builder<MetadataSourceInternal<?>> builder = new ImmutableList.Builder<MetadataSourceInternal<?>>();
-            for (Class<? extends MetadataSourceInternal<?>> sourceType : sourceTypes) {
-                builder.add(instantiator.newInstance(sourceType));
+            ClassLoader classLoader = this.getClass().getClassLoader();
+            for (Class<? extends MetadataSource> sourceType : sourceTypes) {
+                builder.add(instantiator.newInstance(concreteTypeFor(sourceType, classLoader)));
             }
             this.sources = builder.build();
         }
 
+        // TODO CC: It would be nicer to have a way to locate the concrete type without having to hardcode the location
+        // and without having to annotate the public type
+        private static Class<? extends MetadataSourceInternal<?>> concreteTypeFor(Class<? extends MetadataSource> publicType, ClassLoader classLoader) {
+            String fqn = "org.gradle.api.internal.artifacts.repositories.Default" + publicType.getSimpleName();
+            try {
+                return Cast.uncheckedCast(classLoader.loadClass(fqn));
+            } catch (ClassNotFoundException e) {
+                throw new GradleException("Unable to load public type for " + publicType.getName(), e);
+            }
+        }
 
         @Override
         public ImmutableList<MetadataSourceInternal<?>> sources() {
