@@ -266,11 +266,6 @@ These plugins provide help with your software development process.
 | -
 | Generates build dashboard report.
 
-| <<build_init_plugin, `build-init` >>
-| wrapper
-| -
-| Adds support for initializing a new Gradle build. Handles converting a Maven build to a Gradle build.
-
 | <<native_software, `cunit` >>
 | -
 | -
@@ -285,11 +280,6 @@ These plugins provide help with your software development process.
 | -
 | native language plugins
 | Adds integration with Visual Studio.
-
-| <<wrapper_plugin, `wrapper` >>
-| -
-| -
-| Adds a api:org.gradle.api.tasks.wrapper.Wrapper[] task for generating Gradle wrapper files.
 
 | <<javaGradle_plugin, `java-gradle-plugin` >>
 | java
