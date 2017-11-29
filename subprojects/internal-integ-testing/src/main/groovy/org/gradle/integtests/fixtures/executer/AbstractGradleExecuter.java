@@ -839,6 +839,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
+        if (!searchUpwards) {
+            if (!isSettingsFileAvailable() && gradleVersion.compareTo(GradleVersion.version("4.5")) <= 0) {
+                allArgs.add("--no-search-upward");
+            }
+        }
+
         // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
         // This is fundamentally a windows issue: You can't have arguments with spaces in them if the path to the batch script has a space
         // We could work around this by setting -Dgradle.user.home but GRADLE-1730 (which affects 1.0-milestone-3) means that that
@@ -856,6 +862,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
+    }
+
+    private boolean isSettingsFileAvailable() {
+        boolean settingsFoundAboveInTestDir = false;
+        TestFile dir = new TestFile(getWorkingDir());
+        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+            if (dir.file("settings.gradle").isFile()) {
+                settingsFoundAboveInTestDir = true;
+                break;
+            }
+            dir = dir.getParentFile();
+        }
+        return settingsFoundAboveInTestDir;
     }
 
     /**
@@ -905,17 +924,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!searchUpwards) {
-            boolean settingsFoundAboveInTestDir = false;
-            TestFile dir = new TestFile(getWorkingDir());
-            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-                if (dir.file("settings.gradle").isFile()) {
-                    settingsFoundAboveInTestDir = true;
-                    break;
-                }
-                dir = dir.getParentFile();
-            }
-
-            if (!settingsFoundAboveInTestDir) {
+            if (!isSettingsFileAvailable()) {
                 properties.put(BuildLayoutParameters.NO_SEARCH_UPWARDS_PROPERTY_KEY, "true");
             }
         }
