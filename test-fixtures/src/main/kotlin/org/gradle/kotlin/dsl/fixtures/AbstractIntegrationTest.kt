@@ -30,23 +30,23 @@ open class AbstractIntegrationTest {
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
-    fun withSettings(script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
         withSettingsIn(".", script, produceFile)
 
     protected
-    fun withSettingsIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withSettingsIn(baseDir: String, script: String, produceFile: (String) -> File = ::newFile): File =
         withFile("$baseDir/settings.gradle.kts", script, produceFile)
 
     protected
-    fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withBuildScript(script: String, produceFile: (String) -> File = ::newFile): File =
         withBuildScriptIn(".", script, produceFile)
 
     protected
-    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = ::newFile): File =
         withFile("$baseDir/build.gradle.kts", script, produceFile)
 
     protected
-    fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = this::newFile) =
+    fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = ::newFile) =
         writeFile(produceFile(fileName), text)
 
     protected
