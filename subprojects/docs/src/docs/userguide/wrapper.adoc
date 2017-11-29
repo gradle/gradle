@@ -54,10 +54,14 @@ Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll
 
 [NOTE]
 ====
-To make the Wrapper files available to other developers and execution environments you’ll need to check them into version control. Adding the JAR file to version control is expected. Some organizations do not allow projects to submit binary files to version control. At the moment there are no alternative options to the approach.
+To make the Wrapper files available to other developers and execution environments you’ll need to check them into version control. All Wrapper files including the JAR file are very small in size. Adding the JAR file to version control is expected. Some organizations do not allow projects to submit binary files to version control. At the moment there are no alternative options to the approach.
 ====
 
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, stores the information about the Gradle distribution.
+
+* The server hosting the Gradle distribution.
+* The type of Gradle distribution. By default that’s the `-bin` distribution containing only the runtime but no sample code and documentation.
+* The Gradle version used for executing the build. By default the `wrapper` task picks the exact same Gradle version that was used to generate the Wrapper files.
 
 .The generated distribution URL
 ====
@@ -67,10 +71,6 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 distributionUrl=https\://services.gradle.org/distributions/gradle-4.3.1-bin.zip
 ----
 ====
-
-The server URL used to download the Gradle distribution from.
-The type of Gradle distribution. By default that’s the `-bin` distribution containing only the runtime but no sample code and documentation.
-The Gradle version used for executing the build. By default the `wrapper` task picks the exact same Gradle version that was used to generate the Wrapper files.
 
 All of those aspects are configurable at the time of generating the Wrapper files with the help of command line options.
 
