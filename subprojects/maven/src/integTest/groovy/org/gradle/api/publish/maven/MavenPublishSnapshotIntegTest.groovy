@@ -17,23 +17,11 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 /**
- * Tests “simple” maven publishing scenarios
+ * Tests publishing of maven snapshots
  */
 class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
-    @Rule
-    SetSystemProperties sysProp = new SetSystemProperties()
-
-    MavenLocalRepository localM2Repo
-
-    def "setup"() {
-        localM2Repo = m2.mavenRepo()
-    }
-
-    def "can publish a snapshot version"() {
+    def "can publish snapshot versions"() {
         settingsFile << 'rootProject.name = "snapshotPublish"'
         buildFile << """
     apply plugin: 'java'
@@ -53,13 +41,15 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 """
+        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
 
         when:
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("snapshotPublish-${module.publishArtifactVersion}.module", "snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom", "maven-metadata.xml")
+        def initialVersion = module.publishArtifactVersion
+        def initialArtifacts = ["snapshotPublish-${initialVersion}.module", "snapshotPublish-${initialVersion}.jar", "snapshotPublish-${initialVersion}.pom"]
+        module.assertArtifactsPublished(initialArtifacts + ["maven-metadata.xml"])
 
         and:
         module.parsedPom.version == '1.0-SNAPSHOT'
@@ -83,7 +73,82 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             snapshotVersions == ["1.0-${snapshotTimestamp}-${snapshotBuildNumber}"]
         }
 
+        when: // Publish a second time
+        succeeds 'publish'
+
+        then:
+        def secondVersion = module.publishArtifactVersion
+        List<String> secondArtifacts = ["snapshotPublish-${secondVersion}.module", "snapshotPublish-${secondVersion}.jar", "snapshotPublish-${secondVersion}.pom"]
+        module.assertArtifactsPublished(["maven-metadata.xml"] + initialArtifacts + secondArtifacts)
+
         and:
-        resolveArtifacts(module) == ["snapshotPublish-${module.publishArtifactVersion}.jar"]
+        module.parsedPom.version == '1.0-SNAPSHOT'
+        module.snapshotMetaData.snapshotBuildNumber == '2'
+
+        // TODO This is not yet working, it should contain initial version too. See `MavenRemotePublisher.createDeployTask`
+        module.snapshotMetaData.snapshotVersions == [secondVersion]
+//        module.snapshotMetaData.snapshotVersions == [initialVersion, secondVersion]
+
+        and:
+        resolveArtifacts(module) == ["snapshotPublish-${secondVersion}.jar"]
+    }
+
+    def "can publish a snapshot version that was previously published with uploadArchives"() {
+        settingsFile << 'rootProject.name = "snapshotPublish"'
+        buildFile << """
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+
+    group = 'org.gradle'
+    version = '1.0-SNAPSHOT'
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                snapshotRepository(url: "${mavenRepo.uri}")
+            }
+        }
+    }
+
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            pub(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+"""
+        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
+
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        List<String>  initialArtifacts = ["snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom"]
+        module.assertArtifactsPublished(["maven-metadata.xml"] + initialArtifacts)
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
+        module.snapshotMetaData.snapshotBuildNumber == '1'
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def secondVersion = module.publishArtifactVersion
+        List<String> secondArtifacts = ["snapshotPublish-${secondVersion}.module", "snapshotPublish-${secondVersion}.jar", "snapshotPublish-${secondVersion}.pom"]
+        module.assertArtifactsPublished(["maven-metadata.xml"] + initialArtifacts + secondArtifacts)
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
+        module.snapshotMetaData.snapshotBuildNumber == '2'
+        module.snapshotMetaData.snapshotVersions == [secondVersion]
+
+        and:
+        resolveArtifacts(module) == ["snapshotPublish-${secondVersion}.jar"]
     }
 }

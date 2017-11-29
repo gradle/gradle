@@ -45,7 +45,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
         List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact("jar")]
         expectedArtifacts.addAll(additionalArtifacts)
-        module.assertArtifactsPublished(expectedArtifacts as String[])
+        module.assertArtifactsPublished(expectedArtifacts)
 
         // Verify Gradle metadata particulars
         assert module.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
