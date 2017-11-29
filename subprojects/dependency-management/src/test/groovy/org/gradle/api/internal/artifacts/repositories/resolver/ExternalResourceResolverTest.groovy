@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultArtifactMetadataSou
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.MetadataSourceInternal
+import org.gradle.api.internal.artifacts.repositories.MutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -147,7 +148,7 @@ class ExternalResourceResolverTest extends Specification {
         resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
 
         then:
-        1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(ImmutableModuleIdentifierFactory)))
+        1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(MutableModuleMetadataFactory)))
         1 * artifactResolver.artifactExists({ it.componentId.is(id) && it.name.type == 'jar'}, _)
         1 * metadataResult.missing()
         0 * _
