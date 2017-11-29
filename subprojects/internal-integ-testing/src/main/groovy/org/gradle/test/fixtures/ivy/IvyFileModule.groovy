@@ -37,6 +37,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final String revision
     final boolean m2Compatible
     final List dependencies = []
+    final List dependencyConstraints = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
     final Map extendsFrom = [:]
@@ -153,6 +154,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         allAttrs.putAll(attributes)
         dependsOn(allAttrs)
         return this
+    }
+
+    @Override
+    IvyModule dependencyConstraint(Module target) {
+        dependencyConstraints << [group: target.group, module: target.module, version: target.version]
+        return null
     }
 
     IvyFileModule dependsOn(Map<String, ?> attributes) {
@@ -341,11 +348,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 new VariantMetadata(
                     v.name,
                     v.attributes,
-                    dependencies.findAll { d -> !d.optional }.collect { d ->
+                    dependencies.collect { d ->
                         new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
                     },
-                    dependencies.findAll { d -> d.optional }.collect { d ->
-                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects)
+                    dependencyConstraints.collect { d ->
+                        new DependencyConstraintSpec(d.group, d.module, d.version, d.rejects)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )
@@ -403,7 +410,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             }
         }
         builder.dependencies {
-            dependencies.findAll { dep -> !dep.optional }.each { dep ->
+            dependencies.each { dep ->
                 def depAttrs = [org: dep.organisation, name: dep.module, rev: dep.revision]
                 if (dep.conf) {
                     depAttrs.conf = dep.conf

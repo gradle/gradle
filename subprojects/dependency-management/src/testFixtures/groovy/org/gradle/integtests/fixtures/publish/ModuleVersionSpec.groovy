@@ -199,12 +199,12 @@ class ModuleVersionSpec {
             constraints.each {
                 if (it instanceof CharSequence) {
                     def args = it.split(':') as List
-                    module.dependsOn(repository.module(*args), optional: true)
+                    module.dependencyConstraint(repository.module(*args))
                 } else if (it instanceof Map) {
                     def other = repository.module(it.group, it.artifact, it.version)
-                    module.dependsOn(it, other, optional: true)
+                    module.dependencyConstraint(it, other)
                 } else {
-                    module.dependsOn(it, optional: true)
+                    module.dependencyConstraint(it)
                 }
             }
         }

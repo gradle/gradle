@@ -71,6 +71,8 @@ public interface IvyModule extends Module {
 
     IvyModule dependsOn(Map<String, ?> attributes, Module target);
 
+    IvyModule dependencyConstraint(Module module);
+
     /**
      * Options:
      *  name

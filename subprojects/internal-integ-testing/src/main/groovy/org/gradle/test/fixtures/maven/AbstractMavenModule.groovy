@@ -132,6 +132,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
+    MavenModule dependencyConstraint(Module target) {
+        this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version, optional: true]
+        return this
+    }
+
+    @Override
     MavenModule hasPackaging(String packaging) {
         this.packaging = packaging
         return this
