@@ -18,7 +18,7 @@ package org.gradle.vcs.git.internal;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
-import org.gradle.vcs.internal.AbstractVersionControlSpec;
+import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.net.URI;
 import java.net.URISyntaxException;

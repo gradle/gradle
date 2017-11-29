@@ -14,20 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs.internal.spec;
 
 import org.gradle.vcs.VersionControlSpec;
 
-public abstract class AbstractVersionControlSpec implements VersionControlSpec {
-    private String rootDir = "";
+import java.io.File;
+
+// TODO: Remove this when we have a real Vcs (like Git)
+public class DirectoryRepositorySpec extends AbstractVersionControlSpec implements VersionControlSpec {
+    private File sourceDir;
 
     @Override
-    public String getRootDir() {
-        return rootDir;
+    public String getDisplayName() {
+        return "dir repo " + sourceDir;
+    }
+
+    public File getSourceDir() {
+        return sourceDir;
+    }
+
+    public void setSourceDir(File sourceDir) {
+        this.sourceDir = sourceDir;
     }
 
     @Override
-    public void setRootDir(String rootDir) {
-        this.rootDir = rootDir;
+    public String getUniqueId() {
+        return "directory-repo:" + sourceDir.getAbsolutePath();
+    }
+
+    @Override
+    public String getRepoName() {
+        return sourceDir.getName();
     }
 }

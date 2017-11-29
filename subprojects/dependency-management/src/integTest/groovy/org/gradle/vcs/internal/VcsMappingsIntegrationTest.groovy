@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
+
 class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     def setup() {
         settingsFile << """

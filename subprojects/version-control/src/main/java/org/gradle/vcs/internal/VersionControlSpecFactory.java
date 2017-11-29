@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
+import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
 import javax.annotation.Nullable;
 

@@ -17,7 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
-import org.gradle.vcs.internal.DirectoryRepositorySpec
+import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
 
 class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
     def app = new CppAppWithLibraries()
