@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 import javax.inject.Inject;

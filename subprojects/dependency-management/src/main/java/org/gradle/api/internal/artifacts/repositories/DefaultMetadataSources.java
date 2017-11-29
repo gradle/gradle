@@ -18,11 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
-import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
-import org.gradle.api.artifacts.repositories.MetadataSource;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,17 +29,17 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
 
     public static MetadataSourcesInternal ivyDefaults() {
         DefaultMetadataSources metadataSources = new DefaultMetadataSources();
-        metadataSources.using(GradleModuleMetadataSource.class);
-        metadataSources.using(IvyDescriptorMetadataSource.class);
-        metadataSources.using(ArtifactMetadataSource.class);
+        metadataSources.gradleMetadata();
+        metadataSources.ivyDescriptor();
+        metadataSources.artifact();
         return metadataSources;
     }
 
     public static MetadataSourcesInternal mavenDefaults() {
         DefaultMetadataSources sources = new DefaultMetadataSources();
-        sources.using(GradleModuleMetadataSource.class);
-        sources.using(MavenPomMetadataSource.class);
-        sources.using(ArtifactMetadataSource.class);
+        sources.gradleMetadata();
+        sources.mavenPom();
+        sources.artifact();
         return sources;
     }
 
@@ -65,39 +60,39 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
 
     @Override
     public void gradleMetadata() {
-        using(GradleModuleMetadataSource.class);
+        using(DefaultGradleModuleMetadataSource.class);
     }
 
     @Override
     public void ivyDescriptor() {
-        using(IvyDescriptorMetadataSource.class);
+        using(DefaultIvyDescriptorMetadataSource.class);
     }
 
     @Override
     public void mavenPom() {
-        using(MavenPomMetadataSource.class);
+        using(DefaultMavenPomMetadataSource.class);
     }
 
     @Override
     public void artifact() {
-        using(ArtifactMetadataSource.class);
+        using(DefaultArtifactMetadataSource.class);
     }
 
     private static class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
-        private final ImmutableList<MetadataSourceInternal<?>> sources;
+        private final ImmutableList<MetadataSource<?>> sources;
 
         private DefaultImmutableMetadataSources(Instantiator instantiator, List<Class<? extends MetadataSource>> sourceTypes) {
-            ImmutableList.Builder<MetadataSourceInternal<?>> builder = new ImmutableList.Builder<MetadataSourceInternal<?>>();
+            ImmutableList.Builder<MetadataSource<?>> builder = new ImmutableList.Builder<MetadataSource<?>>();
             ClassLoader classLoader = this.getClass().getClassLoader();
             for (Class<? extends MetadataSource> sourceType : sourceTypes) {
-                builder.add(instantiator.newInstance(concreteTypeFor(sourceType, classLoader)));
+                builder.add(instantiator.newInstance(sourceType));
             }
             this.sources = builder.build();
         }
 
         // TODO CC: It would be nicer to have a way to locate the concrete type without having to hardcode the location
         // and without having to annotate the public type
-        private static Class<? extends MetadataSourceInternal<?>> concreteTypeFor(Class<? extends MetadataSource> publicType, ClassLoader classLoader) {
+        private static Class<? extends MetadataSource<?>> concreteTypeFor(Class<? extends MetadataSource> publicType, ClassLoader classLoader) {
             String fqn = "org.gradle.api.internal.artifacts.repositories.Default" + publicType.getSimpleName();
             try {
                 return Cast.uncheckedCast(classLoader.loadClass(fqn));
@@ -107,14 +102,14 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
         }
 
         @Override
-        public ImmutableList<MetadataSourceInternal<?>> sources() {
+        public ImmutableList<MetadataSource<?>> sources() {
             return sources;
         }
 
         @Override
         public void appendId(BuildCacheHasher hasher) {
             hasher.putInt(sources.size());
-            for (MetadataSourceInternal<?> source : sources) {
+            for (MetadataSource<?> source : sources) {
                 source.appendId(hasher);
             }
         }

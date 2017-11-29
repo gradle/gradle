@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Sources module metadata from Gradle module metadata files.
+ * Sources module metadata from Ivy descriptor files.
  *
  * @since 4.5
  */
 @Incubating
 @HasInternalProtocol
-public interface GradleModuleMetadataSource extends MetadataSource {
+public interface IvyDescriptorMetadataSource {
 }

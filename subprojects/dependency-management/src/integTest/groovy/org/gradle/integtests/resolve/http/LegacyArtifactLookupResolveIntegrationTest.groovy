@@ -51,12 +51,12 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
     }
 
     def "does not try to fetch the jar whenever the metadata artifact isn't found and legacy mode is disabled"() {
-        def source = GradleMetadataResolveRunner.useIvy() ? 'IvyDescriptor' : 'MavenPom'
+        def source = GradleMetadataResolveRunner.useIvy() ? 'ivyDescriptor' : 'mavenPom'
         buildFile << """
             repositories.all {
                 metadataSources {
-                    using(GradleModuleMetadataSource)
-                    using(${source}MetadataSource)
+                    gradleMetadata()
+                    ${source}()
                 }
             }
 

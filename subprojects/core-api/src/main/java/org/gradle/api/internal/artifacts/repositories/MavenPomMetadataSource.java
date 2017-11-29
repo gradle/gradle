@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Represents a source of metadata. The kind of metadata source depends on the
- * repository on which it is found.
+ * Sources module metadata from Maven POM files.
  *
  * @since 4.5
  */
 @Incubating
 @HasInternalProtocol
-public interface MetadataSource {
+public interface MavenPomMetadataSource {
 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;

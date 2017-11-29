@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
-import org.gradle.api.internal.artifacts.repositories.MetadataSourceInternal;
+import org.gradle.api.internal.artifacts.repositories.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -201,7 +201,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected final void resolveStaticDependency(ModuleComponentIdentifier moduleVersionIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, ExternalResourceArtifactResolver artifactResolver) {
-        for (MetadataSourceInternal<?> source : metadataSources.sources()) {
+        for (MetadataSource<?> source : metadataSources.sources()) {
             MutableModuleComponentResolveMetadata value = source.create(name, componentResolvers, moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
             if (value != null) {
                 value.setSource(artifactResolver.getSource());

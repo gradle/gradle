@@ -22,7 +22,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
  * An immutable, usable representation of metadata sources.
  */
 public interface ImmutableMetadataSources {
-    ImmutableList<MetadataSourceInternal<?>> sources();
+    ImmutableList<MetadataSource<?>> sources();
 
     void appendId(BuildCacheHasher hasher);
 }

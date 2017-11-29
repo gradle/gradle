@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.gradle.api.artifacts.repositories.ArtifactMetadataSource
-import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.reflect.Instantiator
@@ -50,14 +48,14 @@ class DefaultMetadataSourcesTest extends Specification {
         def h0 = hash()
 
         when:
-        sources.using(GradleModuleMetadataSource)
+        sources.gradleMetadata()
         def h1 = hash()
 
         then:
         build().sources().name == ['DefaultGradleModuleMetadataSource']
 
         when:
-        sources.using(ArtifactMetadataSource)
+        sources.artifact()
         def h2 = hash()
 
         then:
@@ -71,8 +69,8 @@ class DefaultMetadataSourcesTest extends Specification {
         build().sources().empty
 
         when:
-        sources.using(ArtifactMetadataSource)
-        sources.using(GradleModuleMetadataSource)
+        sources.artifact()
+        sources.gradleMetadata()
         def h4 = hash()
 
         then:
@@ -109,7 +107,7 @@ class DefaultMetadataSourcesTest extends Specification {
     }
 
 
-    interface TestMetadata extends MetadataSourceInternal<? extends MutableModuleComponentResolveMetadata> {
+    interface TestMetadata extends MetadataSource<? extends MutableModuleComponentResolveMetadata> {
         String getName()
     }
 }

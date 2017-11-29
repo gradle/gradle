@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.repositories.MetadataSources;
 import org.gradle.internal.reflect.Instantiator;
 
 public interface MetadataSourcesInternal extends MetadataSources {
+    void using(Class<? extends MetadataSource> clazz);
+
     /**
      * Resets internal state to an empty collection of sources.
      */

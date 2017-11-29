@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.DefaultArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
-import org.gradle.api.internal.artifacts.repositories.MetadataSourceInternal
+import org.gradle.api.internal.artifacts.repositories.MetadataSource
 import org.gradle.api.internal.artifacts.repositories.MutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -135,7 +135,7 @@ class ExternalResourceResolverTest extends Specification {
         resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
 
         then:
-        1 * metadataSources.sources() >> ImmutableList.of(Stub(MetadataSourceInternal) { create(_, _, _, _, _, _) >> null })
+        1 * metadataSources.sources() >> ImmutableList.of(Stub(MetadataSource) { create(_, _, _, _, _, _) >> null })
         1 * metadataResult.missing()
         0 * _
     }

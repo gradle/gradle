@@ -28,14 +28,6 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 public interface MetadataSources {
     /**
-     * Declares a metadata source for this repository. Metadata sources are ordered: the first
-     * one that returns metadata is going to be used.
-     *
-     * @param metadataSource the type of metadata source
-     */
-    void using(Class<? extends MetadataSource> metadataSource);
-
-    /**
      * Indicates that this repository will contain Gradle metadata.
      */
     void gradleMetadata();
