@@ -201,6 +201,65 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         ]
     }
 
+    def "can publish java-library with dependency constraints"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:2.5.6"
+                constraints {
+                    implementation "commons-logging:commons-logging:1.2"
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
+        javaLibrary.parsedPom.scopes.compile.dependencies.size() == 1 //we do not publish constraints in POMs yet
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            constraint('commons-logging:commons-logging:1.2') {
+                rejects()
+            }
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) == [
+            //TODO should be commons-logging-1.2, once resolving works
+            'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+    }
+
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""

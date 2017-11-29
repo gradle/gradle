@@ -101,6 +101,16 @@ Each element must be an object with the of the following values:
 
 An exclude that has a wildcard value for both `group` and `module` will exclude _all_ transitive dependencies.
 
+### `dependencyConstraints` value
+
+This value must contain an array with zero or more elements. Each element must be an object with the following values:
+
+- `group`: The group of the dependency constraint.
+- `module`: The module of the dependency constraint.
+- `version`: The version constraint of the dependency constraint. Has the same meaning as in the Gradle DSL. A version constraint consists of:
+   - `prefers`: The preferred version for this dependency constraint
+   - `rejects`: An array of rejected versions for this dependency constraint. Can be omitted.
+
 ### `files` value
 
 This value must contain an array with zero or more elements. Each element must be an object with the following values:

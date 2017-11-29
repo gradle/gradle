@@ -30,6 +30,7 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
     String name
     Usage usage
     Set dependencies = []
+    Set dependencyConstraints = []
     Set artifacts = []
     AttributeContainer attributes
 }
@@ -246,6 +247,57 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
         variant.dependencies[1].module == 'bar'
         variant.dependencies[1].version == '2.0'
         variant.dependencies[1].rejectsVersion == []
+    }
+
+    def "publishes component with dependency constraints"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
+                    dependencyConstraints: configurations.implementation.allDependencies.withType(DependencyConstraint),
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                constraints {
+                    implementation("org:foo:1.0")
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 1
+        def variant = module.parsedModuleMetadata.variants[0]
+        variant.dependencies.empty
+        variant.dependencyConstraints.size() == 1
+
+        variant.dependencyConstraints[0].group == 'org'
+        variant.dependencyConstraints[0].module == 'foo'
+        variant.dependencyConstraints[0].version == '1.0'
+        variant.dependencyConstraints[0].rejectsVersion == []
     }
 
 }

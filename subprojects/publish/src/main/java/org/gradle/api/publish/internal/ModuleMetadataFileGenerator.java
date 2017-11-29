@@ -18,6 +18,8 @@ package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -250,6 +252,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.value(variant.getName());
         writeAttributes(variant.getAttributes(), jsonWriter);
         writeDependencies(variant, jsonWriter);
+        writeDependencyConstraints(variant, jsonWriter);
         writeArtifacts(publication, variant, jsonWriter);
 
         jsonWriter.endObject();
@@ -327,11 +330,23 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endArray();
     }
 
-    private void writeDependency(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
+    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter) throws IOException {
+        if (variant.getDependencyConstraints().isEmpty()) {
+            return;
+        }
+        jsonWriter.name("dependencyConstraints");
+        jsonWriter.beginArray();
+        for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
+            writeDependency(dependencyConstraint, jsonWriter);
+        }
+        jsonWriter.endArray();
+    }
+
+    private void writeDependency(Dependency dependency, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
-        if (moduleDependency instanceof ProjectDependency) {
-            ProjectDependency dependency = (ProjectDependency) moduleDependency;
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
+        if (dependency instanceof ProjectDependency) {
+            ProjectDependency projectDependency = (ProjectDependency) dependency;
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(projectDependency);
             jsonWriter.name("group");
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
@@ -339,17 +354,21 @@ public class ModuleMetadataFileGenerator {
             writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), jsonWriter);
         } else {
             jsonWriter.name("group");
-            jsonWriter.value(moduleDependency.getGroup());
+            jsonWriter.value(dependency.getGroup());
             jsonWriter.name("module");
-            jsonWriter.value(moduleDependency.getName());
+            jsonWriter.value(dependency.getName());
             VersionConstraint vc;
-            if (moduleDependency instanceof ModuleVersionSelector) {
-                vc = ((ExternalDependency) moduleDependency).getVersionConstraint();
+            if (dependency instanceof ModuleVersionSelector) {
+                vc = ((ExternalDependency) dependency).getVersionConstraint();
+            } else if (dependency instanceof DependencyConstraint) {
+                vc = ((DependencyConstraint) dependency).getVersionConstraint();
             } else {
-                vc = DefaultImmutableVersionConstraint.of(moduleDependency.getVersion());
+                vc = DefaultImmutableVersionConstraint.of(dependency.getVersion());
             }
             writeVersionConstraint(vc, jsonWriter);
-            writeExcludes(moduleDependency, jsonWriter);
+            if (dependency instanceof ModuleDependency) {
+                writeExcludes((ModuleDependency) dependency, jsonWriter);
+            }
         }
         jsonWriter.endObject();
     }

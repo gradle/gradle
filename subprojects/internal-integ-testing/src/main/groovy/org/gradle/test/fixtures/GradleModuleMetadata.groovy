@@ -133,6 +133,8 @@ class GradleModuleMetadata {
 
         List<Dependency> dependencies
         final Set<Dependency> checkedDependencies = []
+        List<DependencyConstraint> dependencyConstraints
+        final Set<DependencyConstraint> checkedDependencyConstraints = []
 
         Variant(String name, Map<String, Object> values) {
             this.name = name
@@ -158,7 +160,18 @@ class GradleModuleMetadata {
         Variant noMoreDependencies() {
             Set<Dependency> uncheckedDependencies = getDependencies() - checkedDependencies
             assert uncheckedDependencies.empty
+            Set<Dependency> uncheckedDependencyConstraints = getDependencyConstraints() - checkedDependencyConstraints
+            assert uncheckedDependencyConstraints.empty
             this
+        }
+
+        List<DependencyConstraint> getDependencyConstraints() {
+            if (dependencyConstraints == null) {
+                dependencyConstraints = (values.dependencyConstraints ?: []).collect {
+                    new DependencyConstraint(it.group, it.module, it.version.prefers, it.version.rejects ?: [])
+                }
+            }
+            dependencyConstraints
         }
 
         List<File> getFiles() {
@@ -176,6 +189,19 @@ class GradleModuleMetadata {
         DependencyView dependency(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
             def (String group, String module, String version) = notation.split(':') as List
             dependency(group, module, version, action)
+        }
+
+        DependencyConstraintView constraint(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+            def view = new DependencyConstraintView(group, module, version)
+            action.delegate = view
+            action.resolveStrategy = Closure.DELEGATE_FIRST
+            action()
+            view
+        }
+
+        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+            def (String group, String module, String version) = notation.split(':') as List
+            constraint(group, module, version, action)
         }
 
         class DependencyView {
@@ -220,6 +246,35 @@ class GradleModuleMetadata {
             }
 
             DependencyView rejects(String... rejections) {
+                Set<String> actualRejects = find()?.rejectsVersion
+                Set<String> expectedRejects = rejections as Set
+                assert actualRejects == expectedRejects
+            }
+        }
+
+        class DependencyConstraintView {
+            final String group
+            final String module
+            final String version
+
+            DependencyConstraintView(String gid, String mid, String v) {
+                group = gid
+                module = mid
+                version = v
+            }
+
+            DependencyConstraint find() {
+                def depConstraint = dependencyConstraints.find { it.group == group && it.module == module && it.version == version }
+                checkedDependencyConstraints << depConstraint
+                depConstraint
+            }
+
+            DependencyConstraintView exists() {
+                assert find()
+                this
+            }
+
+            DependencyConstraintView rejects(String... rejections) {
                 Set<String> actualRejects = find()?.rejectsVersion
                 Set<String> expectedRejects = rejections as Set
                 assert actualRejects == expectedRejects
@@ -275,6 +330,12 @@ class GradleModuleMetadata {
                 exc = excludes.collect { " excludes $it" }.join(', ')
             }
             "${coords}${exc}"
+        }
+    }
+
+    static class DependencyConstraint extends Coords {
+        DependencyConstraint(String group, String module, String version, List<String> rejectedVersions) {
+            super(group, module, version, rejectedVersions)
         }
     }
 
