@@ -193,7 +193,7 @@ public class ModuleMetadataParser {
             reader.beginObject();
             String group = null;
             String module = null;
-            VersionConstraint version = null;
+            VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();

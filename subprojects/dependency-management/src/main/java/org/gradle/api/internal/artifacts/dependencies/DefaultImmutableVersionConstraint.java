@@ -23,6 +23,7 @@ import org.gradle.util.GUtil;
 import java.util.List;
 
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
+    private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String preferredVersion;
     private final ImmutableList<String> rejectedVersions;
 
@@ -69,10 +70,17 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     }
 
     public static ImmutableVersionConstraint of(String preferredVersion) {
+        if (preferredVersion == null) {
+            return of();
+        }
         return new DefaultImmutableVersionConstraint(preferredVersion);
     }
 
     public static ImmutableVersionConstraint of(String preferredVersion, List<String> rejects) {
         return new DefaultImmutableVersionConstraint(preferredVersion, rejects);
+    }
+
+    public static ImmutableVersionConstraint of() {
+        return EMPTY;
     }
 }
