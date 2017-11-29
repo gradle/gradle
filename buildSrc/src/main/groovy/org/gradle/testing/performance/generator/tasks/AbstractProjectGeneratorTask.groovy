@@ -57,11 +57,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     @Input
     List<String> additionalProjectFiles = []
 
-    @Internal
+    @Internal("Represented as part of templateDirectories")
     String buildSrcTemplate
-    @Internal
+    @Internal("Represented as part of templateDirectories")
     List<String> rootProjectTemplates = ['root-project']
-    @Internal
+    @Internal("Represented as part of templateDirectories")
     List<String> subProjectTemplates = ['project-with-source']
 
     @Input
