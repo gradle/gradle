@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
@@ -39,7 +39,7 @@ public class CompositeStoppable implements Stoppable {
         public void stop() {
         }
     };
-    private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
+    private final List<Stoppable> elements = new ArrayList<Stoppable>();
 
     public CompositeStoppable() {
     }
@@ -53,16 +53,21 @@ public class CompositeStoppable implements Stoppable {
     }
 
     public CompositeStoppable add(Iterable<?> elements) {
-        for (Object element : elements) {
-            this.elements.add(toStoppable(element));
+        for (Object closeable : elements) {
+            add(closeable);
         }
         return this;
     }
 
     public CompositeStoppable add(Object... elements) {
         for (Object closeable : elements) {
-            this.elements.add(toStoppable(closeable));
+            add(closeable);
         }
+        return this;
+    }
+
+    public synchronized CompositeStoppable add(Object closeable) {
+        this.elements.add(toStoppable(closeable));
         return this;
     }
 
@@ -90,7 +95,7 @@ public class CompositeStoppable implements Stoppable {
         return NO_OP_STOPPABLE;
     }
 
-    public void stop() {
+    public synchronized void stop() {
         Throwable failure = null;
         try {
             for (Stoppable element : elements) {

@@ -83,7 +83,6 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(StyledTextOutputFactory) >> new TestStyledTextOutputFactory()
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
-        parent.hasService(_) >> true
     }
 
     def "can create services for a project instance"() {

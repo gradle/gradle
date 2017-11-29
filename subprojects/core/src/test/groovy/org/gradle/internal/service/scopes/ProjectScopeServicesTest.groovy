@@ -112,7 +112,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
         parent.get(StreamHasher) >> Mock(StreamHasher)
         parent.get(FileHasher) >> Mock(FileHasher)
-        parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

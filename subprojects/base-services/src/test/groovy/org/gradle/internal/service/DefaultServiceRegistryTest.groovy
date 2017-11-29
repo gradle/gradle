@@ -50,7 +50,6 @@ class DefaultServiceRegistryTest extends Specification {
         result == value
 
         and:
-        _ * parent.hasService(BigDecimal) >> true
         1 * parent.get(BigDecimal) >> value
     }
 
@@ -68,7 +67,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         and:
         1 * parent1.get(BigDecimal) >> { throw new UnknownServiceException(BigDecimal, "fail") }
-        _ * parent2.hasService(BigDecimal) >> true
         1 * parent2.get(BigDecimal) >> value
     }
 
@@ -216,7 +214,6 @@ class DefaultServiceRegistryTest extends Specification {
         result == '123'
 
         and:
-        _ * parent.hasService(Number) >> true
         1 * parent.get(Number) >> 123
     }
 
@@ -441,7 +438,7 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceCreationException e = thrown()
         e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'Cycle in dependencies of service of type String.'
+        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
 
         when:
         registry.getAll(Number)
@@ -449,7 +446,7 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         e = thrown()
         e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'Cycle in dependencies of service of type String.'
+        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
@@ -725,8 +722,6 @@ class DefaultServiceRegistryTest extends Specification {
         });
 
         given:
-        _ * parent1.hasService(Number) >> true
-        _ * parent2.hasService(Number) >> true
         _ * parent1.getAll(Number) >> [123L]
         _ * parent2.getAll(Number) >> [456]
 
@@ -983,13 +978,14 @@ class DefaultServiceRegistryTest extends Specification {
 
         given:
         registry.addProvider(new Object() {
+            ClosableService createService3() {
+                return service3
+            }
+
             TestStopService createService2(ClosableService b) {
                 return service2
             }
 
-            ClosableService createService3() {
-                return service3
-            }
         })
         registry.addProvider(new Object() {
             TestCloseService createService1(TestStopService a, ClosableService b) {
@@ -1020,12 +1016,12 @@ class DefaultServiceRegistryTest extends Specification {
 
         given:
         registry.addProvider(new Object() {
-            TestCloseService createService2() {
-                return service2
-            }
-
             TestCloseService createService3() {
                 return service3
+            }
+
+            TestCloseService createService2() {
+                return service2
             }
         })
         registry.addProvider(new Object() {
@@ -1152,6 +1148,77 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == "Cannot locate factory for objects of type BigDecimal, as TestRegistry has been closed."
+    }
+
+    /*
+     * Closing children would imply holding a reference to them. This would
+     * create memory leaks.
+     */
+    def "does not close services from child registries"() {
+        given:
+        def parentService = Mock(TestCloseService)
+        registry.addProvider(new Object(){
+            Closeable createClosableService() {
+                parentService
+            }
+        })
+
+        def child = new DefaultServiceRegistry(registry)
+        def childService = Mock(TestStopService)
+        child.addProvider(new Object() {
+            Stoppable createClosableService(Closeable dependency) {
+                childService
+            }
+        })
+
+        when:
+        def service = child.get(Stoppable)
+        registry.close()
+
+        then:
+        service == childService
+        1 * parentService.close()
+        0 * childService.close()
+    }
+
+    /*
+     * We isolate services in child registries, so we don't leak memory. This test makes
+     * sure that we don't overdo the isolation and still track dependencies between services
+     * inside a single registry, even when a child requested that service.
+     */
+    def "closes services in dependency order even when child requested them first"() {
+        def service1 = Mock(TestCloseService)
+        def service2 = Mock(TestStopService)
+        def service3 = Mock(ClosableService)
+        def parent = new DefaultServiceRegistry()
+        def child = new DefaultServiceRegistry(parent)
+
+        given:
+        parent.addProvider(new Object() {
+            ClosableService createService3() {
+                return service3
+            }
+
+            TestStopService createService2(ClosableService b) {
+                return service2
+            }
+        })
+
+        child.addProvider(new Object() {
+            TestCloseService createService1(TestStopService a, ClosableService b) {
+                return service1
+            }
+        })
+        child.get(TestCloseService)
+
+        when:
+        parent.close()
+
+        then:
+        1 * service2.stop()
+
+        then:
+        1 * service3.close()
     }
 
     def "cannot add provider after getting a service via class"() {
