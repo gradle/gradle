@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal.spec;
 
+import com.google.common.base.Preconditions;
 import org.gradle.vcs.VersionControlSpec;
 
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
@@ -28,6 +29,7 @@ public abstract class AbstractVersionControlSpec implements VersionControlSpec {
 
     @Override
     public void setRootDir(String rootDir) {
+        Preconditions.checkNotNull(rootDir, "rootDir should be non-null for '%s'.", getDisplayName());
         this.rootDir = rootDir;
     }
 }

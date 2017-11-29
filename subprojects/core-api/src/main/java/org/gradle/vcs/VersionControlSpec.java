@@ -38,6 +38,8 @@ public interface VersionControlSpec extends Describable {
 
     /**
      * Returns the relative path to the root of the build within the repository.
+     * <p>
+     * Defaults to an empty relative path, meaning the root of the repository.
      *
      * @since 4.5
      */
@@ -45,8 +47,6 @@ public interface VersionControlSpec extends Describable {
 
     /**
      * Sets the relative path to the root of the build within the repository.
-     * <p>
-     * Defaults to an empty relative path, meaning the root of the repository.
      *
      * @since 4.5
      */

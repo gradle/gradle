@@ -191,6 +191,24 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoCheckedOut('repoRoot')
     }
 
+    def 'fails with a reasonable message if rootDir is invalid'() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(DirectoryRepositorySpec) {
+                            sourceDir = file('dep')
+                            rootDir = null
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails('assemble')
+        result.error.contains("rootDir should be non-null")
+    }
+
     void assertRepoCheckedOut(String repoName="dep") {
         def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
         checkout.file("checkedout").assertIsFile()

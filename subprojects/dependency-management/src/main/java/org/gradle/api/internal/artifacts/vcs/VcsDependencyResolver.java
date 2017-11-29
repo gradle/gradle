@@ -91,8 +91,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                         "Could not resolve " + depSelector.toString() + ". " + spec.getDisplayName() + " does not contain a version matching " + depSelector.getVersion()));
                     return;
                 }
-                File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
-                dependencyWorkingDir = new File(dependencyWorkingDir, spec.getRootDir());
+
+                File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
 
                 //TODO: Allow user to provide settings script in VcsMapping
                 if (!(new File(dependencyWorkingDir, "settings.gradle").exists())
