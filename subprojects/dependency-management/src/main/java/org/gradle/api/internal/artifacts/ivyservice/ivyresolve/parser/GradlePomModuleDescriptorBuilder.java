@@ -240,16 +240,7 @@ public class GradlePomModuleDescriptorBuilder {
     private String determineVersion(PomDependencyMgt dependency, boolean optional) {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
-
-        if (version == null) {
-            if (optional) {
-                version = "";
-            } else {
-                throw new UnresolvedDependencyVersionException(dependency.getId());
-            }
-        }
-
-        return version;
+        return version == null ? "" : version;
     }
 
     public void addDependencyForRelocation(ModuleComponentSelector selector) {

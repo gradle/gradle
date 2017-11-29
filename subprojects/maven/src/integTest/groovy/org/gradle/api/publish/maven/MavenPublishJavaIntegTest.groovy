@@ -329,16 +329,12 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         when:
-        // This currently fails, because the POM does not provide a version. There are several options to fix this.
-        // One or more of them will be implemented and then this test needs to be updated.
-        // - Do not publish the incomplete POM in the first place (only the module metadata)
-        // - Publish constraints to POM as optional dependencies or by substituting the empty version with the one from the constraint
-        // - Do not fail on consuming the broken POM, as we already have the module metadata
+        // This currently fails, because the POM does not provide a version, and we don't yet publish constraints to POM files.
         resolveArtifacts(javaLibrary, false, true)
 
         then:
-        failure.assertHasCause("Could not parse POM ")
-        failure.assertHasCause("Unable to resolve version for dependency 'commons-collections:commons-collections:jar'")
+        failure.assertHasDescription("Could not resolve all files for configuration ':resolve'")
+        failure.assertHasCause("Could not find commons-collections:commons-collections:")
     }
 
     def "can publish java-library with attached artifacts"() {
