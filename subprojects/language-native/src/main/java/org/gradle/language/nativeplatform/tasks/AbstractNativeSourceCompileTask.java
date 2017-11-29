@@ -42,8 +42,26 @@ import java.io.File;
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
+    @Override
+    protected void configureSpec(NativeCompileSpec spec) {
+        super.configureSpec(spec);
+        if (preCompiledHeader != null) {
+            File pchObjectFile = preCompiledHeader.getObjectFile();
+            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
+            spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
+            spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
+            spec.setPreCompiledHeader(IncludeWithSimpleExpression.parse(preCompiledHeader.getIncludeString(), true).getValue());
+        }
+    }
+
     public AbstractNativeSourceCompileTask() {
         super();
+        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return !getHeaderDependenciesFile().isPresent();
+            }
+        });
         getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
@@ -57,18 +75,6 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
                 return compilerVersion == null;
             }
         });
-    }
-
-    @Override
-    protected void configureSpec(NativeCompileSpec spec) {
-        super.configureSpec(spec);
-        if (preCompiledHeader != null) {
-            File pchObjectFile = preCompiledHeader.getObjectFile();
-            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
-            spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
-            spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
-            spec.setPreCompiledHeader(IncludeWithSimpleExpression.parse(preCompiledHeader.getIncludeString(), true).getValue());
-        }
     }
 
     /**

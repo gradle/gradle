@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
@@ -46,12 +47,10 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         app.greeterLib.writeToProject(project.file('lib1'))
         app.loggerLib.writeToProject(project.file("lib2"))
         app.main.writeToProject(project)
-        executer.beforeExecute {
-            withArgument("-Dorg.gradle.caching.native=true")
-        }
     }
 
-    def 'compilation can be cached'() {
+    @Unroll
+    def 'compilation can be cached (#buildType)'() {
         setupProject()
 
         when:
@@ -71,7 +70,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildType << [debug, release]
     }
 
-    def "compilation task is relocatable"() {
+    def "compilation task is relocatable for release"() {
+
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
         setupProject(originalLocation)
@@ -79,35 +79,33 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         when:
         inDirectory(originalLocation)
-        withBuildCache().run compileTask(buildType)
+        withBuildCache().run compileTask(release)
 
         def snapshotsInOriginalLocation = snapshotObjects(originalLocation)
 
         then:
-        compileIsNotCached(buildType)
+        compileIsNotCached(release)
 
         when:
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        run compileTask(buildType)
+        run compileTask(release)
 
-        then:
-        compileIsNotCached(buildType)
-        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+            then:
+        compileIsNotCached(release)
+        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
 
         when:
         run 'clean'
-        withBuildCache().run compileTask(buildType), installTask(buildType)
+        withBuildCache().run compileTask(release), installTask(release)
 
         then:
-        compileIsCached(buildType, newLocation)
-        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
-        installation(newLocation.file("build/install/main/${buildType.toLowerCase()}")).exec().out == app.expectedOutput
-
-        where:
-        buildType << [debug, release]
+        compileIsCached(release, newLocation)
+        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
     }
+
 
     String getSourceType() {
         return 'Cpp'
