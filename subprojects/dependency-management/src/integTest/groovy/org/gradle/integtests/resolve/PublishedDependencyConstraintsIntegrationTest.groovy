@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+
 /**
  * This also tests maven's optional dependencies for the cases where we only have pom metadata available.
  */
@@ -22,6 +24,12 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
     boolean featureAvailable() {
         !useIvy() || gradleMetadataEnabled
+    }
+
+    def setup() {
+        if (featureAvailable()) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
     }
 
     void "dependency constraint is ignored when feature is not enabled"() {
@@ -71,6 +79,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
     void "dependency constraint is not included in resolution without a hard dependency"() {
         given:
+        def available = featureAvailable()
         repository {
             'org:foo:1.0'()
             'org:first-level:1.0' {
@@ -86,7 +95,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:first-level:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }
@@ -122,19 +131,19 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata()
+                    expectGetMetadata(available)
                     expectGetArtifact()
                 }
             }
             'org:first-level:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }
@@ -182,23 +191,23 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata()
+                    expectGetMetadata(available)
                     expectGetArtifact()
                 }
             }
             'org:first-level1:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
             'org:first-level2:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }
@@ -252,23 +261,23 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 expectGetMetadata()
             }
             'org:foo:1.2' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata()
+                    expectGetMetadata(true)
                     expectGetArtifact()
                 }
             }
             'org:bar:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }
@@ -297,6 +306,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
     void "transitive dependencies of a dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
         given:
+        def available = featureAvailable()
         repository {
             'org:foo:1.0' {
                 dependsOn 'org:bar:1.1'
@@ -317,11 +327,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:bar:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }
@@ -371,11 +381,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             "org:foo:${available? '1.1' : '1.0'}" {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata()
+                expectGetMetadata(available)
                 expectGetArtifact()
             }
         }

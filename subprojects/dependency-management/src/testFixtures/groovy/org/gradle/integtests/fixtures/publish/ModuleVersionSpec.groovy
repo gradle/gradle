@@ -35,6 +35,8 @@ class ModuleVersionSpec {
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
 
+    private boolean alwaysExpectGradleMetadata
+
     static class ArtifactExpectation {
         final InteractionExpectation type
         final Object spec
@@ -56,7 +58,8 @@ class ModuleVersionSpec {
         expectGetArtifact()
     }
 
-    void expectGetMetadata() {
+    void expectGetMetadata(boolean alwaysExpectGradleMetadata = false) {
+        this.alwaysExpectGradleMetadata = alwaysExpectGradleMetadata
         expectGetMetadata << InteractionExpectation.GET
     }
 
@@ -113,7 +116,7 @@ class ModuleVersionSpec {
 
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def gradleMetadataEnabled = alwaysExpectGradleMetadata || GradleMetadataResolveRunner.isGradleMetadataEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
         }
