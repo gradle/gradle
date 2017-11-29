@@ -22,6 +22,7 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultMetadataSourcesTest extends Specification {
 
@@ -41,7 +42,7 @@ class DefaultMetadataSourcesTest extends Specification {
         def sources = new DefaultMetadataSources()
         def build = { build(sources) }
         def hash = {
-            def hasher = new  DefaultBuildCacheHasher()
+            def hasher = new DefaultBuildCacheHasher()
             build().appendId(hasher)
             hasher.hash()
         }
@@ -83,6 +84,24 @@ class DefaultMetadataSourcesTest extends Specification {
         h1 != h2
         h2 != h3
         h4 != h2
+    }
+
+    @Unroll
+    def "shorthand notation method #method creates #type"() {
+        def sources = new DefaultMetadataSources()
+
+        when:
+        sources."$method"()
+
+        then:
+        sources.asImmutable(instantiator).sources().name == [type]
+
+        where:
+        method           | type
+        'gradleMetadata' | 'DefaultGradleModuleMetadataSource'
+        'ivyDescriptor'  | 'DefaultIvyDescriptorMetadataSource'
+        'mavenPom'       | 'DefaultMavenPomMetadataSource'
+        'artifact'       | 'DefaultArtifactMetadataSource'
     }
 
     private ImmutableMetadataSources build(DefaultMetadataSources sources) {
