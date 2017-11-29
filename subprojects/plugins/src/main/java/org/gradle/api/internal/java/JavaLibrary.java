@@ -64,12 +64,14 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     @Inject
     public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
-        this.artifacts.add(artifact);
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
         this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
+        if (artifact != null) {
+            this.artifacts.add(artifact);
+        }
     }
 
     /**
