@@ -53,7 +53,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def assertWarning(int count) {
         assert outputEventListener.events.size() == 1
-        assert outputEventListener.events[0].message.startsWith("There are ${count} deprecation warnings.")
+        assert outputEventListener.events[0].message.startsWith("\nThere are ${count} deprecation warnings.")
         assert outputEventListener.events[0].logLevel == LogLevel.WARN
         return true
     }

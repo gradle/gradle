@@ -72,7 +72,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
         writeToFile(report.toString(), reportLocation);
 
-        LOGGER.warn(String.format("There are %d deprecation warnings. See the detailed report at: %s", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation)));
+        LOGGER.warn(String.format("\nThere are %d deprecation warnings. See the detailed report at: %s", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation)));
     }
 
     private void writeToFile(String content, File file) {

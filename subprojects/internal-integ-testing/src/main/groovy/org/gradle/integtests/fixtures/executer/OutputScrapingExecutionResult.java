@@ -128,6 +128,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Remove the "Expiring Daemon" message
                 i++;
             } else if (DEPRECATION_REPORT_PATTERN.matcher(line).matches()) {
+                // remove the new line before deprecation warning
+                result.deleteCharAt(result.length() - 1);
                 i++;
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
