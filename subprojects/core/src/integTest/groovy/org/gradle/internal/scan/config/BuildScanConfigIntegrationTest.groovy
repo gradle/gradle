@@ -255,7 +255,7 @@ For more information on how to apply the build scan plugin, please visit https:/
     void installVcsMappings() {
         def mapped = file('repo/mapped')
         settingsFile.text = """
-            import org.gradle.vcs.internal.DirectoryRepositorySpec
+            import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
             sourceControl {
                 vcsMappings {
                     withModule('external-source:artifact') {

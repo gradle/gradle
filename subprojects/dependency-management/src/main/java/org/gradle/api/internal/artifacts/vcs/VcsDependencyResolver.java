@@ -92,6 +92,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
                 File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
+                dependencyWorkingDir = new File(dependencyWorkingDir, spec.getRootDir());
 
                 //TODO: Allow user to provide settings script in VcsMapping
                 if (!(new File(dependencyWorkingDir, "settings.gradle").exists())

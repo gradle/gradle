@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
+
 class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     def setup() {
         settingsFile << """
@@ -167,6 +169,26 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoCheckedOut()
         failureCauseContains("Included build from '")
         failureCauseContains("' must contain a settings file.")
+    }
+
+    def 'can build from sub-directory of repository'() {
+        file('repoRoot').mkdir()
+        file('dep').renameTo(file('repoRoot/dep'))
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(DirectoryRepositorySpec) {
+                            sourceDir = file('repoRoot')
+                            rootDir = 'dep'
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds('assemble')
+        assertRepoCheckedOut('repoRoot')
     }
 
     void assertRepoCheckedOut(String repoName="dep") {

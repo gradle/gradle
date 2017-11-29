@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs.internal.spec;
 
 import org.gradle.vcs.VersionControlSpec;
 
 import java.io.File;
 
 // TODO: Remove this when we have a real Vcs (like Git)
-public class DirectoryRepositorySpec implements VersionControlSpec {
+public class DirectoryRepositorySpec extends AbstractVersionControlSpec implements VersionControlSpec {
     private File sourceDir;
 
     @Override
