@@ -18,9 +18,9 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.reflect.TypeOf
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.DeferredConfigurable
+import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -239,8 +239,24 @@ class ExtensionsStorageTest extends Specification {
         given:
         storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
 
-        expect:
-        storage.getSchema() == [list: typeOf(List), set: typeOf(Set), stringList: new TypeOf<List<String>>() {}]
+        and:
+        TestDeferredExtension deferredExtension = new TestDeferredExtension()
+        deferredExtension.delegate = Mock(TestExtension)
+        storage.add new TypeOf<TestDeferredExtension>() {}, 'testDeferred', deferredExtension
+
+        when:
+        def schema = storage.schema
+
+        then:
+        0 * deferredExtension.delegate._
+
+        and:
+        schema.collect { [name: it.name, type: it.publicType, deferred: it.deferredConfigurable] } == [
+            [name: 'list', type: typeOf(List), deferred: false],
+            [name: 'set', type: typeOf(Set), deferred: false],
+            [name: 'stringList', type: new TypeOf<List<String>>() {}, deferred: false],
+            [name: 'testDeferred', type: new TypeOf<TestDeferredExtension>() {}, deferred: true]
+        ]
     }
 
     def "only considers public type when addressing extensions by type"() {

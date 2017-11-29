@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -30,6 +31,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,6 +166,16 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, TypeOf<?>> getSchema() {
+        DeprecationLogger.nagUserOfReplacedProperty("ExtensionContainer.schema", "ExtensionContainer.extensionsSchema");
+        Map<String, TypeOf<?>> map = new HashMap<String, TypeOf<?>>();
+        for (ExtensionsSchema.ExtensionSchema schema : getExtensionsSchema()) {
+            map.put(schema.getName(), schema.getPublicType());
+        }
+        return map;
+    }
+
+    @Override
+    public ExtensionsSchema getExtensionsSchema() {
         return extensionsStorage.getSchema();
     }
 
