@@ -102,8 +102,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         withBuildScript("""
 
-            import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
-
             plugins {
                 `embedded-kotlin`
             }
@@ -116,20 +114,38 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
             }
 
-            configurations["compileClasspath"].files.map { println(it) }
-
-            tasks {
-                "downloadAuxiliaries" {
-                    val depsExtractor = IdeDependenciesExtractor()
-                    val deps = depsExtractor.extractRepoFileDependencies(dependencies,
-                                                                         listOf(configurations["compileClasspath"]),
-                                                                         emptyList(),
-                                                                         true, true)
-                    deps.forEach { it.sourceFiles.forEach { println(it.name) } }
-                    deps.forEach { it.javadocFiles.forEach { println(it.name) } }
-                }
+            configurations["compileClasspath"].files.forEach {
+                println(it)
             }
 
+            val components =
+                configurations
+                    .compile
+                    .incoming
+                    .artifactView { lenient(true) }
+                    .artifacts
+                    .map { it.id.componentIdentifier }
+
+            val resolvedComponents =
+                dependencies
+                    .createArtifactResolutionQuery()
+                    .forComponents(*components.toTypedArray())
+                    .withArtifacts(
+                        JvmLibrary::class.java,
+                        SourcesArtifact::class.java,
+                        JavadocArtifact::class.java)
+                    .execute()
+                    .resolvedComponents
+
+            inline
+            fun <reified T : Artifact> printFileNamesOf() =
+                resolvedComponents
+                    .flatMap { it.getArtifacts(T::class.java) }
+                    .filterIsInstance<ResolvedArtifactResult>()
+                    .forEach { println(it.file.name) }
+
+            printFileNamesOf<SourcesArtifact>()
+            printFileNamesOf<JavadocArtifact>()
         """)
 
         val result = buildWithPlugin("help")
