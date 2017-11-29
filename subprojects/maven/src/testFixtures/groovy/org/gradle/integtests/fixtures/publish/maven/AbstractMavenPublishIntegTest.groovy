@@ -42,12 +42,12 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 """)
     }
 
-    protected def resolveArtifacts(MavenModule module, boolean expectSameResultWithModuleMetadata = true) {
+    protected def resolveArtifacts(MavenModule module, boolean expectSameResultWithModuleMetadata = true, boolean expectFail = false) {
         resolveArtifacts("""
     dependencies {
         resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
-""", expectSameResultWithModuleMetadata)
+""", expectSameResultWithModuleMetadata, expectFail)
     }
 
     protected def resolveArtifacts(MavenModule module, Map... additionalArtifacts) {
@@ -74,8 +74,11 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         resolveArtifacts(dependencies)
     }
 
-    protected def resolveArtifacts(String dependencies, boolean expectSameResultWithModuleMetadata = true) {
-        def resolvedArtifacts = doResolveArtifacts(dependencies)
+    protected def resolveArtifacts(String dependencies, boolean expectSameResultWithModuleMetadata = true, boolean expectFail = false) {
+        def resolvedArtifacts = doResolveArtifacts(dependencies, false, null, expectFail)
+        if (expectFail) {
+            return resolvedArtifacts
+        }
 
         if (resolveModuleMetadata) {
             def moduleArtifacts = doResolveArtifacts(dependencies, true)
@@ -105,7 +108,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 """, true, "JAVA_RUNTIME")
     }
 
-    protected def doResolveArtifacts(def dependencies, def useGradleMetadata = false, def targetVariant = null) {
+    protected def doResolveArtifacts(def dependencies, def useGradleMetadata = false, def targetVariant = null, def expectFail = false) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         if (useGradleMetadata) {
@@ -145,7 +148,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
 """
 
-        run "resolveArtifacts"
+        expectFail ? fails("resolveArtifacts") : run("resolveArtifacts")
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()
     }
