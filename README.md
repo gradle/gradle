@@ -30,11 +30,7 @@ Staying in Touch
 
 Come chat with us in the #gradle channel of the public [Kotlin Slack](http://slack.kotlinlang.org/) instance.
 
-Limitations
------------
 
- * `settings.gradle` cannot yet be written Kotlin, continue to use Groovy there for now.
-   
 License
 -------
 Like the rest of Gradle, the _Gradle Kotlin DSL_ is released under version 2.0 of the [Apache License](LICENSE.md).
