@@ -27,5 +27,32 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface MetadataSources {
+    /**
+     * Declares a metadata source for this repository. Metadata sources are ordered: the first
+     * one that returns metadata is going to be used.
+     *
+     * @param metadataSource the type of metadata source
+     */
     void using(Class<? extends MetadataSource> metadataSource);
+
+    /**
+     * Indicates that this repository will contain Gradle metadata.
+     */
+    void gradleMetadata();
+
+    /**
+     * Indicates that this repository will contain Ivy descriptors.
+     */
+    void ivyDescriptor();
+
+    /**
+     * Indicates that this repository will contain Maven POM files.
+     */
+    void mavenPom();
+
+    /**
+     * Indicates that this repository may not contain metadata files,
+     * but we can infer it from the presence of an artifact file.
+     */
+    void artifact();
 }

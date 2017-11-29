@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts.repositories;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
+import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
+import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
+import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
 import org.gradle.api.artifacts.repositories.MetadataSource;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Cast;
@@ -41,6 +45,26 @@ public class DefaultMetadataSources implements MetadataSourcesInternal {
     @Override
     public void using(Class<? extends MetadataSource> metadataSource) {
         metadataSources.add(metadataSource);
+    }
+
+    @Override
+    public void gradleMetadata() {
+        using(GradleModuleMetadataSource.class);
+    }
+
+    @Override
+    public void ivyDescriptor() {
+        using(IvyDescriptorMetadataSource.class);
+    }
+
+    @Override
+    public void mavenPom() {
+        using(MavenPomMetadataSource.class);
+    }
+
+    @Override
+    public void artifact() {
+        using(ArtifactMetadataSource.class);
     }
 
     private static class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
