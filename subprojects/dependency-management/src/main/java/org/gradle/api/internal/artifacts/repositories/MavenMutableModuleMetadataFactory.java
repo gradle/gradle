@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 
@@ -30,7 +31,16 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
-        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
         return new DefaultMutableMavenModuleResolveMetadata(mvi, from);
+    }
+
+    protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
+        return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+    }
+
+    @Override
+    public MutableMavenModuleResolveMetadata missing(ModuleComponentIdentifier from) {
+        return MavenResolver.processMetaData(DefaultMutableMavenModuleResolveMetadata.missing(asVersionIdentifier(from), from));
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.IvyArtifactMetadataSource;
+import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
@@ -136,7 +136,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         DefaultMetadataSources metadataSources = new DefaultMetadataSources();
         metadataSources.using(GradleModuleMetadataSource.class);
         metadataSources.using(IvyDescriptorMetadataSource.class);
-        metadataSources.using(IvyArtifactMetadataSource.class);
+        metadataSources.using(ArtifactMetadataSource.class);
         return metadataSources;
     }
 

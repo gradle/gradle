@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactMetadataSource
+import org.gradle.api.internal.artifacts.repositories.DefaultArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.MetadataSourceInternal
@@ -147,7 +147,7 @@ class ExternalResourceResolverTest extends Specification {
         resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
 
         then:
-        1 * metadataSources.sources() >> ImmutableList.of(new DefaultMavenArtifactMetadataSource(Mock(ImmutableModuleIdentifierFactory)))
+        1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(ImmutableModuleIdentifierFactory)))
         1 * artifactResolver.artifactExists({ it.componentId.is(id) && it.name.type == 'jar'}, _)
         1 * metadataResult.missing()
         0 * _

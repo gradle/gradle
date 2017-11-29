@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.MavenArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenPomMetadataSource;
 import org.gradle.api.internal.ExperimentalFeatures;
@@ -132,7 +132,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         DefaultMetadataSources sources = new DefaultMetadataSources();
         sources.using(GradleModuleMetadataSource.class);
         sources.using(MavenPomMetadataSource.class);
-        sources.using(MavenArtifactMetadataSource.class);
+        sources.using(ArtifactMetadataSource.class);
         return sources;
     }
 

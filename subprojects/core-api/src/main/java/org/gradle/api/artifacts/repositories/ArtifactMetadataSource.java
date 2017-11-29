@@ -19,11 +19,11 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Sources module metadata from the presence of a jar in an Ivy repository.
+ * Sources module metadata from the presence of a jar in a repository.
  *
  * @since 4.5
  */
 @Incubating
 @HasInternalProtocol
-public interface IvyArtifactMetadataSource extends MetadataSource {
+public interface ArtifactMetadataSource extends MetadataSource {
 }

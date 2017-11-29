@@ -20,4 +20,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 
 public interface MutableModuleMetadataFactory<S extends MutableModuleComponentResolveMetadata> {
     S create(ModuleComponentIdentifier from);
+
+    S missing(ModuleComponentIdentifier from);
 }

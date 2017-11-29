@@ -30,7 +30,16 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
 
     @Override
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from) {
-        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
         return new DefaultMutableIvyModuleResolveMetadata(mvi, from);
+    }
+
+    protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
+        return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+    }
+
+    @Override
+    public MutableIvyModuleResolveMetadata missing(ModuleComponentIdentifier from) {
+        return DefaultMutableIvyModuleResolveMetadata.missing(asVersionIdentifier(from), from);
     }
 }

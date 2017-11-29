@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.GradleModuleMetadataSource;
-import org.gradle.api.artifacts.repositories.IvyArtifactMetadataSource;
+import org.gradle.api.artifacts.repositories.ArtifactMetadataSource;
 import org.gradle.api.artifacts.repositories.IvyDescriptorMetadataSource;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -90,7 +90,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         DefaultMetadataSources metadataSources = new DefaultMetadataSources();
         metadataSources.using(GradleModuleMetadataSource.class);
         metadataSources.using(IvyDescriptorMetadataSource.class);
-        metadataSources.using(IvyArtifactMetadataSource.class);
+        metadataSources.using(ArtifactMetadataSource.class);
         return metadataSources;
     }
 
