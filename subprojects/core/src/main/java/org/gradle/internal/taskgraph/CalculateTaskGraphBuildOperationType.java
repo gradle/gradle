@@ -30,8 +30,11 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
+
         /**
-         * The build path the calculated task graph belongs too)
+         * The build path the calculated task graph belongs too.
+         * Never null.
+         *
          * @since 4.5
          */
         String getBuildPath();
