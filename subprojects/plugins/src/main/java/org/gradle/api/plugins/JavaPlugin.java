@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
+import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -301,6 +302,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
         project.getComponents().add(objectFactory.newInstance(JavaLibrary.class, project.getConfigurations(), jarArtifact));
+        project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
     private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {

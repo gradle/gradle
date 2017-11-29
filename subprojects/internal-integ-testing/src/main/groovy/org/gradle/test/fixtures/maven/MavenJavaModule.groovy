@@ -20,12 +20,12 @@ import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
 class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
-    private final MavenFileModule module
+    final MavenFileModule mavenModule
     private final List<String> additionalArtifacts = []
 
-    MavenJavaModule(MavenFileModule module) {
-        super(module)
-        this.module = module
+    MavenJavaModule(MavenFileModule mavenModule) {
+        super(mavenModule)
+        this.mavenModule = mavenModule
     }
 
     @Override
@@ -45,19 +45,19 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
         List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact("jar")]
         expectedArtifacts.addAll(additionalArtifacts)
-        module.assertArtifactsPublished(expectedArtifacts as String[])
+        mavenModule.assertArtifactsPublished(expectedArtifacts as String[])
 
         // Verify Gradle metadata particulars
-        assert module.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert module.parsedModuleMetadata.variant('api').files*.name == [artifact('jar')]
-        assert module.parsedModuleMetadata.variant('runtime').files*.name == [artifact('jar')]
+        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
+        assert mavenModule.parsedModuleMetadata.variant('api').files*.name == [artifact('jar')]
+        assert mavenModule.parsedModuleMetadata.variant('runtime').files*.name == [artifact('jar')]
 
         // Verify POM particulars
-        assert module.parsedPom.packaging == null
+        assert mavenModule.parsedPom.packaging == null
     }
 
     void assertNoDependencies() {
-        assert module.parsedPom.scopes.isEmpty()
+        assert mavenModule.parsedPom.scopes.isEmpty()
         assertApiDependencies()
     }
 

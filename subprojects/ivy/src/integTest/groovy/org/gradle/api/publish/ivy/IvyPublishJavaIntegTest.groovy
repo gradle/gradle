@@ -68,6 +68,50 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     }
 
+    void "can publish java-library-platform to ivy repository"() {
+        given:
+        createBuildScripts("""
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.javaLibraryPlatform
+                    }
+                }
+            }
+
+            $dependencies            
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def backingModule = javaLibrary.backingModule
+
+        backingModule.assertPublished()
+        backingModule.assertArtifactsPublished(backingModule.ivyFile.name, backingModule.moduleMetadataFile.name)
+
+        // No files are published for either variant
+        with(javaLibrary.parsedModuleMetadata) {
+            variants*.name as Set == ['api', 'runtime'] as Set
+            variant('api').files.empty
+            variant('runtime').files.empty
+        }
+
+        with(javaLibrary.parsedIvy) {
+            configurations.keySet() == ["default", "compile", "runtime"] as Set
+            configurations["default"].extend == ["runtime", "compile"] as Set
+            configurations["runtime"].extend == null
+
+            artifacts.empty
+        }
+        javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
+        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+
+        and:
+        resolveArtifacts(javaLibrary) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar"]
+    }
+
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     void "maps dependencies in the correct Ivy configuration"() {
         given:

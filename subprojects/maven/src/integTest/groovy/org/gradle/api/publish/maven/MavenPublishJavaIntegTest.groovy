@@ -366,6 +366,64 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(javaLibrary, [classifier: 'source']) == ["publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
+    def "can publish java-library-platform with dependencies and constraints"() {
+        given:
+        mavenRepo.module("org.test", "foo", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "1.1").publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:bar:1.0"
+                implementation "org.test:foo:1.0"
+                
+                constraints {
+                    implementation "org.test:bar:1.1"
+                }
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaLibraryPlatform
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = javaLibrary.mavenModule
+
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
+
+        // No files are published for either variant
+        with(javaLibrary.parsedModuleMetadata) {
+            variants*.name as Set == ['api', 'runtime'] as Set
+            variant('api').files.empty
+            variant('runtime').files.empty
+        }
+
+        // Published with pom packaging
+        assert javaLibrary.parsedPom.packaging == 'pom'
+
+        javaLibrary.assertApiDependencies("org.test:bar:1.0")
+        javaLibrary.assertRuntimeDependencies("org.test:foo:1.0")
+
+        and:
+        resolveArtifacts(javaLibrary, false) == ["bar-1.1.jar", "foo-1.0.jar"]
+        resolveApiArtifacts(javaLibrary) == ["bar-1.0.jar"]
+        resolveRuntimeArtifacts(javaLibrary) == ["bar-1.1.jar", "foo-1.0.jar"]
+
+        when:
+        resolveModuleMetadata = false
+
+        then: "constraints are not published to POM files"
+        resolveArtifacts(javaLibrary) == ["bar-1.0.jar", "foo-1.0.jar"]
+    }
+
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
     void "maps dependencies in the correct Maven scope"() {
         given:
