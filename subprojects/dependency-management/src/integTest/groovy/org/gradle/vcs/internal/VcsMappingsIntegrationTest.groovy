@@ -169,6 +169,26 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         failureCauseContains("' must contain a settings file.")
     }
 
+    def 'can build from sub-directory of repository'() {
+        file('repoRoot').mkdir()
+        file('dep').renameTo(file('repoRoot/dep'))
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(DirectoryRepositorySpec) {
+                            sourceDir = file('repoRoot')
+                            rootDir = 'dep'
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds('assemble')
+        assertRepoCheckedOut('repoRoot')
+    }
+
     void assertRepoCheckedOut(String repoName="dep") {
         def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
         checkout.file("checkedout").assertIsFile()

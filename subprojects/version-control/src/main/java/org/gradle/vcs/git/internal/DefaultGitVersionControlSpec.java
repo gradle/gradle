@@ -18,11 +18,12 @@ package org.gradle.vcs.git.internal;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.AbstractVersionControlSpec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
+public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
 
     @Override

@@ -35,4 +35,16 @@ public interface VersionControlSpec extends Describable {
      * Returns the name of the repository.
      */
     String getRepoName();
+
+    /**
+     * Returns the relative path to the root of the build within the repository.
+     */
+    String getRootDir();
+
+    /**
+     * Sets the relative path to the root of the build within the repository.
+     * <p>
+     * Defaults to an empty relative path, meaning the root of the repository.
+     */
+    void setRootDir(String rootDir);
 }
