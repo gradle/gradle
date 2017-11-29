@@ -18,9 +18,9 @@
 
 [NOTE]
 ====
- 
+
 The Build Init plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
- 
+
 ====
 
 The Gradle Build Init plugin can be used to bootstrap the process of creating a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
@@ -64,7 +64,7 @@ If a `--type` parameter is not supplied, Gradle will attempt to infer the type f
 
 If the type could not be inferred, the type “`basic`” will be used.
 
-The `init` plugin also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL to use defaults to the Groovy DSL and is specified by supplying a `--build-script-dsl` argument value. For example, to create a Java library project with Kotlin DSL build scripts simply execute: `gradle init --type java-library --build-script-dsl kotlin`.
+The `init` plugin also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL to use defaults to the Groovy DSL and is specified by supplying a `--dsl` argument value. For example, to create a Java library project with Kotlin DSL build scripts simply execute: `gradle init --type java-library --dsl kotlin`.
 
 All build setup types include the setup of the Gradle Wrapper and support both Groovy and Kotlin DSL build scripts.
 

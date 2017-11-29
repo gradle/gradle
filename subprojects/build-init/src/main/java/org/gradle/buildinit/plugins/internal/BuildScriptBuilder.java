@@ -23,7 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -134,7 +134,7 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public TemplateOperation create(final BuildInitBuildScriptDsl dsl, final File target) {
+    public TemplateOperation create(final BuildInitDsl dsl, final File target) {
         return new TemplateOperation() {
             @Override
             public void generate() {
@@ -159,11 +159,11 @@ public class BuildScriptBuilder {
         };
     }
 
-    private static PrettyPrinter prettyPrinterFor(BuildInitBuildScriptDsl dsl, PrintWriter writer) {
+    private static PrettyPrinter prettyPrinterFor(BuildInitDsl dsl, PrintWriter writer) {
         return new PrettyPrinter(syntaxFor(dsl), writer);
     }
 
-    private static Syntax syntaxFor(BuildInitBuildScriptDsl dsl) {
+    private static Syntax syntaxFor(BuildInitDsl dsl) {
         switch (dsl) {
             case KOTLIN:
                 return new KotlinSyntax();

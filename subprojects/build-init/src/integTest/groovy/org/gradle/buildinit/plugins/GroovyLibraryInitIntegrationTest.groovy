@@ -34,7 +34,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -56,7 +56,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -83,7 +83,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
                     }
             """
         when:
-        succeeds('init', '--type', 'groovy-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

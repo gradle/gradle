@@ -17,32 +17,32 @@ package org.gradle.buildinit.plugins.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
+import static BuildInitDsl.GROOVY
+import static BuildInitDsl.KOTLIN
 import static org.hamcrest.Matchers.containsString
 
 @CompileStatic
 class ScriptDslFixture {
 
-    static final List<BuildInitBuildScriptDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [GROOVY, KOTLIN] : [GROOVY]
+    static final List<BuildInitDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [GROOVY, KOTLIN] : [GROOVY]
 
-    static final List<List<BuildInitBuildScriptDsl>> scriptDslCombinationsFor(int count) {
+    static final List<List<BuildInitDsl>> scriptDslCombinationsFor(int count) {
         return ([SCRIPT_DSLS] * count).combinations()
     }
 
-    static ScriptDslFixture of(BuildInitBuildScriptDsl scriptDsl, TestFile rootDir) {
+    static ScriptDslFixture of(BuildInitDsl scriptDsl, TestFile rootDir) {
         new ScriptDslFixture(scriptDsl, rootDir)
     }
 
-    final BuildInitBuildScriptDsl scriptDsl
+    final BuildInitDsl scriptDsl
     final TestFile rootDir
 
-    ScriptDslFixture(BuildInitBuildScriptDsl scriptDsl, TestFile rootDir) {
+    ScriptDslFixture(BuildInitDsl scriptDsl, TestFile rootDir) {
         this.scriptDsl = scriptDsl
         this.rootDir = rootDir
     }

@@ -24,7 +24,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.wrapper.Wrapper;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.tasks.InitBuild;
 
 import java.io.File;
@@ -42,12 +42,12 @@ public class TaskConfiguration {
 
             @Override
             public String transform(Project project) {
-                for (BuildInitBuildScriptDsl scriptDsl : BuildInitBuildScriptDsl.values()) {
-                    String buildFileName = scriptDsl.fileNameFor("build");
+                for (BuildInitDsl dsl : BuildInitDsl.values()) {
+                    String buildFileName = dsl.fileNameFor("build");
                     if (project.file(buildFileName).exists()) {
                         return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
                     }
-                    String settingsFileName = scriptDsl.fileNameFor("settings");
+                    String settingsFileName = dsl.fileNameFor("settings");
                     if (project.file(settingsFileName).exists()) {
                         return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
                     }
@@ -95,7 +95,7 @@ public class TaskConfiguration {
             public void execute(TaskExecutionGraph taskGraph) {
                 if (setupCanBeSkipped.transform(project) == null && taskGraph.hasTask(init)) {
                     Wrapper wrapper = (Wrapper) project.getTasks().getByName("wrapper");
-                    BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(init.getBuildScriptDsl());
+                    BuildInitDsl dsl = BuildInitDsl.fromName(init.getDsl());
                     wrapper.setDistributionType(dsl.getWrapperDistributionType());
                 }
             }

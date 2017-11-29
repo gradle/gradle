@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.util.GUtil;
 
@@ -35,9 +35,9 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(scriptDsl, testFramework);
-        String buildScriptFilename = scriptDsl.fileNameFor("build");
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
+        String buildScriptFilename = dsl.fileNameFor("build");
         templateOperationFactory.newTemplateOperation()
             .withTemplate(buildScriptFilename + ".template")
             .withTarget(buildScriptFilename)

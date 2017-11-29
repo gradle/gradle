@@ -29,7 +29,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class InitBuild extends DefaultTask {
     private String type;
-    private String buildScriptDsl;
+    private String dsl;
     private String testFramework;
 
     @Internal
@@ -61,15 +61,15 @@ public class InitBuild extends DefaultTask {
     /**
      * The desired DSL of build scripts to create, defaults to 'groovy'.
      *
-     * This property can be set via command-line option '--build-script-dsl'.
+     * This property can be set via command-line option '--dsl'.
      *
      * @since 4.5
      */
     @Incubating
     @Optional
     @Input
-    public String getBuildScriptDsl() {
-        return !Strings.isNullOrEmpty(buildScriptDsl) ? buildScriptDsl : BuildInitBuildScriptDsl.GROOVY.getId();
+    public String getDsl() {
+        return !Strings.isNullOrEmpty(dsl) ? dsl : BuildInitDsl.GROOVY.getId();
     }
 
     /**
@@ -94,7 +94,7 @@ public class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         final String type = getType();
-        BuildInitBuildScriptDsl dsl = BuildInitBuildScriptDsl.fromName(getBuildScriptDsl());
+        BuildInitDsl dsl = BuildInitDsl.fromName(getDsl());
         BuildInitTestFramework testFramework = BuildInitTestFramework.fromName(getTestFramework());
         final ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         if (!projectLayoutRegistry.supports(type)) {
@@ -132,9 +132,9 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Option(option = "build-script-dsl", description = "Set alternative build script DSL to be used.", order = 1)
-    public void setBuildScriptDsl(String buildScriptsDsl) {
-        this.buildScriptDsl = buildScriptsDsl;
+    @Option(option = "dsl", description = "Set alternative build script DSL to be used.", order = 1)
+    public void setDsl(String dsl) {
+        this.dsl = dsl;
     }
 
     /**
@@ -143,10 +143,10 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @OptionValues("build-script-dsl")
+    @OptionValues("dsl")
     @SuppressWarnings("unused")
-    public List<String> getAvailableBuildScriptDSLs() {
-        return BuildInitBuildScriptDsl.listSupported();
+    public List<String> getAvailableDSLs() {
+        return BuildInitDsl.listSupported();
     }
 
     @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 2)

@@ -45,7 +45,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -71,7 +71,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'spock', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -91,7 +91,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'testng', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -124,7 +124,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-application', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()

@@ -33,7 +33,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -59,7 +59,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -79,7 +79,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "specifying TestNG is not supported with #scriptDsl build scripts"() {
         when:
-        fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--build-script-dsl', scriptDsl.id)
+        fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         errorOutput.contains("The requested test framework 'testng' is not supported in 'groovy-application' setup type")
@@ -104,7 +104,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'groovy-application', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()

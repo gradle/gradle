@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
@@ -32,8 +32,8 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     }
 
     @Override
-    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
-        String settingsScriptFilename = scriptDsl.fileNameFor("settings");
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        String settingsScriptFilename = dsl.fileNameFor("settings");
         templateOperationBuilder.newTemplateOperation()
             .withTemplate(settingsScriptFilename + ".template")
             .withTarget(settingsScriptFilename)

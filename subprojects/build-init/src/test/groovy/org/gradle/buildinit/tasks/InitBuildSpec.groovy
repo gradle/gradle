@@ -26,7 +26,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
