@@ -78,7 +78,7 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public boolean isOptional() {
-        return delegate.isOptional();
+    public boolean isPending() {
+        return delegate.isPending();
     }
 }

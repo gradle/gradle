@@ -24,19 +24,19 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import java.util.List;
 
 /**
- * This class is responsible for maintaining the state of optional dependencies which are "pending". In other words, when an optional dependency is added to the graph, it is "pending" until a hard
- * dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the optional dependency are restarted.
+ * This class is responsible for maintaining the state of pending dependencies. In other words, when such a dependency (e.g. a dependency constraints or a maven optional dependency), is added to the
+ * graph, it is "pending" until a hard dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the pending dependency are restarted.
  *
- * This class also makes a special case of the "optional" configuration, for backwards compatibility: the optional configuration used to store optional dependencies. But if we no longer resolve
+ * This class also makes a special case of the "optional" configuration, for backwards compatibility: the optional configuration used to store maven optional dependencies. But if we no longer resolve
  * optional dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the state of optional dependencies if they belong to the "optional" configuration.
  */
-public class DefaultOptionalDependenciesHandler implements OptionalDependenciesHandler {
-    private final OptionalDependenciesState optionalDependencies = new OptionalDependenciesState();
+public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
+    private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ComponentSelectorConverter componentSelectorConverter;
 
-    public DefaultOptionalDependenciesHandler(ComponentSelectorConverter componentSelectorConverter,
-                                              DependencySubstitutionApplicator dependencySubstitutionApplicator) {
+    public DefaultPendingDependenciesHandler(ComponentSelectorConverter componentSelectorConverter,
+                                             DependencySubstitutionApplicator dependencySubstitutionApplicator) {
 
         this.componentSelectorConverter = componentSelectorConverter;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
@@ -49,28 +49,28 @@ public class DefaultOptionalDependenciesHandler implements OptionalDependenciesH
 
     public class DefaultVisitor implements Visitor {
         private final boolean isOptionalConfiguration;
-        private List<PendingOptionalDependencies> noLongerOptional;
+        private List<PendingDependencies> noLongerPending;
 
         public DefaultVisitor(boolean isOptionalConfiguration) {
             this.isOptionalConfiguration = isOptionalConfiguration;
         }
 
-        public boolean maybeAddAsOptionalDependency(NodeState node, DependencyState dependencyState) {
+        public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
-            PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.getPendingOptionalDependencies(key);
-            boolean pending = pendingOptionalDependencies.isPending();
+            PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
+            boolean pending = pendingDependencies.isPending();
 
-            if (dependencyState.getDependencyMetadata().isOptional() && !isOptionalConfiguration && pending) {
-                    pendingOptionalDependencies.addNode(node);
+            if (dependencyState.getDependencyMetadata().isPending() && !isOptionalConfiguration && pending) {
+                    pendingDependencies.addNode(node);
                     return true;
             }
             if (pending) {
-                if (noLongerOptional == null) {
-                    noLongerOptional = Lists.newLinkedList();
+                if (noLongerPending == null) {
+                    noLongerPending = Lists.newLinkedList();
                 }
-                noLongerOptional.add(pendingOptionalDependencies);
+                noLongerPending.add(pendingDependencies);
             }
-            optionalDependencies.notOptional(key);
+            DefaultPendingDependenciesHandler.this.pendingDependencies.notPending(key);
             return false;
         }
 
@@ -84,11 +84,11 @@ public class DefaultOptionalDependenciesHandler implements OptionalDependenciesH
         }
 
         public void complete() {
-            if (noLongerOptional != null) {
-                for (PendingOptionalDependencies optionalDependencies : noLongerOptional) {
-                    optionalDependencies.turnIntoHardDependencies();
+            if (noLongerPending != null) {
+                for (PendingDependencies pendingDependencies : noLongerPending) {
+                    pendingDependencies.turnIntoHardDependencies();
                 }
-                noLongerOptional = null;
+                noLongerPending = null;
             }
         }
     }

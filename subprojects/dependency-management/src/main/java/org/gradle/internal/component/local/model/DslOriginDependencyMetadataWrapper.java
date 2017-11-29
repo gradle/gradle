@@ -83,8 +83,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public boolean isOptional() {
-        return delegate.isOptional();
+    public boolean isPending() {
+        return delegate.isPending();
     }
 
     @Override

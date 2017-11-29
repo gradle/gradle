@@ -125,7 +125,7 @@ class NodeState implements DependencyGraphNode {
         return metaData.isTransitive();
     }
 
-    public void visitOutgoingDependencies(Collection<EdgeState> target, OptionalDependenciesHandler optionalDependenciesHandler) {
+    public void visitOutgoingDependencies(Collection<EdgeState> target, PendingDependenciesHandler pendingDependenciesHandler) {
         // If this configuration's version is in conflict, don't do anything
         // If not traversed before, add all selected outgoing edges
         // If traversed before, and the selected modules have changed, remove previous outgoing edges and add outgoing edges again with
@@ -164,20 +164,20 @@ class NodeState implements DependencyGraphNode {
             removeOutgoingEdges();
         }
 
-        visitDependencies(resolutionFilter, optionalDependenciesHandler, target);
+        visitDependencies(resolutionFilter, pendingDependenciesHandler, target);
 
     }
 
-    protected void visitDependencies(ModuleExclusion resolutionFilter, OptionalDependenciesHandler optionalDependenciesHandler, Collection<EdgeState> resultingOutgoingEdges) {
+    protected void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> resultingOutgoingEdges) {
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        OptionalDependenciesHandler.Visitor optionalDepsVisitor =  optionalDependenciesHandler.start(isOptionalConfiguration);
+        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start(isOptionalConfiguration);
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
-                if (!optionalDepsVisitor.maybeAddAsOptionalDependency(this, dependencyState)) {
+                if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
                     resultingOutgoingEdges.add(dependencyEdge);
@@ -186,7 +186,7 @@ class NodeState implements DependencyGraphNode {
             previousTraversalExclusions = resolutionFilter;
         } finally {
             // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
-            optionalDepsVisitor.complete();
+            pendingDepsVisitor.complete();
         }
     }
 
