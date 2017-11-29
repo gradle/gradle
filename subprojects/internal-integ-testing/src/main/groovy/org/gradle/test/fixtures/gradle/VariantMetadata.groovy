@@ -24,6 +24,7 @@ class VariantMetadata {
     String name
     Map<String, String> attributes
     List<DependencySpec> dependencies
+    List<DependencyConstraintSpec> dependencyConstraints
     List<ModuleArtifact> artifacts
 
     VariantMetadata(String name, Map<String, String> attributes = [:]) {
@@ -31,10 +32,11 @@ class VariantMetadata {
         this.attributes = attributes
     }
 
-    VariantMetadata(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<ModuleArtifact> artifacts) {
+    VariantMetadata(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<ModuleArtifact> artifacts) {
         this.name = name
         this.attributes = attributes
         this.dependencies = dependencies
+        this.dependencyConstraints = dependencyConstraints
         this.artifacts = artifacts
     }
 }

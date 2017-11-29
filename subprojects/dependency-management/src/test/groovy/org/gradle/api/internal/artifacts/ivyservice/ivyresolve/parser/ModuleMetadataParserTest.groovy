@@ -239,6 +239,54 @@ class ModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses content with dependency constraints"() {
+        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.3", 
+        "variants": [
+            {
+                "name": "api",
+                "dependencyConstraints": [ 
+                    { "group": "g1", "module": "m1", "version": { "prefers": "v1" } },
+                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" },
+                    { 
+                        "group": "g3", 
+                        "module": "m3", 
+                        "version": { "prefers": "v3" }
+                    }
+                ],
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "dependencyConstraints": [ 
+                    { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
+                    { "module": "m4", "version": { "prefers": "v4", "rejects": ["v5"] }, "group": "g4"},
+                    { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"}
+                ],
+                "name": "runtime"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addDependencyConstraint("g1", "m1", prefers("v1"))
+        1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"))
+        1 * variant1.addDependencyConstraint("g3", "m3", prefers("v3"))
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"))
+        1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]))
+        1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]))
+        0 * _
+    }
+
     def "parses content with boolean attributes"() {
         def metadata = Mock(MutableComponentVariantResolveMetadata)
         def variant = Mock(MutableComponentVariant)

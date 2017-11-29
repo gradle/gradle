@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.test.fixtures.gradle
 
-import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.internal.component.model.ExcludeMetadata;
+import groovy.transform.CompileStatic
 
-import java.util.List;
+@CompileStatic
+class DependencyConstraintSpec {
+    String group
+    String module
+    String prefers
+    List<String> rejects
 
-public interface MutableComponentVariant {
-    void addFile(String name, String uri);
-
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes);
-
-    void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint);
+    DependencyConstraintSpec(String g, String m, String version, List<String> r) {
+        group = g
+        module = m
+        prefers = version
+        rejects = r?:Collections.<String>emptyList()
+    }
 }

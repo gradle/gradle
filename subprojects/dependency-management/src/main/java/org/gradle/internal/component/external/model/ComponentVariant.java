@@ -31,6 +31,8 @@ public interface ComponentVariant extends VariantMetadata {
 
     ImmutableList<? extends Dependency> getDependencies();
 
+    ImmutableList<? extends DependencyConstraint> getDependencyConstraints();
+
     ImmutableList<? extends File> getFiles();
 
     interface Dependency {
@@ -41,6 +43,14 @@ public interface ComponentVariant extends VariantMetadata {
         VersionConstraint getVersionConstraint();
 
         ImmutableList<ExcludeMetadata> getExcludes();
+    }
+
+    interface DependencyConstraint {
+        String getGroup();
+
+        String getModule();
+
+        VersionConstraint getVersionConstraint();
     }
 
     interface File {

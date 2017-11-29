@@ -37,15 +37,22 @@ import java.util.List;
 public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleComponentSelector selector;
     private final List<ExcludeMetadata> excludes;
+    private final boolean optional;
 
     public GradleDependencyMetadata(ModuleComponentSelector selector) {
+        this(selector, false);
+    }
+
+    public GradleDependencyMetadata(ModuleComponentSelector selector, boolean optional) {
         this.selector = selector;
         this.excludes = Collections.emptyList();
+        this.optional = optional;
     }
 
     public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
         this.selector = selector;
         this.excludes = excludes;
+        this.optional = false;
     }
 
     @Override
@@ -96,7 +103,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
 
     @Override
     public boolean isOptional() {
-        return false;
+        return optional;
     }
 
 }

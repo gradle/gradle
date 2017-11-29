@@ -30,6 +30,7 @@ class ModuleVersionSpec {
     private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
+    private final List<Object> constraints = []
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
@@ -87,6 +88,10 @@ class ModuleVersionSpec {
         dependsOn << coord
     }
 
+    void constraint(coord) {
+        constraints << coord
+    }
+
     void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
         withModule << spec
     }
@@ -115,16 +120,14 @@ class ModuleVersionSpec {
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
-                    break;
+                    break
                 case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
-                    }
+                    module.moduleMetadata.allowGetOrHead()
                     break
                 case InteractionExpectation.HEAD:
                     if (module instanceof MavenModule) {
@@ -134,6 +137,8 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectHead()
+                    } else {
+                        module.moduleMetadata.allowGetOrHead()
                     }
                     break
                 default:
@@ -144,6 +149,8 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectGet()
+                    } else {
+                        module.moduleMetadata.allowGetOrHead()
                     }
             }
         }
@@ -185,6 +192,19 @@ class ModuleVersionSpec {
                     module.dependsOn(it, other)
                 } else {
                     module.dependsOn(it)
+                }
+            }
+        }
+        if (constraints) {
+            constraints.each {
+                if (it instanceof CharSequence) {
+                    def args = it.split(':') as List
+                    module.dependencyConstraint(repository.module(*args))
+                } else if (it instanceof Map) {
+                    def other = repository.module(it.group, it.artifact, it.version)
+                    module.dependencyConstraint(it, other)
+                } else {
+                    module.dependencyConstraint(it)
                 }
             }
         }

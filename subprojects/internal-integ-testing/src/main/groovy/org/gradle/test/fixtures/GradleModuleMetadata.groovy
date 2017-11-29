@@ -218,6 +218,7 @@ class GradleModuleMetadata {
 
             Dependency find() {
                 def dep = dependencies.find { it.group == group && it.module == module && it.version == version }
+                assert dep : "dependency ${group}:${module}:${version} not found in $dependencies"
                 checkedDependencies << dep
                 dep
             }

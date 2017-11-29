@@ -369,29 +369,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
-    private void createBuildScripts(def append) {
-        settingsFile << "rootProject.name = 'publishTest' "
-
-        buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java-library'
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyRepo.uri}" }
-                }
-            }
-
-$append
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            ${mavenCentralRepository()}
-
-"""
-    }
-
     def "can publish java-library with strict dependencies"() {
         given:
         createBuildScripts("""
@@ -448,5 +425,162 @@ $append
         resolveArtifacts(javaLibrary) == [
             'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
         ]
+    }
+
+    def "can publish java-library with dependency constraints"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:1.2.9"
+                implementation "org.apache.commons:commons-compress:1.5"
+                constraints {
+                    api "commons-logging:commons-logging:1.1"
+                    implementation "commons-logging:commons-logging:1.2"
+                    implementation("org.tukaani:xz") {
+                        version { strictly "1.6" }
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:1.2.9@compile", "org.apache.commons:commons-compress:1.5@runtime")
+        // we do not publish constraints to ivy
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:1.2.9') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('commons-logging:commons-logging:1.1') { rejects() }
+
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.springframework:spring-core:1.2.9') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('commons-logging:commons-logging:1.1') { rejects() }
+            constraint('commons-logging:commons-logging:1.2') { rejects() }
+
+            dependency('org.apache.commons:commons-compress:1.5') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('org.tukaani:xz:1.6') { rejects(']1.6,)') }
+
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) == [
+            'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
+        ]
+
+        when:
+        resolveModuleMetadata = false
+
+        then: "constraints are not published to POM files"
+        resolveArtifacts(javaLibrary) == [
+            'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
+        ]
+    }
+
+    def "can publish java-library with dependencies without version"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections"
+                constraints {
+                    implementation "commons-collections:commons-collections:3.2.2"
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        // This currently fails, because the ivy.xml does not provide a version. There are several options to fix this.
+        // One or more of them will be implemented and then this test needs to be updated.
+        // - Do not publish the incomplete ivy.xml (only the module metadata)
+        // - Publish constraints to ivy by substituting the empty version with the one from the constraint
+        fails "publish"
+
+        then:
+        failure.assertHasCause("Could not parse Ivy file ")
+        failure.assertHasCause("xml parsing: ivy.xml:13:98: cvc-complex-type.4: Attribute 'rev' must appear on element 'dependency'.")
+
+        /*javaLibrary.assertPublished()
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:1') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('commons-collections:commons-collections:3.2.2') { rejects() }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary)*/
+    }
+
+    private void createBuildScripts(def append) {
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java-library'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+
+$append
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            ${mavenCentralRepository()}
+
+"""
     }
 }

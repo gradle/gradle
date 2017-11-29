@@ -85,6 +85,16 @@ class GradleFileModuleAdapter {
                             }
                         }
                     })
+                    dependencyConstraints(v.dependencyConstraints.collect { dc ->
+                        { ->
+                            group dc.group
+                            module dc.module
+                            version {
+                                prefers dc.prefers
+                                rejects dc.rejects
+                            }
+                        }
+                    })
                 }
             })
         }

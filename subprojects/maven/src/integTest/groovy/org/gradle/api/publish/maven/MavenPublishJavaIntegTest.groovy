@@ -208,9 +208,14 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             ${jcenterRepository()}
 
             dependencies {
-                api "org.springframework:spring-core:2.5.6"
+                api "org.springframework:spring-core:1.2.9"
+                implementation "org.apache.commons:commons-compress:1.5"
                 constraints {
+                    api "commons-logging:commons-logging:1.1"
                     implementation "commons-logging:commons-logging:1.2"
+                    implementation("org.tukaani:xz") {
+                        version { strictly "1.6" }
+                    }
                 }
             }
 
@@ -229,35 +234,111 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        javaLibrary.parsedPom.scopes.keySet() == ["compile"] as Set
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
         javaLibrary.parsedPom.scopes.compile.dependencies.size() == 1 //we do not publish constraints in POMs yet
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
+        javaLibrary.parsedPom.scopes.runtime.dependencies.size() == 1 //we do not publish constraints in POMs yet
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.springframework:spring-core:2.5.6') {
-                noMoreExcludes()
+            dependency('org.springframework:spring-core:1.2.9') {
                 rejects()
+                noMoreExcludes()
             }
+            constraint('commons-logging:commons-logging:1.1') { rejects() }
+
             noMoreDependencies()
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            constraint('commons-logging:commons-logging:1.2') {
+            dependency('org.springframework:spring-core:1.2.9') {
                 rejects()
-            }
-            dependency('org.springframework:spring-core:2.5.6') {
                 noMoreExcludes()
-                rejects()
             }
+            constraint('commons-logging:commons-logging:1.1') { rejects() }
+            constraint('commons-logging:commons-logging:1.2') { rejects() }
+
+            dependency('org.apache.commons:commons-compress:1.5') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('org.tukaani:xz:1.6') { rejects(']1.6,)') }
+
             noMoreDependencies()
         }
 
         and:
-        resolveArtifacts(javaLibrary) == [
-            //TODO should be commons-logging-1.2, once resolving works
-            'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        resolveArtifacts(javaLibrary, false) == [
+            'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
         ]
+
+        when:
+        resolveModuleMetadata = false
+
+        then: "constraints are not published to POM files"
+        resolveArtifacts(javaLibrary) == [
+            'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
+        ]
+    }
+
+    def "can publish java-library with dependencies without version"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections"
+                constraints {
+                    implementation "commons-collections:commons-collections:3.2.2"
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:")
+        javaLibrary.parsedPom.scopes.runtime.dependencies.size() == 1 //we do not publish constraints in POMs yet
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections') {
+                rejects()
+                noMoreExcludes()
+            }
+            constraint('commons-collections:commons-collections:3.2.2') { rejects() }
+            noMoreDependencies()
+        }
+
+        when:
+        // This currently fails, because the POM does not provide a version. There are several options to fix this.
+        // One or more of them will be implemented and then this test needs to be updated.
+        // - Do not publish the incomplete POM in the first place (only the module metadata)
+        // - Publish constraints to POM as optional dependencies or by substituting the empty version with the one from the constraint
+        // - Do not fail on consuming the broken POM, as we already have the module metadata
+        resolveArtifacts(javaLibrary, false, true)
+
+        then:
+        failure.assertHasCause("Could not parse POM ")
+        failure.assertHasCause("Unable to resolve version for dependency 'commons-collections:commons-collections:jar'")
     }
 
     def "can publish java-library with attached artifacts"() {
