@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
@@ -32,8 +32,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(scriptDsl, testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -54,7 +54,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
             .testRuntimeDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
 
         TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");

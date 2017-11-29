@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 import spock.lang.Unroll
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.Matchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -49,7 +49,7 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -71,7 +71,7 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         existingDslFixture.buildFile.createFile()
 
         when:
-        run('init', '--build-script-dsl', targetScriptDsl.id)
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
@@ -95,7 +95,7 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         existingDslFixture.settingsFile.createFile()
 
         when:
-        run('init', '--build-script-dsl', targetScriptDsl.id)
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
@@ -120,7 +120,7 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.usingBuildScript(customBuildScript)
-        run('init', '--build-script-dsl', targetScriptDsl.id)
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
@@ -149,7 +149,7 @@ include("child")
 
         when:
         executer.usingSettingsFile(customSettings)
-        run('init', '--build-script-dsl', targetScriptDsl.id)
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
@@ -170,7 +170,7 @@ include("child")
         pom()
 
         when:
-        run('init', '--build-script-dsl', scriptDsl.id)
+        run('init', '--dsl', scriptDsl.id)
 
         then:
         pomValuesUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
@@ -185,7 +185,7 @@ include("child")
         pom()
 
         when:
-        succeeds('init', '--type', 'java-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         pomValuesNotUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
@@ -202,9 +202,9 @@ include("child")
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
     }
 
-    def "gives decent error message when triggered with unknown build-script-dsl"() {
+    def "gives decent error message when triggered with unknown dsl"() {
         when:
-        fails('init', '--build-script-dsl', 'some-unknown-dsl')
+        fails('init', '--dsl', 'some-unknown-dsl')
 
         then:
         failure.assertHasDescription("The requested build script DSL 'some-unknown-dsl' is not supported.")
@@ -242,10 +242,10 @@ include("child")
                      pom
                      scala-library
 
-     --build-script-dsl     Set alternative build script DSL to be used.
-                            Available values are:
-                                 groovy
-                                 kotlin
+     --dsl     Set alternative build script DSL to be used.
+               Available values are:
+                    groovy
+                    kotlin
 
      --test-framework     Set alternative test framework to be used.
                           Available values are:

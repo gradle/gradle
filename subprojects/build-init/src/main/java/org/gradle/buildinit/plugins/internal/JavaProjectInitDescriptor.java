@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
@@ -44,8 +44,8 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(scriptDsl, testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
         Description desc = getDescription();
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
@@ -54,7 +54,7 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
-        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
 
         TemplateOperation javaSourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();

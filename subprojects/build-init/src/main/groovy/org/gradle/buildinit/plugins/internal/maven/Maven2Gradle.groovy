@@ -21,11 +21,11 @@ import org.apache.maven.project.MavenProject
 import org.gradle.api.JavaVersion
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.RelativePathUtil
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
+import static BuildInitDsl.GROOVY
+import static BuildInitDsl.KOTLIN
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
@@ -35,7 +35,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScri
  */
 class Maven2Gradle {
 
-    BuildInitBuildScriptDsl scriptDsl
+    BuildInitDsl dsl
     def dependentWars = []
     def qualifiedNames
     def workingDir
@@ -44,9 +44,9 @@ class Maven2Gradle {
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
 
-    Maven2Gradle(BuildInitBuildScriptDsl scriptDsl, Set<MavenProject> mavenProjects, File workingDir) {
+    Maven2Gradle(BuildInitDsl dsl, Set<MavenProject> mavenProjects, File workingDir) {
         assert !mavenProjects.empty: "No Maven projects provided."
-        this.scriptDsl = scriptDsl;
+        this.dsl = dsl;
         this.mavenProjects = mavenProjects
         this.workingDir = workingDir.canonicalFile;
     }
@@ -93,12 +93,12 @@ subprojects {
                 String moduleDependencies = dependencies.get(id)
                 boolean warPack = module.packaging.text().equals("war")
                 def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
-                def submoduleBuildFilename = scriptDsl.fileNameFor("build")
+                def submoduleBuildFilename = dsl.fileNameFor("build")
                 File submoduleBuildFile = new File(projectDir(module), submoduleBuildFilename)
 
                 def group = ''
                 if (module.groupId != allProjects[0].groupId) {
-                    switch (scriptDsl) {
+                    switch (dsl) {
                         case KOTLIN:
                             group = "group = \"${module.groupId}\""
                             break
@@ -177,7 +177,7 @@ ${globalExclusions(this.effectivePom)}
             }
             generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
         }
-        def buildFilename = scriptDsl.fileNameFor("build")
+        def buildFilename = dsl.fileNameFor("build")
         def buildFile = new File(workingDir, buildFilename)
         if (buildFile.exists()) {
             buildFile.renameTo(new File(workingDir, "${buildFilename}.bak"))
@@ -187,7 +187,7 @@ ${globalExclusions(this.effectivePom)}
     }
 
     def imperativelyApplyPlugin = { pluginId ->
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 return "apply { plugin(\"$pluginId\") }\n"
             case GROOVY:
@@ -198,7 +198,7 @@ ${globalExclusions(this.effectivePom)}
 
     def declarativelyApplyPlugins = { List<String> pluginIds ->
         String script = "plugins {\n"
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 pluginIds.each { pluginId ->
                     script += "    $pluginId\n"
@@ -223,7 +223,7 @@ ${globalExclusions(this.effectivePom)}
                 def tokens = it.text().tokenize(':')
                 def group = tokens[0]
                 def module = tokens.size() > 1 && tokens[1] != '*' ? tokens[1] : null
-                switch (scriptDsl) {
+                switch (dsl) {
                     case KOTLIN:
                         exclusions += "exclude(group = \"$group\""
                         if (module) {
@@ -247,7 +247,7 @@ ${globalExclusions(this.effectivePom)}
 
     def testNg(moduleDependencies) {
         if (moduleDependencies.contains('testng')) {
-            switch (scriptDsl) {
+            switch (dsl) {
                 case KOTLIN:
                     return """val test by tasks.getting(Test::class)
 test.useTestNG()
@@ -297,7 +297,7 @@ test.useTestNG()
     }
 
     private String getArtifactData(project) {
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 return """group = "$project.groupId"
 version = "$project.version\"""";
@@ -325,7 +325,7 @@ version = '$project.version'""";
 
     private void getRepositoriesForModule(module, repoSet) {
         module.repositories.repository.each {
-            switch (scriptDsl) {
+            switch (dsl) {
                 case KOTLIN:
                     repoSet.add("    maven { url = uri(\"${it.url}\") }")
                     break;
@@ -427,7 +427,7 @@ version = '$project.version'""";
         def configuration = plugin('maven-compiler-plugin', project).configuration
         def encoding = project.properties.'project.build.sourceEncoding'.text()
         def settings = new StringBuilder()
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 if (useKotlinAccessors) {
                     settings.append "${indent}java {\n"
@@ -475,7 +475,7 @@ version = '$project.version'""";
     def packSources = { sourceSets ->
         def sourceSetStr = ''
         if (!sourceSets.empty) {
-            switch (scriptDsl) {
+            switch (dsl) {
                 case KOTLIN:
                     sourceSetStr = """val packageSources by tasks.creating(Jar::class) {
     classifier = "sources"
@@ -510,7 +510,7 @@ artifacts.archives packageSources"""
         if (!pluginGoal('test-jar', jarPlugin)) {
             return ''
         }
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 if (useKotlinAccessors) {
                     return """
@@ -585,7 +585,7 @@ artifacts.archives packageTests
         def qualifiedNames = [:]
         def projectName = "";
         if (dirName != mvnProjectName) {
-            switch (scriptDsl) {
+            switch (dsl) {
                 case KOTLIN:
                     projectName = "rootProject.name = \"${mvnProjectName}\"\n"
                     break
@@ -609,7 +609,7 @@ artifacts.archives packageTests
                 }
             }
         }
-        def settingsFilename = scriptDsl.fileNameFor("settings")
+        def settingsFilename = dsl.fileNameFor("settings")
         File settingsFile = new File(workingDir, settingsFilename)
         if (settingsFile.exists()) {
             settingsFile.renameTo(new File(workingDir, "${settingsFilename}.bak"))
@@ -617,7 +617,7 @@ artifacts.archives packageTests
         StringBuffer settingsText = new StringBuffer(projectName)
         if (moduleNames.size() > 0) {
             moduleNames.each {
-                switch (scriptDsl) {
+                switch (dsl) {
                     case KOTLIN:
                         settingsText.append("include(\"$it\")\n")
                         break;
@@ -653,7 +653,7 @@ artifacts.archives packageTests
  */
     private def createBasicDependency(mavenDependency, build, String scope, useKotlinAccessors) {
         def classifier = contructSignature(mavenDependency)
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 if (useKotlinAccessors) {
                     build.append("    ${scope}(${classifier})\n")
@@ -674,7 +674,7 @@ artifacts.archives packageTests
             dependentWars += projectDep
         }
         def fqn = fqn(projectDep, allProjects)
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 if (useKotlinAccessors) {
                     build.append "    ${scope}(project(\"$fqn\"))\n"
@@ -693,7 +693,7 @@ artifacts.archives packageTests
  * classifier if it exists
  */
     private def contructSignature(mavenDependency) {
-        switch (scriptDsl) {
+        switch (dsl) {
             case KOTLIN:
                 def gradelDep = "group = \"${mavenDependency.groupId.text()}\", name = \"${mavenDependency.artifactId.text()}\", version = \"${mavenDependency?.version?.text()}\""
                 def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier = \"" + mavenDependency.classifier.text().trim() + '"' : gradelDep

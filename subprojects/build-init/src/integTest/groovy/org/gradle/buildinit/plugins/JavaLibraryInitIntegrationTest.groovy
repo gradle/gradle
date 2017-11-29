@@ -36,7 +36,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -60,7 +60,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'spock', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -84,7 +84,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'testng', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -121,7 +121,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

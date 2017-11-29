@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
@@ -34,8 +34,8 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     }
 
     @Override
-    public void generate(BuildInitBuildScriptDsl scriptDsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(scriptDsl, testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
 
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
             .fileComment("This generated file contains a sample Groovy project to get you started.")
@@ -47,7 +47,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
             .testCompileDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(buildScriptBuilder);
-        buildScriptBuilder.create(scriptDsl, fileResolver.resolve(scriptDsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
 
         TemplateOperation groovySourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();

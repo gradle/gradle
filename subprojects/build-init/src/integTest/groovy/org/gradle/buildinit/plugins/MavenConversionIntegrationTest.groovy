@@ -29,8 +29,8 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.GROOVY
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitBuildScriptDsl.KOTLIN
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
@@ -65,7 +65,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         dslFixture.assertGradleFilesGenerated()
@@ -105,7 +105,7 @@ Root project 'webinar-parent'
         withMavenBuild('multiModuleWithNestedParent')
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -131,7 +131,7 @@ Root project 'webinar-parent'
 
         when:
         executer.inDirectory(file("webinar-parent"))
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, file("webinar-parent")).assertGradleFilesGenerated()
@@ -170,7 +170,7 @@ Root project 'webinar-parent'
 
         when:
         executer.withArgument("-d")
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -194,7 +194,7 @@ Root project 'webinar-parent'
         def workingDir = temporaryFolder.createDir("workingDir")
         when:
         executer.inDirectory(workingDir).usingProjectDirectory(file('.'))
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -217,7 +217,7 @@ Root project 'webinar-parent'
         withMavenBuild('testjar')
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -239,7 +239,7 @@ Root project 'webinar-parent'
         withMavenBuild('enforcerplugin')
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
@@ -279,7 +279,7 @@ it.exclude group: '*', module: 'badArtifact'
         withMavenBuild('providedNotWar')
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -312,7 +312,7 @@ it.exclude group: '*', module: 'badArtifact'
         withMavenBuild('mavenExtensions')
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
@@ -339,7 +339,7 @@ it.exclude group: '*', module: 'badArtifact'
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -364,7 +364,7 @@ it.exclude group: '*', module: 'badArtifact'
         executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
@@ -392,7 +392,7 @@ it.exclude group: '*', module: 'badArtifact'
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--build-script-dsl', scriptDsl.id
+        run 'init', '--dsl', scriptDsl.id
 
         then:
         ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()

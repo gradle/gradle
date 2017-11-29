@@ -22,7 +22,7 @@ import org.gradle.api.tasks.wrapper.Wrapper;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public enum BuildInitBuildScriptDsl {
+public enum BuildInitDsl {
 
     GROOVY(".gradle", Wrapper.DistributionType.BIN),
     KOTLIN(".gradle.kts", Wrapper.DistributionType.ALL);
@@ -30,16 +30,16 @@ public enum BuildInitBuildScriptDsl {
     private final String fileExtension;
     private final Wrapper.DistributionType wrapperDistributionType;
 
-    BuildInitBuildScriptDsl(String fileExtension, Wrapper.DistributionType wrapperDistributionType) {
+    BuildInitDsl(String fileExtension, Wrapper.DistributionType wrapperDistributionType) {
         this.fileExtension = fileExtension;
         this.wrapperDistributionType = wrapperDistributionType;
     }
 
-    public static BuildInitBuildScriptDsl fromName(@Nullable String name) {
+    public static BuildInitDsl fromName(@Nullable String name) {
         if (name == null) {
             return GROOVY;
         }
-        for (BuildInitBuildScriptDsl language : values()) {
+        for (BuildInitDsl language : values()) {
             if (language.getId().equals(name)) {
                 return language;
             }
@@ -49,8 +49,8 @@ public enum BuildInitBuildScriptDsl {
 
     public static List<String> listSupported() {
         ImmutableList.Builder<String> supported = ImmutableList.builder();
-        for (BuildInitBuildScriptDsl language : values()) {
-            supported.add(language.getId());
+        for (BuildInitDsl dsl : values()) {
+            supported.add(dsl.getId());
         }
         return supported.build();
     }

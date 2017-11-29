@@ -33,7 +33,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'scala-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -67,7 +67,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        succeeds('init', '--type', 'scala-library', '--build-script-dsl', scriptDsl.id)
+        succeeds('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

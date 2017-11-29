@@ -22,23 +22,23 @@ class BuildInitBuildScriptDslTest extends Specification {
 
     def "should convert valid build script DSL from string"() {
         expect:
-        BuildInitBuildScriptDsl.fromName("groovy") == BuildInitBuildScriptDsl.GROOVY
+        BuildInitDsl.fromName("groovy") == BuildInitDsl.GROOVY
 
         and:
-        BuildInitBuildScriptDsl.fromName("kotlin") == BuildInitBuildScriptDsl.KOTLIN
+        BuildInitDsl.fromName("kotlin") == BuildInitDsl.KOTLIN
     }
 
     def "should convert null build script DSL string to the default groovy"() {
         when:
-        def result = BuildInitBuildScriptDsl.fromName(null)
+        def result = BuildInitDsl.fromName(null)
 
         then:
-        result == BuildInitBuildScriptDsl.GROOVY
+        result == BuildInitDsl.GROOVY
     }
 
     def "should throw exception for unknown build script DSL"() {
         when:
-        BuildInitBuildScriptDsl.fromName("unknown")
+        BuildInitDsl.fromName("unknown")
 
         then:
         GradleException e = thrown()
@@ -47,7 +47,7 @@ class BuildInitBuildScriptDslTest extends Specification {
 
     def "should list all supported build script DSLs"() {
         when:
-        def result = BuildInitBuildScriptDsl.listSupported()
+        def result = BuildInitDsl.listSupported()
 
         then:
         result.size() == 2

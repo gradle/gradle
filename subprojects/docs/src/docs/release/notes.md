@@ -36,9 +36,9 @@ In this release, Gradle's incremental C/C++ compilation is now able to understan
 
 ### The `init` task can now generate Kotlin DSL build scripts
 
-It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--build-script-dsl` option:
+It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--dsl` option:
 
-    gradle init --build-script-dsl kotlin 
+    gradle init --dsl kotlin 
 
 The new option defaults to `groovy` and is supported by all build setup types, including migration from Maven builds.
 
