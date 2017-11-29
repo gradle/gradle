@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Strings;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
@@ -36,7 +37,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     public DefaultMutableVersionConstraint(String version, boolean strict) {
-        this.prefer = version;
+        this.prefer = nullToEmpty(version);
         if (strict) {
             doStrict();
         } else {
@@ -76,13 +77,13 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void prefer(String version) {
-        this.prefer = version;
+        this.prefer = Strings.nullToEmpty(version);
         this.rejects = Collections.emptyList();
     }
 
     @Override
     public void strictly(String version) {
-        this.prefer = version;
+        prefer(version);
         doStrict();
     }
 

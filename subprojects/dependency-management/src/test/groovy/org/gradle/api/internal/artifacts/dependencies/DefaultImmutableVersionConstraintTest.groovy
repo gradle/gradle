@@ -65,6 +65,39 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         e.message == 'Preferred version must not be null'
     }
 
+    def "cannot use empty or null as rejected version"() {
+
+        when:
+        new DefaultImmutableVersionConstraint('', [null])
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Rejected version must not be empty'
+
+        when:
+        new DefaultImmutableVersionConstraint('', [''])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == 'Rejected version must not be empty'
+    }
+
+    def "can use empty as preferred version"() {
+        when:
+        def v = new DefaultImmutableVersionConstraint('')
+
+        then:
+        v.preferredVersion == ''
+        v.rejectedVersions.empty
+
+        when:
+        v = new DefaultImmutableVersionConstraint('', ['1.1','2.0'])
+
+        then:
+        v.preferredVersion == ''
+        v.rejectedVersions == ['1.1', '2.0']
+    }
+
     def "cannot use null as rejected versions"() {
         when:
         def v = new DefaultImmutableVersionConstraint('1.0', null)

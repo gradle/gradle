@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.util.GUtil;
 
 import java.util.List;
 
@@ -32,6 +33,11 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         }
         if (rejectedVersions == null) {
             throw new IllegalArgumentException("Rejected versions must not be null");
+        }
+        for (String rejectedVersion : rejectedVersions) {
+            if (!GUtil.isTrue(rejectedVersion)) {
+                throw new IllegalArgumentException("Rejected version must not be empty");
+            }
         }
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
