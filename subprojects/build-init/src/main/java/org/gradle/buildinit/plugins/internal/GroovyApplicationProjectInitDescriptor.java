@@ -27,13 +27,7 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
 
     @Override
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder
-            .plugin(
-                "Apply the application plugin to add support for building an application",
-                "application")
-            .conventionPropertyAssignment(
-                "Define the main class for the application",
-                "application", "mainClassName", "App");
+        buildScriptBuilder.applicationWithMainClassName("App");
     }
 
     @Override
