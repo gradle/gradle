@@ -73,14 +73,18 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         if (GradleMetadataResolveRunner.useIvy()) {
             def httpModule = ivyHttpRepo.module(group, module, version)
             uris << httpModule.ivy.uri
-            uris << httpModule.moduleMetadata.uri
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                uris << httpModule.moduleMetadata.uri
+            }
             if (includeJar) {
                 uris << httpModule.artifact.uri
             }
         } else {
             def httpModule = mavenHttpRepo.module(group, module, version)
             uris << httpModule.pom.uri
-            uris << httpModule.moduleMetadata.uri
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                uris << httpModule.moduleMetadata.uri
+            }
             if (includeJar) {
                 uris << httpModule.artifact.uri
             }
@@ -114,7 +118,9 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     def setup() {
         settingsFile << "rootProject.name = '$rootProjectName'"
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
         resolve.prepare()
         buildFile << """
             $repository

@@ -127,7 +127,9 @@ class ModuleVersionSpec {
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
-                    module.moduleMetadata.allowGetOrHead()
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    }
                     break
                 case InteractionExpectation.HEAD:
                     if (module instanceof MavenModule) {
@@ -137,8 +139,6 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectHead()
-                    } else {
-                        module.moduleMetadata.allowGetOrHead()
                     }
                     break
                 default:
@@ -149,8 +149,6 @@ class ModuleVersionSpec {
                     }
                     if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectGet()
-                    } else {
-                        module.moduleMetadata.allowGetOrHead()
                     }
             }
         }
