@@ -18,9 +18,12 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.util.GUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getPluginName() {
@@ -37,10 +40,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getMainTask() {
         return "assemble"
-    }
-
-    def setup() {
-        executer.noDeprecationChecks()
     }
 
     def "can apply plugin unqualified"() {

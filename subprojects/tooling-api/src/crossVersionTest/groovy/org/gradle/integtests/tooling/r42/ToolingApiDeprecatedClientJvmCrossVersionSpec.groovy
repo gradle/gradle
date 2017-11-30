@@ -65,6 +65,7 @@ public class TestClient {
             .useGradleUserHomeDir(new File("${buildContext.gradleUserHomeDir.toString().replace(File.separator,"/")}"))
             .connect()
             .newBuild()
+            .withArguments("-Dorg.gradle.internal.deprecation.report=true")
             .forTasks("help")
             .setStandardOutput(System.out)
             .setStandardError(System.out)

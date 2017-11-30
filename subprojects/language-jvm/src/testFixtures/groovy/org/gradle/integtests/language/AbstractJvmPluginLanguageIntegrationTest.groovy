@@ -19,9 +19,12 @@ package org.gradle.integtests.language
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getSourceSetTypeName()
@@ -40,7 +43,6 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             id 'jvm-component'
             id '${languageName}-lang'
         }"""
-        executer.noDeprecationChecks()
     }
 
     def "creates default source sets"() {
